@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {"publisher": "nvidia", "slug": "nemotron-3-5-lightning-30b-a3b"},
+  "metadata": {
+    "title": "Nemotron 3.5 Lightning 30B-A3B",
+    "description": "NVIDIA Nemotron 3.5 Lightning hybrid Mamba-Transformer MoE model with 30B total and 3B active parameters.",
+    "tags": ["nvidia", "nemotron", "language", "reasoning", "moe", "agentic"]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "nvidia",
+    "slug": "nemotron",
+    "content_sha256": "ffec25a32adc5a32fddafdf21a3957b0e22c4c90daa2d5f78b495ec22d8cf1f5"
+  },
+  "architecture": "Nemotron 3.5 hybrid Mamba-2, attention, sparse MoE, and multi-token prediction"
+}
