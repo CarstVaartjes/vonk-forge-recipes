@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "openmoss",
+    "slug": "mova-720p"
+  },
+  "metadata": {
+    "title": "MOVA",
+    "description": "MOVA 720p model family.",
+    "tags": [
+      "openmoss",
+      "video",
+      "generation"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "openmoss",
+    "slug": "mova",
+    "content_sha256": "0d25e621d8a56806b4f0023384829c1a11829c07509808854f8e6a7da738021a"
+  },
+  "architecture": "upstream-native generation pipeline"
+}

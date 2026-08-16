@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "minimax",
+    "slug": "minimax-h3"
+  },
+  "metadata": {
+    "title": "MiniMax H3",
+    "description": "MiniMax's public multimodal generation target.",
+    "tags": [
+      "minimax",
+      "minimax-h3",
+      "video"
+    ]
+  },
+  "family": "minimax-h3"
+}

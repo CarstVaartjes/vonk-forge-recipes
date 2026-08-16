@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "poolside",
+    "slug": "laguna-s-2-1"
+  },
+  "metadata": {
+    "title": "Laguna S 2.1",
+    "description": "Poolside Laguna S 2.1 agentic coding model.",
+    "tags": [
+      "poolside",
+      "language",
+      "reasoning"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "poolside",
+    "slug": "poolside",
+    "content_sha256": "04f6ee06b0b11a3934cbe4a736f5c2e0309c926e664f81cfddc1f31b076a45f9"
+  },
+  "architecture": "Sliding-window attention and gated sparse mixture-of-experts transformer"
+}

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "vast-ai",
+    "slug": "skintokens"
+  },
+  "metadata": {
+    "title": "SkinTokens /",
+    "description": "SkinTokens / TokenRig model family.",
+    "tags": [
+      "vast-ai",
+      "three-d",
+      "generation"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "vast-ai",
+    "slug": "skintokens",
+    "content_sha256": "8f9636faac77d8970016efebc7dfe810dc9d4b04e9b7f0de6f56932b1d1ce67a"
+  },
+  "architecture": "upstream-native generation pipeline"
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "vast-ai",
+    "slug": "triposg"
+  },
+  "metadata": {
+    "title": "TripoSG",
+    "description": "VAST-AI single-image 3D generation family.",
+    "tags": [
+      "vast-ai",
+      "triposg",
+      "three-d"
+    ]
+  },
+  "family": "triposg"
+}

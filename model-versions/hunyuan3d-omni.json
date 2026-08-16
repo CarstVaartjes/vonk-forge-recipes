@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hunyuan3d-omni"
+  },
+  "metadata": {
+    "title": "Hunyuan3D-Omni",
+    "description": "Immutable public snapshot at 70e803bf.",
+    "tags": [
+      "tencent",
+      "three-d",
+      "candidate"
+    ]
+  },
+  "model": {
+    "kind": "model",
+    "publisher": "tencent",
+    "slug": "hunyuan3d-omni",
+    "content_sha256": "8c63b5f88b85bc2a993e9195885b8609fd53d397b6175b510817fb6ffb41029b"
+  },
+  "version": "Hunyuan3D-Omni",
+  "source": {
+    "repository": "https://huggingface.co/tencent/Hunyuan3D-Omni",
+    "revision": "70e803bfb4e127d534049d8ab8c8cb511780d485"
+  },
+  "lineage": {
+    "publisher": "tencent",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "tencent",
+      "slug": "hunyuan3d-omni",
+      "content_sha256": "8c63b5f88b85bc2a993e9195885b8609fd53d397b6175b510817fb6ffb41029b"
+    },
+    "derivation": "Immutable public upstream snapshot at the pinned revision."
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "parameters": {
+    "total": null,
+    "active": null
+  },
+  "limits": {
+    "context_tokens": null
+  },
+  "sizes": {
+    "download_bytes": 25729134701,
+    "installed_bytes": 25729134701
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/tencent/Hunyuan3D-Omni/blob/70e803bfb4e127d534049d8ab8c8cb511780d485/LICENSE",
+    "attribution": [
+      "tencent"
+    ],
+    "operator_acceptance_required": true
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "artifacts": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/tencent/Hunyuan3D-Omni",
+      "revision": "70e803bfb4e127d534049d8ab8c8cb511780d485",
+      "sha256": "ab0f993eb838a5f4156bcf4b155913bf3b9562fefc7e34e186de3423f180bc09",
+      "download_bytes": 25729134701,
+      "installed_bytes": 25729134701,
+      "roles": [
+        "entrypoint"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}
