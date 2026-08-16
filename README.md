@@ -71,6 +71,8 @@ repository and model card, exact Hugging Face revisions, and the selected
 runtime project's official documentation. Community reports and independent
 benchmarks are useful discovery signals, but they do not make a recipe
 accepted. For example, the current video/audio survey records the open-weight
-LTX-2, MOVA, and HunyuanVideo-Foley checkpoints as candidates while keeping
+LTX-2.3, MOVA, and HunyuanVideo-Foley checkpoints as candidates while keeping
 their recipes out of the runnable catalog until an ARM64 container and Spark
-canary exist.
+canary exist. Qwen Image Layered is the latest addition to the structural
+recipe set; it demonstrates the isolated `/inputs` contract and emits a
+multi-artifact layer result rather than an OpenAI response.
