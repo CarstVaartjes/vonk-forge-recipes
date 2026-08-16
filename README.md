@@ -51,9 +51,11 @@ this checkout first, uploads only the referenced public build contexts, and
 records the exact Git commit in the local import receipt. Its default is a
 dry-run; candidate recipes require an explicit opt-in.
 
-The initial accepted entries are the single-Spark DeepSeek DS4 recipe and the
-two-Spark official DSpark/Mia recipe. The rest of the target ledger is clearly
-marked as candidate or blocked until it has exact artifacts and evidence.
+The DeepSeek DS4 and two-Spark official DSpark/Mia recipes are structurally
+recreated in v1, but remain candidates until they pass fresh physical
+acceptance. Historical prototype evidence is deliberately not reused. The
+rest of the target ledger is clearly marked as candidate or blocked until it
+has exact artifacts and current evidence.
 
 The target ledger is maintained from primary sources: the model author's
 repository and model card, exact Hugging Face revisions, and the selected
