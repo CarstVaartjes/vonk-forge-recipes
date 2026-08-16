@@ -1,0 +1,896 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4"
+  },
+  "metadata": {
+    "title": "Nemotron 3.5 Lightning 30B-A3B NVFP4",
+    "description": "Official NVIDIA Nemotron 3.5 Lightning NVFP4 checkpoint with DSpark-oriented model packaging.",
+    "tags": [
+      "nvidia",
+      "nemotron",
+      "language",
+      "reasoning",
+      "nvfp4",
+      "spark",
+      "agentic"
+    ]
+  },
+  "model": {
+    "kind": "model",
+    "publisher": "nvidia",
+    "slug": "nemotron-3-5-lightning-30b-a3b",
+    "content_sha256": "8bb9c583e836ad08f3b933357ce6d58777d0873d58f53f41ed03d4094925bace"
+  },
+  "version": "nvfp4-6dbbd757",
+  "source": {
+    "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4",
+    "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728"
+  },
+  "lineage": {
+    "publisher": "nvidia",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "nvidia",
+      "slug": "nemotron-3-5-lightning-30b-a3b",
+      "content_sha256": "8bb9c583e836ad08f3b933357ce6d58777d0873d58f53f41ed03d4094925bace"
+    },
+    "derivation": "Official NVIDIA NVFP4 release of Nemotron 3.5 Lightning."
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "nvfp4",
+    "quantization": "nvfp4"
+  },
+  "parameters": {
+    "total": 30000000000,
+    "active": 3000000000
+  },
+  "limits": {
+    "context_tokens": 1048576
+  },
+  "sizes": {
+    "download_bytes": 21583413244,
+    "installed_bytes": 21583413244
+  },
+  "license": {
+    "spdx": "LicenseRef-OpenMDW-1.1",
+    "url": "https://openmdw.ai/",
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "operator_acceptance_required": true
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "artifacts": [
+    {
+      "id": "metadata-gitattributes",
+      "path": ".gitattributes",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/.gitattributes",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "8e951b009695dd089cd384aa4df2442969b1549d6325baec3d54f252d14a0e01",
+      "download_bytes": 1690,
+      "installed_bytes": 1690,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "metadata-license",
+      "path": "LICENSE",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/LICENSE",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "d7c8a9e5d1896d0a9588319cc7b1433e64645ad6d9e55632c30b78d8c038c23b",
+      "download_bytes": 2693,
+      "installed_bytes": 2693,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "metadata-readme",
+      "path": "README.md",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/README.md",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "6a1621eae3fc3a4c5bf9fc1511af29eccbaaf9a42d2e0a754ecc28e047a743a2",
+      "download_bytes": 89482,
+      "installed_bytes": 89482,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "tokenizer-chat-template",
+      "path": "chat_template.jinja",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/chat_template.jinja",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "58933db77d3099b4f78c55a38347a72e1ea05b97d6bd8f38775303dc0194e0a9",
+      "download_bytes": 9867,
+      "installed_bytes": 9867,
+      "roles": [
+        "tokenizer"
+      ]
+    },
+    {
+      "id": "configuration",
+      "path": "config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/config.json",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "f1d98b530846087dc08b574a219713a94f945bf6583dc7230a19ebf1e8c50933",
+      "download_bytes": 1337760,
+      "installed_bytes": 1337760,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "generation-config",
+      "path": "generation_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/generation_config.json",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "c67c90fcadf0e7ef78b663eb159664b36a35ffb9dd2523096e226e5c3d1b0e5f",
+      "download_bytes": 209,
+      "installed_bytes": 209,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "quantization-config",
+      "path": "hf_quant_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/hf_quant_config.json",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "529a5a524399ff5b68aabf8564db60b2fc62ad0a84b9c5038efc220c375e0938",
+      "download_bytes": 928085,
+      "installed_bytes": 928085,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "weights-index",
+      "path": "model.safetensors.index.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model.safetensors.index.json",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "3c3bc7efa8d658c2e909a0b9020eb0f72064e6647de348856af4dee9895bead9",
+      "download_bytes": 1905918,
+      "installed_bytes": 1905918,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "special-tokens",
+      "path": "special_tokens_map.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/special_tokens_map.json",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "e9435fefd6d838fd9fcbbc44b97a8e3ff322be7f6dfb7e4fd2468586574bb52b",
+      "download_bytes": 563,
+      "installed_bytes": 563,
+      "roles": [
+        "tokenizer"
+      ]
+    },
+    {
+      "id": "tokenizer",
+      "path": "tokenizer.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/tokenizer.json",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "623c34567aebb18582765289fbe23d901c62704d6518d71866e0e58db892b5b7",
+      "download_bytes": 17077484,
+      "installed_bytes": 17077484,
+      "roles": [
+        "tokenizer"
+      ]
+    },
+    {
+      "id": "tokenizer-config",
+      "path": "tokenizer_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/tokenizer_config.json",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "10f93eabcb9b1602fbb991d6308e787ce1df28ee9cd7a1c6d1e8c3f338b957bc",
+      "download_bytes": 177209,
+      "installed_bytes": 177209,
+      "roles": [
+        "tokenizer"
+      ]
+    },
+    {
+      "id": "weights-01",
+      "path": "model-00001-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00001-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "888bcef72eb455cd03259772930645c1bbdc5c88e07f6b2a0eb39bb0db5a8124",
+      "download_bytes": 743427168,
+      "installed_bytes": 743427168,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-02",
+      "path": "model-00002-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00002-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "e4ccbba8fcd7acf79237eafeff099f5181c77e20922456c0a51971eaa752aad0",
+      "download_bytes": 731109880,
+      "installed_bytes": 731109880,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-03",
+      "path": "model-00003-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00003-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "43e3913dd527b43719e1d11b6748ee9f79ecbdcd1d955f625f9f8944a8560d8e",
+      "download_bytes": 38783920,
+      "installed_bytes": 38783920,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-04",
+      "path": "model-00004-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00004-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "eaf6d9a9176d2509151cc9fc9f23251312fd530ae3c15db21ca78551d59e245b",
+      "download_bytes": 731109880,
+      "installed_bytes": 731109880,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-05",
+      "path": "model-00005-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00005-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "7093e10d292bf9c50e5091017b40644ac0e940e10929c70c9d6c3d6dac4e9fbe",
+      "download_bytes": 38783920,
+      "installed_bytes": 38783920,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-06",
+      "path": "model-00006-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00006-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "69a6b4af0e305025d27b0f15afb07a67796f2a95aeb9db93baf15bc5e3686682",
+      "download_bytes": 46798848,
+      "installed_bytes": 46798848,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-07",
+      "path": "model-00007-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00007-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "64e979c161c01a6a3debbcdaee3f2e4276e59e2ec91a8f018e4599980871d17d",
+      "download_bytes": 731109880,
+      "installed_bytes": 731109880,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-08",
+      "path": "model-00008-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00008-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "e9ec426460203cc022b47046f5befa499f379800cd5de1e2d08211620d56250e",
+      "download_bytes": 38783920,
+      "installed_bytes": 38783920,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-09",
+      "path": "model-00009-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00009-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "a55dace63af6bccc3e8a646210cd93e04321b020c2d2fa8336fe121340aa8837",
+      "download_bytes": 731109880,
+      "installed_bytes": 731109880,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-10",
+      "path": "model-00010-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00010-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "2f8a5d50211146cc0a9ae7bb5c1758a9509e409a154e22eb6bf322cfe962a150",
+      "download_bytes": 38783920,
+      "installed_bytes": 38783920,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-11",
+      "path": "model-00011-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00011-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "e3caa78e07d61fdce46d61cb03928f006c131d203d9cc3f02664c3addd3b5db6",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-12",
+      "path": "model-00012-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00012-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "914e7108c94435e7c27a35481ec61f2b2ee44ecb8505736822d60711cec99cc5",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-13",
+      "path": "model-00013-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00013-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "dbb67167aa4891564404b0315093313708e48c2fad513472eee35730405b4d63",
+      "download_bytes": 46798856,
+      "installed_bytes": 46798856,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-14",
+      "path": "model-00014-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00014-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "59bda5e9f9c0e672fd9f736cd26946e011588c7b859acc3fa39262c16f0185c7",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-15",
+      "path": "model-00015-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00015-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "244085e2dccb21cedf95c2d02ce5513bc59c899c6996af9fb30e99e6be1b0cda",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-16",
+      "path": "model-00016-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00016-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "49e911aa0a9e6cadc8437c1b4200066a67208194420063f04d1f72440e1ea914",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-17",
+      "path": "model-00017-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00017-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "be93686a89e35321f4e341060d2f20fdd6ece1aae67b4ccbe1a19521d1913b61",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-18",
+      "path": "model-00018-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00018-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "0068cb3fdb3ab506b2fe1ffb3d6ee0097410623a3631613a4e2a148320ca48cb",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-19",
+      "path": "model-00019-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00019-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "80dd82fa5aa3efaeb5a0b39015eec7bd444c6476f0f0bfac379a830098d136cb",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-20",
+      "path": "model-00020-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00020-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "78163f262c027d308a0cd40a2a609b9d990fd3d139043de63ea83511f335f1c6",
+      "download_bytes": 46798856,
+      "installed_bytes": 46798856,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-21",
+      "path": "model-00021-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00021-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "3c8cd9ee1697f8bb5321a03aa96b5af8f8d90e2f4b125a973925ca6c7c1af1d7",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-22",
+      "path": "model-00022-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00022-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "bf28dd8ac79e3e25ef359928de27e5ecb5fdcb641ac8525f25f63ec0a79d72d4",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-23",
+      "path": "model-00023-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00023-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "4fa19a7cde4b2a95f489d665a77b5feae865af3ab26d4bc073a00a71a222b572",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-24",
+      "path": "model-00024-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00024-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "c4f037b74e903e81998d3f9cf49acb211cf2ca76d7d46d8ace618e8457eb28ad",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-25",
+      "path": "model-00025-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00025-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "654faf634e955a60ba27d90384b604fdd85107283b82eb80fecf663755e45694",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-26",
+      "path": "model-00026-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00026-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "af15f7b30f8927623aa0990d4380060c899b6d6b302cbc412905dc4b82fbf1bc",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-27",
+      "path": "model-00027-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00027-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "7bb3ef773deb6b996e1541a840158f4add7da3d73b8c4a39b85f7b8025a4c7da",
+      "download_bytes": 46798856,
+      "installed_bytes": 46798856,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-28",
+      "path": "model-00028-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00028-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "4b18b88a92f4d31f6879e1e052ba95e78fd9cb6fc4c04097af32c9c3215a27bb",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-29",
+      "path": "model-00029-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00029-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "01663ac82de70d7e7a5dcbbd2009400ae09aa1e009a4885403faa692bb506cd3",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-30",
+      "path": "model-00030-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00030-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "fd8424d9af1dcd9f1e605ceacc50bb4bc911eda881e4f9c2adea883cc28eb845",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-31",
+      "path": "model-00031-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00031-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "eb63eada975e9759bf120145d0fdce7d46c947b662bf48868a06c0a7c18746db",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-32",
+      "path": "model-00032-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00032-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "8aceda9b3b5b55815b8f6ac27b04ad28949c0afd839b35a086b8f504831511a0",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-33",
+      "path": "model-00033-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00033-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "147e7f2215bbeba1ef42f8a09ecc793dae1efce2cede70d5b4f6f6fa4f754610",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-34",
+      "path": "model-00034-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00034-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "0423ee99ab49b0efa77b74b68c9f6afb1dc157ed23d2a08891b016ce2b70b9b5",
+      "download_bytes": 46798856,
+      "installed_bytes": 46798856,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-35",
+      "path": "model-00035-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00035-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "6cface826d684824a3ef08ce62c494f11c6cda7fa9ace0152b46645abac4173a",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-36",
+      "path": "model-00036-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00036-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "030765b08c3535420ea68be49e1bc900adc83b17502bfb2c514a94f33fc66cdb",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-37",
+      "path": "model-00037-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00037-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "78c04336fa61a6141de47bd1be7048938ddde7043edc8ef52670579437e78510",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-38",
+      "path": "model-00038-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00038-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "cd956d4f71cd527392f9e03a627988a04c9d2ecbc7ef634f1ffde5db0ee0790a",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-39",
+      "path": "model-00039-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00039-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "77c8214f06949fdee5dff6f9c7dea822b2190c351b583ad1557eddb2c9c215bc",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-40",
+      "path": "model-00040-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00040-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "9fb857edb88104d22cbf6cfa8c958d89c0082307defcaea895f61f97a1955b1c",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-41",
+      "path": "model-00041-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00041-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "9b926906bf6f5970fe8d2ff1ae2a86e8ef93b67d34fda67bda3451df97fd4d67",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-42",
+      "path": "model-00042-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00042-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "64ddbec33493c1c5a44cf8bfb540aaef901c9cc60c8243472fc577fb226efb0e",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-43",
+      "path": "model-00043-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00043-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "31b02b713a3ba2bee358c619fb1a7110f726ada2331888c7c92e9edc5c531659",
+      "download_bytes": 46798856,
+      "installed_bytes": 46798856,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-44",
+      "path": "model-00044-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00044-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "da0a1c50821a784b975b2d9e71cf11061d0049acdca21882eda71b76145272f6",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-45",
+      "path": "model-00045-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00045-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "f90f54225fe9f33eaaa1208d5247bc1d8bffa083ec522044c010b791fb0a34a0",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-46",
+      "path": "model-00046-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00046-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "0e0259806608a911ea0491c534cacb020dc43ff97d00b2d10d0ebb60a2bec793",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-47",
+      "path": "model-00047-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00047-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "6964ea5d61b5e58a03d792dd557438d1584f403eaa85ac642f2ba8388392a9d4",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-48",
+      "path": "model-00048-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00048-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "86d117112dc86bd03166ec819b7625db0124cb2240025f85c886748049654aee",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-49",
+      "path": "model-00049-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00049-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "f0cdd8150bd4f85f79235adb09fe63f4d9875f26d773d25b5282ed9d627fcc39",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-50",
+      "path": "model-00050-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00050-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "1a5a3913b8cbacd0e7e2d9ca5342def3f55f8e63e78e23f85a78e1807e60510d",
+      "download_bytes": 731110656,
+      "installed_bytes": 731110656,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-51",
+      "path": "model-00051-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00051-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "849f344bf3c7eb6b524125ecb1cec55402080911a2c7da6626cce07909edb73a",
+      "download_bytes": 38783936,
+      "installed_bytes": 38783936,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "weights-52",
+      "path": "model-00052-of-00052.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/6dbbd757ea75a8ece6e0702872e3ae53f9987728/model-00052-of-00052.safetensors",
+      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+      "sha256": "61b58e1529dde14fe60e8cbb18a929937c9edcedd166dae4fbf756416d0bd971",
+      "download_bytes": 3599984132,
+      "installed_bytes": 3599984132,
+      "roles": [
+        "weights"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}

@@ -45,6 +45,12 @@ credential scan. GitHub Actions is the only publication path.
 5. Run structural, container, and Spark acceptance before changing a target to
    `accepted`.
 
+To install the accepted entries into a Vonk Forge control plane, use the
+platform repository's `scripts/import-recipe-library` command. It validates
+this checkout first, uploads only the referenced public build contexts, and
+records the exact Git commit in the local import receipt. Its default is a
+dry-run; candidate recipes require an explicit opt-in.
+
 The initial accepted entries are the single-Spark DeepSeek DS4 recipe and the
 two-Spark official DSpark/Mia recipe. The rest of the target ledger is clearly
 marked as candidate or blocked until it has exact artifacts and evidence.
