@@ -7,10 +7,6 @@ on:
         description: "New immutable recipe-library tag, for example v1.0.0"
         required: true
         type: string
-      platform_ref:
-        description: "Exact vonk-forge commit or release tag for the v1 contract"
-        required: true
-        type: string
 
 permissions:
   contents: write
@@ -19,7 +15,7 @@ jobs:
   validate:
     uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@833ed39cdf99201a5d26c898c3e4fcc843ec8810
     with:
-      platform_ref: ${{ inputs.platform_ref }}
+      platform_ref: 833ed39cdf99201a5d26c898c3e4fcc843ec8810
 
   publish:
     name: Create signed library release
