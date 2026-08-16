@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "lightricks",
+    "slug": "ltx-2"
+  },
+  "metadata": {
+    "title": "LTX-2",
+    "description": "Lightricks' 19B diffusion-based audio-video foundation model.",
+    "tags": [
+      "lightricks",
+      "ltx",
+      "video",
+      "audio",
+      "generation",
+      "diffusion"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "lightricks",
+    "slug": "ltx",
+    "content_sha256": "8b5f81d24c3d82c045c027d257d42b18ce8a6062e09adcfc5a8ed987ea38017a"
+  },
+  "architecture": "19B synchronized audio-video diffusion transformer with Gemma text conditioning"
+}

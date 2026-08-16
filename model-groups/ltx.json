@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "lightricks",
+    "slug": "ltx"
+  },
+  "metadata": {
+    "title": "LTX",
+    "description": "Lightricks' open-weight synchronized audio-video generation family.",
+    "tags": [
+      "lightricks",
+      "ltx",
+      "video",
+      "audio",
+      "multimodal"
+    ]
+  },
+  "family": "ltx"
+}
