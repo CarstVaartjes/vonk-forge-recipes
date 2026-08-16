@@ -8,7 +8,9 @@ container layers, credentials, or fleet state.
 
 - `model-groups/`, `models/`, and `model-versions/`: exact model identity and
   artifact provenance;
-- `recipes/`: one immutable execution binding per topology;
+- `recipes/`: one immutable execution binding per topology, including the
+  primary model version and any exact auxiliary model versions such as a
+  LoRA, encoder, tokenizer, VAE, or upscaler;
 - `runtime-distributions/` and `patch-bundles/`: exact runtime/patch identity
   selected by recipes;
 - `model-targets/`: the research ledger, including candidate and blocked
@@ -40,9 +42,13 @@ credential scan. GitHub Actions is the only publication path.
    optional patch bundle.
 3. Add one recipe for one topology. Replicas and distributed ranks are not
    interchangeable.
-4. Keep source contexts deterministic and free of secrets; build-time patches
+4. If the runtime needs companion weights, add each companion as its own
+   model-version entity and reference it through the recipe's exact
+   `dependencies` list. Do not hide a mutable download or a second model
+   family inside an adapter script.
+5. Keep source contexts deterministic and free of secrets; build-time patches
    must be applied and verified before an image is published.
-5. Run structural, container, and Spark acceptance before changing a target to
+6. Run structural, container, and Spark acceptance before changing a target to
    `accepted`.
 
 To install the accepted entries into a Vonk Forge control plane, use the
