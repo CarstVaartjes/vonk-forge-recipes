@@ -11,6 +11,6 @@ permissions:
 
 jobs:
   validate:
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@main
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@470c5ae71e3bd122c398ee9831972d5bf4eac3c8
     with:
       platform_ref: main
