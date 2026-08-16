@@ -4,7 +4,6 @@ import argparse
 import os
 from pathlib import Path
 
-
 _IMAGE_SUFFIXES = frozenset({".jpg", ".jpeg", ".png", ".webp"})
 
 
