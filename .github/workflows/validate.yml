@@ -1,0 +1,16 @@
+name: Validate recipes
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@main
+    with:
+      platform_ref: main
