@@ -24,7 +24,7 @@
   "build": {
     "context": {
       "path": "adapters/nvidia/nemotron",
-      "sha256": "1250ed11f487a3cc8d57a67c8b87f42a82d4a468308768f79693babdb2ce9b38",
+      "sha256": "2d619b7a8edd8ef2115725d6120d388a9643ee4d43c6656e85ced65d85d56076",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
