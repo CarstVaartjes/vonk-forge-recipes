@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {"publisher": "nvidia", "slug": "nemotron"},
+  "metadata": {
+    "title": "NVIDIA Nemotron",
+    "description": "NVIDIA's open Nemotron model family for reasoning, agentic, and multimodal workloads.",
+    "tags": ["nvidia", "nemotron", "language", "reasoning", "moe"]
+  },
+  "family": "nemotron"
+}
