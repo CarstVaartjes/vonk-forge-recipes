@@ -59,9 +59,8 @@
       "slug": "vllm-0-27-1-nvidia-arm64",
       "content_sha256": "95b0467cb73eeabfe8fd0c4f5f5e4f19a935b6bca3d56ed4bb6fc888470eca4a"
     },
-    "entrypoint": ["vllm", "serve"],
+    "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
     "arguments": [
-      {"name": "model", "value": "/models"},
       {"name": "served-model-name", "value": "nemotron-3-nano"},
       {"name": "max-model-len", "value": 16384},
       {"name": "max-num-seqs", "value": 4},
@@ -69,7 +68,7 @@
       {"name": "enable-prefix-caching", "value": true},
       {"name": "async-scheduling", "value": true},
       {"name": "mamba-ssm-cache-dtype", "value": "float32"},
-      {"name": "reasoning-parser", "value": "nano_v3"},
+      {"name": "reasoning-parser", "value": "nemotron_v3"},
       {"name": "enable-auto-tool-choice", "value": true},
       {"name": "tool-call-parser", "value": "qwen3_coder"}
     ],
