@@ -37,7 +37,7 @@
   "build": {
     "context": {
       "path": "adapters/image/qwen-image-edit-2511-diffusers",
-      "sha256": "063417f7ed5a41cc53def4ada27df1d379c816df34b2820a0327a26682201b1e",
+      "sha256": "0d6808527d2cc956b3d31d40c1bbf4756cb2fb4012221dcfdeb411b4d131c23e",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
