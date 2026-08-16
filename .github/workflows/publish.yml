@@ -1,0 +1,58 @@
+name: Publish recipe library release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "New immutable recipe-library tag, for example v1.0.0"
+        required: true
+        type: string
+      platform_ref:
+        description: "Exact vonk-forge commit or release tag for the v1 contract"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@main
+    with:
+      platform_ref: ${{ inputs.platform_ref }}
+
+  publish:
+    name: Create signed library release
+    needs: validate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment: recipe-release
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate release input
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          case "$RELEASE_TAG" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "release_tag must use vMAJOR.MINOR.PATCH" >&2; exit 1 ;;
+          esac
+          if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "release tag already exists: $RELEASE_TAG" >&2
+            exit 1
+          fi
+
+      - name: Create immutable tag and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag --annotate "$RELEASE_TAG" --message "Vonk Forge recipe library $RELEASE_TAG" "$GITHUB_SHA"
+          git push origin "$RELEASE_TAG"
+          gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" --generate-notes --title "Vonk Forge recipes $RELEASE_TAG"

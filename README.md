@@ -23,8 +23,9 @@ references harnesses by exact identity; it does not reimplement them.
 
 ## Development and production
 
-`main` is the development library. A production installation consumes a signed
-release tag and the exact commit recorded in its import receipt. A mutable
+`main` is the development library. A production installation consumes an
+approved immutable release tag and the exact commit recorded in its import
+receipt. A mutable
 branch or tag such as `latest` is never execution authority.
 
 Every pull request is validated against the platform repository's pinned v1
