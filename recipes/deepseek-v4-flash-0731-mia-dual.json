@@ -29,7 +29,7 @@
   "build": {
     "context": {
       "path": "adapters/deepseek/mia-vllm",
-      "sha256": "1db8274206e65ccf2f58b5e744c5b4e7f96c14f916bce2b4a0429630eda6256f",
+      "sha256": "50304673b3417cb50f82bc38a1515431624062f1e4602e50ba7ce58b77abe942",
       "expected_bytes": 235520,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
