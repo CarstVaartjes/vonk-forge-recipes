@@ -54,3 +54,12 @@ dry-run; candidate recipes require an explicit opt-in.
 The initial accepted entries are the single-Spark DeepSeek DS4 recipe and the
 two-Spark official DSpark/Mia recipe. The rest of the target ledger is clearly
 marked as candidate or blocked until it has exact artifacts and evidence.
+
+The target ledger is maintained from primary sources: the model author's
+repository and model card, exact Hugging Face revisions, and the selected
+runtime project's official documentation. Community reports and independent
+benchmarks are useful discovery signals, but they do not make a recipe
+accepted. For example, the current video/audio survey records the open-weight
+LTX-2, MOVA, and HunyuanVideo-Foley checkpoints as candidates while keeping
+their recipes out of the runnable catalog until an ARM64 container and Spark
+canary exist.
