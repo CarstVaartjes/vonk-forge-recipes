@@ -46,9 +46,12 @@ credential scan. GitHub Actions is the only publication path.
    model-version entity and reference it through the recipe's exact
    `dependencies` list. Do not hide a mutable download or a second model
    family inside an adapter script.
-5. Keep source contexts deterministic and free of secrets; build-time patches
+5. For image, audio, video, mesh, or other input-dependent jobs, declare the
+   interface input contract and the matching read-only `inputs` security mount.
+   Inputs are supplied per job; recipes never use host paths or runtime URLs.
+6. Keep source contexts deterministic and free of secrets; build-time patches
    must be applied and verified before an image is published.
-6. Run structural, container, and Spark acceptance before changing a target to
+7. Run structural, container, and Spark acceptance before changing a target to
    `accepted`.
 
 To install the accepted entries into a Vonk Forge control plane, use the
