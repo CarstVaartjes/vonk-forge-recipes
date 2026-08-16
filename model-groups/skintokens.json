@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "vast-ai",
+    "slug": "skintokens"
+  },
+  "metadata": {
+    "title": "SkinTokens",
+    "description": "VAST-AI rigging and articulated 3D family.",
+    "tags": [
+      "vast-ai",
+      "skintokens",
+      "three-d"
+    ]
+  },
+  "family": "skintokens"
+}

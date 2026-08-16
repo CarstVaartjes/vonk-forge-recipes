@@ -1,16 +1,167 @@
 {
   "schema_version": 1,
   "kind": "model-target-set",
-  "identity": {"publisher": "vonk-forge", "slug": "three-d"},
-  "metadata": {"title": "3D generation and rigging targets", "updated": "2026-08-16"},
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "three-d"
+  },
+  "metadata": {
+    "title": "3D generation and rigging targets",
+    "updated": "2026-08-16"
+  },
   "targets": [
-    {"modality":"three-d","group":"TRELLIS","model":"TRELLIS.2","version":"4B","status":"candidate","source":"https://github.com/microsoft/TRELLIS.2","harnesses":["pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Official 3D generation target; ARM64 build and output parity pending."},
-    {"modality":"three-d","group":"Pixal3D","model":"Pixal3D","version":"current TRELLIS.2-backed","status":"candidate","source":"https://github.com/TencentARC/Pixal3D","harnesses":["pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Keep integration references separate from the upstream identity."},
-    {"modality":"three-d","group":"Step1X-3D","model":"Step1X-3D","version":"geometry","status":"candidate","source":"https://github.com/stepfun-ai/Step1X-3D","harnesses":["pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Sequential geometry stage."},
-    {"modality":"three-d","group":"Step1X-3D","model":"Step1X-3D","version":"label-geometry","status":"candidate","source":"https://github.com/stepfun-ai/Step1X-3D","harnesses":["pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Label-conditioned geometry stage."},
-    {"modality":"three-d","group":"Step1X-3D","model":"Step1X-3D","version":"texture","status":"candidate","source":"https://github.com/stepfun-ai/Step1X-3D","harnesses":["pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Texture stage; versioned separately from geometry."},
-    {"modality":"three-d","group":"TripoSG","model":"TripoSG","version":"Scribble base","status":"candidate","source":"https://github.com/VAST-AI-Research/TripoSG","harnesses":["diffusers","pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Base provenance target; Scribble conditioning remains a recipe concern."},
-    {"modality":"three-d","group":"SkinTokens","model":"SkinTokens / TokenRig","version":"current open-weight release","status":"candidate","source":"https://github.com/VAST-AI-Research/SkinTokens","harnesses":["pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Rigging target; ARM64 dependencies and quality acceptance pending."},
-    {"modality":"three-d","group":"Hunyuan3D","model":"Hunyuan3D-Omni","version":"current checkpoint","status":"candidate","source":"https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni","harnesses":["pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Worldwide recipe target; operator reviews license terms before use."}
+    {
+      "modality": "three-d",
+      "group": "TRELLIS",
+      "model": "TRELLIS.2",
+      "version": "4B",
+      "status": "candidate",
+      "source": "https://github.com/microsoft/TRELLIS.2",
+      "harnesses": [
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "trellis-2-4b-pytorch-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "trellis-2-4b"
+    },
+    {
+      "modality": "three-d",
+      "group": "Pixal3D",
+      "model": "Pixal3D",
+      "version": "current TRELLIS.2-backed",
+      "status": "candidate",
+      "source": "https://github.com/TencentARC/Pixal3D",
+      "harnesses": [
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "pixal3d-pytorch-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "pixal3d"
+    },
+    {
+      "modality": "three-d",
+      "group": "Step1X-3D",
+      "model": "Step1X-3D",
+      "version": "geometry",
+      "status": "candidate",
+      "source": "https://github.com/stepfun-ai/Step1X-3D",
+      "harnesses": [
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "step1x-3d-geometry-pytorch-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "step1x-3d-geometry"
+    },
+    {
+      "modality": "three-d",
+      "group": "Step1X-3D",
+      "model": "Step1X-3D",
+      "version": "label-geometry",
+      "status": "candidate",
+      "source": "https://github.com/stepfun-ai/Step1X-3D",
+      "harnesses": [
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "step1x-3d-label-geometry-pytorch-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "step1x-3d-label-geometry"
+    },
+    {
+      "modality": "three-d",
+      "group": "Step1X-3D",
+      "model": "Step1X-3D",
+      "version": "texture",
+      "status": "candidate",
+      "source": "https://github.com/stepfun-ai/Step1X-3D",
+      "harnesses": [
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "step1x-3d-texture-pytorch-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "step1x-3d-texture"
+    },
+    {
+      "modality": "three-d",
+      "group": "TripoSG",
+      "model": "TripoSG",
+      "version": "Scribble base",
+      "status": "candidate",
+      "source": "https://github.com/VAST-AI-Research/TripoSG",
+      "harnesses": [
+        "diffusers",
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "triposg-pytorch-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "triposg"
+    },
+    {
+      "modality": "three-d",
+      "group": "SkinTokens",
+      "model": "SkinTokens / TokenRig",
+      "version": "current open-weight release",
+      "status": "candidate",
+      "source": "https://github.com/VAST-AI-Research/SkinTokens",
+      "harnesses": [
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "skintokens-pytorch-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "skintokens"
+    },
+    {
+      "modality": "three-d",
+      "group": "Hunyuan3D",
+      "model": "Hunyuan3D-Omni",
+      "version": "current checkpoint",
+      "status": "candidate",
+      "source": "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni",
+      "harnesses": [
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "hunyuan3d-omni-pytorch-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "hunyuan3d-omni"
+    }
   ]
 }

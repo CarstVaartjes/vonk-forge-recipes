@@ -1,19 +1,232 @@
 {
   "schema_version": 1,
   "kind": "model-target-set",
-  "identity": {"publisher": "vonk-forge", "slug": "video"},
-  "metadata": {"title": "Video generation targets", "updated": "2026-08-16"},
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "video"
+  },
+  "metadata": {
+    "title": "Video generation targets",
+    "updated": "2026-08-16"
+  },
   "targets": [
-    {"modality":"video","group":"LTX","model":"LTX-2.3","version":"22B distilled 1.1 6b5a83e3","status":"candidate","source":"https://huggingface.co/Lightricks/LTX-2.3/tree/6b5a83e3045eaf8e46cfa0acce512412aa2b9cce","harnesses":["pytorch-pipeline","diffusers"],"topologies":["single"],"recipe_slugs":[],"notes":"Latest official LTX-2.3 distilled 1.1 checkpoint with synchronized audio-video output; upstream PyTorch runtime is preferred until Diffusers support lands."},
-    {"modality":"video","group":"LTX","model":"LTX-2","version":"19B distilled BF16","status":"candidate","source":"https://huggingface.co/Lightricks/LTX-2","harnesses":["diffusers","pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Open-weight synchronized audio-video candidate; retained as the earlier-generation reference while LTX-2.3 is evaluated."},
-    {"modality":"video","group":"LTX","model":"LTX-2","version":"19B dev FP4 dfcc2108","status":"candidate","source":"https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c","harnesses":["pytorch-pipeline"],"topologies":["single"],"recipe_slugs":["ltx-2-19b-dev-fp4-pytorch-single"],"notes":"Exact 77.4 GB official FP4/native-pipeline artifact set; ARM64 build and Spark video/audio acceptance remain."},
-    {"modality":"video","group":"LTX","model":"LTX-2","version":"19B dev BF16","status":"candidate","source":"https://huggingface.co/Lightricks/LTX-2","harnesses":["diffusers","pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Open-weight quality/reference variant; use the distilled version for the first Spark canary."},
-    {"modality":"video","group":"LTX","model":"LTX-2","version":"19B distilled FP8","status":"candidate","source":"https://huggingface.co/Lightricks/LTX-2","harnesses":["diffusers","pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Official FP8 checkpoint; NVFP4 is not assumed until a reproducible Spark conversion and quality canary exists."},
-    {"modality":"video","group":"MOVA","model":"MOVA","version":"360p","status":"candidate","source":"https://github.com/OpenMOSS/MOVA","harnesses":["diffusers","pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Open-weight MOVA-360p is published at OpenMOSS-Team/MOVA-360p; exact ARM64 runtime and Spark envelope remain pending."},
-    {"modality":"video","group":"MOVA","model":"MOVA","version":"720p","status":"candidate","source":"https://github.com/OpenMOSS/MOVA","harnesses":["diffusers","pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Open-weight MOVA-720p is published at OpenMOSS-Team/MOVA-720p; keep its resource envelope separate from 360p."},
-    {"modality":"video","group":"HunyuanVideo","model":"HunyuanVideo 1.5","version":"T2V","status":"candidate","source":"https://github.com/Tencent-Hunyuan/HunyuanVideo-1.5","harnesses":["diffusers","pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Open-weight text-to-video candidate; no cross-Spark default."},
-    {"modality":"video","group":"HunyuanVideo","model":"HunyuanVideo 1.5","version":"I2V 480p step-distilled","status":"candidate","source":"https://github.com/Tencent-Hunyuan/HunyuanVideo-1.5","harnesses":["diffusers","pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Official 480p image-to-video step-distilled checkpoint; Spark memory and ARM64 runtime remain pending."},
-    {"modality":"video","group":"HunyuanVideo","model":"HunyuanVideo 1.5","version":"distilled","status":"candidate","source":"https://github.com/Tencent-Hunyuan/HunyuanVideo-1.5","harnesses":["diffusers","pytorch-pipeline"],"topologies":["single"],"recipe_slugs":[],"notes":"Distilled speed candidate; select an exact checkpoint before authoring a recipe."},
-    {"modality":"video","group":"MiniMax H3","model":"MiniMax H3","version":"open-weight multimodal video with native stereo audio","status":"candidate","source":"https://huggingface.co/MiniMaxAI/MiniMax-H3","harnesses":["pytorch-pipeline","sglang"],"topologies":["single"],"recipe_slugs":[],"notes":"Worldwide recipe target with public weights; exact ARM64 runtime, Spark memory envelope, and license review remain before authoring a recipe."}
+    {
+      "modality": "video",
+      "group": "LTX",
+      "model": "LTX-2.3",
+      "version": "22B distilled 1.1 6b5a83e3",
+      "status": "candidate",
+      "source": "https://huggingface.co/Lightricks/LTX-2.3/tree/6b5a83e3045eaf8e46cfa0acce512412aa2b9cce",
+      "harnesses": [
+        "pytorch-pipeline",
+        "diffusers"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "ltx-2-3-22b-distilled-1-1-diffusers-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "ltx-2-3-22b-distilled-1-1"
+    },
+    {
+      "modality": "video",
+      "group": "LTX",
+      "model": "LTX-2",
+      "version": "19B distilled BF16",
+      "status": "candidate",
+      "source": "https://huggingface.co/Lightricks/LTX-2",
+      "harnesses": [
+        "diffusers",
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "ltx-2-19b-distilled-diffusers-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "ltx-2-19b-distilled"
+    },
+    {
+      "modality": "video",
+      "group": "LTX",
+      "model": "LTX-2",
+      "version": "19B dev FP4 dfcc2108",
+      "status": "candidate",
+      "source": "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
+      "harnesses": [
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "ltx-2-19b-dev-fp4-pytorch-single"
+      ],
+      "notes": "Exact 77.4 GB official FP4/native-pipeline artifact set; ARM64 build and Spark video/audio acceptance remain."
+    },
+    {
+      "modality": "video",
+      "group": "LTX",
+      "model": "LTX-2",
+      "version": "19B dev BF16",
+      "status": "candidate",
+      "source": "https://huggingface.co/Lightricks/LTX-2",
+      "harnesses": [
+        "diffusers",
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "ltx-2-19b-dev-bf16-diffusers-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "ltx-2-19b-dev-bf16"
+    },
+    {
+      "modality": "video",
+      "group": "LTX",
+      "model": "LTX-2",
+      "version": "19B distilled FP8",
+      "status": "candidate",
+      "source": "https://huggingface.co/Lightricks/LTX-2",
+      "harnesses": [
+        "diffusers",
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "ltx-2-19b-distilled-fp8-diffusers-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "ltx-2-19b-distilled-fp8"
+    },
+    {
+      "modality": "video",
+      "group": "MOVA",
+      "model": "MOVA",
+      "version": "360p",
+      "status": "candidate",
+      "source": "https://github.com/OpenMOSS/MOVA",
+      "harnesses": [
+        "diffusers",
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "mova-360p-diffusers-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "mova-360p"
+    },
+    {
+      "modality": "video",
+      "group": "MOVA",
+      "model": "MOVA",
+      "version": "720p",
+      "status": "candidate",
+      "source": "https://github.com/OpenMOSS/MOVA",
+      "harnesses": [
+        "diffusers",
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "mova-720p-diffusers-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "mova-720p"
+    },
+    {
+      "modality": "video",
+      "group": "HunyuanVideo",
+      "model": "HunyuanVideo 1.5",
+      "version": "T2V",
+      "status": "candidate",
+      "source": "https://github.com/Tencent-Hunyuan/HunyuanVideo-1.5",
+      "harnesses": [
+        "diffusers",
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "hunyuan-video-15-t2v-diffusers-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "hunyuan-video-15-t2v"
+    },
+    {
+      "modality": "video",
+      "group": "HunyuanVideo",
+      "model": "HunyuanVideo 1.5",
+      "version": "I2V 480p step-distilled",
+      "status": "candidate",
+      "source": "https://github.com/Tencent-Hunyuan/HunyuanVideo-1.5",
+      "harnesses": [
+        "diffusers",
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "hunyuan-video-15-i2v-step-distilled-diffusers-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "hunyuan-video-15-i2v-step-distilled"
+    },
+    {
+      "modality": "video",
+      "group": "HunyuanVideo",
+      "model": "HunyuanVideo 1.5",
+      "version": "distilled",
+      "status": "candidate",
+      "source": "https://github.com/Tencent-Hunyuan/HunyuanVideo-1.5",
+      "harnesses": [
+        "diffusers",
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "hunyuan-video-15-distilled-diffusers-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "hunyuan-video-15-distilled"
+    },
+    {
+      "modality": "video",
+      "group": "MiniMax H3",
+      "model": "MiniMax H3",
+      "version": "open-weight multimodal video with native stereo audio",
+      "status": "candidate",
+      "source": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
+      "harnesses": [
+        "pytorch-pipeline",
+        "sglang"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "minimax-h3-diffusers-single"
+      ],
+      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "catalog_model_version": "minimax-h3"
+    }
   ]
 }

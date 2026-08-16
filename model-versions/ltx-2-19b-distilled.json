@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {
+    "publisher": "lightricks",
+    "slug": "ltx-2-19b-distilled"
+  },
+  "metadata": {
+    "title": "LTX-2 19B distilled synchronized",
+    "description": "Immutable public snapshot at dfcc2108.",
+    "tags": [
+      "lightricks",
+      "video",
+      "candidate"
+    ]
+  },
+  "model": {
+    "kind": "model",
+    "publisher": "lightricks",
+    "slug": "ltx-2",
+    "content_sha256": "7c24470249ec2cc6a57781f62e74618d391f05108c03d248df65dfaaad5209f6"
+  },
+  "version": "LTX-2 19B distilled synchronized",
+  "source": {
+    "repository": "https://huggingface.co/Lightricks/LTX-2",
+    "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
+  },
+  "lineage": {
+    "publisher": "lightricks",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "lightricks",
+      "slug": "ltx-2",
+      "content_sha256": "7c24470249ec2cc6a57781f62e74618d391f05108c03d248df65dfaaad5209f6"
+    },
+    "derivation": "Immutable public upstream snapshot at the pinned revision."
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "parameters": {
+    "total": null,
+    "active": null
+  },
+  "limits": {
+    "context_tokens": null
+  },
+  "sizes": {
+    "download_bytes": 251576288836,
+    "installed_bytes": 251576288836
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Lightricks/LTX-2/blob/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/LICENSE",
+    "attribution": [
+      "lightricks"
+    ],
+    "operator_acceptance_required": true
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "artifacts": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2",
+      "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
+      "sha256": "bfb6378ed550b8354a2735d0d73bdf33437c14568d3f79eb4f8f41f08ae16d8c",
+      "download_bytes": 251576288836,
+      "installed_bytes": 251576288836,
+      "roles": [
+        "entrypoint"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}

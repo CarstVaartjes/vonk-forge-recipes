@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "vast-ai",
+    "slug": "triposg"
+  },
+  "metadata": {
+    "title": "TripoSG Scribble",
+    "description": "TripoSG Scribble base model family.",
+    "tags": [
+      "vast-ai",
+      "three-d",
+      "generation"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "vast-ai",
+    "slug": "triposg",
+    "content_sha256": "161bac422799adf57ebac36d7184de2e2c1059bad6bbd79f311663d9e8b79376"
+  },
+  "architecture": "upstream-native generation pipeline"
+}
