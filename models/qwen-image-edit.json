@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {"publisher": "qwen", "slug": "qwen-image-edit"},
+  "metadata": {
+    "title": "Qwen Image Edit",
+    "description": "Qwen's open-weight image-to-image editing model.",
+    "tags": ["qwen", "image", "editing", "image-to-image"]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "qwen",
+    "slug": "qwen-image-edit",
+    "content_sha256": "b47ce333c82b329980f5a6498c22e93965b2a86549b0b720b3172b114021ad0e"
+  },
+  "architecture": "20B multimodal diffusion transformer image-editing pipeline"
+}
