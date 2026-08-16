@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "microsoft",
+    "slug": "trellis-2-4b"
+  },
+  "metadata": {
+    "title": "TRELLIS.2",
+    "description": "TRELLIS.2 4B model family.",
+    "tags": [
+      "microsoft",
+      "three-d",
+      "generation"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "microsoft",
+    "slug": "trellis",
+    "content_sha256": "f838ab410dfa2260cba2d559721e8358c7bfc1f7a0d3ac3007bfd1c947001095"
+  },
+  "architecture": "upstream-native generation pipeline"
+}

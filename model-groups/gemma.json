@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "google",
+    "slug": "gemma"
+  },
+  "metadata": {
+    "title": "Google Gemma",
+    "description": "Google Gemma open multimodal models.",
+    "tags": [
+      "google",
+      "gemma",
+      "language"
+    ]
+  },
+  "family": "gemma"
+}

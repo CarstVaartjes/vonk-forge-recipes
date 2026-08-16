@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {
+    "publisher": "vast-ai",
+    "slug": "triposg"
+  },
+  "metadata": {
+    "title": "TripoSG Scribble base",
+    "description": "Immutable public snapshot at 2c1c516d.",
+    "tags": [
+      "vast-ai",
+      "three-d",
+      "candidate"
+    ]
+  },
+  "model": {
+    "kind": "model",
+    "publisher": "vast-ai",
+    "slug": "triposg",
+    "content_sha256": "79625c3a3c019f6010722b3b87f75bdfeba031d6788062577ed3ab46fed4c6d1"
+  },
+  "version": "TripoSG Scribble base",
+  "source": {
+    "repository": "https://huggingface.co/VAST-AI/TripoSG",
+    "revision": "2c1c516d22d58db486a058d98d31bb6177344e06"
+  },
+  "lineage": {
+    "publisher": "vast-ai",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "vast-ai",
+      "slug": "triposg",
+      "content_sha256": "79625c3a3c019f6010722b3b87f75bdfeba031d6788062577ed3ab46fed4c6d1"
+    },
+    "derivation": "Immutable public upstream snapshot at the pinned revision."
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "parameters": {
+    "total": null,
+    "active": null
+  },
+  "limits": {
+    "context_tokens": null
+  },
+  "sizes": {
+    "download_bytes": 7946494238,
+    "installed_bytes": 7946494238
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/VAST-AI/TripoSG/blob/2c1c516d22d58db486a058d98d31bb6177344e06/LICENSE",
+    "attribution": [
+      "vast-ai"
+    ],
+    "operator_acceptance_required": true
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "artifacts": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/VAST-AI/TripoSG",
+      "revision": "2c1c516d22d58db486a058d98d31bb6177344e06",
+      "sha256": "529782f3a04bf520d2eb7f26f913e6c9d5073c9f56c91753865fbff5ff1c5ab1",
+      "download_bytes": 7946494238,
+      "installed_bytes": 7946494238,
+      "roles": [
+        "entrypoint"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}

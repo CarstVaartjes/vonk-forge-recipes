@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "google",
+    "slug": "gemma-4-26b-a4b"
+  },
+  "metadata": {
+    "title": "Gemma 4 26B-A4B",
+    "description": "Google Gemma 4 multimodal mixture-of-experts model.",
+    "tags": [
+      "google",
+      "gemma",
+      "language",
+      "reasoning"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "google",
+    "slug": "gemma",
+    "content_sha256": "ab367b9d8773e261cf194ee438e4d6af1a1d6e0338fa17698109b3534598c7e2"
+  },
+  "architecture": "Gemma 4 multimodal mixture-of-experts transformer"
+}

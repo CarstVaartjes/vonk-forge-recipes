@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "tencentarc",
+    "slug": "pixal3d"
+  },
+  "metadata": {
+    "title": "Pixal3D",
+    "description": "Pixal3D model family.",
+    "tags": [
+      "tencentarc",
+      "three-d",
+      "generation"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "tencentarc",
+    "slug": "pixal3d",
+    "content_sha256": "90baa4bfeb9ae6692ebc4dfbc9f7b556bcab1b320959396dc966edc2a806a7e9"
+  },
+  "architecture": "upstream-native generation pipeline"
+}

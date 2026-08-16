@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hunyuan3d-omni"
+  },
+  "metadata": {
+    "title": "Hunyuan3D-Omni",
+    "description": "Hunyuan3D-Omni model family.",
+    "tags": [
+      "tencent",
+      "three-d",
+      "generation"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "tencent",
+    "slug": "hunyuan3d",
+    "content_sha256": "792baf65962ca0743524c48860c7b23edea0e5ec4006e7f10092a004703b735d"
+  },
+  "architecture": "upstream-native generation pipeline"
+}

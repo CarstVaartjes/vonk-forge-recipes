@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hunyuan-video-15-i2v-step-distilled"
+  },
+  "metadata": {
+    "title": "HunyuanVideo 1.5 I2V 480p step-distilled",
+    "description": "Immutable public snapshot at 9b49404b.",
+    "tags": [
+      "tencent",
+      "video",
+      "candidate"
+    ]
+  },
+  "model": {
+    "kind": "model",
+    "publisher": "tencent",
+    "slug": "hunyuan-video-15",
+    "content_sha256": "e546ceb3f57952fe5faaf8a91cca44aec583d0f8fc282e636d09aed9f816115e"
+  },
+  "version": "HunyuanVideo 1.5 I2V 480p step-distilled",
+  "source": {
+    "repository": "https://huggingface.co/tencent/HunyuanVideo-1.5",
+    "revision": "9b49404b3f5df2a8f0b31df27a0c7ab872e7b038"
+  },
+  "lineage": {
+    "publisher": "tencent",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "tencent",
+      "slug": "hunyuan-video-15",
+      "content_sha256": "e546ceb3f57952fe5faaf8a91cca44aec583d0f8fc282e636d09aed9f816115e"
+    },
+    "derivation": "Immutable public upstream snapshot at the pinned revision."
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "parameters": {
+    "total": null,
+    "active": null
+  },
+  "limits": {
+    "context_tokens": null
+  },
+  "sizes": {
+    "download_bytes": 233195603079,
+    "installed_bytes": 233195603079
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/tencent/HunyuanVideo-1.5/blob/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038/LICENSE",
+    "attribution": [
+      "tencent"
+    ],
+    "operator_acceptance_required": true
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "artifacts": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/tencent/HunyuanVideo-1.5",
+      "revision": "9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
+      "sha256": "72e95a8f25d43fc9bb3771a1e82bb0fe72517478ee0073c4c84911de49e7a2a2",
+      "download_bytes": 233195603079,
+      "installed_bytes": 233195603079,
+      "roles": [
+        "entrypoint"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}

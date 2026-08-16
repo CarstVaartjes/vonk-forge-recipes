@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {
+    "publisher": "minimax",
+    "slug": "minimax-h3"
+  },
+  "metadata": {
+    "title": "MiniMax H3",
+    "description": "Immutable public snapshot at 42ed227e.",
+    "tags": [
+      "minimax",
+      "video",
+      "candidate"
+    ]
+  },
+  "model": {
+    "kind": "model",
+    "publisher": "minimax",
+    "slug": "minimax-h3",
+    "content_sha256": "f4c971d25f8b6f46af03821eac888c10306573fe4648e9906e22709cc642d5d7"
+  },
+  "version": "MiniMax H3",
+  "source": {
+    "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
+    "revision": "42ed227ee7df40d41602854ae760620d6eb651fe"
+  },
+  "lineage": {
+    "publisher": "minimax",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "minimax",
+      "slug": "minimax-h3",
+      "content_sha256": "f4c971d25f8b6f46af03821eac888c10306573fe4648e9906e22709cc642d5d7"
+    },
+    "derivation": "Immutable public upstream snapshot at the pinned revision."
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "parameters": {
+    "total": null,
+    "active": null
+  },
+  "limits": {
+    "context_tokens": null
+  },
+  "sizes": {
+    "download_bytes": 614185338,
+    "installed_bytes": 614185338
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE",
+    "attribution": [
+      "minimax"
+    ],
+    "operator_acceptance_required": true
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "artifacts": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "sha256": "059f87ab6b383a122d8ef470b61a382e105d2763266ceff65b571902480c3b18",
+      "download_bytes": 614185338,
+      "installed_bytes": 614185338,
+      "roles": [
+        "entrypoint"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}

@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen-image-edit-2511-lightning"
+  },
+  "metadata": {
+    "title": "Qwen Image Edit 2511 Lightning",
+    "description": "Immutable public snapshot at d74eba14.",
+    "tags": [
+      "qwen",
+      "image",
+      "candidate"
+    ]
+  },
+  "model": {
+    "kind": "model",
+    "publisher": "qwen",
+    "slug": "qwen-image-edit-2511-lightning",
+    "content_sha256": "4cf1948457437b498bef27580b1f71b5d63c4b8777997dca295e308233130d58"
+  },
+  "version": "Qwen Image Edit 2511 Lightning",
+  "source": {
+    "repository": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning",
+    "revision": "d74eba145674fd7e31b949324e148e21e7118abd"
+  },
+  "lineage": {
+    "publisher": "qwen",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "qwen",
+      "slug": "qwen-image-edit-2511-lightning",
+      "content_sha256": "4cf1948457437b498bef27580b1f71b5d63c4b8777997dca295e308233130d58"
+    },
+    "derivation": "Immutable public upstream snapshot at the pinned revision."
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "parameters": {
+    "total": null,
+    "active": null
+  },
+  "limits": {
+    "context_tokens": null
+  },
+  "sizes": {
+    "download_bytes": 100372027469,
+    "installed_bytes": 100372027469
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning/blob/d74eba145674fd7e31b949324e148e21e7118abd/LICENSE",
+    "attribution": [
+      "qwen"
+    ],
+    "operator_acceptance_required": true
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "artifacts": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning",
+      "revision": "d74eba145674fd7e31b949324e148e21e7118abd",
+      "sha256": "163e9bd5598ab94b67f214efcd673f6168393d7d3cd6acae3121c8c6ae7c939d",
+      "download_bytes": 100372027469,
+      "installed_bytes": 100372027469,
+      "roles": [
+        "entrypoint"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}

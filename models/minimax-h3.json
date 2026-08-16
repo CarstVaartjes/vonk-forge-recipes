@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "minimax",
+    "slug": "minimax-h3"
+  },
+  "metadata": {
+    "title": "MiniMax",
+    "description": "MiniMax H3 model family.",
+    "tags": [
+      "minimax",
+      "video",
+      "generation"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "minimax",
+    "slug": "minimax-h3",
+    "content_sha256": "2817807ee837554b9983ef5b347d017974667bfb628e7420c961453348251f28"
+  },
+  "architecture": "upstream-native generation pipeline"
+}

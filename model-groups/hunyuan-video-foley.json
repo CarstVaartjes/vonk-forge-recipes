@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hunyuan-video-foley"
+  },
+  "metadata": {
+    "title": "HunyuanVideo Foley",
+    "description": "Tencent's open-weight audio-from-video family.",
+    "tags": [
+      "tencent",
+      "hunyuan-video-foley",
+      "audio"
+    ]
+  },
+  "family": "hunyuan-video-foley"
+}

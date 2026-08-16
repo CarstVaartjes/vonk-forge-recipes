@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {
+    "publisher": "openmoss",
+    "slug": "mova-720p"
+  },
+  "metadata": {
+    "title": "MOVA 720p",
+    "description": "Immutable public snapshot at 8462bea9.",
+    "tags": [
+      "openmoss",
+      "video",
+      "candidate"
+    ]
+  },
+  "model": {
+    "kind": "model",
+    "publisher": "openmoss",
+    "slug": "mova-720p",
+    "content_sha256": "982605b1ec299d81b6a036c50345a8a864e902fecca151ffbe2fd714c27a15fa"
+  },
+  "version": "MOVA 720p",
+  "source": {
+    "repository": "https://huggingface.co/OpenMOSS-Team/MOVA-720p",
+    "revision": "8462bea9a317a3591279faeedfd3ca01b055cb59"
+  },
+  "lineage": {
+    "publisher": "openmoss",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "openmoss",
+      "slug": "mova-720p",
+      "content_sha256": "982605b1ec299d81b6a036c50345a8a864e902fecca151ffbe2fd714c27a15fa"
+    },
+    "derivation": "Immutable public upstream snapshot at the pinned revision."
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "parameters": {
+    "total": null,
+    "active": null
+  },
+  "limits": {
+    "context_tokens": null
+  },
+  "sizes": {
+    "download_bytes": 77689755302,
+    "installed_bytes": 77689755302
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/OpenMOSS-Team/MOVA-720p/blob/8462bea9a317a3591279faeedfd3ca01b055cb59/LICENSE",
+    "attribution": [
+      "openmoss"
+    ],
+    "operator_acceptance_required": true
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "artifacts": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/OpenMOSS-Team/MOVA-720p",
+      "revision": "8462bea9a317a3591279faeedfd3ca01b055cb59",
+      "sha256": "34f46f8ce591e14cb6b77898535c9482969e6275a875926cbacc0becdf02e122",
+      "download_bytes": 77689755302,
+      "installed_bytes": 77689755302,
+      "roles": [
+        "entrypoint"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}

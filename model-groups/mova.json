@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "openmoss",
+    "slug": "mova"
+  },
+  "metadata": {
+    "title": "MOVA",
+    "description": "OpenMOSS audio-video generation family.",
+    "tags": [
+      "openmoss",
+      "mova",
+      "video"
+    ]
+  },
+  "family": "mova"
+}

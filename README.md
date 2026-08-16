@@ -60,19 +60,22 @@ this checkout first, uploads only the referenced public build contexts, and
 records the exact Git commit in the local import receipt. Its default is a
 dry-run; candidate recipes require an explicit opt-in.
 
-The DeepSeek DS4 and two-Spark official DSpark/Mia recipes are structurally
-recreated in v1, but remain candidates until they pass fresh physical
-acceptance. Historical prototype evidence is deliberately not reused. The
-rest of the target ledger is clearly marked as candidate or blocked until it
-has exact artifacts and current evidence.
+Every non-blocked target in the ledger has at least one candidate recipe,
+including the language, image, audio, video, and 3D targets. The six blocked
+targets intentionally have no recipe and remain research-only. Candidate
+recipes are structurally validated and visible to operators, but are not
+accepted defaults until their ARM64 container build and Spark canary pass.
+The DeepSeek DS4 and two-Spark official DSpark/Mia recipes remain candidates
+until fresh physical acceptance; historical prototype evidence is deliberately
+not reused.
 
 The target ledger is maintained from primary sources: the model author's
 repository and model card, exact Hugging Face revisions, and the selected
 runtime project's official documentation. Community reports and independent
 benchmarks are useful discovery signals, but they do not make a recipe
 accepted. For example, the current video/audio survey records the open-weight
-LTX-2.3, MOVA, and HunyuanVideo-Foley checkpoints as candidates while keeping
-their recipes out of the runnable catalog until an ARM64 container and Spark
-canary exist. Qwen Image Layered is the latest addition to the structural
-recipe set; it demonstrates the isolated `/inputs` contract and emits a
-multi-artifact layer result rather than an OpenAI response.
+LTX-2.3, MOVA, and HunyuanVideo-Foley checkpoints as candidate recipes while
+keeping them out of the accepted default catalog until an ARM64 container and
+Spark canary exist. Qwen Image Layered demonstrates the isolated `/inputs`
+contract and emits a multi-artifact layer result rather than an OpenAI
+response.
