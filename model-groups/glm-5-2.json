@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "jarrelscy",
+    "slug": "glm-5-2"
+  },
+  "metadata": {
+    "title": "GLM 5.2",
+    "description": "GLM 5.2 open-weight sparse mixture-of-experts language and vision family.",
+    "tags": [
+      "jarrelscy",
+      "glm-5-2",
+      "multimodal"
+    ]
+  },
+  "family": "glm-5-2"
+}
