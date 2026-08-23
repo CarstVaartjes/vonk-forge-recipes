@@ -6,20 +6,22 @@
   },
   "metadata": {
     "title": "TRELLIS.2 4B pytorch-pipeline single Spark",
-    "description": "Candidate public model binding through the standard ARM64 media harness; physical Spark acceptance is required.",
+    "description": "Metadata-only TRELLIS.2 checkpoint binding; the generic ARM64 harness lacks the upstream image pipeline, companion decoder, native extensions, and GLB exporter required for execution.",
     "tags": [
       "candidate",
       "three-d",
       "pytorch-pipeline",
       "single",
-      "spark"
+      "spark",
+      "metadata-only",
+      "non-executable"
     ]
   },
   "model": {
     "kind": "model-version",
     "publisher": "microsoft",
     "slug": "trellis-2-4b",
-    "content_sha256": "2c5f9a7398dac95cefc5a1892542aed87c300705af3b2ccaad5d4b30c9ebea97"
+    "content_sha256": "58d7bdfe7ec0f5f8c752460e31db43a3a1fbd4ab326b70a11351d06aa9b43bf3"
   },
   "execution": {
     "harness": {
@@ -124,6 +126,11 @@
           "read_only": true
         },
         {
+          "source": "inputs",
+          "target": "/inputs",
+          "read_only": true
+        },
+        {
           "source": "outputs",
           "target": "/outputs",
           "read_only": false
@@ -197,7 +204,17 @@
   "interfaces": [
     {
       "adapter": "mesh-job",
-      "path": "/outputs"
+      "path": "/outputs",
+      "input": {
+        "path": "/inputs",
+        "required": true,
+        "media_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "max_bytes": 16777216
+      }
     }
   ],
   "validation": {

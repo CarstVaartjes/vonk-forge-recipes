@@ -37,7 +37,7 @@
   "build": {
     "context": {
       "path": "adapters/image/qwen-image-layered-diffusers",
-      "sha256": "97f594e9805382304f63ed740084b22698f6cbdebe8b910414a681b0def5cbb9",
+      "sha256": "fdcabbdd46f6375734d846c9dd68d7ee69a256a0eb4ba5bac310cd44b6907f6a",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -116,6 +116,10 @@
       {
         "name": "resolution",
         "value": 640
+      },
+      {
+        "name": "cfg-normalize",
+        "value": "true"
       },
       {
         "name": "seed",

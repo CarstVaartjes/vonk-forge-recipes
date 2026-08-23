@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "hunyuan-video-15-t2v-diffusers-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "9f6b66a9112a2cadd925bca4f88b81046f275f4cd744cd9653873862408eb132",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Corrected the immutable HunyuanVideo 1.5 snapshot and dependent disk resource sizes from the complete upstream inventory.",
+          "references": ["https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038"]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Marked the candidate as requiring a model-specific video adapter before container and physical Spark acceptance."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "81ff79c354013f8740e383225e97e67b2bcd7ca73c2cfabc4f142bc6011658c4",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of HunyuanVideo 1.5 T2V diffusers single Spark."
+        }
+      ]
+    }
+  ]
+}

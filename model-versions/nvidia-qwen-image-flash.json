@@ -53,7 +53,7 @@
     "installed_bytes": 57708363017
   },
   "license": {
-    "spdx": "Apache-2.0",
+    "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
     "url": "https://huggingface.co/nvidia/Qwen-Image-Flash/blob/eafac15f6140e6dd9c6031217d658ac10bfb604b/LICENSE",
     "attribution": [
       "nvidia"

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "skintokens-pytorch-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "bfb39565680b3412dd3895bece722fbfde601f24d3b3d0eecaeecc81c473b8a5",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Marked the rigging checkpoint binding non-executable pending TokenRig source and a model-specific GLB adapter."
+        },
+        {
+          "kind": "fix",
+          "summary": "Added the authoritative isolated GLB mesh input contract."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Corrected the checkpoint license to MIT."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "8fea688cd7ec61a40302a56d797c9fc970bfc1dca356d53eae113ad496adc47c",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of SkinTokens / TokenRig pytorch-pipeline single Spark."
+        }
+      ]
+    }
+  ]
+}

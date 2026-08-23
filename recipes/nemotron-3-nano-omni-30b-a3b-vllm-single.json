@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "Nemotron 3 Nano Omni 30B-A3B NVFP4 vLLM single Spark",
-    "description": "Candidate single-Spark vLLM binding for the exact NVIDIA Nemotron Nano Omni reasoning checkpoint.",
+    "description": "Candidate text-only single-Spark qualification profile for the exact NVIDIA Nemotron Nano Omni reasoning checkpoint. The strict harness cannot yet express NVIDIA's video pruning, media limits, or audio-disable settings, so multimodal serving remains disabled pending harness and immutable audio-runtime support.",
     "tags": [
       "candidate",
       "nemotron",
@@ -100,6 +100,22 @@
       {
         "name": "gpu-memory-utilization",
         "value": "0.80"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "value": "fp8"
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "value": 32768
+      },
+      {
+        "name": "enable-prefix-caching",
+        "value": true
+      },
+      {
+        "name": "language-model-only",
+        "value": true
       },
       {
         "name": "reasoning-parser",

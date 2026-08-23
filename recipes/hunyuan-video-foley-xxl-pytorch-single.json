@@ -6,9 +6,10 @@
   },
   "metadata": {
     "title": "HunyuanVideo Foley XXL diffusers single Spark",
-    "description": "Candidate public model binding through the standard ARM64 media harness; physical Spark acceptance is required.",
+    "description": "Metadata-only candidate pinned to an immutable upstream snapshot. The shared ARM64 media harness does not implement HunyuanVideo-Foley audio generation or select the XXL checkpoint; a model-specific adapter and physical Spark acceptance are required.",
     "tags": [
       "candidate",
+      "integration-required",
       "audio",
       "diffusers",
       "single",

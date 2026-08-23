@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "laguna-xs-2-1-nvfp4-vllm-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "fb8042d037c39e53a84e03bfa56b606ada1afb5310436a88a628d7c5b655912f",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Laguna XS 2.1 NVFP4 vLLM single Spark."
+        }
+      ]
+    }
+  ]
+}

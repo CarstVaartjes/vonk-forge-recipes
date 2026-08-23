@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-2512-lightning-diffusers-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "2fc41d41253202f324bb471958afcb0c8226ff7a12cb24c4ce768a90e8676cd0",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Marked the Lightning weight collection non-executable until its base checkpoint and LoRA-aware adapter are cataloged."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Corrected ModelTC, lightx2v, and Qwen attribution and the immutable source license reference."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "7666b689858557905332879aa66bc6a410690ffd86060aca1b7e00f7ad754ca6",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Qwen Image 2512 Lightning diffusers single Spark."
+        }
+      ]
+    }
+  ]
+}

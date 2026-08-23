@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "ltx-2-3-22b-distilled-1-1-diffusers-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "6133d95e0fc68e9b30a09a76dab68ab3a316917fc5ca54a56d488712c52d3531",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Marked the metadata-only candidate as requiring a native LTX-2.3 adapter and an explicit companion dependency closure before acceptance."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "fbd867ad2e11e184312a9cf2ef903ef33e4de694c150c1f3beb3ac4493171687",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of LTX-2.3 22B distilled 1.1 diffusers single Spark."
+        }
+      ]
+    }
+  ]
+}

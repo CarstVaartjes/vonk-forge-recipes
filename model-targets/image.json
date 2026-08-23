@@ -7,7 +7,7 @@
   },
   "metadata": {
     "title": "Image generation and editing targets",
-    "updated": "2026-08-16"
+    "updated": "2026-08-23"
   },
   "targets": [
     {
@@ -46,7 +46,7 @@
       "recipe_slugs": [
         "qwen-image-2512-lightning-diffusers-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "The immutable Lightning collection is cataloged for provenance only. It is not executable without the exact base checkpoint, a selected LoRA, and a LoRA-aware adapter.",
       "catalog_model_version": "qwen-image-2512-lightning"
     },
     {
@@ -85,7 +85,7 @@
       "recipe_slugs": [
         "qwen-image-edit-2511-lightning-diffusers-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "The immutable edit Lightning collection is cataloged for provenance only. It is not executable without the exact base checkpoint, image input contract, selected LoRA, and LoRA-aware adapter.",
       "catalog_model_version": "qwen-image-edit-2511-lightning"
     },
     {
@@ -105,7 +105,7 @@
       "recipe_slugs": [
         "qwen-image-layered-diffusers-single"
       ],
-      "notes": "Exact official Apache-2.0 checkpoint and input-isolated Diffusers recipe are structurally cataloged; Spark acceptance remains."
+      "notes": "Exact official Apache-2.0 checkpoint and input-isolated Diffusers recipe use upstream CFG normalization; Spark acceptance remains."
     },
     {
       "modality": "image",
@@ -113,7 +113,7 @@
       "model": "Qwen Image Flash",
       "version": "current optimized artifact",
       "status": "candidate",
-      "source": "https://build.nvidia.com",
+      "source": "https://huggingface.co/nvidia/Qwen-Image-Flash/tree/eafac15f6140e6dd9c6031217d658ac10bfb604b",
       "harnesses": [
         "sglang",
         "diffusers"
@@ -124,7 +124,7 @@
       "recipe_slugs": [
         "nvidia-qwen-image-flash-diffusers-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "Exact NVIDIA-licensed four-step checkpoint with the model card's CFG and 1024px profile; GB10 ARM64 build and physical Spark acceptance remain required.",
       "catalog_model_version": "nvidia-qwen-image-flash"
     },
     {

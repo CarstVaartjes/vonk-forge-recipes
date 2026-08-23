@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "trellis-2-4b-pytorch-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "f8dd39545b42797bb90b4d00be9a7fdffe292103afec954dbdfb403c577956b2",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Marked the binding non-executable pending TRELLIS.2 source, its companion decoder, native extensions, and a GLB adapter."
+        },
+        {
+          "kind": "fix",
+          "summary": "Added the authoritative isolated image input contract."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Corrected the checkpoint license to MIT."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "17353e78581247f8b94aa50c9161dfc98d7ee7b6b1ae31465f3b911897a06922",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of TRELLIS.2 4B pytorch-pipeline single Spark."
+        }
+      ]
+    }
+  ]
+}

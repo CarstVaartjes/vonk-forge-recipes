@@ -6,7 +6,7 @@
     "slug": "triposg"
   },
   "metadata": {
-    "title": "TripoSG Scribble base",
+    "title": "TripoSG base",
     "description": "Immutable public snapshot at 2c1c516d.",
     "tags": [
       "vast-ai",
@@ -18,9 +18,9 @@
     "kind": "model",
     "publisher": "vast-ai",
     "slug": "triposg",
-    "content_sha256": "79625c3a3c019f6010722b3b87f75bdfeba031d6788062577ed3ab46fed4c6d1"
+    "content_sha256": "ed335540f79b14f27556bea747e525514f95b7a0aee0e71b91238b560de244de"
   },
-  "version": "TripoSG Scribble base",
+  "version": "TripoSG base",
   "source": {
     "repository": "https://huggingface.co/VAST-AI/TripoSG",
     "revision": "2c1c516d22d58db486a058d98d31bb6177344e06"
@@ -32,7 +32,7 @@
       "kind": "model",
       "publisher": "vast-ai",
       "slug": "triposg",
-      "content_sha256": "79625c3a3c019f6010722b3b87f75bdfeba031d6788062577ed3ab46fed4c6d1"
+      "content_sha256": "ed335540f79b14f27556bea747e525514f95b7a0aee0e71b91238b560de244de"
     },
     "derivation": "Immutable public upstream snapshot at the pinned revision."
   },
@@ -53,8 +53,8 @@
     "installed_bytes": 7946494238
   },
   "license": {
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/VAST-AI/TripoSG/blob/2c1c516d22d58db486a058d98d31bb6177344e06/LICENSE",
+    "spdx": "MIT",
+    "url": "https://github.com/VAST-AI-Research/TripoSG/blob/fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c/LICENSE",
     "attribution": [
       "vast-ai"
     ],

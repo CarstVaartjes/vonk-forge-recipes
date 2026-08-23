@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-nano-30b-a3b-vllm-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "84405b61e9215b5735b57d884ca76fbed7f205a1a7ddb6d520ecb76520eb09c1",
+      "upgrade_effect": "restart",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Applied FP8 KV and FlashInfer NVFP4 MoE settings and recorded the unsupported snapshot-pinned nano_v3 parser requirement.",
+          "references": [
+            "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4/tree/ce1b118ae66ec705d02c241525192832eb045fd3"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "4ff062ebd5d5e5bc767af23d6209800dc948451f0db959eb917b3edd886045bf",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Nemotron 3 Nano 30B-A3B NVFP4 vLLM single Spark."
+        }
+      ]
+    }
+  ]
+}

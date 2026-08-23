@@ -49,8 +49,8 @@
     "context_tokens": null
   },
   "sizes": {
-    "download_bytes": 233195603079,
-    "installed_bytes": 233195603079
+    "download_bytes": 371771118874,
+    "installed_bytes": 371771118874
   },
   "license": {
     "spdx": "Apache-2.0",
@@ -72,9 +72,9 @@
       "kind": "huggingface.file",
       "repository": "https://huggingface.co/tencent/HunyuanVideo-1.5",
       "revision": "9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
-      "sha256": "72e95a8f25d43fc9bb3771a1e82bb0fe72517478ee0073c4c84911de49e7a2a2",
-      "download_bytes": 233195603079,
-      "installed_bytes": 233195603079,
+      "sha256": "307ade708d55157f5a0e0669f286563513dfc7a59b074ba16dd439b9509b62d8",
+      "download_bytes": 371771118874,
+      "installed_bytes": 371771118874,
       "roles": [
         "entrypoint"
       ]

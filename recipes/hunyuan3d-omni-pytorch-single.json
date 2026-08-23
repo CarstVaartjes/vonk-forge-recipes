@@ -6,20 +6,22 @@
   },
   "metadata": {
     "title": "Hunyuan3D-Omni pytorch-pipeline single Spark",
-    "description": "Candidate public model binding through the standard ARM64 media harness; physical Spark acceptance is required.",
+    "description": "Metadata-only Hunyuan3D-Omni checkpoint binding; the generic ARM64 harness cannot execute its custom control pipeline and no Spark-compatible native adapter is qualified.",
     "tags": [
       "candidate",
       "three-d",
       "pytorch-pipeline",
       "single",
-      "spark"
+      "spark",
+      "metadata-only",
+      "non-executable"
     ]
   },
   "model": {
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "hunyuan3d-omni",
-    "content_sha256": "fb9270c7497fca4299d5790438f8adf2f9af01797aaa6e95fafed752e42b9f04"
+    "content_sha256": "2144ec484ed8923149be6756fdc8ec55626493676c8ee2ef73eaa6fc8309743f"
   },
   "execution": {
     "harness": {

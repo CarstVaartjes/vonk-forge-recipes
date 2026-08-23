@@ -53,8 +53,8 @@
     "installed_bytes": 25729134701
   },
   "license": {
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/tencent/Hunyuan3D-Omni/blob/70e803bfb4e127d534049d8ab8c8cb511780d485/LICENSE",
+    "spdx": "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License",
+    "url": "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/blob/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8/License.txt",
     "attribution": [
       "tencent"
     ],

@@ -54,9 +54,11 @@
   },
   "license": {
     "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning/blob/d74eba145674fd7e31b949324e148e21e7118abd/LICENSE",
+    "url": "https://github.com/ModelTC/Qwen-Image-Lightning/blob/25d1e9935ba97e1f60503f8c000201e08b1fe8f4/LICENSE",
     "attribution": [
-      "qwen"
+      "ModelTC",
+      "lightx2v",
+      "Qwen"
     ],
     "operator_acceptance_required": true
   },

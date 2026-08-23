@@ -7,7 +7,7 @@
   },
   "metadata": {
     "title": "3D generation and rigging targets",
-    "updated": "2026-08-16"
+    "updated": "2026-08-23"
   },
   "targets": [
     {
@@ -26,7 +26,7 @@
       "recipe_slugs": [
         "trellis-2-4b-pytorch-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "Checkpoint metadata only: the generic harness cannot execute TRELLIS.2 or emit GLB, and the companion decoder plus native extensions are not cataloged.",
       "catalog_model_version": "trellis-2-4b"
     },
     {
@@ -45,7 +45,7 @@
       "recipe_slugs": [
         "pixal3d-pytorch-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "Checkpoint metadata only: the generic harness lacks the TRELLIS.2-backed source, native extensions, image pipeline, and GLB exporter.",
       "catalog_model_version": "pixal3d"
     },
     {
@@ -64,7 +64,7 @@
       "recipe_slugs": [
         "step1x-3d-geometry-pytorch-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "Checkpoint metadata only: the upstream image pipeline, native geometry dependencies, and GLB exporter are not cataloged.",
       "catalog_model_version": "step1x-3d-geometry"
     },
     {
@@ -83,7 +83,7 @@
       "recipe_slugs": [
         "step1x-3d-label-geometry-pytorch-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "Checkpoint metadata only: the upstream image and label pipeline, native dependencies, and GLB exporter are not cataloged.",
       "catalog_model_version": "step1x-3d-label-geometry"
     },
     {
@@ -102,14 +102,14 @@
       "recipe_slugs": [
         "step1x-3d-texture-pytorch-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "Checkpoint metadata only: the upstream mesh and image pipeline, native texture dependencies, and GLB exporter are not cataloged.",
       "catalog_model_version": "step1x-3d-texture"
     },
     {
       "modality": "three-d",
       "group": "TripoSG",
       "model": "TripoSG",
-      "version": "Scribble base",
+      "version": "base",
       "status": "candidate",
       "source": "https://github.com/VAST-AI-Research/TripoSG",
       "harnesses": [
@@ -122,7 +122,7 @@
       "recipe_slugs": [
         "triposg-pytorch-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "Base checkpoint metadata only; this is not the separate TripoSG-scribble model. Source, background-removal dependency, image pipeline, and GLB exporter remain uncataloged.",
       "catalog_model_version": "triposg"
     },
     {
@@ -141,7 +141,7 @@
       "recipe_slugs": [
         "skintokens-pytorch-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "Rigging checkpoint metadata only: the TokenRig source, mesh input workflow, native dependencies, and GLB exporter are not cataloged.",
       "catalog_model_version": "skintokens"
     },
     {
@@ -160,7 +160,7 @@
       "recipe_slugs": [
         "hunyuan3d-omni-pytorch-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "Checkpoint metadata only: the custom point, voxel, bounding-box, and pose control pipeline has no qualified ARM64 adapter; the Tencent community license is territory restricted.",
       "catalog_model_version": "hunyuan3d-omni"
     }
   ]

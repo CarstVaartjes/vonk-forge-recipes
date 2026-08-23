@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "step1x-3d-texture-pytorch-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "18b0c6eb08bc1fd6c22eed81b0777ee335ab826140908d934a22f8df8b6f4080",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Marked the texture binding non-executable pending Step1X source, native dependencies, and a GLB adapter."
+        },
+        {
+          "kind": "fix",
+          "summary": "Added the authoritative isolated image and GLB input contract."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Replaced the broken model-card license URL with the exact upstream Apache-2.0 license."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "d0e3b9af9cdb8ea1d5e865b2b02bbbf21103b295f9dd2419a73f776e3fa35625",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Step1X-3D texture pytorch-pipeline single Spark."
+        }
+      ]
+    }
+  ]
+}

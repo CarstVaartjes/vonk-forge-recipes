@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "hunyuan-video-foley-xxl-pytorch-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "f1e5ea33840427608f2da59327fb11eb067746825943b3e2632a5fa5a41e1840",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Marked the metadata-only candidate as requiring a native HunyuanVideo-Foley adapter that explicitly selects the XXL checkpoint before acceptance."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "d401847725feb651e16e1f9276a0fcb32331136f3ec0e1ca51a4bdfcfa84d552",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of HunyuanVideo Foley XXL diffusers single Spark."
+        }
+      ]
+    }
+  ]
+}

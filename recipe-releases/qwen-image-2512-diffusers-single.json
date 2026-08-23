@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-2512-diffusers-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "79e4921a6b79bd38aaf103cdb781f1b2b142dd00bf267a663c0f5063cd70e376",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Enabled upstream true CFG 4.0 with the Qwen Image 2512 negative prompt instead of ignored guidance-distilled CFG.",
+          "references": [
+            "https://huggingface.co/Qwen/Qwen-Image-2512/tree/25468b98e3276ca6700de15c6628e51b7de54a26"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "acd71a8dd5e248912ab1fdf32bb32f01b112a83da1ce8b1d90512b23354db6a3",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Qwen Image 2512 Diffusers single Spark."
+        }
+      ]
+    }
+  ]
+}

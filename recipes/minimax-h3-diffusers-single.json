@@ -6,9 +6,10 @@
   },
   "metadata": {
     "title": "MiniMax H3 diffusers single Spark",
-    "description": "Candidate public model binding through the standard ARM64 media harness; physical Spark acceptance is required.",
+    "description": "Metadata-only candidate pinned to an immutable upstream snapshot. MiniMax H3 requires Modular Diffusers and joint video/audio export, which the shared ARM64 media harness does not implement; a model-specific adapter and physical Spark acceptance are required.",
     "tags": [
       "candidate",
+      "integration-required",
       "video",
       "diffusers",
       "single",
@@ -19,7 +20,7 @@
     "kind": "model-version",
     "publisher": "minimax",
     "slug": "minimax-h3",
-    "content_sha256": "d9be94f968491d7116ef2f22577c1c42e579f61a22127386b8d66c2449301296"
+    "content_sha256": "d0d4bf6c823c1e8081e3fbb5bf832efdb4220b87bd72a210f381617e7bf0e494"
   },
   "execution": {
     "harness": {
@@ -51,8 +52,8 @@
       ]
     },
     "resources": {
-      "download_bytes": 2614185338,
-      "temporary_bytes": 16000000000,
+      "download_bytes": 500474749480,
+      "temporary_bytes": 996949498960,
       "memory_bytes": 8000000000,
       "timeout_seconds": 14400
     }
@@ -64,8 +65,8 @@
       "kind": "huggingface.snapshot",
       "repository": "MiniMaxAI/MiniMax-H3",
       "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "download_bytes": 614185338,
-      "installed_bytes": 614185338,
+      "download_bytes": 498474749480,
+      "installed_bytes": 498474749480,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -168,16 +169,16 @@
         "resources": {
           "disk": {
             "image_bytes": 2000000000,
-            "artifact_bytes": 614185338,
-            "staging_bytes": 16000000000,
+            "artifact_bytes": 498474749480,
+            "staging_bytes": 996949498960,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 32000000000,
-            "steady_state_bytes": 24000000000,
+            "startup_peak_bytes": 120000000000,
+            "steady_state_bytes": 110000000000,
             "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }

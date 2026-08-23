@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-edit-2511-diffusers-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "f3c6d28c74f76fc74240b15ae2a6cbf36c83a63077251c73daf0aaf7808def91",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Qwen Image Edit 2511 Diffusers single Spark."
+        }
+      ]
+    }
+  ]
+}

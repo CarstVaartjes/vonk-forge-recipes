@@ -6,20 +6,23 @@
   },
   "metadata": {
     "title": "SkinTokens / TokenRig pytorch-pipeline single Spark",
-    "description": "Candidate public model binding through the standard ARM64 media harness; physical Spark acceptance is required.",
+    "description": "Metadata-only SkinTokens rigging checkpoint binding; the generic ARM64 harness lacks the TokenRig source, mesh input workflow, native dependencies, and GLB exporter required for execution.",
     "tags": [
       "candidate",
       "three-d",
       "pytorch-pipeline",
       "single",
-      "spark"
+      "spark",
+      "rigging",
+      "metadata-only",
+      "non-executable"
     ]
   },
   "model": {
     "kind": "model-version",
     "publisher": "vast-ai",
     "slug": "skintokens",
-    "content_sha256": "118d408132557c436f4c3e4f493dab7d3ca89f30228d0a1a5e2e04119fdaa481"
+    "content_sha256": "eb47341edd03838a8cfa179dae3fd191b0ff060e09eb8c1338cfb9157e4d6e26"
   },
   "execution": {
     "harness": {
@@ -124,6 +127,11 @@
           "read_only": true
         },
         {
+          "source": "inputs",
+          "target": "/inputs",
+          "read_only": true
+        },
+        {
           "source": "outputs",
           "target": "/outputs",
           "read_only": false
@@ -197,7 +205,15 @@
   "interfaces": [
     {
       "adapter": "mesh-job",
-      "path": "/outputs"
+      "path": "/outputs",
+      "input": {
+        "path": "/inputs",
+        "required": true,
+        "media_types": [
+          "model/gltf-binary"
+        ],
+        "max_bytes": 268435456
+      }
     }
   ],
   "validation": {

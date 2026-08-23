@@ -6,9 +6,10 @@
   },
   "metadata": {
     "title": "HunyuanVideo 1.5 distilled diffusers single Spark",
-    "description": "Candidate public model binding through the standard ARM64 media harness; physical Spark acceptance is required.",
+    "description": "Metadata-only candidate pinned to an immutable upstream snapshot. The shared ARM64 media harness does not implement this model's video execution path; a model-specific adapter and physical Spark acceptance are required.",
     "tags": [
       "candidate",
+      "integration-required",
       "video",
       "diffusers",
       "single",
@@ -19,7 +20,7 @@
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "hunyuan-video-15-distilled",
-    "content_sha256": "85b685923ffd98e90842ff7e9d57700c2b07bdb23fe8543430e90e25fb2e5f5c"
+    "content_sha256": "ed2eafd50bfe1c98b28bc6f0e05c886165e67a069814ba7b6e24b327c2d66975"
   },
   "execution": {
     "harness": {
@@ -51,8 +52,8 @@
       ]
     },
     "resources": {
-      "download_bytes": 235195603079,
-      "temporary_bytes": 466391206158,
+      "download_bytes": 373771118874,
+      "temporary_bytes": 743542237748,
       "memory_bytes": 8000000000,
       "timeout_seconds": 14400
     }
@@ -64,8 +65,8 @@
       "kind": "huggingface.snapshot",
       "repository": "tencent/HunyuanVideo-1.5",
       "revision": "9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
-      "download_bytes": 233195603079,
-      "installed_bytes": 233195603079,
+      "download_bytes": 371771118874,
+      "installed_bytes": 371771118874,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -168,16 +169,16 @@
         "resources": {
           "disk": {
             "image_bytes": 2000000000,
-            "artifact_bytes": 233195603079,
-            "staging_bytes": 466391206158,
+            "artifact_bytes": 371771118874,
+            "staging_bytes": 743542237748,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 116597801539,
-            "steady_state_bytes": 77731867693,
+            "startup_peak_bytes": 120000000000,
+            "steady_state_bytes": 110000000000,
             "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }

@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "minimax-h3-diffusers-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "6db46e68623aa797b37f589d7304a2ef76fadf843ba45277c794b9f32702186c",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Corrected the complete immutable MiniMax H3 snapshot from 614 MB to 498.475 GB and updated dependent disk resources.",
+          "references": ["https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe"]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Marked the candidate as requiring Modular Diffusers and a model-specific joint video/audio exporter before acceptance.",
+          "references": ["https://huggingface.co/docs/diffusers/main/en/api/pipelines/minimax_h3"]
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "49d9cbf5f2b60169f73920a8928d6d2f313ea5bbced67e733255ad92a9d0907d",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of MiniMax H3 diffusers single Spark."
+        }
+      ]
+    }
+  ]
+}

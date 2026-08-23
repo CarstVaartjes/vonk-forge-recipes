@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "NVIDIA Qwen Image Flash diffusers single Spark",
-    "description": "Candidate public model binding through the standard ARM64 media harness; physical Spark acceptance is required.",
+    "description": "Candidate four-step NVIDIA Qwen Image Flash binding using the model card's tested scheduler, CFG, and 1024px profile; physical Spark acceptance is required.",
     "tags": [
       "candidate",
       "image",
@@ -19,7 +19,7 @@
     "kind": "model-version",
     "publisher": "nvidia",
     "slug": "nvidia-qwen-image-flash",
-    "content_sha256": "0906fb60ebe1c0f6208478cc2bf153bab795b905b64478c277dee88c5071a5eb"
+    "content_sha256": "c03d83e646c93a7eb66b78a48bf3dc98a06f39b5bb302c7a1491b62f78851295"
   },
   "execution": {
     "harness": {
@@ -32,8 +32,8 @@
   },
   "build": {
     "context": {
-      "path": "adapters/media/upstream-native",
-      "sha256": "0482565099ffca2d5c3d6fef1cac484e06eba813a1fb18b7e20aac44c50335ce",
+      "path": "adapters/image/nvidia-qwen-image-flash-diffusers",
+      "sha256": "f7d05e5d714d8079b06472e9b32e422beed8d3482bf57bc775d43dc25a43a8d0",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -43,10 +43,13 @@
     "network": {
       "mode": "public",
       "hosts": [
+        "nvcr.io",
+        "github.com",
         "download.pytorch.org",
         "pypi.org",
         "files.pythonhosted.org",
         "archive.ubuntu.com",
+        "security.ubuntu.com",
         "ports.ubuntu.com"
       ]
     },
@@ -96,23 +99,23 @@
       },
       {
         "name": "seed",
-        "value": 0
+        "value": 42
       },
       {
         "name": "num-inference-steps",
         "value": 4
       },
       {
-        "name": "guidance-scale",
-        "value": "4"
+        "name": "true-cfg-scale",
+        "value": "1"
       },
       {
         "name": "width",
-        "value": 512
+        "value": 1024
       },
       {
         "name": "height",
-        "value": 512
+        "value": 1024
       }
     ],
     "environment": [

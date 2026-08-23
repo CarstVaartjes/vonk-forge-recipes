@@ -49,8 +49,8 @@
     "context_tokens": null
   },
   "sizes": {
-    "download_bytes": 251576288836,
-    "installed_bytes": 251576288836
+    "download_bytes": 314346439951,
+    "installed_bytes": 314346439951
   },
   "license": {
     "spdx": "Apache-2.0",
@@ -72,9 +72,9 @@
       "kind": "huggingface.file",
       "repository": "https://huggingface.co/Lightricks/LTX-2",
       "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
-      "sha256": "bfb6378ed550b8354a2735d0d73bdf33437c14568d3f79eb4f8f41f08ae16d8c",
-      "download_bytes": 251576288836,
-      "installed_bytes": 251576288836,
+      "sha256": "ccceab6cb1a3f5720b1496027f153a92be15ec220d5fa6d635a0c53f729ebf99",
+      "download_bytes": 314346439951,
+      "installed_bytes": 314346439951,
       "roles": [
         "entrypoint"
       ]

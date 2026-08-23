@@ -6,9 +6,10 @@
   },
   "metadata": {
     "title": "LTX-2 19B distilled synchronized diffusers single Spark",
-    "description": "Candidate public model binding through the standard ARM64 media harness; physical Spark acceptance is required.",
+    "description": "Metadata-only candidate pinned to an immutable upstream snapshot. The shared ARM64 media harness does not implement LTX video/audio execution; a model-specific adapter and physical Spark acceptance are required.",
     "tags": [
       "candidate",
+      "integration-required",
       "video",
       "diffusers",
       "single",
@@ -19,7 +20,7 @@
     "kind": "model-version",
     "publisher": "lightricks",
     "slug": "ltx-2-19b-distilled",
-    "content_sha256": "723ce8a3855c2d38b55ccbc00e3e17013c08e0b087de1e7286d81eec6b2f4492"
+    "content_sha256": "cc3135bf2fa5fa3bb5fa46c5a74a5a9d86ede728918e3ccefc0fdbf6d8727696"
   },
   "execution": {
     "harness": {
@@ -51,8 +52,8 @@
       ]
     },
     "resources": {
-      "download_bytes": 253576288836,
-      "temporary_bytes": 503152577672,
+      "download_bytes": 316346439951,
+      "temporary_bytes": 628692879902,
       "memory_bytes": 8000000000,
       "timeout_seconds": 14400
     }
@@ -64,8 +65,8 @@
       "kind": "huggingface.snapshot",
       "repository": "Lightricks/LTX-2",
       "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
-      "download_bytes": 251576288836,
-      "installed_bytes": 251576288836,
+      "download_bytes": 314346439951,
+      "installed_bytes": 314346439951,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -168,8 +169,8 @@
         "resources": {
           "disk": {
             "image_bytes": 2000000000,
-            "artifact_bytes": 251576288836,
-            "staging_bytes": 503152577672,
+            "artifact_bytes": 314346439951,
+            "staging_bytes": 628692879902,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
@@ -177,7 +178,7 @@
           "memory": {
             "kind": "unified",
             "startup_peak_bytes": 120000000000,
-            "steady_state_bytes": 83858762945,
+            "steady_state_bytes": 104782146650,
             "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }

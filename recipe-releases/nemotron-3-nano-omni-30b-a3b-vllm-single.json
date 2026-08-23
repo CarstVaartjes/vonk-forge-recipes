@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-nano-omni-30b-a3b-vllm-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "0b1042527a2216ad774a164bcd2baa751a3929a42a53614513198eef8961ad2c",
+      "upgrade_effect": "restart",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Applied FP8 KV, batching, and prefix caching while restricting qualification to text until multimodal controls are allowlisted.",
+          "references": [
+            "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4/tree/dc5f0b0bfddf8b6e0f5891475be9af05b80126fe",
+            "https://github.com/vllm-project/recipes/blob/main/models/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16.yaml"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "e1b36755639b8230ec9f80c33c6cde9f733935c9ad97588a19c6a94b7f503db6",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Nemotron 3 Nano Omni 30B-A3B NVFP4 vLLM single Spark."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "gemma-4-26b-a4b-vllm-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "e9c84ffbc696d4b3ed235d7582a11eca180397e1423e66b20a8e30f6f2810e7d",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Clarified that the pinned base checkpoint is not the separate instruction-tuned chat model and remains a qualification candidate.",
+          "references": [
+            "https://huggingface.co/google/gemma-4-26B-A4B/tree/24548b62aa021d562695c04aaf7758a1ea47990b",
+            "https://huggingface.co/google/gemma-4-26B-A4B-it/tree/4d7ae4984b7db7de8f8457170b3f1a419ee76d52"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "8ca28f0f886b5cf9f20948dccf0b70431d5b4372518c71035db781aaf6813f47",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Gemma 4 26B-A4B vLLM single Spark."
+        }
+      ]
+    }
+  ]
+}

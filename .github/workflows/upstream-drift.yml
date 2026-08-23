@@ -1,0 +1,76 @@
+name: Audit upstream drift
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-drift
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: Compare immutable pins with upstream
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out recipes
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Test the drift checker offline
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+
+      - name: Check upstream revisions
+        id: audit
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set +e
+          python3 tools/check-upstream-drift \
+            --fail-on-drift \
+            --output upstream-drift.json \
+            > upstream-drift.txt
+          status=$?
+          set -e
+          {
+            echo "## Upstream drift audit"
+            echo
+            echo '```text'
+            cat upstream-drift.txt
+            echo
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Upload drift report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: upstream-drift-report
+          path: |
+            upstream-drift.json
+            upstream-drift.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Enforce audit result
+        env:
+          EXIT_CODE: ${{ steps.audit.outputs.exit_code }}
+        shell: bash
+        run: |
+          case "$EXIT_CODE" in
+            0) exit 0 ;;
+            2)
+              echo "::warning::One or more upstream sources advanced; review the report before changing immutable pins."
+              exit 2
+              ;;
+            *)
+              echo "::error::The drift audit could not verify every watched source."
+              exit 1
+              ;;
+          esac

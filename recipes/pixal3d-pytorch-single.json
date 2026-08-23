@@ -6,20 +6,22 @@
   },
   "metadata": {
     "title": "Pixal3D pytorch-pipeline single Spark",
-    "description": "Candidate public model binding through the standard ARM64 media harness; physical Spark acceptance is required.",
+    "description": "Metadata-only Pixal3D checkpoint binding; the generic ARM64 harness lacks the TRELLIS.2 source, native extensions, image pipeline, and GLB exporter required for execution.",
     "tags": [
       "candidate",
       "three-d",
       "pytorch-pipeline",
       "single",
-      "spark"
+      "spark",
+      "metadata-only",
+      "non-executable"
     ]
   },
   "model": {
     "kind": "model-version",
     "publisher": "tencentarc",
     "slug": "pixal3d",
-    "content_sha256": "c2c77091e2bc1b786df649f3d36290d3352ff495b397d8784567d9c9ce1dfa1f"
+    "content_sha256": "5e4523968d0c6b480ba75d42a4b1e52909fe517d6102c60c1f49b62f978e6b18"
   },
   "execution": {
     "harness": {
@@ -124,6 +126,11 @@
           "read_only": true
         },
         {
+          "source": "inputs",
+          "target": "/inputs",
+          "read_only": true
+        },
+        {
           "source": "outputs",
           "target": "/outputs",
           "read_only": false
@@ -197,7 +204,17 @@
   "interfaces": [
     {
       "adapter": "mesh-job",
-      "path": "/outputs"
+      "path": "/outputs",
+      "input": {
+        "path": "/inputs",
+        "required": true,
+        "media_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "max_bytes": 16777216
+      }
     }
   ],
   "validation": {

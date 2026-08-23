@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "Gemma 4 26B-A4B vLLM single Spark",
-    "description": "Candidate single-Spark vLLM binding for the exact Google Gemma 4 26B-A4B checkpoint.",
+    "description": "Candidate base-checkpoint qualification only for the exact non-IT Google Gemma 4 26B-A4B checkpoint. This is not the separate instruction-tuned chat target and remains unqualified for OpenAI chat until an immutable -it model version and Gemma 4 template/parser bundle are catalogued.",
     "tags": [
       "candidate",
       "google",

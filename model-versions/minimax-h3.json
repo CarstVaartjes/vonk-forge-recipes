@@ -49,8 +49,8 @@
     "context_tokens": null
   },
   "sizes": {
-    "download_bytes": 614185338,
-    "installed_bytes": 614185338
+    "download_bytes": 498474749480,
+    "installed_bytes": 498474749480
   },
   "license": {
     "spdx": "Apache-2.0",
@@ -72,9 +72,9 @@
       "kind": "huggingface.file",
       "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
       "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "059f87ab6b383a122d8ef470b61a382e105d2763266ceff65b571902480c3b18",
-      "download_bytes": 614185338,
-      "installed_bytes": 614185338,
+      "sha256": "2b2aae1ba949fc547e36eb7addcbc0714032a2743b21d4d2bd0d47762a9b6a52",
+      "download_bytes": 498474749480,
+      "installed_bytes": 498474749480,
       "roles": [
         "entrypoint"
       ]

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-edit-2511-lightning-diffusers-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "c3ad05e5304c21bbd93c311b4d34ec43e3c38679c309f61e685cd0857b330822",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Marked the Lightning edit collection non-executable pending its base checkpoint and LoRA-aware adapter."
+        },
+        {
+          "kind": "fix",
+          "summary": "Corrected the declared task to image-to-image and added its required isolated image input contract."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Corrected ModelTC, lightx2v, and Qwen attribution and the immutable source license reference."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "6284a9b79ef0b8983a50f5970acf6c6d17668ce6d67c90e2e3839a246974e262",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Qwen Image Edit 2511 Lightning diffusers single Spark."
+        }
+      ]
+    }
+  ]
+}

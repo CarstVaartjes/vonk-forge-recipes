@@ -53,7 +53,7 @@
     "installed_bytes": 24044888779
   },
   "license": {
-    "spdx": "Apache-2.0",
+    "spdx": "MIT",
     "url": "https://huggingface.co/TencentARC/Pixal3D/blob/0b31f9160aa400719af409098bff7936a932f726/LICENSE",
     "attribution": [
       "tencentarc"

@@ -3,7 +3,7 @@
   "identity": {"publisher": "vonk-forge", "slug": "nemotron-3-5-lightning-30b-a3b-vllm-single"},
   "metadata": {
     "title": "Nemotron 3.5 Lightning 30B-A3B NVFP4 vLLM single Spark",
-    "description": "Candidate single-Spark vLLM binding for the exact NVIDIA Nemotron 3.5 Lightning NVFP4 checkpoint.",
+    "description": "Candidate single-Spark vLLM target-only baseline for the exact Nemotron 3.5 Lightning NVFP4 checkpoint. FP8 KV and memory settings match NVIDIA's GB10 profile; its Marlin MoE/aligned Mamba cache settings exceed the strict harness allowlist, and no speculative drafter is bundled.",
     "tags": ["candidate", "nemotron", "nvfp4", "vllm", "openai", "single", "spark"]
   },
   "model": {
@@ -64,7 +64,8 @@
       {"name": "served-model-name", "value": "nemotron-3-5-lightning"},
       {"name": "max-model-len", "value": 262144},
       {"name": "max-num-seqs", "value": 4},
-      {"name": "gpu-memory-utilization", "value": "0.80"},
+      {"name": "gpu-memory-utilization", "value": "0.85"},
+      {"name": "kv-cache-dtype", "value": "fp8"},
       {"name": "enable-prefix-caching", "value": true},
       {"name": "async-scheduling", "value": true},
       {"name": "mamba-backend", "value": "flashinfer"},
