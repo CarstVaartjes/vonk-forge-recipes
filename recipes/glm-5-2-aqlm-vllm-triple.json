@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "identity": {"publisher": "vonk-forge", "slug": "glm-5-2-aqlm-vllm-triple"},
+  "metadata": {
+    "title": "GLM 5.2 AQLM three Sparks",
+    "description": "Candidate TP3 recipe for the complete GLM 5.2 NVFP4/AQLM hybrid checkpoint with long-context reasoning and vision on three DGX Sparks.",
+    "tags": ["candidate", "chat", "distributed", "glm-5.2", "reasoning", "spark", "vision"]
+  },
+  "model": {
+    "kind": "model-version",
+    "publisher": "jarrelscy",
+    "slug": "glm-5-2-nvfp4-aqlm-hybrid-53e0082e",
+    "content_sha256": "b40c8b62e7db0086380b9e735bcd27096017c2351586fc2e9f5beb0d3c7ccbe0"
+  },
+  "execution": {
+    "harness": {
+      "kind": "execution-harness",
+      "publisher": "vonk-forge",
+      "slug": "vllm",
+      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"
+    },
+    "patch_bundle": {
+      "kind": "patch-bundle",
+      "publisher": "miaai-lab",
+      "slug": "glm-5-2-aqlm-triple-topology",
+      "content_sha256": "fe9e12ff8694caaf1be70ec3b4e49685a886c0abbca6b9ad22437bbec70000b9"
+    }
+  },
+  "build": {
+    "context": {
+      "path": "adapters/glm/mia-triple",
+      "sha256": "d6fd10f5ccd79b03517e15f6df66cf16d3e04f0dfe0714d10a50a91e485bca19",
+      "expected_bytes": 10240,
+      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
+    },
+    "dockerfile": "Dockerfile",
+    "platform": "linux/arm64",
+    "arguments": [],
+    "network": {"mode": "none", "hosts": []},
+    "resources": {"download_bytes": 17752470742, "temporary_bytes": 25000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
+  },
+  "parameters": [],
+  "artifacts": [
+    {
+      "id": "weights",
+      "kind": "huggingface.snapshot",
+      "repository": "jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid",
+      "revision": "53e0082eedebd806b63e19779c47905937d768ca",
+      "download_bytes": 292515176895,
+      "installed_bytes": 292515176895,
+      "mount": {"target": "/models", "read_only": true},
+      "roles": ["entrypoint", "worker"]
+    }
+  ],
+  "runtime": {
+    "distribution": {
+      "kind": "runtime-distribution",
+      "publisher": "miaai-lab",
+      "slug": "glm-5-2-aqlm-triple-dspark",
+      "content_sha256": "b85dc7769830f8bce7d6cd68d94f957b5518f3f61993ef23f3c85527a027a5b3"
+    },
+    "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
+    "arguments": [
+      {"name": "served-model-name", "value": "glm-5.2"},
+      {"name": "trust-remote-code", "value": true},
+      {"name": "tensor-parallel-size", "value": 3},
+      {"name": "pipeline-parallel-size", "value": 1},
+      {"name": "kv-cache-dtype", "value": "nvfp4_ds_mla"},
+      {"name": "gpu-memory-utilization", "value": "0.895"},
+      {"name": "max-model-len", "value": 348160},
+      {"name": "max-num-seqs", "value": 1},
+      {"name": "max-num-batched-tokens", "value": 4096},
+      {"name": "speculative-config", "value": "{\"method\":\"deepseek_mtp\",\"num_speculative_tokens\":3,\"draft_tensor_parallel_size\":1}"},
+      {"name": "async-scheduling", "value": true},
+      {"name": "enable-auto-tool-choice", "value": true},
+      {"name": "tool-call-parser", "value": "glm47"},
+      {"name": "reasoning-parser", "value": "glm45"}
+    ],
+    "environment": [
+      {"name": "HF_HUB_OFFLINE", "value": "1"},
+      {"name": "TRANSFORMERS_OFFLINE", "value": "1"},
+      {"name": "VLLM_ALLOW_LONG_MAX_MODEL_LEN", "value": "1"},
+      {"name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS", "value": "0"},
+      {"name": "FLASHINFER_DISABLE_VERSION_CHECK", "value": "1"},
+      {"name": "NCCL_NET", "value": "IB"},
+      {"name": "NCCL_IB_DISABLE", "value": "0"},
+      {"name": "NCCL_CROSS_NIC", "value": "1"},
+      {"name": "NCCL_CUMEM_ENABLE", "value": "0"},
+      {"name": "NCCL_DEBUG", "value": "WARN"}
+    ],
+    "security": {
+      "devices": ["nvidia.com/gpu=all"],
+      "capabilities": [],
+      "host_network": true,
+      "privileged": false,
+      "user": "10001:10001",
+      "mounts": [
+        {"source": "model", "target": "/models", "read_only": true},
+        {"source": "outputs", "target": "/outputs", "read_only": false}
+      ]
+    },
+    "lifecycle": {
+      "pre_start": [],
+      "post_stop": [],
+      "stop_timeout_seconds": 180,
+      "readiness": {"strategy": "endpoint-owner-after-all-ranks", "path": "/v1/models", "timeout_seconds": 3600},
+      "failure": {"rank_loss": "withdraw-endpoint", "recovery": "restart-worker-then-entrypoint"}
+    }
+  },
+  "topology": {
+    "name": "triple",
+    "mode": "distributed",
+    "node_count": 3,
+    "roles": [
+      {
+        "name": "entrypoint",
+        "count": 1,
+        "endpoint_owner": true,
+        "artifacts": ["weights"],
+        "resources": {
+          "disk": {"image_bytes": 30000000000, "artifact_bytes": 292515176895, "staging_bytes": 25000000000, "cache_bytes": 50000000000, "rollback_bytes": 0, "safety_margin_bytes": 30000000000},
+          "memory": {"kind": "unified", "startup_peak_bytes": 120000000000, "steady_state_bytes": 116000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}
+        }
+      },
+      {
+        "name": "worker",
+        "count": 2,
+        "endpoint_owner": false,
+        "artifacts": ["weights"],
+        "resources": {
+          "disk": {"image_bytes": 30000000000, "artifact_bytes": 292515176895, "staging_bytes": 25000000000, "cache_bytes": 50000000000, "rollback_bytes": 0, "safety_margin_bytes": 30000000000},
+          "memory": {"kind": "unified", "startup_peak_bytes": 120000000000, "steady_state_bytes": 116000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}
+        }
+      }
+    ],
+    "parallelism": {"world_size": 3, "tensor": 3, "pipeline": 1, "data": 1, "backend": "mp"},
+    "fabric": {"connectivity": "connected", "minimum_bandwidth_mbps": 200000},
+    "start_order": ["worker", "entrypoint"],
+    "stop_order": ["entrypoint", "worker"]
+  },
+  "interfaces": [{"adapter": "openai", "port": 8888, "model_aliases": ["glm-5.2"], "health_path": "/v1/models"}],
+  "validation": {
+    "validators": [{"interface": "openai", "checks": ["endpoint.healthy", "collective.two-ranks", "chat.nonempty", "chat.max-output-64", "rank-loss.withdrawal", "rank-recovery.healthy"]}],
+    "benchmarks": [{"name": "bounded-chat", "framework": "openai", "configuration": {"max_output_tokens": 64, "requests": 1, "timeout_seconds": 300}}]
+  },
+  "provenance": {
+    "source_kind": "global",
+    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.2-NVFP4-AQLM-Triple-DGX-Sparks/tree/5c85163ccb8d98d395880e71e2dbd03976a3f4ad",
+    "attribution": ["Z.ai", "jarrelscy", "MiaAI-Lab", "vLLM contributors"]
+  }
+}

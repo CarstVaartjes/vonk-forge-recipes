@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 from urllib.parse import quote
 from urllib.request import Request, urlopen
@@ -23,6 +24,26 @@ def _get_json(url: str) -> object:
     request = Request(url, headers={"User-Agent": "vonk-forge-recipe-library/1"})
     with urlopen(request, timeout=60) as response:
         return json.load(response)
+
+
+def _get_json_page(url: str) -> tuple[object, str | None]:
+    request = Request(url, headers={"User-Agent": "vonk-forge-recipe-library/1"})
+    with urlopen(request, timeout=60) as response:
+        payload = json.load(response)
+        link = response.headers.get("Link", "")
+    match = re.search(r'<([^>]+)>;\s*rel="next"', link)
+    return payload, None if match is None else match.group(1)
+
+
+def _get_tree(url: str) -> list[object]:
+    entries: list[object] = []
+    next_url: str | None = url
+    while next_url is not None:
+        page, next_url = _get_json_page(next_url)
+        if not isinstance(page, list):
+            raise SystemExit("Hugging Face model tree page is not an array")
+        entries.extend(page)
+    return entries
 
 
 def _get_bytes(url: str) -> bytes:
@@ -93,8 +114,10 @@ def main() -> int:
     revision = args.revision or model_api.get("sha")
     if not isinstance(revision, str) or len(revision) != 40:
         raise SystemExit("a 40-character model revision is required")
-    tree = _get_json(f"{api_base}/tree/{revision}?recursive=true&expand=true")
-    if not isinstance(tree, list) or not tree:
+    tree = _get_tree(
+        f"{api_base}/tree/{revision}?recursive=true&expand=true&limit=100"
+    )
+    if not tree:
         raise SystemExit("Hugging Face model tree is empty")
 
     artifacts: list[dict[str, object]] = []

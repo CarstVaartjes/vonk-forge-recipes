@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "kind": "patch-bundle",
+  "identity": {"publisher": "mattcurfman", "slug": "glm-5-2-quanttrio-four-topology"},
+  "metadata": {
+    "title": "GLM 5.2 QuantTrio four-Spark topology binding",
+    "description": "Immutable binding to the measured native vLLM TP4 launch contract for the unpruned QuantTrio GLM 5.2 checkpoint.",
+    "tags": ["candidate", "glm-5.2", "spark", "topology", "tp4"]
+  },
+  "applies_to": {
+    "kind": "runtime-distribution",
+    "publisher": "eugr",
+    "slug": "spark-vllm-b12x-2026-08-22",
+    "content_sha256": "91043606da8612bd8cb36959c37042c8dde0c6e74742acf65ab7e3ab8cfa2887"
+  },
+  "sha256": "7c4854109d044ff50cabe26443a700fdaac07989a58335871a9fd2e429440605"
+}
