@@ -38,7 +38,7 @@
   "build": {
     "context": {
       "path": "adapters/llm/vllm-openai",
-      "sha256": "a22f999da91add84f64f27a514d6b04b733d3dd8879a3e2123fa1ab872642988",
+      "sha256": "0b286a9510e765cab3e9e061e48132797b635a8c092695c8db9b5930b5672bfe",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -50,7 +50,7 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 101602950930,
+      "download_bytes": 102435501270,
       "temporary_bytes": 183804731298,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
@@ -78,8 +78,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "vllm",
-      "slug": "vllm-nightly-arm64-8efa13b7",
-      "content_sha256": "ab520c58590294dcff44fadfeb9d9987ecee10edac8835f74aee6fd9730f014f"
+      "slug": "vllm-0-27-1-nvidia-arm64",
+      "content_sha256": "95b0467cb73eeabfe8fd0c4f5f5e4f19a935b6bca3d56ed4bb6fc888470eca4a"
     },
     "entrypoint": [
       "/opt/vonk/bin/vllm",

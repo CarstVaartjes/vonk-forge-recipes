@@ -32,7 +32,7 @@ def main() -> None:
     generator = torch.Generator(device="cuda").manual_seed(args.seed)
     pipe = QwenImagePipeline.from_pretrained(
         "/models",
-        torch_dtype=torch.bfloat16,
+        dtype=torch.bfloat16,
         local_files_only=True,
     ).to("cuda")
     image = pipe(

@@ -84,7 +84,7 @@ def main() -> int:
             "arguments": [],
             "network": {"mode": "none", "hosts": []},
             "resources": {
-                "download_bytes": a.model_bytes + 9700585281,
+                "download_bytes": a.model_bytes + 10533135621,
                 "temporary_bytes": max(a.model_bytes * 2, 32000000000),
                 "memory_bytes": 8000000000,
                 "timeout_seconds": 7200,

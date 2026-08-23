@@ -2,16 +2,20 @@
   "schema_version": 1,
   "identity": {
     "publisher": "vonk-forge",
-    "slug": "gemma-4-26b-a4b-vllm-single"
+    "slug": "qwen3-8-27b-fp8-vllm-single"
   },
   "metadata": {
-    "title": "Gemma 4 26B-A4B vLLM single Spark",
-    "description": "Candidate single-Spark vLLM binding for the exact Google Gemma 4 26B-A4B checkpoint.",
+    "title": "Qwen3.8 27B FP8 vLLM single Spark",
+    "description": "Candidate lower-memory single-Spark vLLM binding for the exact official Qwen3.8 27B FP8 multimodal checkpoint.",
     "tags": [
       "candidate",
-      "google",
-      "gemma",
+      "qwen",
+      "qwen3-8",
+      "fp8",
       "multimodal",
+      "vision",
+      "reasoning",
+      "agentic",
       "vllm",
       "openai",
       "single",
@@ -20,9 +24,9 @@
   },
   "model": {
     "kind": "model-version",
-    "publisher": "google",
-    "slug": "gemma-4-26b-a4b-24548b62",
-    "content_sha256": "22d3422e0c078d7aad713444c141ae629a1aa8f98f32a39e3779a7d4307e7be1"
+    "publisher": "qwen",
+    "slug": "qwen3-8-27b-fp8-017b9c7a",
+    "content_sha256": "db83db3b9b4326fe27044aa9390a7cfd90f5703621c2b1546c517ee6dfea2d2e"
   },
   "execution": {
     "harness": {
@@ -48,8 +52,8 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 62177454729,
-      "temporary_bytes": 103288638216,
+      "download_bytes": 26912423266,
+      "temporary_bytes": 32758575290,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
     }
@@ -59,10 +63,10 @@
     {
       "id": "weights",
       "kind": "huggingface.snapshot",
-      "repository": "google/gemma-4-26B-A4B",
-      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
-      "download_bytes": 51644319108,
-      "installed_bytes": 51644319108,
+      "repository": "Qwen/Qwen3.8-27B-FP8",
+      "revision": "017b9c7af6b5689d5dd426a76e0bc077eb5ca20a",
+      "download_bytes": 16379287645,
+      "installed_bytes": 16379287645,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -87,19 +91,31 @@
     "arguments": [
       {
         "name": "served-model-name",
-        "value": "gemma-4-26b-a4b"
+        "value": "qwen3-8-27b-fp8"
       },
       {
         "name": "max-model-len",
-        "value": 131072
+        "value": 262144
       },
       {
         "name": "max-num-seqs",
-        "value": 2
+        "value": 4
       },
       {
         "name": "gpu-memory-utilization",
         "value": "0.80"
+      },
+      {
+        "name": "reasoning-parser",
+        "value": "qwen3"
+      },
+      {
+        "name": "tool-call-parser",
+        "value": "qwen3_coder"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "value": true
       }
     ],
     "environment": [
@@ -167,16 +183,16 @@
         "resources": {
           "disk": {
             "image_bytes": 12000000000,
-            "artifact_bytes": 51644319108,
-            "staging_bytes": 103288638216,
+            "artifact_bytes": 16379287645,
+            "staging_bytes": 32758575290,
             "cache_bytes": 4000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 100000000000,
-            "steady_state_bytes": 85000000000,
+            "startup_peak_bytes": 76000000000,
+            "steady_state_bytes": 64000000000,
             "runtime_growth_bytes": 4000000000,
             "system_reserve_bytes": 8000000000
           }
@@ -206,7 +222,7 @@
       "adapter": "openai",
       "port": 8000,
       "model_aliases": [
-        "gemma-4-26b-a4b"
+        "qwen3-8-27b-fp8"
       ],
       "health_path": "/v1/models"
     }
@@ -236,9 +252,9 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/google/gemma-4-26B-A4B/tree/24548b62aa021d562695c04aaf7758a1ea47990b",
+    "source_reference": "https://huggingface.co/Qwen/Qwen3.8-27B-FP8/tree/017b9c7af6b5689d5dd426a76e0bc077eb5ca20a",
     "attribution": [
-      "google"
+      "qwen"
     ]
   }
 }
