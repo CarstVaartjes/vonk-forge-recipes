@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "quanttrio",
+    "slug": "glm-5-2-int4-int8mix"
+  },
+  "metadata": {
+    "title": "GLM 5.2 Int4 Int8Mix",
+    "description": "QuantTrio unpruned mixed INT4 and INT8 GLM 5.2 checkpoint for four-Spark serving.",
+    "tags": [
+      "quanttrio",
+      "glm-5-2",
+      "language"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "jarrelscy",
+    "slug": "glm-5-2",
+    "content_sha256": "7fc640db4c80defbbdf9850af2fc91daf8679f6556cddc712de92cd97f99ddea"
+  },
+  "architecture": "GLM sparse mixture-of-experts transformer with DSA and MTP"
+}

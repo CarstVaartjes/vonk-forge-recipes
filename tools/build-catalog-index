@@ -10,7 +10,6 @@ import json
 import tarfile
 from pathlib import Path
 
-
 REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "catalog-index.json"
@@ -176,7 +175,16 @@ def build() -> dict[str, object]:
 
 
 def rendered(document: dict[str, object]) -> str:
-    return json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    # The GitHub Contents API rejects large payloads. Keep the generated index
+    # deterministic but compact so full artifact inventories remain available
+    # for very large, heavily sharded checkpoints.
+    return json.dumps(
+        document,
+        ensure_ascii=False,
+        allow_nan=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ) + "\n"
 
 
 def main() -> int:
