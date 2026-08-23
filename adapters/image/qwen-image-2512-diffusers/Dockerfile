@@ -3,7 +3,7 @@ FROM nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:36050649ad1acc5d3de2c
 LABEL org.opencontainers.image.source="https://huggingface.co/Qwen/Qwen-Image-2512" \
       org.opencontainers.image.revision="25468b98e3276ca6700de15c6628e51b7de54a26" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      io.vonk.diffusers.revision="a3608b512ed7248499a44c61d954965ed9bdae4d"
+      io.vonk.diffusers.revision="d035dcd7cc7c88e0a154609b62887d50bba9fdc2"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -18,15 +18,15 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && python3 -m pip install --break-system-packages --no-cache-dir \
         --index-url https://download.pytorch.org/whl/cu130 \
-        torch==2.8.0 \
-        torchvision==0.23.0 \
+        torch==2.13.0 \
+        torchvision==0.28.0 \
     && python3 -m pip install --break-system-packages --no-cache-dir \
-        "diffusers @ git+https://github.com/huggingface/diffusers.git@a3608b512ed7248499a44c61d954965ed9bdae4d" \
-        accelerate==1.10.1 \
-        Pillow==11.3.0 \
-        safetensors==0.6.2 \
-        sentencepiece==0.2.0 \
-        transformers==4.57.1
+        "diffusers @ git+https://github.com/huggingface/diffusers.git@d035dcd7cc7c88e0a154609b62887d50bba9fdc2" \
+        accelerate==1.14.0 \
+        Pillow==12.3.0 \
+        safetensors==0.8.0 \
+        sentencepiece==0.2.2 \
+        transformers==5.15.1
 
 COPY qwen_image.py /opt/vonk/source/qwen_image.py
 

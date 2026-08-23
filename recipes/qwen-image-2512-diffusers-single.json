@@ -36,7 +36,7 @@
   "build": {
     "context": {
       "path": "adapters/image/qwen-image-2512-diffusers",
-      "sha256": "6c6d057d33fcd901ad448bf5f6788f9409b290906d99c3ede20294edc05b4b25",
+      "sha256": "df9050b64a280b4ca6d4a1e6c64f21374843177096012cfb58c425dc455d7751",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -92,8 +92,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "huggingface",
-      "slug": "diffusers-0-39-0-cuda13-arm64",
-      "content_sha256": "018f23f02a2d93e5d4396f283b6862fc01aaf1364334db1d556d4484c2640afb"
+      "slug": "diffusers-0-40-0-cuda13-arm64",
+      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7"
     },
     "entrypoint": [
       "/opt/vonk/bin/diffusers-job"

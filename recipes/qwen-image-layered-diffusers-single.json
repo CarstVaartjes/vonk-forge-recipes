@@ -7,7 +7,17 @@
   "metadata": {
     "title": "Qwen Image Layered Diffusers single Spark",
     "description": "Candidate single-Spark Diffusers binding for decomposing one input image into independently editable RGBA layers.",
-    "tags": ["candidate", "qwen", "image", "editing", "layered", "diffusers", "bf16", "single", "spark"]
+    "tags": [
+      "candidate",
+      "qwen",
+      "image",
+      "editing",
+      "layered",
+      "diffusers",
+      "bf16",
+      "single",
+      "spark"
+    ]
   },
   "model": {
     "kind": "model-version",
@@ -27,46 +37,234 @@
   "build": {
     "context": {
       "path": "adapters/image/qwen-image-layered-diffusers",
-      "sha256": "c5462c190f7d89e3f3039416a2d63c3a5197f9eeca36065b5c473a805688f36c",
+      "sha256": "97f594e9805382304f63ed740084b22698f6cbdebe8b910414a681b0def5cbb9",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
     "platform": "linux/arm64",
     "arguments": [],
-    "network": {"mode": "public", "hosts": ["nvcr.io", "github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]},
-    "resources": {"download_bytes": 57720484610, "temporary_bytes": 70000000000, "memory_bytes": 8000000000, "timeout_seconds": 14400}
+    "network": {
+      "mode": "public",
+      "hosts": [
+        "nvcr.io",
+        "github.com",
+        "download.pytorch.org",
+        "pypi.org",
+        "files.pythonhosted.org",
+        "archive.ubuntu.com",
+        "security.ubuntu.com",
+        "ports.ubuntu.com"
+      ]
+    },
+    "resources": {
+      "download_bytes": 57720484610,
+      "temporary_bytes": 70000000000,
+      "memory_bytes": 8000000000,
+      "timeout_seconds": 14400
+    }
   },
   "parameters": [],
   "artifacts": [
-    {"id": "weights", "kind": "huggingface.snapshot", "repository": "Qwen/Qwen-Image-Layered", "revision": "8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf", "download_bytes": 57720484610, "installed_bytes": 57720484610, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint"]}
+    {
+      "id": "weights",
+      "kind": "huggingface.snapshot",
+      "repository": "Qwen/Qwen-Image-Layered",
+      "revision": "8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf",
+      "download_bytes": 57720484610,
+      "installed_bytes": 57720484610,
+      "mount": {
+        "target": "/models",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    }
   ],
   "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "huggingface", "slug": "diffusers-0-39-0-cuda13-arm64", "content_sha256": "018f23f02a2d93e5d4396f283b6862fc01aaf1364334db1d556d4484c2640afb"},
-    "entrypoint": ["/opt/vonk/bin/diffusers-job"],
-    "arguments": [
-      {"name": "pipeline", "value": "image-to-layers"},
-      {"name": "output-mime", "value": "image/png"},
-      {"name": "num-inference-steps", "value": 50},
-      {"name": "true-cfg-scale", "value": "4"},
-      {"name": "layers", "value": 4},
-      {"name": "resolution", "value": 640},
-      {"name": "seed", "value": 777}
-    ],
-    "environment": [{"name": "HF_HUB_OFFLINE", "value": "1"}, {"name": "TRANSFORMERS_OFFLINE", "value": "1"}],
-    "security": {
-      "devices": ["nvidia.com/gpu=all"], "capabilities": [], "host_network": false, "privileged": false, "user": "10001:10001",
-      "mounts": [{"source": "model", "target": "/models", "read_only": true}, {"source": "inputs", "target": "/inputs", "read_only": true}, {"source": "outputs", "target": "/outputs", "read_only": false}]
+    "distribution": {
+      "kind": "runtime-distribution",
+      "publisher": "huggingface",
+      "slug": "diffusers-0-40-0-cuda13-arm64",
+      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7"
     },
-    "lifecycle": {"pre_start": [], "post_stop": [], "stop_timeout_seconds": 120, "readiness": {"strategy": "endpoint-owner", "path": "/outputs", "timeout_seconds": 3600}, "failure": {"rank_loss": "not-applicable", "recovery": "restart-entrypoint"}}
+    "entrypoint": [
+      "/opt/vonk/bin/diffusers-job"
+    ],
+    "arguments": [
+      {
+        "name": "pipeline",
+        "value": "image-to-layers"
+      },
+      {
+        "name": "output-mime",
+        "value": "image/png"
+      },
+      {
+        "name": "num-inference-steps",
+        "value": 50
+      },
+      {
+        "name": "true-cfg-scale",
+        "value": "4"
+      },
+      {
+        "name": "layers",
+        "value": 4
+      },
+      {
+        "name": "resolution",
+        "value": 640
+      },
+      {
+        "name": "seed",
+        "value": 777
+      }
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "security": {
+      "devices": [
+        "nvidia.com/gpu=all"
+      ],
+      "capabilities": [],
+      "host_network": false,
+      "privileged": false,
+      "user": "10001:10001",
+      "mounts": [
+        {
+          "source": "model",
+          "target": "/models",
+          "read_only": true
+        },
+        {
+          "source": "inputs",
+          "target": "/inputs",
+          "read_only": true
+        },
+        {
+          "source": "outputs",
+          "target": "/outputs",
+          "read_only": false
+        }
+      ]
+    },
+    "lifecycle": {
+      "pre_start": [],
+      "post_stop": [],
+      "stop_timeout_seconds": 120,
+      "readiness": {
+        "strategy": "endpoint-owner",
+        "path": "/outputs",
+        "timeout_seconds": 3600
+      },
+      "failure": {
+        "rank_loss": "not-applicable",
+        "recovery": "restart-entrypoint"
+      }
+    }
   },
   "topology": {
-    "name": "solo", "mode": "single", "node_count": 1,
-    "roles": [{"name": "entrypoint", "count": 1, "endpoint_owner": true, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 2000000000, "artifact_bytes": 57720484610, "staging_bytes": 70000000000, "cache_bytes": 8000000000, "rollback_bytes": 0, "safety_margin_bytes": 12000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 118000000000, "steady_state_bytes": 98000000000, "runtime_growth_bytes": 8000000000, "system_reserve_bytes": 8000000000}}}],
-    "parallelism": {"world_size": 1, "tensor": 1, "pipeline": 1, "data": 1, "backend": "local"},
-    "fabric": {"connectivity": "none", "minimum_bandwidth_mbps": 0}, "start_order": ["entrypoint"], "stop_order": ["entrypoint"]
+    "name": "solo",
+    "mode": "single",
+    "node_count": 1,
+    "roles": [
+      {
+        "name": "entrypoint",
+        "count": 1,
+        "endpoint_owner": true,
+        "artifacts": [
+          "weights"
+        ],
+        "resources": {
+          "disk": {
+            "image_bytes": 2000000000,
+            "artifact_bytes": 57720484610,
+            "staging_bytes": 70000000000,
+            "cache_bytes": 8000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 12000000000
+          },
+          "memory": {
+            "kind": "unified",
+            "startup_peak_bytes": 118000000000,
+            "steady_state_bytes": 98000000000,
+            "runtime_growth_bytes": 8000000000,
+            "system_reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "parallelism": {
+      "world_size": 1,
+      "tensor": 1,
+      "pipeline": 1,
+      "data": 1,
+      "backend": "local"
+    },
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
+    "start_order": [
+      "entrypoint"
+    ],
+    "stop_order": [
+      "entrypoint"
+    ]
   },
-  "interfaces": [{"adapter": "artifact-job", "path": "/outputs", "input": {"path": "/inputs", "required": true, "media_types": ["image/jpeg", "image/png", "image/webp"], "max_bytes": 8388608}}],
-  "validation": {"validators": [{"interface": "artifact-job", "checks": ["artifact.mime.image-png"]}], "benchmarks": [{"name": "bounded-layer-decomposition", "framework": "diffusers", "configuration": {"layers": 4, "resolution": 640, "num_inference_steps": 50, "timeout_seconds": 14400}}]},
-  "provenance": {"source_kind": "global", "source_reference": "https://huggingface.co/Qwen/Qwen-Image-Layered/tree/8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf", "attribution": ["Qwen"]}
+  "interfaces": [
+    {
+      "adapter": "artifact-job",
+      "path": "/outputs",
+      "input": {
+        "path": "/inputs",
+        "required": true,
+        "media_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "max_bytes": 8388608
+      }
+    }
+  ],
+  "validation": {
+    "validators": [
+      {
+        "interface": "artifact-job",
+        "checks": [
+          "artifact.mime.image-png"
+        ]
+      }
+    ],
+    "benchmarks": [
+      {
+        "name": "bounded-layer-decomposition",
+        "framework": "diffusers",
+        "configuration": {
+          "layers": 4,
+          "resolution": 640,
+          "num_inference_steps": 50,
+          "timeout_seconds": 14400
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/Qwen/Qwen-Image-Layered/tree/8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf",
+    "attribution": [
+      "Qwen"
+    ]
+  }
 }

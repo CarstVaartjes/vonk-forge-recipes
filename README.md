@@ -35,6 +35,14 @@ contract. The validator checks JSON schema and semantics, exact dependency
 resolution, source-context boundaries, deterministic recipe identity, and a
 credential scan. GitHub Actions is the only publication path.
 
+`catalog-index.json` is a generated, digest-bound view of every public recipe,
+its exact catalog-entity closure, and the immutable Git blobs in each build
+context. It lets the control plane load catalog metadata in one request instead
+of spending one unauthenticated GitHub API request per recipe. When an operator
+chooses a recipe, the control plane verifies and materializes only that recipe's
+dependencies and source bundle. Run `tools/build-catalog-index` after changing
+recipes, entities, or adapters; CI rejects a stale index.
+
 ## Adding a recipe
 
 1. Add or revise the model entities and exact artifact metadata.
@@ -61,7 +69,7 @@ records the exact Git commit in the local import receipt. Its default is a
 dry-run; candidate recipes require an explicit opt-in.
 
 Every non-blocked target in the ledger has at least one candidate recipe,
-including the language, image, audio, video, and 3D targets. The six blocked
+including the language, image, audio, video, and 3D targets. The five blocked
 targets intentionally have no recipe and remain research-only. Candidate
 recipes are structurally validated and visible to operators, but are not
 accepted defaults until their ARM64 container build and Spark canary pass.
@@ -79,3 +87,10 @@ keeping them out of the accepted default catalog until an ARM64 container and
 Spark canary exist. Qwen Image Layered demonstrates the isolated `/inputs`
 contract and emits a multi-artifact layer result rather than an OpenAI
 response.
+
+The 2026-08-22 runtime audit moved the public media catalog to Diffusers 0.40
+and the PyTorch 2.13 CUDA 13 ARM64 stack with ABI-compatible TorchAudio 2.11,
+and replaced remaining vLLM nightly
+bindings with the stable vLLM 0.27.1 distribution. Qwen3.8 27B BF16 and FP8
+recipes are included as exact-revision candidates; they still require a Spark
+container build and physical canary before acceptance.

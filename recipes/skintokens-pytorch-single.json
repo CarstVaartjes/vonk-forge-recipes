@@ -33,7 +33,7 @@
   "build": {
     "context": {
       "path": "adapters/media/upstream-native",
-      "sha256": "cf7ab412f5ca685acb1cc0ea6959850f4a7b8bea598d582517a19b3bd16d3201",
+      "sha256": "0482565099ffca2d5c3d6fef1cac484e06eba813a1fb18b7e20aac44c50335ce",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -79,8 +79,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "pytorch",
-      "slug": "pytorch-2-8-cuda13-arm64",
-      "content_sha256": "871dd58d55f8ed0fad3f7256274fcb09780b5acc443399ba7bacf009d90975ee"
+      "slug": "pytorch-2-13-cuda13-arm64",
+      "content_sha256": "93ff225d792a8e14f1e4758701e1d88c82f9e515c4aafec160ee00c750b6a9e9"
     },
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"

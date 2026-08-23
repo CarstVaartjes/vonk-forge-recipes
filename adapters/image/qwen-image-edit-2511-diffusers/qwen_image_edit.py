@@ -42,7 +42,7 @@ def main() -> None:
     images = [Image.open(path).convert("RGB") for path in input_files]
     pipe = QwenImageEditPlusPipeline.from_pretrained(
         "/models",
-        torch_dtype=torch.bfloat16,
+        dtype=torch.bfloat16,
         local_files_only=True,
     ).to("cuda")
     output = pipe(

@@ -37,7 +37,7 @@ def main() -> None:
 
     pipe = DiffusionPipeline.from_pretrained(
         "/models",
-        torch_dtype=torch.bfloat16,
+        dtype=torch.bfloat16,
         local_files_only=True,
         trust_remote_code=False,
     )

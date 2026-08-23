@@ -1,0 +1,208 @@
+#!/usr/bin/env python3
+"""Build the compact public index consumed by Vonk Forge control planes."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import io
+import json
+import tarfile
+from pathlib import Path
+
+
+REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
+ROOT = Path(__file__).resolve().parents[1]
+OUTPUT = ROOT / "catalog-index.json"
+MAX_INDEX_BYTES = 900 * 1024
+ENTITY_DIRECTORIES = {
+    "model-groups": "model-group",
+    "models": "model",
+    "model-versions": "model-version",
+    "runtime-distributions": "runtime-distribution",
+    "patch-bundles": "patch-bundle",
+}
+
+
+def canonical(document: object) -> bytes:
+    return json.dumps(
+        document,
+        ensure_ascii=False,
+        allow_nan=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+
+
+def source_bundle(context: Path) -> tuple[bytes, list[dict[str, object]], str]:
+    files: list[tuple[str, bytes]] = []
+    for path in sorted(
+        context.rglob("*"), key=lambda item: item.relative_to(context).as_posix().encode()
+    ):
+        relative = path.relative_to(context).as_posix()
+        if path.is_symlink():
+            raise SystemExit(f"unsafe source bundle entry: {context.relative_to(ROOT)}/{relative}")
+        if path.is_dir():
+            continue
+        if (
+            not path.is_file()
+            or "__pycache__" in path.parts
+            or path.suffix == ".pyc"
+        ):
+            raise SystemExit(f"unsafe source bundle entry: {context.relative_to(ROOT)}/{relative}")
+        files.append((relative, path.read_bytes()))
+    if not files:
+        raise SystemExit(f"source bundle is empty: {context.relative_to(ROOT)}")
+    stream = io.BytesIO()
+    with tarfile.open(fileobj=stream, mode="w", format=tarfile.PAX_FORMAT) as bundle:
+        for relative, content in files:
+            member = tarfile.TarInfo(relative)
+            member.size = len(content)
+            member.mode = 0o644
+            member.uid = member.gid = 0
+            member.uname = member.gname = ""
+            member.mtime = 0
+            bundle.addfile(member, io.BytesIO(content))
+    metadata = [
+        {
+            "path": relative,
+            "size": len(content),
+            "blob_sha": hashlib.sha1(
+                f"blob {len(content)}\0".encode() + content,
+                usedforsecurity=False,
+            ).hexdigest(),
+        }
+        for relative, content in files
+    ]
+    manifest = {
+        "schema_version": 1,
+        "files": [
+            {
+                "path": relative,
+                "mode": 0o644,
+                "size": len(content),
+                "sha256": hashlib.sha256(content).hexdigest(),
+            }
+            for relative, content in files
+        ],
+        "total_bytes": sum(len(content) for _, content in files),
+    }
+    return stream.getvalue(), metadata, hashlib.sha256(canonical(manifest)).hexdigest()
+
+
+def catalog_entities() -> list[dict[str, object]]:
+    entries: list[dict[str, object]] = []
+    identities: set[tuple[str, str, str]] = set()
+    for directory, expected_kind in ENTITY_DIRECTORIES.items():
+        for path in sorted((ROOT / directory).glob("*.json")):
+            document = json.loads(path.read_text(encoding="utf-8"))
+            identity = document.get("identity")
+            if document.get("kind") != expected_kind or not isinstance(identity, dict):
+                raise SystemExit(f"catalog entity identity is invalid: {path.relative_to(ROOT)}")
+            key = (expected_kind, identity.get("publisher"), identity.get("slug"))
+            if not all(isinstance(value, str) for value in key):
+                raise SystemExit(f"catalog entity identity is invalid: {path.relative_to(ROOT)}")
+            if key in identities:
+                raise SystemExit(f"duplicate catalog entity identity: {'/'.join(key)}")
+            identities.add(key)
+            entries.append(
+                {
+                    "source_path": path.relative_to(ROOT).as_posix(),
+                    "content_sha256": hashlib.sha256(canonical(document)).hexdigest(),
+                    "document": document,
+                }
+            )
+    return sorted(entries, key=lambda entry: str(entry["source_path"]))
+
+
+def build() -> dict[str, object]:
+    recipes: list[dict[str, object]] = []
+    contexts: dict[str, dict[str, object]] = {}
+    identities: set[tuple[str, str]] = set()
+    for path in sorted((ROOT / "recipes").glob("*.json")):
+        document = json.loads(path.read_text(encoding="utf-8"))
+        identity = document.get("identity")
+        if not isinstance(identity, dict):
+            raise SystemExit(f"recipe identity is missing: {path.relative_to(ROOT)}")
+        key = (identity.get("publisher"), identity.get("slug"))
+        if not all(isinstance(value, str) for value in key):
+            raise SystemExit(f"recipe identity is invalid: {path.relative_to(ROOT)}")
+        if key in identities:
+            raise SystemExit(f"duplicate recipe identity: {key[0]}/{key[1]}")
+        identities.add(key)
+        source_path = path.relative_to(ROOT).as_posix()
+        if source_path != f"recipes/{key[1]}.json":
+            raise SystemExit(f"recipe path does not match its slug: {source_path}")
+        recipes.append(
+            {
+                "source_path": source_path,
+                "content_sha256": hashlib.sha256(canonical(document)).hexdigest(),
+                "document": document,
+            }
+        )
+        build = document.get("build")
+        context = build.get("context") if isinstance(build, dict) else None
+        context_path = context.get("path") if isinstance(context, dict) else None
+        expected_digest = context.get("sha256") if isinstance(context, dict) else None
+        expected_bytes = context.get("expected_bytes") if isinstance(context, dict) else None
+        if (
+            not isinstance(context_path, str)
+            or not isinstance(expected_digest, str)
+            or not isinstance(expected_bytes, int)
+        ):
+            raise SystemExit(f"recipe source bundle identity is invalid: {source_path}")
+        archive, files, actual_digest = source_bundle(ROOT / context_path)
+        if actual_digest != expected_digest or len(archive) != expected_bytes:
+            raise SystemExit(f"recipe source bundle does not match its contract: {source_path}")
+        previous = contexts.get(expected_digest)
+        entry = {
+            "context_path": context_path,
+            "content_sha256": actual_digest,
+            "expected_bytes": len(archive),
+            "files": files,
+        }
+        if previous is not None and previous != entry:
+            raise SystemExit(f"source bundle digest collision: {expected_digest}")
+        contexts[expected_digest] = entry
+    return {
+        "schema_version": 2,
+        "repository": REPOSITORY,
+        "catalog_entities": catalog_entities(),
+        "source_contexts": sorted(
+            contexts.values(), key=lambda entry: str(entry["content_sha256"])
+        ),
+        "recipes": recipes,
+    }
+
+
+def rendered(document: dict[str, object]) -> str:
+    return json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="fail when catalog-index.json is missing or stale",
+    )
+    arguments = parser.parse_args()
+    document = build()
+    expected = rendered(document)
+    if len(expected.encode("utf-8")) > MAX_INDEX_BYTES:
+        print("catalog-index.json exceeds the GitHub Contents API safety limit")
+        return 1
+    recipe_count = len(document["recipes"])
+    if arguments.check:
+        if not OUTPUT.is_file() or OUTPUT.read_text(encoding="utf-8") != expected:
+            print("catalog-index.json is stale; run tools/build-catalog-index")
+            return 1
+        print(f"catalog index is current ({recipe_count} recipes)")
+        return 0
+    OUTPUT.write_text(expected, encoding="utf-8")
+    print(f"wrote {OUTPUT.relative_to(ROOT)} ({recipe_count} recipes)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
