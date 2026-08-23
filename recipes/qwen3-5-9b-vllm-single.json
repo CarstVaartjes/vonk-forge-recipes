@@ -36,7 +36,7 @@
   "build": {
     "context": {
       "path": "adapters/llm/qwen35-vllm",
-      "sha256": "c2f34a5e1180111bf2956d146f4dc48a89595c733a0ca07d75c133655a707a9b",
+      "sha256": "654b2eb41b16eb860109cd034130b7bf346e9fe04f5dca30f686abb8e7281744",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -48,7 +48,7 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 9700585281,
+      "download_bytes": 29862529282,
       "temporary_bytes": 32000000000,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
@@ -76,8 +76,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "vllm",
-      "slug": "vllm-nightly-arm64-8efa13b7",
-      "content_sha256": "ab520c58590294dcff44fadfeb9d9987ecee10edac8835f74aee6fd9730f014f"
+      "slug": "vllm-0-27-1-nvidia-arm64",
+      "content_sha256": "95b0467cb73eeabfe8fd0c4f5f5e4f19a935b6bca3d56ed4bb6fc888470eca4a"
     },
     "entrypoint": [
       "/opt/vonk/bin/vllm",

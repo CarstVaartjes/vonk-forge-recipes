@@ -17,9 +17,19 @@ jobs:
     with:
       platform_ref: ab969610902fa332c4164bdd24384350224dc381
 
+  catalog-index:
+    name: Verify catalog index
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out recipes
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Verify generated catalog index
+        run: python3 tools/build-catalog-index --check
+
   publish:
     name: Create signed library release
-    needs: validate
+    needs: [validate, catalog-index]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     environment: recipe-release

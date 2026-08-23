@@ -37,7 +37,7 @@
   "build": {
     "context": {
       "path": "adapters/image/qwen-image-edit-2511-diffusers",
-      "sha256": "0d6808527d2cc956b3d31d40c1bbf4756cb2fb4012221dcfdeb411b4d131c23e",
+      "sha256": "c2fcb5bf77a44b8acb284c41805dc542d3eaf858b1d11a3d4c7373e343bc764c",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -68,7 +68,9 @@
   "provenance": {
     "source_kind": "global",
     "source_reference": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/tree/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
-    "attribution": ["Qwen"]
+    "attribution": [
+      "Qwen"
+    ]
   },
   "artifacts": [
     {
@@ -78,44 +80,92 @@
       "revision": "6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
       "download_bytes": 57720463453,
       "installed_bytes": 57720463453,
-      "mount": {"target": "/models", "read_only": true},
-      "roles": ["entrypoint"]
+      "mount": {
+        "target": "/models",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
     }
   ],
   "runtime": {
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "huggingface",
-      "slug": "diffusers-0-39-0-cuda13-arm64",
-      "content_sha256": "018f23f02a2d93e5d4396f283b6862fc01aaf1364334db1d556d4484c2640afb"
+      "slug": "diffusers-0-40-0-cuda13-arm64",
+      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7"
     },
-    "entrypoint": ["/opt/vonk/bin/diffusers-job"],
-    "arguments": [
-      {"name": "pipeline", "value": "image-to-image"},
-      {"name": "output-mime", "value": "image/png"},
-      {"name": "num-inference-steps", "value": 40},
-      {"name": "guidance-scale", "value": "1"},
-      {"name": "seed", "value": 0}
+    "entrypoint": [
+      "/opt/vonk/bin/diffusers-job"
     ],
-    "environment": [{"name": "HF_HUB_OFFLINE", "value": "1"}],
+    "arguments": [
+      {
+        "name": "pipeline",
+        "value": "image-to-image"
+      },
+      {
+        "name": "output-mime",
+        "value": "image/png"
+      },
+      {
+        "name": "num-inference-steps",
+        "value": 40
+      },
+      {
+        "name": "guidance-scale",
+        "value": "1"
+      },
+      {
+        "name": "seed",
+        "value": 0
+      }
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      }
+    ],
     "security": {
-      "devices": ["nvidia.com/gpu=all"],
+      "devices": [
+        "nvidia.com/gpu=all"
+      ],
       "capabilities": [],
       "host_network": false,
       "privileged": false,
       "user": "10001:10001",
       "mounts": [
-        {"source": "model", "target": "/models", "read_only": true},
-        {"source": "inputs", "target": "/inputs", "read_only": true},
-        {"source": "outputs", "target": "/outputs", "read_only": false}
+        {
+          "source": "model",
+          "target": "/models",
+          "read_only": true
+        },
+        {
+          "source": "inputs",
+          "target": "/inputs",
+          "read_only": true
+        },
+        {
+          "source": "outputs",
+          "target": "/outputs",
+          "read_only": false
+        }
       ]
     },
     "lifecycle": {
       "pre_start": [],
       "post_stop": [],
       "stop_timeout_seconds": 120,
-      "readiness": {"strategy": "endpoint-owner", "path": "/outputs", "timeout_seconds": 3600},
-      "failure": {"rank_loss": "not-applicable", "recovery": "restart-entrypoint"}
+      "readiness": {
+        "strategy": "endpoint-owner",
+        "path": "/outputs",
+        "timeout_seconds": 3600
+      },
+      "failure": {
+        "rank_loss": "not-applicable",
+        "recovery": "restart-entrypoint"
+      }
     }
   },
   "topology": {
@@ -127,7 +177,9 @@
         "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": ["weights"],
+        "artifacts": [
+          "weights"
+        ],
         "resources": {
           "disk": {
             "image_bytes": 2000000000,
@@ -147,10 +199,23 @@
         }
       }
     ],
-    "parallelism": {"world_size": 1, "tensor": 1, "pipeline": 1, "data": 1, "backend": "local"},
-    "fabric": {"connectivity": "none", "minimum_bandwidth_mbps": 0},
-    "start_order": ["entrypoint"],
-    "stop_order": ["entrypoint"]
+    "parallelism": {
+      "world_size": 1,
+      "tensor": 1,
+      "pipeline": 1,
+      "data": 1,
+      "backend": "local"
+    },
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
+    "start_order": [
+      "entrypoint"
+    ],
+    "stop_order": [
+      "entrypoint"
+    ]
   },
   "interfaces": [
     {
@@ -159,13 +224,33 @@
       "input": {
         "path": "/inputs",
         "required": true,
-        "media_types": ["image/jpeg", "image/png", "image/webp"],
+        "media_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
         "max_bytes": 8388608
       }
     }
   ],
   "validation": {
-    "validators": [{"interface": "image-job", "checks": ["artifact.mime.image-png"]}],
-    "benchmarks": [{"name": "bounded-image-edit", "framework": "diffusers", "configuration": {"num_inference_steps": 40, "timeout_seconds": 14400}}]
+    "validators": [
+      {
+        "interface": "image-job",
+        "checks": [
+          "artifact.mime.image-png"
+        ]
+      }
+    ],
+    "benchmarks": [
+      {
+        "name": "bounded-image-edit",
+        "framework": "diffusers",
+        "configuration": {
+          "num_inference_steps": 40,
+          "timeout_seconds": 14400
+        }
+      }
+    ]
   }
 }

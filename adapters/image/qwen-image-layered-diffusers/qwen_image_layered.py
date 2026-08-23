@@ -39,7 +39,7 @@ def main() -> None:
     image = Image.open(input_files[0]).convert("RGBA")
     pipe = QwenImageLayeredPipeline.from_pretrained(
         "/models",
-        torch_dtype=torch.bfloat16,
+        dtype=torch.bfloat16,
         local_files_only=True,
     ).to("cuda")
     output = pipe(

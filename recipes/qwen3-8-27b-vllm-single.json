@@ -2,16 +2,19 @@
   "schema_version": 1,
   "identity": {
     "publisher": "vonk-forge",
-    "slug": "gemma-4-26b-a4b-vllm-single"
+    "slug": "qwen3-8-27b-vllm-single"
   },
   "metadata": {
-    "title": "Gemma 4 26B-A4B vLLM single Spark",
-    "description": "Candidate single-Spark vLLM binding for the exact Google Gemma 4 26B-A4B checkpoint.",
+    "title": "Qwen3.8 27B BF16 vLLM single Spark",
+    "description": "Candidate single-Spark vLLM binding for the exact official Qwen3.8 27B BF16 multimodal checkpoint.",
     "tags": [
       "candidate",
-      "google",
-      "gemma",
+      "qwen",
+      "qwen3-8",
       "multimodal",
+      "vision",
+      "reasoning",
+      "agentic",
       "vllm",
       "openai",
       "single",
@@ -20,9 +23,9 @@
   },
   "model": {
     "kind": "model-version",
-    "publisher": "google",
-    "slug": "gemma-4-26b-a4b-24548b62",
-    "content_sha256": "22d3422e0c078d7aad713444c141ae629a1aa8f98f32a39e3779a7d4307e7be1"
+    "publisher": "qwen",
+    "slug": "qwen3-8-27b-1d4bf0f2",
+    "content_sha256": "f45e5b4c7316c7a9ac77abcd52c5986801b344b6c98963da5a3cd16e48bc4459"
   },
   "execution": {
     "harness": {
@@ -48,8 +51,8 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 62177454729,
-      "temporary_bytes": 103288638216,
+      "download_bytes": 66119250484,
+      "temporary_bytes": 111172229726,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
     }
@@ -59,10 +62,10 @@
     {
       "id": "weights",
       "kind": "huggingface.snapshot",
-      "repository": "google/gemma-4-26B-A4B",
-      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
-      "download_bytes": 51644319108,
-      "installed_bytes": 51644319108,
+      "repository": "Qwen/Qwen3.8-27B",
+      "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+      "download_bytes": 55586114863,
+      "installed_bytes": 55586114863,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -87,7 +90,7 @@
     "arguments": [
       {
         "name": "served-model-name",
-        "value": "gemma-4-26b-a4b"
+        "value": "qwen3-8-27b"
       },
       {
         "name": "max-model-len",
@@ -100,6 +103,18 @@
       {
         "name": "gpu-memory-utilization",
         "value": "0.80"
+      },
+      {
+        "name": "reasoning-parser",
+        "value": "qwen3"
+      },
+      {
+        "name": "tool-call-parser",
+        "value": "qwen3_coder"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "value": true
       }
     ],
     "environment": [
@@ -167,16 +182,16 @@
         "resources": {
           "disk": {
             "image_bytes": 12000000000,
-            "artifact_bytes": 51644319108,
-            "staging_bytes": 103288638216,
+            "artifact_bytes": 55586114863,
+            "staging_bytes": 111172229726,
             "cache_bytes": 4000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 100000000000,
-            "steady_state_bytes": 85000000000,
+            "startup_peak_bytes": 108000000000,
+            "steady_state_bytes": 96000000000,
             "runtime_growth_bytes": 4000000000,
             "system_reserve_bytes": 8000000000
           }
@@ -206,7 +221,7 @@
       "adapter": "openai",
       "port": 8000,
       "model_aliases": [
-        "gemma-4-26b-a4b"
+        "qwen3-8-27b"
       ],
       "health_path": "/v1/models"
     }
@@ -236,9 +251,9 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/google/gemma-4-26B-A4B/tree/24548b62aa021d562695c04aaf7758a1ea47990b",
+    "source_reference": "https://huggingface.co/Qwen/Qwen3.8-27B/tree/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
     "attribution": [
-      "google"
+      "qwen"
     ]
   }
 }
