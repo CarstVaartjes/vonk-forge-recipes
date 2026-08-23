@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "runtime-distribution",
+  "identity": {"publisher": "eugr", "slug": "spark-vllm-b12x-2026-08-22"},
+  "metadata": {
+    "title": "eugr Spark vLLM B12X 2026-08-22 runtime",
+    "description": "Immutable ARM64 B12X runner image for native four-node vLLM on DGX Spark, resolved from the tested 2026-08-22 public image.",
+    "tags": ["b12x", "candidate", "distributed", "glm-5.2", "spark", "vllm"]
+  },
+  "implements_harness": {
+    "kind": "execution-harness",
+    "publisher": "vonk-forge",
+    "slug": "vllm",
+    "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"
+  },
+  "platform": "linux/arm64",
+  "source": {
+    "repository": "https://github.com/eugr/spark-vllm-docker",
+    "revision": "44774ef2c51ffb782ad0f35637b239be1e54c1d1",
+    "archive_sha256": "3ea3d7efcb252d6637082d6801f851932ff49420866ac0434c11ec5577af5d3e",
+    "license": "MIT"
+  },
+  "image": "docker.io/eugr/spark-vllm-b12x@sha256:52f8e6338c5038ebcbc9c58e52e1d78eaccaa263e1dc1726f4cbecdced49f384",
+  "image_manifest": {
+    "digest": "52f8e6338c5038ebcbc9c58e52e1d78eaccaa263e1dc1726f4cbecdced49f384",
+    "size": 4735,
+    "config_digest": "e1c4b909b23a4ac2b8688f51da32342e42f2f3c21518e888f838d7a22c53b91b",
+    "compressed_layers_bytes": 11312660690
+  },
+  "dependencies": [
+    {"name": "vLLM", "version": "image-pinned-2026-08-22", "source": "docker.io/eugr/spark-vllm-b12x@sha256:52f8e6338c5038ebcbc9c58e52e1d78eaccaa263e1dc1726f4cbecdced49f384", "license": "Apache-2.0"},
+    {"name": "B12X", "version": "image-pinned-2026-08-22", "source": "https://github.com/lukealonso/b12x", "license": "Apache-2.0"},
+    {"name": "PyTorch", "version": "2.13.0", "source": "https://download.pytorch.org/whl/cu130", "license": "BSD-3-Clause"},
+    {"name": "nvidia-cutlass-dsl", "version": "4.7.0", "source": "https://pypi.org/project/nvidia-cutlass-dsl/4.7.0/", "license": "BSD-3-Clause"},
+    {"name": "CUDA", "version": "13.0.2", "source": "https://developer.nvidia.com/cuda-toolkit", "license": "NVIDIA CUDA Toolkit EULA"}
+  ],
+  "build": {"network_hosts": ["docker.io", "registry-1.docker.io"], "offline_after_installation": true},
+  "capabilities": {
+    "distributed_vllm": {
+      "verified": true,
+      "mechanism": "vllm-mp",
+      "topology_mode": "distributed",
+      "node_count": 4,
+      "world_size": 4,
+      "tensor_parallel_size": 4,
+      "pipeline_parallel_size": 1,
+      "data_parallel_size": 1,
+      "fabric": "nccl-roce",
+      "endpoint_role": "entrypoint",
+      "worker_role": "worker",
+      "rank_loss_withdraws_endpoint": true,
+      "launch": {
+        "rendezvous": {
+          "local_address_environment": "VONK_LOCAL_ADDR",
+          "master_address_environment": "VONK_MASTER_ADDR",
+          "master_port_environment": "VONK_MASTER_PORT",
+          "master_role": "entrypoint"
+        },
+        "rank_profiles": [
+          {"rank": 0, "role": "entrypoint", "environment": {"GLOO_SOCKET_IFNAME": "enp1s0f0np0", "NCCL_IB_GID_INDEX": "3", "NCCL_IB_HCA": "=rocep1s0f0:1", "NCCL_SOCKET_IFNAME": "=enp1s0f0np0", "TP_SOCKET_IFNAME": "enp1s0f0np0"}},
+          {"rank": 1, "role": "worker", "environment": {"GLOO_SOCKET_IFNAME": "enp1s0f0np0", "NCCL_IB_GID_INDEX": "3", "NCCL_IB_HCA": "=rocep1s0f0:1", "NCCL_SOCKET_IFNAME": "=enp1s0f0np0", "TP_SOCKET_IFNAME": "enp1s0f0np0"}},
+          {"rank": 2, "role": "worker", "environment": {"GLOO_SOCKET_IFNAME": "enp1s0f0np0", "NCCL_IB_GID_INDEX": "3", "NCCL_IB_HCA": "=rocep1s0f0:1", "NCCL_SOCKET_IFNAME": "=enp1s0f0np0", "TP_SOCKET_IFNAME": "enp1s0f0np0"}},
+          {"rank": 3, "role": "worker", "environment": {"GLOO_SOCKET_IFNAME": "enp1s0f0np0", "NCCL_IB_GID_INDEX": "3", "NCCL_IB_HCA": "=rocep1s0f0:1", "NCCL_SOCKET_IFNAME": "=enp1s0f0np0", "TP_SOCKET_IFNAME": "enp1s0f0np0"}}
+        ]
+      }
+    }
+  },
+  "security": {"network_mode": "none", "user": "10001:10001", "no_new_privileges": true, "capabilities": []}
+}
