@@ -6,20 +6,22 @@
   },
   "metadata": {
     "title": "Qwen Image 2512 Lightning diffusers single Spark",
-    "description": "Candidate public model binding through the standard ARM64 media harness; physical Spark acceptance is required.",
+    "description": "Metadata-only Lightning weight collection; this recipe is not executable until a base Qwen Image 2512 dependency and LoRA-aware adapter are cataloged.",
     "tags": [
       "candidate",
       "image",
       "diffusers",
       "single",
-      "spark"
+      "spark",
+      "metadata-only",
+      "non-executable"
     ]
   },
   "model": {
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen-image-2512-lightning",
-    "content_sha256": "0686912cd660a4f93f35526a0a7f187d6e8baafabe8138161718bcf3bd89a82d"
+    "content_sha256": "021ad22753613a974127642b0135e9fae2ec2d78a13a4418b4ad42afcf5eb1e1"
   },
   "execution": {
     "harness": {
@@ -103,8 +105,8 @@
         "value": 4
       },
       {
-        "name": "guidance-scale",
-        "value": "4"
+        "name": "true-cfg-scale",
+        "value": "1"
       },
       {
         "name": "width",

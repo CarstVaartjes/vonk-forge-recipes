@@ -3,7 +3,7 @@
   "identity": {"publisher": "vonk-forge", "slug": "glm-5-2-quanttrio-vllm-four"},
   "metadata": {
     "title": "GLM 5.2 QuantTrio four Sparks",
-    "description": "Candidate native TP4 recipe for the unpruned GLM 5.2 Int4/Int8 checkpoint with 200K context and MTP on four DGX Sparks.",
+    "description": "Candidate TP4 recipe for the unpruned GLM 5.2 Int4/Int8 checkpoint. It carries the upstream settings accepted by the strict harness, but the catalogued stock B12X runtime lacks the required host-bound sparse-MLA kernel/indexer bake and the harness cannot express explicit KV allocation or CUDA-graph mode, so physical four-Spark qualification is required.",
     "tags": ["candidate", "chat", "distributed", "glm-5.2", "reasoning", "spark"]
   },
   "model": {
@@ -67,17 +67,16 @@
       {"name": "pipeline-parallel-size", "value": 1},
       {"name": "dtype", "value": "bfloat16"},
       {"name": "kv-cache-dtype", "value": "fp8"},
-      {"name": "gpu-memory-utilization", "value": "0.90"},
+      {"name": "gpu-memory-utilization", "value": "0.91"},
       {"name": "max-model-len", "value": 200000},
       {"name": "max-num-seqs", "value": 2},
-      {"name": "max-num-batched-tokens", "value": 4096},
-      {"name": "speculative-config", "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":4,\"draft_tensor_parallel_size\":1}"},
+      {"name": "max-num-batched-tokens", "value": 8192},
+      {"name": "speculative-config", "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":4,\"draft_tensor_parallel_size\":1,\"attention_backend\":\"FLASHMLA_SPARSE\"}"},
       {"name": "async-scheduling", "value": true},
       {"name": "enable-prefix-caching", "value": true},
       {"name": "enable-chunked-prefill", "value": true},
       {"name": "enable-auto-tool-choice", "value": true},
-      {"name": "tool-call-parser", "value": "glm47"},
-      {"name": "reasoning-parser", "value": "glm45"}
+      {"name": "tool-call-parser", "value": "glm47"}
     ],
     "environment": [
       {"name": "HF_HUB_OFFLINE", "value": "1"},
@@ -86,6 +85,8 @@
       {"name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS", "value": "0"},
       {"name": "VLLM_USE_B12X_MOE", "value": "1"},
       {"name": "FLASHINFER_DISABLE_VERSION_CHECK", "value": "1"},
+      {"name": "VLLM_SPARSE_INDEXER_MAX_LOGITS_MB", "value": "256"},
+      {"name": "NCCL_IGNORE_CPU_AFFINITY", "value": "1"},
       {"name": "NCCL_NET", "value": "IB"},
       {"name": "NCCL_IB_DISABLE", "value": "0"},
       {"name": "NCCL_CROSS_NIC", "value": "1"},

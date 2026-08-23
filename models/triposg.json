@@ -6,8 +6,8 @@
     "slug": "triposg"
   },
   "metadata": {
-    "title": "TripoSG Scribble",
-    "description": "TripoSG Scribble base model family.",
+    "title": "TripoSG",
+    "description": "TripoSG single-image 3D generation model family.",
     "tags": [
       "vast-ai",
       "three-d",

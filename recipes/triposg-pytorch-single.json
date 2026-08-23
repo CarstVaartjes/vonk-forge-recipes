@@ -5,21 +5,23 @@
     "slug": "triposg-pytorch-single"
   },
   "metadata": {
-    "title": "TripoSG Scribble base pytorch-pipeline single Spark",
-    "description": "Candidate public model binding through the standard ARM64 media harness; physical Spark acceptance is required.",
+    "title": "TripoSG base pytorch-pipeline single Spark",
+    "description": "Metadata-only TripoSG base checkpoint binding; the generic ARM64 harness lacks the upstream image pipeline, source package, background-removal dependency, and GLB exporter required for execution.",
     "tags": [
       "candidate",
       "three-d",
       "pytorch-pipeline",
       "single",
-      "spark"
+      "spark",
+      "metadata-only",
+      "non-executable"
     ]
   },
   "model": {
     "kind": "model-version",
     "publisher": "vast-ai",
     "slug": "triposg",
-    "content_sha256": "a67df0723f1cbbf698e5e64455f3d378fcc7e8e5b14d39004ba6ee2824741bcb"
+    "content_sha256": "5ea8d9775d2fd936b73d8a425f35377aa894a173e1d89878441f6aabd1df628e"
   },
   "execution": {
     "harness": {
@@ -124,6 +126,11 @@
           "read_only": true
         },
         {
+          "source": "inputs",
+          "target": "/inputs",
+          "read_only": true
+        },
+        {
           "source": "outputs",
           "target": "/outputs",
           "read_only": false
@@ -197,7 +204,17 @@
   "interfaces": [
     {
       "adapter": "mesh-job",
-      "path": "/outputs"
+      "path": "/outputs",
+      "input": {
+        "path": "/inputs",
+        "required": true,
+        "media_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "max_bytes": 16777216
+      }
     }
   ],
   "validation": {

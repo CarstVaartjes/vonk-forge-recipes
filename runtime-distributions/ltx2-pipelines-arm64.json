@@ -41,6 +41,18 @@
   },
   "dependencies": [
     {
+      "name": "PyTorch",
+      "version": "2.13.0+cu132",
+      "source": "https://download.pytorch.org/whl/cu132",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "name": "TorchAudio",
+      "version": "2.11.0+cu132",
+      "source": "https://download.pytorch.org/whl/test/cu132",
+      "license": "BSD-2-Clause"
+    },
+    {
       "name": "LTX-2 native pipelines",
       "version": "400fd31054597515f47125691032c04b1c3ee24e",
       "source": "https://github.com/Lightricks/LTX-2@400fd31054597515f47125691032c04b1c3ee24e",

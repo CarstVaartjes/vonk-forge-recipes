@@ -18,8 +18,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && python3 -m pip install --break-system-packages --no-cache-dir \
         --index-url https://download.pytorch.org/whl/cu132 \
-        torch==2.7.1 \
-        torchaudio==2.7.1 \
+        torch==2.13.0 \
+    && python3 -m pip install --break-system-packages --no-cache-dir --no-deps \
+        --index-url https://download.pytorch.org/whl/test/cu132 \
+        torchaudio==2.11.0 \
     && python3 -m pip install --break-system-packages --no-cache-dir \
         "ltx-core @ git+https://github.com/Lightricks/LTX-2.git@400fd31054597515f47125691032c04b1c3ee24e#subdirectory=packages/ltx-core" \
         "ltx-pipelines @ git+https://github.com/Lightricks/LTX-2.git@400fd31054597515f47125691032c04b1c3ee24e#subdirectory=packages/ltx-pipelines"

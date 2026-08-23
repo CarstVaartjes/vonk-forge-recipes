@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "Nemotron 3 Super 120B-A12B NVFP4 vLLM single Spark",
-    "description": "Candidate single-Spark vLLM binding for the exact NVIDIA Nemotron 3 Super NVFP4 checkpoint.",
+    "description": "Candidate single-Spark vLLM binding for the exact NVIDIA Nemotron 3 Super NVFP4 checkpoint with FP8 KV, Mamba cache, and MTP settings. Its custom super_v3 parser and explicit FP4/Marlin selections exceed the strict harness allowlist, and the newer catalogued vLLM runtime still requires a physical canary.",
     "tags": [
       "candidate",
       "nemotron",
@@ -98,11 +98,31 @@
       },
       {
         "name": "gpu-memory-utilization",
-        "value": "0.80"
+        "value": "0.90"
       },
       {
-        "name": "reasoning-parser",
-        "value": "nemotron_v3"
+        "name": "trust-remote-code",
+        "value": true
+      },
+      {
+        "name": "kv-cache-dtype",
+        "value": "fp8"
+      },
+      {
+        "name": "mamba-ssm-cache-dtype",
+        "value": "float16"
+      },
+      {
+        "name": "enable-chunked-prefill",
+        "value": true
+      },
+      {
+        "name": "async-scheduling",
+        "value": true
+      },
+      {
+        "name": "speculative-config",
+        "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3,\"moe_backend\":\"triton\"}"
       },
       {
         "name": "tool-call-parser",
@@ -125,6 +145,14 @@
       {
         "name": "VLLM_NO_USAGE_STATS",
         "value": "1"
+      },
+      {
+        "name": "VLLM_NVFP4_GEMM_BACKEND",
+        "value": "marlin"
+      },
+      {
+        "name": "VLLM_USE_FLASHINFER_MOE_FP4",
+        "value": "0"
       }
     ],
     "security": {

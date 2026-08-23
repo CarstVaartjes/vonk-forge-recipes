@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "triposg-pytorch-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "6b2a8272905068a6330f69adebd9e7c0cfaab7529192c273c7a5dbe3daeb752b",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "model",
+          "summary": "Corrected the catalog label from Scribble to the base TripoSG variant actually pinned by the immutable snapshot."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Marked the binding non-executable pending source, background removal, native dependencies, and a GLB adapter."
+        },
+        {
+          "kind": "fix",
+          "summary": "Added the authoritative isolated image input contract and corrected the license to MIT."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "283fd0de6b29b774230d3f388db72710834ee0ddeb262307323a98b6d8aa37bc",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of TripoSG Scribble base pytorch-pipeline single Spark."
+        }
+      ]
+    }
+  ]
+}

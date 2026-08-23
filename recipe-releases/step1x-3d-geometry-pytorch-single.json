@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "step1x-3d-geometry-pytorch-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "5f0612f079df796f52c6c03bb2bde7efa255d089cb0a72f3bf7c13061e1d19fb",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Marked the geometry binding non-executable pending Step1X source, native dependencies, and a GLB adapter."
+        },
+        {
+          "kind": "fix",
+          "summary": "Added the authoritative isolated image input contract."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Replaced the broken model-card license URL with the exact upstream Apache-2.0 license."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "e985c41d373499d308f8757bff5157b8a185238a907d6d4c380c67e523997733",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Step1X-3D geometry pytorch-pipeline single Spark."
+        }
+      ]
+    }
+  ]
+}

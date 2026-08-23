@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-27b-vllm-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "81e734db72d5f077a2ece166004c74e9025fa63707f1ffd68f3f4acd1fa04078",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Qwen3.8 27B BF16 vLLM single Spark."
+        }
+      ]
+    }
+  ]
+}

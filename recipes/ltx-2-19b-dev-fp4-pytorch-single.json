@@ -6,9 +6,10 @@
   },
   "metadata": {
     "title": "LTX-2 19B dev FP4 native pipeline single Spark",
-    "description": "Experimental single-Spark native LTX-2 video recipe with synchronized audio-capable pipeline components.",
+    "description": "Candidate native LTX-2 video/audio pipeline pinned to exact upstream source and current ARM64 CUDA 13.2 wheels; container build and physical Spark acceptance remain required.",
     "tags": [
       "candidate",
+      "build-unvalidated",
       "lightricks",
       "ltx",
       "video",
@@ -37,7 +38,7 @@
   "build": {
     "context": {
       "path": "adapters/video/ltx2-pytorch",
-      "sha256": "d7a3e83a5f02255b95811774d24b5f1fe4be7a785275b4b1b819bfaa94ca34de",
+      "sha256": "ddd9fd043373c4c783c1f2386820cccf7e3faf4edc33fb56ca610c9c6919b7ad",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -58,8 +59,8 @@
       ]
     },
     "resources": {
-      "download_bytes": 77447558666,
-      "temporary_bytes": 95000000000,
+      "download_bytes": 316346439951,
+      "temporary_bytes": 628692879902,
       "memory_bytes": 8000000000,
       "timeout_seconds": 14400
     }
@@ -78,8 +79,8 @@
       "kind": "huggingface.snapshot",
       "repository": "Lightricks/LTX-2",
       "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
-      "download_bytes": 77447558666,
-      "installed_bytes": 77447558666,
+      "download_bytes": 314346439951,
+      "installed_bytes": 314346439951,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -94,7 +95,7 @@
       "kind": "runtime-distribution",
       "publisher": "lightricks",
       "slug": "ltx2-pipelines-arm64",
-      "content_sha256": "452295b0587b552947d150e31c8fc679805173281fc5bb0f14d7c825c1d25484"
+      "content_sha256": "8b84026cc69d5151b64e62936b3a8535720d7da8ba7a18316223a8ad24749639"
     },
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"
@@ -174,8 +175,8 @@
         "resources": {
           "disk": {
             "image_bytes": 2000000000,
-            "artifact_bytes": 77447558666,
-            "staging_bytes": 95000000000,
+            "artifact_bytes": 314346439951,
+            "staging_bytes": 628692879902,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000

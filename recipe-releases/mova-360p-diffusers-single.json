@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "mova-360p-diffusers-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "f5b4007fb0ed0eac038bfc61aea10d9d297f50aa5ff9131783fc66993bc295b5",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Marked the metadata-only candidate as requiring an immutable native MOVA source bundle and synchronized video/audio adapter before acceptance.",
+          "references": ["https://github.com/OpenMOSS/MOVA"]
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "5e92097932b6509269abcda2f8540614200239738141fc35baf43e4d26d1cd3d",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of MOVA 360p diffusers single Spark."
+        }
+      ]
+    }
+  ]
+}

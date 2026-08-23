@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "hunyuan-video-15-i2v-step-distilled-diffusers-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "272054659678ca76792ea24e2bd3fec5a9933ea1b2a927f7f570fdbea14b51ae",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Corrected the immutable HunyuanVideo 1.5 snapshot and dependent disk resource sizes from the complete upstream inventory.",
+          "references": ["https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038"]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Marked the candidate as requiring a model-specific image-conditioned adapter and input contract before acceptance."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "9e6196be30d8b75c997dec9a2bf6567fa9cf9e5f747c9ad977094f5f4fa735a3",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of HunyuanVideo 1.5 I2V 480p step-distilled diffusers single Spark."
+        }
+      ]
+    }
+  ]
+}

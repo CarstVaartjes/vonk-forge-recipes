@@ -6,20 +6,23 @@
   },
   "metadata": {
     "title": "Qwen Image Edit 2511 Lightning diffusers single Spark",
-    "description": "Candidate public model binding through the standard ARM64 media harness; physical Spark acceptance is required.",
+    "description": "Metadata-only image-edit Lightning weight collection; this recipe is not executable until the base Edit 2511 dependency and LoRA-aware input adapter are cataloged.",
     "tags": [
       "candidate",
       "image",
       "diffusers",
       "single",
-      "spark"
+      "spark",
+      "image-to-image",
+      "metadata-only",
+      "non-executable"
     ]
   },
   "model": {
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen-image-edit-2511-lightning",
-    "content_sha256": "7336334f63ade09387438485cc91ad1fdbb570261e685ea61082a12cf06335d3"
+    "content_sha256": "8434e7b6cf7b352e0a947d83ed93ced1fe194b52643a1ab5c6ed1e988f887546"
   },
   "execution": {
     "harness": {
@@ -92,7 +95,7 @@
       },
       {
         "name": "pipeline",
-        "value": "text-to-image"
+        "value": "image-to-image"
       },
       {
         "name": "seed",
@@ -103,16 +106,8 @@
         "value": 4
       },
       {
-        "name": "guidance-scale",
-        "value": "4"
-      },
-      {
-        "name": "width",
-        "value": 512
-      },
-      {
-        "name": "height",
-        "value": 512
+        "name": "true-cfg-scale",
+        "value": "1"
       }
     ],
     "environment": [
@@ -137,6 +132,11 @@
         {
           "source": "model",
           "target": "/models",
+          "read_only": true
+        },
+        {
+          "source": "inputs",
+          "target": "/inputs",
           "read_only": true
         },
         {
@@ -213,7 +213,17 @@
   "interfaces": [
     {
       "adapter": "image-job",
-      "path": "/outputs"
+      "path": "/outputs",
+      "input": {
+        "path": "/inputs",
+        "required": true,
+        "media_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "max_bytes": 8388608
+      }
     }
   ],
   "validation": {

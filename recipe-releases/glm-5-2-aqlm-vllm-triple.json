@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-2-aqlm-vllm-triple"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "c2a454783418de9c90292c780dfedecc566eb837894e2a7b05697df7f662ce48",
+      "upgrade_effect": "restart",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Added allowlisted sparse-indexer and chat-template settings and recorded the remaining TP3 launch requirements blocked by the strict harness.",
+          "references": [
+            "https://github.com/MiaAI-Lab/GLM-5.2-NVFP4-AQLM-Triple-DGX-Sparks/blob/5c85163ccb8d98d395880e71e2dbd03976a3f4ad/README.md"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "409318b44e1ba6c4c819b80247d274cab31f2d768dc4d33b830b02f4ea1544cf",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of GLM 5.2 AQLM three Sparks."
+        }
+      ]
+    }
+  ]
+}

@@ -6,20 +6,22 @@
   },
   "metadata": {
     "title": "Step1X-3D texture pytorch-pipeline single Spark",
-    "description": "Candidate public model binding through the standard ARM64 media harness; physical Spark acceptance is required.",
+    "description": "Metadata-only Step1X-3D texture checkpoint binding; the generic ARM64 harness lacks the mesh and image pipeline, native texture dependencies, and GLB exporter required for execution.",
     "tags": [
       "candidate",
       "three-d",
       "pytorch-pipeline",
       "single",
-      "spark"
+      "spark",
+      "metadata-only",
+      "non-executable"
     ]
   },
   "model": {
     "kind": "model-version",
     "publisher": "stepfun-ai",
     "slug": "step1x-3d-texture",
-    "content_sha256": "80d0fd09daf8b763f8640988cead7f63990e6674e85adbdc5f435aaaef275a90"
+    "content_sha256": "90ab4fe14f5ef74ddbc2511467a393bd34988f101a0b0753379eb0ba7f8c7d91"
   },
   "execution": {
     "harness": {
@@ -124,6 +126,11 @@
           "read_only": true
         },
         {
+          "source": "inputs",
+          "target": "/inputs",
+          "read_only": true
+        },
+        {
           "source": "outputs",
           "target": "/outputs",
           "read_only": false
@@ -197,7 +204,18 @@
   "interfaces": [
     {
       "adapter": "mesh-job",
-      "path": "/outputs"
+      "path": "/outputs",
+      "input": {
+        "path": "/inputs",
+        "required": true,
+        "media_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "model/gltf-binary"
+        ],
+        "max_bytes": 268435456
+      }
     }
   ],
   "validation": {
