@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "pixal3d-pytorch-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "e31fa7abd9b8fbc7e19782e795677a6be5295b6db1b5cdaeb14664b9f1027cab",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Marked the checkpoint binding non-executable pending its TRELLIS.2 source, native extensions, and GLB adapter."
+        },
+        {
+          "kind": "fix",
+          "summary": "Added the authoritative isolated image input contract."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Corrected the checkpoint license to MIT."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "7f2147015e98bfd53e3cac833b727c526287b131b7bda2a22e5273adcdb9742d",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Pixal3D pytorch-pipeline single Spark."
+        }
+      ]
+    }
+  ]
+}

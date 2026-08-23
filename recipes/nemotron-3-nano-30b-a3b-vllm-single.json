@@ -3,7 +3,7 @@
   "identity": {"publisher": "vonk-forge", "slug": "nemotron-3-nano-30b-a3b-vllm-single"},
   "metadata": {
     "title": "Nemotron 3 Nano 30B-A3B NVFP4 vLLM single Spark",
-    "description": "Candidate single-Spark vLLM binding for the exact NVIDIA Nemotron 3 Nano NVFP4 checkpoint.",
+    "description": "Candidate single-Spark vLLM binding for the exact NVIDIA Nemotron 3 Nano NVFP4 checkpoint with FP8 KV and FlashInfer NVFP4 MoE enabled. Its snapshot-pinned nano_v3 reasoning parser cannot yet be expressed by the strict harness, so parsed-reasoning qualification remains blocked.",
     "tags": ["candidate", "nemotron", "nvfp4", "vllm", "openai", "single", "spark"]
   },
   "model": {
@@ -65,10 +65,11 @@
       {"name": "max-model-len", "value": 16384},
       {"name": "max-num-seqs", "value": 4},
       {"name": "gpu-memory-utilization", "value": "0.80"},
+      {"name": "kv-cache-dtype", "value": "fp8"},
       {"name": "enable-prefix-caching", "value": true},
       {"name": "async-scheduling", "value": true},
       {"name": "mamba-ssm-cache-dtype", "value": "float32"},
-      {"name": "reasoning-parser", "value": "nemotron_v3"},
+      {"name": "trust-remote-code", "value": true},
       {"name": "enable-auto-tool-choice", "value": true},
       {"name": "tool-call-parser", "value": "qwen3_coder"}
     ],
@@ -76,8 +77,7 @@
       {"name": "HF_HUB_OFFLINE", "value": "1"},
       {"name": "TRANSFORMERS_OFFLINE", "value": "1"},
       {"name": "VLLM_NO_USAGE_STATS", "value": "1"},
-      {"name": "VLLM_NVFP4_GEMM_BACKEND", "value": "marlin"},
-      {"name": "VLLM_USE_FLASHINFER_MOE_FP4", "value": "0"}
+      {"name": "VLLM_USE_FLASHINFER_MOE_FP4", "value": "1"}
     ],
     "security": {
       "devices": ["nvidia.com/gpu=all"],

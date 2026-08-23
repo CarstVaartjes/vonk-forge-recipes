@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "defaults": {
+    "github": "default-branch",
+    "huggingface": "default-branch"
+  },
+  "overrides": {
+    "runtime-distribution/huggingface/diffusers-0-39-0-cuda13-arm64": {
+      "policy": "latest-release"
+    },
+    "runtime-distribution/huggingface/diffusers-0-40-0-cuda13-arm64": {
+      "policy": "latest-release"
+    },
+    "runtime-distribution/pytorch/pytorch-2-13-cuda13-arm64": {
+      "policy": "latest-release"
+    },
+    "runtime-distribution/pytorch/pytorch-2-8-cuda13-arm64": {
+      "policy": "latest-release"
+    },
+    "runtime-distribution/vllm/vllm-0-27-1-nvidia-arm64": {
+      "policy": "latest-release"
+    },
+    "runtime-distribution/vllm/vllm-nightly-arm64-8efa13b7": {
+      "policy": "latest-release"
+    }
+  }
+}

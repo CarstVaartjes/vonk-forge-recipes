@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-super-120b-a12b-vllm-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "1416dda4f2015b126a8a6f132e31557882824faf4667f32c2c762ca695eb573c",
+      "upgrade_effect": "restart",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Applied FP8 KV, Mamba cache, and MTP settings and recorded the unsupported super_v3 parser and explicit FP4/Marlin requirements.",
+          "references": [
+            "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4/tree/4f0cf9daaeb7a4d5e23f80a00e7ed15f0e03caf6"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "10af945bbf1c34bf523680bc480146a9d828422f05b5446a41ed38f88d928e89",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Nemotron 3 Super 120B-A12B NVFP4 vLLM single Spark."
+        }
+      ]
+    }
+  ]
+}

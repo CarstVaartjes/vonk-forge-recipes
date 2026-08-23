@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "nvidia-qwen-image-flash-diffusers-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "a2060eea697330cb5d5d3cf8c08c2af8c39f5abb5a267d0e580eb98a2305b19a",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Added a model-specific four-step adapter using true CFG 1.0 and the tested 1024px profile.",
+          "references": [
+            "https://huggingface.co/nvidia/Qwen-Image-Flash/tree/eafac15f6140e6dd9c6031217d658ac10bfb604b"
+          ]
+        },
+        {
+          "kind": "metadata",
+          "summary": "Corrected the checkpoint license to the NVIDIA Open Model Agreement."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "e73616158543ce334edb2ddf119962f10d1a33cd90da4fa383bec1a97cf237d3",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of NVIDIA Qwen Image Flash diffusers single Spark."
+        }
+      ]
+    }
+  ]
+}

@@ -3,7 +3,7 @@
   "identity": {"publisher": "vonk-forge", "slug": "glm-5-2-aqlm-vllm-triple"},
   "metadata": {
     "title": "GLM 5.2 AQLM three Sparks",
-    "description": "Candidate TP3 recipe for the complete GLM 5.2 NVFP4/AQLM hybrid checkpoint with long-context reasoning and vision on three DGX Sparks.",
+    "description": "Candidate TP3 recipe for the complete GLM 5.2 NVFP4/AQLM hybrid checkpoint. MiaAI-Lab's required TP3 vision, DCP, KV-allocation, expert-routing, and CUDA-graph flags exceed the current strict vLLM harness allowlist, so this profile remains blocked on harness support and physical topology qualification.",
     "tags": ["candidate", "chat", "distributed", "glm-5.2", "reasoning", "spark", "vision"]
   },
   "model": {
@@ -74,7 +74,7 @@
       {"name": "async-scheduling", "value": true},
       {"name": "enable-auto-tool-choice", "value": true},
       {"name": "tool-call-parser", "value": "glm47"},
-      {"name": "reasoning-parser", "value": "glm45"}
+      {"name": "default-chat-template-kwargs", "value": "{\"enable_thinking\":false}"}
     ],
     "environment": [
       {"name": "HF_HUB_OFFLINE", "value": "1"},
@@ -82,6 +82,7 @@
       {"name": "VLLM_ALLOW_LONG_MAX_MODEL_LEN", "value": "1"},
       {"name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS", "value": "0"},
       {"name": "FLASHINFER_DISABLE_VERSION_CHECK", "value": "1"},
+      {"name": "VLLM_SPARSE_INDEXER_MAX_LOGITS_MB", "value": "192"},
       {"name": "NCCL_NET", "value": "IB"},
       {"name": "NCCL_IB_DISABLE", "value": "0"},
       {"name": "NCCL_CROSS_NIC", "value": "1"},

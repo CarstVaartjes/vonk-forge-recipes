@@ -1,0 +1,625 @@
+#!/usr/bin/env python3
+"""Compare immutable catalog source pins with explicitly selected upstream channels."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import sys
+import time
+from collections import Counter
+from collections.abc import Callable
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
+from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.parse import quote, urlsplit
+from urllib.request import Request, urlopen
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_MANIFEST = ROOT / "upstream-watch.json"
+SHA = re.compile(r"^[0-9a-f]{40}$")
+REPOSITORY_PART = re.compile(r"^[A-Za-z0-9_.-]+$")
+ENTITY_DIRECTORIES = {
+    "model-versions": "model-version",
+    "runtime-distributions": "runtime-distribution",
+    "patch-bundles": "patch-bundle",
+}
+POLICIES = {"default-branch", "latest-release", "manual"}
+MAX_RESPONSE_BYTES = 4 * 1024 * 1024
+
+
+class DriftInputError(RuntimeError):
+    """The local watch configuration or a catalog source is invalid."""
+
+
+class RemoteNotFound(RuntimeError):
+    """The provider reports that a repository, revision, or release is absent."""
+
+
+@dataclass(frozen=True, slots=True)
+class SourceLocation:
+    provider: str
+    repository: str
+    embedded_revision: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class Watch:
+    entity: str
+    source_path: str
+    provider: str
+    repository: str
+    pinned_revision: str
+    pinned_version: str | None
+    policy: str
+    ref: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class Observation:
+    entity: str
+    source_path: str
+    provider: str
+    repository: str
+    policy: str
+    ref: str | None
+    pinned_revision: str
+    pinned_version: str | None
+    observed_revision: str | None
+    observed_version: str | None
+    observed_at: str | None
+    upstream_url: str | None
+    status: str
+    detail: str | None
+
+
+def _repository_parts(path: str) -> tuple[str, str] | None:
+    parts = [part for part in path.split("/") if part]
+    if len(parts) < 2:
+        return None
+    owner, repository = parts[:2]
+    repository = repository.removesuffix(".git")
+    if not REPOSITORY_PART.fullmatch(owner) or not REPOSITORY_PART.fullmatch(
+        repository
+    ):
+        return None
+    return owner, repository
+
+
+def parse_source(value: str) -> SourceLocation:
+    """Normalize the GitHub and Hugging Face forms present in catalog metadata."""
+
+    if re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", value):
+        return SourceLocation("huggingface", value)
+    parsed = urlsplit(value)
+    if parsed.scheme != "https" or parsed.username or parsed.password:
+        raise DriftInputError(f"source must be a public HTTPS URL: {value}")
+    if parsed.query or parsed.fragment:
+        raise DriftInputError(
+            f"source URL must not contain a query or fragment: {value}"
+        )
+    host = (parsed.hostname or "").lower()
+    parts = [part for part in parsed.path.split("/") if part]
+    if host == "github.com":
+        if len(parts) not in {2, 4} or not REPOSITORY_PART.fullmatch(parts[0]):
+            raise DriftInputError(f"GitHub source repository is invalid: {value}")
+        owner, repository = parts[:2]
+        repository = repository.removesuffix(".git")
+        embedded: str | None = None
+        legacy = re.fullmatch(r"(.+)@([0-9a-f]{40})", repository)
+        if legacy is not None:
+            repository, embedded = legacy.groups()
+            repository = repository.removesuffix(".git")
+        elif (
+            len(parts) == 4
+            and parts[2] in {"tree", "commit"}
+            and SHA.fullmatch(parts[3])
+        ):
+            embedded = parts[3]
+        elif len(parts) != 2:
+            raise DriftInputError(f"GitHub source URL form is unsupported: {value}")
+        if not REPOSITORY_PART.fullmatch(repository):
+            raise DriftInputError(f"GitHub source repository is invalid: {value}")
+        return SourceLocation("github", f"{owner}/{repository}", embedded)
+    if host == "huggingface.co":
+        repository_parts = _repository_parts(parsed.path)
+        if repository_parts is None:
+            raise DriftInputError(f"Hugging Face source repository is invalid: {value}")
+        owner, repository = repository_parts
+        embedded = None
+        tree_revision = (
+            len(parts) == 4 and parts[2] == "tree" and SHA.fullmatch(parts[3])
+        )
+        resolved_file = (
+            len(parts) >= 5 and parts[2] == "resolve" and SHA.fullmatch(parts[3])
+        )
+        if tree_revision or resolved_file:
+            embedded = parts[3]
+        elif len(parts) != 2:
+            raise DriftInputError(
+                f"Hugging Face source URL form is unsupported: {value}"
+            )
+        return SourceLocation("huggingface", f"{owner}/{repository}", embedded)
+    return SourceLocation(host or "unsupported", value)
+
+
+def _identity(document: object, path: Path, expected_kind: str) -> tuple[str, str]:
+    if not isinstance(document, dict):
+        raise DriftInputError(f"catalog kind is invalid: {path}")
+    actual_kind = document.get("kind")
+    if expected_kind == "recipe" and actual_kind not in {None, "recipe"}:
+        raise DriftInputError(f"catalog kind is invalid: {path}")
+    if expected_kind != "recipe" and actual_kind != expected_kind:
+        raise DriftInputError(f"catalog kind is invalid: {path}")
+    identity = document.get("identity")
+    if not isinstance(identity, dict):
+        raise DriftInputError(f"catalog identity is missing: {path}")
+    publisher, slug = identity.get("publisher"), identity.get("slug")
+    if not isinstance(publisher, str) or not isinstance(slug, str):
+        raise DriftInputError(f"catalog identity is invalid: {path}")
+    return publisher, slug
+
+
+def _runtime_version(
+    document: dict[str, object], location: SourceLocation
+) -> str | None:
+    dependencies = document.get("dependencies")
+    if not isinstance(dependencies, list):
+        return None
+    for dependency in dependencies:
+        if not isinstance(dependency, dict):
+            continue
+        source, version = dependency.get("source"), dependency.get("version")
+        if not isinstance(source, str) or not isinstance(version, str):
+            continue
+        try:
+            dependency_location = parse_source(source)
+        except DriftInputError:
+            continue
+        if (
+            dependency_location.provider == location.provider
+            and dependency_location.repository == location.repository
+        ):
+            return version
+    return None
+
+
+def load_manifest(path: Path) -> tuple[dict[str, str], dict[str, dict[str, str]]]:
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise DriftInputError(
+            f"cannot read upstream watch manifest: {path}: {error}"
+        ) from error
+    if not isinstance(document, dict) or set(document) != {
+        "schema_version",
+        "defaults",
+        "overrides",
+    }:
+        raise DriftInputError("upstream watch manifest has unexpected fields")
+    defaults, overrides = document.get("defaults"), document.get("overrides")
+    if (
+        document.get("schema_version") != 1
+        or not isinstance(defaults, dict)
+        or not isinstance(overrides, dict)
+    ):
+        raise DriftInputError("upstream watch manifest is invalid")
+    clean_defaults: dict[str, str] = {}
+    for provider, policy in defaults.items():
+        if not isinstance(provider, str) or policy not in POLICIES:
+            raise DriftInputError(f"invalid default watch policy for {provider}")
+        clean_defaults[provider] = policy
+    clean_overrides: dict[str, dict[str, str]] = {}
+    for entity, override in overrides.items():
+        if not isinstance(entity, str) or not isinstance(override, dict):
+            raise DriftInputError("upstream watch override is invalid")
+        if set(override) - {"policy", "ref"}:
+            raise DriftInputError(
+                f"upstream watch override has unexpected fields: {entity}"
+            )
+        policy, ref = override.get("policy"), override.get("ref")
+        if policy not in POLICIES or (ref is not None and not isinstance(ref, str)):
+            raise DriftInputError(f"upstream watch override is invalid: {entity}")
+        if policy == "latest-release" and ref is not None:
+            raise DriftInputError(
+                f"latest-release override cannot select a ref: {entity}"
+            )
+        clean_overrides[entity] = {
+            "policy": policy,
+            **({"ref": ref} if ref is not None else {}),
+        }
+    return clean_defaults, clean_overrides
+
+
+def _watch(
+    *,
+    entity: str,
+    source_path: Path,
+    source_value: str,
+    revision: str,
+    version: str | None,
+    root: Path,
+    defaults: dict[str, str],
+    overrides: dict[str, dict[str, str]],
+) -> Watch:
+    if not SHA.fullmatch(revision):
+        raise DriftInputError(
+            f"source revision is not an immutable Git commit: {source_path}"
+        )
+    location = parse_source(source_value)
+    if (
+        location.embedded_revision is not None
+        and location.embedded_revision != revision
+    ):
+        raise DriftInputError(f"source URL and revision disagree: {source_path}")
+    override = overrides.get(entity, {})
+    policy = override.get("policy", defaults.get(location.provider, "manual"))
+    ref = override.get("ref")
+    if policy == "latest-release" and location.provider != "github":
+        raise DriftInputError(f"latest-release is only supported for GitHub: {entity}")
+    return Watch(
+        entity=entity,
+        source_path=source_path.relative_to(root).as_posix(),
+        provider=location.provider,
+        repository=location.repository,
+        pinned_revision=revision,
+        pinned_version=version,
+        policy=policy,
+        ref=ref,
+    )
+
+
+def discover_watches(
+    root: Path,
+    defaults: dict[str, str],
+    overrides: dict[str, dict[str, str]],
+) -> list[Watch]:
+    watches: list[Watch] = []
+    discovered_entities: set[str] = set()
+    for directory, expected_kind in ENTITY_DIRECTORIES.items():
+        for path in sorted((root / directory).glob("*.json")):
+            document = json.loads(path.read_text(encoding="utf-8"))
+            publisher, slug = _identity(document, path, expected_kind)
+            entity = f"{expected_kind}/{publisher}/{slug}"
+            discovered_entities.add(entity)
+            source = document.get("source")
+            if not isinstance(source, dict):
+                continue
+            repository, revision = source.get("repository"), source.get("revision")
+            if not isinstance(repository, str) or not isinstance(revision, str):
+                raise DriftInputError(f"catalog source is incomplete: {path}")
+            location = parse_source(repository)
+            version = (
+                document.get("version") if expected_kind == "model-version" else None
+            )
+            if expected_kind == "runtime-distribution":
+                version = _runtime_version(document, location)
+            watches.append(
+                _watch(
+                    entity=entity,
+                    source_path=path,
+                    source_value=repository,
+                    revision=revision,
+                    version=version if isinstance(version, str) else None,
+                    root=root,
+                    defaults=defaults,
+                    overrides=overrides,
+                )
+            )
+    for path in sorted((root / "recipes").glob("*.json")):
+        document = json.loads(path.read_text(encoding="utf-8"))
+        publisher, slug = _identity(document, path, "recipe")
+        entity = f"recipe/{publisher}/{slug}"
+        discovered_entities.add(entity)
+        provenance = document.get("provenance")
+        reference = (
+            provenance.get("source_reference") if isinstance(provenance, dict) else None
+        )
+        if not isinstance(reference, str):
+            continue
+        location = parse_source(reference)
+        if location.embedded_revision is None:
+            raise DriftInputError(
+                f"recipe provenance does not pin a Git revision: {path}"
+            )
+        watches.append(
+            _watch(
+                entity=entity,
+                source_path=path,
+                source_value=reference,
+                revision=location.embedded_revision,
+                version=None,
+                root=root,
+                defaults=defaults,
+                overrides=overrides,
+            )
+        )
+    unknown_overrides = sorted(set(overrides) - discovered_entities)
+    if unknown_overrides:
+        raise DriftInputError(
+            f"watch override names unknown entity: {unknown_overrides[0]}"
+        )
+    return sorted(watches, key=lambda watch: (watch.entity, watch.repository))
+
+
+class ProviderClient:
+    def __init__(
+        self,
+        *,
+        github_token: str | None = None,
+        huggingface_token: str | None = None,
+        opener: Callable[..., object] = urlopen,
+    ) -> None:
+        self.github_token = github_token
+        self.huggingface_token = huggingface_token
+        self.opener = opener
+        self.cache: dict[str, object] = {}
+
+    def json(self, url: str, provider: str) -> object:
+        cached = self.cache.get(url)
+        if cached is not None:
+            return cached
+        headers = {
+            "Accept": "application/vnd.github+json"
+            if provider == "github"
+            else "application/json",
+            "User-Agent": "vonk-forge-upstream-drift/1",
+        }
+        token = self.github_token if provider == "github" else self.huggingface_token
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        if provider == "github":
+            headers["X-GitHub-Api-Version"] = "2022-11-28"
+        request = Request(url, headers=headers)
+        for attempt in range(3):
+            try:
+                with self.opener(request, timeout=20) as response:  # type: ignore[attr-defined]
+                    payload = response.read(MAX_RESPONSE_BYTES + 1)
+                if len(payload) > MAX_RESPONSE_BYTES:
+                    raise RuntimeError(
+                        f"provider response exceeds {MAX_RESPONSE_BYTES} bytes"
+                    )
+                value = json.loads(payload)
+                self.cache[url] = value
+                return value
+            except HTTPError as error:
+                if error.code == 404:
+                    raise RemoteNotFound(url) from error
+                if error.code not in {429, 500, 502, 503, 504} or attempt == 2:
+                    raise RuntimeError(
+                        f"provider returned HTTP {error.code}"
+                    ) from error
+                retry_after = error.headers.get("Retry-After")
+                time.sleep(min(float(retry_after or attempt + 1), 5.0))
+            except (URLError, TimeoutError, json.JSONDecodeError) as error:
+                if attempt == 2:
+                    raise RuntimeError(f"provider request failed: {error}") from error
+                time.sleep(attempt + 1)
+        raise RuntimeError("provider request failed")
+
+
+def _required_string(document: object, key: str, context: str) -> str:
+    value = document.get(key) if isinstance(document, dict) else None
+    if not isinstance(value, str) or not value:
+        raise RuntimeError(f"provider response is missing {context}.{key}")
+    return value
+
+
+def _github_commit(
+    client: ProviderClient, repository: str, ref: str
+) -> tuple[str, str | None, str]:
+    encoded = quote(ref, safe="")
+    document = client.json(
+        f"https://api.github.com/repos/{repository}/commits/{encoded}", "github"
+    )
+    revision = _required_string(document, "sha", "commit")
+    url = _required_string(document, "html_url", "commit")
+    commit = document.get("commit") if isinstance(document, dict) else None
+    committer = commit.get("committer") if isinstance(commit, dict) else None
+    observed_at = committer.get("date") if isinstance(committer, dict) else None
+    return revision, observed_at if isinstance(observed_at, str) else None, url
+
+
+def _pinned_exists(client: ProviderClient, watch: Watch) -> bool:
+    try:
+        if watch.provider == "github":
+            _github_commit(client, watch.repository, watch.pinned_revision)
+        elif watch.provider == "huggingface":
+            repository = quote(watch.repository, safe="/")
+            client.json(
+                f"https://huggingface.co/api/models/{repository}/revision/{watch.pinned_revision}",
+                "huggingface",
+            )
+        else:
+            return True
+    except RemoteNotFound:
+        return False
+    return True
+
+
+def observe(watch: Watch, client: ProviderClient) -> Observation:
+    common = {
+        "entity": watch.entity,
+        "source_path": watch.source_path,
+        "provider": watch.provider,
+        "repository": watch.repository,
+        "policy": watch.policy,
+        "ref": watch.ref,
+        "pinned_revision": watch.pinned_revision,
+        "pinned_version": watch.pinned_version,
+    }
+    if watch.policy == "manual" or watch.provider not in {"github", "huggingface"}:
+        return Observation(
+            **common,
+            observed_revision=None,
+            observed_version=None,
+            observed_at=None,
+            upstream_url=None,
+            status="untracked",
+            detail="no automated upstream policy",
+        )
+    try:
+        observed_version: str | None = None
+        if watch.provider == "github":
+            if watch.policy == "latest-release":
+                release = client.json(
+                    f"https://api.github.com/repos/{watch.repository}/releases/latest",
+                    "github",
+                )
+                ref = _required_string(release, "tag_name", "release")
+                observed_version = ref
+                revision, observed_at, upstream_url = _github_commit(
+                    client, watch.repository, ref
+                )
+            else:
+                ref = watch.ref
+                if ref is None:
+                    repository = client.json(
+                        f"https://api.github.com/repos/{watch.repository}", "github"
+                    )
+                    ref = _required_string(repository, "default_branch", "repository")
+                revision, observed_at, upstream_url = _github_commit(
+                    client, watch.repository, ref
+                )
+        else:
+            repository = quote(watch.repository, safe="/")
+            suffix = f"/revision/{quote(watch.ref, safe='')}" if watch.ref else ""
+            document = client.json(
+                f"https://huggingface.co/api/models/{repository}{suffix}",
+                "huggingface",
+            )
+            revision = _required_string(document, "sha", "model")
+            observed_at_value = (
+                document.get("lastModified") if isinstance(document, dict) else None
+            )
+            observed_at = (
+                observed_at_value if isinstance(observed_at_value, str) else None
+            )
+            upstream_url = f"https://huggingface.co/{watch.repository}/tree/{revision}"
+        if not SHA.fullmatch(revision):
+            raise RuntimeError("provider returned a non-Git revision")
+        status = "current" if revision == watch.pinned_revision else "advanced"
+        detail = None
+        if status == "advanced" and not _pinned_exists(client, watch):
+            status = "missing"
+            detail = "pinned revision is no longer resolvable"
+        return Observation(
+            **common,
+            observed_revision=revision,
+            observed_version=observed_version,
+            observed_at=observed_at,
+            upstream_url=upstream_url,
+            status=status,
+            detail=detail,
+        )
+    except RemoteNotFound:
+        return Observation(
+            **common,
+            observed_revision=None,
+            observed_version=None,
+            observed_at=None,
+            upstream_url=None,
+            status="missing",
+            detail="upstream repository, release, or revision was not found",
+        )
+    except RuntimeError as error:
+        return Observation(
+            **common,
+            observed_revision=None,
+            observed_version=None,
+            observed_at=None,
+            upstream_url=None,
+            status="error",
+            detail=str(error)[:256],
+        )
+
+
+def report(observations: list[Observation], checked_at: str) -> dict[str, object]:
+    counts = Counter(observation.status for observation in observations)
+    return {
+        "schema_version": 1,
+        "checked_at": checked_at,
+        "counts": {
+            status: counts.get(status, 0)
+            for status in ("current", "advanced", "missing", "untracked", "error")
+        },
+        "observations": [asdict(observation) for observation in observations],
+    }
+
+
+def render_table(observations: list[Observation]) -> str:
+    rows = [("STATUS", "ENTITY", "PINNED", "OBSERVED", "POLICY")]
+    for observation in observations:
+        observed = observation.observed_version or observation.observed_revision or "-"
+        rows.append(
+            (
+                observation.status.upper(),
+                observation.entity,
+                observation.pinned_revision[:10],
+                observed if len(observed) <= 18 else observed[:10],
+                observation.policy,
+            )
+        )
+    widths = [max(len(row[index]) for row in rows) for index in range(len(rows[0]))]
+    return "\n".join(
+        "  ".join(
+            value.ljust(widths[index]) for index, value in enumerate(row)
+        ).rstrip()
+        for row in rows
+    )
+
+
+def _arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument("--manifest", type=Path)
+    parser.add_argument("--format", choices=("table", "json"), default="table")
+    parser.add_argument(
+        "--output", type=Path, help="also write the complete JSON report"
+    )
+    parser.add_argument(
+        "--fail-on-drift",
+        action="store_true",
+        help="exit 2 when any watched source has advanced",
+    )
+    return parser.parse_args()
+
+
+def main() -> int:
+    arguments = _arguments()
+    root = arguments.root.resolve()
+    manifest = (arguments.manifest or root / DEFAULT_MANIFEST.name).resolve()
+    try:
+        defaults, overrides = load_manifest(manifest)
+        watches = discover_watches(root, defaults, overrides)
+    except (DriftInputError, OSError, json.JSONDecodeError) as error:
+        print(f"upstream drift input error: {error}", file=sys.stderr)
+        return 1
+    client = ProviderClient(
+        github_token=os.environ.get("GITHUB_TOKEN"),
+        huggingface_token=os.environ.get("HF_TOKEN"),
+    )
+    observations = [observe(watch, client) for watch in watches]
+    checked_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    document = report(observations, checked_at)
+    rendered_json = json.dumps(document, indent=2, sort_keys=True) + "\n"
+    if arguments.output:
+        arguments.output.write_text(rendered_json, encoding="utf-8")
+    print(
+        rendered_json if arguments.format == "json" else render_table(observations),
+        end="",
+    )
+    if any(observation.status in {"missing", "error"} for observation in observations):
+        return 1
+    if arguments.fail_on_drift and any(
+        observation.status == "advanced" for observation in observations
+    ):
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

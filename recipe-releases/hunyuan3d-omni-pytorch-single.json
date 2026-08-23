@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "hunyuan3d-omni-pytorch-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "fcbc133935efcb5d500a4f3b8d5c6e021492a0c63c1479adaa6f9703767fd8c6",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Marked the checkpoint binding non-executable because its custom control pipeline has no qualified ARM64 adapter."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Corrected the license to the territory-restricted Tencent Hunyuan 3D Omni Community License."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "e21c4e0bbb14275f87a7bdb0591ff70fa1aa50fa4bdf99b38fcfa26aac55a77e",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Hunyuan3D-Omni pytorch-pipeline single Spark."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "ltx-2-19b-dev-fp4-pytorch-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "3b323df19e414b5ee7fcf96927fca74ad654389cf4bb6ff834a35325b0a1d6da",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Replaced unavailable ARM64 CUDA 13.2 Torch and TorchAudio pins with the current upstream-tested 2.13.0 and 2.11.0 wheels.",
+          "references": ["https://github.com/Lightricks/LTX-2/blob/400fd31054597515f47125691032c04b1c3ee24e/packages/ltx-core/pyproject.toml"]
+        },
+        {
+          "kind": "fix",
+          "summary": "Corrected the recipe's whole-snapshot artifact and dependent disk resource sizes.",
+          "references": ["https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "The candidate still requires an ARM64 container build and physical Spark canary before acceptance."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "ef300f5792389eed64b03db4fb92f43043080731d61eecfe1b0d2383699dc588",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of LTX-2 19B dev FP4 native pipeline single Spark."
+        }
+      ]
+    }
+  ]
+}

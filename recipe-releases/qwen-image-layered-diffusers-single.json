@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-layered-diffusers-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "e77167bb5e3f0a63a1c4181798cd337207f6939320a50d9f33dec9184f9ec911",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Enabled the upstream-recommended CFG normalization for layered RGBA decomposition.",
+          "references": [
+            "https://huggingface.co/Qwen/Qwen-Image-Layered/tree/8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "3247ae2fdfcab2eb4c80f6d42de47a6ec61debcfa49f6242e2c9c0827265b972",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Qwen Image Layered Diffusers single Spark."
+        }
+      ]
+    }
+  ]
+}

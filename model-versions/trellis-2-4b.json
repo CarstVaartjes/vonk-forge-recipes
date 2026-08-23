@@ -53,8 +53,8 @@
     "installed_bytes": 16237485044
   },
   "license": {
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/microsoft/TRELLIS.2-4B/blob/af44b45f2e35a493886929c6d786e563ec68364d/LICENSE",
+    "spdx": "MIT",
+    "url": "https://github.com/microsoft/TRELLIS.2/blob/75fbf0183001ed9876c8dbb35de6b68552ee08bd/LICENSE",
     "attribution": [
       "microsoft"
     ],

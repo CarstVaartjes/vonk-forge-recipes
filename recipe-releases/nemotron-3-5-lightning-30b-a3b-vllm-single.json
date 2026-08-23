@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-5-lightning-30b-a3b-vllm-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "55702490dc6bd661f59453aafd244608e5557c4718e7fbb457aee0a71af18ed5",
+      "upgrade_effect": "restart",
+      "changes": [
+        {
+          "kind": "performance",
+          "summary": "Applied NVIDIA's allowlisted single-GB10 FP8 KV and memory settings and recorded the Marlin/aligned-cache harness gaps.",
+          "references": [
+            "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/6dbbd757ea75a8ece6e0702872e3ae53f9987728"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "b28811b318432658d0348efda98264c1487fd3903af19104d3d59bede69b0d77",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Nemotron 3.5 Lightning 30B-A3B NVFP4 vLLM single Spark."
+        }
+      ]
+    }
+  ]
+}

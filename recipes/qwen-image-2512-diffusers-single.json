@@ -36,7 +36,7 @@
   "build": {
     "context": {
       "path": "adapters/image/qwen-image-2512-diffusers",
-      "sha256": "df9050b64a280b4ca6d4a1e6c64f21374843177096012cfb58c425dc455d7751",
+      "sha256": "ac600d9363e8f80b2dc067e871a12f93af1a7b203480f6bc275c6ab29db73118",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -112,7 +112,7 @@
         "value": 50
       },
       {
-        "name": "guidance-scale",
+        "name": "true-cfg-scale",
         "value": "4"
       },
       {

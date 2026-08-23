@@ -15,6 +15,7 @@ def main() -> None:
     parser.add_argument("--true-cfg-scale", type=float, default=4.0)
     parser.add_argument("--layers", type=int, default=4)
     parser.add_argument("--resolution", type=int, default=640)
+    parser.add_argument("--cfg-normalize", choices=("true", "false"), default="true")
     parser.add_argument("--seed", type=int, default=777)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
@@ -51,6 +52,7 @@ def main() -> None:
         num_images_per_prompt=1,
         layers=args.layers,
         resolution=args.resolution,
+        cfg_normalize=args.cfg_normalize == "true",
         use_en_prompt=True,
     ).images[0]
     args.output_dir.mkdir(parents=True, exist_ok=True)

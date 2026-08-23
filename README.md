@@ -11,6 +11,8 @@ container layers, credentials, or fleet state.
 - `recipes/`: one immutable execution binding per topology, including the
   primary model version and any exact auxiliary model versions such as a
   LoRA, encoder, tokenizer, VAE, or upscaler;
+- `recipe-releases/`: additive release metadata and bounded changelog history
+  for each executable recipe;
 - `runtime-distributions/` and `patch-bundles/`: exact runtime/patch identity
   selected by recipes;
 - `model-targets/`: the research ledger, including candidate and blocked
@@ -41,7 +43,18 @@ context. It lets the control plane load catalog metadata in one request instead
 of spending one unauthenticated GitHub API request per recipe. When an operator
 chooses a recipe, the control plane verifies and materializes only that recipe's
 dependencies and source bundle. Run `tools/build-catalog-index` after changing
-recipes, entities, or adapters; CI rejects a stale index.
+recipes, recipe releases, entities, or adapters; CI rejects a stale index.
+
+Release metadata deliberately lives beside, rather than inside, the strict
+executable recipe-v1 document. This keeps the execution-authority digest stable
+while allowing catalog clients to compare an installed recipe digest with the
+current semantic version and show every intervening change. Every
+`recipe-releases/<recipe-slug>.json` file contains newest-first history. Each
+history item binds a semantic version to the exact recipe content SHA-256,
+declares whether upgrading needs a restart, reinstall, or image rebuild, and
+contains bounded operator-facing change notes. Append a history item whenever
+the executable recipe digest changes; metadata-only edits do not mint a new
+recipe version.
 
 ## Adding a recipe
 
@@ -50,16 +63,20 @@ recipes, entities, or adapters; CI rejects a stale index.
    optional patch bundle.
 3. Add one recipe for one topology. Replicas and distributed ranks are not
    interchangeable.
-4. If the runtime needs companion weights, add each companion as its own
+4. Add its `recipe-releases/<recipe-slug>.json` sidecar. Start at `1.0.0`, bind
+   it to the canonical recipe digest emitted in `catalog-index.json`, and keep
+   all later release entries newest-first so older installations can see the
+   complete upgrade changelog.
+5. If the runtime needs companion weights, add each companion as its own
    model-version entity and reference it through the recipe's exact
    `dependencies` list. Do not hide a mutable download or a second model
    family inside an adapter script.
-5. For image, audio, video, mesh, or other input-dependent jobs, declare the
+6. For image, audio, video, mesh, or other input-dependent jobs, declare the
    interface input contract and the matching read-only `inputs` security mount.
    Inputs are supplied per job; recipes never use host paths or runtime URLs.
-6. Keep source contexts deterministic and free of secrets; build-time patches
+7. Keep source contexts deterministic and free of secrets; build-time patches
    must be applied and verified before an image is published.
-7. Run structural, container, and Spark acceptance before changing a target to
+8. Run structural, container, and Spark acceptance before changing a target to
    `accepted`.
 
 To install the accepted entries into a Vonk Forge control plane, use the
@@ -94,3 +111,39 @@ and replaced remaining vLLM nightly
 bindings with the stable vLLM 0.27.1 distribution. Qwen3.8 27B BF16 and FP8
 recipes are included as exact-revision candidates; they still require a Spark
 container build and physical canary before acceptance.
+
+## Upstream drift audit
+
+Immutable pins make a recipe reproducible; they do not by themselves say that
+the selected upstream is still current. `tools/check-upstream-drift` performs a
+read-only comparison between catalog source revisions and the channels declared
+in `upstream-watch.json`. It discovers model-version, runtime-distribution, and
+patch-bundle sources, plus the immutable upstream reference in recipe
+provenance. Artifact inventories are not queried file by file.
+
+GitHub sources may use the repository URL, an optional `.git` suffix,
+`/tree/<commit>`, `/commit/<commit>`, or the catalog's historical `@<commit>`
+form. Hugging Face sources may use `namespace/repository`, the canonical model
+URL, `/tree/<commit>`, or `/resolve/<commit>/<path>`. All embedded revisions
+must agree with the document's explicit revision.
+
+The default policy follows the provider's default branch. Stable Diffusers,
+PyTorch, and vLLM distributions override that default with `latest-release`.
+Use a per-entity `ref` override for a deliberately tracked branch, or `manual`
+when upstream movement cannot be classified automatically. A different head is
+reported as `advanced`, which requests review but does not claim that the newer
+source is compatible or accepted.
+
+Run the audit locally with:
+
+```console
+GITHUB_TOKEN=... tools/check-upstream-drift --fail-on-drift --output upstream-drift.json
+```
+
+The command exits zero when all automated watches are current, one when input
+or provider verification fails, and two for reviewable drift when
+`--fail-on-drift` is selected. It never rewrites recipes, entities, the catalog
+index, or watch metadata. The separate `Audit upstream drift` workflow runs
+weekly and on manual dispatch, uploads both table and JSON reports, and marks
+only that scheduled audit as failed when review is needed. Upstream network
+state is deliberately not part of the required pull-request validation path.

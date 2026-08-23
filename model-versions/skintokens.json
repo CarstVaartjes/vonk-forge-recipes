@@ -53,8 +53,8 @@
     "installed_bytes": 1618924643
   },
   "license": {
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/VAST-AI/SkinTokens/blob/79736cad0fd84de384d5eede659b4ebd24effe33/LICENSE",
+    "spdx": "MIT",
+    "url": "https://github.com/VAST-AI-Research/SkinTokens/blob/273b691d35989d71cd17ff2895fdc735097b92d1/LICENSE",
     "attribution": [
       "vast-ai"
     ],

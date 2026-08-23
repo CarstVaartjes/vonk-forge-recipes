@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-2-quanttrio-vllm-four"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "94517414193c71735a44b8a675d2a5dfad8e024bd022a71d44828f05c123afd1",
+      "upgrade_effect": "restart",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Aligned TP4 memory, sparse-MTP, batching, executor, CUDA graph, and NCCL settings while recording the missing upstream kernel bake.",
+          "references": [
+            "https://github.com/mattcurfman/glm-5.2-quanttrio-200k-4x-dgx-spark/blob/b6e57cec7ed1ed491693751fa5f6ca991d532045/README.md"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "5488d37246e3ee25301f79861eda58feea3e5fa9203e1bd948a06a064c3da570",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of GLM 5.2 QuantTrio four Sparks."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "step1x-3d-label-geometry-pytorch-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "a9852811fd336fdf397ba664e0479ae2915a882ec8e9aa0e336efec8fbba8594",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Marked the label-geometry binding non-executable pending Step1X source, label handling, native dependencies, and a GLB adapter."
+        },
+        {
+          "kind": "fix",
+          "summary": "Added the authoritative isolated image input contract."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Replaced the broken model-card license URL with the exact upstream Apache-2.0 license."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "f8c9e5ab507e0d875f5cc5454b73e9016b4cd2222af9e0cd9601a0686796ec1f",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Step1X-3D label-geometry pytorch-pipeline single Spark."
+        }
+      ]
+    }
+  ]
+}

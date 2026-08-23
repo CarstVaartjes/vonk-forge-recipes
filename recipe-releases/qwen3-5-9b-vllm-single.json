@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-5-9b-vllm-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "0103c36a89253bd56bde0a266d73c89a47d3c76807c35bd8f4bb59c505717daa",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of Qwen3.5 9B vLLM single Spark."
+        }
+      ]
+    }
+  ]
+}

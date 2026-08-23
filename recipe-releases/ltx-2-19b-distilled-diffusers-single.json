@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "ltx-2-19b-distilled-diffusers-single"
+  },
+  "version": "1.1.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "2e1991169e20bf16e8a1e8be60881975bd0eb9635a2ae707724ffedde6eb35c2",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Corrected the complete immutable LTX-2 snapshot and dependent disk resource sizes.",
+          "references": ["https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Marked the candidate as requiring a model-specific distilled synchronized video/audio adapter before acceptance."
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "ce68609cacaa7905d2ee799c3d13c4f1767b3634e93c0c98fb2263ffa3306e4b",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of LTX-2 19B distilled synchronized diffusers single Spark."
+        }
+      ]
+    }
+  ]
+}

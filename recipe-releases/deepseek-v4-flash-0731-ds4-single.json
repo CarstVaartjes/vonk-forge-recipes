@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-flash-0731-ds4-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-23",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-23",
+      "recipe_content_sha256": "373169b0ef24f8d21b0aa40e918e13554bb4d788b4bd426df9f14b64b47d184a",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial reviewed catalog release of DeepSeek V4 Flash 0731 DS4 single Spark."
+        }
+      ]
+    }
+  ]
+}
