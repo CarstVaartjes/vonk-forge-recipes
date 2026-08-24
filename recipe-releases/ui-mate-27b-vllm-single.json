@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "ui-mate-27b-vllm-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-24",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "b04408a1b40b827ff7eea19216559d182ec1fe9ecb08b05fdc2c4460378190a1",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial UI-Mate 27B BF16 single-Spark Candidate with Tencent's official computer-use harness.",
+          "details": "Pins the exact Tencent checkpoint and source revision, directly vendors the official prompt/parser/action behavior, and adapts Tencent's TP2 vLLM launch to a bounded TP1 32K single-Spark profile pending physical acceptance.",
+          "references": [
+            "https://huggingface.co/tencent/UI-Mate-27B/tree/3ade2378fc84032d5017c1a9c93c4eaa77d65e57",
+            "https://github.com/Tencent/UI-Mate/tree/d2b2e0aede83eeacfb1bc86f66503acbc4a6738a"
+          ]
+        }
+      ]
+    }
+  ]
+}
