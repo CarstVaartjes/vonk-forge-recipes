@@ -16,6 +16,7 @@ TARGETS = (
     "models/deepseek_v4/common/ops/cache_utils.py",
     "models/deepseek_v4/compressor.py",
     "models/deepseek_v4/nvidia/flashmla.py",
+    "models/deepseek_v4/nvidia/dspark.py",
     "models/deepseek_v4/nvidia/model.py",
     "models/deepseek_v4/sparse_mla.py",
     "tokenizers/deepseek_v4.py",
