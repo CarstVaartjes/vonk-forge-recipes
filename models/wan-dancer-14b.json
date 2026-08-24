@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "wan-ai",
+    "slug": "wan-dancer-14b"
+  },
+  "metadata": {
+    "title": "Wan-Dancer 14B",
+    "description": "Hierarchical global planning and local refinement for reference-image and music conditioned dance video.",
+    "tags": [
+      "wan-ai",
+      "wan-dancer",
+      "video"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "wan-ai",
+    "slug": "wan-dancer",
+    "content_sha256": "81023737a6fbe26d7e0fc9eb7296afbd97ee21b6047dfcc4bcfc79a8a8d5328e"
+  },
+  "architecture": "Wan-Dancer hierarchical global/local diffusion transformer"
+}

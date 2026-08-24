@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "kind": "runtime-distribution",
+  "identity": {
+    "publisher": "wan-video",
+    "slug": "wan-dancer-native-e6c87a9-cuda13-arm64"
+  },
+  "metadata": {
+    "title": "Wan-Dancer native e6c87a9 CUDA 13 ARM64 runtime",
+    "description": "Pinned official two-stage Wan-Dancer source with single-process unified-memory offload, isolated image/music input, offline model loading, and verified H.264/AAC artifact export.",
+    "tags": [
+      "candidate",
+      "wan-dancer",
+      "music-to-dance",
+      "video",
+      "pytorch",
+      "cuda",
+      "arm64",
+      "spark"
+    ]
+  },
+  "implements_harness": {
+    "kind": "execution-harness",
+    "publisher": "vonk-forge",
+    "slug": "pytorch-pipeline",
+    "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c"
+  },
+  "platform": "linux/arm64",
+  "source": {
+    "repository": "https://github.com/Wan-Video/Wan-Dancer",
+    "revision": "e6c87a94ec733230dac15b924c015f6e6501e618",
+    "archive_sha256": "92c529d7727c75c6515ea990d27883a45bf566587cc9f5d325a0a488b9fa1649",
+    "license": "Apache-2.0"
+  },
+  "image": "nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+  "image_manifest": {
+    "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+    "size": 2207,
+    "config_digest": "55e3a0bc92ce6d14b77cd8f4a81414f2b75c6b3964b17dc452028b55e09ab168",
+    "compressed_layers_bytes": 1765183632
+  },
+  "dependencies": [
+    {
+      "name": "Wan-Dancer inference source",
+      "version": "e6c87a94ec733230dac15b924c015f6e6501e618",
+      "source": "https://github.com/Wan-Video/Wan-Dancer/commit/e6c87a94ec733230dac15b924c015f6e6501e618",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "PyTorch",
+      "version": "2.13.0+cu130",
+      "source": "https://download.pytorch.org/whl/cu130",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "name": "TorchVision",
+      "version": "0.28.0+cu130",
+      "source": "https://download.pytorch.org/whl/cu130",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "name": "Transformers",
+      "version": "4.46.2",
+      "source": "https://pypi.org/project/transformers/4.46.2/",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "Librosa",
+      "version": "0.11.0",
+      "source": "https://pypi.org/project/librosa/0.11.0/",
+      "license": "ISC"
+    },
+    {
+      "name": "MoviePy",
+      "version": "2.2.1",
+      "source": "https://pypi.org/project/moviepy/2.2.1/",
+      "license": "MIT"
+    },
+    {
+      "name": "OpenCV Python headless",
+      "version": "4.11.0.86",
+      "source": "https://pypi.org/project/opencv-python-headless/4.11.0.86/",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "FFmpeg",
+      "version": "Ubuntu 24.04 distribution",
+      "source": "https://packages.ubuntu.com/noble/ffmpeg",
+      "license": "GPL-2.0-or-later"
+    },
+    {
+      "name": "CUDA runtime",
+      "version": "13.0.1-ubuntu24.04",
+      "source": "nvcr.io/nvidia/cuda",
+      "license": "NVIDIA CUDA Toolkit EULA"
+    }
+  ],
+  "build": {
+    "network_hosts": [
+      "pypi.org",
+      "files.pythonhosted.org",
+      "download.pytorch.org",
+      "archive.ubuntu.com",
+      "security.ubuntu.com",
+      "ports.ubuntu.com"
+    ],
+    "offline_after_installation": true
+  },
+  "capabilities": {
+    "distributed_vllm": null
+  },
+  "security": {
+    "network_mode": "none",
+    "user": "10001:10001",
+    "no_new_privileges": true,
+    "capabilities": []
+  }
+}
