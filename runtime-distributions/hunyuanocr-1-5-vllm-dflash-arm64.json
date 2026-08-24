@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "kind": "runtime-distribution",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hunyuanocr-1-5-vllm-dflash-arm64"
+  },
+  "metadata": {
+    "title": "HunyuanOCR 1.5 vLLM DFlash ARM64 runtime",
+    "description": "CUDA 13 ARM64 job runtime built from vLLM 0.27.1 and Tencent's immutable HunyuanOCR 1.5 inference toolkit, including official prompts, cleanup, Markdown normalization, and DFlash serving.",
+    "tags": [
+      "tencent",
+      "hunyuan",
+      "ocr",
+      "vllm",
+      "dflash",
+      "cuda13",
+      "arm64",
+      "spark",
+      "candidate"
+    ]
+  },
+  "implements_harness": {
+    "kind": "execution-harness",
+    "publisher": "vonk-forge",
+    "slug": "pytorch-pipeline",
+    "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c"
+  },
+  "platform": "linux/arm64",
+  "source": {
+    "repository": "https://github.com/Tencent-Hunyuan/HunyuanOCR",
+    "revision": "c55965d3da1e6f41987abec8068f2e70851318bc",
+    "archive_sha256": "00789421f6f35aa06635d6a42ded6b0aabd0db7f87d49eded3ce9696018e0d3f",
+    "license": "LicenseRef-Tencent-Hunyuan-Community"
+  },
+  "image": "docker.io/vllm/vllm-openai@sha256:1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+  "image_manifest": {
+    "digest": "1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+    "size": 7238,
+    "config_digest": "2c211a1273b48e8929f893b267aeb1509e6b84654cdbde1bad56d79e3964224d",
+    "compressed_layers_bytes": 10533135621
+  },
+  "dependencies": [
+    {
+      "name": "vLLM",
+      "version": "0.27.1",
+      "source": "https://github.com/vllm-project/vllm@6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "HunyuanOCR inference toolkit",
+      "version": "c55965d3da1e6f41987abec8068f2e70851318bc",
+      "source": "https://github.com/Tencent-Hunyuan/HunyuanOCR@c55965d3da1e6f41987abec8068f2e70851318bc",
+      "license": "LicenseRef-Tencent-Hunyuan-Community"
+    }
+  ],
+  "build": {
+    "network_hosts": [
+      "github.com"
+    ],
+    "offline_after_installation": true
+  },
+  "capabilities": {
+    "distributed_vllm": null
+  },
+  "security": {
+    "network_mode": "none",
+    "user": "10001:10001",
+    "no_new_privileges": true,
+    "capabilities": []
+  }
+}
