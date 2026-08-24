@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "identity": "comfyui-core/qwen-image-2512-bf16@2",
+  "upstream_template": "https://github.com/Comfy-Org/workflow_templates/blob/2ded761bde3af3b4c8e905e162f45551cbec12ea/templates/image_qwen_Image_2512.json",
+  "models": [
+    {"artifact_id": "target", "category": "diffusion_models", "filename": "qwen_image_2512_bf16.safetensors"},
+    {"artifact_id": "text-encoder", "category": "text_encoders", "filename": "qwen_2.5_vl_7b_fp8_scaled.safetensors"},
+    {"artifact_id": "vae", "category": "vae", "filename": "qwen_image_vae.safetensors"}
+  ],
+  "inputs": {"minimum": 0, "maximum": 0},
+  "prompt": {
+    "1": {"class_type": "UNETLoader", "inputs": {"unet_name": "qwen_image_2512_bf16.safetensors", "weight_dtype": "default"}},
+    "2": {"class_type": "ModelSamplingAuraFlow", "inputs": {"model": ["1", 0], "shift": 3.1}},
+    "3": {"class_type": "CLIPLoader", "inputs": {"clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors", "type": "qwen_image", "device": "default"}},
+    "4": {"class_type": "VAELoader", "inputs": {"vae_name": "qwen_image_vae.safetensors"}},
+    "5": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["3", 0], "text": "__VONK_PROMPT__"}},
+    "6": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["3", 0], "text": "__VONK_NEGATIVE_PROMPT__"}},
+    "7": {"class_type": "EmptySD3LatentImage", "inputs": {"width": 1328, "height": 1328, "batch_size": 1}},
+    "8": {"class_type": "KSampler", "inputs": {"model": ["2", 0], "seed": "__VONK_SEED__", "steps": 50, "cfg": 4.0, "sampler_name": "euler", "scheduler": "simple", "positive": ["5", 0], "negative": ["6", 0], "latent_image": ["7", 0], "denoise": 1.0}},
+    "9": {"class_type": "VAEDecode", "inputs": {"samples": ["8", 0], "vae": ["4", 0]}},
+    "10": {"class_type": "SaveImage", "inputs": {"images": ["9", 0], "filename_prefix": "vonk/qwen-image-2512"}}
+  }
+}
