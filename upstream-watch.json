@@ -53,6 +53,12 @@
     },
     "runtime-distribution/vllm/vllm-nightly-arm64-8efa13b7": {
       "policy": "manual"
+    },
+    "model-version/thinkingmachines/inkling-small-nvfp4": {
+      "policy": "default-branch"
+    },
+    "runtime-distribution/sglang/sglang-inkling-small-dual-spark-a74222ef": {
+      "policy": "default-branch"
     }
   }
 }
