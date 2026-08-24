@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {"publisher": "black-forest-labs", "slug": "flux-2-klein-4b"},
+  "metadata": {
+    "title": "FLUX.2 Klein 4B",
+    "description": "Black Forest Labs' distilled four-billion-parameter FLUX.2 image generator.",
+    "tags": ["flux", "image", "generation", "text-to-image", "distilled"]
+  },
+  "model_group": {"kind": "model-group", "publisher": "black-forest-labs", "slug": "flux-2", "content_sha256": "35fe751987e0a245c1932151e262ecec471777c3887ab6e2b84f287e0d4a1dad"},
+  "architecture": "4B rectified-flow image diffusion transformer"
+}

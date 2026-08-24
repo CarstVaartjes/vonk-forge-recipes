@@ -7,9 +7,48 @@
   },
   "metadata": {
     "title": "Video generation and understanding targets",
-    "updated": "2026-08-24"
+    "updated": "2026-08-25"
   },
   "targets": [
+    {
+      "modality": "video",
+      "group": "Wan 2.2",
+      "model": "Wan 2.2 TI2V 5B",
+      "version": "ComfyUI FP16 c4f60d30",
+      "status": "candidate",
+      "source": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77",
+      "harnesses": ["comfyui"],
+      "topologies": ["single"],
+      "recipe_slugs": ["wan-2-2-ti2v-5b-comfyui-single"],
+      "catalog_model_version": "wan-2-2-ti2v-5b-comfyui-c4f60d30",
+      "notes": "Hash-locked core-node 1280x704 image-to-video candidate; ARM64 container and physical Spark MP4/peak-memory acceptance remain."
+    },
+    {
+      "modality": "video",
+      "group": "Wan 2.2",
+      "model": "Wan 2.2 T2V 14B",
+      "version": "ComfyUI scaled FP8 c4f60d30",
+      "status": "candidate",
+      "source": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77",
+      "harnesses": ["comfyui"],
+      "topologies": ["single"],
+      "recipe_slugs": ["wan-2-2-t2v-14b-comfyui-single"],
+      "catalog_model_version": "wan-2-2-t2v-14b-comfyui-c4f60d30",
+      "notes": "Hash-locked core-node two-expert text-to-video candidate without custom nodes or optional LoRAs; physical Spark MP4/peak-memory acceptance remains."
+    },
+    {
+      "modality": "video",
+      "group": "Wan 2.2",
+      "model": "Wan 2.2 I2V 14B",
+      "version": "ComfyUI scaled FP8 c4f60d30",
+      "status": "candidate",
+      "source": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77",
+      "harnesses": ["comfyui"],
+      "topologies": ["single"],
+      "recipe_slugs": ["wan-2-2-i2v-14b-comfyui-single"],
+      "catalog_model_version": "wan-2-2-i2v-14b-comfyui-c4f60d30",
+      "notes": "Hash-locked core-node two-expert image-to-video candidate without custom nodes or optional LoRAs; physical Spark MP4/peak-memory acceptance remains."
+    },
     {
       "modality": "video",
       "group": "MOSS-VL",

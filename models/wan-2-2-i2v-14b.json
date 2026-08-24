@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {"publisher": "wan-ai", "slug": "wan-2-2-i2v-14b"},
+  "metadata": {
+    "title": "Wan 2.2 I2V 14B",
+    "description": "Wan 2.2's high- and low-noise expert image-to-video model.",
+    "tags": ["wan", "video", "image-to-video", "14b", "mixture-of-experts"]
+  },
+  "model_group": {"kind": "model-group", "publisher": "wan-ai", "slug": "wan-2-2", "content_sha256": "9046e967faecc02893c2d7da65ed29ef30fce2067d7dde9554a75b96ad95ac5e"},
+  "architecture": "14B high- and low-noise expert image-conditioned video diffusion transformer"
+}
