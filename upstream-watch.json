@@ -14,6 +14,9 @@
     "model-version/wan-ai/wan-dancer-14b": {
       "policy": "default-branch"
     },
+    "model-version/thinkingmachines/inkling-975b-a41b-nvfp4": {
+      "policy": "default-branch"
+    },
     "runtime-distribution/huggingface/diffusers-0-39-0-cuda13-arm64": {
       "policy": "manual"
     },
@@ -30,6 +33,9 @@
       "policy": "default-branch"
     },
     "runtime-distribution/wan-video/wan-dancer-native-e6c87a9-cuda13-arm64": {
+      "policy": "default-branch"
+    },
+    "runtime-distribution/sglang/sglang-inkling-dgx-spark-b7252cc6-arm64": {
       "policy": "default-branch"
     },
     "runtime-distribution/vllm/vllm-0-20-0-nvidia-arm64": {

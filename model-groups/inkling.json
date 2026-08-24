@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "thinkingmachines",
+    "slug": "inkling"
+  },
+  "metadata": {
+    "title": "Thinking Machines Inkling",
+    "description": "Thinking Machines Lab native multimodal sparse-MoE family for text, image, and audio understanding.",
+    "tags": [
+      "thinkingmachines",
+      "inkling",
+      "multimodal"
+    ]
+  },
+  "family": "inkling"
+}

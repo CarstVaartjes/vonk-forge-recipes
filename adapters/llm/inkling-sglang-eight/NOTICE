@@ -1,0 +1,11 @@
+This source context is a thin deployment binding around the official flagship
+SGLang Inkling CUDA 13 multi-architecture image at source commit
+b7252cc6b0c78b25ecea7ee5efa91a6ae37d0f19 (Apache-2.0).
+
+The model/API flags follow SGLang's official Inkling day-zero tracker. The
+GB10 execution flags are adapted from SGLang's physically verified two-Spark
+Inkling-Small profile and its dedicated-image source commit a74222ef6e690f851e2e4ff1c0be7dc1357be313:
+Triton attention, Marlin FP4/MoE, disabled prefill CUDA graphs, and the
+extra-buffer Mamba radix-cache strategy. The flagship TP8 topology is
+source-complete but remains Pending until an eight-Spark physical canary
+succeeds.
