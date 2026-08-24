@@ -18,7 +18,7 @@
     "kind": "model-group",
     "publisher": "thinkingmachines",
     "slug": "inkling",
-    "content_sha256": "f7126f2e46ecdfc3402aa3200610c7ee93d72211e5fd917da1ff92c8c70e40cd"
+    "content_sha256": "21b0010330cd7445b4d9078bdf629fe415c7f1c6a52f846a2a1513e9a0e5ff87"
   },
   "architecture": "Inkling multimodal sparse mixture-of-experts transformer"
 }

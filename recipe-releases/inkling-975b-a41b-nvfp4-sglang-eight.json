@@ -10,7 +10,7 @@
     {
       "version": "1.0.0",
       "released_at": "2026-08-24",
-      "recipe_content_sha256": "f0b4e063a9e8b945e69ad2d724c96d3fd1d21b002a2062932313a7e6ba1b4d15",
+      "recipe_content_sha256": "3e5f8d1e8c3bcc55827d3338e81ff3daf9166ff6af4c93d9ced666a74b7c8366",
       "upgrade_effect": "reinstall",
       "changes": [
         {

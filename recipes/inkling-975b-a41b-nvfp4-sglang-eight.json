@@ -26,7 +26,7 @@
     "kind": "model-version",
     "publisher": "thinkingmachines",
     "slug": "inkling-975b-a41b-nvfp4",
-    "content_sha256": "b6dd798ec9080214fa7c1f0230497b3caf270247255231bff4a9d466b1f90122"
+    "content_sha256": "8293f47fdff932970deb1dc4c2b10e4c83a27c5081af1a0618611048e496d2c7"
   },
   "execution": {
     "harness": {
