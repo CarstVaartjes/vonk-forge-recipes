@@ -1,0 +1,10 @@
+Wan-Dancer runtime source
+Copyright Wan-Dancer contributors
+Source: https://github.com/Wan-Video/Wan-Dancer
+Revision: e6c87a94ec733230dac15b924c015f6e6501e618
+License: Apache-2.0 (see /opt/wan-dancer/LICENSE)
+
+This adapter preserves the official two-stage music-to-dance inference path.
+The Vonk-specific adaptation pins all model paths to the mounted immutable
+snapshot, disables runtime downloads and sequence parallelism for one DGX
+Spark, validates the job contract, and publishes the final MP4 artifact.

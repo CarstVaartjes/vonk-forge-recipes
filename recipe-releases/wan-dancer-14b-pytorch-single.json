@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "wan-dancer-14b-pytorch-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-24",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "ca38cb242243a508454b28ada3e09defcd32dd13b9fa011321b6b86725c9a56c",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added the complete official global-planning and local-refinement music-to-dance pipeline for one DGX Spark.",
+          "references": [
+            "https://github.com/Wan-Video/Wan-Dancer/tree/e6c87a94ec733230dac15b924c015f6e6501e618",
+            "https://huggingface.co/Wan-AI/Wan-Dancer-14B/tree/85ce88dd8d025459dcf0fe93982d6da8b9002957"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Adapted upstream sequence-parallel execution to its supported single-process path with unified-memory model offload on ARM64/CUDA 13."
+        },
+        {
+          "kind": "security",
+          "summary": "Pinned every checkpoint and dependency, disabled runtime downloads, isolated image and music inputs, and verified the final H.264/AAC artifact."
+        }
+      ]
+    }
+  ]
+}

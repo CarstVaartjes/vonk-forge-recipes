@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "wan-ai",
+    "slug": "wan-dancer"
+  },
+  "metadata": {
+    "title": "Wan-Dancer",
+    "description": "Wan-AI's open-weight hierarchical music-to-dance video family.",
+    "tags": [
+      "wan-ai",
+      "wan-dancer",
+      "video"
+    ]
+  },
+  "family": "wan-dancer"
+}
