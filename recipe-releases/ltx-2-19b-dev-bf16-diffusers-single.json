@@ -16,7 +16,9 @@
         {
           "kind": "fix",
           "summary": "Corrected the complete immutable LTX-2 snapshot and dependent disk resource sizes.",
-          "references": ["https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"]
+          "references": [
+            "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
+          ]
         },
         {
           "kind": "compatibility",
@@ -33,6 +35,21 @@
         {
           "kind": "initial",
           "summary": "Initial reviewed catalog release of LTX-2 19B dev BF16 diffusers single Spark."
+        }
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-17",
+      "recipe_content_sha256": "bbf016f6b7424228727f0e53edf75f2cebc0acc01ffb469b4d6a164770aef2cc",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+          ]
         }
       ]
     }

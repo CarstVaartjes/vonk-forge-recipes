@@ -16,12 +16,16 @@
         {
           "kind": "fix",
           "summary": "Corrected the complete immutable MiniMax H3 snapshot from 614 MB to 498.475 GB and updated dependent disk resources.",
-          "references": ["https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe"]
+          "references": [
+            "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe"
+          ]
         },
         {
           "kind": "compatibility",
           "summary": "Marked the candidate as requiring Modular Diffusers and a model-specific joint video/audio exporter before acceptance.",
-          "references": ["https://huggingface.co/docs/diffusers/main/en/api/pipelines/minimax_h3"]
+          "references": [
+            "https://huggingface.co/docs/diffusers/main/en/api/pipelines/minimax_h3"
+          ]
         }
       ]
     },
@@ -34,6 +38,21 @@
         {
           "kind": "initial",
           "summary": "Initial reviewed catalog release of MiniMax H3 diffusers single Spark."
+        }
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-17",
+      "recipe_content_sha256": "c730278c6c5b9c0911c6f036a10a96d43533519d7fe21c8d3b3f54f907b17eef",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+          ]
         }
       ]
     }

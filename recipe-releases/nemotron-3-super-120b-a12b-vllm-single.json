@@ -33,6 +33,21 @@
           "summary": "Initial reviewed catalog release of Nemotron 3 Super 120B-A12B NVFP4 vLLM single Spark."
         }
       ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-17",
+      "recipe_content_sha256": "39654260773dd767d1b0b3ac413045b08b56c37d44727252de10a231a6532683",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+          ]
+        }
+      ]
     }
   ]
 }

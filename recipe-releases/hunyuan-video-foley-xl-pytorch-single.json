@@ -30,6 +30,21 @@
           "summary": "Initial reviewed catalog release of HunyuanVideo Foley XL diffusers single Spark."
         }
       ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-17",
+      "recipe_content_sha256": "6f86ab21f330218ce294849be41eff1b0f202bef1daf197a3649137517d8d1d7",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+          ]
+        }
+      ]
     }
   ]
 }

@@ -33,6 +33,21 @@
           "summary": "Initial reviewed catalog release of Qwen Image Layered Diffusers single Spark."
         }
       ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-16",
+      "recipe_content_sha256": "f8ede882c70d7972aae466f96bd6c5d767db84ff582229d654e8b953f7cace54",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/b906fccb5c86db91b485b02c0d1adba7ec411414"
+          ]
+        }
+      ]
     }
   ]
 }

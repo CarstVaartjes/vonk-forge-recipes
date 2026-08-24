@@ -34,6 +34,21 @@
           "summary": "Initial reviewed catalog release of Nemotron 3 Nano Omni 30B-A3B NVFP4 vLLM single Spark."
         }
       ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-17",
+      "recipe_content_sha256": "6b2fb50ccf5e471e8497e51c9df7aeead654c5e6c648ad91c5ce342b276612af",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+          ]
+        }
+      ]
     }
   ]
 }
