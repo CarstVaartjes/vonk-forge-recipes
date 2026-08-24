@@ -7,11 +7,16 @@
   },
   "metadata": {
     "title": "Thinking Machines Inkling",
-    "description": "Thinking Machines Lab native multimodal sparse-MoE family for text, image, and audio understanding.",
+    "description": "Thinking Machines Lab open-weight natively multimodal mixture-of-experts models.",
     "tags": [
       "thinkingmachines",
       "inkling",
-      "multimodal"
+      "multimodal",
+      "text",
+      "vision",
+      "audio",
+      "reasoning",
+      "moe"
     ]
   },
   "family": "inkling"

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-small-nvfp4-sglang-dual"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-24",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "a620e75f371e81af13ba56225fd9b835d02514c99b75f66ad5be13e01db91687",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added the verified two-DGX-Spark SGLang TP2 profile as a thin, immutable Vonk recipe adaptation.",
+          "details": "The launch preserves SGLang's DGX Spark choices: CUDA 13 ARM64, Triton attention, Marlin W4A16 FP4 and MoE kernels, page size 128, unified radix cache, bounded cache ratios, disabled prefill CUDA graphs, and native two-node ConnectX-7 rendezvous.",
+          "references": [
+            "https://docs.sglang.io/cookbook/autoregressive/ThinkingMachines/Inkling-Small",
+            "https://github.com/sgl-project/sglang/blob/a74222ef6e690f851e2e4ff1c0be7dc1357be313/docs_new/src/snippets/configs/thinkingmachines/inkling-small.jsx"
+          ]
+        },
+        {
+          "kind": "model",
+          "summary": "Pinned the complete official Inkling Small NVFP4 snapshot and its built-in MTP weights at b6a99534.",
+          "details": "All 170,764,923,366 bytes are enumerated with exact file hashes. The model remains capped to a conservative 64K serving context so the two 128 GB unified-memory nodes retain cache and runtime headroom above the roughly 171 GB snapshot.",
+          "references": [
+            "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/tree/b6a99534467840620d411e4cd4ad5819b2610d9c",
+            "https://huggingface.co/blog/thinkingmachines-inkling"
+          ]
+        },
+        {
+          "kind": "runtime",
+          "summary": "Exposed offline text, image, and audio reasoning through one OpenAI-compatible multimodal endpoint.",
+          "details": "Clients send image_url and audio_url parts as base64 data URIs, or OpenAI input_audio with WAV or MP3 bytes, alongside text. External media URLs are intentionally unavailable after installation because runtime networking is disabled; images should be 40-4096 px and WAV audio should be 16 kHz and ideally under two minutes.",
+          "references": [
+            "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/blob/b6a99534467840620d411e4cd4ad5819b2610d9c/README.md",
+            "https://docs.sglang.io/cookbook/autoregressive/ThinkingMachines/Inkling-Small#33-multimodal-input-image--audio"
+          ]
+        }
+      ]
+    }
+  ]
+}
