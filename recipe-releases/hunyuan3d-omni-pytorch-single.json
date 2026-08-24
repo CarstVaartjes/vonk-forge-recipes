@@ -34,6 +34,21 @@
           "summary": "Initial reviewed catalog release of Hunyuan3D-Omni pytorch-pipeline single Spark."
         }
       ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-17",
+      "recipe_content_sha256": "af3206c722742b8500651e082aed4562a333d25688a6cd823dfdb4a97bb86eff",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+          ]
+        }
+      ]
     }
   ]
 }

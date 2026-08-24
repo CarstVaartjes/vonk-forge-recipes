@@ -38,6 +38,21 @@
           "summary": "Initial reviewed catalog release of Step1X-3D geometry pytorch-pipeline single Spark."
         }
       ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-17",
+      "recipe_content_sha256": "8c6f9e9cd3ee947ef6f6eb76328c3292cc799ff63ea733c3c33dde6c88518625",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+          ]
+        }
+      ]
     }
   ]
 }

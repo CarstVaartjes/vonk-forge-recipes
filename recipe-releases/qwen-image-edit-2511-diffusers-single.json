@@ -18,6 +18,36 @@
           "summary": "Initial reviewed catalog release of Qwen Image Edit 2511 Diffusers single Spark."
         }
       ]
+    },
+    {
+      "version": "0.2.0",
+      "released_at": "2026-08-16",
+      "recipe_content_sha256": "404523292c6aa22fdcf57c4987c573f615427c4d586724dfb5570e1045f91146",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Bound the legacy Qwen Image Edit candidate to the corrected adapter digest.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/196412520f07d424d8731a9441392a65eed6c881"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-16",
+      "recipe_content_sha256": "beba9f9ca777a4acd82077e0d0dfb0cd930bb007ac4a7ac0d4a2898e6d1e223a",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/f8d5a81ee2c0fac20703fbfa79b1ad7e8b5a6203"
+          ]
+        }
+      ]
     }
   ]
 }

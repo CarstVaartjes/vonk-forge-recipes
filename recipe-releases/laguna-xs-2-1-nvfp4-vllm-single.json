@@ -18,6 +18,21 @@
           "summary": "Initial reviewed catalog release of Laguna XS 2.1 NVFP4 vLLM single Spark."
         }
       ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-16",
+      "recipe_content_sha256": "5aa44eed976f53675e1aee224baea9c5631f3e59276fc45eb16cb3c595e12f24",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/92bc339589fdffbcb8d20f758bb1f8cae5423598"
+          ]
+        }
+      ]
     }
   ]
 }

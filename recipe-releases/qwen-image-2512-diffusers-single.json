@@ -33,6 +33,21 @@
           "summary": "Initial reviewed catalog release of Qwen Image 2512 Diffusers single Spark."
         }
       ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-16",
+      "recipe_content_sha256": "253f751fe531b021f2d59f9d7cb84d70634be0386b622b68e86a0ab4269a1f65",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/4041604a41ed96d4be18ceb695c4be8d2dc2b3c0"
+          ]
+        }
+      ]
     }
   ]
 }
