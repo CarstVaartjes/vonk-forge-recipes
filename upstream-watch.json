@@ -24,6 +24,9 @@
       "policy": "default-branch",
       "ref": "v0.20.0"
     },
+    "runtime-distribution/vllm/vllm-0-27-1-cuda13-arm64": {
+      "policy": "latest-release"
+    },
     "runtime-distribution/vllm/vllm-0-27-1-nvidia-arm64": {
       "policy": "latest-release"
     },
