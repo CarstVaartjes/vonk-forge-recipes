@@ -4,9 +4,24 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-5-lightning-30b-a3b-vllm-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "1.2.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "b4198f751c755564b7a86f5dabdaafa61d722c8e9609bb691b098ebfb7180f4b",
+      "upgrade_effect": "restart",
+      "changes": [
+        {
+          "kind": "performance",
+          "summary": "Enabled NVIDIA's Marlin MoE backend and aligned Mamba cache mode for the target-only DGX Spark profile.",
+          "references": [
+            "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/blob/6dbbd757ea75a8ece6e0702872e3ae53f9987728/README.md"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",
