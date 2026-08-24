@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "ui-mate"
+  },
+  "metadata": {
+    "title": "UI-Mate",
+    "description": "Tencent's open-weight screenshot-grounded computer-use agent family.",
+    "tags": [
+      "tencent",
+      "ui-mate",
+      "multimodal"
+    ]
+  },
+  "family": "ui-mate"
+}

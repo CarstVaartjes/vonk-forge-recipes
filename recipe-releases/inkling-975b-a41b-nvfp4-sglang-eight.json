@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-975b-a41b-nvfp4-sglang-eight"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-24",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "3e5f8d1e8c3bcc55827d3338e81ff3daf9166ff6af4c93d9ced666a74b7c8366",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added the source-complete flagship Inkling NVFP4 SGLang recipe for eight DGX Sparks.",
+          "details": "The Pending recipe combines SGLang's official flagship TP8 multimodal contract with conservative GB10 Triton/Marlin execution choices adapted from SGLang's verified Inkling-Small Spark profile. It is not Accepted until an eight-Spark canary passes.",
+          "references": [
+            "https://huggingface.co/thinkingmachines/Inkling-NVFP4/tree/42a75a99a40eb2ba1e0717db6357a0bf15205044",
+            "https://github.com/sgl-project/sglang/issues/31359",
+            "https://github.com/sgl-project/sglang/blob/a74222ef6e690f851e2e4ff1c0be7dc1357be313/docs_new/docs/cookbook/autoregressive/ThinkingMachines/Inkling-Small.mdx"
+          ]
+        }
+      ]
+    }
+  ]
+}

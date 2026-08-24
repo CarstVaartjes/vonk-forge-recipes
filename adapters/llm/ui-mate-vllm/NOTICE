@@ -1,0 +1,24 @@
+UI-Mate adapter provenance
+==========================
+
+This adapter directly vendors Tencent's official UI-Mate prompt construction,
+history collapsing, XML response parser, coordinate scaling, pyautogui action
+translation, and optional demonstration workflow from:
+
+  https://github.com/Tencent/UI-Mate
+  commit d2b2e0aede83eeacfb1bc86f66503acbc4a6738a
+  source archive SHA-256 98d13c2f66cc128d5b96b3c574243d02adb89b27f9a4dab4aae5ef0a7bbf9f28
+
+The following files are byte-identical to that commit:
+
+  agents/__init__.py
+    SHA-256 e7cd2a9ff9e93cde70d9c0cbe6d475a9707cf6c9849effb27285739b6cb77c46
+  agents/ui_mate_agent.py
+    SHA-256 60e1f6924745333dcb0d363e7187d9045d04c06924a1150f02d334311fc38d77
+  agents/demo_workflow.py
+    SHA-256 4939d179bc15035661819efa149c3e1a7a5075a2f2334478e3c53e49991fd0a4
+
+LICENSE.upstream is Tencent's repository license text. The Vonk wrapper only
+starts vLLM and exposes a non-actuating one-step client; it does not alter the
+official prompt or parser. Predicted pyautogui strings are returned to the
+caller and are never executed inside the model container.

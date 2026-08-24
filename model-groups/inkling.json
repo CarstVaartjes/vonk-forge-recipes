@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "thinkingmachines",
+    "slug": "inkling"
+  },
+  "metadata": {
+    "title": "Thinking Machines Inkling",
+    "description": "Thinking Machines Lab open-weight natively multimodal mixture-of-experts models.",
+    "tags": [
+      "thinkingmachines",
+      "inkling",
+      "multimodal",
+      "text",
+      "vision",
+      "audio",
+      "reasoning",
+      "moe"
+    ]
+  },
+  "family": "inkling"
+}

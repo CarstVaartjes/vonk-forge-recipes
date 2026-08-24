@@ -5,6 +5,18 @@
     "huggingface": "default-branch"
   },
   "overrides": {
+    "model-version/meta/muse-glimmer-30b-bf16-a4e59da5": {
+      "policy": "default-branch"
+    },
+    "model-version/tencent/hunyuanocr-1-5-449e7d47": {
+      "policy": "default-branch"
+    },
+    "model-version/wan-ai/wan-dancer-14b": {
+      "policy": "default-branch"
+    },
+    "model-version/thinkingmachines/inkling-975b-a41b-nvfp4": {
+      "policy": "default-branch"
+    },
     "runtime-distribution/huggingface/diffusers-0-39-0-cuda13-arm64": {
       "policy": "manual"
     },
@@ -17,15 +29,36 @@
     "runtime-distribution/pytorch/pytorch-2-8-cuda13-arm64": {
       "policy": "manual"
     },
+    "runtime-distribution/tencent/hunyuanocr-1-5-vllm-dflash-arm64": {
+      "policy": "default-branch"
+    },
+    "runtime-distribution/wan-video/wan-dancer-native-e6c87a9-cuda13-arm64": {
+      "policy": "default-branch"
+    },
+    "runtime-distribution/sglang/sglang-inkling-dgx-spark-b7252cc6-arm64": {
+      "policy": "default-branch"
+    },
     "runtime-distribution/vllm/vllm-0-20-0-nvidia-arm64": {
       "policy": "default-branch",
       "ref": "v0.20.0"
     },
+    "runtime-distribution/vllm/vllm-0-27-1-cuda13-arm64": {
+      "policy": "latest-release"
+    },
     "runtime-distribution/vllm/vllm-0-27-1-nvidia-arm64": {
       "policy": "latest-release"
     },
+    "runtime-distribution/vllm/vllm-muse-glimmer-99a10304-cu130-arm64": {
+      "policy": "manual"
+    },
     "runtime-distribution/vllm/vllm-nightly-arm64-8efa13b7": {
       "policy": "manual"
+    },
+    "model-version/thinkingmachines/inkling-small-nvfp4": {
+      "policy": "default-branch"
+    },
+    "runtime-distribution/sglang/sglang-inkling-small-dual-spark-a74222ef": {
+      "policy": "default-branch"
     }
   }
 }

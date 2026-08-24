@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "liquidai",
+    "slug": "lfm2-5"
+  },
+  "metadata": {
+    "title": "LiquidAI LFM2.5",
+    "description": "Liquid AI LFM2.5 efficient on-device language and vision-language models.",
+    "tags": [
+      "liquidai",
+      "lfm2-5",
+      "multimodal"
+    ]
+  },
+  "family": "lfm2-5"
+}
