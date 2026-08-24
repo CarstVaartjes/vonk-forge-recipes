@@ -29,6 +29,7 @@ EXPECTED = {
     "hotfix-dsv4-issue43-decode-fairness-and-diag.py": "0059144ce08e825354718c8b0aa3799dcf434045f40241f75a4211fe4f199dc4",
     "hotfix-dsv4-issue26-hybrid-swa-min.py": "8c76a65207d5f30b898cf5f60e39b8a59e4febb3217c34fe57f6a7fb225a3c3f",
     "hotfix-dsv4-suppress-stops-in-reasoning.py": "618a66c58fc422ae65d0f08018fac69370657e4ead1285c8104a56f507f6279f",
+    "hotfix-dspark-shared-expert-loader.py": "b4a32bec2bd14fd8e7e3a877a2b2fd68282b8a6cb2d55c2441bc0aeff0d05a81",
 }
 
 
@@ -80,6 +81,10 @@ run("hotfix-dsv4-issue26-hybrid-swa-min.py")
 run(
     "hotfix-dsv4-suppress-stops-in-reasoning.py",
     str(ROOT / "v1/engine/detokenizer.py"),
+)
+run(
+    "hotfix-dspark-shared-expert-loader.py",
+    str(ROOT / "v1/spec_decode/dspark.py"),
 )
 
 for backup in ROOT.rglob("*.bak"):

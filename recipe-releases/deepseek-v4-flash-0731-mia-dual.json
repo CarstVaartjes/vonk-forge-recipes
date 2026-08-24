@@ -4,9 +4,29 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-mia-dual"
   },
-  "version": "2.0.0",
-  "released_at": "2026-08-23",
+  "version": "2.0.1",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "2.0.1",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "7e6cb843e3f99f56a7437c06cff12a0a7d9ad8ccd4559c55c918d5562e7cc0ef",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Backported Mia's Stage-C shared-expert loader fix for the DSpark gate and up checkpoint shards.",
+          "details": "The build now maps shared_experts.w1 and shared_experts.w3 into the fused gate_up_proj parameter and fails closed if the pinned DSpark overlay drifts.",
+          "references": [
+            "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/0bafd3ecc1b91d1dab31662de525338e7ccc35ec"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Kept the recipe Candidate pending a fresh two-Spark build and inference/speculative-decoding canary."
+        }
+      ]
+    },
     {
       "version": "2.0.0",
       "released_at": "2026-08-23",
