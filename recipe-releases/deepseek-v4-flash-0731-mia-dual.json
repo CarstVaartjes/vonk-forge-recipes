@@ -4,9 +4,38 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-mia-dual"
   },
-  "version": "2.0.2",
+  "version": "2.0.3",
   "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "2.0.3",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "560049bc6ee3256e95ce14e16ff1c3d2d921deeb61d4ecb51309e5db73573519",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "performance",
+          "summary": "Added Mia's issue 133 fix that bounds global top-k Triton compilation to the two stable block-size variants.",
+          "details": "Mixed prefill no longer creates extra persistent-cache variants from traffic-dependent sliced-pointer alignment.",
+          "references": [
+            "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/d5ae65cc173e9567de62d19defb885d091406962"
+          ]
+        },
+        {
+          "kind": "fix",
+          "summary": "Replaced the obsolete legacy-overlay shared-expert patch with a fail-closed build gate for the loader already integrated in the pinned Anemll runtime.",
+          "details": "The previous patch targeted vllm/v1/spec_decode/dspark.py, which is absent from the pinned image. The build now verifies the exact current NVIDIA DSpark loader and its layer-scoped gate/up shard mapping before applying any patches.",
+          "references": [
+            "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/0bafd3ecc1b91d1dab31662de525338e7ccc35ec",
+            "https://github.com/Anemll/dspark-vllm-gx10/commit/47503f8e38dadd4dededca798150db2619594fce"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Kept the recipe Candidate pending a fresh two-Spark image build and inference/speculative-decoding canary."
+        }
+      ]
+    },
     {
       "version": "2.0.2",
       "released_at": "2026-08-24",
