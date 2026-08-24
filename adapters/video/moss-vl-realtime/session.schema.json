@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vonk-forge.dev/contracts/moss-vl-realtime-session-v1.json",
+  "title": "MOSS-VL-Realtime bounded session replay",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "events"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "system_prompt": {"type": "string", "maxLength": 4096},
+    "initial_prompt": {"type": "string", "maxLength": 4096},
+    "frame_queue_size": {"type": "integer", "minimum": 1, "maximum": 256},
+    "max_tokens_per_second": {"type": "integer", "minimum": 1, "maximum": 64},
+    "max_new_tokens": {"type": "integer", "minimum": 1, "maximum": 4096},
+    "playback_speed": {"type": "number", "minimum": 0.25, "maximum": 4.0},
+    "settle_seconds": {"type": "number", "minimum": 0.0, "maximum": 60.0},
+    "do_sample": {"type": "boolean"},
+    "temperature": {"type": "number", "exclusiveMinimum": 0.0, "maximum": 2.0},
+    "top_k": {"type": "integer", "minimum": 1, "maximum": 1000},
+    "top_p": {"type": "number", "exclusiveMinimum": 0.0, "maximum": 1.0},
+    "repetition_penalty": {"type": "number", "minimum": 0.5, "maximum": 2.0},
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "contains": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {"type": {"const": "frame"}}
+      },
+      "minContains": 1,
+      "maxContains": 128,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "path", "timestamp", "at_seconds"],
+            "properties": {
+              "type": {"const": "frame"},
+              "path": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}\\.(jpg|jpeg|png|webp)$"},
+              "timestamp": {"type": "number", "minimum": 0.0, "maximum": 86400.0},
+              "at_seconds": {"type": "number", "minimum": 0.0, "maximum": 86400.0},
+              "prompt": {"type": "string", "minLength": 1, "maxLength": 4096}
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "text", "at_seconds"],
+            "properties": {
+              "type": {"const": "prompt"},
+              "text": {"type": "string", "minLength": 1, "maxLength": 4096},
+              "at_seconds": {"type": "number", "minimum": 0.0, "maximum": 86400.0}
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "moss-vl-realtime-11b-pytorch-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-24",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "2e7b5050778b1e66636c42bf7627c81931823fe844ac4fedf0ef312969c36e9c",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added the complete Pending single-Spark MOSS-VL-Realtime native session recipe.",
+          "details": "The signed adapter replays a bounded ordered session through OpenMOSS's native create_realtime_session API, preserves timestamped frames, interrupting prompts, silence and round-control tokens, and correction-capable later chunks in an authoritative JSONL transcript, accompanied by a replay MP4. The CUDA 13 ARM64 dependency closure is hash-locked and runtime networking is disabled.",
+          "references": [
+            "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/tree/06b067617677661194cf837970fe3a10f1a0e56d",
+            "https://github.com/OpenMOSS/MOSS-VL/tree/560f8872c362b47a52ddf20ff6a1f9c8ac10b706/realtime_inference"
+          ]
+        }
+      ]
+    }
+  ]
+}

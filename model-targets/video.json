@@ -6,10 +6,29 @@
     "slug": "video"
   },
   "metadata": {
-    "title": "Video generation targets",
+    "title": "Video generation and understanding targets",
     "updated": "2026-08-24"
   },
   "targets": [
+    {
+      "modality": "video",
+      "group": "MOSS-VL",
+      "model": "MOSS-VL-Realtime 11B",
+      "version": "Realtime 0708 BF16 06b06761",
+      "status": "candidate",
+      "source": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/tree/06b067617677661194cf837970fe3a10f1a0e56d",
+      "harnesses": [
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "moss-vl-realtime-11b-pytorch-single"
+      ],
+      "notes": "Executable bounded session replay uses the checkpoint's native realtime API for timestamped frames, prompt interruption, proactive silence, and correction-capable output. The hash-locked CUDA 13 ARM64 adaptation and physical Spark behavior remain Pending canaries.",
+      "catalog_model_version": "moss-vl-realtime-11b-bf16-06b06761"
+    },
     {
       "modality": "video",
       "group": "LTX",
