@@ -3,14 +3,14 @@
   "identity": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-0731-ds4-dspark-latency-single"},
   "metadata": {
     "title": "DeepSeek V4 Flash 0731 DS4 + DSpark latency single Spark",
-    "description": "Candidate one-DGX Spark non-batched latency profile using DS4's experimental DSpark support model for greedy decoding; physical Spark acceptance is still required.",
+    "description": "Candidate one-DGX Spark non-batched latency profile using DS4's experimental DSpark support model; bounded validation remains greedy at temperature zero, and physical Spark acceptance is still required.",
     "tags": ["candidate", "executable", "deepseek", "ds4", "dspark", "openai", "chat", "reasoning", "latency", "speculative-decoding", "single", "spark"]
   },
   "model": {
     "kind": "model-version",
     "publisher": "antirez",
     "slug": "deepseek-v4-flash-0731-ds4",
-    "content_sha256": "a54f12dd8653ff220efed3d5b1efa667ab95f060e16211f1cdba7e0a2dcfeafb"
+    "content_sha256": "b5a99e253185ac63d4b9ad516a063e7ca803a9483ae226fe5c58cc79c30e0fe7"
   },
   "execution": {
     "harness": {
@@ -24,8 +24,8 @@
   "build": {
     "context": {
       "path": "adapters/deepseek/ds4",
-      "sha256": "aff78f2e9bc43bd426c951f342ab3c162c748cab245edc69512389359aded750",
-      "expected_bytes": 8386560,
+      "sha256": "d82c7aa85876ed3556ebb61d94aefeb65ae1d776f088131aa6dc25f47fd1f88d",
+      "expected_bytes": 8990720,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -44,7 +44,7 @@
     {
       "id": "target",
       "kind": "http.file",
-      "repository": "https://huggingface.co/antirez/deepseek-v4-gguf/resolve/e7f04037032990db0346398d249baf9fb9df1ccc/DeepSeek-V4-Flash-IQ2XXS-w2Q2K-AProjQ8-SExpQ8-OutQ8-chat-v2-imatrix-0731.gguf",
+      "repository": "https://huggingface.co/antirez/deepseek-v4-gguf/resolve/86bb38ce2ba7a98ab0e550359fec5f48859dc723/DeepSeek-V4-Flash-IQ2XXS-w2Q2K-AProjQ8-SExpQ8-OutQ8-chat-v2-imatrix-0731.gguf",
       "revision": "sha256:ca22ae2f838e14077c22bc1c1417b71b45b5e5a3687bd96c2ac6e17fdb6261c0",
       "download_bytes": 86720111488,
       "installed_bytes": 86720111488,
@@ -54,7 +54,7 @@
     {
       "id": "drafter",
       "kind": "http.file",
-      "repository": "https://huggingface.co/antirez/deepseek-v4-gguf/resolve/e7f04037032990db0346398d249baf9fb9df1ccc/DeepSeek-V4-Flash-DSpark-support-0731.gguf",
+      "repository": "https://huggingface.co/antirez/deepseek-v4-gguf/resolve/86bb38ce2ba7a98ab0e550359fec5f48859dc723/DeepSeek-V4-Flash-DSpark-support-0731.gguf",
       "revision": "sha256:7e319924541db3f7a163ed7e11d7532a70d48228ab59d36cb81e1d4511885360",
       "download_bytes": 5989114272,
       "installed_bytes": 5989114272,
@@ -67,7 +67,7 @@
       "kind": "runtime-distribution",
       "publisher": "antirez",
       "slug": "ds4-spark",
-      "content_sha256": "73e2ec403510447cfbc067d0bdba20cfd941bd741e8b90a764edef3bae83c12a"
+      "content_sha256": "f96f3766b939ae79bdb631d419f0e4795e6b7cda5c6594eb538151696aea6dce"
     },
     "entrypoint": ["/opt/vonk/bin/ds4-serve"],
     "arguments": [
@@ -150,7 +150,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://github.com/antirez/ds4/tree/84cc882352757baf628a1776badf7cc54d584e28",
+    "source_reference": "https://github.com/antirez/ds4/tree/c1d4597a80e300b803dc642519718f2c999589da",
     "attribution": ["DeepSeek AI", "Salvatore Sanfilippo (antirez)"]
   }
 }

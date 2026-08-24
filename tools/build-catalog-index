@@ -16,7 +16,10 @@ from urllib.parse import urlsplit
 REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "catalog-index.json"
-MAX_INDEX_BYTES = 900 * 1024
+# Control planes fetch oversized Contents API entries by immutable Git blob SHA.
+# Keep the generated index within the same bounded raw-blob envelope as source files.
+MAX_INDEX_BYTES = 12 * 1024 * 1024
+MAX_SOURCE_FILE_BYTES = 12 * 1024 * 1024
 MAX_RELEASE_BYTES = 64 * 1024
 MAX_RELEASE_HISTORY = 32
 MAX_RELEASE_CHANGES = 16
@@ -299,7 +302,13 @@ def source_bundle(context: Path) -> tuple[bytes, list[dict[str, object]], str]:
             or path.suffix == ".pyc"
         ):
             raise SystemExit(f"unsafe source bundle entry: {context.relative_to(ROOT)}/{relative}")
-        files.append((relative, path.read_bytes()))
+        content = path.read_bytes()
+        if len(content) > MAX_SOURCE_FILE_BYTES:
+            raise SystemExit(
+                "source bundle file exceeds the Git blob hydration limit: "
+                f"{context.relative_to(ROOT)}/{relative}"
+            )
+        files.append((relative, content))
     if not files:
         raise SystemExit(f"source bundle is empty: {context.relative_to(ROOT)}")
     stream = io.BytesIO()
@@ -466,7 +475,7 @@ def main() -> int:
     document = build()
     expected = rendered(document)
     if len(expected.encode("utf-8")) > MAX_INDEX_BYTES:
-        print("catalog-index.json exceeds the GitHub Contents API safety limit")
+        print("catalog-index.json exceeds the Git blob safety limit")
         return 1
     recipe_count = len(document["recipes"])
     if arguments.check:

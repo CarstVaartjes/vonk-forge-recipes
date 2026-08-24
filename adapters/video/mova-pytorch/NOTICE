@@ -1,0 +1,11 @@
+MOVA inference-only import patch
+================================
+
+The pinned upstream pipeline package initializer imports MOVA's training and
+LoRA modules eagerly. That makes the documented inference runner fail on a
+clean `pip install .` because the training-only bitsandbytes dependency is not
+installed. The build verifies the exact upstream initializer SHA-256 and then
+exports only the MOVA inference class. No inference implementation is changed.
+
+Upstream source: https://github.com/OpenMOSS/MOVA/blob/83bcbe8eab55ded920889239af93c112834ee5b8/mova/diffusion/pipelines/__init__.py
+Upstream issue boundary: https://github.com/OpenMOSS/MOVA/blob/83bcbe8eab55ded920889239af93c112834ee5b8/pyproject.toml

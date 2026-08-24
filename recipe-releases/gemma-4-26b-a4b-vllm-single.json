@@ -4,9 +4,33 @@
     "publisher": "vonk-forge",
     "slug": "gemma-4-26b-a4b-vllm-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "2.0.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "2.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "84dffb844cb01c156929d165803570689e1ffd7f911687f92c30ce4785063d08",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "model",
+          "summary": "Replaced the base checkpoint with Google's immutable instruction-tuned Gemma 4 26B-A4B checkpoint and verified file inventory.",
+          "references": [
+            "https://huggingface.co/google/gemma-4-26B-A4B-it/tree/4d7ae4984b7db7de8f8457170b3f1a419ee76d52"
+          ]
+        },
+        {
+          "kind": "runtime",
+          "summary": "Enabled native Gemma 4 reasoning and tool parsing, automatic tool choice, the pinned chat template, and a bounded 32K serving context.",
+          "references": [
+            "https://github.com/vllm-project/vllm/blob/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/vllm/model_executor/models/gemma4.py",
+            "https://github.com/vllm-project/vllm/blob/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/vllm/parser/gemma4.py",
+            "https://docs.vllm.ai/projects/recipes/en/stable/Google/Gemma4.html"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

@@ -1,21 +1,10 @@
 {
   "schema_version": 1,
-  "identity": {
-    "publisher": "vonk-forge",
-    "slug": "trellis-2-4b-pytorch-single"
-  },
+  "identity": {"publisher": "vonk-forge", "slug": "trellis-2-4b-pytorch-single"},
   "metadata": {
-    "title": "TRELLIS.2 4B pytorch-pipeline single Spark",
-    "description": "Metadata-only TRELLIS.2 checkpoint binding; the generic ARM64 harness lacks the upstream image pipeline, companion decoder, native extensions, and GLB exporter required for execution.",
-    "tags": [
-      "candidate",
-      "three-d",
-      "pytorch-pipeline",
-      "single",
-      "spark",
-      "metadata-only",
-      "non-executable"
-    ]
+    "title": "TRELLIS.2 4B native single Spark",
+    "description": "Installable single-DGX Spark image-to-3D Candidate using the pinned official TRELLIS.2 source, exact companion sparse decoder, local DINOv3 encoder, ARM64-native extensions, and deterministic GLB adapter. Physical Spark quality, memory, and latency acceptance is still required.",
+    "tags": ["candidate", "three-d", "image-to-3d", "glb", "pytorch-pipeline", "single", "spark", "executable", "offline", "source-bundled"]
   },
   "model": {
     "kind": "model-version",
@@ -30,13 +19,18 @@
       "slug": "pytorch-pipeline",
       "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c"
     },
-    "patch_bundle": null
+    "patch_bundle": {
+      "kind": "patch-bundle",
+      "publisher": "vonk-forge",
+      "slug": "trellis2-pixal3d-sdpa-arm64",
+      "content_sha256": "1a5a6fc2b5a216e91966e65d95ad5947bfae64551cc4e3364a4f2dae8e23f654"
+    }
   },
   "build": {
     "context": {
-      "path": "adapters/media/upstream-native",
-      "sha256": "0482565099ffca2d5c3d6fef1cac484e06eba813a1fb18b7e20aac44c50335ce",
-      "expected_bytes": 10240,
+      "path": "adapters/three-d/trellis2-native",
+      "sha256": "c66758a78ec9572db59c6b54b470e2fbd23ebc7a49db8537fd4991ec80bf3cc2",
+      "expected_bytes": 30720,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -44,112 +38,93 @@
     "arguments": [],
     "network": {
       "mode": "public",
-      "hosts": [
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "ports.ubuntu.com"
-      ]
+      "hosts": ["github.com", "objects.githubusercontent.com", "gitlab.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]
     },
     "resources": {
-      "download_bytes": 18237485044,
-      "temporary_bytes": 32474970088,
-      "memory_bytes": 8000000000,
+      "download_bytes": 23597661941,
+      "temporary_bytes": 44000000000,
+      "memory_bytes": 16000000000,
       "timeout_seconds": 14400
     }
   },
   "parameters": [],
   "artifacts": [
     {
-      "id": "weights",
+      "id": "target",
       "kind": "huggingface.snapshot",
       "repository": "microsoft/TRELLIS.2-4B",
       "revision": "af44b45f2e35a493886929c6d786e563ec68364d",
       "download_bytes": 16237485044,
       "installed_bytes": 16237485044,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+      "mount": {"target": "/models/target", "read_only": true},
+      "roles": ["entrypoint"]
+    },
+    {
+      "id": "sparse-decoder-config",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/microsoft/TRELLIS-image-large/resolve/25e0d31ffbebe4b5a97464dd851910efc3002d96/ckpts/ss_dec_conv3d_16l8_fp16.json",
+      "revision": "sha256:646781293f1cda74720de85d1cef50a957fb4aebd9a4bd014e454e32f2330ac5",
+      "download_bytes": 245,
+      "installed_bytes": 245,
+      "mount": {"target": "/models/sparse-decoder-config", "read_only": true},
+      "roles": ["entrypoint"]
+    },
+    {
+      "id": "sparse-decoder-weights",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/microsoft/TRELLIS-image-large/resolve/25e0d31ffbebe4b5a97464dd851910efc3002d96/ckpts/ss_dec_conv3d_16l8_fp16.safetensors",
+      "revision": "sha256:1c76d4a40519aa2d711cc263a8404105231ac26db31d946bed48b84fee79009a",
+      "download_bytes": 147591972,
+      "installed_bytes": 147591972,
+      "mount": {"target": "/models/sparse-decoder-weights", "read_only": true},
+      "roles": ["entrypoint"]
+    },
+    {
+      "id": "dino",
+      "kind": "huggingface.snapshot",
+      "repository": "camenduru/dinov3-vitl16-pretrain-lvd1689m",
+      "revision": "3c276edd87d6f6e569ff0c4400e086807d0f3881",
+      "download_bytes": 1212584680,
+      "installed_bytes": 1212584680,
+      "mount": {"target": "/models/dino", "read_only": true},
+      "roles": ["entrypoint"]
     }
   ],
   "runtime": {
     "distribution": {
       "kind": "runtime-distribution",
-      "publisher": "pytorch",
-      "slug": "pytorch-2-13-cuda13-arm64",
-      "content_sha256": "93ff225d792a8e14f1e4758701e1d88c82f9e515c4aafec160ee00c750b6a9e9"
+      "publisher": "vonk-forge",
+      "slug": "trellis2-pixal3d-native-arm64",
+      "content_sha256": "6bf52ed206eae314dabf0632db8300ab5e2157bd3bdfa6c2c8d70cf083ef7a2c"
     },
-    "entrypoint": [
-      "/opt/vonk/bin/pytorch-pipeline"
-    ],
+    "entrypoint": ["/opt/vonk/bin/pytorch-pipeline"],
     "arguments": [
-      {
-        "name": "entrypoint",
-        "value": "/opt/vonk/source/run.py"
-      },
-      {
-        "name": "output-mime",
-        "value": "model/gltf-binary"
-      },
-      {
-        "name": "timeout-seconds",
-        "value": 3600
-      },
-      {
-        "name": "seed",
-        "value": 0
-      }
+      {"name": "entrypoint", "value": "/opt/vonk/source/trellis2_job.py"},
+      {"name": "output-mime", "value": "model/gltf-binary"},
+      {"name": "timeout-seconds", "value": 3600},
+      {"name": "seed", "value": 0}
     ],
     "environment": [
-      {
-        "name": "HF_HUB_OFFLINE",
-        "value": "1"
-      }
+      {"name": "HF_HUB_OFFLINE", "value": "1"}
     ],
     "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
+      "devices": ["nvidia.com/gpu=all"],
       "capabilities": [],
       "host_network": false,
       "privileged": false,
       "user": "10001:10001",
       "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
+        {"source": "model", "target": "/models", "read_only": true},
+        {"source": "inputs", "target": "/inputs", "read_only": true},
+        {"source": "outputs", "target": "/outputs", "read_only": false}
       ]
     },
     "lifecycle": {
       "pre_start": [],
       "post_stop": [],
       "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/outputs",
-        "timeout_seconds": 3600
-      },
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      }
+      "readiness": {"strategy": "endpoint-owner", "path": "/outputs", "timeout_seconds": 3600},
+      "failure": {"rank_loss": "not-applicable", "recovery": "restart-entrypoint"}
     }
   },
   "topology": {
@@ -161,86 +136,45 @@
         "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": [
-          "weights"
-        ],
+        "artifacts": ["target", "sparse-decoder-config", "sparse-decoder-weights", "dino"],
         "resources": {
           "disk": {
-            "image_bytes": 2000000000,
-            "artifact_bytes": 16237485044,
-            "staging_bytes": 32474970088,
+            "image_bytes": 12000000000,
+            "artifact_bytes": 17597661941,
+            "staging_bytes": 36000000000,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 32000000000,
-            "steady_state_bytes": 24000000000,
-            "runtime_growth_bytes": 8000000000,
+            "startup_peak_bytes": 48000000000,
+            "steady_state_bytes": 32000000000,
+            "runtime_growth_bytes": 12000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "start_order": [
-      "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
-    ]
+    "parallelism": {"world_size": 1, "tensor": 1, "pipeline": 1, "data": 1, "backend": "local"},
+    "fabric": {"connectivity": "none", "minimum_bandwidth_mbps": 0},
+    "start_order": ["entrypoint"],
+    "stop_order": ["entrypoint"]
   },
   "interfaces": [
     {
       "adapter": "mesh-job",
       "path": "/outputs",
-      "input": {
-        "path": "/inputs",
-        "required": true,
-        "media_types": [
-          "image/jpeg",
-          "image/png",
-          "image/webp"
-        ],
-        "max_bytes": 16777216
-      }
+      "input": {"path": "/inputs", "required": true, "media_types": ["image/jpeg", "image/png", "image/webp"], "max_bytes": 16777216}
     }
   ],
   "validation": {
-    "validators": [
-      {
-        "interface": "mesh-job",
-        "checks": [
-          "artifact.mime.model-gltf-binary"
-        ]
-      }
-    ],
-    "benchmarks": [
-      {
-        "name": "bounded-startup",
-        "framework": "pytorch-pipeline",
-        "configuration": {
-          "timeout_seconds": 14400
-        }
-      }
-    ]
+    "validators": [{"interface": "mesh-job", "checks": ["artifact.mime.model-gltf-binary"]}],
+    "benchmarks": [{"name": "bounded-startup", "framework": "pytorch-pipeline", "configuration": {"timeout_seconds": 14400}}]
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/microsoft/TRELLIS.2-4B/tree/af44b45f2e35a493886929c6d786e563ec68364d",
-    "attribution": [
-      "microsoft"
-    ]
+    "source_reference": "https://github.com/microsoft/TRELLIS.2/tree/75fbf0183001ed9876c8dbb35de6b68552ee08bd",
+    "attribution": ["Microsoft TRELLIS.2 contributors", "Meta DINOv3 contributors", "camenduru DINOv3 mirror"]
   }
 }

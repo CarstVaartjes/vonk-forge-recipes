@@ -4,9 +4,30 @@
     "publisher": "vonk-forge",
     "slug": "skintokens-pytorch-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "2.0.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "2.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "bc3c835b5b5c1772ec6edffe4f1d28ef5c0a7ebf26fb29dcc3e9040d3b13bdc1",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Replaced the metadata placeholder with the exact upstream TokenRig inference path and an offline GLB mesh input workflow.",
+          "references": ["https://github.com/VAST-AI-Research/SkinTokens/tree/273b691d35989d71cd17ff2895fdc735097b92d1"]
+        },
+        {
+          "kind": "runtime",
+          "summary": "Added the CUDA 13.2 ARM64 native dependency authority and pinned Qwen3 configuration used by TokenRig."
+        },
+        {
+          "kind": "fix",
+          "summary": "Added a deterministic pure glTF exporter for generated joints, inverse bind matrices, and skin weights."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

@@ -7,7 +7,7 @@
   },
   "metadata": {
     "title": "3D generation and rigging targets",
-    "updated": "2026-08-23"
+    "updated": "2026-08-24"
   },
   "targets": [
     {
@@ -26,7 +26,7 @@
       "recipe_slugs": [
         "trellis-2-4b-pytorch-single"
       ],
-      "notes": "Checkpoint metadata only: the generic harness cannot execute TRELLIS.2 or emit GLB, and the companion decoder plus native extensions are not cataloged.",
+      "notes": "Source-complete offline image-to-3D Candidate with the exact sparse decoder and DINOv3 companion; accepts JPEG, PNG, or WebP and emits GLB. Only physical Spark quality, memory, and latency canary remains pending.",
       "catalog_model_version": "trellis-2-4b"
     },
     {
@@ -45,7 +45,7 @@
       "recipe_slugs": [
         "pixal3d-pytorch-single"
       ],
-      "notes": "Checkpoint metadata only: the generic harness lacks the TRELLIS.2-backed source, native extensions, image pipeline, and GLB exporter.",
+      "notes": "Source-complete offline Pixal3D image-to-3D Candidate with pinned DINOv3 and NAF companions; accepts JPEG, PNG, or WebP and emits GLB. Only physical Spark quality, memory, and latency canary remains pending.",
       "catalog_model_version": "pixal3d"
     },
     {
@@ -64,7 +64,7 @@
       "recipe_slugs": [
         "step1x-3d-geometry-pytorch-single"
       ],
-      "notes": "Checkpoint metadata only: the upstream image pipeline, native geometry dependencies, and GLB exporter are not cataloged.",
+      "notes": "Source-complete offline Step1X image-to-geometry Candidate with pinned SM121-native dependencies; accepts JPEG, PNG, or WebP and emits GLB. Only physical Spark quality, memory, and latency canary remains pending.",
       "catalog_model_version": "step1x-3d-geometry"
     },
     {
@@ -83,7 +83,7 @@
       "recipe_slugs": [
         "step1x-3d-label-geometry-pytorch-single"
       ],
-      "notes": "Checkpoint metadata only: the upstream image and label pipeline, native dependencies, and GLB exporter are not cataloged.",
+      "notes": "Source-complete offline Step1X controlled image-to-geometry Candidate with the exact label pipeline; accepts JPEG, PNG, or WebP and emits GLB. Only physical Spark quality, memory, and latency canary remains pending.",
       "catalog_model_version": "step1x-3d-label-geometry"
     },
     {
@@ -102,7 +102,7 @@
       "recipe_slugs": [
         "step1x-3d-texture-pytorch-single"
       ],
-      "notes": "Checkpoint metadata only: the upstream mesh and image pipeline, native texture dependencies, and GLB exporter are not cataloged.",
+      "notes": "Source-complete offline Step1X texturing Candidate with pinned SDXL and fixed-VAE companions; accepts an image plus GLB mesh and emits textured GLB. Only physical Spark quality, memory, and latency canary remains pending.",
       "catalog_model_version": "step1x-3d-texture"
     },
     {
@@ -122,7 +122,7 @@
       "recipe_slugs": [
         "triposg-pytorch-single"
       ],
-      "notes": "Base checkpoint metadata only; this is not the separate TripoSG-scribble model. Source, background-removal dependency, image pipeline, and GLB exporter remain uncataloged.",
+      "notes": "Source-complete offline base TripoSG Candidate with immutable RMBG-1.4; accepts JPEG, PNG, or WebP and emits GLB. This is not TripoSG-scribble; only physical Spark canary remains pending.",
       "catalog_model_version": "triposg"
     },
     {
@@ -141,7 +141,7 @@
       "recipe_slugs": [
         "skintokens-pytorch-single"
       ],
-      "notes": "Rigging checkpoint metadata only: the TokenRig source, mesh input workflow, native dependencies, and GLB exporter are not cataloged.",
+      "notes": "Source-complete offline TokenRig Candidate; accepts a GLB mesh and emits a rigged GLB with generated joints and skin weights. Only physical Spark canary remains pending.",
       "catalog_model_version": "skintokens"
     },
     {
@@ -160,7 +160,7 @@
       "recipe_slugs": [
         "hunyuan3d-omni-pytorch-single"
       ],
-      "notes": "Checkpoint metadata only: the custom point, voxel, bounding-box, and pose control pipeline has no qualified ARM64 adapter; the Tencent community license is territory restricted.",
+      "notes": "Source-complete offline controllable 3D Candidate supporting image, bounding-box, pose, point-cloud, and voxel inputs with GLB output. Only physical Spark canary remains pending; the Tencent community license is territory restricted.",
       "catalog_model_version": "hunyuan3d-omni"
     }
   ]

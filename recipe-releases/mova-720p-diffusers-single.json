@@ -4,9 +4,37 @@
     "publisher": "vonk-forge",
     "slug": "mova-720p-diffusers-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "2.0.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "2.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "2cff8790712a1447c44e563ed3a02ab7636f79937a6056abd6af6e15174db556",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Replaced the non-executable Diffusers placeholder with the exact official MOVA native pipeline and a pinned ARM64 runtime.",
+          "references": [
+            "https://github.com/OpenMOSS/MOVA/tree/83bcbe8eab55ded920889239af93c112834ee5b8",
+            "https://huggingface.co/OpenMOSS-Team/MOVA-720p/tree/8462bea9a317a3591279faeedfd3ca01b055cb59"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Added optional image conditioning, the official white-frame T2VA fallback, and fail-closed synchronized video and 48 kHz audio verification.",
+          "references": [
+            "https://github.com/OpenMOSS/MOVA/blob/83bcbe8eab55ded920889239af93c112834ee5b8/scripts/inference_single.py",
+            "https://github.com/OpenMOSS/MOVA/blob/83bcbe8eab55ded920889239af93c112834ee5b8/mova/utils/data.py"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Verified the fully pinned image build on linux/arm64 and kept the executable recipe Candidate pending only a physical single-Spark inference canary."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

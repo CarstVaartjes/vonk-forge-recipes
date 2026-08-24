@@ -6,11 +6,11 @@
   },
   "metadata": {
     "title": "HunyuanVideo 1.5 T2V diffusers single Spark",
-    "description": "Metadata-only candidate pinned to an immutable upstream snapshot. The shared ARM64 media harness does not implement this model's video execution path; a model-specific adapter and physical Spark acceptance are required.",
+    "description": "Installable Candidate for 720p text-to-video generation with a complete immutable Diffusers snapshot and offline ARM64 runtime; physical Spark acceptance remains pending.",
     "tags": [
       "candidate",
-      "integration-required",
       "video",
+      "text-to-video",
       "diffusers",
       "single",
       "spark"
@@ -20,7 +20,7 @@
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "hunyuan-video-15-t2v",
-    "content_sha256": "88800791b77e864203fab60a026902d71cfe013b68749f52a79b1aaad05117e1"
+    "content_sha256": "f85a88039f4cbca030ff885328e862fc2bf6d061d15e1799e6606950a2b32bb5"
   },
   "execution": {
     "harness": {
@@ -33,9 +33,9 @@
   },
   "build": {
     "context": {
-      "path": "adapters/media/upstream-native",
-      "sha256": "0482565099ffca2d5c3d6fef1cac484e06eba813a1fb18b7e20aac44c50335ce",
-      "expected_bytes": 10240,
+      "path": "adapters/video/hunyuan-video-15-native",
+      "sha256": "660ffe143133f5edf11cfbe8f569cdfc7b4a09666036da2c58cca6533bce0c63",
+      "expected_bytes": 92160,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -48,12 +48,13 @@
         "pypi.org",
         "files.pythonhosted.org",
         "archive.ubuntu.com",
+        "security.ubuntu.com",
         "ports.ubuntu.com"
       ]
     },
     "resources": {
-      "download_bytes": 373771118874,
-      "temporary_bytes": 743542237748,
+      "download_bytes": 55384320228,
+      "temporary_bytes": 106768640456,
       "memory_bytes": 8000000000,
       "timeout_seconds": 14400
     }
@@ -63,10 +64,10 @@
     {
       "id": "weights",
       "kind": "huggingface.snapshot",
-      "repository": "tencent/HunyuanVideo-1.5",
-      "revision": "9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
-      "download_bytes": 371771118874,
-      "installed_bytes": 371771118874,
+      "repository": "hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v",
+      "revision": "f4dbc4a1efa4ac8ea56680cdf79d9f455105e814",
+      "download_bytes": 53384320228,
+      "installed_bytes": 53384320228,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -80,8 +81,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "huggingface",
-      "slug": "diffusers-0-40-0-cuda13-arm64",
-      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7"
+      "slug": "diffusers-0-39-0-cuda13-arm64",
+      "content_sha256": "018f23f02a2d93e5d4396f283b6862fc01aaf1364334db1d556d4484c2640afb"
     },
     "entrypoint": [
       "/opt/vonk/bin/diffusers-job"
@@ -101,11 +102,15 @@
       },
       {
         "name": "num-inference-steps",
-        "value": 4
+        "value": 50
       },
       {
         "name": "guidance-scale",
-        "value": "4"
+        "value": "6"
+      },
+      {
+        "name": "resolution",
+        "value": 720
       }
     ],
     "environment": [
@@ -169,8 +174,8 @@
         "resources": {
           "disk": {
             "image_bytes": 2000000000,
-            "artifact_bytes": 371771118874,
-            "staging_bytes": 743542237748,
+            "artifact_bytes": 53384320228,
+            "staging_bytes": 106768640456,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
@@ -220,9 +225,12 @@
     ],
     "benchmarks": [
       {
-        "name": "bounded-startup",
+        "name": "bounded-720p-t2v",
         "framework": "diffusers",
         "configuration": {
+          "resolution": 720,
+          "frames": 121,
+          "num_inference_steps": 50,
           "timeout_seconds": 14400
         }
       }

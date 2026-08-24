@@ -7,7 +7,7 @@
   },
   "metadata": {
     "title": "HunyuanVideo 1.5 T2V",
-    "description": "Immutable public snapshot at 9b49404b.",
+    "description": "Complete immutable 720p T2V Diffusers snapshot at f4dbc4a1.",
     "tags": [
       "tencent",
       "video",
@@ -22,23 +22,23 @@
   },
   "version": "HunyuanVideo 1.5 T2V",
   "source": {
-    "repository": "https://huggingface.co/tencent/HunyuanVideo-1.5",
-    "revision": "9b49404b3f5df2a8f0b31df27a0c7ab872e7b038"
+    "repository": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v",
+    "revision": "f4dbc4a1efa4ac8ea56680cdf79d9f455105e814"
   },
   "lineage": {
-    "publisher": "tencent",
-    "relation": "official",
+    "publisher": "huggingface",
+    "relation": "derived",
     "source_model": {
       "kind": "model",
       "publisher": "tencent",
       "slug": "hunyuan-video-15",
       "content_sha256": "e546ceb3f57952fe5faaf8a91cca44aec583d0f8fc282e636d09aed9f816115e"
     },
-    "derivation": "Immutable public upstream snapshot at the pinned revision."
+    "derivation": "Hugging Face Diffusers conversion linked by the official Tencent model card; the snapshot includes every inference component."
   },
   "format": {
     "container": "safetensors",
-    "precision": "bf16",
+    "precision": "mixed",
     "quantization": "none"
   },
   "parameters": {
@@ -49,11 +49,11 @@
     "context_tokens": null
   },
   "sizes": {
-    "download_bytes": 371771118874,
-    "installed_bytes": 371771118874
+    "download_bytes": 53384320228,
+    "installed_bytes": 53384320228
   },
   "license": {
-    "spdx": "Apache-2.0",
+    "spdx": "LicenseRef-Tencent-Hunyuan-Community",
     "url": "https://huggingface.co/tencent/HunyuanVideo-1.5/blob/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038/LICENSE",
     "attribution": [
       "tencent"
@@ -70,11 +70,11 @@
       "id": "snapshot",
       "path": "snapshot",
       "kind": "huggingface.file",
-      "repository": "https://huggingface.co/tencent/HunyuanVideo-1.5",
-      "revision": "9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
-      "sha256": "307ade708d55157f5a0e0669f286563513dfc7a59b074ba16dd439b9509b62d8",
-      "download_bytes": 371771118874,
-      "installed_bytes": 371771118874,
+      "repository": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v",
+      "revision": "f4dbc4a1efa4ac8ea56680cdf79d9f455105e814",
+      "sha256": "759ca02fe3a4ce291753d79067866f8a6f99a6161a37d7b2b7d95c16abb3a498",
+      "download_bytes": 53384320228,
+      "installed_bytes": 53384320228,
       "roles": [
         "entrypoint"
       ]

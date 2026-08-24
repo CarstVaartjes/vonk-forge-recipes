@@ -6,15 +6,16 @@
   },
   "metadata": {
     "title": "Step1X-3D geometry pytorch-pipeline single Spark",
-    "description": "Metadata-only Step1X-3D geometry checkpoint binding; the generic ARM64 harness lacks the upstream image pipeline, native geometry dependencies, and GLB exporter required for execution.",
+    "description": "Installable single-DGX Spark image-to-geometry Candidate using the exact Step1X source, an SM121-native CUDA 13 runtime, deterministic offline input handling, and GLB output. Physical Spark quality, memory, and latency acceptance is still required.",
     "tags": [
       "candidate",
       "three-d",
       "pytorch-pipeline",
       "single",
       "spark",
-      "metadata-only",
-      "non-executable"
+      "executable",
+      "offline",
+      "source-bundled"
     ]
   },
   "model": {
@@ -34,9 +35,9 @@
   },
   "build": {
     "context": {
-      "path": "adapters/media/upstream-native",
-      "sha256": "0482565099ffca2d5c3d6fef1cac484e06eba813a1fb18b7e20aac44c50335ce",
-      "expected_bytes": 10240,
+      "path": "adapters/three-d/step1x-3d",
+      "sha256": "8147adab979514f9cf4dd1eb4508e87b17ad26a1e750bca78ba6d776dd66d176",
+      "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -46,6 +47,9 @@
       "mode": "public",
       "hosts": [
         "download.pytorch.org",
+        "github.com",
+        "codeload.github.com",
+        "objects.githubusercontent.com",
         "pypi.org",
         "files.pythonhosted.org",
         "archive.ubuntu.com",
@@ -53,23 +57,38 @@
       ]
     },
     "resources": {
-      "download_bytes": 21640984131,
-      "temporary_bytes": 39281968262,
-      "memory_bytes": 8000000000,
+      "download_bytes": 35858530039,
+      "temporary_bytes": 52000000000,
+      "memory_bytes": 16000000000,
       "timeout_seconds": 14400
     }
   },
   "parameters": [],
   "artifacts": [
     {
-      "id": "weights",
+      "id": "target",
       "kind": "huggingface.snapshot",
       "repository": "stepfun-ai/Step1X-3D",
       "revision": "bf7084495b3a72222f36549b7942948aa4d9daa7",
       "download_bytes": 19640984131,
       "installed_bytes": 19640984131,
       "mount": {
-        "target": "/models",
+        "target": "/models/target",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "dinov2-registers",
+      "kind": "huggingface.snapshot",
+      "repository": "facebook/dinov2-with-registers-large",
+      "revision": "e4c89a4e05589de9b3e188688a303d0f3c04d0f3",
+      "download_bytes": 1217545908,
+      "installed_bytes": 1217545908,
+      "mount": {
+        "target": "/models/dinov2-registers",
         "read_only": true
       },
       "roles": [
@@ -80,9 +99,9 @@
   "runtime": {
     "distribution": {
       "kind": "runtime-distribution",
-      "publisher": "pytorch",
-      "slug": "pytorch-2-13-cuda13-arm64",
-      "content_sha256": "93ff225d792a8e14f1e4758701e1d88c82f9e515c4aafec160ee00c750b6a9e9"
+      "publisher": "stepfun-ai",
+      "slug": "step1x-3d-arm64",
+      "content_sha256": "e4c938de239fcb2b52f0b0cc85f542a0c5082aeebb3932570f217673b25002f3"
     },
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"
@@ -90,7 +109,7 @@
     "arguments": [
       {
         "name": "entrypoint",
-        "value": "/opt/vonk/source/run.py"
+        "value": "/opt/vonk/source/geometry.py"
       },
       {
         "name": "output-mime",
@@ -162,13 +181,14 @@
         "count": 1,
         "endpoint_owner": true,
         "artifacts": [
-          "weights"
+          "target",
+          "dinov2-registers"
         ],
         "resources": {
           "disk": {
-            "image_bytes": 2000000000,
-            "artifact_bytes": 19640984131,
-            "staging_bytes": 39281968262,
+            "image_bytes": 18000000000,
+            "artifact_bytes": 20858530039,
+            "staging_bytes": 42000000000,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000

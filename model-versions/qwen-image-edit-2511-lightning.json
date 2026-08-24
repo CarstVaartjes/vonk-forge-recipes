@@ -6,13 +6,9 @@
     "slug": "qwen-image-edit-2511-lightning"
   },
   "metadata": {
-    "title": "Qwen Image Edit 2511 Lightning",
-    "description": "Immutable public snapshot at d74eba14.",
-    "tags": [
-      "qwen",
-      "image",
-      "candidate"
-    ]
+    "title": "Qwen Image Edit 2511 Lightning 4-step BF16 LoRA",
+    "description": "Exact ModelTC/lightx2v four-step BF16 distilled LoRA for the official Qwen Image Edit 2511 base checkpoint.",
+    "tags": ["qwen", "image", "editing", "image-to-image", "lightning", "lora", "bf16", "candidate"]
   },
   "model": {
     "kind": "model",
@@ -20,66 +16,44 @@
     "slug": "qwen-image-edit-2511-lightning",
     "content_sha256": "4cf1948457437b498bef27580b1f71b5d63c4b8777997dca295e308233130d58"
   },
-  "version": "Qwen Image Edit 2511 Lightning",
+  "version": "4steps-v1.0-bf16-d74eba14",
   "source": {
     "repository": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning",
     "revision": "d74eba145674fd7e31b949324e148e21e7118abd"
   },
   "lineage": {
-    "publisher": "qwen",
-    "relation": "official",
+    "publisher": "ModelTC/lightx2v",
+    "relation": "derived",
     "source_model": {
       "kind": "model",
       "publisher": "qwen",
-      "slug": "qwen-image-edit-2511-lightning",
-      "content_sha256": "4cf1948457437b498bef27580b1f71b5d63c4b8777997dca295e308233130d58"
+      "slug": "qwen-image-edit",
+      "content_sha256": "fa73840bee2df1613f101a5950620f85399785be00fe86fad4e512dac9ba9e6a"
     },
-    "derivation": "Immutable public upstream snapshot at the pinned revision."
+    "derivation": "Four-step distilled LoRA trained for Qwen/Qwen-Image-Edit-2511 and selected in BF16 precision for Diffusers inference."
   },
-  "format": {
-    "container": "safetensors",
-    "precision": "bf16",
-    "quantization": "none"
-  },
-  "parameters": {
-    "total": null,
-    "active": null
-  },
-  "limits": {
-    "context_tokens": null
-  },
-  "sizes": {
-    "download_bytes": 100372027469,
-    "installed_bytes": 100372027469
-  },
+  "format": {"container": "safetensors", "precision": "bf16", "quantization": "none"},
+  "parameters": {"total": null, "active": null},
+  "limits": {"context_tokens": null},
+  "sizes": {"download_bytes": 849608296, "installed_bytes": 849608296},
   "license": {
     "spdx": "Apache-2.0",
     "url": "https://github.com/ModelTC/Qwen-Image-Lightning/blob/25d1e9935ba97e1f60503f8c000201e08b1fe8f4/LICENSE",
-    "attribution": [
-      "ModelTC",
-      "lightx2v",
-      "Qwen"
-    ],
-    "operator_acceptance_required": true
+    "attribution": ["ModelTC", "lightx2v", "Qwen"],
+    "operator_acceptance_required": false
   },
-  "access": {
-    "visibility": "public",
-    "gated": false,
-    "authentication": "none"
-  },
+  "access": {"visibility": "public", "gated": false, "authentication": "none"},
   "artifacts": [
     {
-      "id": "snapshot",
-      "path": "snapshot",
+      "id": "qwen-image-edit-2511-lightning-4steps-v1-0-bf16",
+      "path": "Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors",
       "kind": "huggingface.file",
-      "repository": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning",
+      "repository": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning/resolve/d74eba145674fd7e31b949324e148e21e7118abd/Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors",
       "revision": "d74eba145674fd7e31b949324e148e21e7118abd",
-      "sha256": "163e9bd5598ab94b67f214efcd673f6168393d7d3cd6acae3121c8c6ae7c939d",
-      "download_bytes": 100372027469,
-      "installed_bytes": 100372027469,
-      "roles": [
-        "entrypoint"
-      ]
+      "sha256": "22226e8d05d354bb356627d428809f5afd7819399b077238a2b70a82883a904f",
+      "download_bytes": 849608296,
+      "installed_bytes": 849608296,
+      "roles": ["adapter"]
     }
   ],
   "dependencies": [],
