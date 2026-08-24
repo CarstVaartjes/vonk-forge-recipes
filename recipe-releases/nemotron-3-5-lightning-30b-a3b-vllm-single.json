@@ -33,6 +33,36 @@
           "summary": "Initial reviewed catalog release of Nemotron 3.5 Lightning 30B-A3B NVFP4 vLLM single Spark."
         }
       ]
+    },
+    {
+      "version": "0.2.0",
+      "released_at": "2026-08-16",
+      "recipe_content_sha256": "be1409e70502b0ae2e58d3a7352555ac105da66d028bcbd28292368a69eb250b",
+      "upgrade_effect": "restart",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Aligned the legacy Nemotron candidate with the vLLM execution harness.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/6b6bfecef687233939a7c6036cf755e17aeacd74"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-16",
+      "recipe_content_sha256": "1b4d71fa4a18099e4eacefb83c84b7641a177cbdd626dc0e3156acb130f9ea30",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/d153f0b8913268b66d7b764f609892379805eb30"
+          ]
+        }
+      ]
     }
   ]
 }

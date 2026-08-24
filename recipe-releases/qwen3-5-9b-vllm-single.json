@@ -18,6 +18,21 @@
           "summary": "Initial reviewed catalog release of Qwen3.5 9B vLLM single Spark."
         }
       ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-16",
+      "recipe_content_sha256": "bcded17a821eb36ddf4a7a2caaaac7314aefa720488ba97db8583b5296b180bc",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/e4d88c260a8b7a6c2ee621b5f32f2da94663f816"
+          ]
+        }
+      ]
     }
   ]
 }

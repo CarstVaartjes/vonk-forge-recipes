@@ -36,23 +36,31 @@
         {
           "kind": "model",
           "summary": "Switched from the historical DSpark preview snapshot to the official DeepSeek V4 Flash 0731 checkpoint.",
-          "references": ["https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731/tree/9e165c30e2704aec5d9d593cce3eebd58bbef1cb"]
+          "references": [
+            "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731/tree/9e165c30e2704aec5d9d593cce3eebd58bbef1cb"
+          ]
         },
         {
           "kind": "fix",
           "summary": "Removed the reverted adaptive top-k and default-on thinking-budget hotfixes.",
           "details": "MiaAI-Lab removed adaptive top-k after corruption findings and made the issue 31 GPU patch opt-in after a severe decode regression.",
-          "references": ["https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/blob/f104c39a8c6fa68d4ea0b342ad6eed172bc0e635/CHANGELOG.md"]
+          "references": [
+            "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/blob/f104c39a8c6fa68d4ea0b342ad6eed172bc0e635/CHANGELOG.md"
+          ]
         },
         {
           "kind": "fix",
           "summary": "Added the empty-encoder-output and fail-closed current Mia patch revisions.",
-          "references": ["https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/f104c39a8c6fa68d4ea0b342ad6eed172bc0e635"]
+          "references": [
+            "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/f104c39a8c6fa68d4ea0b342ad6eed172bc0e635"
+          ]
         },
         {
           "kind": "performance",
           "summary": "Enabled regular CUDA graphs, the GB10 spin-wait fix, persistent JIT caches, and the validated 0.835 text-serving memory profile.",
-          "references": ["https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/blob/f104c39a8c6fa68d4ea0b342ad6eed172bc0e635/results/RESULTS-2026-08-14.md"]
+          "references": [
+            "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/blob/f104c39a8c6fa68d4ea0b342ad6eed172bc0e635/results/RESULTS-2026-08-14.md"
+          ]
         },
         {
           "kind": "compatibility",
@@ -62,13 +70,29 @@
     },
     {
       "version": "1.0.0",
-      "released_at": "2026-08-14",
+      "released_at": "2026-08-16",
       "recipe_content_sha256": "8b1d89926b769ac2c2af8c744fd7781c9e9c69d887058a7085c69f513480bf17",
       "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
           "summary": "Initial reviewed catalog release of DeepSeek V4 Flash 0731 Mia dual Spark."
+        }
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-16",
+      "recipe_content_sha256": "fb7e6314de7649871f080d9dc0c63dbb1ea827eaf5b47d24291c34f26b49ec35",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/2e3ba31a4cdd305eab29c6837ae342c68fd75dab"
+          ],
+          "details": "This digest and the reviewed 1.0.0 successor were first published on 2026-08-16; the prior 1.0.0 date has been corrected to match repository history."
         }
       ]
     }

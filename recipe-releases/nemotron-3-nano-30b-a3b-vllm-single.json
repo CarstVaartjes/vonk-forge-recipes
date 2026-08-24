@@ -33,6 +33,36 @@
           "summary": "Initial reviewed catalog release of Nemotron 3 Nano 30B-A3B NVFP4 vLLM single Spark."
         }
       ]
+    },
+    {
+      "version": "0.2.0",
+      "released_at": "2026-08-16",
+      "recipe_content_sha256": "853efaff26a47545443fe7e20c8a76569ad318bc78df2b4846d2c9dd26132416",
+      "upgrade_effect": "restart",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Aligned the legacy Nemotron candidate with the vLLM execution harness.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/6b6bfecef687233939a7c6036cf755e17aeacd74"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-16",
+      "recipe_content_sha256": "2225195ce801473bd9469421afbf30e0ccb9a02157b7ab7485e02dee3e0416ff",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/47944c8a69ae12d157a63c3a82df9c39b65be1ff"
+          ]
+        }
+      ]
     }
   ]
 }
