@@ -4,9 +4,30 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan3d-omni-pytorch-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "2.0.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "2.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "80647d03505c3bb399b315eaf3f6396deac13e507ca3d65a495984bcbb6e6d01",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Replaced the metadata placeholder with the exact upstream Hunyuan3D-Omni controllable mesh pipeline.",
+          "references": ["https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/tree/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8"]
+        },
+        {
+          "kind": "fix",
+          "summary": "Added bounded image, bounding-box, pose, point-cloud, and voxel job inputs with deterministic GLB output."
+        },
+        {
+          "kind": "runtime",
+          "summary": "Added the pinned CUDA 13.2 ARM64 native runtime and removed runtime model downloads."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

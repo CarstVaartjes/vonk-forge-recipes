@@ -6,24 +6,23 @@
   },
   "metadata": {
     "title": "Qwen Image Edit 2511 Lightning diffusers single Spark",
-    "description": "Metadata-only image-edit Lightning weight collection; this recipe is not executable until the base Edit 2511 dependency and LoRA-aware input adapter are cataloged.",
-    "tags": [
-      "candidate",
-      "image",
-      "diffusers",
-      "single",
-      "spark",
-      "image-to-image",
-      "metadata-only",
-      "non-executable"
-    ]
+    "description": "Installable Candidate pairing the exact Qwen Image Edit 2511 base checkpoint with ModelTC/lightx2v's four-step BF16 Lightning LoRA, prompt-and-image input contract, and published shift-3 schedule; physical Spark acceptance remains pending.",
+    "tags": ["candidate", "qwen", "image", "editing", "image-to-image", "lightning", "lora", "diffusers", "bf16", "single", "spark"]
   },
   "model": {
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen-image-edit-2511-lightning",
-    "content_sha256": "8434e7b6cf7b352e0a947d83ed93ced1fe194b52643a1ab5c6ed1e988f887546"
+    "content_sha256": "7c1da3d55719cbb055e9c6b66c42c13b1917ca5ca024d39c8a9c39ec38624f51"
   },
+  "dependencies": [
+    {
+      "kind": "model-version",
+      "publisher": "qwen",
+      "slug": "qwen-image-edit-2511-6f3ccc0b",
+      "content_sha256": "14d6e5cd6f988803cb7b1eca0520db6bc23a92c7fe2edafea3b995bae7deb5b7"
+    }
+  ],
   "execution": {
     "harness": {
       "kind": "execution-harness",
@@ -35,8 +34,8 @@
   },
   "build": {
     "context": {
-      "path": "adapters/media/upstream-native",
-      "sha256": "0482565099ffca2d5c3d6fef1cac484e06eba813a1fb18b7e20aac44c50335ce",
+      "path": "adapters/image/qwen-image-lightning-diffusers",
+      "sha256": "7f83fbc800db09a653ee15bac1f931286f6baffc19fd197a6adaae756f49294d",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -45,17 +44,11 @@
     "arguments": [],
     "network": {
       "mode": "public",
-      "hosts": [
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "ports.ubuntu.com"
-      ]
+      "hosts": ["nvcr.io", "github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]
     },
     "resources": {
-      "download_bytes": 102372027469,
-      "temporary_bytes": 200744054938,
+      "download_bytes": 60570071749,
+      "temporary_bytes": 70000000000,
       "memory_bytes": 8000000000,
       "timeout_seconds": 14400
     }
@@ -63,19 +56,24 @@
   "parameters": [],
   "artifacts": [
     {
-      "id": "weights",
+      "id": "target",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning/resolve/d74eba145674fd7e31b949324e148e21e7118abd/Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors",
+      "revision": "sha256:22226e8d05d354bb356627d428809f5afd7819399b077238a2b70a82883a904f",
+      "download_bytes": 849608296,
+      "installed_bytes": 849608296,
+      "mount": {"target": "/models/target", "read_only": true},
+      "roles": ["entrypoint"]
+    },
+    {
+      "id": "base",
       "kind": "huggingface.snapshot",
-      "repository": "lightx2v/Qwen-Image-Edit-2511-Lightning",
-      "revision": "d74eba145674fd7e31b949324e148e21e7118abd",
-      "download_bytes": 100372027469,
-      "installed_bytes": 100372027469,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+      "repository": "Qwen/Qwen-Image-Edit-2511",
+      "revision": "6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
+      "download_bytes": 57720463453,
+      "installed_bytes": 57720463453,
+      "mount": {"target": "/models/base", "read_only": true},
+      "roles": ["entrypoint"]
     }
   ],
   "runtime": {
@@ -85,80 +83,36 @@
       "slug": "diffusers-0-40-0-cuda13-arm64",
       "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7"
     },
-    "entrypoint": [
-      "/opt/vonk/bin/diffusers-job"
-    ],
+    "entrypoint": ["/opt/vonk/bin/diffusers-job"],
     "arguments": [
-      {
-        "name": "output-mime",
-        "value": "image/png"
-      },
-      {
-        "name": "pipeline",
-        "value": "image-to-image"
-      },
-      {
-        "name": "seed",
-        "value": 0
-      },
-      {
-        "name": "num-inference-steps",
-        "value": 4
-      },
-      {
-        "name": "true-cfg-scale",
-        "value": "1"
-      }
+      {"name": "pipeline", "value": "image-to-image"},
+      {"name": "output-mime", "value": "image/png"},
+      {"name": "num-inference-steps", "value": 4},
+      {"name": "true-cfg-scale", "value": "1"},
+      {"name": "seed", "value": 42}
     ],
     "environment": [
-      {
-        "name": "HF_HUB_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
-      }
+      {"name": "HF_HUB_OFFLINE", "value": "1"},
+      {"name": "TRANSFORMERS_OFFLINE", "value": "1"}
     ],
     "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
+      "devices": ["nvidia.com/gpu=all"],
       "capabilities": [],
       "host_network": false,
       "privileged": false,
       "user": "10001:10001",
       "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
+        {"source": "model", "target": "/models", "read_only": true},
+        {"source": "inputs", "target": "/inputs", "read_only": true},
+        {"source": "outputs", "target": "/outputs", "read_only": false}
       ]
     },
     "lifecycle": {
       "pre_start": [],
       "post_stop": [],
       "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/outputs",
-        "timeout_seconds": 3600
-      },
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      }
+      "readiness": {"strategy": "endpoint-owner", "path": "/outputs", "timeout_seconds": 3600},
+      "failure": {"rank_loss": "not-applicable", "recovery": "restart-entrypoint"}
     }
   },
   "topology": {
@@ -170,45 +124,30 @@
         "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": [
-          "weights"
-        ],
+        "artifacts": ["target", "base"],
         "resources": {
           "disk": {
             "image_bytes": 2000000000,
-            "artifact_bytes": 100372027469,
-            "staging_bytes": 200744054938,
+            "artifact_bytes": 58570071749,
+            "staging_bytes": 70000000000,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 50186013734,
-            "steady_state_bytes": 33457342489,
+            "startup_peak_bytes": 118000000000,
+            "steady_state_bytes": 98000000000,
             "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "start_order": [
-      "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
-    ]
+    "parallelism": {"world_size": 1, "tensor": 1, "pipeline": 1, "data": 1, "backend": "local"},
+    "fabric": {"connectivity": "none", "minimum_bandwidth_mbps": 0},
+    "start_order": ["entrypoint"],
+    "stop_order": ["entrypoint"]
   },
   "interfaces": [
     {
@@ -217,39 +156,20 @@
       "input": {
         "path": "/inputs",
         "required": true,
-        "media_types": [
-          "image/jpeg",
-          "image/png",
-          "image/webp"
-        ],
-        "max_bytes": 8388608
+        "media_types": ["text/plain", "image/jpeg", "image/png", "image/webp"],
+        "max_bytes": 16793600
       }
     }
   ],
   "validation": {
-    "validators": [
-      {
-        "interface": "image-job",
-        "checks": [
-          "artifact.mime.image-png"
-        ]
-      }
-    ],
+    "validators": [{"interface": "image-job", "checks": ["artifact.mime.image-png"]}],
     "benchmarks": [
-      {
-        "name": "bounded-startup",
-        "framework": "diffusers",
-        "configuration": {
-          "timeout_seconds": 14400
-        }
-      }
+      {"name": "bounded-lightning-image-edit", "framework": "diffusers", "configuration": {"num_inference_steps": 4, "timeout_seconds": 14400}}
     ]
   },
   "provenance": {
     "source_kind": "global",
     "source_reference": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning/tree/d74eba145674fd7e31b949324e148e21e7118abd",
-    "attribution": [
-      "qwen"
-    ]
+    "attribution": ["ModelTC", "lightx2v", "Qwen"]
   }
 }

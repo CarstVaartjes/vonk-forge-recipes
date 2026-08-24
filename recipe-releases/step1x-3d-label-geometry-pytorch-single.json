@@ -4,9 +4,29 @@
     "publisher": "vonk-forge",
     "slug": "step1x-3d-label-geometry-pytorch-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "1.2.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "bbf176928883323bb2362b6bf923009626d650fe2dffb8c4fbc7854bf56e9e9b",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Made the controlled label-geometry Candidate installable with a bounded signed image-to-GLB entrypoint while retaining physical Spark qualification as pending."
+        },
+        {
+          "kind": "runtime",
+          "summary": "Pinned official Step1X source cb5ac944, PyTorch 2.13, CUDA 13.2, and SM121-native build authority."
+        },
+        {
+          "kind": "fix",
+          "summary": "Eliminated the implicit BRIA download, bound DINOv2 and CLIP processor authorities, and fixed the official symmetry and edge contract."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

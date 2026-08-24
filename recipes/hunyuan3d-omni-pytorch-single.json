@@ -6,15 +6,16 @@
   },
   "metadata": {
     "title": "Hunyuan3D-Omni pytorch-pipeline single Spark",
-    "description": "Metadata-only Hunyuan3D-Omni checkpoint binding; the generic ARM64 harness cannot execute its custom control pipeline and no Spark-compatible native adapter is qualified.",
+    "description": "Candidate native Hunyuan3D-Omni single-Spark controllable 3D pipeline with exact upstream source, offline multimodal job input, and GLB output; physical GB10 acceptance remains pending.",
     "tags": [
       "candidate",
       "three-d",
       "pytorch-pipeline",
       "single",
       "spark",
-      "metadata-only",
-      "non-executable"
+      "multimodal",
+      "native",
+      "build-unvalidated"
     ]
   },
   "model": {
@@ -34,8 +35,8 @@
   },
   "build": {
     "context": {
-      "path": "adapters/media/upstream-native",
-      "sha256": "0482565099ffca2d5c3d6fef1cac484e06eba813a1fb18b7e20aac44c50335ce",
+      "path": "adapters/three-d/hunyuan3d-omni",
+      "sha256": "02a547965aedb0c9ddb2318b762c4c68fc207a477ad572993e12ad309d7299f5",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -45,17 +46,20 @@
     "network": {
       "mode": "public",
       "hosts": [
+        "nvcr.io",
+        "github.com",
         "download.pytorch.org",
         "pypi.org",
         "files.pythonhosted.org",
         "archive.ubuntu.com",
+        "security.ubuntu.com",
         "ports.ubuntu.com"
       ]
     },
     "resources": {
-      "download_bytes": 27729134701,
-      "temporary_bytes": 51458269402,
-      "memory_bytes": 8000000000,
+      "download_bytes": 34000000000,
+      "temporary_bytes": 60000000000,
+      "memory_bytes": 16000000000,
       "timeout_seconds": 14400
     }
   },
@@ -80,9 +84,9 @@
   "runtime": {
     "distribution": {
       "kind": "runtime-distribution",
-      "publisher": "pytorch",
-      "slug": "pytorch-2-13-cuda13-arm64",
-      "content_sha256": "93ff225d792a8e14f1e4758701e1d88c82f9e515c4aafec160ee00c750b6a9e9"
+      "publisher": "tencent",
+      "slug": "hunyuan3d-omni-native-arm64",
+      "content_sha256": "fecd543ceb8dbcd365c3650b5db01268262e20fa1ec58cc31b5d76ac7347931e"
     },
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"
@@ -126,6 +130,11 @@
           "read_only": true
         },
         {
+          "source": "inputs",
+          "target": "/inputs",
+          "read_only": true
+        },
+        {
           "source": "outputs",
           "target": "/outputs",
           "read_only": false
@@ -161,7 +170,7 @@
         ],
         "resources": {
           "disk": {
-            "image_bytes": 2000000000,
+            "image_bytes": 12000000000,
             "artifact_bytes": 25729134701,
             "staging_bytes": 51458269402,
             "cache_bytes": 8000000000,
@@ -170,8 +179,8 @@
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 32000000000,
-            "steady_state_bytes": 24000000000,
+            "startup_peak_bytes": 64000000000,
+            "steady_state_bytes": 48000000000,
             "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
@@ -199,7 +208,21 @@
   "interfaces": [
     {
       "adapter": "mesh-job",
-      "path": "/outputs"
+      "path": "/outputs",
+      "input": {
+        "path": "/inputs",
+        "required": true,
+        "media_types": [
+          "application/json",
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "model/gltf-binary",
+          "model/obj",
+          "model/ply"
+        ],
+        "max_bytes": 268435456
+      }
     }
   ],
   "validation": {

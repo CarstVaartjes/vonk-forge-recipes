@@ -7,10 +7,12 @@
   },
   "metadata": {
     "title": "LTX-2 19B distilled FP8",
-    "description": "Immutable public snapshot at dfcc2108.",
+    "description": "Exact executable checkpoint closure at dfcc2108 with a digest-bound Gemma 3 companion dependency.",
     "tags": [
       "lightricks",
+      "ltx",
       "video",
+      "audio",
       "candidate"
     ]
   },
@@ -20,13 +22,13 @@
     "slug": "ltx-2",
     "content_sha256": "7c24470249ec2cc6a57781f62e74618d391f05108c03d248df65dfaaad5209f6"
   },
-  "version": "LTX-2 19B distilled FP8",
+  "version": "19b-distilled-fp8-dfcc2108",
   "source": {
     "repository": "https://huggingface.co/Lightricks/LTX-2",
     "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
   },
   "lineage": {
-    "publisher": "lightricks",
+    "publisher": "Lightricks",
     "relation": "official",
     "source_model": {
       "kind": "model",
@@ -34,29 +36,32 @@
       "slug": "ltx-2",
       "content_sha256": "7c24470249ec2cc6a57781f62e74618d391f05108c03d248df65dfaaad5209f6"
     },
-    "derivation": "Immutable public upstream snapshot at the pinned revision."
+    "derivation": "Official monolithic synchronized audio-video checkpoint with the exact required spatial upscaler and, where applicable, distilled refinement LoRA."
   },
   "format": {
     "container": "safetensors",
-    "precision": "bf16",
-    "quantization": "none"
+    "precision": "fp8",
+    "quantization": "fp8-scaled-mm"
   },
   "parameters": {
-    "total": null,
+    "total": 19000000000,
     "active": null
   },
   "limits": {
-    "context_tokens": null
+    "context_tokens": null,
+    "resolution_pixels": 393216,
+    "frames": 65,
+    "sample_rate_hz": 24000
   },
   "sizes": {
-    "download_bytes": 314346439951,
-    "installed_bytes": 314346439951
+    "download_bytes": 28074481924,
+    "installed_bytes": 28074481924
   },
   "license": {
-    "spdx": "Apache-2.0",
+    "spdx": "LTX-2 Community License Agreement",
     "url": "https://huggingface.co/Lightricks/LTX-2/blob/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/LICENSE",
     "attribution": [
-      "lightricks"
+      "Lightricks"
     ],
     "operator_acceptance_required": true
   },
@@ -67,20 +72,40 @@
   },
   "artifacts": [
     {
-      "id": "snapshot",
-      "path": "snapshot",
+      "id": "target",
+      "path": "ltx-2-19b-distilled-fp8.safetensors",
       "kind": "huggingface.file",
-      "repository": "https://huggingface.co/Lightricks/LTX-2",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/ltx-2-19b-distilled-fp8.safetensors",
       "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
-      "sha256": "ccceab6cb1a3f5720b1496027f153a92be15ec220d5fa6d635a0c53f729ebf99",
-      "download_bytes": 314346439951,
-      "installed_bytes": 314346439951,
+      "sha256": "8ae14327130c6ffdc87705b02c8e7654aa5c6d9a7f28a52d0acc1c30cb0d2932",
+      "download_bytes": 27078716346,
+      "installed_bytes": 27078716346,
       "roles": [
-        "entrypoint"
+        "weights"
+      ]
+    },
+    {
+      "id": "spatial-upscaler",
+      "path": "ltx-2-spatial-upscaler-x2-1.0.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/ltx-2-spatial-upscaler-x2-1.0.safetensors",
+      "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
+      "sha256": "3160fabf8edf0bc4dd8de40353a180813b111ce586b655ad54af9a7b8c6736de",
+      "download_bytes": 995765578,
+      "installed_bytes": 995765578,
+      "roles": [
+        "upscaler"
       ]
     }
   ],
-  "dependencies": [],
+  "dependencies": [
+    {
+      "kind": "model-version",
+      "publisher": "lightricks",
+      "slug": "ltx-2-gemma3-text-encoder-dfcc2108",
+      "content_sha256": "603bcc4d23cdf4c97b66149660c57199e7cac4809eab276fd9e6db87b828eb9d"
+    }
+  ],
   "availability": "active",
   "supersedes": null
 }

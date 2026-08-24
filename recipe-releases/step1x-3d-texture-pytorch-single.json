@@ -4,9 +4,29 @@
     "publisher": "vonk-forge",
     "slug": "step1x-3d-texture-pytorch-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "1.2.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "973bb637259945e9a34b01d484baf360653209cca8ca177a595071ee9fbe5795",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Made the texture Candidate installable with a bounded signed image-plus-GLB entrypoint while retaining physical Spark qualification as pending."
+        },
+        {
+          "kind": "runtime",
+          "summary": "Pinned official Step1X source, SM121-native nvdiffrast and PyTorch3D builds, SDXL base, and the fixed SDXL VAE as immutable authorities."
+        },
+        {
+          "kind": "fix",
+          "summary": "Removed hidden SDXL, VAE, and BiRefNet runtime downloads; the adapter now resolves every model from an explicit read-only artifact mount."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

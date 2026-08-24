@@ -53,7 +53,7 @@
     "installed_bytes": 18593354027
   },
   "license": {
-    "spdx": "Apache-2.0",
+    "spdx": "LicenseRef-Tencent-Hunyuan-Community",
     "url": "https://huggingface.co/tencent/HunyuanVideo-Foley/blob/3abd4e833b95b8db0fc9c687afc52483a48e9a97/LICENSE",
     "attribution": [
       "tencent"

@@ -4,9 +4,28 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-5-lightning-30b-a3b-vllm-single"
   },
-  "version": "1.2.0",
+  "version": "1.3.0",
   "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "1.3.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "b84a9f8acb3370d8943637f9db82e32eff6675c02b73ce5c2cc0f72359718644",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "model",
+          "summary": "Advanced the target to NVIDIA revision e8f3c7c4 and reconciled the exhaustive 70-file inventory with official SHA-256 values.",
+          "references": [
+            "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/e8f3c7c4de75ad84fe1bcef95d38eca76214480b"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Retained NVIDIA's vLLM 0.27.1 DGX Spark settings and Candidate status pending physical GB10 acceptance."
+        }
+      ]
+    },
     {
       "version": "1.2.0",
       "released_at": "2026-08-24",

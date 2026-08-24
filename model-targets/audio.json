@@ -7,7 +7,7 @@
   },
   "metadata": {
     "title": "Audio and music generation targets",
-    "updated": "2026-08-16"
+    "updated": "2026-08-24"
   },
   "targets": [
     {
@@ -26,7 +26,7 @@
       "recipe_slugs": [
         "ltx-2-3-22b-distilled-1-1-diffusers-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "Pinned official LTX 1.2 native ARM64 source, exact companion closure, and synchronized audio-video export are executable; physical Spark canary remains pending.",
       "catalog_model_version": "ltx-2-3-22b-distilled-1-1"
     },
     {
@@ -35,10 +35,9 @@
       "model": "LTX-2",
       "version": "19B distilled synchronized audio-video",
       "status": "candidate",
-      "source": "https://huggingface.co/Lightricks/LTX-2",
+      "source": "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
       "harnesses": [
-        "pytorch-pipeline",
-        "diffusers"
+        "pytorch-pipeline"
       ],
       "topologies": [
         "single"
@@ -46,7 +45,7 @@
       "recipe_slugs": [
         "ltx-2-19b-distilled-diffusers-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "Pinned official LTX 1.2 native ARM64 source, exact companion closure, and synchronized audio-video export are executable; physical Spark canary remains pending.",
       "catalog_model_version": "ltx-2-19b-distilled"
     },
     {
@@ -65,7 +64,7 @@
       "recipe_slugs": [
         "ltx-2-19b-dev-fp4-pytorch-single"
       ],
-      "notes": "The same synchronized audio-video recipe emits an MP4 with audio when the native pipeline passes acceptance."
+      "notes": "Pinned official FP4 checkpoint and native synchronized audio-video pipeline are source-complete; physical Spark canary remains pending."
     },
     {
       "modality": "audio",
@@ -73,10 +72,9 @@
       "model": "LTX-2",
       "version": "19B dev synchronized audio-video",
       "status": "candidate",
-      "source": "https://huggingface.co/Lightricks/LTX-2",
+      "source": "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
       "harnesses": [
-        "pytorch-pipeline",
-        "diffusers"
+        "pytorch-pipeline"
       ],
       "topologies": [
         "single"
@@ -84,8 +82,84 @@
       "recipe_slugs": [
         "ltx-2-19b-dev-bf16-diffusers-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "Pinned official LTX 1.2 native ARM64 source, exact companion closure, and synchronized audio-video export are executable; physical Spark canary remains pending.",
       "catalog_model_version": "ltx-2-19b-dev-bf16"
+    },
+    {
+      "modality": "audio",
+      "group": "LTX-2",
+      "model": "LTX-2",
+      "version": "19B distilled FP8 synchronized audio-video",
+      "status": "candidate",
+      "source": "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
+      "harnesses": [
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "ltx-2-19b-distilled-fp8-diffusers-single"
+      ],
+      "notes": "Pinned official LTX 1.2 native ARM64 source, exact FP8 companion closure, and synchronized audio-video export are executable; physical Spark canary remains pending.",
+      "catalog_model_version": "ltx-2-19b-distilled-fp8"
+    },
+    {
+      "modality": "audio",
+      "group": "MOVA",
+      "model": "MOVA",
+      "version": "360p synchronized audio-video",
+      "status": "candidate",
+      "source": "https://github.com/OpenMOSS/MOVA/tree/83bcbe8eab55ded920889239af93c112834ee5b8",
+      "harnesses": [
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "mova-360p-diffusers-single"
+      ],
+      "notes": "Pinned OpenMOSS native ARM64 source and offline 48 kHz synchronized video-audio entrypoint are executable; physical Spark canary remains pending.",
+      "catalog_model_version": "mova-360p"
+    },
+    {
+      "modality": "audio",
+      "group": "MOVA",
+      "model": "MOVA",
+      "version": "720p synchronized audio-video",
+      "status": "candidate",
+      "source": "https://github.com/OpenMOSS/MOVA/tree/83bcbe8eab55ded920889239af93c112834ee5b8",
+      "harnesses": [
+        "pytorch-pipeline"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "mova-720p-diffusers-single"
+      ],
+      "notes": "Pinned OpenMOSS native ARM64 source and offline 48 kHz synchronized video-audio entrypoint are executable; physical Spark canary remains pending.",
+      "catalog_model_version": "mova-720p"
+    },
+    {
+      "modality": "audio",
+      "group": "MiniMax H3",
+      "model": "MiniMax H3",
+      "version": "native 32 kHz stereo synchronized audio-video",
+      "status": "candidate",
+      "source": "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe",
+      "harnesses": [
+        "diffusers"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "minimax-h3-diffusers-single"
+      ],
+      "notes": "Pinned modular Diffusers source and exact MiniMax H3 checkpoint closure provide offline joint video with 32 kHz stereo audio; physical Spark canary remains pending.",
+      "catalog_model_version": "minimax-h3"
     },
     {
       "modality": "audio",
@@ -93,7 +167,7 @@
       "model": "HunyuanVideo Foley",
       "version": "XL",
       "status": "candidate",
-      "source": "https://github.com/Tencent-Hunyuan/HunyuanVideo-Foley",
+      "source": "https://github.com/Tencent-Hunyuan/HunyuanVideo-Foley/tree/df7b005b5023df2a9b73e1d66dd51d452799884e",
       "harnesses": [
         "pytorch-pipeline"
       ],
@@ -103,7 +177,7 @@
       "recipe_slugs": [
         "hunyuan-video-foley-xl-pytorch-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "Pinned official Foley source, exact XL checkpoint closure, and offline WAV export are executable; physical Spark canary remains pending.",
       "catalog_model_version": "hunyuan-video-foley-xl"
     },
     {
@@ -112,7 +186,7 @@
       "model": "HunyuanVideo Foley",
       "version": "XXL",
       "status": "candidate",
-      "source": "https://github.com/Tencent-Hunyuan/HunyuanVideo-Foley",
+      "source": "https://github.com/Tencent-Hunyuan/HunyuanVideo-Foley/tree/df7b005b5023df2a9b73e1d66dd51d452799884e",
       "harnesses": [
         "pytorch-pipeline"
       ],
@@ -122,7 +196,7 @@
       "recipe_slugs": [
         "hunyuan-video-foley-xxl-pytorch-single"
       ],
-      "notes": "Standard ARM64 recipe is cataloged; physical Spark acceptance remains required.",
+      "notes": "Pinned official Foley source, exact XXL checkpoint closure, and offline WAV export are executable; physical Spark canary remains pending.",
       "catalog_model_version": "hunyuan-video-foley-xxl"
     },
     {

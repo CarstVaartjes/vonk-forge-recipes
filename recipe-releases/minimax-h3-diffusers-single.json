@@ -4,9 +4,49 @@
     "publisher": "vonk-forge",
     "slug": "minimax-h3-diffusers-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "2.0.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "2.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "3c4b20229a6701111bc4ec298dc10b6f9c3ebf9b50e05283f871de02d6760603",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Replaced the metadata-only binding with an installable Modular Diffusers adapter for text, keyframe, and ordered multimodal-reference workflows.",
+          "references": [
+            "https://huggingface.co/docs/diffusers/main/en/api/pipelines/minimax_h3"
+          ]
+        },
+        {
+          "kind": "runtime",
+          "summary": "Pinned the post-integration Diffusers source and current ARM64 PyTorch, Transformers, TorchAO, and PyAV stack in a dedicated offline runtime.",
+          "references": [
+            "https://github.com/huggingface/diffusers/commit/efabd60d61c2b7aabf9f182bee6b5b6058980304"
+          ]
+        },
+        {
+          "kind": "performance",
+          "summary": "Applied the documented int8 component loading and streamed group-offload recipe with a 960x544 single-Spark default canvas.",
+          "references": [
+            "https://github.com/huggingface/diffusers/blob/efabd60d61c2b7aabf9f182bee6b5b6058980304/docs/source/en/api/pipelines/minimax_h3.md"
+          ]
+        },
+        {
+          "kind": "fix",
+          "summary": "Added strict input validation and atomic MP4 export that verifies one 24-fps video stream and one 32-kHz stereo audio stream.",
+          "references": [
+            "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe"
+          ]
+        },
+        {
+          "kind": "metadata",
+          "summary": "Corrected the 33B model metadata and MiniMax H3 Community License authority while keeping qualification at Candidate pending a physical Spark canary."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

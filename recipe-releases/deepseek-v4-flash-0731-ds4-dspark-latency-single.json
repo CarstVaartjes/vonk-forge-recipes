@@ -4,9 +4,42 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-ds4-dspark-latency-single"
   },
-  "version": "1.1.0",
+  "version": "1.2.0",
   "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "8f2bed91f9f95b01d4801d1f5e7039dc0c0832b48c39bba68159cb98f34028e9",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Rebuilt the non-batched profile from immutable DS4 revision c1d4597 with current DSpark sampling and verification code.",
+          "references": [
+            "https://github.com/antirez/ds4/compare/84cc882352757baf628a1776badf7cc54d584e28...c1d4597a80e300b803dc642519718f2c999589da"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Kept bounded validation at greedy temperature zero; opportunistic and exact sampled decoding remain outside accepted recipe claims.",
+          "references": [
+            "https://github.com/antirez/ds4/blob/c1d4597a80e300b803dc642519718f2c999589da/README.md#dspark-speculative-decoding"
+          ]
+        },
+        {
+          "kind": "model",
+          "summary": "Advanced the antirez repository revision while retaining the exact unchanged Flash 0731 target and drafter objects.",
+          "references": [
+            "https://huggingface.co/antirez/deepseek-v4-gguf/commit/86bb38ce2ba7a98ab0e550359fec5f48859dc723"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Kept the recipe Candidate pending physical DGX Spark CUDA, DSpark statistics, memory, latency, and response-quality canaries."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-24",

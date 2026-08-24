@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "nemotron-3-super-120b-a12b-bf16-mtpv2"
+  },
+  "metadata": {
+    "title": "Nemotron 3 Super BF16 MTPv2 c929f8a5",
+    "description": "Exact NVIDIA MTPv2 speculative-decoding companion for Nemotron 3 Super target checkpoints; this is not a standalone language model.",
+    "tags": [
+      "nvidia",
+      "nemotron",
+      "language",
+      "mtp",
+      "speculative-decoding",
+      "companion"
+    ]
+  },
+  "model": {
+    "kind": "model",
+    "publisher": "nvidia",
+    "slug": "nemotron-3-super-120b-a12b",
+    "content_sha256": "f885c5cf2e0c568be61f2c241d2b759e0f0da75ad8c0800714c164bc22c69649"
+  },
+  "version": "BF16 MTPv2 c929f8a5",
+  "source": {
+    "repository": "https://huggingface.co/nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2",
+    "revision": "c929f8a55d0527fea9f58b4cedc9e0c855cfc421"
+  },
+  "lineage": {
+    "publisher": "nvidia",
+    "relation": "derived",
+    "source_model": {
+      "kind": "model",
+      "publisher": "nvidia",
+      "slug": "nemotron-3-super-120b-a12b",
+      "content_sha256": "f885c5cf2e0c568be61f2c241d2b759e0f0da75ad8c0800714c164bc22c69649"
+    },
+    "derivation": "Official separately distributed MTPv2 head initialized from the built-in BF16 MTP head and further trained by NVIDIA while the Nemotron 3 Super backbone remained frozen."
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "parameters": {
+    "total": 2942325248,
+    "active": null
+  },
+  "limits": {
+    "context_tokens": 1048576
+  },
+  "sizes": {
+    "download_bytes": 5884889389,
+    "installed_bytes": 5884889389
+  },
+  "license": {
+    "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/",
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "operator_acceptance_required": true
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "artifacts": [
+    {
+      "id": "metadata-gitattributes-11ad7efa2497",
+      "path": ".gitattributes",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2",
+      "revision": "c929f8a55d0527fea9f58b4cedc9e0c855cfc421",
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "download_bytes": 1519,
+      "installed_bytes": 1519,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "readme-505b2b8d7626",
+      "path": "README.md",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2",
+      "revision": "c929f8a55d0527fea9f58b4cedc9e0c855cfc421",
+      "sha256": "505b2b8d7626f14865e70de71d5c49025e9137af23082ce531108ad7c5fe49e7",
+      "download_bytes": 13736,
+      "installed_bytes": 13736,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "config-699f34f0fc64",
+      "path": "config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2",
+      "revision": "c929f8a55d0527fea9f58b4cedc9e0c855cfc421",
+      "sha256": "699f34f0fc645d29ebffa5767fb59e6ae6ec98e3a4605485eb9913256d0df7e6",
+      "download_bytes": 1924,
+      "installed_bytes": 1924,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "configuration-nemotron-h-2b3ce37ae17d",
+      "path": "configuration_nemotron_h.py",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2",
+      "revision": "c929f8a55d0527fea9f58b4cedc9e0c855cfc421",
+      "sha256": "2b3ce37ae17d9d2eb78594d9cc6becc57037245d828e69727d6f3cd45125a197",
+      "download_bytes": 13669,
+      "installed_bytes": 13669,
+      "roles": [
+        "runtime"
+      ]
+    },
+    {
+      "id": "generation-config-dc5b4dbdff26",
+      "path": "generation_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2",
+      "revision": "c929f8a55d0527fea9f58b4cedc9e0c855cfc421",
+      "sha256": "dc5b4dbdff26634eaab9c50adc4b58d01aaed0d1648214f1694665373c905516",
+      "download_bytes": 150,
+      "installed_bytes": 150,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "weights-f0114c95f8a8",
+      "path": "model.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2",
+      "revision": "c929f8a55d0527fea9f58b4cedc9e0c855cfc421",
+      "sha256": "f0114c95f8a85fb19de1d05a8733abfffcd9a15203512ab715fe75a1d33b5c83",
+      "download_bytes": 5884780728,
+      "installed_bytes": 5884780728,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-safetensors-index-7f36923c963a",
+      "path": "model.safetensors.index.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2",
+      "revision": "c929f8a55d0527fea9f58b4cedc9e0c855cfc421",
+      "sha256": "7f36923c963a0f95a331ef25aa9d51dc6e3d701eff53c58596c1c481e1d5e4b7",
+      "download_bytes": 77663,
+      "installed_bytes": 77663,
+      "roles": [
+        "configuration"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}

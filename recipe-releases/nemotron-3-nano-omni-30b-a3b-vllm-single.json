@@ -4,9 +4,42 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-nano-omni-30b-a3b-vllm-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "2.0.1",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "2.0.1",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "0501b52f793876bb9ac1fd014c8274846df383cc9bdb62e881c90c041a100830",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Corrected the vLLM 0.20.0 authority description and pinned drift monitoring to the immutable v0.20.0 tag.",
+          "details": "The runtime image, source commit, dependency closure, adapter, and text-only launch arguments are unchanged; only authority metadata and its resulting content digest changed.",
+          "references": [
+            "https://github.com/vllm-project/vllm/releases/tag/v0.20.0"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "47212d1786cbac96741eea91556e656de05df5d8bf7d1bd56be5dc22cd1b57ff",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Converted the profile into an explicit executable text-serving recipe on NVIDIA's immutable vLLM 0.20.0 ARM64 runtime.",
+          "details": "Language-model-only mode intentionally excludes audio, image, and video features, so every advertised capability is available without installing hidden runtime extras.",
+          "references": [
+            "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4/tree/dc5f0b0bfddf8b6e0f5891475be9af05b80126fe",
+            "https://github.com/vllm-project/vllm/releases/tag/v0.20.0"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

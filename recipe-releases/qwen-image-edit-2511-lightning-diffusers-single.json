@@ -4,9 +4,37 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-lightning-diffusers-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "1.2.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "0849de027532d7fc235e4e82511b4cfc6aa6dba654fca2cac0ab910254f2700d",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Made the Candidate installable with its exact Qwen Image Edit 2511 base dependency and four-step BF16 Lightning LoRA.",
+          "references": [
+            "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/tree/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
+            "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning/tree/d74eba145674fd7e31b949324e148e21e7118abd"
+          ]
+        },
+        {
+          "kind": "performance",
+          "summary": "Applied ModelTC's exact four-step shift-3 scheduler with true CFG 1.0."
+        },
+        {
+          "kind": "fix",
+          "summary": "Download only the selected 849 MB BF16 LoRA instead of the complete 100 GB multi-variant collection."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Added explicit UTF-8 prompt, one-or-two image input, and deterministic PNG output contracts; physical Spark acceptance remains pending."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

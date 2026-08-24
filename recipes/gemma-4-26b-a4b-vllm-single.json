@@ -5,13 +5,16 @@
     "slug": "gemma-4-26b-a4b-vllm-single"
   },
   "metadata": {
-    "title": "Gemma 4 26B-A4B vLLM single Spark",
-    "description": "Candidate base-checkpoint qualification only for the exact non-IT Google Gemma 4 26B-A4B checkpoint. This is not the separate instruction-tuned chat target and remains unqualified for OpenAI chat until an immutable -it model version and Gemma 4 template/parser bundle are catalogued.",
+    "title": "Gemma 4 26B-A4B IT vLLM single Spark",
+    "description": "Executable single-Spark OpenAI chat recipe for Google's exact instruction-tuned Gemma 4 26B-A4B checkpoint, using its pinned canonical chat template and vLLM's native Gemma 4 reasoning and tool parsers.",
     "tags": [
       "candidate",
       "google",
       "gemma",
       "multimodal",
+      "instruction-tuned",
+      "reasoning",
+      "tool-use",
       "vllm",
       "openai",
       "single",
@@ -21,8 +24,8 @@
   "model": {
     "kind": "model-version",
     "publisher": "google",
-    "slug": "gemma-4-26b-a4b-24548b62",
-    "content_sha256": "22d3422e0c078d7aad713444c141ae629a1aa8f98f32a39e3779a7d4307e7be1"
+    "slug": "gemma-4-26b-a4b-it-4d7ae498",
+    "content_sha256": "6e1d9e3d3d088957f0a9083ab4e2549387d8ad38fda514096659dc40a76db0ae"
   },
   "execution": {
     "harness": {
@@ -48,8 +51,8 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 62177454729,
-      "temporary_bytes": 103288638216,
+      "download_bytes": 62177475709,
+      "temporary_bytes": 103288680176,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
     }
@@ -59,10 +62,10 @@
     {
       "id": "weights",
       "kind": "huggingface.snapshot",
-      "repository": "google/gemma-4-26B-A4B",
-      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
-      "download_bytes": 51644319108,
-      "installed_bytes": 51644319108,
+      "repository": "google/gemma-4-26B-A4B-it",
+      "revision": "4d7ae4984b7db7de8f8457170b3f1a419ee76d52",
+      "download_bytes": 51644340088,
+      "installed_bytes": 51644340088,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -87,11 +90,11 @@
     "arguments": [
       {
         "name": "served-model-name",
-        "value": "gemma-4-26b-a4b"
+        "value": "gemma-4-26b-a4b-it"
       },
       {
         "name": "max-model-len",
-        "value": 131072
+        "value": 32768
       },
       {
         "name": "max-num-seqs",
@@ -100,6 +103,22 @@
       {
         "name": "gpu-memory-utilization",
         "value": "0.80"
+      },
+      {
+        "name": "reasoning-parser",
+        "value": "gemma4"
+      },
+      {
+        "name": "tool-call-parser",
+        "value": "gemma4"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "value": true
+      },
+      {
+        "name": "default-chat-template-kwargs",
+        "value": "{\"enable_thinking\":false}"
       }
     ],
     "environment": [
@@ -167,8 +186,8 @@
         "resources": {
           "disk": {
             "image_bytes": 12000000000,
-            "artifact_bytes": 51644319108,
-            "staging_bytes": 103288638216,
+            "artifact_bytes": 51644340088,
+            "staging_bytes": 103288680176,
             "cache_bytes": 4000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
@@ -206,7 +225,7 @@
       "adapter": "openai",
       "port": 8000,
       "model_aliases": [
-        "gemma-4-26b-a4b"
+        "gemma-4-26b-a4b-it"
       ],
       "health_path": "/v1/models"
     }
@@ -236,7 +255,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/google/gemma-4-26B-A4B/tree/24548b62aa021d562695c04aaf7758a1ea47990b",
+    "source_reference": "https://huggingface.co/google/gemma-4-26B-A4B-it/tree/4d7ae4984b7db7de8f8457170b3f1a419ee76d52",
     "attribution": [
       "google"
     ]

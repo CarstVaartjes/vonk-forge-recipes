@@ -5,13 +5,13 @@
     "slug": "hunyuan-video-foley-xl-pytorch-single"
   },
   "metadata": {
-    "title": "HunyuanVideo Foley XL diffusers single Spark",
-    "description": "Metadata-only candidate pinned to an immutable upstream snapshot. The shared ARM64 media harness does not implement HunyuanVideo-Foley audio generation or select the XL checkpoint; a model-specific adapter and physical Spark acceptance are required.",
+    "title": "HunyuanVideo Foley XL PyTorch single Spark",
+    "description": "Installable Candidate for text-conditioned Foley generation from one video, with the exact official XL checkpoint and pinned local-only SigLIP2 and CLAP encoders; physical Spark acceptance remains pending.",
     "tags": [
       "candidate",
-      "integration-required",
       "audio",
-      "diffusers",
+      "video-to-audio",
+      "pytorch",
       "single",
       "spark"
     ]
@@ -20,22 +20,22 @@
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "hunyuan-video-foley-xl",
-    "content_sha256": "04301a1bdc962ed1f9dd08c9885b3878de0bc7cdcf3ce4ba1a765e1069687aba"
+    "content_sha256": "5e55835067d495ac082f4074fe23fdf80d50948c59dd717d48953b9fd6f89365"
   },
   "execution": {
     "harness": {
       "kind": "execution-harness",
       "publisher": "vonk-forge",
-      "slug": "diffusers",
-      "content_sha256": "9776b37f1bf4596bf4a0c75c3e9fd6da8b25050aa2cefded2ffd5e35baa583b2"
+      "slug": "pytorch-pipeline",
+      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c"
     },
     "patch_bundle": null
   },
   "build": {
     "context": {
-      "path": "adapters/media/upstream-native",
-      "sha256": "0482565099ffca2d5c3d6fef1cac484e06eba813a1fb18b7e20aac44c50335ce",
-      "expected_bytes": 10240,
+      "path": "adapters/audio/hunyuan-video-foley-native",
+      "sha256": "65e7ca8e66f4dab2f3e142fdce0be12c1792644e3b6c17bcad6050927c7c7786",
+      "expected_bytes": 20992000,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -48,12 +48,13 @@
         "pypi.org",
         "files.pythonhosted.org",
         "archive.ubuntu.com",
+        "security.ubuntu.com",
         "ports.ubuntu.com"
       ]
     },
     "resources": {
-      "download_bytes": 20593354027,
-      "temporary_bytes": 37186708054,
+      "download_bytes": 22915171892,
+      "temporary_bytes": 41830343784,
       "memory_bytes": 8000000000,
       "timeout_seconds": 14400
     }
@@ -61,14 +62,44 @@
   "parameters": [],
   "artifacts": [
     {
-      "id": "weights",
+      "id": "target",
       "kind": "huggingface.snapshot",
       "repository": "tencent/HunyuanVideo-Foley",
       "revision": "3abd4e833b95b8db0fc9c687afc52483a48e9a97",
       "download_bytes": 18593354027,
       "installed_bytes": 18593354027,
       "mount": {
-        "target": "/models",
+        "target": "/models/target",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "siglip2",
+      "kind": "huggingface.snapshot",
+      "repository": "google/siglip2-base-patch16-512",
+      "revision": "a89f5c5093f902bf39d3cd4d81d2c09867f0724b",
+      "download_bytes": 1542001977,
+      "installed_bytes": 1542001977,
+      "mount": {
+        "target": "/models/siglip2",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "clap",
+      "kind": "huggingface.snapshot",
+      "repository": "laion/larger_clap_general",
+      "revision": "ada0c23a36c4e8582805bb38fec3905903f18b41",
+      "download_bytes": 779815888,
+      "installed_bytes": 779815888,
+      "mount": {
+        "target": "/models/clap",
         "read_only": true
       },
       "roles": [
@@ -79,33 +110,29 @@
   "runtime": {
     "distribution": {
       "kind": "runtime-distribution",
-      "publisher": "huggingface",
-      "slug": "diffusers-0-40-0-cuda13-arm64",
-      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7"
+      "publisher": "tencent",
+      "slug": "hunyuan-video-foley-native-df7b005-cuda13-arm64",
+      "content_sha256": "c7f3e2faa285c3c2cc19db2e093857eb546e0d6a8c0ec26ace08cdc3f4221800"
     },
     "entrypoint": [
-      "/opt/vonk/bin/diffusers-job"
+      "/opt/vonk/bin/pytorch-pipeline"
     ],
     "arguments": [
+      {
+        "name": "entrypoint",
+        "value": "/opt/vonk/source/pipelines/hunyuan_foley_xl.py"
+      },
       {
         "name": "output-mime",
         "value": "audio/wav"
       },
       {
-        "name": "pipeline",
-        "value": "text-to-audio"
-      },
-      {
         "name": "seed",
-        "value": 0
+        "value": 1
       },
       {
-        "name": "num-inference-steps",
-        "value": 4
-      },
-      {
-        "name": "guidance-scale",
-        "value": "4"
+        "name": "timeout-seconds",
+        "value": 3600
       }
     ],
     "environment": [
@@ -114,8 +141,8 @@
         "value": "1"
       },
       {
-        "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "value": "expandable_segments:True"
       }
     ],
     "security": {
@@ -130,6 +157,11 @@
         {
           "source": "model",
           "target": "/models",
+          "read_only": true
+        },
+        {
+          "source": "inputs",
+          "target": "/inputs",
           "read_only": true
         },
         {
@@ -164,13 +196,15 @@
         "count": 1,
         "endpoint_owner": true,
         "artifacts": [
-          "weights"
+          "target",
+          "siglip2",
+          "clap"
         ],
         "resources": {
           "disk": {
             "image_bytes": 2000000000,
-            "artifact_bytes": 18593354027,
-            "staging_bytes": 37186708054,
+            "artifact_bytes": 20915171892,
+            "staging_bytes": 41830343784,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
@@ -206,7 +240,18 @@
   "interfaces": [
     {
       "adapter": "audio-job",
-      "path": "/outputs"
+      "path": "/outputs",
+      "input": {
+        "path": "/inputs",
+        "required": true,
+        "media_types": [
+          "video/mp4",
+          "video/quicktime",
+          "video/webm",
+          "video/x-matroska"
+        ],
+        "max_bytes": 536870912
+      }
     }
   ],
   "validation": {
@@ -220,10 +265,12 @@
     ],
     "benchmarks": [
       {
-        "name": "bounded-startup",
-        "framework": "diffusers",
+        "name": "bounded-foley-xl",
+        "framework": "pytorch",
         "configuration": {
-          "timeout_seconds": 14400
+          "model_size": "xl",
+          "num_inference_steps": 50,
+          "timeout_seconds": 3600
         }
       }
     ]

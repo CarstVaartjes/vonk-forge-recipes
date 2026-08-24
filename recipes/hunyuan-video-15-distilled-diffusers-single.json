@@ -6,11 +6,12 @@
   },
   "metadata": {
     "title": "HunyuanVideo 1.5 distilled diffusers single Spark",
-    "description": "Metadata-only candidate pinned to an immutable upstream snapshot. The shared ARM64 media harness does not implement this model's video execution path; a model-specific adapter and physical Spark acceptance are required.",
+    "description": "Installable Candidate for 480p CFG-distilled text-to-video with a complete immutable Diffusers snapshot and offline ARM64 runtime; physical Spark acceptance remains pending.",
     "tags": [
       "candidate",
-      "integration-required",
       "video",
+      "text-to-video",
+      "cfg-distilled",
       "diffusers",
       "single",
       "spark"
@@ -20,7 +21,7 @@
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "hunyuan-video-15-distilled",
-    "content_sha256": "ed2eafd50bfe1c98b28bc6f0e05c886165e67a069814ba7b6e24b327c2d66975"
+    "content_sha256": "4665e829327c2b252a7d07a90641b98343ae3905c8977e733099a3a322df7abe"
   },
   "execution": {
     "harness": {
@@ -33,9 +34,9 @@
   },
   "build": {
     "context": {
-      "path": "adapters/media/upstream-native",
-      "sha256": "0482565099ffca2d5c3d6fef1cac484e06eba813a1fb18b7e20aac44c50335ce",
-      "expected_bytes": 10240,
+      "path": "adapters/video/hunyuan-video-15-native",
+      "sha256": "660ffe143133f5edf11cfbe8f569cdfc7b4a09666036da2c58cca6533bce0c63",
+      "expected_bytes": 92160,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -48,12 +49,13 @@
         "pypi.org",
         "files.pythonhosted.org",
         "archive.ubuntu.com",
+        "security.ubuntu.com",
         "ports.ubuntu.com"
       ]
     },
     "resources": {
-      "download_bytes": 373771118874,
-      "temporary_bytes": 743542237748,
+      "download_bytes": 55384320234,
+      "temporary_bytes": 106768640468,
       "memory_bytes": 8000000000,
       "timeout_seconds": 14400
     }
@@ -63,10 +65,10 @@
     {
       "id": "weights",
       "kind": "huggingface.snapshot",
-      "repository": "tencent/HunyuanVideo-1.5",
-      "revision": "9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
-      "download_bytes": 371771118874,
-      "installed_bytes": 371771118874,
+      "repository": "hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_t2v_distilled",
+      "revision": "1abb14f06518f37448dcf3a6917dd086dd7045c7",
+      "download_bytes": 53384320234,
+      "installed_bytes": 53384320234,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -80,8 +82,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "huggingface",
-      "slug": "diffusers-0-40-0-cuda13-arm64",
-      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7"
+      "slug": "diffusers-0-39-0-cuda13-arm64",
+      "content_sha256": "018f23f02a2d93e5d4396f283b6862fc01aaf1364334db1d556d4484c2640afb"
     },
     "entrypoint": [
       "/opt/vonk/bin/diffusers-job"
@@ -101,11 +103,15 @@
       },
       {
         "name": "num-inference-steps",
-        "value": 4
+        "value": 50
       },
       {
         "name": "guidance-scale",
-        "value": "4"
+        "value": "1"
+      },
+      {
+        "name": "resolution",
+        "value": 480
       }
     ],
     "environment": [
@@ -169,8 +175,8 @@
         "resources": {
           "disk": {
             "image_bytes": 2000000000,
-            "artifact_bytes": 371771118874,
-            "staging_bytes": 743542237748,
+            "artifact_bytes": 53384320234,
+            "staging_bytes": 106768640468,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
@@ -220,9 +226,12 @@
     ],
     "benchmarks": [
       {
-        "name": "bounded-startup",
+        "name": "bounded-480p-cfg-distilled-t2v",
         "framework": "diffusers",
         "configuration": {
+          "resolution": 480,
+          "frames": 121,
+          "num_inference_steps": 50,
           "timeout_seconds": 14400
         }
       }

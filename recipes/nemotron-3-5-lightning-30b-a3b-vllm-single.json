@@ -10,7 +10,7 @@
     "kind": "model-version",
     "publisher": "nvidia",
     "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4",
-    "content_sha256": "23c4438f68b493286e01c9e49af024800eec6aa90fe5fbd3df1a4d9b1c0e3355"
+    "content_sha256": "294a5e7951c8d5eec253e0b2c193954581627da417ed97277c08f23870a2b4f9"
   },
   "execution": {
     "harness": {
@@ -33,7 +33,7 @@
     "arguments": [],
     "network": {"mode": "none", "hosts": []},
     "resources": {
-      "download_bytes": 21583413244,
+      "download_bytes": 21583785126,
       "temporary_bytes": 32000000000,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
@@ -45,9 +45,9 @@
       "id": "weights",
       "kind": "huggingface.snapshot",
       "repository": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4",
-      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
-      "download_bytes": 21583413244,
-      "installed_bytes": 21583413244,
+      "revision": "e8f3c7c4de75ad84fe1bcef95d38eca76214480b",
+      "download_bytes": 21583785126,
+      "installed_bytes": 21583785126,
       "mount": {"target": "/models", "read_only": true},
       "roles": ["entrypoint"]
     }
@@ -111,7 +111,7 @@
         "endpoint_owner": true,
         "artifacts": ["weights"],
         "resources": {
-          "disk": {"image_bytes": 12000000000, "artifact_bytes": 21583413244, "staging_bytes": 32000000000, "cache_bytes": 4000000000, "rollback_bytes": 0, "safety_margin_bytes": 12000000000},
+          "disk": {"image_bytes": 12000000000, "artifact_bytes": 21583785126, "staging_bytes": 32000000000, "cache_bytes": 4000000000, "rollback_bytes": 0, "safety_margin_bytes": 12000000000},
           "memory": {"kind": "unified", "startup_peak_bytes": 90000000000, "steady_state_bytes": 78000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}
         }
       }
@@ -123,5 +123,5 @@
   },
   "interfaces": [{"adapter": "openai", "port": 8000, "model_aliases": ["nemotron-3-5-lightning"], "health_path": "/v1/models"}],
   "validation": {"validators": [{"interface": "openai", "checks": ["endpoint.healthy", "chat.nonempty", "chat.max-output-64"]}], "benchmarks": [{"name": "bounded-chat", "framework": "openai", "configuration": {"max_output_tokens": 64, "requests": 1, "timeout_seconds": 300}}]},
-  "provenance": {"source_kind": "global", "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/6dbbd757ea75a8ece6e0702872e3ae53f9987728", "attribution": ["NVIDIA Corporation"]}
+  "provenance": {"source_kind": "global", "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/e8f3c7c4de75ad84fe1bcef95d38eca76214480b", "attribution": ["NVIDIA Corporation"]}
 }

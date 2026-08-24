@@ -1,0 +1,12 @@
+This build context embeds Tencent HunyuanVideo-Foley source at commit
+df7b005b5023df2a9b73e1d66dd51d452799884e under the Tencent Hunyuan
+Community License Agreement. The custom Hugging Face Transformers fork is
+pinned to the peeled source commit a957b7911a758d54597914b4479fe6e81424d64f
+behind the official v4.49.0-SigLIP-2 tag, and Descript Audiotools is pinned
+to commit 348ebf2034ce24e2a91a553e3171cb00c0c71678.
+
+The Transformers archive is stored as three deterministic, transport-bounded
+chunks. The Docker build verifies every chunk, reassembles them in fixed order,
+and verifies the original archive SHA-256 before extraction.
+
+The files under pipelines/ are Vonk Forge wrappers for the signed job contract.

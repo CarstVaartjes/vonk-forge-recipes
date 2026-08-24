@@ -167,7 +167,7 @@
       "kind": "model-version",
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-flash-0731-official",
-      "content_sha256": "28420ead252663dd5825d7556fc78fe53e55a1c33a4de4d43e15a3bf2fabd6b4"
+      "content_sha256": "fd8d996770f3f92421542c733da92c01c9dcf45cb407d4e1a7e14ac392b54392"
     }
   ],
   "capability_changes": [

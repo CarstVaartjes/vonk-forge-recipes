@@ -5,13 +5,16 @@
     "slug": "mova-720p-diffusers-single"
   },
   "metadata": {
-    "title": "MOVA 720p diffusers single Spark",
-    "description": "Metadata-only candidate pinned to an immutable upstream snapshot. MOVA requires its native source pipeline and synchronized video/audio export, which the shared ARM64 media harness does not implement; an immutable model-specific source bundle and physical Spark acceptance are required.",
+    "title": "MOVA 720p native synchronized media single Spark",
+    "description": "Installable Candidate for the exact official MOVA 720p checkpoint and native pipeline. It produces one fail-closed MP4 containing synchronized 24 fps video and 48 kHz audio; the ARM64 image builds reproducibly and only the physical Spark canary remains pending.",
     "tags": [
       "candidate",
-      "integration-required",
+      "executable",
+      "openmoss",
+      "mova",
       "video",
-      "diffusers",
+      "audio",
+      "pytorch",
       "single",
       "spark"
     ]
@@ -26,16 +29,21 @@
     "harness": {
       "kind": "execution-harness",
       "publisher": "vonk-forge",
-      "slug": "diffusers",
-      "content_sha256": "9776b37f1bf4596bf4a0c75c3e9fd6da8b25050aa2cefded2ffd5e35baa583b2"
+      "slug": "pytorch-pipeline",
+      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c"
     },
-    "patch_bundle": null
+    "patch_bundle": {
+      "kind": "patch-bundle",
+      "publisher": "openmoss",
+      "slug": "mova-inference-only-import",
+      "content_sha256": "1cf8c09cac7f35c9a329ec0ebf958dfe1649bef26e092792aca6bff8b986d859"
+    }
   },
   "build": {
     "context": {
-      "path": "adapters/media/upstream-native",
-      "sha256": "0482565099ffca2d5c3d6fef1cac484e06eba813a1fb18b7e20aac44c50335ce",
-      "expected_bytes": 10240,
+      "path": "adapters/video/mova-pytorch",
+      "sha256": "ee2f59e989a7993fefa70852627e1c3aa34a4375f13c4c21115145b233651361",
+      "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -44,15 +52,22 @@
     "network": {
       "mode": "public",
       "hosts": [
+        "nvcr.io",
+        "developer.download.nvidia.com",
+        "pypi.nvidia.com",
+        "github.com",
+        "codeload.github.com",
         "download.pytorch.org",
+        "download-r2.pytorch.org",
         "pypi.org",
         "files.pythonhosted.org",
         "archive.ubuntu.com",
+        "security.ubuntu.com",
         "ports.ubuntu.com"
       ]
     },
     "resources": {
-      "download_bytes": 79689755302,
+      "download_bytes": 81689755302,
       "temporary_bytes": 155379510604,
       "memory_bytes": 8000000000,
       "timeout_seconds": 14400
@@ -79,42 +94,34 @@
   "runtime": {
     "distribution": {
       "kind": "runtime-distribution",
-      "publisher": "huggingface",
-      "slug": "diffusers-0-40-0-cuda13-arm64",
-      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7"
+      "publisher": "openmoss",
+      "slug": "mova-native-arm64",
+      "content_sha256": "99f7593ff1dcd3667452efc166b7cc480de35a04782744665bf482faecec5b39"
     },
     "entrypoint": [
-      "/opt/vonk/bin/diffusers-job"
+      "/opt/vonk/bin/pytorch-pipeline"
     ],
     "arguments": [
+      {
+        "name": "entrypoint",
+        "value": "/opt/vonk/source/pipelines/run.py"
+      },
       {
         "name": "output-mime",
         "value": "video/mp4"
       },
       {
-        "name": "pipeline",
-        "value": "text-to-video"
+        "name": "timeout-seconds",
+        "value": 3600
       },
       {
         "name": "seed",
         "value": 0
-      },
-      {
-        "name": "num-inference-steps",
-        "value": 4
-      },
-      {
-        "name": "guidance-scale",
-        "value": "4"
       }
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "TRANSFORMERS_OFFLINE",
         "value": "1"
       }
     ],
@@ -130,6 +137,11 @@
         {
           "source": "model",
           "target": "/models",
+          "read_only": true
+        },
+        {
+          "source": "inputs",
+          "target": "/inputs",
           "read_only": true
         },
         {
@@ -168,7 +180,7 @@
         ],
         "resources": {
           "disk": {
-            "image_bytes": 2000000000,
+            "image_bytes": 6000000000,
             "artifact_bytes": 77689755302,
             "staging_bytes": 155379510604,
             "cache_bytes": 8000000000,
@@ -177,8 +189,8 @@
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 38844877651,
-            "steady_state_bytes": 25896585100,
+            "startup_peak_bytes": 118000000000,
+            "steady_state_bytes": 104000000000,
             "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
@@ -206,7 +218,17 @@
   "interfaces": [
     {
       "adapter": "video-job",
-      "path": "/outputs"
+      "path": "/outputs",
+      "input": {
+        "path": "/inputs",
+        "required": false,
+        "media_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "max_bytes": 16777216
+      }
     }
   ],
   "validation": {
@@ -220,10 +242,16 @@
     ],
     "benchmarks": [
       {
-        "name": "bounded-startup",
-        "framework": "diffusers",
+        "name": "bounded-synchronized-video",
+        "framework": "mova-native",
         "configuration": {
-          "timeout_seconds": 14400
+          "frames": 193,
+          "fps": 24,
+          "height": 720,
+          "width": 1280,
+          "audio_sample_rate": 48000,
+          "num_inference_steps": 50,
+          "timeout_seconds": 3600
         }
       }
     ]
