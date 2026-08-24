@@ -15,8 +15,8 @@
   },
   "source": {
     "repository": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark",
-    "revision": "f104c39a8c6fa68d4ea0b342ad6eed172bc0e635",
-    "archive_sha256": "57e72d1ee30aac77aa239c24d0caaba929a981edaf7ffc36dbd98ad315d33355"
+    "revision": "d1b76251535daef578d8751b04b39c29ad7ecdf9",
+    "archive_sha256": "51249cd81009a57b420d48e3d3e1e406427e6c37fe984e1631c52bf37143faee"
   },
   "base_source": {
     "repository": "https://github.com/vllm-project/vllm",
@@ -28,7 +28,7 @@
       "path": "patches/apply-reasoning-default.py",
       "sha256": "505d3345ba2a5369481896e83f94003d3e8182253f783a9852c6f45413ebaed0",
       "purpose": "Normalize unknown reasoning effort to low while preserving explicit high and max.",
-      "upstream_reference": "Mia docker-compose.dspark.yml inline reasoning normalization at f104c39a8c6fa68d4ea0b342ad6eed172bc0e635",
+      "upstream_reference": "Mia docker-compose.dspark.yml inline reasoning normalization at d1b76251535daef578d8751b04b39c29ad7ecdf9",
       "license": "MIT"
     },
     {
@@ -44,7 +44,7 @@
       "path": "patches/hotfix-dsv4-issue55-tool-truncation.py",
       "sha256": "0dbb8a18d41325d518c221b3cfbd148c3a092e37c1816ba565b62e28172dd773",
       "purpose": "Preserve complete tool calls and correct finish reasons when completion output is truncated.",
-      "upstream_reference": "Mia issue 55 at f104c39a8c6fa68d4ea0b342ad6eed172bc0e635",
+      "upstream_reference": "Mia issue 55 at d1b76251535daef578d8751b04b39c29ad7ecdf9",
       "license": "MIT"
     },
     {
@@ -52,7 +52,7 @@
       "path": "patches/hotfix-nvfp4-ds-mla-issue22.sh",
       "sha256": "52de6d0cd06f571cfdbbb856bfea4a098a5118ce769de739a18b51044300772a",
       "purpose": "Route NVFP4 DS MLA long-context decode to the supported fast kernel path.",
-      "upstream_reference": "Mia issue 22 at f104c39a8c6fa68d4ea0b342ad6eed172bc0e635",
+      "upstream_reference": "Mia issue 22 at d1b76251535daef578d8751b04b39c29ad7ecdf9",
       "license": "MIT"
     },
     {
@@ -60,7 +60,7 @@
       "path": "patches/hotfix-gb10-spin-wait.sh",
       "sha256": "b7deed123348d78c8e7ae3f99d9107b59a798d0b3c7840b7cccaadfd8418de71",
       "purpose": "Reduce GB10 shared-memory IPC spin time before sleeping to lower idle CPU load and SoC heat.",
-      "upstream_reference": "Mia issue 79 at f104c39a8c6fa68d4ea0b342ad6eed172bc0e635",
+      "upstream_reference": "Mia issue 79 at d1b76251535daef578d8751b04b39c29ad7ecdf9",
       "license": "MIT"
     },
     {
@@ -116,7 +116,7 @@
       "path": "patches/hotfix-vllm-empty-encoder-output.py",
       "sha256": "e417bcdcb6d62f4790885fe5c64bef3a3015a17cea00e3901eb3e2f4b7cf35a6",
       "purpose": "Prevent encoder-only execution steps from emitting phantom token zero.",
-      "upstream_reference": "Mia issue 109 at f104c39a8c6fa68d4ea0b342ad6eed172bc0e635",
+      "upstream_reference": "Mia issue 109 at d1b76251535daef578d8751b04b39c29ad7ecdf9",
       "license": "MIT"
     },
     {
@@ -124,7 +124,7 @@
       "path": "patches/hotfix-dsv4-issue27-partial-prefill-concurrency.py",
       "sha256": "31e7b14213dc6983c07716cf625c4245a42f9d884733e5f7e21a79ab459a8f8b",
       "purpose": "Correct scheduler accounting for bounded partial-prefill concurrency.",
-      "upstream_reference": "Mia issue 27 at f104c39a8c6fa68d4ea0b342ad6eed172bc0e635",
+      "upstream_reference": "Mia issue 27 at d1b76251535daef578d8751b04b39c29ad7ecdf9",
       "license": "MIT"
     },
     {
@@ -132,7 +132,7 @@
       "path": "patches/hotfix-dsv4-issue43-decode-fairness-and-diag.py",
       "sha256": "0059144ce08e825354718c8b0aa3799dcf434045f40241f75a4211fe4f199dc4",
       "purpose": "Add bounded decode service during mixed prefills plus opt-in scheduler diagnostics.",
-      "upstream_reference": "Mia issue 43 at f104c39a8c6fa68d4ea0b342ad6eed172bc0e635",
+      "upstream_reference": "Mia issue 43 at d1b76251535daef578d8751b04b39c29ad7ecdf9",
       "license": "MIT"
     },
     {
@@ -140,7 +140,7 @@
       "path": "patches/hotfix-dsv4-issue26-hybrid-swa-min.py",
       "sha256": "8c76a65207d5f30b898cf5f60e39b8a59e4febb3217c34fe57f6a7fb225a3c3f",
       "purpose": "Keep hybrid SWA common-hit calculation from shrinking valid cache hits.",
-      "upstream_reference": "Mia issues 26 and 36 at f104c39a8c6fa68d4ea0b342ad6eed172bc0e635",
+      "upstream_reference": "Mia issues 26 and 36 at d1b76251535daef578d8751b04b39c29ad7ecdf9",
       "license": "MIT"
     },
     {
@@ -148,8 +148,16 @@
       "path": "patches/hotfix-dsv4-suppress-stops-in-reasoning.py",
       "sha256": "618a66c58fc422ae65d0f08018fac69370657e4ead1285c8104a56f507f6279f",
       "purpose": "Keep client stop strings dormant while the model is inside reasoning output.",
-      "upstream_reference": "Mia suppress-stops hotfix at f104c39a8c6fa68d4ea0b342ad6eed172bc0e635",
+      "upstream_reference": "Mia suppress-stops hotfix at d1b76251535daef578d8751b04b39c29ad7ecdf9",
       "license": "MIT"
+    },
+    {
+      "order": 17,
+      "path": "patches/hotfix-dspark-shared-expert-loader.py",
+      "sha256": "b4a32bec2bd14fd8e7e3a877a2b2fd68282b8a6cb2d55c2441bc0aeff0d05a81",
+      "purpose": "Load the Stage-C DSpark shared-expert gate and up checkpoint shards into the fused gate_up_proj parameter.",
+      "upstream_reference": "Mia pull request 127 merged at d1b76251535daef578d8751b04b39c29ad7ecdf9",
+      "license": "Apache-2.0"
     }
   ],
   "pre_patch_tree_sha256": "c95903b2148fee727e4e88ffa9b0e65d86239f36bcbec33e352c9a5b92580a03",
@@ -169,6 +177,7 @@
     "fail-closed-patching",
     "gb10-spin-wait",
     "scheduler-fairness",
+    "shared-expert-loading",
     "tool-call-correctness"
   ],
   "removal_condition": "Remove each patch only after the exact base vLLM revision incorporates the same behavior and two-Spark qualification is repeated.",
@@ -177,9 +186,9 @@
     "attribution": ["MiaAI-Lab", "vLLM contributors"]
   },
   "source_bundle": {
-    "sha256": "00d8799893c26fa7ace5bf656f4379524ad56029b6c7fae9b72ae3a0845474c5",
-    "expected_bytes": 245760,
+    "sha256": "8eef2502149b710328833916acc780cef90f693e7be258eb063dd0e0764b1b74",
+    "expected_bytes": 256000,
     "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
   },
-  "sha256": "e6ca405ace5989910f92c982bdecd3e147d5056f5124381e9339897a86f39b6d"
+  "sha256": "0091512c9e3267de6ab0060ce3d15db1ed7fe48434cd3723dd2de6aed32c9cce"
 }
