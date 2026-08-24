@@ -18,6 +18,21 @@
           "summary": "Initial reviewed catalog release of Laguna S 2.1 NVFP4 vLLM single Spark."
         }
       ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-17",
+      "recipe_content_sha256": "d168f415b63b3928ea0e2b3e0bfa1cca04b3698e9417e5cd869f03f8d92354cd",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+          ]
+        }
+      ]
     }
   ]
 }

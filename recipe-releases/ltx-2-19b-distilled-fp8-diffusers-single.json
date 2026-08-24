@@ -16,7 +16,9 @@
         {
           "kind": "fix",
           "summary": "Corrected the complete immutable LTX-2 snapshot and dependent disk resource sizes.",
-          "references": ["https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"]
+          "references": [
+            "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
+          ]
         },
         {
           "kind": "compatibility",
@@ -33,6 +35,21 @@
         {
           "kind": "initial",
           "summary": "Initial reviewed catalog release of LTX-2 19B distilled FP8 diffusers single Spark."
+        }
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-17",
+      "recipe_content_sha256": "c1bcc523bc7d65302fa3f46e31d85e643b503af4087c33b014815c5168838183",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+          ]
         }
       ]
     }

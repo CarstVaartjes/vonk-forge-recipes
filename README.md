@@ -56,6 +56,12 @@ contains bounded operator-facing change notes. Append a history item whenever
 the executable recipe digest changes; metadata-only edits do not mint a new
 recipe version.
 
+Public recipe digests that predate the release sidecars are retained as `0.x`
+history rather than being discarded as unknown revisions. Their entries link
+to the exact repository commit that published the digest and use conservative
+upgrade semantics. Where an original semantic release timestamp was never
+recorded, the changelog says so explicitly instead of inventing one.
+
 ## Adding a recipe
 
 1. Add or revise the model entities and exact artifact metadata.

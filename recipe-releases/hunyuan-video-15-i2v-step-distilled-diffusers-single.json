@@ -16,7 +16,9 @@
         {
           "kind": "fix",
           "summary": "Corrected the immutable HunyuanVideo 1.5 snapshot and dependent disk resource sizes from the complete upstream inventory.",
-          "references": ["https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038"]
+          "references": [
+            "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038"
+          ]
         },
         {
           "kind": "compatibility",
@@ -33,6 +35,21 @@
         {
           "kind": "initial",
           "summary": "Initial reviewed catalog release of HunyuanVideo 1.5 I2V 480p step-distilled diffusers single Spark."
+        }
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "released_at": "2026-08-17",
+      "recipe_content_sha256": "240d34c117d5147ddfe74b013946c46131d5ff916dec4f32654c6e5131abed18",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
+          "references": [
+            "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+          ]
         }
       ]
     }
