@@ -7,7 +7,7 @@
   },
   "metadata": {
     "title": "Image generation and editing targets",
-    "updated": "2026-08-24"
+    "updated": "2026-08-25"
   },
   "targets": [
     {
@@ -45,9 +45,10 @@
         "single"
       ],
       "recipe_slugs": [
-        "qwen-image-2512-diffusers-single"
+        "qwen-image-2512-diffusers-single",
+        "qwen-image-2512-comfyui-single"
       ],
-      "notes": "Exact official 57.7 GB checkpoint and structurally qualified Diffusers candidate; ARM64 container build and Spark output/peak-memory acceptance remain."
+      "notes": "Exact official 57.7 GB checkpoint plus hash-locked 50.5 GB Comfy repack; ARM64 container build and Spark output/peak-memory acceptance remain."
     },
     {
       "modality": "image",
@@ -84,9 +85,29 @@
         "single"
       ],
       "recipe_slugs": [
-        "qwen-image-edit-2511-diffusers-single"
+        "qwen-image-edit-2511-diffusers-single",
+        "qwen-image-edit-2511-comfyui-single"
       ],
       "notes": "Exact official 57.7 GB checkpoint and input-contract Diffusers candidate; ARM64 container build and Spark image-edit acceptance remain."
+    },
+    {
+      "modality": "image",
+      "group": "FLUX.2",
+      "model": "FLUX.2 Klein 4B",
+      "version": "ComfyUI BF16 5f526678",
+      "status": "candidate",
+      "source": "https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b/tree/5f526678002e43af5551dadb73ce2e8c91b43afe",
+      "harnesses": [
+        "comfyui"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "flux-2-klein-4b-comfyui-single"
+      ],
+      "catalog_model_version": "flux-2-klein-4b-comfyui-5f526678",
+      "notes": "Hash-locked four-step core-node ComfyUI candidate using the Apache-2.0 4B checkpoint; ARM64 container and physical Spark output/latency acceptance remain."
     },
     {
       "modality": "image",
