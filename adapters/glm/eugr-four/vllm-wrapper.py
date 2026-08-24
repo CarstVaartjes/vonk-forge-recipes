@@ -8,6 +8,10 @@ import sys
 from ipaddress import ip_address
 
 arguments = sys.argv[1:]
+nccl = "/opt/vonk/lib/libnccl.so.2"
+if not os.path.isfile(nccl):
+    raise SystemExit("the pinned NCCL runtime is missing from the adapter image")
+os.environ["LD_PRELOAD"] = nccl
 if "--nnodes" in arguments:
     local_address = os.environ.get("VONK_LOCAL_ADDR")
     master_address = os.environ.get("VONK_MASTER_ADDR")
@@ -41,4 +45,3 @@ if "--nnodes" in arguments:
     os.environ["MASTER_PORT"] = master_port
     arguments.extend(("--master-addr", master_address, "--master-port", master_port))
 os.execv("/usr/local/bin/vllm", ("/usr/local/bin/vllm", *arguments))
-

@@ -8,10 +8,9 @@ import json
 import sys
 import tempfile
 import unittest
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
-
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "tools/build-catalog-index"
@@ -211,6 +210,21 @@ class RecipeReleaseBuildTests(unittest.TestCase):
                 }
             },
         }
+
+    def test_source_bundle_rejects_files_above_hydration_limit(self) -> None:
+        with isolated_root() as root:
+            context = root / "adapters/demo"
+            context.mkdir(parents=True)
+            (context / "oversized.bin").write_bytes(b"four")
+            previous = catalog_index.MAX_SOURCE_FILE_BYTES
+            catalog_index.MAX_SOURCE_FILE_BYTES = 3
+            try:
+                with self.assertRaisesRegex(
+                    SystemExit, "source bundle file exceeds the Git blob hydration limit"
+                ):
+                    catalog_index.source_bundle(context)
+            finally:
+                catalog_index.MAX_SOURCE_FILE_BYTES = previous
 
     def test_build_rejects_missing_sidecar(self) -> None:
         with isolated_root() as root:

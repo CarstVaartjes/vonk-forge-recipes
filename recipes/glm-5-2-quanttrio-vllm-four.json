@@ -3,7 +3,7 @@
   "identity": {"publisher": "vonk-forge", "slug": "glm-5-2-quanttrio-vllm-four"},
   "metadata": {
     "title": "GLM 5.2 QuantTrio four Sparks",
-    "description": "Candidate TP4 recipe for the unpruned GLM 5.2 Int4/Int8 checkpoint. It carries the upstream settings accepted by the strict harness, but the catalogued stock B12X runtime lacks the required host-bound sparse-MLA kernel/indexer bake and the harness cannot express explicit KV allocation or CUDA-graph mode, so physical four-Spark qualification is required.",
+    "description": "Complete, offline-serving Candidate TP4 recipe for the unpruned GLM 5.2 Int4/Int8 checkpoint. It uses a public digest-pinned ARM64 image with the matched sparse-MLA kernels, B12X integration, and MTP indexer fix baked in, plus explicit KV and CUDA-graph settings; Candidate status is retained only for the later physical four-Spark canary.",
     "tags": ["candidate", "chat", "distributed", "glm-5.2", "reasoning", "spark"]
   },
   "model": {
@@ -21,23 +21,23 @@
     },
     "patch_bundle": {
       "kind": "patch-bundle",
-      "publisher": "mattcurfman",
+      "publisher": "drowzeys",
       "slug": "glm-5-2-quanttrio-four-topology",
-      "content_sha256": "734cf852dbd9e01c7584965fcbda2d727bd3f4e36a41c68bb396c502382b78b3"
+      "content_sha256": "6adf0cbad4ac24d7dab2f38105fe0eb3b756036d487600b043c939ad1ee4d794"
     }
   },
   "build": {
     "context": {
       "path": "adapters/glm/eugr-four",
-      "sha256": "8505b023d560d38446275062cb919d742e56b64afea8149b3d551fd24b5ca8f0",
+      "sha256": "d79bd5835ee30ae31409a6a2affcaaafdd252f029a6a89ce2baa37f5d59041ce",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
     "platform": "linux/arm64",
     "arguments": [],
-    "network": {"mode": "none", "hosts": []},
-    "resources": {"download_bytes": 11312660690, "temporary_bytes": 20000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
+    "network": {"mode": "public", "hosts": ["ghcr.io", "files.pythonhosted.org"]},
+    "resources": {"download_bytes": 9913559749, "temporary_bytes": 20000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
   },
   "parameters": [],
   "artifacts": [
@@ -55,9 +55,9 @@
   "runtime": {
     "distribution": {
       "kind": "runtime-distribution",
-      "publisher": "eugr",
-      "slug": "spark-vllm-b12x-2026-08-22",
-      "content_sha256": "91043606da8612bd8cb36959c37042c8dde0c6e74742acf65ab7e3ab8cfa2887"
+      "publisher": "drowzeys",
+      "slug": "glm-5-2-quanttrio-four-spark",
+      "content_sha256": "9bc8f5f2b06af0a686cef3105a6d858bc45f79272111832097866b734356ef59"
     },
     "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
     "arguments": [
@@ -66,31 +66,40 @@
       {"name": "tensor-parallel-size", "value": 4},
       {"name": "pipeline-parallel-size", "value": 1},
       {"name": "dtype", "value": "bfloat16"},
-      {"name": "kv-cache-dtype", "value": "fp8"},
-      {"name": "gpu-memory-utilization", "value": "0.91"},
-      {"name": "max-model-len", "value": 200000},
-      {"name": "max-num-seqs", "value": 2},
+      {"name": "kv-cache-dtype", "value": "fp8_ds_mla"},
+      {"name": "kv-cache-memory-bytes", "value": 7008000000},
+      {"name": "gpu-memory-utilization", "value": "0.86"},
+      {"name": "max-model-len", "value": 128000},
+      {"name": "max-num-seqs", "value": 4},
       {"name": "max-num-batched-tokens", "value": 8192},
       {"name": "speculative-config", "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":4,\"draft_tensor_parallel_size\":1,\"attention_backend\":\"FLASHMLA_SPARSE\"}"},
+      {"name": "compilation-config", "value": "{\"cudagraph_mode\":\"FULL\",\"pass_config\":{\"fuse_gemm_comms\":true}}"},
       {"name": "async-scheduling", "value": true},
       {"name": "enable-prefix-caching", "value": true},
-      {"name": "enable-chunked-prefill", "value": true},
       {"name": "enable-auto-tool-choice", "value": true},
-      {"name": "tool-call-parser", "value": "glm47"}
+      {"name": "tool-call-parser", "value": "glm47"},
+      {"name": "reasoning-parser", "value": "glm45"}
     ],
     "environment": [
       {"name": "HF_HUB_OFFLINE", "value": "1"},
       {"name": "TRANSFORMERS_OFFLINE", "value": "1"},
       {"name": "VLLM_ALLOW_LONG_MAX_MODEL_LEN", "value": "1"},
-      {"name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS", "value": "0"},
-      {"name": "VLLM_USE_B12X_MOE", "value": "1"},
-      {"name": "FLASHINFER_DISABLE_VERSION_CHECK", "value": "1"},
+      {"name": "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS", "value": "1800"},
       {"name": "VLLM_SPARSE_INDEXER_MAX_LOGITS_MB", "value": "256"},
+      {"name": "GLM52_BIND_HOST_TRITON", "value": "1"},
+      {"name": "GLM52_MQA_LOGITS_TRITON", "value": "1"},
+      {"name": "GLM52_PAGED_MQA_TRITON", "value": "1"},
+      {"name": "GLM52_PAGED_MQA_TOPK_CHUNK_SIZE", "value": "8192"},
+      {"name": "GLM52_B12X_MLA", "value": "1"},
+      {"name": "TORCH_CUDA_ARCH_LIST", "value": "12.1a"},
+      {"name": "VLLM_MARLIN_USE_ATOMIC_ADD", "value": "1"},
       {"name": "NCCL_IGNORE_CPU_AFFINITY", "value": "1"},
       {"name": "NCCL_NET", "value": "IB"},
       {"name": "NCCL_IB_DISABLE", "value": "0"},
       {"name": "NCCL_CROSS_NIC", "value": "1"},
       {"name": "NCCL_CUMEM_ENABLE", "value": "0"},
+      {"name": "NCCL_MAX_NCHANNELS", "value": "4"},
+      {"name": "NCCL_MIN_NCHANNELS", "value": "4"},
       {"name": "NCCL_DEBUG", "value": "WARN"}
     ],
     "security": {
@@ -150,7 +159,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://github.com/mattcurfman/glm-5.2-quanttrio-200k-4x-dgx-spark/tree/b6e57cec7ed1ed491693751fa5f6ca991d532045",
-    "attribution": ["Z.ai", "QuantTrio", "Matt Curfman", "eugr", "vLLM contributors"]
+    "source_reference": "https://github.com/drowzeys/keys-GLM5.2-Quantrio-INT4-INT8-Mixed-Abliterated-C1-30toks-4x-DGX-Sparks/tree/296699b44e024de938cb8b3251d49d4b1306a507",
+    "attribution": ["Z.ai", "QuantTrio", "drowzeys", "tonyd2wild", "CosmicRaisins", "eugr", "vLLM contributors"]
   }
 }

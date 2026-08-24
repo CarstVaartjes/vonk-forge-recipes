@@ -4,9 +4,30 @@
     "publisher": "vonk-forge",
     "slug": "triposg-pytorch-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "2.0.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "2.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "b18ba2fd41189d6ba8edd5e154f01afa11fb8ca1ba3d198845e85f306e062957",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Replaced the metadata placeholder with the exact upstream TripoSG image-to-GLB inference path.",
+          "references": ["https://github.com/VAST-AI-Research/TripoSG/tree/fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c"]
+        },
+        {
+          "kind": "model",
+          "summary": "Added the immutable RMBG-1.4 companion snapshot required for offline background removal."
+        },
+        {
+          "kind": "runtime",
+          "summary": "Added a CUDA 13.2 ARM64 native runtime with a pinned DiffDMC build and no runtime downloads."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

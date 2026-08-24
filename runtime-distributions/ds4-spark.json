@@ -16,8 +16,8 @@
   "platform": "linux/arm64",
   "source": {
     "repository": "https://github.com/antirez/ds4",
-    "revision": "84cc882352757baf628a1776badf7cc54d584e28",
-    "archive_sha256": "3ab2c4485bee87f36166b12ab59abbc293ad9fdfadb1c2920d1cbc7f617da165",
+    "revision": "c1d4597a80e300b803dc642519718f2c999589da",
+    "archive_sha256": "39d409a06e03f6eb153c0a4026779138aa6185811ddc3e76c8d89505dceac36f",
     "license": "MIT"
   },
   "image": "nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
@@ -28,6 +28,12 @@
     "compressed_layers_bytes": 1765183632
   },
   "dependencies": [
+    {
+      "name": "DS4",
+      "version": "c1d4597a80e300b803dc642519718f2c999589da",
+      "source": "https://github.com/antirez/ds4",
+      "license": "MIT"
+    },
     {
       "name": "CUDA runtime",
       "version": "13.0.1-ubuntu24.04",

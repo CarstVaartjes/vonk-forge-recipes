@@ -4,9 +4,35 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-mia-dual"
   },
-  "version": "2.0.1",
+  "version": "2.0.2",
   "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "2.0.2",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "6bcfa435c295f1bbbaa672dd162865b4af54aa912352b5722476115d93d886e0",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "model",
+          "summary": "Advanced the official checkpoint authority to 7872f01; only README guidance changed and all 73 executable artifacts remain byte-identical.",
+          "references": [
+            "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731/commit/7872f01b1d1fe23eabc4c98b48bffcef5a386062"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Retained the Mia patch/runtime authority because every weight, configuration, tokenizer, encoding, and inference file is byte-identical.",
+          "references": [
+            "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731/commit/7872f01b1d1fe23eabc4c98b48bffcef5a386062"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Kept the recipe Candidate pending a fresh two-Spark import, inference, and speculative-decoding canary."
+        }
+      ]
+    },
     {
       "version": "2.0.1",
       "released_at": "2026-08-24",

@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "kind": "patch-bundle",
+  "identity": {
+    "publisher": "openmoss",
+    "slug": "mova-inference-only-import"
+  },
+  "metadata": {
+    "title": "MOVA inference-only package import",
+    "description": "Fail-closed build patch that prevents MOVA inference from importing its optional training optimizer dependency.",
+    "tags": [
+      "candidate",
+      "mova",
+      "inference",
+      "patch",
+      "pytorch"
+    ]
+  },
+  "applies_to": {
+    "kind": "runtime-distribution",
+    "publisher": "openmoss",
+    "slug": "mova-native-arm64",
+    "content_sha256": "99f7593ff1dcd3667452efc166b7cc480de35a04782744665bf482faecec5b39"
+  },
+  "source": {
+    "repository": "https://github.com/OpenMOSS/MOVA",
+    "revision": "83bcbe8eab55ded920889239af93c112834ee5b8",
+    "archive_sha256": "739c7c9754fc4e9fa374ac61b23df872becb1919443ff9b80777126af2fefec3"
+  },
+  "patches": [
+    {
+      "order": 1,
+      "path": "patches/apply-build-patches.py",
+      "sha256": "ed729533c185316606fda36dd14cf91c677a6852554972c309c16b4f3592c81e",
+      "purpose": "Expose the native MOVA inference pipeline without importing training-only bitsandbytes optimizers.",
+      "upstream_reference": "mova/diffusion/pipelines/__init__.py at 83bcbe8eab55ded920889239af93c112834ee5b8",
+      "license": "Apache-2.0"
+    }
+  ],
+  "pre_patch_tree_sha256": "fd3b5c2624db282717b11f885ebff4713fb5d7e707bf80c7e6237e786d78bea4",
+  "post_patch_tree_sha256": "dc5e4a7c6c8e0e94a0d2437dec479371460fce4b4a34f98e98a4821e143e9cf9",
+  "compatible_model_versions": [
+    {
+      "kind": "model-version",
+      "publisher": "openmoss",
+      "slug": "mova-360p",
+      "content_sha256": "5e0d806dc9aabd733e0cb0a8a5ff51bf0fac226a54b2c64d9d637218369d778c"
+    },
+    {
+      "kind": "model-version",
+      "publisher": "openmoss",
+      "slug": "mova-720p",
+      "content_sha256": "ee0a10042ff47db50391a5f92866549459550c680f43f1e7a47a2383fb2591bb"
+    }
+  ],
+  "capability_changes": [
+    "inference-only-import",
+    "fail-closed-patching"
+  ],
+  "removal_condition": "Remove after the exact upstream MOVA source no longer imports optional training modules from its inference package initializer.",
+  "license": {
+    "spdx": "Apache-2.0",
+    "attribution": [
+      "OpenMOSS contributors"
+    ]
+  },
+  "sha256": "ed729533c185316606fda36dd14cf91c677a6852554972c309c16b4f3592c81e"
+}

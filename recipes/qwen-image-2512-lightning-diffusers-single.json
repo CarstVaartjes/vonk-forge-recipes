@@ -6,23 +6,23 @@
   },
   "metadata": {
     "title": "Qwen Image 2512 Lightning diffusers single Spark",
-    "description": "Metadata-only Lightning weight collection; this recipe is not executable until a base Qwen Image 2512 dependency and LoRA-aware adapter are cataloged.",
-    "tags": [
-      "candidate",
-      "image",
-      "diffusers",
-      "single",
-      "spark",
-      "metadata-only",
-      "non-executable"
-    ]
+    "description": "Installable Candidate pairing the exact Qwen Image 2512 base checkpoint with ModelTC/lightx2v's four-step BF16 Lightning LoRA and published shift-3 schedule; physical Spark acceptance remains pending.",
+    "tags": ["candidate", "qwen", "image", "generation", "text-to-image", "lightning", "lora", "diffusers", "bf16", "single", "spark"]
   },
   "model": {
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen-image-2512-lightning",
-    "content_sha256": "021ad22753613a974127642b0135e9fae2ec2d78a13a4418b4ad42afcf5eb1e1"
+    "content_sha256": "f027b452567d3c7c708f0e200e41d06708fd65d5c291133b4d407ca9d433a47e"
   },
+  "dependencies": [
+    {
+      "kind": "model-version",
+      "publisher": "qwen",
+      "slug": "qwen-image-2512-25468b98",
+      "content_sha256": "fa722eb4a4a54d21a341e18cd922bc8feb10f176af05d3c623bb855488182f26"
+    }
+  ],
   "execution": {
     "harness": {
       "kind": "execution-harness",
@@ -34,8 +34,8 @@
   },
   "build": {
     "context": {
-      "path": "adapters/media/upstream-native",
-      "sha256": "0482565099ffca2d5c3d6fef1cac484e06eba813a1fb18b7e20aac44c50335ce",
+      "path": "adapters/image/qwen-image-lightning-diffusers",
+      "sha256": "7f83fbc800db09a653ee15bac1f931286f6baffc19fd197a6adaae756f49294d",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -44,17 +44,11 @@
     "arguments": [],
     "network": {
       "mode": "public",
-      "hosts": [
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "ports.ubuntu.com"
-      ]
+      "hosts": ["nvcr.io", "github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]
     },
     "resources": {
-      "download_bytes": 109484900991,
-      "temporary_bytes": 214969801982,
+      "download_bytes": 60554204031,
+      "temporary_bytes": 70000000000,
       "memory_bytes": 8000000000,
       "timeout_seconds": 14400
     }
@@ -62,19 +56,24 @@
   "parameters": [],
   "artifacts": [
     {
-      "id": "weights",
+      "id": "target",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/resolve/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52/Qwen-Image-2512-Lightning-4steps-V1.0-bf16.safetensors",
+      "revision": "sha256:de0d236e54ecf2c43b32447d13478c6eae0d361b1fed48c69675b084fa240d87",
+      "download_bytes": 849608296,
+      "installed_bytes": 849608296,
+      "mount": {"target": "/models/target", "read_only": true},
+      "roles": ["entrypoint"]
+    },
+    {
+      "id": "base",
       "kind": "huggingface.snapshot",
-      "repository": "lightx2v/Qwen-Image-2512-Lightning",
-      "revision": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
-      "download_bytes": 107484900991,
-      "installed_bytes": 107484900991,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+      "repository": "Qwen/Qwen-Image-2512",
+      "revision": "25468b98e3276ca6700de15c6628e51b7de54a26",
+      "download_bytes": 57704595735,
+      "installed_bytes": 57704595735,
+      "mount": {"target": "/models/base", "read_only": true},
+      "roles": ["entrypoint"]
     }
   ],
   "runtime": {
@@ -84,83 +83,38 @@
       "slug": "diffusers-0-40-0-cuda13-arm64",
       "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7"
     },
-    "entrypoint": [
-      "/opt/vonk/bin/diffusers-job"
-    ],
+    "entrypoint": ["/opt/vonk/bin/diffusers-job"],
     "arguments": [
-      {
-        "name": "output-mime",
-        "value": "image/png"
-      },
-      {
-        "name": "pipeline",
-        "value": "text-to-image"
-      },
-      {
-        "name": "seed",
-        "value": 0
-      },
-      {
-        "name": "num-inference-steps",
-        "value": 4
-      },
-      {
-        "name": "true-cfg-scale",
-        "value": "1"
-      },
-      {
-        "name": "width",
-        "value": 512
-      },
-      {
-        "name": "height",
-        "value": 512
-      }
+      {"name": "pipeline", "value": "text-to-image"},
+      {"name": "output-mime", "value": "image/png"},
+      {"name": "num-inference-steps", "value": 4},
+      {"name": "true-cfg-scale", "value": "1"},
+      {"name": "width", "value": 1328},
+      {"name": "height", "value": 1328},
+      {"name": "seed", "value": 42}
     ],
     "environment": [
-      {
-        "name": "HF_HUB_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
-      }
+      {"name": "HF_HUB_OFFLINE", "value": "1"},
+      {"name": "TRANSFORMERS_OFFLINE", "value": "1"}
     ],
     "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
+      "devices": ["nvidia.com/gpu=all"],
       "capabilities": [],
       "host_network": false,
       "privileged": false,
       "user": "10001:10001",
       "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
+        {"source": "model", "target": "/models", "read_only": true},
+        {"source": "inputs", "target": "/inputs", "read_only": true},
+        {"source": "outputs", "target": "/outputs", "read_only": false}
       ]
     },
     "lifecycle": {
       "pre_start": [],
       "post_stop": [],
       "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/outputs",
-        "timeout_seconds": 3600
-      },
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      }
+      "readiness": {"strategy": "endpoint-owner", "path": "/outputs", "timeout_seconds": 3600},
+      "failure": {"rank_loss": "not-applicable", "recovery": "restart-entrypoint"}
     }
   },
   "topology": {
@@ -172,76 +126,47 @@
         "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": [
-          "weights"
-        ],
+        "artifacts": ["target", "base"],
         "resources": {
           "disk": {
             "image_bytes": 2000000000,
-            "artifact_bytes": 107484900991,
-            "staging_bytes": 214969801982,
+            "artifact_bytes": 58554204031,
+            "staging_bytes": 70000000000,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 53742450495,
-            "steady_state_bytes": 35828300330,
+            "startup_peak_bytes": 118000000000,
+            "steady_state_bytes": 98000000000,
             "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "start_order": [
-      "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
-    ]
+    "parallelism": {"world_size": 1, "tensor": 1, "pipeline": 1, "data": 1, "backend": "local"},
+    "fabric": {"connectivity": "none", "minimum_bandwidth_mbps": 0},
+    "start_order": ["entrypoint"],
+    "stop_order": ["entrypoint"]
   },
   "interfaces": [
     {
       "adapter": "image-job",
-      "path": "/outputs"
+      "path": "/outputs",
+      "input": {"path": "/inputs", "required": true, "media_types": ["text/plain"], "max_bytes": 16384}
     }
   ],
   "validation": {
-    "validators": [
-      {
-        "interface": "image-job",
-        "checks": [
-          "artifact.mime.image-png"
-        ]
-      }
-    ],
+    "validators": [{"interface": "image-job", "checks": ["artifact.mime.image-png"]}],
     "benchmarks": [
-      {
-        "name": "bounded-startup",
-        "framework": "diffusers",
-        "configuration": {
-          "timeout_seconds": 14400
-        }
-      }
+      {"name": "bounded-lightning-image", "framework": "diffusers", "configuration": {"width": 1328, "height": 1328, "num_inference_steps": 4, "timeout_seconds": 14400}}
     ]
   },
   "provenance": {
     "source_kind": "global",
     "source_reference": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
-    "attribution": [
-      "qwen"
-    ]
+    "attribution": ["ModelTC", "lightx2v", "Qwen"]
   }
 }

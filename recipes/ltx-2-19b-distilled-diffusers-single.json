@@ -5,13 +5,17 @@
     "slug": "ltx-2-19b-distilled-diffusers-single"
   },
   "metadata": {
-    "title": "LTX-2 19B distilled synchronized diffusers single Spark",
-    "description": "Metadata-only candidate pinned to an immutable upstream snapshot. The shared ARM64 media harness does not implement LTX video/audio execution; a model-specific adapter and physical Spark acceptance are required.",
+    "title": "LTX-2 19B distilled native synchronized single Spark",
+    "description": "Runnable Candidate using the exact official native LTX distilled pipeline, BF16 checkpoint, spatial upscaler, and Gemma 3 companion closure; physical Spark acceptance remains pending.",
     "tags": [
       "candidate",
-      "integration-required",
+      "build-unvalidated",
+      "lightricks",
+      "ltx",
       "video",
-      "diffusers",
+      "audio",
+      "synchronized",
+      "pytorch-pipeline",
       "single",
       "spark"
     ]
@@ -20,22 +24,30 @@
     "kind": "model-version",
     "publisher": "lightricks",
     "slug": "ltx-2-19b-distilled",
-    "content_sha256": "cc3135bf2fa5fa3bb5fa46c5a74a5a9d86ede728918e3ccefc0fdbf6d8727696"
+    "content_sha256": "0df0cbe5abff582a5db9c51c1d86686eea9fd956b0bd6a1b21b0cba0a3f2b889"
   },
+  "dependencies": [
+    {
+      "kind": "model-version",
+      "publisher": "lightricks",
+      "slug": "ltx-2-gemma3-text-encoder-dfcc2108",
+      "content_sha256": "603bcc4d23cdf4c97b66149660c57199e7cac4809eab276fd9e6db87b828eb9d"
+    }
+  ],
   "execution": {
     "harness": {
       "kind": "execution-harness",
       "publisher": "vonk-forge",
-      "slug": "diffusers",
-      "content_sha256": "9776b37f1bf4596bf4a0c75c3e9fd6da8b25050aa2cefded2ffd5e35baa583b2"
+      "slug": "pytorch-pipeline",
+      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c"
     },
     "patch_bundle": null
   },
   "build": {
     "context": {
-      "path": "adapters/media/upstream-native",
-      "sha256": "0482565099ffca2d5c3d6fef1cac484e06eba813a1fb18b7e20aac44c50335ce",
-      "expected_bytes": 10240,
+      "path": "adapters/video/ltx2-sync-native",
+      "sha256": "fed604739f9211a1af1ee82b29d59ec702b3f44b672810dd239fabcba03431b6",
+      "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -44,16 +56,21 @@
     "network": {
       "mode": "public",
       "hosts": [
+        "nvcr.io",
+        "github.com",
+        "codeload.github.com",
         "download.pytorch.org",
+        "download-r2.pytorch.org",
         "pypi.org",
         "files.pythonhosted.org",
         "archive.ubuntu.com",
+        "security.ubuntu.com",
         "ports.ubuntu.com"
       ]
     },
     "resources": {
-      "download_bytes": 316346439951,
-      "temporary_bytes": 628692879902,
+      "download_bytes": 101069609104,
+      "temporary_bytes": 186139218208,
       "memory_bytes": 8000000000,
       "timeout_seconds": 14400
     }
@@ -61,14 +78,359 @@
   "parameters": [],
   "artifacts": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "Lightricks/LTX-2",
-      "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
-      "download_bytes": 314346439951,
-      "installed_bytes": 314346439951,
+      "id": "target",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/ltx-2-19b-distilled.safetensors",
+      "revision": "sha256:c4006d689061cde0967b9d96eaf44253ff08f5de0c78e5fa1331a763cd03ee28",
+      "download_bytes": 43285058186,
+      "installed_bytes": 43285058186,
       "mount": {
-        "target": "/models",
+        "target": "/models/target",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "spatial-upscaler",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/ltx-2-spatial-upscaler-x2-1.0.safetensors",
+      "revision": "sha256:3160fabf8edf0bc4dd8de40353a180813b111ce586b655ad54af9a7b8c6736de",
+      "download_bytes": 995765578,
+      "installed_bytes": 995765578,
+      "mount": {
+        "target": "/models/spatial-upscaler",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-config",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/config.json",
+      "revision": "sha256:fb4508a46270e0af2778cd72c191f290984e6a5fa8f155895544507d3803dbe9",
+      "download_bytes": 2960,
+      "installed_bytes": 2960,
+      "mount": {
+        "target": "/models/gemma-config",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-generation-config",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/generation_config.json",
+      "revision": "sha256:1b77c4610a27b5aa38b72be8a757da4e14849bc4e3dc641ccbe923a0e226ed9a",
+      "download_bytes": 168,
+      "installed_bytes": 168,
+      "mount": {
+        "target": "/models/gemma-generation-config",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-weight-01",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00001-of-00011.safetensors",
+      "revision": "sha256:cbc6e8132e4998652d4c8c219f0ca8da10a143606c806c8728a7513d49bbcdb3",
+      "download_bytes": 1685223128,
+      "installed_bytes": 1685223128,
+      "mount": {
+        "target": "/models/gemma-weight-01",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-weight-02",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00002-of-00011.safetensors",
+      "revision": "sha256:b95e7ab472b88860e53c71ef078fe8ba4c85e3727b8f0a0bcc130c1f4a2b9ab9",
+      "download_bytes": 4987027384,
+      "installed_bytes": 4987027384,
+      "mount": {
+        "target": "/models/gemma-weight-02",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-weight-03",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00003-of-00011.safetensors",
+      "revision": "sha256:3731e7c18280d0e9dcbcfadaecaeb8b81fa7f7f15e702ea3d1b4f8eb1b5919f7",
+      "download_bytes": 4844749824,
+      "installed_bytes": 4844749824,
+      "mount": {
+        "target": "/models/gemma-weight-03",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-weight-04",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00004-of-00011.safetensors",
+      "revision": "sha256:e9d1ce8b472f2cc6d70c7885388f50fb3a5f233cf1d4784f6a4be1732547a74c",
+      "download_bytes": 4954909736,
+      "installed_bytes": 4954909736,
+      "mount": {
+        "target": "/models/gemma-weight-04",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-weight-05",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00005-of-00011.safetensors",
+      "revision": "sha256:cb478659a67b2e34a920f237387a1d7a8208325aa2fc285198a97603f15af1e6",
+      "download_bytes": 4907664584,
+      "installed_bytes": 4907664584,
+      "mount": {
+        "target": "/models/gemma-weight-05",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-weight-06",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00006-of-00011.safetensors",
+      "revision": "sha256:a190581d871980f9309f40d5c2b4db99d76737d7ed743d531bac95443f6b7145",
+      "download_bytes": 4954909792,
+      "installed_bytes": 4954909792,
+      "mount": {
+        "target": "/models/gemma-weight-06",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-weight-07",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00007-of-00011.safetensors",
+      "revision": "sha256:c347de789ff34be642e4fe7ab8e142ca5e3d833d70cb9ec5127a86af0e2ecfed",
+      "download_bytes": 4907664584,
+      "installed_bytes": 4907664584,
+      "mount": {
+        "target": "/models/gemma-weight-07",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-weight-08",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00008-of-00011.safetensors",
+      "revision": "sha256:2ec7525b89b083d774f4abbdd1f2d7ee190f0475658875cf700530a2faa84a4f",
+      "download_bytes": 4954909792,
+      "installed_bytes": 4954909792,
+      "mount": {
+        "target": "/models/gemma-weight-08",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-weight-09",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00009-of-00011.safetensors",
+      "revision": "sha256:2b0117ecf1d83691bb875c66a9f2b47e450a87fdfe90915bc7b9e9946c37a650",
+      "download_bytes": 4907664584,
+      "installed_bytes": 4907664584,
+      "mount": {
+        "target": "/models/gemma-weight-09",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-weight-10",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00010-of-00011.safetensors",
+      "revision": "sha256:d9f665a743589231adb812c61c9d8e295c9a68c31d3e87976ae032f1de4e46b6",
+      "download_bytes": 4954909792,
+      "installed_bytes": 4954909792,
+      "mount": {
+        "target": "/models/gemma-weight-10",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-weight-11",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00011-of-00011.safetensors",
+      "revision": "sha256:999bf4706d4f616e558eec486667fc2b66f8d0f9c106e1d1f802458fb349b0db",
+      "download_bytes": 2689808472,
+      "installed_bytes": 2689808472,
+      "mount": {
+        "target": "/models/gemma-weight-11",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-model-index",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model.safetensors.index.json",
+      "revision": "sha256:9c85ee65d0de363846bebbe921f43a641c8e0979471560ba8a76f6eec35693c8",
+      "download_bytes": 108642,
+      "installed_bytes": 108642,
+      "mount": {
+        "target": "/models/gemma-model-index",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-added-tokens",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/added_tokens.json",
+      "revision": "sha256:50b2f405ba56a26d4913fd772089992252d7f942123cc0a034d96424221ba946",
+      "download_bytes": 35,
+      "installed_bytes": 35,
+      "mount": {
+        "target": "/models/gemma-added-tokens",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-chat-template",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/chat_template.jinja",
+      "revision": "sha256:7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4",
+      "download_bytes": 1532,
+      "installed_bytes": 1532,
+      "mount": {
+        "target": "/models/gemma-chat-template",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-preprocessor-config",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/preprocessor_config.json",
+      "revision": "sha256:f688d6bb20c5017601c4011de7ca656da8485b540b05013efdaf986c0fcc918d",
+      "download_bytes": 570,
+      "installed_bytes": 570,
+      "mount": {
+        "target": "/models/gemma-preprocessor-config",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-processor-config",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/processor_config.json",
+      "revision": "sha256:3ffd5f11778dc73e2b69b3c00535e4121e1badf7018136263cd17b5b34fbaa53",
+      "download_bytes": 70,
+      "installed_bytes": 70,
+      "mount": {
+        "target": "/models/gemma-processor-config",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-special-tokens-map",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/special_tokens_map.json",
+      "revision": "sha256:2f7b0adf4fb469770bb1490e3e35df87b1dc578246c5e7e6fc76ecf33213a397",
+      "download_bytes": 662,
+      "installed_bytes": 662,
+      "mount": {
+        "target": "/models/gemma-special-tokens-map",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-tokenizer",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/tokenizer.json",
+      "revision": "sha256:4667f2089529e8e7657cfb6d1c19910ae71ff5f28aa7ab2ff2763330affad795",
+      "download_bytes": 33384568,
+      "installed_bytes": 33384568,
+      "mount": {
+        "target": "/models/gemma-tokenizer",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-tokenizer-model",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/tokenizer.model",
+      "revision": "sha256:1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c",
+      "download_bytes": 4689074,
+      "installed_bytes": 4689074,
+      "mount": {
+        "target": "/models/gemma-tokenizer-model",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "gemma-tokenizer-config",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/tokenizer_config.json",
+      "revision": "sha256:983c80895e7b188911f5ccfbb4f780a4e73fb3131ed2080a3e847ef8623cfdca",
+      "download_bytes": 1155387,
+      "installed_bytes": 1155387,
+      "mount": {
+        "target": "/models/gemma-tokenizer-config",
         "read_only": true
       },
       "roles": [
@@ -79,33 +441,29 @@
   "runtime": {
     "distribution": {
       "kind": "runtime-distribution",
-      "publisher": "huggingface",
-      "slug": "diffusers-0-40-0-cuda13-arm64",
-      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7"
+      "publisher": "lightricks",
+      "slug": "ltx2-pipelines-1-2-arm64",
+      "content_sha256": "75b386952bb48581aef3487074ea0e41a88db1d841007faea88c4c486d648f3a"
     },
     "entrypoint": [
-      "/opt/vonk/bin/diffusers-job"
+      "/opt/vonk/bin/pytorch-pipeline"
     ],
     "arguments": [
+      {
+        "name": "entrypoint",
+        "value": "/opt/vonk/source/run.py"
+      },
       {
         "name": "output-mime",
         "value": "video/mp4"
       },
       {
-        "name": "pipeline",
-        "value": "text-to-video"
+        "name": "timeout-seconds",
+        "value": 3600
       },
       {
         "name": "seed",
         "value": 0
-      },
-      {
-        "name": "num-inference-steps",
-        "value": 4
-      },
-      {
-        "name": "guidance-scale",
-        "value": "4"
       }
     ],
     "environment": [
@@ -114,8 +472,8 @@
         "value": "1"
       },
       {
-        "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "value": "expandable_segments:True"
       }
     ],
     "security": {
@@ -164,21 +522,44 @@
         "count": 1,
         "endpoint_owner": true,
         "artifacts": [
-          "weights"
+          "target",
+          "spatial-upscaler",
+          "gemma-config",
+          "gemma-generation-config",
+          "gemma-weight-01",
+          "gemma-weight-02",
+          "gemma-weight-03",
+          "gemma-weight-04",
+          "gemma-weight-05",
+          "gemma-weight-06",
+          "gemma-weight-07",
+          "gemma-weight-08",
+          "gemma-weight-09",
+          "gemma-weight-10",
+          "gemma-weight-11",
+          "gemma-model-index",
+          "gemma-added-tokens",
+          "gemma-chat-template",
+          "gemma-preprocessor-config",
+          "gemma-processor-config",
+          "gemma-special-tokens-map",
+          "gemma-tokenizer",
+          "gemma-tokenizer-model",
+          "gemma-tokenizer-config"
         ],
         "resources": {
           "disk": {
-            "image_bytes": 2000000000,
-            "artifact_bytes": 314346439951,
-            "staging_bytes": 628692879902,
+            "image_bytes": 8000000000,
+            "artifact_bytes": 93069609104,
+            "staging_bytes": 186139218208,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 120000000000,
-            "steady_state_bytes": 104782146650,
+            "startup_peak_bytes": 116000000000,
+            "steady_state_bytes": 102000000000,
             "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
@@ -220,10 +601,12 @@
     ],
     "benchmarks": [
       {
-        "name": "bounded-startup",
-        "framework": "diffusers",
+        "name": "bounded-synchronized-video",
+        "framework": "ltx-pipelines",
         "configuration": {
-          "timeout_seconds": 14400
+          "frames": 65,
+          "audio_stream_required": true,
+          "timeout_seconds": 3600
         }
       }
     ]
@@ -232,7 +615,7 @@
     "source_kind": "global",
     "source_reference": "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
     "attribution": [
-      "lightricks"
+      "Lightricks"
     ]
   }
 }

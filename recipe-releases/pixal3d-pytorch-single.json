@@ -4,9 +4,29 @@
     "publisher": "vonk-forge",
     "slug": "pixal3d-pytorch-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "2.0.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "2.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "41dca745a9b3bad638f47f9387cfe7a4af881fce57dffb3ff6b9bf03fb6324da",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "breaking",
+          "summary": "Replaced the metadata-only checkpoint binding with a real pinned Pixal3D image-to-GLB execution path."
+        },
+        {
+          "kind": "runtime",
+          "summary": "Added local DINOv3 and NAF, native mesh dependencies, bounded camera calibration, and ARM64 SDPA without runtime downloads."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Kept Candidate status until the reproducible offline build and workload pass a physical DGX Spark canary."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

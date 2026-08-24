@@ -7,10 +7,12 @@
   },
   "metadata": {
     "title": "MiniMax H3",
-    "description": "Immutable public snapshot at 42ed227e.",
+    "description": "Immutable official MiniMax H3 BF16 snapshot with FL2VA and Ref2VA checkpoints plus the Modular Diffusers layout at 42ed227e.",
     "tags": [
       "minimax",
       "video",
+      "audio",
+      "multimodal",
       "candidate"
     ]
   },
@@ -20,7 +22,7 @@
     "slug": "minimax-h3",
     "content_sha256": "f4c971d25f8b6f46af03821eac888c10306573fe4648e9906e22709cc642d5d7"
   },
-  "version": "MiniMax H3",
+  "version": "MiniMax H3 42ed227e",
   "source": {
     "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
     "revision": "42ed227ee7df40d41602854ae760620d6eb651fe"
@@ -42,18 +44,21 @@
     "quantization": "none"
   },
   "parameters": {
-    "total": null,
+    "total": 33000000000,
     "active": null
   },
   "limits": {
-    "context_tokens": null
+    "context_tokens": null,
+    "resolution_pixels": 1032192,
+    "frames": 345,
+    "sample_rate_hz": 32000
   },
   "sizes": {
     "download_bytes": 498474749480,
     "installed_bytes": 498474749480
   },
   "license": {
-    "spdx": "Apache-2.0",
+    "spdx": "LicenseRef-MiniMax-H3-Community-License",
     "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE",
     "attribution": [
       "minimax"

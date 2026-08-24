@@ -4,9 +4,33 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan-video-15-t2v-diffusers-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "1.2.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "df3b71dd63b7a9dfff40aff3259df430ddac220e8c32b538e8ce32921893e551",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Replaced the incomplete native snapshot with the complete 720p T2V Diffusers conversion and hash-locked CUDA 13 ARM64 runtime.",
+          "references": [
+            "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v/tree/f4dbc4a1efa4ac8ea56680cdf79d9f455105e814",
+            "https://github.com/huggingface/diffusers/commit/a3608b512ed7248499a44c61d954965ed9bdae4d"
+          ]
+        },
+        {
+          "kind": "fix",
+          "summary": "Bound 720p T2V to its self-contained non-distilled pipeline, 50 steps, CFG 6, local-only component loading, and MP4 verification."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Corrected the model authority from Apache-2.0 to the territorial Tencent Hunyuan Community License."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

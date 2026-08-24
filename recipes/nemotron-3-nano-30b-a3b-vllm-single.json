@@ -3,7 +3,7 @@
   "identity": {"publisher": "vonk-forge", "slug": "nemotron-3-nano-30b-a3b-vllm-single"},
   "metadata": {
     "title": "Nemotron 3 Nano 30B-A3B NVFP4 vLLM single Spark",
-    "description": "Candidate single-Spark vLLM binding for the exact NVIDIA Nemotron 3 Nano NVFP4 checkpoint with FP8 KV and FlashInfer NVFP4 MoE enabled. Its snapshot-pinned nano_v3 reasoning parser cannot yet be expressed by the strict harness, so parsed-reasoning qualification remains blocked.",
+    "description": "Executable Candidate single-Spark vLLM recipe for the exact NVIDIA Nemotron 3 Nano NVFP4 checkpoint. The immutable model snapshot supplies the reviewed nano_v3 reasoning plugin, while FP8 KV and FlashInfer NVFP4 MoE follow NVIDIA's launch contract.",
     "tags": ["candidate", "nemotron", "nvfp4", "vllm", "openai", "single", "spark"]
   },
   "model": {
@@ -23,8 +23,8 @@
   },
   "build": {
     "context": {
-      "path": "adapters/nvidia/nemotron",
-      "sha256": "2d619b7a8edd8ef2115725d6120d388a9643ee4d43c6656e85ced65d85d56076",
+      "path": "adapters/nvidia/nemotron-vllm-0-20-0",
+      "sha256": "3ecaad26775f53304c698d0c380977d6911ead3d11673ed18396f5375640fc7c",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -33,7 +33,7 @@
     "arguments": [],
     "network": {"mode": "none", "hosts": []},
     "resources": {
-      "download_bytes": 19362748480,
+      "download_bytes": 28595913810,
       "temporary_bytes": 32000000000,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
@@ -56,14 +56,14 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "vllm",
-      "slug": "vllm-0-27-1-nvidia-arm64",
-      "content_sha256": "95b0467cb73eeabfe8fd0c4f5f5e4f19a935b6bca3d56ed4bb6fc888470eca4a"
+      "slug": "vllm-0-20-0-nvidia-arm64",
+      "content_sha256": "12ff8c23841e374ceec40b1407fa31f6856188a77e5d3ede9921616b58842ea6"
     },
     "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
     "arguments": [
       {"name": "served-model-name", "value": "nemotron-3-nano"},
-      {"name": "max-model-len", "value": 16384},
-      {"name": "max-num-seqs", "value": 4},
+      {"name": "max-model-len", "value": 262144},
+      {"name": "max-num-seqs", "value": 8},
       {"name": "gpu-memory-utilization", "value": "0.80"},
       {"name": "kv-cache-dtype", "value": "fp8"},
       {"name": "enable-prefix-caching", "value": true},
@@ -71,12 +71,15 @@
       {"name": "mamba-ssm-cache-dtype", "value": "float32"},
       {"name": "trust-remote-code", "value": true},
       {"name": "enable-auto-tool-choice", "value": true},
-      {"name": "tool-call-parser", "value": "qwen3_coder"}
+      {"name": "tool-call-parser", "value": "qwen3_coder"},
+      {"name": "reasoning-parser-plugin", "value": "/models/nano_v3_reasoning_parser.py"},
+      {"name": "reasoning-parser", "value": "nano_v3"}
     ],
     "environment": [
       {"name": "HF_HUB_OFFLINE", "value": "1"},
       {"name": "TRANSFORMERS_OFFLINE", "value": "1"},
       {"name": "VLLM_NO_USAGE_STATS", "value": "1"},
+      {"name": "VLLM_FLASHINFER_MOE_BACKEND", "value": "throughput"},
       {"name": "VLLM_USE_FLASHINFER_MOE_FP4", "value": "1"}
     ],
     "security": {

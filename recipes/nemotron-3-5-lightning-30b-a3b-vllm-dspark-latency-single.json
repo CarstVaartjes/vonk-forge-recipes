@@ -27,7 +27,7 @@
     "kind": "model-version",
     "publisher": "nvidia",
     "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4",
-    "content_sha256": "23c4438f68b493286e01c9e49af024800eec6aa90fe5fbd3df1a4d9b1c0e3355"
+    "content_sha256": "294a5e7951c8d5eec253e0b2c193954581627da417ed97277c08f23870a2b4f9"
   },
   "dependencies": [
     {
@@ -61,7 +61,7 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 22932490905,
+      "download_bytes": 22932862787,
       "temporary_bytes": 36000000000,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
@@ -73,9 +73,9 @@
       "id": "target",
       "kind": "huggingface.snapshot",
       "repository": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4",
-      "revision": "6dbbd757ea75a8ece6e0702872e3ae53f9987728",
-      "download_bytes": 21583413244,
-      "installed_bytes": 21583413244,
+      "revision": "e8f3c7c4de75ad84fe1bcef95d38eca76214480b",
+      "download_bytes": 21583785126,
+      "installed_bytes": 21583785126,
       "mount": {
         "target": "/models/target",
         "read_only": true
@@ -127,7 +127,7 @@
       },
       {
         "name": "gpu-memory-utilization",
-        "value": "0.91"
+        "value": "0.85"
       },
       {
         "name": "moe-backend",
@@ -232,7 +232,7 @@
         "resources": {
           "disk": {
             "image_bytes": 12000000000,
-            "artifact_bytes": 22932490905,
+            "artifact_bytes": 22932862787,
             "staging_bytes": 36000000000,
             "cache_bytes": 4000000000,
             "rollback_bytes": 0,
@@ -302,7 +302,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/6dbbd757ea75a8ece6e0702872e3ae53f9987728",
+    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/e8f3c7c4de75ad84fe1bcef95d38eca76214480b",
     "attribution": [
       "NVIDIA Corporation"
     ]

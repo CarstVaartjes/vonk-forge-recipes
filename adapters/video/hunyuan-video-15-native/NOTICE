@@ -1,0 +1,5 @@
+This adapter installs Hugging Face Diffusers 0.39.0 and runs complete,
+immutable HunyuanVideo 1.5 Diffusers snapshots entirely from /models.
+
+Diffusers is licensed under Apache-2.0. The mounted HunyuanVideo model
+snapshots remain subject to the Tencent Hunyuan Community License Agreement.

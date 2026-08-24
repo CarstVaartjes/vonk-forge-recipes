@@ -4,9 +4,29 @@
     "publisher": "vonk-forge",
     "slug": "trellis-2-4b-pytorch-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "2.0.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "2.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "f1de54916c6759856c1bf64a4c5f3644d9517007abe904b7cfd4ee78a6c0e542",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "breaking",
+          "summary": "Replaced the metadata-only checkpoint binding with a real pinned TRELLIS.2 image-to-GLB execution path."
+        },
+        {
+          "kind": "runtime",
+          "summary": "Added the exact companion sparse decoder, public DINOv3 encoder snapshot, native CuMesh, FlexGEMM, nvdiffrast, o-voxel, and ARM64 SDPA compatibility closure."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Kept Candidate status until the reproducible offline build and workload pass a physical DGX Spark canary."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

@@ -4,9 +4,32 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single"
   },
-  "version": "1.0.0",
+  "version": "1.1.0",
   "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "2b0fee606c945eb27403571aea1d0a70be33b1088c41a2327755d11a6f43c2ee",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "model",
+          "summary": "Advanced the target to NVIDIA revision e8f3c7c4 while preserving the byte-identical DSpark companion pin at d10c6ff4.",
+          "references": [
+            "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/e8f3c7c4de75ad84fe1bcef95d38eca76214480b",
+            "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark/tree/d10c6ff40d6e69d1f92e407e027de3eafdb77645"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Lowered DGX Spark GPU memory utilization to NVIDIA's revised 0.85 vLLM 0.27.1 setting; physical GB10 canaries remain pending.",
+          "references": [
+            "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/blob/e8f3c7c4de75ad84fe1bcef95d38eca76214480b/README.md"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-24",

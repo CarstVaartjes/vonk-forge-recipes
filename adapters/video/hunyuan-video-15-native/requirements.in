@@ -1,0 +1,12 @@
+torch==2.13.0
+torchvision==0.28.0
+diffusers==0.39.0
+accelerate==1.14.0
+huggingface-hub==1.4.1
+imageio==2.37.0
+imageio-ffmpeg==0.6.0
+numpy==2.4.2
+Pillow==12.1.1
+safetensors==0.8.0
+sentencepiece==0.2.2
+transformers==5.2.0

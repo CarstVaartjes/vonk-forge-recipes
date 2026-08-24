@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "Nemotron 3 Super 120B-A12B NVFP4 vLLM single Spark",
-    "description": "Candidate single-Spark vLLM binding for the exact NVIDIA Nemotron 3 Super NVFP4 checkpoint with FP8 KV, Mamba cache, and MTP settings. Its custom super_v3 parser and explicit FP4/Marlin selections exceed the strict harness allowlist, and the newer catalogued vLLM runtime still requires a physical canary.",
+    "description": "Executable Candidate single-Spark recipe for NVIDIA's current Nemotron 3 Super NVFP4 contract. It binds vLLM 0.27.1, the immutable super_v3 parser, FP4/Marlin execution, FP8 KV, Mamba cache, and the separately pinned MTPv2 speculative-decoding head without runtime downloads.",
     "tags": [
       "candidate",
       "nemotron",
@@ -21,8 +21,16 @@
     "kind": "model-version",
     "publisher": "nvidia",
     "slug": "nemotron-3-super-120b-a12b-nvfp4",
-    "content_sha256": "9a3a2b7c2a85c63573ed5db60d23c1d28715e362c45c88d80e288408cd71608f"
+    "content_sha256": "decb5bf4819517bb38f85d330b351ef02df411eec3eb58a746eb99eee63617be"
   },
+  "dependencies": [
+    {
+      "kind": "model-version",
+      "publisher": "nvidia",
+      "slug": "nemotron-3-super-120b-a12b-bf16-mtpv2",
+      "content_sha256": "9d6f71b572972090ee8433fd26955c973f9407849f2d4155082c4c3ae89fbb4f"
+    }
+  ],
   "execution": {
     "harness": {
       "kind": "execution-harness",
@@ -47,8 +55,8 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 90898819401,
-      "temporary_bytes": 160731367560,
+      "download_bytes": 96783709038,
+      "temporary_bytes": 172501146834,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
     }
@@ -56,14 +64,29 @@
   "parameters": [],
   "artifacts": [
     {
-      "id": "weights",
+      "id": "target",
       "kind": "huggingface.snapshot",
       "repository": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
-      "revision": "4f0cf9daaeb7a4d5e23f80a00e7ed15f0e03caf6",
-      "download_bytes": 80365683780,
-      "installed_bytes": 80365683780,
+      "revision": "445d56f38229f7a37ae5207734f7e8af0fa9a2c8",
+      "download_bytes": 80365684028,
+      "installed_bytes": 80365684028,
       "mount": {
-        "target": "/models",
+        "target": "/models/target",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "drafter",
+      "kind": "huggingface.snapshot",
+      "repository": "nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2",
+      "revision": "c929f8a55d0527fea9f58b4cedc9e0c855cfc421",
+      "download_bytes": 5884889389,
+      "installed_bytes": 5884889389,
+      "mount": {
+        "target": "/models/drafter",
         "read_only": true
       },
       "roles": [
@@ -81,7 +104,7 @@
     "entrypoint": [
       "/opt/vonk/bin/vllm",
       "serve",
-      "/models"
+      "/models/target"
     ],
     "arguments": [
       {
@@ -94,7 +117,7 @@
       },
       {
         "name": "max-num-seqs",
-        "value": 2
+        "value": 4
       },
       {
         "name": "gpu-memory-utilization",
@@ -117,16 +140,32 @@
         "value": true
       },
       {
+        "name": "moe-backend",
+        "value": "marlin"
+      },
+      {
+        "name": "quantization",
+        "value": "modelopt_fp4"
+      },
+      {
         "name": "async-scheduling",
         "value": true
       },
       {
         "name": "speculative-config",
-        "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3,\"moe_backend\":\"triton\"}"
+        "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3,\"model\":\"/models/drafter\",\"moe_backend\":\"triton\"}"
       },
       {
         "name": "tool-call-parser",
         "value": "qwen3_coder"
+      },
+      {
+        "name": "reasoning-parser-plugin",
+        "value": "/models/target/super_v3_reasoning_parser.py"
+      },
+      {
+        "name": "reasoning-parser",
+        "value": "super_v3"
       },
       {
         "name": "enable-auto-tool-choice",
@@ -201,13 +240,14 @@
         "count": 1,
         "endpoint_owner": true,
         "artifacts": [
-          "weights"
+          "target",
+          "drafter"
         ],
         "resources": {
           "disk": {
             "image_bytes": 12000000000,
-            "artifact_bytes": 80365683780,
-            "staging_bytes": 160731367560,
+            "artifact_bytes": 86250573417,
+            "staging_bytes": 172501146834,
             "cache_bytes": 4000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
@@ -275,7 +315,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4/tree/4f0cf9daaeb7a4d5e23f80a00e7ed15f0e03caf6",
+    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4/tree/445d56f38229f7a37ae5207734f7e8af0fa9a2c8",
     "attribution": [
       "nvidia"
     ]

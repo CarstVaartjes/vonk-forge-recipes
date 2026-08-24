@@ -4,9 +4,42 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-nano-30b-a3b-vllm-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "2.0.1",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "2.0.1",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "8e06c376dd5c7119f6184441915f6679f34808d7507eb51276c6428196cfc425",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Corrected the vLLM 0.20.0 authority description and pinned drift monitoring to the immutable v0.20.0 tag.",
+          "details": "The runtime image, source commit, dependency closure, adapter, and launch arguments are unchanged; only authority metadata and its resulting content digest changed.",
+          "references": [
+            "https://github.com/vllm-project/vllm/releases/tag/v0.20.0"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "f032855409ac405f54ba35a002a779e03d5fedcacff494ed98b843e5d9d6e97a",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Made reasoning serving executable by binding the pinned nano_v3 plugin from the model snapshot and NVIDIA's immutable vLLM 0.20.0 ARM64 runtime.",
+          "details": "The launch now follows NVIDIA's 256K-context, FP8-KV, FlashInfer-NVFP4 contract with no startup download or unresolved parser dependency.",
+          "references": [
+            "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4/tree/ce1b118ae66ec705d02c241525192832eb045fd3",
+            "https://github.com/vllm-project/vllm/releases/tag/v0.20.0"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",
