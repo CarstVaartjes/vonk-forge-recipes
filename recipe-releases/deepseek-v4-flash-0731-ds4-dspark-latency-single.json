@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-ds4-dspark-latency-single"
   },
-  "version": "1.0.0",
+  "version": "1.1.0",
   "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "662c12a94639a6df83ebb11fbc9e8f3c52ca02220a72512c26edc86c6644edf7",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Mounted the target and DSpark companion at distinct immutable runtime paths so DS4 receives the intended files."
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-24",

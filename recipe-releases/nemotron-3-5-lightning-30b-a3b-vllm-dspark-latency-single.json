@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-24",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "23fb71aa53328111e252ac08a867e9046eee3a77c689a1034b230ec8f94abb0c",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added NVIDIA's exact DSpark companion as a named, separately mounted low-concurrency vLLM profile for one DGX Spark.",
+          "references": [
+            "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/blob/6dbbd757ea75a8ece6e0702872e3ae53f9987728/README.md",
+            "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark/tree/d10c6ff40d6e69d1f92e407e027de3eafdb77645"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Published as Candidate pending physical GB10 memory, draft-acceptance, latency, and output-equivalence canaries."
+        }
+      ]
+    }
+  ]
+}
