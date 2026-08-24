@@ -6,15 +6,16 @@
   },
   "metadata": {
     "title": "Step1X-3D texture pytorch-pipeline single Spark",
-    "description": "Metadata-only Step1X-3D texture checkpoint binding; the generic ARM64 harness lacks the mesh and image pipeline, native texture dependencies, and GLB exporter required for execution.",
+    "description": "Installable single-DGX Spark image-and-mesh texturing Candidate using exact Step1X, SDXL, and fixed-VAE snapshots plus SM121-native rasterizer dependencies. It runs offline and emits a textured GLB; physical Spark quality, memory, and latency acceptance is still required.",
     "tags": [
       "candidate",
       "three-d",
       "pytorch-pipeline",
       "single",
       "spark",
-      "metadata-only",
-      "non-executable"
+      "executable",
+      "offline",
+      "source-bundled"
     ]
   },
   "model": {
@@ -34,9 +35,9 @@
   },
   "build": {
     "context": {
-      "path": "adapters/media/upstream-native",
-      "sha256": "0482565099ffca2d5c3d6fef1cac484e06eba813a1fb18b7e20aac44c50335ce",
-      "expected_bytes": 10240,
+      "path": "adapters/three-d/step1x-3d",
+      "sha256": "8147adab979514f9cf4dd1eb4508e87b17ad26a1e750bca78ba6d776dd66d176",
+      "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -46,6 +47,9 @@
       "mode": "public",
       "hosts": [
         "download.pytorch.org",
+        "github.com",
+        "codeload.github.com",
+        "objects.githubusercontent.com",
         "pypi.org",
         "files.pythonhosted.org",
         "archive.ubuntu.com",
@@ -53,23 +57,53 @@
       ]
     },
     "resources": {
-      "download_bytes": 21640984131,
-      "temporary_bytes": 39281968262,
-      "memory_bytes": 8000000000,
+      "download_bytes": 110897395576,
+      "temporary_bytes": 160000000000,
+      "memory_bytes": 24000000000,
       "timeout_seconds": 14400
     }
   },
   "parameters": [],
   "artifacts": [
     {
-      "id": "weights",
+      "id": "target",
       "kind": "huggingface.snapshot",
       "repository": "stepfun-ai/Step1X-3D",
       "revision": "bf7084495b3a72222f36549b7942948aa4d9daa7",
       "download_bytes": 19640984131,
       "installed_bytes": 19640984131,
       "mount": {
-        "target": "/models",
+        "target": "/models/target",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "sdxl",
+      "kind": "huggingface.snapshot",
+      "repository": "stabilityai/stable-diffusion-xl-base-1.0",
+      "revision": "462165984030d82259a11f4367a4eed129e94a7b",
+      "download_bytes": 76912765291,
+      "installed_bytes": 76912765291,
+      "mount": {
+        "target": "/models/sdxl",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "sdxl-vae",
+      "kind": "huggingface.snapshot",
+      "repository": "madebyollin/sdxl-vae-fp16-fix",
+      "revision": "207b116dae70ace3637169f1ddd2434b91b3a8cd",
+      "download_bytes": 1343646154,
+      "installed_bytes": 1343646154,
+      "mount": {
+        "target": "/models/sdxl-vae",
         "read_only": true
       },
       "roles": [
@@ -80,9 +114,9 @@
   "runtime": {
     "distribution": {
       "kind": "runtime-distribution",
-      "publisher": "pytorch",
-      "slug": "pytorch-2-13-cuda13-arm64",
-      "content_sha256": "93ff225d792a8e14f1e4758701e1d88c82f9e515c4aafec160ee00c750b6a9e9"
+      "publisher": "stepfun-ai",
+      "slug": "step1x-3d-arm64",
+      "content_sha256": "e4c938de239fcb2b52f0b0cc85f542a0c5082aeebb3932570f217673b25002f3"
     },
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"
@@ -90,7 +124,7 @@
     "arguments": [
       {
         "name": "entrypoint",
-        "value": "/opt/vonk/source/run.py"
+        "value": "/opt/vonk/source/texture.py"
       },
       {
         "name": "output-mime",
@@ -162,22 +196,24 @@
         "count": 1,
         "endpoint_owner": true,
         "artifacts": [
-          "weights"
+          "target",
+          "sdxl",
+          "sdxl-vae"
         ],
         "resources": {
           "disk": {
-            "image_bytes": 2000000000,
-            "artifact_bytes": 19640984131,
-            "staging_bytes": 39281968262,
-            "cache_bytes": 8000000000,
+            "image_bytes": 18000000000,
+            "artifact_bytes": 97897395576,
+            "staging_bytes": 120000000000,
+            "cache_bytes": 12000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 32000000000,
-            "steady_state_bytes": 24000000000,
-            "runtime_growth_bytes": 8000000000,
+            "startup_peak_bytes": 96000000000,
+            "steady_state_bytes": 72000000000,
+            "runtime_growth_bytes": 16000000000,
             "system_reserve_bytes": 8000000000
           }
         }

@@ -5,13 +5,18 @@
     "slug": "minimax-h3-diffusers-single"
   },
   "metadata": {
-    "title": "MiniMax H3 diffusers single Spark",
-    "description": "Metadata-only candidate pinned to an immutable upstream snapshot. MiniMax H3 requires Modular Diffusers and joint video/audio export, which the shared ARM64 media harness does not implement; a model-specific adapter and physical Spark acceptance are required.",
+    "title": "MiniMax H3 Modular Diffusers single Spark",
+    "description": "Installable single-Spark Candidate for text, keyframe, and ordered multimodal-reference generation with TorchAO int8 streamed offload and a verified joint 24-fps video plus 32-kHz stereo audio MP4 export. Physical Spark qualification is pending.",
     "tags": [
       "candidate",
-      "integration-required",
+      "minimax",
       "video",
+      "audio",
+      "multimodal",
       "diffusers",
+      "modular-diffusers",
+      "torchao",
+      "int8-runtime",
       "single",
       "spark"
     ]
@@ -20,7 +25,7 @@
     "kind": "model-version",
     "publisher": "minimax",
     "slug": "minimax-h3",
-    "content_sha256": "d0d4bf6c823c1e8081e3fbb5bf832efdb4220b87bd72a210f381617e7bf0e494"
+    "content_sha256": "579b0e6a48a794b7aef3fa95289316c7e80c78d9838518dc99d11890d2b27b51"
   },
   "execution": {
     "harness": {
@@ -33,9 +38,9 @@
   },
   "build": {
     "context": {
-      "path": "adapters/media/upstream-native",
-      "sha256": "0482565099ffca2d5c3d6fef1cac484e06eba813a1fb18b7e20aac44c50335ce",
-      "expected_bytes": 10240,
+      "path": "adapters/video/minimax-h3-modular-diffusers",
+      "sha256": "40839de5feb60348f90c8a80c28ce10642f3f1f332705b62cc194675fda0642b",
+      "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -44,15 +49,18 @@
     "network": {
       "mode": "public",
       "hosts": [
+        "nvcr.io",
+        "github.com",
         "download.pytorch.org",
         "pypi.org",
         "files.pythonhosted.org",
         "archive.ubuntu.com",
+        "security.ubuntu.com",
         "ports.ubuntu.com"
       ]
     },
     "resources": {
-      "download_bytes": 500474749480,
+      "download_bytes": 504474749480,
       "temporary_bytes": 996949498960,
       "memory_bytes": 8000000000,
       "timeout_seconds": 14400
@@ -80,8 +88,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "huggingface",
-      "slug": "diffusers-0-40-0-cuda13-arm64",
-      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7"
+      "slug": "minimax-h3-modular-diffusers-arm64",
+      "content_sha256": "baf848236de64fe2c49861136bf2414c2387b7a7edaa2af26bfd18d2753c595c"
     },
     "entrypoint": [
       "/opt/vonk/bin/diffusers-job"
@@ -104,8 +112,12 @@
         "value": 4
       },
       {
-        "name": "guidance-scale",
-        "value": "4"
+        "name": "width",
+        "value": 960
+      },
+      {
+        "name": "height",
+        "value": 544
       }
     ],
     "environment": [
@@ -130,6 +142,11 @@
         {
           "source": "model",
           "target": "/models",
+          "read_only": true
+        },
+        {
+          "source": "inputs",
+          "target": "/inputs",
           "read_only": true
         },
         {
@@ -177,8 +194,8 @@
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 120000000000,
-            "steady_state_bytes": 110000000000,
+            "startup_peak_bytes": 112000000000,
+            "steady_state_bytes": 96000000000,
             "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
@@ -206,7 +223,24 @@
   "interfaces": [
     {
       "adapter": "video-job",
-      "path": "/outputs"
+      "path": "/outputs",
+      "input": {
+        "path": "/inputs",
+        "required": false,
+        "media_types": [
+          "application/json",
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "video/mp4",
+          "video/quicktime",
+          "video/webm",
+          "audio/flac",
+          "audio/mpeg",
+          "audio/wav"
+        ],
+        "max_bytes": 1073741824
+      }
     }
   ],
   "validation": {
@@ -232,7 +266,8 @@
     "source_kind": "global",
     "source_reference": "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe",
     "attribution": [
-      "minimax"
+      "MiniMaxAI",
+      "Hugging Face"
     ]
   }
 }

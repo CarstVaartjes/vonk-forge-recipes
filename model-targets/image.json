@@ -7,7 +7,7 @@
   },
   "metadata": {
     "title": "Image generation and editing targets",
-    "updated": "2026-08-23"
+    "updated": "2026-08-24"
   },
   "targets": [
     {
@@ -32,10 +32,10 @@
     {
       "modality": "image",
       "group": "Qwen Image",
-      "model": "Qwen Image",
-      "version": "2512 Lightning four-step",
+      "model": "Qwen Image 2512 Lightning",
+      "version": "4-step BF16 LoRA V1.0",
       "status": "candidate",
-      "source": "https://github.com/QwenLM/Qwen-Image",
+      "source": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
       "harnesses": [
         "diffusers",
         "comfyui"
@@ -46,7 +46,7 @@
       "recipe_slugs": [
         "qwen-image-2512-lightning-diffusers-single"
       ],
-      "notes": "The immutable Lightning collection is cataloged for provenance only. It is not executable without the exact base checkpoint, a selected LoRA, and a LoRA-aware adapter.",
+      "notes": "Source-complete executable Candidate binding the exact Qwen Image 2512 base checkpoint to the selected 849 MB four-step BF16 LoRA, offline LoRA-aware Diffusers adapter, shift-3 scheduler, UTF-8 prompt input, and PNG output contract; physical Spark output, latency, and peak-memory acceptance remain pending.",
       "catalog_model_version": "qwen-image-2512-lightning"
     },
     {
@@ -71,10 +71,10 @@
     {
       "modality": "image",
       "group": "Qwen Image Edit",
-      "model": "Qwen Image Edit",
-      "version": "2511 Lightning",
+      "model": "Qwen Image Edit 2511 Lightning",
+      "version": "4-step BF16 LoRA V1.0",
       "status": "candidate",
-      "source": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511",
+      "source": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning/tree/d74eba145674fd7e31b949324e148e21e7118abd",
       "harnesses": [
         "diffusers",
         "comfyui"
@@ -85,7 +85,7 @@
       "recipe_slugs": [
         "qwen-image-edit-2511-lightning-diffusers-single"
       ],
-      "notes": "The immutable edit Lightning collection is cataloged for provenance only. It is not executable without the exact base checkpoint, image input contract, selected LoRA, and LoRA-aware adapter.",
+      "notes": "Source-complete executable Candidate binding the exact Qwen Image Edit 2511 base checkpoint to the selected 849 MB four-step BF16 LoRA, offline LoRA-aware Diffusers adapter, shift-3 scheduler, UTF-8 prompt plus one-or-two image inputs, and PNG output contract; physical Spark edit quality, latency, and peak-memory acceptance remain pending.",
       "catalog_model_version": "qwen-image-edit-2511-lightning"
     },
     {

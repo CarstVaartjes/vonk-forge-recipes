@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "Nemotron 3 Nano Omni 30B-A3B NVFP4 vLLM single Spark",
-    "description": "Candidate text-only single-Spark qualification profile for the exact NVIDIA Nemotron Nano Omni reasoning checkpoint. The strict harness cannot yet express NVIDIA's video pruning, media limits, or audio-disable settings, so multimodal serving remains disabled pending harness and immutable audio-runtime support.",
+    "description": "Executable Candidate text-serving recipe for the exact NVIDIA Nemotron 3 Nano Omni NVFP4 checkpoint on one Spark. It intentionally enables vLLM's language-model-only mode, so the advertised OpenAI interface has no undeclared audio, image, or video dependency.",
     "tags": [
       "candidate",
       "nemotron",
@@ -15,7 +15,8 @@
       "vllm",
       "openai",
       "single",
-      "spark"
+      "spark",
+      "text"
     ]
   },
   "model": {
@@ -35,8 +36,8 @@
   },
   "build": {
     "context": {
-      "path": "adapters/llm/vllm-openai",
-      "sha256": "0b286a9510e765cab3e9e061e48132797b635a8c092695c8db9b5930b5672bfe",
+      "path": "adapters/nvidia/nemotron-vllm-0-20-0",
+      "sha256": "3ecaad26775f53304c698d0c380977d6911ead3d11673ed18396f5375640fc7c",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -48,7 +49,7 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 32964783442,
+      "download_bytes": 31664813151,
       "temporary_bytes": 44863295642,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
@@ -76,8 +77,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "vllm",
-      "slug": "vllm-0-27-1-nvidia-arm64",
-      "content_sha256": "95b0467cb73eeabfe8fd0c4f5f5e4f19a935b6bca3d56ed4bb6fc888470eca4a"
+      "slug": "vllm-0-20-0-nvidia-arm64",
+      "content_sha256": "12ff8c23841e374ceec40b1407fa31f6856188a77e5d3ede9921616b58842ea6"
     },
     "entrypoint": [
       "/opt/vonk/bin/vllm",

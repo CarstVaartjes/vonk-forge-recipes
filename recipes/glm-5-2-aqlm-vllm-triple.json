@@ -3,14 +3,14 @@
   "identity": {"publisher": "vonk-forge", "slug": "glm-5-2-aqlm-vllm-triple"},
   "metadata": {
     "title": "GLM 5.2 AQLM three Sparks",
-    "description": "Candidate TP3 recipe for the complete GLM 5.2 NVFP4/AQLM hybrid checkpoint. MiaAI-Lab's required TP3 vision, DCP, KV-allocation, expert-routing, and CUDA-graph flags exceed the current strict vLLM harness allowlist, so this profile remains blocked on harness support and physical topology qualification.",
+    "description": "Complete, offline-serving Candidate TP3 recipe for the GLM 5.2 NVFP4/AQLM hybrid vision checkpoint. It reproduces MiaAI-Lab's Ray topology, explicit DCP/KV allocation, expert-routing overrides, CUDA-graph profile, and image-baked TP3 compatibility stack; Candidate status is retained only for the later physical three-Spark canary.",
     "tags": ["candidate", "chat", "distributed", "glm-5.2", "reasoning", "spark", "vision"]
   },
   "model": {
     "kind": "model-version",
     "publisher": "jarrelscy",
     "slug": "glm-5-2-nvfp4-aqlm-hybrid-53e0082e",
-    "content_sha256": "b40c8b62e7db0086380b9e735bcd27096017c2351586fc2e9f5beb0d3c7ccbe0"
+    "content_sha256": "3628ab4e8ebc39a13905c77c308e315b87724b21c8e5cd78a33ccff8b2b73d11"
   },
   "execution": {
     "harness": {
@@ -23,21 +23,21 @@
       "kind": "patch-bundle",
       "publisher": "miaai-lab",
       "slug": "glm-5-2-aqlm-triple-topology",
-      "content_sha256": "fe9e12ff8694caaf1be70ec3b4e49685a886c0abbca6b9ad22437bbec70000b9"
+      "content_sha256": "98ad609d6059bc816a1b850c0fabe1e8e85a1748cebe48ec80480fa11b34d816"
     }
   },
   "build": {
     "context": {
       "path": "adapters/glm/mia-triple",
-      "sha256": "d6fd10f5ccd79b03517e15f6df66cf16d3e04f0dfe0714d10a50a91e485bca19",
-      "expected_bytes": 10240,
+      "sha256": "b77408d591eac1948b84eacf4701f68290f90cf9363af4ff8b4cd70480e4c46e",
+      "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
     "platform": "linux/arm64",
     "arguments": [],
-    "network": {"mode": "none", "hosts": []},
-    "resources": {"download_bytes": 17752470742, "temporary_bytes": 25000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
+    "network": {"mode": "public", "hosts": ["ghcr.io", "files.pythonhosted.org"]},
+    "resources": {"download_bytes": 17968454623, "temporary_bytes": 25000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
   },
   "parameters": [],
   "artifacts": [
@@ -45,9 +45,9 @@
       "id": "weights",
       "kind": "huggingface.snapshot",
       "repository": "jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid",
-      "revision": "53e0082eedebd806b63e19779c47905937d768ca",
-      "download_bytes": 292515176895,
-      "installed_bytes": 292515176895,
+      "revision": "c5d93567f1ff2de4dbba6018b58a653654c1309a",
+      "download_bytes": 292599148533,
+      "installed_bytes": 292599148533,
       "mount": {"target": "/models", "read_only": true},
       "roles": ["entrypoint", "worker"]
     }
@@ -57,7 +57,7 @@
       "kind": "runtime-distribution",
       "publisher": "miaai-lab",
       "slug": "glm-5-2-aqlm-triple-dspark",
-      "content_sha256": "b85dc7769830f8bce7d6cd68d94f957b5518f3f61993ef23f3c85527a027a5b3"
+      "content_sha256": "9b89cb75a9ca85cd26a2b2837384c79421568e21d7b70018620529bf8bf9da28"
     },
     "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
     "arguments": [
@@ -65,15 +65,23 @@
       {"name": "trust-remote-code", "value": true},
       {"name": "tensor-parallel-size", "value": 3},
       {"name": "pipeline-parallel-size", "value": 1},
+      {"name": "decode-context-parallel-size", "value": 1},
+      {"name": "dcp-comm-backend", "value": "ag_rs"},
+      {"name": "mm-encoder-tp-mode", "value": "data"},
       {"name": "kv-cache-dtype", "value": "nvfp4_ds_mla"},
+      {"name": "kv-cache-memory-bytes", "value": 11811160064},
       {"name": "gpu-memory-utilization", "value": "0.895"},
       {"name": "max-model-len", "value": 348160},
       {"name": "max-num-seqs", "value": 1},
       {"name": "max-num-batched-tokens", "value": 4096},
+      {"name": "disable-flashinfer-autotune", "value": true},
+      {"name": "compilation-config", "value": "{\"mode\":3,\"cudagraph_mode\":\"FULL\",\"cudagraph_capture_sizes\":[4,8,12,16,20,24],\"pass_config\":{\"fuse_allreduce_rms\":true,\"fuse_norm_quant\":true}}"},
+      {"name": "hf-overrides", "value": "{\"num_experts_per_tok\":4,\"index_topk_freq\":8}"},
       {"name": "speculative-config", "value": "{\"method\":\"deepseek_mtp\",\"num_speculative_tokens\":3,\"draft_tensor_parallel_size\":1}"},
       {"name": "async-scheduling", "value": true},
       {"name": "enable-auto-tool-choice", "value": true},
       {"name": "tool-call-parser", "value": "glm47"},
+      {"name": "reasoning-parser", "value": "glm45"},
       {"name": "default-chat-template-kwargs", "value": "{\"enable_thinking\":false}"}
     ],
     "environment": [
@@ -83,9 +91,27 @@
       {"name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS", "value": "0"},
       {"name": "FLASHINFER_DISABLE_VERSION_CHECK", "value": "1"},
       {"name": "VLLM_SPARSE_INDEXER_MAX_LOGITS_MB", "value": "192"},
+      {"name": "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS", "value": "1800"},
+      {"name": "VLLM_DISABLE_FP8_W8A16", "value": "0"},
+      {"name": "VLLM_MARLIN_USE_ATOMIC_ADD", "value": "1"},
+      {"name": "GLM_MOE_AQLM_CB", "value": "l1"},
+      {"name": "GLM_MOE_AQLM_STREAM", "value": "1"},
+      {"name": "GLM_NVFP4_STREAM", "value": "1"},
+      {"name": "CUTE_DSL_ARCH", "value": "sm_121a"},
+      {"name": "TORCH_CUDA_ARCH_LIST", "value": "12.1a"},
       {"name": "NCCL_NET", "value": "IB"},
       {"name": "NCCL_IB_DISABLE", "value": "0"},
       {"name": "NCCL_CROSS_NIC", "value": "1"},
+      {"name": "NCCL_IB_MERGE_NICS", "value": "0"},
+      {"name": "NCCL_IB_SUBNET_AWARE_ROUTING", "value": "1"},
+      {"name": "NCCL_GIN_ENABLE", "value": "0"},
+      {"name": "NCCL_P2P_DISABLE", "value": "1"},
+      {"name": "NCCL_SHM_DISABLE", "value": "1"},
+      {"name": "NCCL_MAX_NCHANNELS", "value": "4"},
+      {"name": "NCCL_MIN_NCHANNELS", "value": "4"},
+      {"name": "NCCL_BUFFSIZE", "value": "1048576"},
+      {"name": "NCCL_PROTO", "value": "LL,LL128,Simple"},
+      {"name": "NCCL_GRAPH_MIXING_SUPPORT", "value": "1"},
       {"name": "NCCL_CUMEM_ENABLE", "value": "0"},
       {"name": "NCCL_DEBUG", "value": "WARN"}
     ],
@@ -119,7 +145,7 @@
         "endpoint_owner": true,
         "artifacts": ["weights"],
         "resources": {
-          "disk": {"image_bytes": 30000000000, "artifact_bytes": 292515176895, "staging_bytes": 25000000000, "cache_bytes": 50000000000, "rollback_bytes": 0, "safety_margin_bytes": 30000000000},
+          "disk": {"image_bytes": 30000000000, "artifact_bytes": 292599148533, "staging_bytes": 25000000000, "cache_bytes": 50000000000, "rollback_bytes": 0, "safety_margin_bytes": 30000000000},
           "memory": {"kind": "unified", "startup_peak_bytes": 120000000000, "steady_state_bytes": 116000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}
         }
       },
@@ -129,14 +155,14 @@
         "endpoint_owner": false,
         "artifacts": ["weights"],
         "resources": {
-          "disk": {"image_bytes": 30000000000, "artifact_bytes": 292515176895, "staging_bytes": 25000000000, "cache_bytes": 50000000000, "rollback_bytes": 0, "safety_margin_bytes": 30000000000},
+          "disk": {"image_bytes": 30000000000, "artifact_bytes": 292599148533, "staging_bytes": 25000000000, "cache_bytes": 50000000000, "rollback_bytes": 0, "safety_margin_bytes": 30000000000},
           "memory": {"kind": "unified", "startup_peak_bytes": 120000000000, "steady_state_bytes": 116000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}
         }
       }
     ],
     "parallelism": {"world_size": 3, "tensor": 3, "pipeline": 1, "data": 1, "backend": "mp"},
     "fabric": {"connectivity": "connected", "minimum_bandwidth_mbps": 200000},
-    "start_order": ["worker", "entrypoint"],
+    "start_order": ["entrypoint", "worker"],
     "stop_order": ["entrypoint", "worker"]
   },
   "interfaces": [{"adapter": "openai", "port": 8888, "model_aliases": ["glm-5.2"], "health_path": "/v1/models"}],

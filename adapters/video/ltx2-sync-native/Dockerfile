@@ -1,0 +1,59 @@
+FROM nvcr.io/nvidia/cuda:13.2.1-runtime-ubuntu24.04@sha256:a52783d8d73ace53998d4e740515e9942e73072dc7fbd5322917eb382a0bc7fb
+
+LABEL org.opencontainers.image.source="https://github.com/Lightricks/LTX-2" \
+      org.opencontainers.image.revision="400fd31054597515f47125691032c04b1c3ee24e" \
+      org.opencontainers.image.licenses="LTX-2 Community License Agreement" \
+      io.vonk.ltx2.source-archive-sha256="16a155ba255ff4a2c07a5e3bb7942305527e2de943252f2a19ae12789bbbf571"
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONUNBUFFERED=1 \
+    HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends --yes \
+        ca-certificates \
+        curl \
+        ffmpeg \
+        python3 \
+        python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m pip install --break-system-packages --no-cache-dir \
+        --index-url https://download.pytorch.org/whl/cu132 \
+        torch==2.13.0 \
+    && python3 -m pip install --break-system-packages --no-cache-dir --no-deps \
+        --index-url https://download.pytorch.org/whl/test/cu132 \
+        torchaudio==2.11.0
+
+COPY requirements.lock /opt/vonk/source/requirements.lock
+
+RUN python3 -m pip install --break-system-packages --no-cache-dir \
+        --requirement /opt/vonk/source/requirements.lock \
+    && curl --fail --location --silent --show-error \
+        --output /tmp/ltx2-source.tar.gz \
+        https://github.com/Lightricks/LTX-2/archive/400fd31054597515f47125691032c04b1c3ee24e.tar.gz \
+    && printf '%s  %s\n' \
+        16a155ba255ff4a2c07a5e3bb7942305527e2de943252f2a19ae12789bbbf571 \
+        /tmp/ltx2-source.tar.gz \
+        | sha256sum --check --strict \
+    && mkdir -p /opt/vonk/source/ltx2 \
+    && tar --extract --gzip --file /tmp/ltx2-source.tar.gz \
+        --directory /opt/vonk/source/ltx2 --strip-components=1 \
+    && rm /tmp/ltx2-source.tar.gz \
+    && python3 -m pip install --break-system-packages --no-cache-dir \
+        --no-build-isolation --no-deps /opt/vonk/source/ltx2/packages/ltx-core \
+    && python3 -m pip install --break-system-packages --no-cache-dir \
+        --no-build-isolation --no-deps /opt/vonk/source/ltx2/packages/ltx-pipelines
+
+COPY run.py /opt/vonk/source/run.py
+
+RUN install --directory --mode=0755 /opt/vonk/bin \
+    && printf '%s\n' '#!/bin/sh' 'exec python3 /opt/vonk/source/run.py "$@"' \
+        > /opt/vonk/bin/pytorch-pipeline \
+    && chmod 0755 /opt/vonk/bin/pytorch-pipeline \
+    && useradd --uid 10001 --create-home --shell /usr/sbin/nologin vonk
+
+USER 10001:10001
+ENTRYPOINT []

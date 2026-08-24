@@ -4,9 +4,58 @@
     "publisher": "vonk-forge",
     "slug": "glm-5-2-aqlm-vllm-triple"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "2.0.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "2.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "886918bb8e44651153b18ca45866ab285c8a87cdd5a69aeaed59cf5e66f07d62",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Enabled strict-harness TP3 execution with Mia's official Ray topology and complete vision, DCP, KV, expert-routing, reasoning, MTP, and CUDA-graph flags.",
+          "references": [
+            "https://github.com/MiaAI-Lab/GLM-5.2-NVFP4-AQLM-Triple-DGX-Sparks/blob/5c85163ccb8d98d395880e71e2dbd03976a3f4ad/start.sh"
+          ]
+        },
+        {
+          "kind": "runtime",
+          "summary": "Moved the official NCCL 2.30.7 preload into the adapter build using the exact PyPI ARM64 wheel and SHA-256, eliminating the host-staged runtime dependency.",
+          "references": [
+            "https://pypi.org/project/nvidia-nccl-cu13/2.30.7/"
+          ]
+        },
+        {
+          "kind": "fix",
+          "summary": "Added build-time Ray/vLLM verification and fail-closed rendezvous checks; Candidate now denotes only the pending physical canary."
+        }
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "457f8ae05e386a03967beb4c6b17227f8bbc55c2402cd1b152e7e39872f3f8f0",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "model",
+          "summary": "Pinned the current c5d93567 checkpoint inventory; all weight, vision, tokenizer, configuration, and runtime files remain byte-identical.",
+          "details": "The upstream revision adds 603 Terminal-Bench trace files and updates README.md, increasing the exact snapshot by 83,971,638 bytes without changing any runtime-affecting payload.",
+          "references": [
+            "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid/commit/c5d93567f1ff2de4dbba6018b58a653654c1309a"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Retained the Candidate Mia TP3 runtime and topology patch because the checkpoint's executable payload is unchanged.",
+          "references": [
+            "https://github.com/MiaAI-Lab/GLM-5.2-NVFP4-AQLM-Triple-DGX-Sparks/blob/5c85163ccb8d98d395880e71e2dbd03976a3f4ad/README.md"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

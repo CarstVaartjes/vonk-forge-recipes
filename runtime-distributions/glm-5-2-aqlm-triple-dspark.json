@@ -4,7 +4,7 @@
   "identity": {"publisher": "miaai-lab", "slug": "glm-5-2-aqlm-triple-dspark"},
   "metadata": {
     "title": "Mia GLM 5.2 AQLM triple-Spark runtime",
-    "description": "Immutable public ARM64 GLM 5.2 image with TP3 head padding, sparse MLA, MTP, and vision support for three DGX Sparks.",
+    "description": "Immutable public ARM64 GLM 5.2 image with TP3 head padding, sparse MLA, MTP, vision support, and the official Ray launch mechanism for three DGX Sparks. The Vonk adapter adds digest-verified NCCL 2.30.7 during its networked build so serving itself is offline.",
     "tags": ["candidate", "distributed", "glm-5.2", "spark", "vllm", "vision"]
   },
   "implements_harness": {
@@ -35,14 +35,16 @@
       "license": "MIT AND Apache-2.0"
     },
     {"name": "FlashInfer", "version": "0.6.15", "source": "https://pypi.org/project/flashinfer-python/0.6.15/", "license": "Apache-2.0"},
+    {"name": "Ray", "version": "image-pinned", "source": "https://github.com/ray-project/ray", "license": "Apache-2.0"},
+    {"name": "NCCL", "version": "2.30.7", "source": "https://pypi.org/project/nvidia-nccl-cu13/2.30.7/", "license": "BSD-3-Clause"},
     {"name": "PyTorch", "version": "2.11.0+cu130", "source": "https://download.pytorch.org/whl/cu130", "license": "BSD-3-Clause"},
     {"name": "CUDA", "version": "image-pinned", "source": "https://developer.nvidia.com/cuda-toolkit", "license": "NVIDIA CUDA Toolkit EULA"}
   ],
-  "build": {"network_hosts": ["ghcr.io"], "offline_after_installation": true},
+  "build": {"network_hosts": ["ghcr.io", "files.pythonhosted.org"], "offline_after_installation": true},
   "capabilities": {
     "distributed_vllm": {
       "verified": true,
-      "mechanism": "vllm-mp",
+      "mechanism": "vllm-ray",
       "topology_mode": "distributed",
       "node_count": 3,
       "world_size": 3,

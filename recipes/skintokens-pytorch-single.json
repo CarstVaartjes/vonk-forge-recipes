@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "SkinTokens / TokenRig pytorch-pipeline single Spark",
-    "description": "Metadata-only SkinTokens rigging checkpoint binding; the generic ARM64 harness lacks the TokenRig source, mesh input workflow, native dependencies, and GLB exporter required for execution.",
+    "description": "Candidate native SkinTokens/TokenRig single-Spark rigging pipeline with an exact upstream source build, offline checkpoint binding, and deterministic rigged-GLB exporter; physical GB10 acceptance remains pending.",
     "tags": [
       "candidate",
       "three-d",
@@ -14,8 +14,8 @@
       "single",
       "spark",
       "rigging",
-      "metadata-only",
-      "non-executable"
+      "native",
+      "build-unvalidated"
     ]
   },
   "model": {
@@ -35,9 +35,9 @@
   },
   "build": {
     "context": {
-      "path": "adapters/media/upstream-native",
-      "sha256": "0482565099ffca2d5c3d6fef1cac484e06eba813a1fb18b7e20aac44c50335ce",
-      "expected_bytes": 10240,
+      "path": "adapters/three-d/skintokens",
+      "sha256": "fc2e042da47092daaddf55cde30c50e3be6e1a588e4d9da3e40a2e800b99c8ef",
+      "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -46,31 +46,35 @@
     "network": {
       "mode": "public",
       "hosts": [
+        "nvcr.io",
+        "github.com",
+        "huggingface.co",
         "download.pytorch.org",
         "pypi.org",
         "files.pythonhosted.org",
         "archive.ubuntu.com",
+        "security.ubuntu.com",
         "ports.ubuntu.com"
       ]
     },
     "resources": {
-      "download_bytes": 3618924643,
-      "temporary_bytes": 16000000000,
-      "memory_bytes": 8000000000,
+      "download_bytes": 12000000000,
+      "temporary_bytes": 32000000000,
+      "memory_bytes": 16000000000,
       "timeout_seconds": 14400
     }
   },
   "parameters": [],
   "artifacts": [
     {
-      "id": "weights",
+      "id": "target",
       "kind": "huggingface.snapshot",
       "repository": "VAST-AI/SkinTokens",
       "revision": "79736cad0fd84de384d5eede659b4ebd24effe33",
       "download_bytes": 1618924643,
       "installed_bytes": 1618924643,
       "mount": {
-        "target": "/models",
+        "target": "/models/target",
         "read_only": true
       },
       "roles": [
@@ -81,9 +85,9 @@
   "runtime": {
     "distribution": {
       "kind": "runtime-distribution",
-      "publisher": "pytorch",
-      "slug": "pytorch-2-13-cuda13-arm64",
-      "content_sha256": "93ff225d792a8e14f1e4758701e1d88c82f9e515c4aafec160ee00c750b6a9e9"
+      "publisher": "vast-ai",
+      "slug": "skintokens-tokenrig-arm64",
+      "content_sha256": "d3e7f0f15c1f3cb943480d51c4a6937b06e6393428c6e7cea12f54cc8fd9be6f"
     },
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"
@@ -163,11 +167,11 @@
         "count": 1,
         "endpoint_owner": true,
         "artifacts": [
-          "weights"
+          "target"
         ],
         "resources": {
           "disk": {
-            "image_bytes": 2000000000,
+            "image_bytes": 16000000000,
             "artifact_bytes": 1618924643,
             "staging_bytes": 16000000000,
             "cache_bytes": 8000000000,
@@ -176,8 +180,8 @@
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 32000000000,
-            "steady_state_bytes": 24000000000,
+            "startup_peak_bytes": 48000000000,
+            "steady_state_bytes": 36000000000,
             "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }

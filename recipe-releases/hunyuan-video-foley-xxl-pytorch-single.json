@@ -4,9 +4,40 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan-video-foley-xxl-pytorch-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "1.2.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "8ec64b6fa3f4bf1a775c80fdecd92955460ff358776dbdb0c22a352b5694a1fe",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Replaced the metadata-only binding with pinned Foley source, Transformers fork, Audiotools commit, and isolated video input.",
+          "references": [
+            "https://github.com/Tencent-Hunyuan/HunyuanVideo-Foley/commit/df7b005b5023df2a9b73e1d66dd51d452799884e"
+          ]
+        },
+        {
+          "kind": "fix",
+          "summary": "Selected the XXL checkpoint, added exact SigLIP2 and CLAP artifacts, patched all model loads local-only, disabled fallback downloads, and verified WAV output.",
+          "references": [
+            "https://huggingface.co/google/siglip2-base-patch16-512/tree/a89f5c5093f902bf39d3cd4d81d2c09867f0724b",
+            "https://huggingface.co/laion/larger_clap_general/tree/ada0c23a36c4e8582805bb38fec3905903f18b41"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Split the pinned Transformers archive into verified transport-bounded chunks and verify the reassembled archive before extraction."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Corrected the model and native runtime authorities from Apache-2.0 to the territorial Tencent Hunyuan Community License."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

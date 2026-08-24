@@ -4,9 +4,44 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-super-120b-a12b-vllm-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "2.1.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "2.1.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "2862da6dce3915ea9091adc86f693086bdb772b9639150f66c019ce1b184e82c",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Followed NVIDIA's revised DGX Spark contract by moving to immutable vLLM 0.27.1 and adding the separately released MTPv2 speculative-decoding head.",
+          "details": "The target advances to 445d56f3; its weights, code, tokenizer, and super_v3 parser are unchanged from 4f0cf9da, while the updated model card changes the Spark runtime and recommends MTPv2. The exact 5.88 GB companion is now hydrated into /models/drafter, so offline startup performs no hidden Hugging Face download.",
+          "references": [
+            "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4/tree/445d56f38229f7a37ae5207734f7e8af0fa9a2c8",
+            "https://huggingface.co/nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2/tree/c929f8a55d0527fea9f58b4cedc9e0c855cfc421",
+            "https://github.com/vllm-project/vllm/releases/tag/v0.27.1"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "68bd5dca013c50a33d35d735234106d2fdcbb7a1240487a3e153d8fab1670273",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Made the Super recipe executable with NVIDIA's immutable vLLM 0.20.0 ARM64 image and snapshot-owned super_v3 parser plugin.",
+          "details": "The reviewed launch now includes explicit FP4/Marlin execution, FP8 KV cache, Mamba cache settings, and MTP speculative decoding with no startup download.",
+          "references": [
+            "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4/tree/4f0cf9daaeb7a4d5e23f80a00e7ed15f0e03caf6",
+            "https://github.com/vllm-project/vllm/releases/tag/v0.20.0"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

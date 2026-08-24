@@ -4,9 +4,33 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan-video-15-i2v-step-distilled-diffusers-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "1.2.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "a1bc312d61e59ca26497b7389a1b5cf9efbc3c56008e331490f724ae348407d1",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Replaced the incomplete native snapshot with the complete 480p I2V step-distilled Diffusers conversion, hash-locked runtime, and isolated image input.",
+          "references": [
+            "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled/tree/854c04a4c8a53d990b418c7478f0802c0fc8c726",
+            "https://github.com/huggingface/diffusers/commit/a3608b512ed7248499a44c61d954965ed9bdae4d"
+          ]
+        },
+        {
+          "kind": "fix",
+          "summary": "Bound 480p I2V to its self-contained step-distilled pipeline, recommended eight-step path, local-only loading, and exact image-to-video contract."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Corrected the model authority from Apache-2.0 to the territorial Tencent Hunyuan Community License."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

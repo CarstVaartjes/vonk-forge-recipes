@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "kind": "runtime-distribution",
+  "identity": {"publisher": "drowzeys", "slug": "glm-5-2-quanttrio-four-spark"},
+  "metadata": {
+    "title": "GLM 5.2 QuantTrio four-Spark runtime",
+    "description": "Immutable public ARM64 vLLM runtime with the matched GLM 5.2 sparse-MLA kernels, B12X score-mode integration, and MTP indexer-overhang fix baked into the image. The Vonk adapter adds digest-verified NCCL 2.30.4 during its networked build so model serving is fully offline.",
+    "tags": ["b12x", "candidate", "distributed", "glm-5.2", "spark", "sparse-mla", "vllm"]
+  },
+  "implements_harness": {
+    "kind": "execution-harness",
+    "publisher": "vonk-forge",
+    "slug": "vllm",
+    "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"
+  },
+  "platform": "linux/arm64",
+  "source": {
+    "repository": "https://github.com/drowzeys/keys-GLM5.2-Quantrio-INT4-INT8-Mixed-Abliterated-C1-30toks-4x-DGX-Sparks",
+    "revision": "296699b44e024de938cb8b3251d49d4b1306a507",
+    "archive_sha256": "8799ebf84fe61090089eb7f2abc2413e8989c758ed1718e2fd784dc5491e2338",
+    "license": "Apache-2.0 (vendored kernel stack); upstream repository notice otherwise"
+  },
+  "image": "ghcr.io/drowzeys/vllm-node-tf5-glm52-b12x@sha256:e006935eb4f8266705f213c369de1eac8de7d20417254c5f234601a2fd56d481",
+  "image_manifest": {
+    "digest": "e006935eb4f8266705f213c369de1eac8de7d20417254c5f234601a2fd56d481",
+    "size": 4948,
+    "config_digest": "b280079089d01d85c8cd69f66273610a460ed5c508fbb48d1be6d3dbf1e7293f",
+    "compressed_layers_bytes": 9700661667
+  },
+  "dependencies": [
+    {"name": "vLLM", "version": "ab666069935c1f23e8ef56038b4659ac9e8f19f8", "source": "https://github.com/vllm-project/vllm/tree/ab666069935c1f23e8ef56038b4659ac9e8f19f8", "license": "Apache-2.0"},
+    {"name": "B12X", "version": "0.23.0", "source": "https://pypi.org/project/b12x/0.23.0/", "license": "Apache-2.0"},
+    {"name": "GLM sparse-MLA kernel bundle", "version": "296699b44e024de938cb8b3251d49d4b1306a507", "source": "https://github.com/drowzeys/keys-GLM5.2-Quantrio-INT4-INT8-Mixed-Abliterated-C1-30toks-4x-DGX-Sparks/tree/296699b44e024de938cb8b3251d49d4b1306a507/kernels", "license": "Apache-2.0"},
+    {"name": "NCCL", "version": "2.30.4", "source": "https://pypi.org/project/nvidia-nccl-cu13/2.30.4/", "license": "BSD-3-Clause"},
+    {"name": "PyTorch", "version": "2.11.0+cu130", "source": "https://download.pytorch.org/whl/cu130", "license": "BSD-3-Clause"},
+    {"name": "CUDA", "version": "13.2", "source": "https://developer.nvidia.com/cuda-toolkit", "license": "NVIDIA CUDA Toolkit EULA"}
+  ],
+  "build": {"network_hosts": ["ghcr.io", "files.pythonhosted.org"], "offline_after_installation": true},
+  "capabilities": {
+    "distributed_vllm": {
+      "verified": true,
+      "mechanism": "vllm-mp",
+      "topology_mode": "distributed",
+      "node_count": 4,
+      "world_size": 4,
+      "tensor_parallel_size": 4,
+      "pipeline_parallel_size": 1,
+      "data_parallel_size": 1,
+      "fabric": "nccl-roce",
+      "endpoint_role": "entrypoint",
+      "worker_role": "worker",
+      "rank_loss_withdraws_endpoint": true,
+      "launch": {
+        "rendezvous": {
+          "local_address_environment": "VONK_LOCAL_ADDR",
+          "master_address_environment": "VONK_MASTER_ADDR",
+          "master_port_environment": "VONK_MASTER_PORT",
+          "master_role": "entrypoint"
+        },
+        "rank_profiles": [
+          {"rank": 0, "role": "entrypoint", "environment": {"GLOO_SOCKET_IFNAME": "enp1s0f0np0", "NCCL_IB_GID_INDEX": "3", "NCCL_IB_HCA": "=rocep1s0f0:1", "NCCL_SOCKET_IFNAME": "=enp1s0f0np0", "TP_SOCKET_IFNAME": "enp1s0f0np0"}},
+          {"rank": 1, "role": "worker", "environment": {"GLOO_SOCKET_IFNAME": "enp1s0f0np0", "NCCL_IB_GID_INDEX": "3", "NCCL_IB_HCA": "=rocep1s0f0:1", "NCCL_SOCKET_IFNAME": "=enp1s0f0np0", "TP_SOCKET_IFNAME": "enp1s0f0np0"}},
+          {"rank": 2, "role": "worker", "environment": {"GLOO_SOCKET_IFNAME": "enp1s0f0np0", "NCCL_IB_GID_INDEX": "3", "NCCL_IB_HCA": "=rocep1s0f0:1", "NCCL_SOCKET_IFNAME": "=enp1s0f0np0", "TP_SOCKET_IFNAME": "enp1s0f0np0"}},
+          {"rank": 3, "role": "worker", "environment": {"GLOO_SOCKET_IFNAME": "enp1s0f0np0", "NCCL_IB_GID_INDEX": "3", "NCCL_IB_HCA": "=rocep1s0f0:1", "NCCL_SOCKET_IFNAME": "=enp1s0f0np0", "TP_SOCKET_IFNAME": "enp1s0f0np0"}}
+        ]
+      }
+    }
+  },
+  "security": {"network_mode": "none", "user": "10001:10001", "no_new_privileges": true, "capabilities": []}
+}

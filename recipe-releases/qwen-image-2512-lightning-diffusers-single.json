@@ -4,9 +4,37 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-2512-lightning-diffusers-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "1.2.0",
+  "released_at": "2026-08-24",
   "history": [
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "07d98fbd43c11251b77813d16328fb0812cf92d532896cd959ae3f0f2906e76d",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Made the Candidate installable with its exact Qwen Image 2512 base dependency and four-step BF16 Lightning LoRA.",
+          "references": [
+            "https://huggingface.co/Qwen/Qwen-Image-2512/tree/25468b98e3276ca6700de15c6628e51b7de54a26",
+            "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52"
+          ]
+        },
+        {
+          "kind": "performance",
+          "summary": "Applied ModelTC's exact four-step shift-3 scheduler with true CFG 1.0."
+        },
+        {
+          "kind": "fix",
+          "summary": "Download only the selected 849 MB BF16 LoRA instead of the complete 107 GB multi-variant collection."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Added a required UTF-8 text prompt input contract and deterministic PNG output adapter; physical Spark acceptance remains pending."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",
