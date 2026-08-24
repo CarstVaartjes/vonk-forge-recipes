@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "meta",
+    "slug": "muse-glimmer"
+  },
+  "metadata": {
+    "title": "Muse Glimmer",
+    "description": "Meta open-weight local agentic multimodal model family.",
+    "tags": [
+      "meta",
+      "muse-glimmer",
+      "multimodal"
+    ]
+  },
+  "family": "muse-glimmer"
+}

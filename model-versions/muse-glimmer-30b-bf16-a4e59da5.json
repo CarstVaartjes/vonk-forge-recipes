@@ -1,0 +1,243 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {
+    "publisher": "meta",
+    "slug": "muse-glimmer-30b-bf16-a4e59da5"
+  },
+  "metadata": {
+    "title": "Muse Glimmer 30B BF16 a4e59da5",
+    "description": "Exact public Muse Glimmer 30B BF16 a4e59da5 checkpoint.",
+    "tags": [
+      "meta",
+      "muse-glimmer",
+      "multimodal",
+      "candidate"
+    ]
+  },
+  "model": {
+    "kind": "model",
+    "publisher": "meta",
+    "slug": "muse-glimmer-30b",
+    "content_sha256": "18cb2851d36584449a10d7982979d9151fa62faa76f648d3d7f5edf47cca56dc"
+  },
+  "version": "Muse Glimmer 30B BF16 a4e59da5",
+  "source": {
+    "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+    "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68"
+  },
+  "lineage": {
+    "publisher": "meta",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "meta",
+      "slug": "muse-glimmer-30b",
+      "content_sha256": "18cb2851d36584449a10d7982979d9151fa62faa76f648d3d7f5edf47cca56dc"
+    },
+    "derivation": "Official upstream checkpoint at the pinned revision."
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "parameters": {
+    "total": 29776626688,
+    "active": 29776626688
+  },
+  "limits": {
+    "context_tokens": 131072
+  },
+  "sizes": {
+    "download_bytes": 59581829216,
+    "installed_bytes": 59581829216
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B/blob/a4e59da52a7bc87ae7251dd5545c0dd437c44b68/LICENSE",
+    "attribution": [
+      "Meta"
+    ],
+    "operator_acceptance_required": false
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "artifacts": [
+    {
+      "id": "metadata-34448b82c17d",
+      "path": ".gitattributes",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+      "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "download_bytes": 1570,
+      "installed_bytes": 1570,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "license-cfc7749b96f6",
+      "path": "LICENSE",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+      "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "download_bytes": 11358,
+      "installed_bytes": 11358,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "readme-5894e358c58f",
+      "path": "README.md",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+      "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "sha256": "5894e358c58f4f8425645a5b0b890468ecb3e6b049c2e941648db077c4b7df58",
+      "download_bytes": 16892,
+      "installed_bytes": 16892,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "usage-policy-98a14dab9fd9",
+      "path": "USAGE_POLICY.md",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+      "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "sha256": "98a14dab9fd97de1666dc8589d399efab1e7fc3ba4e6230d037d6637ba9481d3",
+      "download_bytes": 5230,
+      "installed_bytes": 5230,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "chat-template-cfc67e5f349f",
+      "path": "chat_template.jinja",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+      "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "sha256": "cfc67e5f349f37690dfd31ed1f18bc4442a9dd32fe39a648f993cb4eb3cae678",
+      "download_bytes": 9992,
+      "installed_bytes": 9992,
+      "roles": [
+        "tokenizer"
+      ]
+    },
+    {
+      "id": "config-5a9df2d8a385",
+      "path": "config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+      "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "sha256": "5a9df2d8a385b3d361ab6ae68d73586f4e775033933bd0cd863fb7f3820e6a14",
+      "download_bytes": 5109,
+      "installed_bytes": 5109,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "generation-config-1fa51889b1f8",
+      "path": "generation_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+      "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "sha256": "1fa51889b1f8d3659802dedaa27e005b81e5c58483f13ecf13f2d97306bc6e35",
+      "download_bytes": 202,
+      "installed_bytes": 202,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "model-00001-of-00002-8eef61530e12",
+      "path": "model-00001-of-00002.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+      "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "sha256": "8eef61530e1283642c77ce2e6721feb5c6f348fa055c00e90f2844a136372694",
+      "download_bytes": 49950112952,
+      "installed_bytes": 49950112952,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00002-of-00002-b58cc2144ba1",
+      "path": "model-00002-of-00002.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+      "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "sha256": "b58cc2144ba1ba1af4420f67f4ca3ced7f09298510b80464cc75018a0be14381",
+      "download_bytes": 9603322320,
+      "installed_bytes": 9603322320,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-safetensors-index-7d817b4dccb1",
+      "path": "model.safetensors.index.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+      "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "sha256": "7d817b4dccb1b123fc6c1939356c65cee3a0ad462a5b821ac88280990a27d1ba",
+      "download_bytes": 132674,
+      "installed_bytes": 132674,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "processor-config-97e2a486dd98",
+      "path": "processor_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+      "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "sha256": "97e2a486dd9866b81f40cf4b8bc0c9ced9a7cd8a5bc65aa4cc2f4de0712dae77",
+      "download_bytes": 1084,
+      "installed_bytes": 1084,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "tokenizer-c9dbee66967b",
+      "path": "tokenizer.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+      "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "sha256": "c9dbee66967b58f31a7c27f723c3760da3526ccd0427578e8905b0abb0031c4d",
+      "download_bytes": 28129897,
+      "installed_bytes": 28129897,
+      "roles": [
+        "tokenizer"
+      ]
+    },
+    {
+      "id": "tokenizer-config-781e6c74f571",
+      "path": "tokenizer_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+      "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "sha256": "781e6c74f571642c71202167b67d9255b28cc439bdda1582ff31346182f5a9c5",
+      "download_bytes": 79936,
+      "installed_bytes": 79936,
+      "roles": [
+        "tokenizer"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}
