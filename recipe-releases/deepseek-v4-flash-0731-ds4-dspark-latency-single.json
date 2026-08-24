@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-flash-0731-ds4-dspark-latency-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-24",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "8d9710a45523b6308dca8d62155015171917a9ed6749d78467fce45b08c594b4",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added a non-batched single-Spark DSpark latency profile that actually enables the pinned experimental drafter for greedy decoding.",
+          "references": [
+            "https://github.com/antirez/ds4/blob/84cc882352757baf628a1776badf7cc54d584e28/README.md#dspark-speculative-decoding"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Published as Candidate pending physical GB10 build, DSpark statistics, memory, latency, and response-quality canaries."
+        }
+      ]
+    }
+  ]
+}
