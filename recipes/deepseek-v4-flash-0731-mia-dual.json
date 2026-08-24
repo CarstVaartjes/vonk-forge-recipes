@@ -23,14 +23,14 @@
       "kind": "patch-bundle",
       "publisher": "miaai-lab",
       "slug": "mia-deepseek-v4-flash-0731",
-      "content_sha256": "6883cd621714dada29fe4e075c630bf05631f29ac2e90b609baf73f0246ec7b3"
+      "content_sha256": "b56ecb2b4e98942da8f8a1d9aa2545d0bb7dc668e83b00061fa97426726bd507"
     }
   },
   "build": {
     "context": {
       "path": "adapters/deepseek/mia-vllm",
-      "sha256": "00d8799893c26fa7ace5bf656f4379524ad56029b6c7fae9b72ae3a0845474c5",
-      "expected_bytes": 245760,
+      "sha256": "8eef2502149b710328833916acc780cef90f693e7be258eb063dd0e0764b1b74",
+      "expected_bytes": 256000,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -221,7 +221,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/f104c39a8c6fa68d4ea0b342ad6eed172bc0e635",
+    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/d1b76251535daef578d8751b04b39c29ad7ecdf9",
     "attribution": ["DeepSeek AI", "MiaAI-Lab", "Anemll", "vLLM contributors"]
   }
 }
