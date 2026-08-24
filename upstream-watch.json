@@ -5,6 +5,9 @@
     "huggingface": "default-branch"
   },
   "overrides": {
+    "model-version/meta/muse-glimmer-30b-bf16-a4e59da5": {
+      "policy": "default-branch"
+    },
     "runtime-distribution/huggingface/diffusers-0-39-0-cuda13-arm64": {
       "policy": "manual"
     },
@@ -23,6 +26,9 @@
     },
     "runtime-distribution/vllm/vllm-0-27-1-nvidia-arm64": {
       "policy": "latest-release"
+    },
+    "runtime-distribution/vllm/vllm-muse-glimmer-99a10304-cu130-arm64": {
+      "policy": "manual"
     },
     "runtime-distribution/vllm/vllm-nightly-arm64-8efa13b7": {
       "policy": "manual"
