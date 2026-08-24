@@ -19,7 +19,7 @@
     "kind": "model",
     "publisher": "thinkingmachines",
     "slug": "inkling-975b-a41b",
-    "content_sha256": "232a0b870aafa8d59a364ad98aef8c035b71e3e1d27478c8b5986d4a7fa999db"
+    "content_sha256": "19b298df50c1b7f262e134577eb4d211fa65bfdd1fbf38004c444b78dcf31d75"
   },
   "version": "NVFP4 42a75a99",
   "source": {
@@ -33,7 +33,7 @@
       "kind": "model",
       "publisher": "thinkingmachines",
       "slug": "inkling-975b-a41b",
-      "content_sha256": "232a0b870aafa8d59a364ad98aef8c035b71e3e1d27478c8b5986d4a7fa999db"
+      "content_sha256": "19b298df50c1b7f262e134577eb4d211fa65bfdd1fbf38004c444b78dcf31d75"
     },
     "derivation": "Official upstream checkpoint at the pinned revision."
   },
