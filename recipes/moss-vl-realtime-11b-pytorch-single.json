@@ -9,6 +9,7 @@
     "description": "Executable Pending single-DGX-Spark session-replay recipe for OpenMOSS MOSS-VL-Realtime. An ordered session.json drives the checkpoint's native realtime session while it remains active, including bounded timestamped frames, aligned or interrupting prompts, raw proactive-silence control tokens, and later correction chunks. The result contains a replay MP4 plus the authoritative JSONL transcript sidecar.",
     "tags": [
       "pending",
+      "candidate",
       "openmoss",
       "moss-vl",
       "video-understanding",
