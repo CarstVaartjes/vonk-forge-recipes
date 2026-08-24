@@ -12,6 +12,26 @@
   "targets": [
     {
       "modality": "image",
+      "group": "HunyuanOCR",
+      "model": "HunyuanOCR 1.5",
+      "version": "BF16 target + DFlash draft 449e7d47",
+      "status": "candidate",
+      "source": "https://huggingface.co/tencent/HunyuanOCR/tree/449e7d471a8a1ef5bd5d652e4881183d7252cbc7",
+      "harnesses": [
+        "pytorch-pipeline",
+        "vllm"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "hunyuanocr-1-5-vllm-dflash-single"
+      ],
+      "catalog_model_version": "hunyuanocr-1-5-449e7d47",
+      "notes": "Source-complete executable Pending single-Spark artifact job with all 12 official OCR task prompts, lossless DFlash speculative decoding, fixed sampling, repetition cleanup, document Markdown normalization, isolated image inputs, and a provenance-bearing ZIP output. Physical GB10 container and output canaries remain."
+    },
+    {
+      "modality": "image",
       "group": "Qwen Image",
       "model": "Qwen Image 2512",
       "version": "BF16 25468b98",

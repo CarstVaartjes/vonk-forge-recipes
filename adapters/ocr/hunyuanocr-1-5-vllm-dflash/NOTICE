@@ -1,0 +1,16 @@
+HunyuanOCR 1.5 runtime attribution
+===================================
+
+This adapter is a thin Vonk artifact-job wrapper around Tencent's official
+HunyuanOCR 1.5 inference toolkit at commit
+c55965d3da1e6f41987abec8068f2e70851318bc. The image preserves the official
+task prompts, greedy sampling settings, tail-repetition protection,
+document-Markdown normalization, and lossless DFlash speculative decoding.
+
+Upstream source: https://github.com/Tencent-Hunyuan/HunyuanOCR
+Model source: https://huggingface.co/tencent/HunyuanOCR
+vLLM deployment recipe: https://recipes.vllm.ai/tencent/HunyuanOCR
+
+HunyuanOCR weights and source are governed by the Tencent Hunyuan Community
+License Agreement included in the immutable model and source snapshots. vLLM
+is licensed under Apache-2.0.
