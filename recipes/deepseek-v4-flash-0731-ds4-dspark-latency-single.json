@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "identity": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-0731-ds4-single"},
+  "identity": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-0731-ds4-dspark-latency-single"},
   "metadata": {
-    "title": "DeepSeek V4 Flash 0731 DS4 batched concurrency single Spark",
-    "description": "Candidate one-DGX Spark target-only profile using DS4 native two-session batching for concurrent serving; the DSpark drafter is omitted because upstream disables speculative decoding during native batching.",
-    "tags": ["candidate", "executable", "deepseek", "ds4", "openai", "chat", "reasoning", "concurrency", "batched", "target-only", "single", "spark"]
+    "title": "DeepSeek V4 Flash 0731 DS4 + DSpark latency single Spark",
+    "description": "Candidate one-DGX Spark non-batched latency profile using DS4's experimental DSpark support model for greedy decoding; physical Spark acceptance is still required.",
+    "tags": ["candidate", "executable", "deepseek", "ds4", "dspark", "openai", "chat", "reasoning", "latency", "speculative-decoding", "single", "spark"]
   },
   "model": {
     "kind": "model-version",
@@ -50,6 +50,16 @@
       "installed_bytes": 86720111488,
       "mount": {"target": "/models", "read_only": true},
       "roles": ["entrypoint"]
+    },
+    {
+      "id": "drafter",
+      "kind": "http.file",
+      "repository": "https://huggingface.co/antirez/deepseek-v4-gguf/resolve/e7f04037032990db0346398d249baf9fb9df1ccc/DeepSeek-V4-Flash-DSpark-support-0731.gguf",
+      "revision": "sha256:7e319924541db3f7a163ed7e11d7532a70d48228ab59d36cb81e1d4511885360",
+      "download_bytes": 5989114272,
+      "installed_bytes": 5989114272,
+      "mount": {"target": "/models", "read_only": true},
+      "roles": ["entrypoint"]
     }
   ],
   "runtime": {
@@ -62,8 +72,8 @@
     "entrypoint": ["/opt/vonk/bin/ds4-serve"],
     "arguments": [
       {"name": "model", "value": "/models/DeepSeek-V4-Flash-IQ2XXS-w2Q2K-AProjQ8-SExpQ8-OutQ8-chat-v2-imatrix-0731.gguf"},
-      {"name": "ctx-size", "value": 131072},
-      {"name": "batch-size", "value": 2}
+      {"name": "draft-model", "value": "/models/DeepSeek-V4-Flash-DSpark-support-0731.gguf"},
+      {"name": "ctx-size", "value": 131072}
     ],
     "environment": [
       {"name": "DS4_LOG_LEVEL", "value": "INFO"},
@@ -97,11 +107,11 @@
         "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": ["target"],
+        "artifacts": ["target", "drafter"],
         "resources": {
           "disk": {
             "image_bytes": 10000000000,
-            "artifact_bytes": 86720111488,
+            "artifact_bytes": 92709225760,
             "staging_bytes": 10000000000,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
@@ -135,7 +145,7 @@
       {"interface": "openai", "checks": ["endpoint.healthy", "chat.nonempty", "chat.max-output-64"]}
     ],
     "benchmarks": [
-      {"name": "bounded-concurrency", "framework": "openai", "configuration": {"max_output_tokens": 64, "requests": 2, "timeout_seconds": 300}}
+      {"name": "bounded-greedy-chat", "framework": "openai", "configuration": {"max_output_tokens": 64, "requests": 1, "temperature": 0, "timeout_seconds": 300}}
     ]
   },
   "provenance": {
