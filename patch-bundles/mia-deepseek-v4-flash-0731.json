@@ -15,8 +15,8 @@
   },
   "source": {
     "repository": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark",
-    "revision": "d1b76251535daef578d8751b04b39c29ad7ecdf9",
-    "archive_sha256": "51249cd81009a57b420d48e3d3e1e406427e6c37fe984e1631c52bf37143faee"
+    "revision": "d5ae65cc173e9567de62d19defb885d091406962",
+    "archive_sha256": "f0105f834bf3894735ac4400e46ca1a09196fb643143abe3b22f0c83c46a2f59"
   },
   "base_source": {
     "repository": "https://github.com/vllm-project/vllm",
@@ -153,15 +153,15 @@
     },
     {
       "order": 17,
-      "path": "patches/hotfix-dspark-shared-expert-loader.py",
-      "sha256": "b4a32bec2bd14fd8e7e3a877a2b2fd68282b8a6cb2d55c2441bc0aeff0d05a81",
-      "purpose": "Load the Stage-C DSpark shared-expert gate and up checkpoint shards into the fused gate_up_proj parameter.",
-      "upstream_reference": "Mia pull request 127 merged at d1b76251535daef578d8751b04b39c29ad7ecdf9",
-      "license": "Apache-2.0"
+      "path": "patches/hotfix-dsv4-issue133-triton-specialization.py",
+      "sha256": "64d23c25fdd40bf1d6418c217c76d90b6eed8991a26f66c92d002b4b45523b3f",
+      "purpose": "Bound global top-k Triton compilation to the two stable block-size variants instead of traffic-dependent pointer-alignment variants.",
+      "upstream_reference": "Mia issue 133 at d5ae65cc173e9567de62d19defb885d091406962",
+      "license": "MIT"
     }
   ],
-  "pre_patch_tree_sha256": "c95903b2148fee727e4e88ffa9b0e65d86239f36bcbec33e352c9a5b92580a03",
-  "post_patch_tree_sha256": "25e036c025a68c01de1408450f3ba6d2d368cfab016ea3ba7cc4d4ca63b9a3ba",
+  "pre_patch_tree_sha256": "4a1ee8ac6eaefb8dfc9e3d15792daf9154dbaee0acab6295f1e4b95c8397c432",
+  "post_patch_tree_sha256": "61a2242dee4005c3eeb916fba1e01a516901a6fa3cc5e3f7a06d89c17f0fd429",
   "compatible_model_versions": [
     {
       "kind": "model-version",
@@ -177,7 +177,7 @@
     "fail-closed-patching",
     "gb10-spin-wait",
     "scheduler-fairness",
-    "shared-expert-loading",
+    "triton-specialization-stability",
     "tool-call-correctness"
   ],
   "removal_condition": "Remove each patch only after the exact base vLLM revision incorporates the same behavior and two-Spark qualification is repeated.",
@@ -186,9 +186,9 @@
     "attribution": ["MiaAI-Lab", "vLLM contributors"]
   },
   "source_bundle": {
-    "sha256": "8eef2502149b710328833916acc780cef90f693e7be258eb063dd0e0764b1b74",
+    "sha256": "09d06ce787964181ebbc6ce10ab22a3771b48913549969a3b473f68495a9dbf2",
     "expected_bytes": 256000,
     "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
   },
-  "sha256": "0091512c9e3267de6ab0060ce3d15db1ed7fe48434cd3723dd2de6aed32c9cce"
+  "sha256": "e2ae14508454ef3f60ffec2a8acc9d28383e9d5239a9758ee8cf4d07a5dc975a"
 }
