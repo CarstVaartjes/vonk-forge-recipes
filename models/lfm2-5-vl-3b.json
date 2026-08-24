@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "liquidai",
+    "slug": "lfm2-5-vl-3b"
+  },
+  "metadata": {
+    "title": "LFM2.5-VL-3B",
+    "description": "Liquid AI 3.1B vision-language model for screen understanding, multi-image grounding, OCR, document layout, and tool use.",
+    "tags": [
+      "liquidai",
+      "lfm2-5",
+      "multimodal"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "liquidai",
+    "slug": "lfm2-5",
+    "content_sha256": "173301afbb9aec06235a6606e9a27d605c358bc242bf641ff039cde491d53150"
+  },
+  "architecture": "LFM2.5 2.6B hybrid language backbone with 400M SigLIP2 NaFlex vision encoder"
+}
