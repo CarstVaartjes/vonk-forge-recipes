@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "thinkingmachines",
+    "slug": "inkling-975b-a41b"
+  },
+  "metadata": {
+    "title": "Inkling 975B-A41B",
+    "description": "Native multimodal sparse mixture-of-experts model accepting text, image, and audio and producing text.",
+    "tags": [
+      "thinkingmachines",
+      "inkling",
+      "multimodal"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "thinkingmachines",
+    "slug": "inkling",
+    "content_sha256": "21b0010330cd7445b4d9078bdf629fe415c7f1c6a52f846a2a1513e9a0e5ff87"
+  },
+  "architecture": "Inkling multimodal sparse mixture-of-experts transformer"
+}

@@ -1,0 +1,11 @@
+--extra-index-url https://download.pytorch.org/whl/cu130
+
+accelerate==1.12.0
+einops==0.8.2
+joblib==1.5.2
+numpy==2.4.3
+packaging==26.0
+pillow==12.1.1
+torch==2.13.0+cu130
+torchvision==0.28.0+cu130
+transformers==4.57.3

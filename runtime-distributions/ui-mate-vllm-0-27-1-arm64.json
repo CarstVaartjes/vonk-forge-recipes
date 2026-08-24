@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "kind": "runtime-distribution",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "ui-mate-vllm-0-27-1-arm64"
+  },
+  "metadata": {
+    "title": "UI-Mate vLLM 0.27.1 NVIDIA ARM64 runtime",
+    "description": "Pinned vLLM CUDA 13 ARM64 serving image with Tencent's official UI-Mate prompt, response parser, coordinate translator, and action harness vendored for offline use.",
+    "tags": [
+      "candidate",
+      "ui-mate",
+      "computer-use",
+      "multimodal",
+      "vllm",
+      "cuda",
+      "arm64",
+      "spark"
+    ]
+  },
+  "implements_harness": {
+    "kind": "execution-harness",
+    "publisher": "vonk-forge",
+    "slug": "vllm",
+    "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"
+  },
+  "platform": "linux/arm64",
+  "source": {
+    "repository": "https://github.com/Tencent/UI-Mate",
+    "revision": "d2b2e0aede83eeacfb1bc86f66503acbc4a6738a",
+    "archive_sha256": "98d13c2f66cc128d5b96b3c574243d02adb89b27f9a4dab4aae5ef0a7bbf9f28",
+    "license": "Apache-2.0"
+  },
+  "image": "docker.io/vllm/vllm-openai@sha256:1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+  "image_manifest": {
+    "digest": "1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+    "size": 7238,
+    "config_digest": "2c211a1273b48e8929f893b267aeb1509e6b84654cdbde1bad56d79e3964224d",
+    "compressed_layers_bytes": 10533135621
+  },
+  "dependencies": [
+    {
+      "name": "UI-Mate agent harness",
+      "version": "d2b2e0aede83eeacfb1bc86f66503acbc4a6738a",
+      "source": "https://github.com/Tencent/UI-Mate@d2b2e0aede83eeacfb1bc86f66503acbc4a6738a",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "vLLM",
+      "version": "0.27.1",
+      "source": "https://github.com/vllm-project/vllm@6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "OpenAI Python SDK",
+      "version": "image-pinned",
+      "source": "docker.io/vllm/vllm-openai@sha256:1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "Pillow",
+      "version": "image-pinned",
+      "source": "docker.io/vllm/vllm-openai@sha256:1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+      "license": "MIT-CMU"
+    },
+    {
+      "name": "CUDA",
+      "version": "image-pinned",
+      "source": "docker.io/vllm/vllm-openai@sha256:1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+      "license": "NVIDIA CUDA Toolkit EULA"
+    }
+  ],
+  "build": {
+    "network_hosts": [],
+    "offline_after_installation": true
+  },
+  "capabilities": {
+    "distributed_vllm": null
+  },
+  "security": {
+    "network_mode": "none",
+    "user": "10001:10001",
+    "no_new_privileges": true,
+    "capabilities": []
+  }
+}

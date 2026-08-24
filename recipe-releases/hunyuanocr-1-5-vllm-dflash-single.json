@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "hunyuanocr-1-5-vllm-dflash-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-24",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-24",
+      "recipe_content_sha256": "4c98fda621dabd1ab0f678c4c3f2e078938c6417276dc4142d770c9752e2dd68",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Add the executable Pending HunyuanOCR 1.5 DFlash document-image job for one DGX Spark.",
+          "details": "Pins Tencent's target and DFlash draft, uses the official 12 task prompts and fixed sampling, preserves repetition cleanup and document Markdown normalization, and emits a ZIP with UTF-8 results plus provenance metadata.",
+          "references": [
+            "https://huggingface.co/tencent/HunyuanOCR",
+            "https://github.com/Tencent-Hunyuan/HunyuanOCR",
+            "https://recipes.vllm.ai/tencent/HunyuanOCR"
+          ]
+        }
+      ]
+    }
+  ]
+}

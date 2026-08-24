@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+"""Bind Vonk's exact two-node placement to SGLang's native launch flags."""
+
+from __future__ import annotations
+
+import os
+import sys
+from ipaddress import ip_address
+
+
+def _option(arguments: list[str], name: str) -> tuple[int, str]:
+    try:
+        index = arguments.index(name)
+        value = arguments[index + 1]
+    except (ValueError, IndexError):
+        raise SystemExit(f"distributed SGLang requires {name}") from None
+    return index, value
+
+
+arguments = sys.argv[1:]
+_, node_count = _option(arguments, "--nnodes")
+_, node_rank = _option(arguments, "--node-rank")
+init_index, init_address = _option(arguments, "--dist-init-addr")
+local_address = os.environ.get("VONK_LOCAL_ADDR")
+master_address = os.environ.get("VONK_MASTER_ADDR")
+master_port = os.environ.get("VONK_MASTER_PORT")
+fabric_names = (
+    "NCCL_SOCKET_IFNAME",
+    "NCCL_IB_HCA",
+    "NCCL_IB_GID_INDEX",
+    "TP_SOCKET_IFNAME",
+    "GLOO_SOCKET_IFNAME",
+)
+
+try:
+    if (
+        node_count != "2"
+        or node_rank not in {"0", "1"}
+        or init_address != "VONK_MASTER_ADDR:VONK_MASTER_PORT"
+        or not local_address
+        or not master_address
+        or not master_port
+        or any(not os.environ.get(name) for name in fabric_names)
+        or not master_port.isascii()
+        or not master_port.isdigit()
+        or not 1024 <= int(master_port) <= 65535
+    ):
+        raise ValueError
+    ip_address(local_address)
+    ip_address(master_address)
+except ValueError:
+    raise SystemExit(
+        "distributed SGLang requires complete two-node placement rendezvous and fabric"
+    ) from None
+
+arguments[init_index + 1] = f"{master_address}:{master_port}"
+os.execv(sys.executable, (sys.executable, "-m", "sglang.launch_server", *arguments))

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "system_prompt": "You are a helpful realtime video assistant. Preserve uncertainty and use silence when no meaningful update is available.",
+  "initial_prompt": "Describe important changes as the scene develops.",
+  "frame_queue_size": 32,
+  "max_tokens_per_second": 12,
+  "max_new_tokens": 512,
+  "playback_speed": 1.0,
+  "settle_seconds": 10.0,
+  "do_sample": false,
+  "events": [
+    {"type": "frame", "path": "frame-000.png", "timestamp": 0.0, "at_seconds": 0.0},
+    {"type": "frame", "path": "frame-001.png", "timestamp": 1.0, "at_seconds": 1.0, "prompt": "What changed?"},
+    {"type": "prompt", "text": "Correct the earlier answer if the new evidence changes it.", "at_seconds": 1.5},
+    {"type": "frame", "path": "frame-002.png", "timestamp": 2.0, "at_seconds": 2.0}
+  ]
+}
