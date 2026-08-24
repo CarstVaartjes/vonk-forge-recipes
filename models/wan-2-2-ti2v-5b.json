@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {"publisher": "wan-ai", "slug": "wan-2-2-ti2v-5b"},
+  "metadata": {
+    "title": "Wan 2.2 TI2V 5B",
+    "description": "Wan 2.2's compact five-billion-parameter text-and-image-to-video model.",
+    "tags": ["wan", "video", "text-to-video", "image-to-video", "5b"]
+  },
+  "model_group": {"kind": "model-group", "publisher": "wan-ai", "slug": "wan-2-2", "content_sha256": "9046e967faecc02893c2d7da65ed29ef30fce2067d7dde9554a75b96ad95ac5e"},
+  "architecture": "5B text-and-image-to-video diffusion transformer"
+}

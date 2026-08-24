@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {"publisher": "black-forest-labs", "slug": "flux-2"},
+  "metadata": {
+    "title": "FLUX.2",
+    "description": "Black Forest Labs' second-generation open-weight image model family.",
+    "tags": ["flux", "image", "generation", "editing"]
+  },
+  "family": "flux-2"
+}
