@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "nvidia-qwen-image-flash-diffusers-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "1.1.1",
+  "released_at": "2026-08-26",
   "history": [
+    {
+      "version": "1.1.1",
+      "released_at": "2026-08-26",
+      "recipe_content_sha256": "f0476d7f16cb503f2b85f146704ef29d9a5e2ee45e244fd87682371058322571",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

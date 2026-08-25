@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "wan-2-2-ti2v-5b-comfyui-single"},
-  "metadata": {"title": "Wan 2.2 TI2V 5B ComfyUI single Spark", "description": "Candidate single-Spark core-node ComfyUI image-to-video recipe for Wan 2.2 TI2V 5B.", "tags": ["candidate", "wan", "video", "image-to-video", "comfyui", "fp16", "single", "spark"]},
+  "metadata": {"title": "Wan 2.2 TI2V 5B ComfyUI single Spark", "description": "Candidate single-Spark core-node ComfyUI image-to-video recipe for Wan 2.2 TI2V 5B.", "tags": ["executable", "candidate", "wan", "video", "image-to-video", "comfyui", "fp16", "single", "spark"]},
   "model": {"kind": "model-version", "publisher": "wan-ai", "slug": "wan-2-2-ti2v-5b-comfyui-c4f60d30", "content_sha256": "c31eb027d0ae2716da9c249bf76d8a56c746e5cdc49ac58810aea1c6c0ee38d0"},
   "execution": {"harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "comfyui", "content_sha256": "0d97fceaa9a7ab64bf3d826b5d9ca427ea10be79b54a8d4fe9190711c9bf70d6"}, "patch_bundle": null},
   "build": {

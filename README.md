@@ -91,10 +91,12 @@ this checkout first, uploads only the referenced public build contexts, and
 records the exact Git commit in the local import receipt. Its default is a
 dry-run; candidate recipes require an explicit opt-in.
 
-Every non-blocked target in the ledger has at least one candidate recipe,
-including the language, image, audio, video, and 3D targets. The five blocked
-targets intentionally have no recipe and remain research-only. Candidate
-recipes are structurally validated and visible to operators, but are not
+Every non-blocked target in the ledger has at least one installable candidate
+recipe, including the language, image, audio, video, and 3D targets. Every
+published recipe document declares a complete executable contract, so an
+operator may explicitly opt in and attempt installation before qualification.
+The five blocked targets intentionally have no recipe and remain research-only.
+Installability does not imply acceptance: candidates remain outside the
 accepted defaults until their ARM64 container build and Spark canary pass.
 The DeepSeek DS4 and two-Spark official DSpark/Mia recipes remain candidates
 until fresh physical acceptance; historical prototype evidence is deliberately

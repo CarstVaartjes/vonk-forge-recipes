@@ -7,7 +7,7 @@
   "metadata": {
     "title": "Qwen Image Layered Diffusers single Spark",
     "description": "Candidate single-Spark Diffusers binding for decomposing one input image into independently editable RGBA layers.",
-    "tags": [
+    "tags": ["executable",
       "candidate",
       "qwen",
       "image",

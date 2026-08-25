@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "triposg-pytorch-single"
   },
-  "version": "2.0.0",
-  "released_at": "2026-08-24",
+  "version": "2.0.1",
+  "released_at": "2026-08-26",
   "history": [
+    {
+      "version": "2.0.1",
+      "released_at": "2026-08-26",
+      "recipe_content_sha256": "07e172c2ed4d30c03853b3400b402be48d9364a7d1f4f5f74d86ffa8078e6bb3",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
+        }
+      ]
+    },
     {
       "version": "2.0.0",
       "released_at": "2026-08-24",

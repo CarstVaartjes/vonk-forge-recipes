@@ -7,7 +7,7 @@
   "metadata": {
     "title": "Qwen Image 2512 Lightning diffusers single Spark",
     "description": "Installable Candidate pairing the exact Qwen Image 2512 base checkpoint with ModelTC/lightx2v's four-step BF16 Lightning LoRA and published shift-3 schedule; physical Spark acceptance remains pending.",
-    "tags": ["candidate", "qwen", "image", "generation", "text-to-image", "lightning", "lora", "diffusers", "bf16", "single", "spark"]
+    "tags": ["executable", "candidate", "qwen", "image", "generation", "text-to-image", "lightning", "lora", "diffusers", "bf16", "single", "spark"]
   },
   "model": {
     "kind": "model-version",

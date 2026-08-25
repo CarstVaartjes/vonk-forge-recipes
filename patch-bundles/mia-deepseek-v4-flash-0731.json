@@ -15,8 +15,8 @@
   },
   "source": {
     "repository": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark",
-    "revision": "d5ae65cc173e9567de62d19defb885d091406962",
-    "archive_sha256": "f0105f834bf3894735ac4400e46ca1a09196fb643143abe3b22f0c83c46a2f59"
+    "revision": "70a7cc4b49664e83b51e9b73c0ed41db18ac3190",
+    "archive_sha256": "7d17f73ca4f444f8518d8535a237e7f3c7b3c3a8d6f0f5a36bbabdfcfe2b5b02"
   },
   "base_source": {
     "repository": "https://github.com/vllm-project/vllm",
@@ -178,6 +178,8 @@
     "gb10-spin-wait",
     "scheduler-fairness",
     "triton-specialization-stability",
+    "persistent-compile-caches",
+    "nccl-flight-recorder",
     "tool-call-correctness"
   ],
   "removal_condition": "Remove each patch only after the exact base vLLM revision incorporates the same behavior and two-Spark qualification is repeated.",
@@ -186,7 +188,7 @@
     "attribution": ["MiaAI-Lab", "vLLM contributors"]
   },
   "source_bundle": {
-    "sha256": "09d06ce787964181ebbc6ce10ab22a3771b48913549969a3b473f68495a9dbf2",
+    "sha256": "8f5ed21f43771797d08662e22da8223f93f6a971ffbac8873bf3bd4f967743b6",
     "expected_bytes": 256000,
     "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
   },
