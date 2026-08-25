@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-mia-dual"
   },
-  "version": "2.1.0",
+  "version": "2.1.1",
   "released_at": "2026-08-26",
   "history": [
+    {
+      "version": "2.1.1",
+      "released_at": "2026-08-26",
+      "recipe_content_sha256": "8e7ce3e6c0ac549c018d6757064e0cc8324fcb46f041040f10204dc24d84a86f",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Moved Mia-specific cache and NCCL diagnostics environment authority into the exact runtime distribution.",
+          "details": "Future safe runtime tunables can be admitted by a digest-bound distribution update without requiring a Spark agent or control-plane allowlist release. Reserved and code-injection variables remain blocked centrally."
+        }
+      ]
+    },
     {
       "version": "2.1.0",
       "released_at": "2026-08-26",
