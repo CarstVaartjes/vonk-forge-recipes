@@ -4,7 +4,7 @@
   "metadata": {
     "title": "Nemotron 3 Nano 30B-A3B NVFP4 vLLM single Spark",
     "description": "Executable Candidate single-Spark vLLM recipe for the exact NVIDIA Nemotron 3 Nano NVFP4 checkpoint. The immutable model snapshot supplies the reviewed nano_v3 reasoning plugin, while FP8 KV and FlashInfer NVFP4 MoE follow NVIDIA's launch contract.",
-    "tags": ["candidate", "nemotron", "nvfp4", "vllm", "openai", "single", "spark"]
+    "tags": ["executable", "candidate", "nemotron", "nvfp4", "vllm", "openai", "single", "spark"]
   },
   "model": {
     "kind": "model-version",

@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-layered-diffusers-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-23",
+  "version": "1.1.1",
+  "released_at": "2026-08-26",
   "history": [
+    {
+      "version": "1.1.1",
+      "released_at": "2026-08-26",
+      "recipe_content_sha256": "955e35590d1a2927c2b6b7b4b7f990922044769ccdadbc9da0358240c6351961",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-23",

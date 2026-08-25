@@ -4,9 +4,31 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-mia-dual"
   },
-  "version": "2.0.3",
-  "released_at": "2026-08-24",
+  "version": "2.1.0",
+  "released_at": "2026-08-26",
   "history": [
+    {
+      "version": "2.1.0",
+      "released_at": "2026-08-26",
+      "recipe_content_sha256": "1a1f69cf5b402652d3a46ec6da6f9b382a846f82356734148135bcd3e34f835e",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Advanced the reviewed Mia two-Spark source to 70a7cc4 with persistent B12X compile caching and NCCL flight-recorder diagnostics.",
+          "details": "Vonk's typed recipe already bounds the numeric knobs added upstream; the candidate now persists the new compile cache and rank diagnostics under the writable outputs mount."
+        },
+        {
+          "kind": "performance",
+          "summary": "Added a sampler-shape canary for top-k, top-p, and combined sampling paths.",
+          "details": "This records Mia's new boot-warmup coverage as qualification evidence without treating a future physical canary as already passed."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Declared the complete contract installable while retaining Candidate qualification pending a fresh two-Spark build and canary."
+        }
+      ]
+    },
     {
       "version": "2.0.3",
       "released_at": "2026-08-24",

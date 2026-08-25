@@ -7,7 +7,7 @@
   "metadata": {
     "title": "HunyuanVideo 1.5 I2V 480p step-distilled diffusers single Spark",
     "description": "Installable Candidate for 480p eight-step image-to-video with a complete immutable step-distilled Diffusers snapshot, isolated image input, and offline ARM64 runtime; physical Spark acceptance remains pending.",
-    "tags": [
+    "tags": ["executable",
       "candidate",
       "video",
       "image-to-video",

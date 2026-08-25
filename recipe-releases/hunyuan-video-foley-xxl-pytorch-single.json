@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan-video-foley-xxl-pytorch-single"
   },
-  "version": "1.2.0",
-  "released_at": "2026-08-24",
+  "version": "1.2.1",
+  "released_at": "2026-08-26",
   "history": [
+    {
+      "version": "1.2.1",
+      "released_at": "2026-08-26",
+      "recipe_content_sha256": "1f3d7cfdd59fd314a0939dad0a8548c6a1536d57f0f811b1770011ecc1661423",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
+        }
+      ]
+    },
     {
       "version": "1.2.0",
       "released_at": "2026-08-24",

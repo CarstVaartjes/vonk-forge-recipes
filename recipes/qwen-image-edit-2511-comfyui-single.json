@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "qwen-image-edit-2511-comfyui-single"},
-  "metadata": {"title": "Qwen Image Edit 2511 ComfyUI single Spark", "description": "Candidate single-Spark core-node ComfyUI two-reference image-edit binding for the official Qwen Image Edit 2511 BF16 snapshot.", "tags": ["candidate", "qwen", "image", "editing", "comfyui", "bf16", "single", "spark"]},
+  "metadata": {"title": "Qwen Image Edit 2511 ComfyUI single Spark", "description": "Candidate single-Spark core-node ComfyUI two-reference image-edit binding for the official Qwen Image Edit 2511 BF16 snapshot.", "tags": ["executable", "candidate", "qwen", "image", "editing", "comfyui", "bf16", "single", "spark"]},
   "model": {"kind": "model-version", "publisher": "qwen", "slug": "qwen-image-edit-2511-6f3ccc0b", "content_sha256": "14d6e5cd6f988803cb7b1eca0520db6bc23a92c7fe2edafea3b995bae7deb5b7"},
   "execution": {"harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "comfyui", "content_sha256": "0d97fceaa9a7ab64bf3d826b5d9ca427ea10be79b54a8d4fe9190711c9bf70d6"}, "patch_bundle": null},
   "build": {

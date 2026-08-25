@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-5-lightning-30b-a3b-vllm-single"
   },
-  "version": "1.3.0",
-  "released_at": "2026-08-24",
+  "version": "1.3.1",
+  "released_at": "2026-08-26",
   "history": [
+    {
+      "version": "1.3.1",
+      "released_at": "2026-08-26",
+      "recipe_content_sha256": "82c994c439a814aa60cac3657aff0f0b919fc2b6e43d5226b8ac85a872378bb5",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
+        }
+      ]
+    },
     {
       "version": "1.3.0",
       "released_at": "2026-08-24",

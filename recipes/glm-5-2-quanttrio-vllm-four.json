@@ -4,7 +4,7 @@
   "metadata": {
     "title": "GLM 5.2 QuantTrio four Sparks",
     "description": "Complete, offline-serving Candidate TP4 recipe for the unpruned GLM 5.2 Int4/Int8 checkpoint. It uses a public digest-pinned ARM64 image with the matched sparse-MLA kernels, B12X integration, and MTP indexer fix baked in, plus explicit KV and CUDA-graph settings; Candidate status is retained only for the later physical four-Spark canary.",
-    "tags": ["candidate", "chat", "distributed", "glm-5.2", "reasoning", "spark"]
+    "tags": ["executable", "candidate", "chat", "distributed", "glm-5.2", "reasoning", "spark"]
   },
   "model": {
     "kind": "model-version",

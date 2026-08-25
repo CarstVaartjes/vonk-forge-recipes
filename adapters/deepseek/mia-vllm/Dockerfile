@@ -1,9 +1,9 @@
 FROM ghcr.io/anemll/dspark-vllm-gx10@sha256:a83948492cf13df455170fb42885f5ef4db54fefe0feff0f841ecbff464ac9d8
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark" \
-      org.opencontainers.image.revision="d5ae65cc173e9567de62d19defb885d091406962" \
+      org.opencontainers.image.revision="70a7cc4b49664e83b51e9b73c0ed41db18ac3190" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0" \
-      io.vonk.mia-source-archive-sha256="f0105f834bf3894735ac4400e46ca1a09196fb643143abe3b22f0c83c46a2f59" \
+      io.vonk.mia-source-archive-sha256="7d17f73ca4f444f8518d8535a237e7f3c7b3c3a8d6f0f5a36bbabdfcfe2b5b02" \
       io.vonk.anemll-source-revision="47503f8e38dadd4dededca798150db2619594fce" \
       io.vonk.pre-patch-tree-sha256="4a1ee8ac6eaefb8dfc9e3d15792daf9154dbaee0acab6295f1e4b95c8397c432" \
       io.vonk.patch-tree-sha256="61a2242dee4005c3eeb916fba1e01a516901a6fa3cc5e3f7a06d89c17f0fd429" \

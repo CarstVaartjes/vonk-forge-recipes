@@ -7,7 +7,7 @@
   "metadata": {
     "title": "LTX-2 19B dev BF16 native synchronized single Spark",
     "description": "Runnable Candidate using the exact official native LTX two-stage pipeline, BF16 checkpoint, distilled refinement LoRA, spatial upscaler, and Gemma 3 companion closure; physical Spark acceptance remains pending.",
-    "tags": [
+    "tags": ["executable",
       "candidate",
       "build-unvalidated",
       "lightricks",

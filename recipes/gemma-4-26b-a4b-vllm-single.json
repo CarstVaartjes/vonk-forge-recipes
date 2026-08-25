@@ -7,7 +7,7 @@
   "metadata": {
     "title": "Gemma 4 26B-A4B IT vLLM single Spark",
     "description": "Executable single-Spark OpenAI chat recipe for Google's exact instruction-tuned Gemma 4 26B-A4B checkpoint, using its pinned canonical chat template and vLLM's native Gemma 4 reasoning and tool parsers.",
-    "tags": [
+    "tags": ["executable",
       "candidate",
       "google",
       "gemma",

@@ -7,7 +7,7 @@
   "metadata": {
     "title": "NVIDIA Qwen Image Flash diffusers single Spark",
     "description": "Candidate four-step NVIDIA Qwen Image Flash binding using the model card's tested scheduler, CFG, and 1024px profile; physical Spark acceptance is required.",
-    "tags": [
+    "tags": ["executable",
       "candidate",
       "image",
       "diffusers",

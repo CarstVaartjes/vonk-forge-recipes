@@ -4,7 +4,7 @@
   "metadata": {
     "title": "GLM 5.2 AQLM three Sparks",
     "description": "Complete, offline-serving Candidate TP3 recipe for the GLM 5.2 NVFP4/AQLM hybrid vision checkpoint. It reproduces MiaAI-Lab's Ray topology, explicit DCP/KV allocation, expert-routing overrides, CUDA-graph profile, and image-baked TP3 compatibility stack; Candidate status is retained only for the later physical three-Spark canary.",
-    "tags": ["candidate", "chat", "distributed", "glm-5.2", "reasoning", "spark", "vision"]
+    "tags": ["executable", "candidate", "chat", "distributed", "glm-5.2", "reasoning", "spark", "vision"]
   },
   "model": {
     "kind": "model-version",

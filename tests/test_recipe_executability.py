@@ -66,6 +66,11 @@ class RecipeExecutabilityTests(unittest.TestCase):
                     normalized_tags,
                     f"{path.name}: every recipe must retain the Candidate tag",
                 )
+                self.assertIn(
+                    "executable",
+                    normalized_tags,
+                    f"{path.name}: every published recipe must be installable",
+                )
                 self.assertFalse(
                     normalized_tags & FORBIDDEN_TAGS,
                     f"{path.name}: executable recipes cannot use placeholder, "
