@@ -88,6 +88,16 @@
     "offline_after_installation": true
   },
   "capabilities": {
+    "runtime_environment": {
+      "allowed_names": [
+        "B12X_CUTE_COMPILE_CACHE_DIR",
+        "TORCH_FR_BUFFER_SIZE",
+        "TORCH_FR_DUMP_TEMP_FILE",
+        "TORCH_NCCL_DEBUG_INFO_PIPE_FILE",
+        "TORCH_NCCL_DUMP_ON_TIMEOUT",
+        "TORCH_NCCL_ENABLE_MONITORING"
+      ]
+    },
     "distributed_vllm": {
       "verified": true,
       "mechanism": "vllm-mp",
