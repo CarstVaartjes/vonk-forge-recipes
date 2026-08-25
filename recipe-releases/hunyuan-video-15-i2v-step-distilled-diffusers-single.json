@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan-video-15-i2v-step-distilled-diffusers-single"
   },
-  "version": "1.2.0",
-  "released_at": "2026-08-24",
+  "version": "1.2.1",
+  "released_at": "2026-08-26",
   "history": [
+    {
+      "version": "1.2.1",
+      "released_at": "2026-08-26",
+      "recipe_content_sha256": "559787f5625634a36214539a87ead6913583d4b43b197c31d237f919ac45f9de",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
+        }
+      ]
+    },
     {
       "version": "1.2.0",
       "released_at": "2026-08-24",

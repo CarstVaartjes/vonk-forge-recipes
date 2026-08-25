@@ -65,7 +65,7 @@ def _arguments(recipe: dict[str, object]) -> dict[str, object]:
 
 
 class NemotronExecutableRecipeTests(unittest.TestCase):
-    def test_release_changelogs_bind_version_2_to_the_exact_recipes(self) -> None:
+    def test_release_changelogs_bind_current_versions_to_exact_recipes(self) -> None:
         release_validator = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[
             "recipe_release"
         ]
@@ -79,10 +79,15 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
                     slug=identity["slug"],
                     recipe_digest=_canonical_digest(recipe_path),
                 )
-                expected_version = "2.1.0" if name == "super" else "2.0.1"
+                expected_version = {
+                    "nano": "2.0.2",
+                    "omni": "2.0.2",
+                    "super": "2.1.1",
+                }[name]
                 self.assertEqual(release["version"], expected_version)
-                expected_effect = "rebuild" if name == "super" else "metadata-only"
-                self.assertEqual(release["history"][0]["upgrade_effect"], expected_effect)
+                self.assertEqual(
+                    release["history"][0]["upgrade_effect"], "metadata-only"
+                )
 
     def test_all_recipes_use_exact_current_models_and_runtime(self) -> None:
         for name, recipe_path in RECIPES.items():

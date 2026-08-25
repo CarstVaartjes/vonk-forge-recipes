@@ -7,7 +7,7 @@
   "metadata": {
     "title": "Muse Glimmer 30B BF16 vLLM single Spark",
     "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B BF16, using the official Muse-specific vLLM CUDA 13 ARM64 image and immutable local media inputs.",
-    "tags": [
+    "tags": ["executable",
       "candidate",
       "pending",
       "meta",

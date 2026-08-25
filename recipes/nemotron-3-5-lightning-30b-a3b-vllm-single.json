@@ -4,7 +4,7 @@
   "metadata": {
     "title": "Nemotron 3.5 Lightning 30B-A3B NVFP4 vLLM single Spark",
     "description": "Candidate single-Spark vLLM target-only profile for the exact Nemotron 3.5 Lightning NVFP4 checkpoint. It now uses NVIDIA's Marlin MoE and aligned Mamba cache settings, while intentionally omitting the speculative companion; physical GB10 acceptance is still required.",
-    "tags": ["candidate", "nemotron", "nvfp4", "vllm", "openai", "target-only", "single", "spark"]
+    "tags": ["executable", "candidate", "nemotron", "nvfp4", "vllm", "openai", "target-only", "single", "spark"]
   },
   "model": {
     "kind": "model-version",

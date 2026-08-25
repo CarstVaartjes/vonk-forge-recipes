@@ -7,7 +7,7 @@
   "metadata": {
     "title": "SkinTokens / TokenRig pytorch-pipeline single Spark",
     "description": "Candidate native SkinTokens/TokenRig single-Spark rigging pipeline with an exact upstream source build, offline checkpoint binding, and deterministic rigged-GLB exporter; physical GB10 acceptance remains pending.",
-    "tags": [
+    "tags": ["executable",
       "candidate",
       "three-d",
       "pytorch-pipeline",

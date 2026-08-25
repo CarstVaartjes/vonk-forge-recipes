@@ -1,9 +1,22 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-0731-sparkinfer-single"},
-  "version": "0.1.1",
-  "released_at": "2026-08-24",
+  "version": "0.1.2",
+  "released_at": "2026-08-26",
   "history": [
+    {
+      "version": "0.1.2",
+      "released_at": "2026-08-26",
+      "recipe_content_sha256": "0c4c4e3235f8d694956d0d4b9d7d9b05d542ab5e23782b4bbe8fe552aa39a879",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
+        }
+      ]
+    },
     {
       "version": "0.1.1",
       "released_at": "2026-08-24",

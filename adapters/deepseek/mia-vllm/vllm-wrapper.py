@@ -6,8 +6,14 @@ from __future__ import annotations
 import os
 import sys
 from ipaddress import ip_address
+from pathlib import Path
 
 arguments = sys.argv[1:]
+for cache_directory in (
+    "/outputs/cache/b12x-cute-compile",
+    "/outputs/cache/nccl-fr",
+):
+    Path(cache_directory).mkdir(parents=True, exist_ok=True)
 if "--nnodes" in arguments:
     local_address = os.environ.get("VONK_LOCAL_ADDR")
     master_address = os.environ.get("VONK_MASTER_ADDR")
