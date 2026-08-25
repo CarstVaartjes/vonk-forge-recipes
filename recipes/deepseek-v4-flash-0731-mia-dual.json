@@ -23,7 +23,7 @@
       "kind": "patch-bundle",
       "publisher": "miaai-lab",
       "slug": "mia-deepseek-v4-flash-0731",
-      "content_sha256": "b04b63b9cbb8455e5097ffbe0ed0e031cb095db29c8bda84d6f6e9fd96daad4e"
+      "content_sha256": "2cb014ed7c3a0d89edffbb73c15ee146a9688615863a0b6564d4be3dfe8916d0"
     }
   },
   "build": {
@@ -62,7 +62,7 @@
       "kind": "runtime-distribution",
       "publisher": "anemll",
       "slug": "anemll-vllm-mia",
-      "content_sha256": "af3b10b9abe842bfcd0e952225ae8881a5286f858b7cb47c4850bc05608ef6ec"
+      "content_sha256": "c989f4f60a09ffc107bfb966f71b09ca1066bedcbe606a70be00b0c8128c08f5"
     },
     "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
     "arguments": [
