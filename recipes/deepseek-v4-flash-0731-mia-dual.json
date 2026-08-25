@@ -3,8 +3,8 @@
   "identity": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-0731-mia-dual"},
   "metadata": {
     "title": "DeepSeek V4 Flash 0731 Mia dual Spark",
-    "description": "Candidate two-Spark profile for the official DeepSeek V4 Flash 0731 checkpoint, refreshed to MiaAI-Lab's current fail-closed patch set and text-serving defaults.",
-    "tags": ["candidate", "deepseek", "distributed", "mia", "openai", "spark"]
+    "description": "Installable Candidate two-Spark profile for the official DeepSeek V4 Flash 0731 checkpoint, refreshed to MiaAI-Lab's current fail-closed patches, persistent compile caches, and NCCL diagnostics.",
+    "tags": ["executable", "candidate", "deepseek", "distributed", "mia", "openai", "spark"]
   },
   "model": {
     "kind": "model-version",
@@ -23,13 +23,13 @@
       "kind": "patch-bundle",
       "publisher": "miaai-lab",
       "slug": "mia-deepseek-v4-flash-0731",
-      "content_sha256": "92cf82237293283b75006c00fea1f584a4f88a502fbbac51851275a2ad2ce198"
+      "content_sha256": "b04b63b9cbb8455e5097ffbe0ed0e031cb095db29c8bda84d6f6e9fd96daad4e"
     }
   },
   "build": {
     "context": {
       "path": "adapters/deepseek/mia-vllm",
-      "sha256": "09d06ce787964181ebbc6ce10ab22a3771b48913549969a3b473f68495a9dbf2",
+      "sha256": "8f5ed21f43771797d08662e22da8223f93f6a971ffbac8873bf3bd4f967743b6",
       "expected_bytes": 256000,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -113,6 +113,7 @@
       {"name": "FLASHINFER_WORKSPACE_BASE", "value": "/outputs/cache/flashinfer"},
       {"name": "TILELANG_CACHE_DIR", "value": "/outputs/cache/tilelang"},
       {"name": "TRITON_CACHE_DIR", "value": "/outputs/cache/triton"},
+      {"name": "B12X_CUTE_COMPILE_CACHE_DIR", "value": "/outputs/cache/b12x-cute-compile"},
       {"name": "TILELANG_CLEANUP_TEMP_FILES", "value": "1"},
       {"name": "DG_JIT_USE_NVRTC", "value": "0"},
       {"name": "DG_JIT_NVCC_COMPILER", "value": "/usr/local/cuda/bin/nvcc"},
@@ -125,7 +126,12 @@
       {"name": "NCCL_CUMEM_ENABLE", "value": "0"},
       {"name": "NCCL_IGNORE_CPU_AFFINITY", "value": "1"},
       {"name": "NCCL_DEBUG", "value": "WARN"},
-      {"name": "NCCL_NVLS_ENABLE", "value": "0"}
+      {"name": "NCCL_NVLS_ENABLE", "value": "0"},
+      {"name": "TORCH_FR_BUFFER_SIZE", "value": "2000"},
+      {"name": "TORCH_NCCL_DUMP_ON_TIMEOUT", "value": "1"},
+      {"name": "TORCH_NCCL_ENABLE_MONITORING", "value": "1"},
+      {"name": "TORCH_FR_DUMP_TEMP_FILE", "value": "/outputs/cache/nccl-fr/comm_lib_trace_rank_"},
+      {"name": "TORCH_NCCL_DEBUG_INFO_PIPE_FILE", "value": "/outputs/cache/nccl-fr/fr_dump_pipe_"}
     ],
     "security": {
       "devices": ["nvidia.com/gpu=all"],
@@ -216,12 +222,13 @@
       {"interface": "openai", "checks": ["endpoint.healthy", "collective.two-ranks", "chat.nonempty", "chat.max-output-64", "rank-loss.withdrawal", "rank-recovery.healthy"]}
     ],
     "benchmarks": [
-      {"name": "bounded-chat", "framework": "openai", "configuration": {"max_output_tokens": 64, "requests": 1, "timeout_seconds": 300}}
+      {"name": "bounded-chat", "framework": "openai", "configuration": {"max_output_tokens": 64, "requests": 1, "timeout_seconds": 300}},
+      {"name": "sampler-shape-canary", "framework": "openai", "configuration": {"max_output_tokens": 24, "requests": 9, "timeout_seconds": 300, "temperature": "0.8", "top_k": 40, "top_p": "0.9"}}
     ]
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/d5ae65cc173e9567de62d19defb885d091406962",
+    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/70a7cc4b49664e83b51e9b73c0ed41db18ac3190",
     "attribution": ["DeepSeek AI", "MiaAI-Lab", "Anemll", "vLLM contributors"]
   }
 }

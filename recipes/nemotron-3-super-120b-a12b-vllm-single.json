@@ -7,7 +7,7 @@
   "metadata": {
     "title": "Nemotron 3 Super 120B-A12B NVFP4 vLLM single Spark",
     "description": "Executable Candidate single-Spark recipe for NVIDIA's current Nemotron 3 Super NVFP4 contract. It binds vLLM 0.27.1, the immutable super_v3 parser, FP4/Marlin execution, FP8 KV, Mamba cache, and the separately pinned MTPv2 speculative-decoding head without runtime downloads.",
-    "tags": [
+    "tags": ["executable",
       "candidate",
       "nemotron",
       "nvfp4",

@@ -7,7 +7,7 @@
   "metadata": {
     "title": "Inkling 975B-A41B NVFP4 SGLang eight Sparks",
     "description": "Complete offline Candidate TP8 recipe for Thinking Machines' flagship Inkling NVFP4 checkpoint on eight DGX Sparks. It exposes text, image, and 16 kHz WAV audio through SGLang's OpenAI-compatible API; the official flagship TP8 model contract is combined with SGLang's conservative GB10 Triton/Marlin backend choices and remains Pending until an eight-Spark physical canary.",
-    "tags": [
+    "tags": ["executable",
       "audio",
       "candidate",
       "distributed",

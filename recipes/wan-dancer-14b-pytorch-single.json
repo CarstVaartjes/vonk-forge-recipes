@@ -7,7 +7,7 @@
   "metadata": {
     "title": "Wan-Dancer 14B PyTorch single Spark",
     "description": "Executable Pending recipe for Wan-Dancer's official global-planning and local-refinement music-to-dance pipeline, with isolated reference-image, music, style and prompt inputs; physical Spark acceptance remains pending.",
-    "tags": [
+    "tags": ["executable",
       "candidate",
       "video",
       "music-to-dance",

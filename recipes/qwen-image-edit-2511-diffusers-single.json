@@ -7,7 +7,7 @@
   "metadata": {
     "title": "Qwen Image Edit 2511 Diffusers single Spark",
     "description": "Candidate single-Spark Diffusers image-editing binding for the exact Qwen Image Edit 2511 checkpoint.",
-    "tags": [
+    "tags": ["executable",
       "candidate",
       "qwen",
       "image",

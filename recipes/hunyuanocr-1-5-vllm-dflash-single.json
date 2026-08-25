@@ -7,7 +7,7 @@
   "metadata": {
     "title": "HunyuanOCR 1.5 vLLM DFlash single Spark",
     "description": "Executable Pending single-DGX-Spark document-image OCR job using Tencent's exact HunyuanOCR 1.5 target and DFlash draft, all 12 official tasks, fixed sampling, repetition cleanup, and document Markdown normalization.",
-    "tags": [
+    "tags": ["executable",
       "candidate",
       "pending",
       "tencent",
