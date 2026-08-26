@@ -41,6 +41,7 @@ class SourceParsingTests(unittest.TestCase):
             "https://github.com/example/project.git",
             f"https://github.com/example/project/tree/{PINNED}",
             f"https://github.com/example/project/commit/{PINNED}",
+            f"https://github.com/example/project/blob/{PINNED}/README.md",
             f"https://github.com/example/project@{PINNED}",
             f"https://github.com/example/project.git@{PINNED}",
         ):
@@ -51,6 +52,12 @@ class SourceParsingTests(unittest.TestCase):
         self.assertEqual(
             drift.parse_source(
                 f"https://github.com/example/project/tree/{PINNED}"
+            ).embedded_revision,
+            PINNED,
+        )
+        self.assertEqual(
+            drift.parse_source(
+                f"https://github.com/example/project/blob/{PINNED}/README.md"
             ).embedded_revision,
             PINNED,
         )
@@ -79,6 +86,22 @@ class SourceParsingTests(unittest.TestCase):
 
 
 class DiscoveryTests(unittest.TestCase):
+    def test_catalog_sources_are_all_discoverable(self) -> None:
+        defaults, overrides = drift.load_manifest(ROOT / "upstream-watch.json")
+
+        watches = drift.discover_watches(ROOT, defaults, overrides)
+
+        self.assertGreater(len(watches), 100)
+        self.assertTrue(
+            any(
+                watch.entity
+                == "recipe/vonk-forge/inkling-small-nvfp4-sglang-dual"
+                and watch.pinned_revision
+                == "a74222ef6e690f851e2e4ff1c0be7dc1357be313"
+                for watch in watches
+            )
+        )
+
     def test_discovers_entity_and_recipe_sources_with_manifest_policies(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

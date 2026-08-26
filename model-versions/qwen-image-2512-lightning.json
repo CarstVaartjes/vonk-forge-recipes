@@ -14,7 +14,7 @@
     "kind": "model",
     "publisher": "qwen",
     "slug": "qwen-image-2512-lightning",
-    "content_sha256": "66d8451ce5098387f64f01c11d589a81256b6f7b9a6708c63a4f903046ee14f7"
+    "content_sha256": "6315375546d599e70610929eb76c1f234c1864258317ea716f96d8d51d357938"
   },
   "version": "4steps-v1.0-bf16-a52649c9",
   "source": {

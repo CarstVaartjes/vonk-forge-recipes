@@ -18,7 +18,7 @@
     "kind": "model",
     "publisher": "openmoss",
     "slug": "mova-720p",
-    "content_sha256": "982605b1ec299d81b6a036c50345a8a864e902fecca151ffbe2fd714c27a15fa"
+    "content_sha256": "93af4336b3b0d06c13c9b58b173811c555051a2ee5dfc9ade954c39a8bf91856"
   },
   "version": "MOVA 720p",
   "source": {
@@ -32,7 +32,7 @@
       "kind": "model",
       "publisher": "openmoss",
       "slug": "mova-720p",
-      "content_sha256": "982605b1ec299d81b6a036c50345a8a864e902fecca151ffbe2fd714c27a15fa"
+      "content_sha256": "93af4336b3b0d06c13c9b58b173811c555051a2ee5dfc9ade954c39a8bf91856"
     },
     "derivation": "Immutable public upstream snapshot at the pinned revision."
   },

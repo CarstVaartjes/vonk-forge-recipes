@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "mova-360p-diffusers-single"
   },
-  "version": "2.0.0",
-  "released_at": "2026-08-24",
+  "version": "2.0.1",
+  "released_at": "2026-08-26",
   "history": [
+    {
+      "version": "2.0.1",
+      "released_at": "2026-08-26",
+      "recipe_content_sha256": "d3fbf8249323d15425d97aeb7da8e4006683b000b311a8681333aa00181465ae",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Disambiguated the model title as MOVA 360p in catalog filters and details."
+        }
+      ]
+    },
     {
       "version": "2.0.0",
       "released_at": "2026-08-24",
