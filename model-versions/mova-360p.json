@@ -18,7 +18,7 @@
     "kind": "model",
     "publisher": "openmoss",
     "slug": "mova-360p",
-    "content_sha256": "8f2044307ff22949ea51dab1c13c954f9355fd8532f7c11929f32600fe489080"
+    "content_sha256": "a64ff5c6486c2f18434153cf46ef2e6c54d771ea1927968861fd80bc18bafc2b"
   },
   "version": "MOVA 360p",
   "source": {
@@ -32,7 +32,7 @@
       "kind": "model",
       "publisher": "openmoss",
       "slug": "mova-360p",
-      "content_sha256": "8f2044307ff22949ea51dab1c13c954f9355fd8532f7c11929f32600fe489080"
+      "content_sha256": "a64ff5c6486c2f18434153cf46ef2e6c54d771ea1927968861fd80bc18bafc2b"
     },
     "derivation": "Immutable public upstream snapshot at the pinned revision."
   },

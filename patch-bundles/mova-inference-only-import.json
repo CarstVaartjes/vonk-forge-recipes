@@ -44,13 +44,13 @@
       "kind": "model-version",
       "publisher": "openmoss",
       "slug": "mova-360p",
-      "content_sha256": "5e0d806dc9aabd733e0cb0a8a5ff51bf0fac226a54b2c64d9d637218369d778c"
+      "content_sha256": "8081b1a244e11d1019c7bef51526d8987f62c579cb4ba880a70fade019d97fb9"
     },
     {
       "kind": "model-version",
       "publisher": "openmoss",
       "slug": "mova-720p",
-      "content_sha256": "ee0a10042ff47db50391a5f92866549459550c680f43f1e7a47a2383fb2591bb"
+      "content_sha256": "5bc4908be27a8d20568cac04bfd5d6880ac4054696b35d67cef3d5ed4d577d31"
     }
   ],
   "capability_changes": [

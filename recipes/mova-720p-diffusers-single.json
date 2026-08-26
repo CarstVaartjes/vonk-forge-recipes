@@ -23,7 +23,7 @@
     "kind": "model-version",
     "publisher": "openmoss",
     "slug": "mova-720p",
-    "content_sha256": "ee0a10042ff47db50391a5f92866549459550c680f43f1e7a47a2383fb2591bb"
+    "content_sha256": "5bc4908be27a8d20568cac04bfd5d6880ac4054696b35d67cef3d5ed4d577d31"
   },
   "execution": {
     "harness": {
@@ -36,7 +36,7 @@
       "kind": "patch-bundle",
       "publisher": "openmoss",
       "slug": "mova-inference-only-import",
-      "content_sha256": "1cf8c09cac7f35c9a329ec0ebf958dfe1649bef26e092792aca6bff8b986d859"
+      "content_sha256": "aa05dbd89c0c99055f7ad10b0d1f3fca4c6101d473adacb723c31a743105a3c1"
     }
   },
   "build": {

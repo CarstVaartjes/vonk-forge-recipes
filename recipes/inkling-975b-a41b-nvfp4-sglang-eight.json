@@ -260,7 +260,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://github.com/sgl-project/sglang/issues/31359",
+    "source_reference": "https://github.com/sgl-project/sglang/tree/b7252cc6b0c78b25ecea7ee5efa91a6ae37d0f19",
     "attribution": [
       "Thinking Machines Lab",
       "SGLang contributors",
