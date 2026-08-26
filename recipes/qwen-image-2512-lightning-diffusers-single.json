@@ -13,7 +13,7 @@
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen-image-2512-lightning",
-    "content_sha256": "f027b452567d3c7c708f0e200e41d06708fd65d5c291133b4d407ca9d433a47e"
+    "content_sha256": "6ddf10e09d5e4b4f0d2b3dd881f8825e18b508d32e7765ed952dd6959923fe09"
   },
   "dependencies": [
     {

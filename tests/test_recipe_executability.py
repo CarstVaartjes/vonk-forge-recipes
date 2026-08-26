@@ -39,6 +39,25 @@ def recipe_documents() -> list[tuple[Path, dict[str, object]]]:
 
 
 class RecipeExecutabilityTests(unittest.TestCase):
+    def test_user_facing_catalog_titles_are_unique_per_entity_kind(self) -> None:
+        for directory in ("model-groups", "models", "model-versions", "recipes"):
+            seen: dict[str, Path] = {}
+            for path in sorted((ROOT / directory).glob("*.json")):
+                document = json.loads(path.read_text(encoding="utf-8"))
+                metadata = document.get("metadata")
+                self.assertIsInstance(metadata, dict, f"{path.name}: missing metadata")
+                assert isinstance(metadata, dict)
+                title = metadata.get("title")
+                self.assertIsInstance(title, str, f"{path.name}: missing title")
+                assert isinstance(title, str)
+                normalized = " ".join(title.split()).casefold()
+                self.assertNotIn(
+                    normalized,
+                    seen,
+                    f"{path.name}: title duplicates {seen.get(normalized)}",
+                )
+                seen[normalized] = path
+
     def test_every_recipe_is_an_executable_candidate(self) -> None:
         recipes = recipe_documents()
         self.assertTrue(recipes, "recipes/*.json must contain at least one recipe")

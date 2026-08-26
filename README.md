@@ -130,10 +130,11 @@ patch-bundle sources, plus the immutable upstream reference in recipe
 provenance. Artifact inventories are not queried file by file.
 
 GitHub sources may use the repository URL, an optional `.git` suffix,
-`/tree/<commit>`, `/commit/<commit>`, or the catalog's historical `@<commit>`
-form. Hugging Face sources may use `namespace/repository`, the canonical model
-URL, `/tree/<commit>`, or `/resolve/<commit>/<path>`. All embedded revisions
-must agree with the document's explicit revision.
+`/tree/<commit>`, `/commit/<commit>`, `/blob/<commit>/<path>`, or the catalog's
+historical `@<commit>` form. Hugging Face sources may use
+`namespace/repository`, the canonical model URL, `/tree/<commit>`, or
+`/resolve/<commit>/<path>`. All embedded revisions must agree with the
+document's explicit revision.
 
 The default policy follows the provider's default branch. Stable Diffusers,
 PyTorch, and vLLM distributions override that default with `latest-release`.

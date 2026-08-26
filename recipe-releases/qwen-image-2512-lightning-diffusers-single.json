@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-2512-lightning-diffusers-single"
   },
-  "version": "1.2.1",
+  "version": "1.2.2",
   "released_at": "2026-08-26",
   "history": [
+    {
+      "version": "1.2.2",
+      "released_at": "2026-08-26",
+      "recipe_content_sha256": "30af01a1af903316419f64521877594ad1cda5a887acb82916f49ab1e67de95c",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Disambiguated the Lightning model title from the base Qwen Image 2512 model."
+        }
+      ]
+    },
     {
       "version": "1.2.1",
       "released_at": "2026-08-26",

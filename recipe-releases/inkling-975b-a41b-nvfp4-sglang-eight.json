@@ -4,9 +4,25 @@
     "publisher": "vonk-forge",
     "slug": "inkling-975b-a41b-nvfp4-sglang-eight"
   },
-  "version": "1.0.1",
+  "version": "1.0.2",
   "released_at": "2026-08-26",
   "history": [
+    {
+      "version": "1.0.2",
+      "released_at": "2026-08-26",
+      "recipe_content_sha256": "73afa8c54f780338d2549118c475967bf14abc26568f36accee091b918a7c962",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Replaced mutable issue provenance with the immutable SGLang revision used by the runtime.",
+          "details": "The prior issue URL prevented the upstream drift audit from checking any catalog sources. Runtime behavior and Candidate qualification are unchanged.",
+          "references": [
+            "https://github.com/sgl-project/sglang/tree/b7252cc6b0c78b25ecea7ee5efa91a6ae37d0f19"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",
