@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "radixark",
+    "slug": "qwen3-8-27b-nvfp4"
+  },
+  "metadata": {
+    "title": "Qwen3.8 27B NVFP4 BF16 LM head",
+    "description": "RadixArk NVFP4 W4A4 derivative of Qwen3.8 27B with a dense BF16 language-model head.",
+    "tags": [
+      "radixark",
+      "qwen3-8-radixark",
+      "multimodal"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "radixark",
+    "slug": "qwen3-8-radixark",
+    "content_sha256": "d8d81c630a022301e4da4a7ea771b6483a7b2ddc0637c51c6c7bc8f2b0111ef7"
+  },
+  "architecture": "Qwen3.8 dense hybrid Gated DeltaNet and attention multimodal transformer"
+}

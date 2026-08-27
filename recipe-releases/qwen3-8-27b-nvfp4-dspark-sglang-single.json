@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "recipe": {"publisher": "vonk-forge", "slug": "qwen3-8-27b-nvfp4-dspark-sglang-single"},
+  "version": "1.0.0",
+  "released_at": "2026-08-27",
+  "history": [{
+    "version": "1.0.0", "released_at": "2026-08-27", "recipe_content_sha256": "7c82ca566d8558648738c8fbfc4a17c847f723c89ab81e07d7435c79bba12e00", "upgrade_effect": "reinstall",
+    "changes": [{"kind": "initial", "summary": "Added the immutable one-Spark Qwen3.8 27B SGLang DSpark profile.", "details": "Pins the NVFP4 target, external DSpark draft, CUDA 13 ARM64 image, 262K context, FlashInfer attention, Qwen parsers, and bounded speculative decoding without runtime downloads.", "references": ["https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark/tree/751e29eb6a3057ccfd8f992f87dfc260787e05a1", "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead/tree/009632fef96dd349150baa780c984e62e70e91fe"]}]
+  }]
+}

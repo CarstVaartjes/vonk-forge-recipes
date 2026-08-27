@@ -12,6 +12,9 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 
+MAX_INLINE_ARTIFACT_BYTES = 16 * 1024 * 1024
+
+
 def _sha256(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
 
@@ -120,10 +123,14 @@ def main() -> int:
     if not tree:
         raise SystemExit("Hugging Face model tree is empty")
 
+    file_entries = [
+        entry
+        for entry in tree
+        if isinstance(entry, dict) and entry.get("type") == "file"
+    ]
+
     artifacts: list[dict[str, object]] = []
-    for entry in tree:
-        if not isinstance(entry, dict) or entry.get("type") != "file":
-            continue
+    for entry in file_entries:
         path = entry.get("path")
         size = entry.get("size")
         if not isinstance(path, str) or not isinstance(size, int) or size < 1:
@@ -132,6 +139,11 @@ def main() -> int:
         if isinstance(lfs, dict) and isinstance(lfs.get("oid"), str):
             sha256 = lfs["oid"]
         else:
+            if size > MAX_INLINE_ARTIFACT_BYTES:
+                raise SystemExit(
+                    f"refusing to download non-LFS artifact larger than "
+                    f"{MAX_INLINE_ARTIFACT_BYTES} bytes: {path} ({size} bytes)"
+                )
             payload = _get_bytes(
                 f"https://huggingface.co/{args.repository}/resolve/{revision}/{quote(path, safe='/')}"
             )

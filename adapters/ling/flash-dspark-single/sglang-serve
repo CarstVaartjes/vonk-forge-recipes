@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import os
+import sys
+
+
+arguments = sys.argv[1:]
+try:
+    model_index = arguments.index("--model-path")
+    model_path = arguments[model_index + 1]
+except (ValueError, IndexError):
+    raise SystemExit("Ling DSpark requires --model-path /models") from None
+if model_path != "/models":
+    raise SystemExit("Ling DSpark requires the catalog model root at /models")
+arguments[model_index + 1] = "/models/target"
+arguments.extend(
+    (
+        "--trust-remote-code",
+        "--nnodes",
+        "1",
+        "--dist-init-addr",
+        "127.0.0.1:2345",
+        "--ep-size",
+        "1",
+        "--random-seed",
+        "308534008",
+        "--max-running-requests",
+        "6",
+        "--max-mamba-cache-size",
+        "32",
+        "--chunked-prefill-size",
+        "8192",
+        "--allow-auto-truncate",
+        "--tool-call-parser",
+        "ling3",
+        "--reasoning-parser",
+        "ling3",
+        "--enable-fp32-lm-head",
+        "--disable-shared-experts-fusion",
+        "--kv-cache-dtype",
+        "fp8_e4m3",
+        "--speculative-algorithm",
+        "DSPARK",
+        "--speculative-draft-model-path",
+        "/models/draft",
+        "--enable-linear-replayssm-spec",
+        "--linear-replayssm-cache-len",
+        "32",
+    )
+)
+os.execv(sys.executable, (sys.executable, "-m", "sglang.launch_server", *arguments))

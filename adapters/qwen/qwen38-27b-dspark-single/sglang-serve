@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import os
+import sys
+
+
+arguments = sys.argv[1:]
+try:
+    model_index = arguments.index("--model-path")
+    model_path = arguments[model_index + 1]
+except (ValueError, IndexError):
+    raise SystemExit("Qwen3.8 27B DSpark requires --model-path /models") from None
+if model_path != "/models":
+    raise SystemExit("Qwen3.8 27B DSpark requires the catalog model root at /models")
+arguments[model_index + 1] = "/models/target"
+arguments.extend(
+    (
+        "--trust-remote-code",
+        "--attention-backend",
+        "flashinfer",
+        "--chunked-prefill-size",
+        "8192",
+        "--disable-prefill-cuda-graph",
+        "--kv-cache-dtype",
+        "fp8_e4m3",
+        "--mamba-ssm-dtype",
+        "bfloat16",
+        "--mamba-radix-cache-strategy",
+        "extra_buffer_lazy",
+        "--mamba-full-memory-ratio",
+        "4.21",
+        "--max-mamba-cache-size",
+        "40",
+        "--max-running-requests",
+        "10",
+        "--speculative-algorithm",
+        "EAGLE",
+        "--speculative-draft-model-path",
+        "/models/draft",
+        "--speculative-num-steps",
+        "7",
+        "--speculative-eagle-topk",
+        "1",
+        "--speculative-num-draft-tokens",
+        "8",
+        "--speculative-draft-model-quantization",
+        "unquant",
+        "--torch-compile-max-bs",
+        "4",
+        "--cuda-graph-max-bs-decode",
+        "4",
+        "--continuous-decode-steps",
+        "2",
+        "--reasoning-parser",
+        "qwen3",
+        "--tool-call-parser",
+        "qwen3_coder",
+        "--sampling-defaults",
+        "model",
+        "--enable-metrics",
+        "--enable-cache-report",
+    )
+)
+os.execv(sys.executable, (sys.executable, "-m", "sglang.launch_server", *arguments))

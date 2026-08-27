@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "identity": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-four"},
+  "metadata": {
+    "title": "GLM 5.3 Flash NVFP4 vLLM four Sparks",
+    "description": "Executable Candidate native TP4 recipe for LibertAI's 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint. It uses Tech2Wild's stable v8 profile with fixed FP8 KV memory and MTP4 while rebuilding the complete runtime from public sources; the experimental v9 InstantTensor path is deliberately excluded.",
+    "tags": ["executable", "candidate", "glm-5.3", "mtp", "multimodal", "nvfp4", "reasoning", "spark", "tool-use", "tp4", "vllm"]
+  },
+  "model": {"kind": "model-version", "publisher": "libertaidai", "slug": "glm-5-3-flash-nvfp4-11d73216", "content_sha256": "7a5258f1ab8c01d973515eefa8312c0672dc9acd9f1c4c426c5b9570a2d62221"},
+  "execution": {
+    "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"},
+    "patch_bundle": {"kind": "patch-bundle", "publisher": "tech2wild", "slug": "glm-5-3-flash-nvfp4-mp-four-profile", "content_sha256": "a8cccded91ca05b9f491e419f3bd71bdd169c4619c38a6f931ab057fc0d6d620"}
+  },
+  "build": {
+    "context": {"path": "adapters/glm/glm53-sm121", "sha256": "d2fd5f500f6fad30f41e10ea8db680cf130166fc2721b03bbcb6d81a555ab8b3", "expected_bytes": 40960, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
+    "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
+    "network": {"mode": "public", "hosts": ["docker.io", "files.pythonhosted.org", "flashinfer.ai"]},
+    "resources": {"download_bytes": 9710629881, "temporary_bytes": 25000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
+  },
+  "parameters": [],
+  "artifacts": [
+    {"id": "weights", "kind": "huggingface.snapshot", "repository": "LibertAIDAI/GLM-5.3-Flash-NVFP4", "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa", "download_bytes": 194692689030, "installed_bytes": 194692689030, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}
+  ],
+  "runtime": {
+    "distribution": {"kind": "runtime-distribution", "publisher": "tech2wild", "slug": "glm-5-3-flash-nvfp4-mp-four", "content_sha256": "93fe462102af5da1fc21a009c85d14c4b98ab1c3a0d53c789b110b4dcde1e55a"},
+    "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
+    "arguments": [
+      {"name": "served-model-name", "value": "glm-5.3-flash"},
+      {"name": "trust-remote-code", "value": true},
+      {"name": "tensor-parallel-size", "value": 4},
+      {"name": "pipeline-parallel-size", "value": 1},
+      {"name": "gpu-memory-utilization", "value": "0.85"},
+      {"name": "max-model-len", "value": 262144},
+      {"name": "max-num-seqs", "value": 6},
+      {"name": "block-size", "value": 2304},
+      {"name": "moe-backend", "value": "marlin"},
+      {"name": "speculative-config", "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":4}"},
+      {"name": "kv-cache-dtype", "value": "fp8_e4m3"},
+      {"name": "kv-cache-memory", "value": 9663676416},
+      {"name": "enforce-eager", "value": true},
+      {"name": "skip-mm-profiling", "value": true},
+      {"name": "allowed-local-media-path", "value": "/inputs"},
+      {"name": "limit-mm-per-prompt", "value": "{\"image\":4,\"video\":1}"},
+      {"name": "chat-template", "value": "/opt/vonk/templates/glm53-chat-template-mm.jinja"},
+      {"name": "tool-call-parser", "value": "glm47"},
+      {"name": "enable-auto-tool-choice", "value": true},
+      {"name": "reasoning-parser", "value": "glm45"}
+    ],
+    "environment": [
+      {"name": "HF_HUB_OFFLINE", "value": "1"},
+      {"name": "TRANSFORMERS_OFFLINE", "value": "1"},
+      {"name": "VLLM_NO_USAGE_STATS", "value": "1"},
+      {"name": "FLASHINFER_DISABLE_VERSION_CHECK", "value": "1"},
+      {"name": "TORCH_CUDA_ARCH_LIST", "value": "12.1a"},
+      {"name": "FLASHINFER_CUDA_ARCH_LIST", "value": "12.1a"},
+      {"name": "PYTORCH_CUDA_ALLOC_CONF", "value": "expandable_segments:True"},
+      {"name": "NCCL_NET", "value": "IB"},
+      {"name": "NCCL_IB_DISABLE", "value": "0"},
+      {"name": "NCCL_CROSS_NIC", "value": "0"},
+      {"name": "NCCL_IB_MERGE_NICS", "value": "0"},
+      {"name": "NCCL_CUMEM_ENABLE", "value": "0"},
+      {"name": "NCCL_NVLS_ENABLE", "value": "0"},
+      {"name": "NCCL_IGNORE_CPU_AFFINITY", "value": "1"},
+      {"name": "NCCL_DEBUG", "value": "WARN"}
+    ],
+    "security": {
+      "devices": ["nvidia.com/gpu=all"], "capabilities": [], "host_network": true, "privileged": false, "user": "10001:10001",
+      "mounts": [{"source": "model", "target": "/models", "read_only": true}, {"source": "inputs", "target": "/inputs", "read_only": true}, {"source": "outputs", "target": "/outputs", "read_only": false}]
+    },
+    "lifecycle": {"pre_start": [], "post_stop": [], "stop_timeout_seconds": 180, "readiness": {"strategy": "endpoint-owner-after-all-ranks", "path": "/v1/models", "timeout_seconds": 3600}, "failure": {"rank_loss": "withdraw-endpoint", "recovery": "restart-worker-then-entrypoint"}}
+  },
+  "topology": {
+    "name": "four", "mode": "distributed", "node_count": 4,
+    "roles": [
+      {"name": "entrypoint", "count": 1, "endpoint_owner": true, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194692689030, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 112000000000, "steady_state_bytes": 104000000000, "runtime_growth_bytes": 8000000000, "system_reserve_bytes": 8000000000}}},
+      {"name": "worker", "count": 3, "endpoint_owner": false, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194692689030, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 112000000000, "steady_state_bytes": 104000000000, "runtime_growth_bytes": 8000000000, "system_reserve_bytes": 8000000000}}}
+    ],
+    "parallelism": {"world_size": 4, "tensor": 4, "pipeline": 1, "data": 1, "backend": "mp"},
+    "fabric": {"connectivity": "connected", "minimum_bandwidth_mbps": 200000},
+    "start_order": ["entrypoint", "worker"], "stop_order": ["entrypoint", "worker"]
+  },
+  "interfaces": [{"adapter": "openai", "port": 8888, "model_aliases": ["glm-5.3-flash"], "health_path": "/v1/models"}],
+  "validation": {
+    "validators": [{"interface": "openai", "checks": ["endpoint.healthy", "collective.two-ranks", "chat.nonempty", "chat.max-output-64", "rank-loss.withdrawal", "rank-recovery.healthy"]}],
+    "benchmarks": [{"name": "bounded-chat", "framework": "openai", "configuration": {"max_output_tokens": 64, "requests": 1, "timeout_seconds": 600}}]
+  },
+  "provenance": {"source_kind": "global", "source_reference": "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/tree/98fc5d8fd48e7d1e2e95499f93cf90ceef14faf4", "attribution": ["Z.ai", "LibertAI", "Tony D2 Wild", "MiaAI-Lab", "vLLM contributors"]}
+}

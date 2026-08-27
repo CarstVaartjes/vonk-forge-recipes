@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "inclusionai",
+    "slug": "ling-3-0-flash-dspark"
+  },
+  "metadata": {
+    "title": "Ling 3.0 Flash DSpark companion",
+    "description": "Five-layer BF16 DSpark speculative decoding companion trained for Ling 3.0 Flash.",
+    "tags": [
+      "inclusionai",
+      "ling-3-0",
+      "language"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "inclusionai",
+    "slug": "ling-3-0",
+    "content_sha256": "b09f6e4944d28805235f833ca25aab290458f027d86d44adf6a93e33659f0b2b"
+  },
+  "architecture": "Five-layer LingDSpark full-attention speculative decoder with confidence head"
+}
