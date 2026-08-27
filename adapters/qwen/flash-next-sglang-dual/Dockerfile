@@ -1,15 +1,17 @@
 FROM docker.io/lmsysorg/sglang@sha256:14ed582518584c5c830206b5318a2c2769e68229c3422e48a28b952b3a888bd4
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks" \
-      org.opencontainers.image.revision="02cd6d9050b386644c65ebf2396324da9575e5ee" \
+      org.opencontainers.image.revision="6d1a51947d2f8aed61780ee17429ea4812ba0579" \
       org.opencontainers.image.licenses="MIT"
 
 COPY qsa_fa_fallback.py /sgl-workspace/sglang/python/sglang/srt/layers/attention/qsa_fa_fallback.py
+COPY qsa_nvfp4_kv.py /sgl-workspace/sglang/python/sglang/srt/layers/attention/qsa_nvfp4_kv.py
 COPY patch-qsa.py /opt/vonk/build/patch-qsa.py
-COPY install-nccl.py verify-runtime.py /opt/vonk/build/
+COPY apply_nvfp4_patches.py install-nccl.py verify-runtime.py /opt/vonk/build/
 COPY --chmod=0755 sglang-serve /opt/vonk/bin/sglang-serve
 
 RUN python3 /opt/vonk/build/patch-qsa.py \
+    && python3 /opt/vonk/build/apply_nvfp4_patches.py \
     && python3 /opt/vonk/build/install-nccl.py \
     && python3 /opt/vonk/build/verify-runtime.py \
     && rm -rf /opt/vonk/build \
