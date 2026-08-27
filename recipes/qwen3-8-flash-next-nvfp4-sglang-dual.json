@@ -3,16 +3,16 @@
   "identity": {"publisher": "vonk-forge", "slug": "qwen3-8-flash-next-nvfp4-sglang-dual"},
   "metadata": {
     "title": "Qwen3.8 Flash Next NVFP4 SGLang two Sparks",
-    "description": "Executable Candidate dual-DGX-Spark SGLang TP2 recipe for RadixArk's 135 GB NVFP4 checkpoint. It combines MiaAI-Lab's physically exercised QSA patch and native launcher with a conservative 262K multimodal profile, PLE host offload, and MTP3; Vonk physical acceptance remains pending.",
+    "description": "Executable Candidate dual-DGX-Spark SGLang TP2 recipe for RadixArk's 135 GB NVFP4 checkpoint. It reproduces MiaAI-Lab's announced 900K multimodal YaRN profile with QSA NVFP4 KV patches, 28 request slots, automatic PLE placement, and MTP3; Vonk physical acceptance remains pending.",
     "tags": ["executable", "candidate", "multimodal", "mtp", "nvfp4", "qwen3.8", "reasoning", "sglang", "spark", "tool-use"]
   },
   "model": {"kind": "model-version", "publisher": "radixark", "slug": "qwen3-8-flash-next-nvfp4-7b719225", "content_sha256": "92b1890def1113c809b2f48a76f4296231fc4920c261d9764aea09224b4963bf"},
   "execution": {
     "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "sglang", "content_sha256": "9bd9a41fe12dd4e551fac821623801b6df9af8943d42ddba9f46717636286947"},
-    "patch_bundle": {"kind": "patch-bundle", "publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dual-profile", "content_sha256": "6890870fbcef004ec5b0ce358d7d8747a05168f5cd82275f16317a2c90dd3d70"}
+    "patch_bundle": {"kind": "patch-bundle", "publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dual-profile", "content_sha256": "4c0207f81fa400aa17f79206a04fa837f8886def06f43b591c11d0fe1d4fc53f"}
   },
   "build": {
-    "context": {"path": "adapters/qwen/flash-next-sglang-dual", "sha256": "8837c68e84885d07db30e1340fc51d77f0c339224378a0cf36f1f126781476f2", "expected_bytes": 20480, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
+    "context": {"path": "adapters/qwen/flash-next-sglang-dual", "sha256": "02b8d4c334730c3b495504768b055d37bf74c65391440e5200ec6ac4b61c84c6", "expected_bytes": 51200, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile",
     "platform": "linux/arm64",
     "arguments": [],
@@ -24,40 +24,29 @@
     {"id": "weights", "kind": "huggingface.snapshot", "repository": "RadixArk/Qwen3.8-Flash-Next-NVFP4", "revision": "7b719225242aacd3dbd3f9407468c2ee9a9d2594", "download_bytes": 135253622894, "installed_bytes": 135253622894, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}
   ],
   "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dspark-02cd6d90-arm64", "content_sha256": "0679a62d698bbd491fefacae15436a3f68acb85f98a154ce53bc053575b5bf6a"},
+    "distribution": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dspark-6d1a5194-arm64", "content_sha256": "d5dee535d9f8c4947246525d0f1089b16f504c51696cd51aed38d378c1934835"},
     "entrypoint": ["/opt/vonk/bin/sglang-serve"],
     "arguments": [
       {"name": "model-path", "value": "/models"},
-      {"name": "served-model-name", "value": "qwen3.8-flash-next"},
+      {"name": "served-model-name", "value": "Qwen3.8-Flash-Next-NVFP4"},
       {"name": "tp", "value": 2},
-      {"name": "context-length", "value": 262144},
+      {"name": "context-length", "value": 900000},
       {"name": "quantization", "value": "modelopt_fp4"},
       {"name": "attention-backend", "value": "flashinfer"},
-      {"name": "fp4-gemm-backend", "value": "flashinfer_cutlass"},
       {"name": "page-size", "value": 64},
       {"name": "mamba-ssm-dtype", "value": "bfloat16"},
       {"name": "mamba-radix-cache-strategy", "value": "extra_buffer"},
       {"name": "mamba-track-interval", "value": 64},
-      {"name": "chunked-prefill-size", "value": 4096},
-      {"name": "max-running-requests", "value": 6},
-      {"name": "max-total-tokens", "value": 600000},
-      {"name": "mem-fraction-static", "value": "0.80"},
+      {"name": "chunked-prefill-size", "value": 1024},
+      {"name": "max-running-requests", "value": 28},
+      {"name": "mem-fraction-static", "value": "0.82"},
       {"name": "speculative-algorithm", "value": "NEXTN"},
       {"name": "speculative-num-steps", "value": 3},
       {"name": "speculative-eagle-topk", "value": 1},
       {"name": "speculative-num-draft-tokens", "value": 4},
-      {"name": "enable-linear-replayssm-spec", "value": true},
       {"name": "reasoning-parser", "value": "auto"},
-      {"name": "tool-call-parser", "value": "qwen3_coder"},
-      {"name": "default-chat-template-kwargs", "value": "{\"enable_thinking\":false}"},
-      {"name": "allow-auto-truncate", "value": true},
-      {"name": "ple-offload-embedding", "value": true},
-      {"name": "cuda-graph-max-bs", "value": 8},
-      {"name": "disable-cuda-graph-padding", "value": true},
+      {"name": "tool-call-parser", "value": "auto"},
       {"name": "disable-prefill-cuda-graph", "value": true},
-      {"name": "disable-radix-cache", "value": true},
-      {"name": "sampling-backend", "value": "pytorch"},
-      {"name": "enable-multimodal", "value": true},
       {"name": "trust-remote-code", "value": true},
       {"name": "enable-metrics", "value": true},
       {"name": "enable-cache-report", "value": true}
@@ -94,7 +83,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/02cd6d9050b386644c65ebf2396324da9575e5ee",
+    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/6d1a51947d2f8aed61780ee17429ea4812ba0579",
     "attribution": ["Qwen", "RadixArk", "MiaAI-Lab", "Tony D2 Wild", "SGLang contributors"]
   }
 }
