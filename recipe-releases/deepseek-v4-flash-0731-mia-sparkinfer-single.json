@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "recipe": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-0731-mia-sparkinfer-single"},
+  "version": "1.0.0",
+  "released_at": "2026-08-27",
+  "history": [{
+    "version": "1.0.0", "released_at": "2026-08-27", "recipe_content_sha256": "872d425777a174861c2b33bae7f794fc830bd9d39eea2132e751e85b0b322521", "upgrade_effect": "reinstall",
+    "changes": [{"kind": "initial", "summary": "Added a conservative executable adaptation of MiaAI-Lab's one-Spark DeepSeek V4 Flash profile.", "details": "Reuses the existing immutable SparkInfer target and offline adapter at the catalog's padded-KV 262K profile. The upstream compact-KV 384K overlay remains excluded until its additional kernel backports can be separately packaged and canaried.", "references": ["https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-One-DGX-Spark/tree/fdcd538fbf95fb15b2d6850db9613d22b2c889b8", "https://huggingface.co/0xSero/deepseek-v4-flash-0731-spark/tree/ce5ff0f1efb2e184aafc759d281bfae47d3a359c"]}]
+  }]
+}

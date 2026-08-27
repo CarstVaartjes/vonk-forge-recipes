@@ -1,0 +1,1765 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {
+    "publisher": "libertaidai",
+    "slug": "glm-5-3-flash-nvfp4-11d73216"
+  },
+  "metadata": {
+    "title": "GLM 5.3 Flash NVFP4 11d73216",
+    "description": "Exact public GLM 5.3 Flash NVFP4 11d73216 checkpoint.",
+    "tags": [
+      "libertaidai",
+      "glm-5-3-libertai",
+      "multimodal",
+      "candidate"
+    ]
+  },
+  "model": {
+    "kind": "model",
+    "publisher": "libertaidai",
+    "slug": "glm-5-3-flash-nvfp4",
+    "content_sha256": "db03786f136975a024648c5e8bfe9fd123a2b799947ac1d99807217238c782b3"
+  },
+  "version": "GLM 5.3 Flash NVFP4 11d73216",
+  "source": {
+    "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+    "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa"
+  },
+  "lineage": {
+    "publisher": "libertaidai",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "libertaidai",
+      "slug": "glm-5-3-flash-nvfp4",
+      "content_sha256": "db03786f136975a024648c5e8bfe9fd123a2b799947ac1d99807217238c782b3"
+    },
+    "derivation": "Official upstream checkpoint at the pinned revision."
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "mixed",
+    "quantization": "nvfp4-weight-only-routed-experts"
+  },
+  "parameters": {
+    "total": 321320000000,
+    "active": 18000000000
+  },
+  "limits": {
+    "context_tokens": 1048576
+  },
+  "sizes": {
+    "download_bytes": 194692689030,
+    "installed_bytes": 194692689030
+  },
+  "license": {
+    "spdx": "MIT",
+    "url": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+    "attribution": [
+      "Z.ai",
+      "LibertAI"
+    ],
+    "operator_acceptance_required": true
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "artifacts": [
+    {
+      "id": "metadata-d1a8f4a1d2e3",
+      "path": ".gitattributes",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "d1a8f4a1d2e3787c5956393d9306365ebefe1912cb76828870682b1ab16f5c27",
+      "download_bytes": 1635,
+      "installed_bytes": 1635,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "license-30b85b6b9659",
+      "path": "LICENSE",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "30b85b6b9659f2e78aa259f8faf5d920a68dee7c9ced3fa6dba1f19f2bc4fca1",
+      "download_bytes": 1070,
+      "installed_bytes": 1070,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "readme-0f951fdc7cdc",
+      "path": "README.md",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "0f951fdc7cdc2a9bb9883bbb6904b0a78576ebd5029137fc33ef37b9e6b06e9f",
+      "download_bytes": 6154,
+      "installed_bytes": 6154,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "chat-template-34d5ee66b12f",
+      "path": "chat_template.jinja",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "34d5ee66b12fa6446cdae131c352b8f68cd85369e0e6fda115583805fada3891",
+      "download_bytes": 10644,
+      "installed_bytes": 10644,
+      "roles": [
+        "tokenizer"
+      ]
+    },
+    {
+      "id": "config-a47f597b3470",
+      "path": "config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "a47f597b347010c4d8bca9ef584ce4d2fbf20a0a6ec86ad7694e71184b7e95e5",
+      "download_bytes": 6528,
+      "installed_bytes": 6528,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "generation-config-230c30609ecb",
+      "path": "generation_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "230c30609ecbbb9e6583bedde8e7bdda0c6eb8fe5fad0eaeb3d1b293d751cb4f",
+      "download_bytes": 194,
+      "installed_bytes": 194,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "model-00001-of-00120-ba0214261ab7",
+      "path": "model-00001-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "ba0214261ab790e508e07e16a91ae0783935810d4709324a0e48ada6e0614667",
+      "download_bytes": 4164445852,
+      "installed_bytes": 4164445852,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00002-of-00120-f404f05a6f5b",
+      "path": "model-00002-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "f404f05a6f5b13a8a5e14e33e2e82f90b1bf97fc1e12ce2254802ad7424de2d4",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00003-of-00120-a438f009135f",
+      "path": "model-00003-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "a438f009135f1541c574c38df69656ccad849d7a1a2e7fe2e0849bd365bc7f81",
+      "download_bytes": 1510081448,
+      "installed_bytes": 1510081448,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00004-of-00120-6e05c705f6f1",
+      "path": "model-00004-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "6e05c705f6f1c35f931be72c05a6c09f4b4efb2d747817f74baaab0d8948b353",
+      "download_bytes": 1745468464,
+      "installed_bytes": 1745468464,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00005-of-00120-ea66c59afe17",
+      "path": "model-00005-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "ea66c59afe17b95257b49588b269a0b15ee93923b08355a1fab9836e0d550032",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00006-of-00120-3540b4ddcf68",
+      "path": "model-00006-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "3540b4ddcf68dc56df3717069925f85e355fd6e2b799e529653ed614448c41d6",
+      "download_bytes": 1510081224,
+      "installed_bytes": 1510081224,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00007-of-00120-6b8b85bee36a",
+      "path": "model-00007-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "6b8b85bee36a4c0a652f41ee32cbbd88e48e576732469eb0c29db627b59b6153",
+      "download_bytes": 1724535252,
+      "installed_bytes": 1724535252,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00008-of-00120-9ac970e30b79",
+      "path": "model-00008-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "9ac970e30b79ef4e34a8ce23134cadfb1974362ebb5d1a0262397c2f1d393ef2",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00009-of-00120-2eeec9d441e3",
+      "path": "model-00009-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "2eeec9d441e39a964739a4634eba445defe9e89ae7ce5b7e2d76da179cd302ac",
+      "download_bytes": 1745467560,
+      "installed_bytes": 1745467560,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00010-of-00120-c75c05b57495",
+      "path": "model-00010-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "c75c05b574954dd0acb5affe67127d338f18133236b5cf4d411f0a6856a3afcf",
+      "download_bytes": 1510081784,
+      "installed_bytes": 1510081784,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00011-of-00120-283449abb3f4",
+      "path": "model-00011-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "283449abb3f4454a8f35905354aea7267bc58f493b4247b628e18be1a019e45a",
+      "download_bytes": 1510081704,
+      "installed_bytes": 1510081704,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00012-of-00120-74c5517673ba",
+      "path": "model-00012-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "74c5517673baeed02efef17b6da5b0b92ea6312952e5ef3b3a950c42661bc29c",
+      "download_bytes": 1745467832,
+      "installed_bytes": 1745467832,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00013-of-00120-79fe00fa87d1",
+      "path": "model-00013-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "79fe00fa87d18bfd8744d9b0eb2d24dd5d0cb56caf74035cd7c2d954aad0af6f",
+      "download_bytes": 1510081776,
+      "installed_bytes": 1510081776,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00014-of-00120-5183a890fc15",
+      "path": "model-00014-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "5183a890fc15ef10a4847de2d124a9262c5c89ddec3bd269ac88eafffc12e3c1",
+      "download_bytes": 1510081496,
+      "installed_bytes": 1510081496,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00015-of-00120-40de9bd08016",
+      "path": "model-00015-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "40de9bd0801601092095c59f33a7fd14ed3ec332f1a4b04a2ea0b31595198bbe",
+      "download_bytes": 1745468360,
+      "installed_bytes": 1745468360,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00016-of-00120-43597aecb53e",
+      "path": "model-00016-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "43597aecb53eef6ddca1c60f1e66de8c15d5edc2c41918a552c861baa0fb43ae",
+      "download_bytes": 1510081760,
+      "installed_bytes": 1510081760,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00017-of-00120-36b3c2211b96",
+      "path": "model-00017-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "36b3c2211b9614ed6657d7bed685fa224690353c75e3bacde7b80ae9ec068280",
+      "download_bytes": 1510081272,
+      "installed_bytes": 1510081272,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00018-of-00120-34999c1fc196",
+      "path": "model-00018-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "34999c1fc196d30cca93050cac780a8ec5f91a4272015c45d2ab13d039bdb377",
+      "download_bytes": 1724535180,
+      "installed_bytes": 1724535180,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00019-of-00120-3220b4014577",
+      "path": "model-00019-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "3220b40145777919fde82a1697ace009fcde27859485ff8c45340cb61479ad7a",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00020-of-00120-545979216168",
+      "path": "model-00020-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "545979216168cfbde088e73b16ea40bcb3179f6d84dfc09108d40bf1128916ec",
+      "download_bytes": 1642634876,
+      "installed_bytes": 1642634876,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00021-of-00120-c289513f948e",
+      "path": "model-00021-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "c289513f948efa57cab67986313c596bc0c1e1244d22c3b69091fd3d699fd74a",
+      "download_bytes": 1603476980,
+      "installed_bytes": 1603476980,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00022-of-00120-734d114bb8af",
+      "path": "model-00022-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "734d114bb8af052e092f0374cf714440257777cdaaf8a2e194578186ab6c48c5",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00023-of-00120-7f5fc5369fd9",
+      "path": "model-00023-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "7f5fc5369fd98afba52b337826fe373280d857e803b7d51266287e8e84159744",
+      "download_bytes": 1745467712,
+      "installed_bytes": 1745467712,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00024-of-00120-d726f81df4f9",
+      "path": "model-00024-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "d726f81df4f96c23d504186c9a6052cfce2e41b0a8514ef61a02919d8f2705d1",
+      "download_bytes": 1510081760,
+      "installed_bytes": 1510081760,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00025-of-00120-59a808016dd3",
+      "path": "model-00025-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "59a808016dd384c3f6768230a11cd74f0d7a9cac2d12ebde9398ae24aac21667",
+      "download_bytes": 1510081552,
+      "installed_bytes": 1510081552,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00026-of-00120-bed4bd4fb372",
+      "path": "model-00026-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "bed4bd4fb372a6beb9b84bdc3762e7f61e8bc93ef5ab4739361b6b4d11e3324f",
+      "download_bytes": 1745468240,
+      "installed_bytes": 1745468240,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00027-of-00120-ef6dd6eea7a6",
+      "path": "model-00027-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "ef6dd6eea7a62918bf6e262f3252887bd19a3d706e4c8acd0dd46dd44f1f64d6",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00028-of-00120-2dceecdd9e84",
+      "path": "model-00028-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "2dceecdd9e8427ce388509e88cde0c7d8157e8a1c9018e3dc6fddb8e45c98e0f",
+      "download_bytes": 1510081320,
+      "installed_bytes": 1510081320,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00029-of-00120-08d127a0f613",
+      "path": "model-00029-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "08d127a0f613023e3a86b3bc0919a8c525fe4fbb4627a628d0f9966a36282427",
+      "download_bytes": 2143153100,
+      "installed_bytes": 2143153100,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00030-of-00120-8129f6489360",
+      "path": "model-00030-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "8129f6489360e8668ab9f8fa916fa39e0a7ee319575610f09257b3fa645c949d",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00031-of-00120-90c90fc98dca",
+      "path": "model-00031-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "90c90fc98dca53e3fb2a7db826098c31be31ebdfe8c913da4b14739356fae0d1",
+      "download_bytes": 1510081192,
+      "installed_bytes": 1510081192,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00032-of-00120-ba85eda5e184",
+      "path": "model-00032-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "ba85eda5e18418242f11cb8e1420f71381d41b93faee820dec31c85543cce7d3",
+      "download_bytes": 1745469072,
+      "installed_bytes": 1745469072,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00033-of-00120-f7e964705e3a",
+      "path": "model-00033-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "f7e964705e3af74f229acb539b75c08ee6bff68287420a4c8a69dc23073bf4a6",
+      "download_bytes": 1510081760,
+      "installed_bytes": 1510081760,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00034-of-00120-fe7d9ff998e3",
+      "path": "model-00034-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "fe7d9ff998e33df6dfa0c2fa4db80e817d8f98a3e84a8e3ee3f0c4ee863f38ba",
+      "download_bytes": 1745467576,
+      "installed_bytes": 1745467576,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00035-of-00120-67d19fbeb683",
+      "path": "model-00035-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "67d19fbeb683cf630d2b22b9450c6588e26645df1da2ae0dbab086826a971d9d",
+      "download_bytes": 1510081776,
+      "installed_bytes": 1510081776,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00036-of-00120-52edae2448a6",
+      "path": "model-00036-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "52edae2448a61ffe4341addb1b269dac92fdb0fe5ef732a0fc6861f56780c7bc",
+      "download_bytes": 1510081688,
+      "installed_bytes": 1510081688,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00037-of-00120-2fc8290f3366",
+      "path": "model-00037-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "2fc8290f3366220ef5b43fe765ac5d0e412bca6ab7f9d4465fea0532789beb29",
+      "download_bytes": 1745467896,
+      "installed_bytes": 1745467896,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00038-of-00120-86953ac612bb",
+      "path": "model-00038-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "86953ac612bb77d477e2038f76c387616433d342e58d2de9ba5c58eee2a476ad",
+      "download_bytes": 1510081760,
+      "installed_bytes": 1510081760,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00039-of-00120-0f0d3ce38f4d",
+      "path": "model-00039-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "0f0d3ce38f4da04cb8b68cd4179ad694b998db1803f1d3deb0fd770c762dffa0",
+      "download_bytes": 1510081472,
+      "installed_bytes": 1510081472,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00040-of-00120-08192bd35dd9",
+      "path": "model-00040-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "08192bd35dd91b366b1c645153a22ac96ca07352fc599cb29c276835085e3a7c",
+      "download_bytes": 1724534852,
+      "installed_bytes": 1724534852,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00041-of-00120-07cbf141b3f2",
+      "path": "model-00041-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "07cbf141b3f2255a6a72453fbf950d204e416f8688e8c046247b8c6c5cf92ef0",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00042-of-00120-7f319150371c",
+      "path": "model-00042-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "7f319150371c9ded6d6f516916d62076c83ae2f10de9358dff491370a6aa56df",
+      "download_bytes": 1510081232,
+      "installed_bytes": 1510081232,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00043-of-00120-47c9e028e6e9",
+      "path": "model-00043-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "47c9e028e6e9af89563979cc518ddcb37b6fdef124f9e98b8374c35b0dd5e0aa",
+      "download_bytes": 1745468968,
+      "installed_bytes": 1745468968,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00044-of-00120-52fdecfa398b",
+      "path": "model-00044-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "52fdecfa398b79c1b6ac0d7359bbada81dbb84f8d9a0d0e529aac3874353a7b0",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00045-of-00120-b3a2aac00cc0",
+      "path": "model-00045-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "b3a2aac00cc005d32975a33ee3b0e323304f870848376c567ef98ca6044f9e80",
+      "download_bytes": 1745467568,
+      "installed_bytes": 1745467568,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00046-of-00120-c7ee6047098c",
+      "path": "model-00046-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "c7ee6047098c4c0be22d4526f5dd52a312993873899ca912ab97806b751142c7",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00047-of-00120-9994abbb097b",
+      "path": "model-00047-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "9994abbb097b5513c198291f694994dca7fa22d9e0b6b351c9f11d272829592c",
+      "download_bytes": 1510081720,
+      "installed_bytes": 1510081720,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00048-of-00120-8582d51fe0c9",
+      "path": "model-00048-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "8582d51fe0c9d90d94fa2985bc13ac3eb45854e16a587059ba1fd02def13ed5a",
+      "download_bytes": 1745467792,
+      "installed_bytes": 1745467792,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00049-of-00120-30613af110d7",
+      "path": "model-00049-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "30613af110d76a7062ca8623d947ffabc54b739114cff2857eb5e99ed1556aa5",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00050-of-00120-f11de59e684b",
+      "path": "model-00050-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "f11de59e684b4908200e950622c507c8e62b2fbf82794f071e839c7b701652de",
+      "download_bytes": 1510081512,
+      "installed_bytes": 1510081512,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00051-of-00120-205f960f6528",
+      "path": "model-00051-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "205f960f65280bd459cde1288cfa0b93f7bd4c24a347fb12f3297934f1db65ac",
+      "download_bytes": 1724534772,
+      "installed_bytes": 1724534772,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00052-of-00120-0763040f70b9",
+      "path": "model-00052-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "0763040f70b9bf7c6ad43dd4db9323a7d1dbfbd954dfea0953ca04d1df54ac2f",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00053-of-00120-698409ed384f",
+      "path": "model-00053-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "698409ed384f40991f91cf2a4c8184c9ae24441bbd43bb11ccac66bbd0ead362",
+      "download_bytes": 1510081288,
+      "installed_bytes": 1510081288,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00054-of-00120-311e159e1b51",
+      "path": "model-00054-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "311e159e1b51db39d53e22199228854f7d5a358f1cf21281258e16e0bda7bb5e",
+      "download_bytes": 1745468864,
+      "installed_bytes": 1745468864,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00055-of-00120-fc052b559be8",
+      "path": "model-00055-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "fc052b559be8f1aec64437e7538d2d4ae0b81050d78427c08ee6c0fcf06dfb0a",
+      "download_bytes": 1510081760,
+      "installed_bytes": 1510081760,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00056-of-00120-b410973388d8",
+      "path": "model-00056-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "b410973388d8157d085b3565635b8d27a2066d8a5747ad14fa589b869857a7c7",
+      "download_bytes": 1599055240,
+      "installed_bytes": 1599055240,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00057-of-00120-0c289d11e1b1",
+      "path": "model-00057-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "0c289d11e1b1055c0e14e3a9572157e81f116fab7933ef78388f3bd6bee8c9b1",
+      "download_bytes": 1651774700,
+      "installed_bytes": 1651774700,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00058-of-00120-84f634dff927",
+      "path": "model-00058-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "84f634dff927c63be744cf7f37cbd9a52a6a221e82466e309d803e7ba8f75753",
+      "download_bytes": 1510080808,
+      "installed_bytes": 1510080808,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00059-of-00120-41e8d976cb2a",
+      "path": "model-00059-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "41e8d976cb2a20ca6255ed808c2bcd9bd6027971f85fb15c7142d8ae92a26ace",
+      "download_bytes": 1724533596,
+      "installed_bytes": 1724533596,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00060-of-00120-985f53471c85",
+      "path": "model-00060-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "985f53471c858ec0797b20c738f25b238d0a35b81536b36a778760429525c586",
+      "download_bytes": 1510081760,
+      "installed_bytes": 1510081760,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00061-of-00120-8f965b618e0b",
+      "path": "model-00061-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "8f965b618e0bcf169cdd2db7cfa60374a7ffbbfefc99c1149252f96848485421",
+      "download_bytes": 1510081560,
+      "installed_bytes": 1510081560,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00062-of-00120-48198d608c46",
+      "path": "model-00062-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "48198d608c46acd87eb3a63f27a42e106f878ce2be35398519d60a7cb2d415b6",
+      "download_bytes": 1745468224,
+      "installed_bytes": 1745468224,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00063-of-00120-c7259d8dcbd7",
+      "path": "model-00063-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "c7259d8dcbd7a23d9b75328e1639a9fa6e07f0c4cebec836443a76f92d5383a7",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00064-of-00120-ea72f728e524",
+      "path": "model-00064-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "ea72f728e524bd06e5c4a48a595e00ed9298344378a87ec85f90ae4613b7bfda",
+      "download_bytes": 1510081328,
+      "installed_bytes": 1510081328,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00065-of-00120-ed91674312c8",
+      "path": "model-00065-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "ed91674312c8cba2f14d99def75ea7a638d174f5ba3c3bc40dfa8aefe39ea4c8",
+      "download_bytes": 1724535084,
+      "installed_bytes": 1724535084,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00066-of-00120-44c01116db9d",
+      "path": "model-00066-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "44c01116db9d5e2fdb258157f977ec2ed247665c6bd8c330796cd6c0bf482014",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00067-of-00120-0bfe16059809",
+      "path": "model-00067-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "0bfe16059809c64da65e8bf564e29a428279a04ad56666078d09734f06ceec28",
+      "download_bytes": 1510081104,
+      "installed_bytes": 1510081104,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00068-of-00120-b2d8805a6be8",
+      "path": "model-00068-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "b2d8805a6be80258662624270b56b1435f28bf86cedd92a44f2d54ca911383ce",
+      "download_bytes": 1745469328,
+      "installed_bytes": 1745469328,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00069-of-00120-0c0abe4d485c",
+      "path": "model-00069-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "0c0abe4d485c077444a4fc86324db76a24a3964526aa9989d4af12fc7c974987",
+      "download_bytes": 1510081760,
+      "installed_bytes": 1510081760,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00070-of-00120-6fe8d6343dd3",
+      "path": "model-00070-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "6fe8d6343dd34198f94e87d97e60b1f4af1b92bd8335595f471902013d7a54b1",
+      "download_bytes": 1745467640,
+      "installed_bytes": 1745467640,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00071-of-00120-865691279f20",
+      "path": "model-00071-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "865691279f2029d35feaceee080c144f71bf569df3a419c57950cbacb47567ca",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00072-of-00120-63b6dc183803",
+      "path": "model-00072-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "63b6dc1838035b3cb6865571f826650bb64efe55c06509e64f4c2d57c5e3e3da",
+      "download_bytes": 1510081608,
+      "installed_bytes": 1510081608,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00073-of-00120-471068d033f4",
+      "path": "model-00073-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "471068d033f46d08e29ee0aa4624270fb01e4ee0c87ebaaeb6eaa24d301123d5",
+      "download_bytes": 1745468120,
+      "installed_bytes": 1745468120,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00074-of-00120-8e511e565bf0",
+      "path": "model-00074-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "8e511e565bf00b09f5d4d32a7e79b1a6ad771e8b8962b5ff1c9e9eee86ce82ab",
+      "download_bytes": 1510081760,
+      "installed_bytes": 1510081760,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00075-of-00120-ecd469228851",
+      "path": "model-00075-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "ecd46922885198501af081044b83a7f1a55d8b25b3be5b866de1a98af7f46ef4",
+      "download_bytes": 1510081384,
+      "installed_bytes": 1510081384,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00076-of-00120-a53e96b50bd5",
+      "path": "model-00076-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "a53e96b50bd5ed0fff3cfa6f20ac694a22360bfbecc34f66062ed40b3ce9da51",
+      "download_bytes": 1724535004,
+      "installed_bytes": 1724535004,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00077-of-00120-a64f0acfec57",
+      "path": "model-00077-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "a64f0acfec5721993e64d9dd023ddf30c74a12615b9d055cd58bc954a67894b0",
+      "download_bytes": 1510081760,
+      "installed_bytes": 1510081760,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00078-of-00120-0e9a57566971",
+      "path": "model-00078-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "0e9a5756697195e132cd5f6444be62b944f7a133ed49d8e3940139df732ed958",
+      "download_bytes": 1510081144,
+      "installed_bytes": 1510081144,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00079-of-00120-03aee2f47cfd",
+      "path": "model-00079-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "03aee2f47cfdd26868aabb0b399ea864900d2f73f7e3317ee3082c5dc4e4364b",
+      "download_bytes": 1745469192,
+      "installed_bytes": 1745469192,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00080-of-00120-56026b4b63d9",
+      "path": "model-00080-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "56026b4b63d9c1db16fb5fcfa17d5061b10ac81f7472fd1454a7ffa9d48dc5eb",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00081-of-00120-37df0643efdd",
+      "path": "model-00081-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "37df0643efdd0674aa37c66f244b287057955593a14b514387241b2e3326d675",
+      "download_bytes": 1745467608,
+      "installed_bytes": 1745467608,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00082-of-00120-6d69a2f9b3b2",
+      "path": "model-00082-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "6d69a2f9b3b291cf7d30c7f7d3087e022c5d6ef545747d20456216d984301bf8",
+      "download_bytes": 1510081760,
+      "installed_bytes": 1510081760,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00083-of-00120-a7946bb39803",
+      "path": "model-00083-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "a7946bb39803bb5c8641858927f3177515582b3be472676c12f2f6d90d23a0cf",
+      "download_bytes": 1510081648,
+      "installed_bytes": 1510081648,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00084-of-00120-7243c06bc776",
+      "path": "model-00084-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "7243c06bc776ba5b0c30195bb13d053614240e598355e8b25cd1d32c108581e8",
+      "download_bytes": 1745468008,
+      "installed_bytes": 1745468008,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00085-of-00120-60cc7eb3bb56",
+      "path": "model-00085-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "60cc7eb3bb56d0f47d4c2aba3ff226ad907f391f120e54087dc44f9c5ef82519",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00086-of-00120-4cd3a8428888",
+      "path": "model-00086-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "4cd3a8428888257909c70ca7cb71db5ff3890031b9f119ec1ed3d9e55f9900f9",
+      "download_bytes": 1510081416,
+      "installed_bytes": 1510081416,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00087-of-00120-bd5d4921bb31",
+      "path": "model-00087-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "bd5d4921bb316ab69f7c6f374b297becde7bb3ac3afc03b4262132b2e8504781",
+      "download_bytes": 1724534364,
+      "installed_bytes": 1724534364,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00088-of-00120-4e28f51959ea",
+      "path": "model-00088-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "4e28f51959ea46ae896e0332aedea753a3b2a02cc73b7b6f6740efada1fb17b3",
+      "download_bytes": 1510080800,
+      "installed_bytes": 1510080800,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00089-of-00120-7866898f4ddb",
+      "path": "model-00089-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "7866898f4ddb89c15c095731a661c6f1300cf486c65c33d9028d75513b2ccbca",
+      "download_bytes": 1510080240,
+      "installed_bytes": 1510080240,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00090-of-00120-2aeac301d205",
+      "path": "model-00090-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "2aeac301d205e143f67be8087fbbecb35818656c9439a4011b7a936fb8309ad6",
+      "download_bytes": 1745468952,
+      "installed_bytes": 1745468952,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00091-of-00120-57c641457fe6",
+      "path": "model-00091-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "57c641457fe64c34e78e42697fc4499394197f9b9b4508f18d05d0ac3d802c6c",
+      "download_bytes": 1510081760,
+      "installed_bytes": 1510081760,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00092-of-00120-325f1d7ba9da",
+      "path": "model-00092-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "325f1d7ba9daca983c357090c0a30e59c638d544e4eb13659dec157c13a29346",
+      "download_bytes": 1745467576,
+      "installed_bytes": 1745467576,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00093-of-00120-0d62a3ebbf7e",
+      "path": "model-00093-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "0d62a3ebbf7e5503d37046110df9c1ea8252c6de65ce01791105d3f1f4b2db93",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00094-of-00120-bc69acd667e8",
+      "path": "model-00094-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "bc69acd667e89611e2c277e522315f7b42ca5538b5385e869497972185b510f6",
+      "download_bytes": 1510081696,
+      "installed_bytes": 1510081696,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00095-of-00120-764a46e7dc11",
+      "path": "model-00095-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "764a46e7dc11a35bb8d04129b64b9189fee8ea77a14f8f4a3c04537c1984d4b5",
+      "download_bytes": 1745467904,
+      "installed_bytes": 1745467904,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00096-of-00120-2f43b5c6d76a",
+      "path": "model-00096-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "2f43b5c6d76a89e64cacb5eb943b748699cc7022c48a89c01c5f57a80b9dc529",
+      "download_bytes": 1510081760,
+      "installed_bytes": 1510081760,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00097-of-00120-47ad84eade13",
+      "path": "model-00097-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "47ad84eade13e5e6ace74a7352daf48d17a77494abaa7d67fa92bf21c0cfdc22",
+      "download_bytes": 1510081464,
+      "installed_bytes": 1510081464,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00098-of-00120-c3c03b7f5347",
+      "path": "model-00098-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "c3c03b7f534743f55d96c00ddffda650866eebb47ae2cdf0671d57dee3cd276b",
+      "download_bytes": 1745468448,
+      "installed_bytes": 1745468448,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00099-of-00120-ca081f64de0d",
+      "path": "model-00099-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "ca081f64de0d528e6e5310f80c5bbcb74c3a963658c4df2ab6f48baa7c09e15f",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00100-of-00120-aabf0de08b02",
+      "path": "model-00100-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "aabf0de08b023abe8105fefd2bd4e87fba80cb01e302bd9e0d00c72cc79d73e0",
+      "download_bytes": 1510081232,
+      "installed_bytes": 1510081232,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00101-of-00120-b333b9b6a0bf",
+      "path": "model-00101-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "b333b9b6a0bfa0f097ce956301449e88b66e09fdbcc0b8c6de959226b417d133",
+      "download_bytes": 1724535236,
+      "installed_bytes": 1724535236,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00102-of-00120-e13f3cd1f662",
+      "path": "model-00102-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "e13f3cd1f662a16feb2b06f23e998d8fcfa8639561259d5dcd7f59da756f3978",
+      "download_bytes": 1510081768,
+      "installed_bytes": 1510081768,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00103-of-00120-41b5858d446c",
+      "path": "model-00103-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "41b5858d446ccb71f099bf79934d7bd87b02da89ad65b498837449566b0e1409",
+      "download_bytes": 1792143440,
+      "installed_bytes": 1792143440,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00104-of-00120-6dbf5568a3d1",
+      "path": "model-00104-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "6dbf5568a3d13169a6d649c1a085b9b9f544c6b5d4c1fbf59c2168e16906b243",
+      "download_bytes": 1510081744,
+      "installed_bytes": 1510081744,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00105-of-00120-54039eb3b562",
+      "path": "model-00105-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "54039eb3b56267178d39b794cb0175b5919c6a84c900a9cdd1feec0c9a78713e",
+      "download_bytes": 1510081728,
+      "installed_bytes": 1510081728,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00106-of-00120-697293e8f63d",
+      "path": "model-00106-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "697293e8f63d194b22f46c92955ad17ec32a3125c230cbcc2596e910678f73a5",
+      "download_bytes": 1724542460,
+      "installed_bytes": 1724542460,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00107-of-00120-b4bec4aeeeba",
+      "path": "model-00107-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "b4bec4aeeebab480c2f67f87d825dc21d86b3ae651db9aa9cc18cf0f808b78b8",
+      "download_bytes": 1510080808,
+      "installed_bytes": 1510080808,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00108-of-00120-8477f32dfb1e",
+      "path": "model-00108-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "8477f32dfb1ec113a014822575bb22fe2bf774096a31ead44783597742e916b1",
+      "download_bytes": 1510080552,
+      "installed_bytes": 1510080552,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00109-of-00120-3528407c70e3",
+      "path": "model-00109-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "3528407c70e3efaeb241edc19d2dbe3f1c12f10261eca22d7c50d53dce38d154",
+      "download_bytes": 1745467384,
+      "installed_bytes": 1745467384,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00110-of-00120-ce4d13d4e740",
+      "path": "model-00110-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "ce4d13d4e740fe00566f6ef8089ef4bf76fdbf013884d6e874585b647602dd91",
+      "download_bytes": 1510080808,
+      "installed_bytes": 1510080808,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00111-of-00120-cfc769592a7f",
+      "path": "model-00111-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "cfc769592a7ffd352d5912b887c9e92018345194105f0d9c6bad0cc7b8195fea",
+      "download_bytes": 1510080336,
+      "installed_bytes": 1510080336,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00112-of-00120-77e69e80667c",
+      "path": "model-00112-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "77e69e80667c5136a4197cd81c15c07d5982c8fd8e1a36979942df4c9290dabb",
+      "download_bytes": 1745467920,
+      "installed_bytes": 1745467920,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00113-of-00120-8167de603ca7",
+      "path": "model-00113-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "8167de603ca79ecf33f9fa4d36e3d79aca9c81df4f80978132828152a9328c5b",
+      "download_bytes": 1510080800,
+      "installed_bytes": 1510080800,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00114-of-00120-28fd9f409fd9",
+      "path": "model-00114-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "28fd9f409fd9958dd715cafa238d7f5178cd0bec8411726e26c3684f5a03ba11",
+      "download_bytes": 1558326812,
+      "installed_bytes": 1558326812,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00115-of-00120-60948dc927c3",
+      "path": "model-00115-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "60948dc927c387bfa250df6d6d344847d6fdd45d994a1dd9d1dad7da366369ed",
+      "download_bytes": 1676287840,
+      "installed_bytes": 1676287840,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00116-of-00120-e5d2dda2a124",
+      "path": "model-00116-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "e5d2dda2a12466f4af9f237f540af67a5513392dcfdefa8cd32cee9bc3dc877e",
+      "download_bytes": 1510080816,
+      "installed_bytes": 1510080816,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00117-of-00120-739833ee3bcd",
+      "path": "model-00117-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "739833ee3bcda6ed959ffb8d9a3efa586210c624e278403c1792c53f503cc56f",
+      "download_bytes": 1745466760,
+      "installed_bytes": 1745466760,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00118-of-00120-b2364542e7c9",
+      "path": "model-00118-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "b2364542e7c9fc06cb6feca8beb5fbf104292bb0f2be126095d35d5bd37dad77",
+      "download_bytes": 1510080800,
+      "installed_bytes": 1510080800,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00119-of-00120-efd9da4b7d2d",
+      "path": "model-00119-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "efd9da4b7d2dc22ebd0ee31f80924b1e03afa9e1637e3db3460e7d406c51c6d6",
+      "download_bytes": 1510080600,
+      "installed_bytes": 1510080600,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00120-of-00120-a8b8a9753bbb",
+      "path": "model-00120-of-00120.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "a8b8a9753bbb9317bc65c01a3fd27a7f337f93f1e4faf63997067e502c561074",
+      "download_bytes": 2219964072,
+      "installed_bytes": 2219964072,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-safetensors-index-f3a4c40897e0",
+      "path": "model.safetensors.index.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "f3a4c40897e00fab0de0380b05b66279bc341233cc14fa71a80bab2b683e3b7b",
+      "download_bytes": 12237653,
+      "installed_bytes": 12237653,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "processor-config-aae38374c94b",
+      "path": "processor_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "aae38374c94b08cc9b0547c6e64f05b951bd9735cea571c6988f5ed552bed3ed",
+      "download_bytes": 909,
+      "installed_bytes": 909,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "tokenizer-19e773648cb4",
+      "path": "tokenizer.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "19e773648cb4e65de8660ea6365e10acca112d42a854923df93db4a6f333a82d",
+      "download_bytes": 20217442,
+      "installed_bytes": 20217442,
+      "roles": [
+        "tokenizer"
+      ]
+    },
+    {
+      "id": "tokenizer-config-98b1271574f4",
+      "path": "tokenizer_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+      "sha256": "98b1271574f41abf89427ae2dda030d94dc9478f0edc5a8bd240db213c6fd5fc",
+      "download_bytes": 761,
+      "installed_bytes": 761,
+      "roles": [
+        "tokenizer"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}

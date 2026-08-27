@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "radixark",
+    "slug": "qwen3-8-radixark"
+  },
+  "metadata": {
+    "title": "RadixArk Qwen3.8 deployments",
+    "description": "RadixArk quantized Qwen3.8 targets and speculative decoding companions for SGLang deployments.",
+    "tags": ["radixark", "qwen", "qwen3-8", "language", "multimodal"]
+  },
+  "family": "qwen3-8"
+}
