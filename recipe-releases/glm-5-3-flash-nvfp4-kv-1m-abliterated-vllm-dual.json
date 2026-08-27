@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual"},
+  "version": "1.0.0",
+  "released_at": "2026-08-27",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-27",
+      "recipe_content_sha256": "a18e9ea3a8789cb8ee53742ced6fd2239a490d0d04df466f503983e7f3ac14c4",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added Drowzeys' gated GLM 5.3 Flash NVFP4 KV 1M two-Spark Candidate.",
+          "details": "Pins the exact serving source and gated checkpoint revisions, packages the B12X NVFP4 KV and sparse-MLA overlays, and preserves the published 1,048,576 context, 7168 block, 6,334,808,064-byte KV allocation, MTP2, and native-mp TP2 profile.",
+          "references": [
+            "https://github.com/drowzeys/keys-vLLm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated/tree/ee0dabadc83f11f8c97cdd8b9b367488755bb846",
+            "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock/tree/d7f8afa81e62c156446fda43304d704563622590"
+          ]
+        }
+      ]
+    }
+  ]
+}

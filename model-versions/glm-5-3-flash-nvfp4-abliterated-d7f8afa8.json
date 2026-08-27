@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {"publisher": "drowzeys", "slug": "glm-5-3-flash-nvfp4-abliterated-d7f8afa8"},
+  "metadata": {
+    "title": "GLM 5.3 Flash NVFP4 Abliterated d7f8afa8",
+    "description": "Immutable gated snapshot used by Drowzeys' two-Spark 1M vLLM profile. The aggregate digest covers the pinned revision's 139-path Git tree because Hugging Face masks individual gated LFS object hashes before authentication.",
+    "tags": ["abliterated", "candidate", "drowzeys", "gated", "glm-5.3", "multimodal", "nvfp4"]
+  },
+  "model": {"kind": "model", "publisher": "drowzeys", "slug": "glm-5-3-flash-nvfp4-abliterated", "content_sha256": "cd86c93b67bd8a501b5aaf407b4a1500f2c5aebb557fbf16efaa08177437b149"},
+  "version": "d7f8afa81e62c156446fda43304d704563622590",
+  "source": {"repository": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock", "revision": "d7f8afa81e62c156446fda43304d704563622590"},
+  "lineage": {
+    "publisher": "drowzeys",
+    "relation": "derived",
+    "source_model": {"kind": "model", "publisher": "libertaidai", "slug": "glm-5-3-flash-nvfp4", "content_sha256": "db03786f136975a024648c5e8bfe9fd123a2b799947ac1d99807217238c782b3"},
+    "derivation": "LibertAI NVFP4 body with DealignAI self_attn.o_proj tensors for layers 15 through 45, including MTP; layers 0 through 14 remain stock."
+  },
+  "format": {"container": "safetensors", "precision": "mixed", "quantization": "nvfp4-weight-only-routed-experts"},
+  "parameters": {"total": 321320000000, "active": 18000000000},
+  "limits": {"context_tokens": 1048576},
+  "sizes": {"download_bytes": 194692761489, "installed_bytes": 194692761489},
+  "license": {
+    "spdx": "MIT",
+    "url": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock/blob/d7f8afa81e62c156446fda43304d704563622590/LICENSE-KEYS.md",
+    "attribution": ["Z.ai", "LibertAI", "DealignAI", "drowzeys"],
+    "operator_acceptance_required": true
+  },
+  "access": {"visibility": "restricted", "gated": true, "authentication": "token"},
+  "artifacts": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock",
+      "revision": "d7f8afa81e62c156446fda43304d704563622590",
+      "sha256": "cb498f66df04bc9e2d0e7cbff344054cb7301702ac06fe3e46cf13373a80d598",
+      "download_bytes": 194692761489,
+      "installed_bytes": 194692761489,
+      "roles": ["entrypoint", "worker"]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}

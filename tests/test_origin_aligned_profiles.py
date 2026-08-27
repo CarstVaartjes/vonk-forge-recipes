@@ -35,6 +35,46 @@ def _arguments(recipe: dict[str, object]) -> dict[str, object]:
 
 
 class OriginAlignedProfileTests(unittest.TestCase):
+    def test_drowzeys_glm53_1m_profile_and_gated_contract(self) -> None:
+        recipe_path = ROOT / "recipes/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual.json"
+        runtime_path = ROOT / "runtime-distributions/vllm-glm53-drowzeys-1m-ee0dabad-arm64.json"
+        patch_path = ROOT / "patch-bundles/drowzeys-glm53-nvfp4-kv-1m-dual-profile.json"
+        model_path = ROOT / "model-versions/glm-5-3-flash-nvfp4-abliterated-d7f8afa8.json"
+        adapter = ROOT / "adapters/glm/drowzeys-glm53-1m"
+        recipe = _document(recipe_path)
+        runtime = _document(runtime_path)
+        patch = _document(patch_path)
+        model = _document(model_path)
+        arguments = _arguments(recipe)
+
+        self.assertEqual(arguments["max-model-len"], 1048576)
+        self.assertEqual(arguments["block-size"], 7168)
+        self.assertEqual(arguments["kv-cache-memory"], 6334808064)
+        self.assertEqual(arguments["kv-cache-dtype"], "nvfp4_ds_mla")
+        self.assertEqual(arguments["max-num-batched-tokens"], 4096)
+        self.assertEqual(arguments["max-num-seqs"], 2)
+        self.assertEqual(arguments["gpu-memory-utilization"], "0.87")
+        self.assertEqual(
+            json.loads(arguments["speculative-config"])["num_speculative_tokens"],
+            2,
+        )
+        self.assertEqual(model["access"], {"visibility": "restricted", "gated": True, "authentication": "token"})
+        self.assertEqual(runtime["source"]["revision"], "ee0dabadc83f11f8c97cdd8b9b367488755bb846")
+        self.assertEqual(recipe["runtime"]["distribution"]["content_sha256"], _canonical_digest(runtime_path))
+        self.assertEqual(patch["applies_to"]["content_sha256"], _canonical_digest(runtime_path))
+        self.assertEqual(recipe["execution"]["patch_bundle"]["content_sha256"], _canonical_digest(patch_path))
+
+        source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["source_bundle"]
+        archive, _files, digest = source_bundle(adapter)
+        self.assertEqual(recipe["build"]["context"]["sha256"], digest)
+        self.assertEqual(recipe["build"]["context"]["expected_bytes"], len(archive))
+        self.assertEqual(patch["sha256"], digest)
+        wrapper = (adapter / "vllm-wrapper.py").read_text(encoding="utf-8")
+        self.assertIn('os.environ["KV_FP8_ROPE"] = "1"', wrapper)
+        self.assertIn('("--attention-backend", "B12X_MLA_SPARSE")', wrapper)
+        self.assertIn('text_config["index_topk"] = 2044', wrapper)
+        compile(wrapper, str(adapter / "vllm-wrapper.py"), "exec")
+
     def test_qwen_announced_900k_profile_and_closure(self) -> None:
         recipe_path = ROOT / "recipes/qwen3-8-flash-next-nvfp4-sglang-dual.json"
         runtime_path = ROOT / "runtime-distributions/sglang-qwen38-flash-next-dspark-6d1a5194-arm64.json"
