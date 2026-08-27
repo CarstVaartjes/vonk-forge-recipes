@@ -1,9 +1,26 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "qwen3-8-flash-next-nvfp4-sglang-dual"},
-  "version": "1.0.0",
+  "version": "1.1.0",
   "released_at": "2026-08-27",
   "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-27",
+      "recipe_content_sha256": "01e99bcc0cfb046e09bdbb831069b5206216f5c401282c85f109b2171a6c40e2",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "performance",
+          "summary": "Aligned the default with MiaAI-Lab's announced and tested 900K two-Spark profile.",
+          "details": "Pins the first immutable upstream 900K revision and packages its QSA NVFP4-KV patches, YaRN extension, 28 request slots, automatic PLE placement, 1024-token prefill chunks, and MTP3 settings.",
+          "references": [
+            "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/6d1a51947d2f8aed61780ee17429ea4812ba0579",
+            "https://x.com/miaai_lab/status/2092670516964270101"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-27",

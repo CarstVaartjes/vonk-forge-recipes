@@ -1,0 +1,8 @@
+This adapter packages the launch and compact-NVFP4 kernel overlays from
+MiaAI-Lab/DeepSeek-v4-Flash-One-DGX-Spark at
+fdcd538fbf95fb15b2d6850db9613d22b2c889b8 (MIT), on top of the immutable
+0xSero SparkInfer image and its Apache-2.0 dependencies.
+
+Vonk Forge adds only the offline artifact boundary, non-root runtime wrapper,
+and immutable catalog metadata. The recipe remains Candidate until a Vonk
+physical one-DGX-Spark canary passes.

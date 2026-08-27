@@ -58,34 +58,38 @@ def add_flag(name: str) -> None:
 for name, value in (
     ("--quantization", "modelopt_fp4"),
     ("--attention-backend", "flashinfer"),
-    ("--fp4-gemm-backend", "flashinfer_cutlass"),
     ("--page-size", "64"),
     ("--mamba-ssm-dtype", "bfloat16"),
     ("--mamba-radix-cache-strategy", "extra_buffer"),
     ("--mamba-track-interval", "64"),
-    ("--chunked-prefill-size", "4096"),
-    ("--max-running-requests", "6"),
-    ("--context-length", "262144"),
-    ("--max-total-tokens", "600000"),
-    ("--mem-fraction-static", "0.80"),
+    ("--chunked-prefill-size", "1024"),
+    ("--max-prefill-tokens", "2048"),
+    ("--max-running-requests", "28"),
+    ("--context-length", "900000"),
+    ("--mem-fraction-static", "0.82"),
+    ("--kv-cache-dtype", "nvfp4"),
+    (
+        "--json-model-override-args",
+        '{"text_config":{"rope_scaling":{"rope_type":"yarn","factor":4.0,"original_max_position_embeddings":262144},"max_position_embeddings":1048576}}',
+    ),
     ("--speculative-algorithm", "NEXTN"),
     ("--speculative-num-steps", "3"),
     ("--speculative-eagle-topk", "1"),
     ("--speculative-num-draft-tokens", "4"),
     ("--reasoning-parser", "auto"),
-    ("--tool-call-parser", "qwen3_coder"),
-    ("--default-chat-template-kwargs", '{"enable_thinking":false}'),
-    ("--cuda-graph-max-bs", "8"),
-    ("--sampling-backend", "pytorch"),
+    ("--tool-call-parser", "auto"),
 ):
     add_value(name, value)
+if "--cuda-graph-bs-decode" not in arguments:
+    arguments.extend(
+        (
+            "--cuda-graph-bs-decode",
+            "1", "2", "3", "4", "5", "6", "7", "8",
+            "10", "12", "14", "16", "20", "24", "28",
+        )
+    )
 for name in (
-    "--enable-linear-replayssm-spec",
-    "--allow-auto-truncate",
-    "--ple-offload-embedding",
-    "--disable-cuda-graph-padding",
     "--disable-prefill-cuda-graph",
-    "--disable-radix-cache",
     "--trust-remote-code",
     "--enable-metrics",
     "--enable-cache-report",
