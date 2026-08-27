@@ -1,0 +1,361 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {
+    "publisher": "radixark",
+    "slug": "qwen3-8-27b-nvfp4-009632fe"
+  },
+  "metadata": {
+    "title": "Qwen3.8 27B NVFP4 BF16 LM head 009632fe",
+    "description": "Exact public Qwen3.8 27B NVFP4 BF16 LM head 009632fe checkpoint.",
+    "tags": [
+      "radixark",
+      "qwen3-8-radixark",
+      "multimodal",
+      "candidate"
+    ]
+  },
+  "model": {
+    "kind": "model",
+    "publisher": "radixark",
+    "slug": "qwen3-8-27b-nvfp4",
+    "content_sha256": "cc16975056d82773e686855beb15c8d029c8494d825fcf2fa22ec0981bea4326"
+  },
+  "version": "Qwen3.8 27B NVFP4 BF16 LM head 009632fe",
+  "source": {
+    "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+    "revision": "009632fef96dd349150baa780c984e62e70e91fe"
+  },
+  "lineage": {
+    "publisher": "radixark",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "radixark",
+      "slug": "qwen3-8-27b-nvfp4",
+      "content_sha256": "cc16975056d82773e686855beb15c8d029c8494d825fcf2fa22ec0981bea4326"
+    },
+    "derivation": "Official upstream checkpoint at the pinned revision."
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "mixed",
+    "quantization": "nvfp4-w4a4-bf16-lmhead"
+  },
+  "parameters": {
+    "total": 27000000000,
+    "active": 27000000000
+  },
+  "limits": {
+    "context_tokens": 262144
+  },
+  "sizes": {
+    "download_bytes": 23772921363,
+    "installed_bytes": 23772921363
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead/blob/009632fef96dd349150baa780c984e62e70e91fe/LICENSE",
+    "attribution": [
+      "Qwen",
+      "RadixArk"
+    ],
+    "operator_acceptance_required": false
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "artifacts": [
+    {
+      "id": "metadata-34448b82c17d",
+      "path": ".gitattributes",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "download_bytes": 1570,
+      "installed_bytes": 1570,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "file--quant-summary-5920198f1770",
+      "path": ".quant_summary.txt",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "5920198f1770fc91c0f8032108e6d861ce7e0ef196eca140c9681231d8d99967",
+      "download_bytes": 314291,
+      "installed_bytes": 314291,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "license-bbedc3fda330",
+      "path": "LICENSE",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "bbedc3fda3305820b977265f01b8619d87570a6739de3a5582c3464840f1e57a",
+      "download_bytes": 11544,
+      "installed_bytes": 11544,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "readme-10a114243d31",
+      "path": "README.md",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "10a114243d31db24649ecda5245e30832e6b86e49e939c73725da4a00ee6db9d",
+      "download_bytes": 5230,
+      "installed_bytes": 5230,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "chat-template-c3cf9e34abf4",
+      "path": "chat_template.jinja",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+      "download_bytes": 8952,
+      "installed_bytes": 8952,
+      "roles": [
+        "tokenizer"
+      ]
+    },
+    {
+      "id": "config-66402a06352a",
+      "path": "config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "66402a06352ac861bc9012a26678e6d5e11a5fd22180165fc19c8a27d3a9e079",
+      "download_bytes": 72897,
+      "installed_bytes": 72897,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "conversion-manifest-4a45d15af79e",
+      "path": "conversion-manifest.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "4a45d15af79efda74b95b44d882669939447545bada2fe767a5d3d786fac308e",
+      "download_bytes": 23621,
+      "installed_bytes": 23621,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "generation-config-a4cef85934ea",
+      "path": "generation_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "a4cef85934ea1fdcb207944dbc6eee70dbbf16806874428556ae33023336c0a4",
+      "download_bytes": 214,
+      "installed_bytes": 214,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "hf-quant-config-2a63c5bd1e7f",
+      "path": "hf_quant_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "2a63c5bd1e7f3097c184e20aa5d644e477872bf2882e5e19870379e15b215f58",
+      "download_bytes": 44049,
+      "installed_bytes": 44049,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "merges-a9d356d7bdf1",
+      "path": "merges.txt",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+      "download_bytes": 3353259,
+      "installed_bytes": 3353259,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "model-00001-of-00003-fbcdb5ba1cdd",
+      "path": "model-00001-of-00003.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "fbcdb5ba1cdda462b5f38592d071e772c4d398afea61a0aa9188b32d1a239a79",
+      "download_bytes": 9965652544,
+      "installed_bytes": 9965652544,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00002-of-00003-db6146a5464f",
+      "path": "model-00002-of-00003.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "db6146a5464fb0a891181b93c81593f0ca65c602eb14120a1c2b1b09bca11f85",
+      "download_bytes": 9985757064,
+      "installed_bytes": 9985757064,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00003-of-00003-597573c145c2",
+      "path": "model-00003-of-00003.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "597573c145c2847aa007c30f6635f1c98db75673a914e87f177d49ee18eb5284",
+      "download_bytes": 3797923080,
+      "installed_bytes": 3797923080,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-safetensors-index-8af18756d73b",
+      "path": "model.safetensors.index.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "8af18756d73b88a22196d80a789b8d5956c9f12eec3cf73451d48463de706f05",
+      "download_bytes": 214672,
+      "installed_bytes": 214672,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c",
+      "path": "preprocessor_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "download_bytes": 390,
+      "installed_bytes": 390,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "qualification-criteria-8e3b57367245",
+      "path": "qualification-criteria.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "8e3b57367245354acb040a133e63df8eb1f4aef787e036156b944dfda217352a",
+      "download_bytes": 1145,
+      "installed_bytes": 1145,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "qualification-7be9d60606fc",
+      "path": "qualification.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "7be9d60606fc9590ca7b5717018e12050deaa6d7d93abb5e8cad0845240983a8",
+      "download_bytes": 2717,
+      "installed_bytes": 2717,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "tensor-audit-8a7801e2b462",
+      "path": "tensor-audit.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "8a7801e2b46298432a129689879c9e4f8c69444e0b71b4c971470c2747794679",
+      "download_bytes": 539,
+      "installed_bytes": 539,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "tokenizer-0997f410c57a",
+      "path": "tokenizer.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3",
+      "download_bytes": 12809320,
+      "installed_bytes": 12809320,
+      "roles": [
+        "tokenizer"
+      ]
+    },
+    {
+      "id": "tokenizer-config-e5d078b00e6c",
+      "path": "tokenizer_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "e5d078b00e6c1223b32444db8c1001dc71d86ceef8ee706b5bf084c3a43a1f9c",
+      "download_bytes": 1121,
+      "installed_bytes": 1121,
+      "roles": [
+        "tokenizer"
+      ]
+    },
+    {
+      "id": "video-preprocessor-config-7768af27c1fa",
+      "path": "video_preprocessor_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "download_bytes": 385,
+      "installed_bytes": 385,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "vocab-ce99b4cb2983",
+      "path": "vocab.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
+      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+      "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+      "download_bytes": 6722759,
+      "installed_bytes": 6722759,
+      "roles": [
+        "tokenizer"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}

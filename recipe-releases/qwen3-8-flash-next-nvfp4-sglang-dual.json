@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "recipe": {"publisher": "vonk-forge", "slug": "qwen3-8-flash-next-nvfp4-sglang-dual"},
+  "version": "1.0.0",
+  "released_at": "2026-08-27",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-27",
+      "recipe_content_sha256": "801d79acae3f97977207dc721c030df65cfef5e1f9425a2ebc385fc640f286ff",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added an executable two-Spark Qwen3.8 Flash Next NVFP4 SGLang Candidate.",
+          "details": "The recipe pins all 135,253,622,894 model bytes and rebuilds the public MiaAI-Lab QSA fallback on an immutable ARM64 SGLang image with exact NCCL 2.30.7, native TP2 rendezvous, PLE offload, bounded 262K context, and MTP3.",
+          "references": [
+            "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/02cd6d9050b386644c65ebf2396324da9575e5ee",
+            "https://github.com/tonyd2wild/Qwen3.8-Flash-Next-NVFP4-DGX-Spark/tree/c96c6a3927c4bda566c6454e51966018ddc69b83",
+            "https://recipes.vllm.ai/Qwen/Qwen3.8-Flash-Next"
+          ]
+        }
+      ]
+    }
+  ]
+}

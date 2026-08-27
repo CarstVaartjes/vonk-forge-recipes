@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "radixark",
+    "slug": "qwen3-8-27b-dspark"
+  },
+  "metadata": {
+    "title": "Qwen3.8 27B DSpark companion",
+    "description": "Five-layer BF16 DSpark speculative decoding companion trained for Qwen3.8 27B.",
+    "tags": [
+      "radixark",
+      "qwen3-8-radixark",
+      "language"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "radixark",
+    "slug": "qwen3-8-radixark",
+    "content_sha256": "d8d81c630a022301e4da4a7ea771b6483a7b2ddc0637c51c6c7bc8f2b0111ef7"
+  },
+  "architecture": "Five-layer DSpark full-attention speculative decoder with confidence head"
+}

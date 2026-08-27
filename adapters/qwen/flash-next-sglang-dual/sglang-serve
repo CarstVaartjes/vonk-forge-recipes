@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import os
+import sys
+from ipaddress import ip_address
+
+
+def option(arguments: list[str], name: str) -> tuple[int, str]:
+    try:
+        index = arguments.index(name)
+        return index, arguments[index + 1]
+    except (ValueError, IndexError):
+        raise SystemExit(f"distributed SGLang requires {name}") from None
+
+
+arguments = sys.argv[1:]
+_, node_count = option(arguments, "--nnodes")
+_, node_rank = option(arguments, "--node-rank")
+init_index, init_address = option(arguments, "--dist-init-addr")
+local_address = os.environ.get("VONK_LOCAL_ADDR")
+master_address = os.environ.get("VONK_MASTER_ADDR")
+master_port = os.environ.get("VONK_MASTER_PORT")
+fabric_names = ("NCCL_SOCKET_IFNAME", "NCCL_IB_HCA", "NCCL_IB_GID_INDEX", "TP_SOCKET_IFNAME", "GLOO_SOCKET_IFNAME")
+
+try:
+    if (
+        node_count != "2"
+        or node_rank not in {"0", "1"}
+        or init_address != "VONK_MASTER_ADDR:VONK_MASTER_PORT"
+        or not local_address
+        or not master_address
+        or not master_port
+        or any(not os.environ.get(name) for name in fabric_names)
+        or not master_port.isascii()
+        or not master_port.isdigit()
+        or not 1024 <= int(master_port) <= 65535
+    ):
+        raise ValueError
+    ip_address(local_address)
+    ip_address(master_address)
+except ValueError:
+    raise SystemExit("distributed SGLang requires complete two-node placement rendezvous and fabric") from None
+
+arguments[init_index + 1] = f"{master_address}:{master_port}"
+
+
+def add_value(name: str, value: str) -> None:
+    if name not in arguments:
+        arguments.extend((name, value))
+
+
+def add_flag(name: str) -> None:
+    if name not in arguments:
+        arguments.append(name)
+
+
+for name, value in (
+    ("--quantization", "modelopt_fp4"),
+    ("--attention-backend", "flashinfer"),
+    ("--fp4-gemm-backend", "flashinfer_cutlass"),
+    ("--page-size", "64"),
+    ("--mamba-ssm-dtype", "bfloat16"),
+    ("--mamba-radix-cache-strategy", "extra_buffer"),
+    ("--mamba-track-interval", "64"),
+    ("--chunked-prefill-size", "4096"),
+    ("--max-running-requests", "6"),
+    ("--context-length", "262144"),
+    ("--max-total-tokens", "600000"),
+    ("--mem-fraction-static", "0.80"),
+    ("--speculative-algorithm", "NEXTN"),
+    ("--speculative-num-steps", "3"),
+    ("--speculative-eagle-topk", "1"),
+    ("--speculative-num-draft-tokens", "4"),
+    ("--reasoning-parser", "auto"),
+    ("--tool-call-parser", "qwen3_coder"),
+    ("--default-chat-template-kwargs", '{"enable_thinking":false}'),
+    ("--cuda-graph-max-bs", "8"),
+    ("--sampling-backend", "pytorch"),
+):
+    add_value(name, value)
+for name in (
+    "--enable-linear-replayssm-spec",
+    "--allow-auto-truncate",
+    "--ple-offload-embedding",
+    "--disable-cuda-graph-padding",
+    "--disable-prefill-cuda-graph",
+    "--disable-radix-cache",
+    "--trust-remote-code",
+    "--enable-metrics",
+    "--enable-cache-report",
+):
+    add_flag(name)
+os.execv(sys.executable, (sys.executable, "-m", "sglang.launch_server", *arguments))

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-four"},
+  "version": "1.0.0",
+  "released_at": "2026-08-27",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-27",
+      "recipe_content_sha256": "e9cb13bf8f9a7aa690d23d3039703ee55c6e77263103d4035ef288e004751726",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added an executable four-Spark GLM 5.3 Flash NVFP4 native-vLLM Candidate.",
+          "details": "The stable Tech2Wild TP4 v8 profile is reproduced from public vLLM sources with fixed FP8 KV memory, MTP4, GLM multimodal chat handling, and exact NCCL 2.30.7. The upstream private image and experimental InstantTensor v9 multi-node path are not dependencies.",
+          "references": [
+            "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/tree/98fc5d8fd48e7d1e2e95499f93cf90ceef14faf4",
+            "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/tree/11d73216cd636238e82e1d77fe1042ffab36e7fa",
+            "https://recipes.vllm.ai/zai-org/GLM-5.3-Flash"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "libertaidai",
+    "slug": "glm-5-3-flash-nvfp4"
+  },
+  "metadata": {
+    "title": "GLM 5.3 Flash NVFP4",
+    "description": "LibertAI weight-only NVFP4 derivative of the 320B/18B-active multimodal GLM 5.3 Flash MoE for Blackwell serving.",
+    "tags": [
+      "libertaidai",
+      "glm-5-3-libertai",
+      "multimodal"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "libertaidai",
+    "slug": "glm-5-3-libertai",
+    "content_sha256": "4766a2b552b6c5929f0bd8ec7e56004f32b8d270e8ec18a64d41dd473902c0c2"
+  },
+  "architecture": "GLM5 Next sparse and linear attention multimodal MoE transformer"
+}
