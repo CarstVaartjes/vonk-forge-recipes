@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "kind": "patch-bundle",
+  "identity": {"publisher": "tech2wild", "slug": "glm-5-3-flash-nvfp4-mp-four-profile"},
+  "metadata": {
+    "title": "GLM 5.3 Flash NVFP4 native four-Spark profile",
+    "description": "Immutable binding to Tech2Wild's stable native TP4 v8 profile with a fixed 9 GiB KV allocation, FP8 KV cache, Marlin experts, multimodal GLM template, and MTP4. The experimental multi-node InstantTensor v9 path is excluded.",
+    "tags": ["candidate", "glm-5.3", "multimodal", "spark", "topology", "tp4", "vllm"]
+  },
+  "applies_to": {"kind": "runtime-distribution", "publisher": "tech2wild", "slug": "glm-5-3-flash-nvfp4-mp-four", "content_sha256": "93fe462102af5da1fc21a009c85d14c4b98ab1c3a0d53c789b110b4dcde1e55a"},
+  "sha256": "d2fd5f500f6fad30f41e10ea8db680cf130166fc2721b03bbcb6d81a555ab8b3"
+}

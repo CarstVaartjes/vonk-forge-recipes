@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "inclusionai",
+    "slug": "ling-3-0"
+  },
+  "metadata": {
+    "title": "Ling 3.0",
+    "description": "InclusionAI Ling 3.0 hybrid-linear mixture-of-experts language models and speculative decoding companions.",
+    "tags": ["inclusionai", "ling", "language", "reasoning", "moe"]
+  },
+  "family": "ling-3-0"
+}
