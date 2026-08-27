@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "kind": "patch-bundle",
+  "identity": {"publisher": "drowzeys", "slug": "drowzeys-glm53-nvfp4-kv-1m-dual-profile"},
+  "metadata": {
+    "title": "Drowzeys GLM 5.3 NVFP4 KV 1M dual-Spark profile",
+    "description": "Immutable package of the upstream B12X sparse-MLA overlays, NVFP4 KV format, absolute-link index_topk 2044 model view, and native-mp two-Spark launch wrapper.",
+    "tags": ["b12x", "candidate", "glm-5.3", "nvfp4-kv", "spark", "topology", "tp2"]
+  },
+  "applies_to": {"kind": "runtime-distribution", "publisher": "drowzeys", "slug": "vllm-glm53-drowzeys-1m-ee0dabad-arm64", "content_sha256": "1bdc0de561022bc6c7533b015841e8debb5f6da52e6211c446ade015e3cf904c"},
+  "sha256": "d5b74b072e73d9e5c2167041f9ad53d66059f4fb69d781c5ecce97123daf1495"
+}
