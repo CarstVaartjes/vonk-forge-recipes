@@ -4,9 +4,35 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-2512-comfyui-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.0.3",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.0.3",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "cc5fa075a964afbd494c2cc001cab315c9c2367e5fbfffc036805fab9514020c",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Added signed prompt and PNG output slots to the core ComfyUI job.",
+          "details": "The shared adapter now resolves a bounded UTF-8 prompt file from its signed manifest while preserving the legacy VONK_PROMPT fallback."
+        }
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "5840f9753afc35819b795b88bc1ff5333f478a88e6fe824885eca40bd56215cf",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Hardened shared ComfyUI job result selection.",
+          "details": "Jobs now fail closed on missing, empty, multiple, or unexpected media outputs before atomically publishing one declared result."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",

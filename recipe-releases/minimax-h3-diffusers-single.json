@@ -4,9 +4,69 @@
     "publisher": "vonk-forge",
     "slug": "minimax-h3-diffusers-single"
   },
-  "version": "2.0.1",
-  "released_at": "2026-08-26",
+  "version": "3.0.0",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "3.0.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "b0f05032ee2204b34b0d965df23f5021b213d3b4a08d7d672a07c51a70f4f552",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "breaking",
+          "summary": "Required a simple operator prompt while keeping advanced JSON, keyframes, and multimodal references optional."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Declared the exact single synchronized audio-video MP4 output slot and its aggregate byte bound."
+        },
+        {
+          "kind": "fix",
+          "summary": "Validate requested geometry and frame count plus exact H.264/AAC, 24 fps, 32 kHz stereo audio, and synchronization before atomic publication."
+        }
+      ]
+    },
+    {
+      "version": "2.1.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "5c15ae66f3648521f4e8229b57fce00674e32dd3eec9f0feb8adaebd32bc42a2",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared the exact single synchronized audio-video MP4 output slot and its aggregate byte bound."
+        }
+      ]
+    },
+    {
+      "version": "2.1.1",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "316f22b7918832d93345411ddbe80a96387e72236d2ef7ccc20441fa34b82f15",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared typed request, image/keyframe, video-reference, and audio-reference upload slots with bounded file counts and sizes."
+        }
+      ]
+    },
+    {
+      "version": "2.1.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "71313ad77aab981a1f5b4a49202c93a5bb19e1e7558553323f646204e411b5ca",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "performance",
+          "summary": "Added named smoke-only, balanced, and qualification-reference profiles with exact 3, 30, and 50 model-evaluation contracts."
+        },
+        {
+          "kind": "fix",
+          "summary": "Changed the installed default from the three-evaluation smoke path to the 30-evaluation balanced profile."
+        }
+      ]
+    },
     {
       "version": "2.0.1",
       "released_at": "2026-08-26",

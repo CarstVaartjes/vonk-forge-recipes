@@ -4,9 +4,35 @@
     "publisher": "vonk-forge",
     "slug": "mova-720p-diffusers-single"
   },
-  "version": "2.0.1",
-  "released_at": "2026-08-26",
+  "version": "2.0.3",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "2.0.3",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "4315f72b4bb32e603339e4830d3cb729b0e5ae54217b22996058551e71f5b554",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Made synchronized MOVA media acceptance fail closed.",
+          "details": "Publication now requires one 1280x720 H.264 stream with 193 frames at 24 fps and one synchronized 48 kHz AAC stream in the MP4 container."
+        }
+      ]
+    },
+    {
+      "version": "2.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "e9d04b6f1a2e45d73f3bf551ab1017d30e2a57e6d8452057c3d77659b11f6e33",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Added signed typed prompt, optional reference-image, and MP4 result slots.",
+          "details": "The adapter now verifies the signed input manifest, reads the required bounded UTF-8 prompt before loading the model, and has no hidden default prompt."
+        }
+      ]
+    },
     {
       "version": "2.0.1",
       "released_at": "2026-08-26",

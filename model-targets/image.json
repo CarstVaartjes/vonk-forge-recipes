@@ -7,7 +7,7 @@
   },
   "metadata": {
     "title": "Image generation and editing targets",
-    "updated": "2026-08-25"
+    "updated": "2026-08-28"
   },
   "targets": [
     {
@@ -88,7 +88,26 @@
         "qwen-image-edit-2511-diffusers-single",
         "qwen-image-edit-2511-comfyui-single"
       ],
-      "notes": "Exact official 57.7 GB checkpoint and input-contract Diffusers candidate; ARM64 container build and Spark image-edit acceptance remain."
+      "notes": "Exact official 57.7 GB Diffusers checkpoint plus an upstream-supported 50.5 GB ComfyUI repack with no runtime shard merge. Diffusers remains the primary path; ARM64 container builds and physical Spark image-edit acceptance remain for both harnesses."
+    },
+    {
+      "modality": "image",
+      "group": "FLUX.2",
+      "model": "FLUX.2 Klein 4B",
+      "version": "Official NVFP4 1db2b2f7",
+      "status": "candidate",
+      "source": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4/tree/1db2b2f776c24b76f1122e5f69ab1949fc620068",
+      "harnesses": [
+        "comfyui"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "flux-2-klein-4b-nvfp4-comfyui-single"
+      ],
+      "catalog_model_version": "flux-2-klein-4b-nvfp4-1db2b2f7",
+      "notes": "Official Apache-2.0 NVFP4 transformer with native pinned-ComfyUI support on CUDA 13 Blackwell and exact companion artifacts; physical Spark output, peak-memory, driver, and optimized-kernel acceptance remain."
     },
     {
       "modality": "image",

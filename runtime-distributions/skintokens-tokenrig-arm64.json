@@ -40,6 +40,7 @@
     {"name": "SciPy", "version": "1.18.1", "source": "https://pypi.org/project/scipy/1.18.1/", "license": "BSD-3-Clause"},
     {"name": "Trimesh", "version": "5.0.0", "source": "https://pypi.org/project/trimesh/5.0.0/", "license": "MIT"},
     {"name": "pygltflib", "version": "1.16.5", "source": "https://pypi.org/project/pygltflib/1.16.5/", "license": "MIT"},
+    {"name": "Pillow", "version": "12.3.0", "source": "https://pypi.org/project/pillow/12.3.0/", "license": "HPND"},
     {"name": "Requests", "version": "2.32.5", "source": "https://pypi.org/project/requests/2.32.5/", "license": "Apache-2.0"},
     {"name": "Qwen3-0.6B config", "version": "c1899de289a04d12100db370d81485cdf75e47ca", "source": "https://huggingface.co/Qwen/Qwen3-0.6B/tree/c1899de289a04d12100db370d81485cdf75e47ca", "license": "Apache-2.0"},
     {"name": "CUDA devel image", "version": "13.2.1-ubuntu24.04", "source": "nvcr.io/nvidia/cuda", "license": "NVIDIA CUDA Toolkit EULA"}

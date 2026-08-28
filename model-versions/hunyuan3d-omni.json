@@ -58,7 +58,11 @@
     "attribution": [
       "tencent"
     ],
-    "operator_acceptance_required": true
+    "operator_acceptance_required": false,
+    "territorial_restrictions": {
+      "denied_jurisdictions": ["EU", "GB", "KR"],
+      "notice": "The upstream Hunyuan3D-Omni Community License does not apply in the European Union, United Kingdom, or South Korea."
+    }
   },
   "access": {
     "visibility": "public",

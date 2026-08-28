@@ -9,6 +9,15 @@
     {"artifact_id": "vae", "category": "vae", "filename": "wan_2.1_vae.safetensors"}
   ],
   "inputs": {"minimum": 0, "maximum": 0},
+  "text_inputs": {
+    "prompt": {"required": true, "slot": "prompt", "maximum_bytes": 16384, "maximum_characters": 4096},
+    "negative_prompt": {"required": false, "maximum_characters": 4096}
+  },
+  "result": {
+    "mime": "video/mp4",
+    "count": 1,
+    "video": {"codec": "h264", "width": 640, "height": 640, "fps": 16, "frames": 81}
+  },
   "prompt": {
     "1": {"class_type": "UNETLoader", "inputs": {"unet_name": "wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors", "weight_dtype": "default"}},
     "2": {"class_type": "UNETLoader", "inputs": {"unet_name": "wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors", "weight_dtype": "default"}},

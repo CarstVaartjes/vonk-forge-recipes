@@ -1,0 +1,286 @@
+from __future__ import annotations
+
+import hashlib
+import json
+import runpy
+import sys
+import tempfile
+import types
+import unittest
+from pathlib import Path
+from unittest import mock
+
+ROOT = Path(__file__).resolve().parents[1]
+ADAPTER_ROOT = ROOT / "adapters/video/ltx25-diffusers"
+ADAPTER_PATH = ADAPTER_ROOT / "run.py"
+MODEL = ROOT / "models/ltx-2-5.json"
+MODEL_VERSION = ROOT / "model-versions/ltx-2-5-22b-distilled-bf16-diffusers.json"
+RECIPE = ROOT / "recipes/ltx-2-5-22b-distilled-bf16-diffusers-single.json"
+RELEASE = ROOT / "recipe-releases/ltx-2-5-22b-distilled-bf16-diffusers-single.json"
+RUNTIME = ROOT / "runtime-distributions/diffusers-0-40-0-cuda13-arm64.json"
+MODEL_REVISION = "426936f8b22dc28e4def61e515478b0b7e4a53cc"
+DIFFUSERS_REVISION = "d035dcd7cc7c88e0a154609b62887d50bba9fdc2"
+
+
+def _document(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _digest(path: Path) -> str:
+    return hashlib.sha256(
+        json.dumps(
+            _document(path),
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+def _adapter_module():
+    module = types.ModuleType("ltx25_diffusers_adapter")
+    module.__file__ = str(ADAPTER_PATH)
+    exec(
+        compile(ADAPTER_PATH.read_text(encoding="utf-8"), str(ADAPTER_PATH), "exec"),
+        module.__dict__,
+    )
+    return module
+
+
+class Ltx25CatalogTests(unittest.TestCase):
+    def test_authorities_and_catalog_bindings_are_exact(self) -> None:
+        model = _document(MODEL_VERSION)
+        recipe = _document(RECIPE)
+        release = _document(RELEASE)
+        runtime = _document(RUNTIME)
+
+        self.assertEqual(model["source"]["revision"], MODEL_REVISION)
+        self.assertEqual(recipe["artifacts"][0]["revision"], MODEL_REVISION)
+        self.assertTrue(model["access"]["gated"])
+        self.assertEqual(model["access"]["authentication"], "token")
+        self.assertEqual(model["model"]["content_sha256"], _digest(MODEL))
+        self.assertEqual(recipe["model"]["content_sha256"], _digest(MODEL_VERSION))
+        self.assertEqual(
+            recipe["runtime"]["distribution"]["content_sha256"], _digest(RUNTIME)
+        )
+        self.assertEqual(runtime["source"]["revision"], DIFFUSERS_REVISION)
+        self.assertEqual(
+            release["history"][0]["recipe_content_sha256"], _digest(RECIPE)
+        )
+        self.assertEqual(model["sizes"]["download_bytes"], 70_090_051_372)
+        self.assertEqual(recipe["artifacts"][0]["download_bytes"], 70_090_051_372)
+        input_contract = recipe["interfaces"][0]["input"]
+        self.assertEqual(input_contract["max_bytes"], 81_920)
+        input_slots = {slot["id"]: slot for slot in input_contract["slots"]}
+        self.assertEqual(set(input_slots), {"prompt", "request"})
+        self.assertEqual(input_slots["prompt"]["media_types"], ["text/plain"])
+        self.assertEqual(input_slots["prompt"]["min_files"], 1)
+        self.assertEqual(input_slots["request"]["media_types"], ["application/json"])
+        self.assertEqual(input_slots["request"]["min_files"], 0)
+        output = recipe["interfaces"][0]["output"]
+        self.assertEqual(output["max_total_bytes"], 1024**3 + 1024**2)
+        slots = {slot["id"]: slot for slot in output["slots"]}
+        self.assertEqual(set(slots), {"video", "receipt"})
+        self.assertEqual(slots["video"]["media_types"], ["video/mp4"])
+        self.assertEqual(slots["receipt"]["media_types"], ["application/json"])
+        self.assertEqual(slots["video"]["min_files"], 1)
+        self.assertEqual(slots["receipt"]["min_files"], 1)
+
+    def test_filtered_snapshot_matches_adapter_closure(self) -> None:
+        adapter = _adapter_module()
+        artifact = _document(RECIPE)["artifacts"][0]
+        self.assertEqual(artifact["include_paths"], sorted(artifact["include_paths"]))
+        self.assertEqual(set(artifact["include_paths"]), set(adapter.REQUIRED_FILES))
+        self.assertEqual(len(artifact["include_paths"]), 28)
+        selected = "\n".join(artifact["include_paths"])
+        for excluded in adapter.FORBIDDEN_PATHS:
+            self.assertNotIn(excluded, selected)
+        self.assertIn("vae/diffusion_pytorch_model.safetensors", selected)
+        self.assertNotIn("transformer_full", selected)
+
+    def test_signed_source_bundle_matches_recipe(self) -> None:
+        source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[
+            "source_bundle"
+        ]
+        archive, _, digest = source_bundle(ADAPTER_ROOT)
+        context = _document(RECIPE)["build"]["context"]
+        self.assertEqual(context["sha256"], digest)
+        self.assertEqual(context["expected_bytes"], len(archive))
+
+    def test_container_and_preflight_are_immutable_and_offline(self) -> None:
+        dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text(encoding="utf-8")
+        readme = (ADAPTER_ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn(MODEL_REVISION, dockerfile)
+        self.assertIn(DIFFUSERS_REVISION, dockerfile)
+        self.assertIn("HF_HUB_OFFLINE=1", dockerfile)
+        self.assertIn("TRANSFORMERS_OFFLINE=1", dockerfile)
+        self.assertIn("a95ab856bf29407b6b066ede0abe1846050db56c/LICENSE-2_x", readme)
+        self.assertIn("Hugging Face download credential", readme)
+        self.assertIn("NVFP4 is intentionally not an install profile", readme)
+        self.assertIn("SM121", readme)
+
+
+class Ltx25AdapterTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.adapter = _adapter_module()
+
+    def _write_closure(self, root: Path) -> None:
+        for relative in self.adapter.REQUIRED_FILES:
+            path = root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"weights")
+        for relative, shards in self.adapter.EXPECTED_SHARDS.items():
+            weight_map = {
+                f"layer.{index}": shard for index, shard in enumerate(sorted(shards))
+            }
+            (root / relative).write_text(
+                json.dumps({"weight_map": weight_map}), encoding="utf-8"
+            )
+
+    def test_import_does_not_require_heavy_runtime(self) -> None:
+        self.assertEqual(self.adapter.DEFAULT_PROFILE, "bf16-model-offload")
+        self.assertNotIn("diffusers", self.adapter.__dict__)
+        self.assertNotIn("torch", self.adapter.__dict__)
+
+    def test_model_closure_and_index_maps_are_enforced(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self._write_closure(root)
+            self.adapter.MODEL_ROOT = root
+            self.adapter._validate_model_closure()
+
+            index = root / "transformer/diffusion_pytorch_model.safetensors.index.json"
+            index.write_text(json.dumps({"weight_map": {"x": "wrong.safetensors"}}))
+            with self.assertRaisesRegex(SystemExit, "shard index changed"):
+                self.adapter._validate_model_closure()
+
+            self._write_closure(root)
+            (root / "transformer_full").mkdir()
+            with self.assertRaisesRegex(SystemExit, "excluded component"):
+                self.adapter._validate_model_closure()
+
+    def test_request_profiles_and_seed_are_bounded(self) -> None:
+        self.assertEqual(self.adapter._profile(None), "bf16-model-offload")
+        self.assertEqual(
+            self.adapter._profile("fp8-cast-sequential-offload"),
+            "fp8-cast-sequential-offload",
+        )
+        with self.assertRaises(ValueError):
+            self.adapter._profile("nvfp4")
+        self.assertEqual(self.adapter._seed(42, 0), 42)
+        for invalid in (-1, 2**63, True, "42"):
+            with self.assertRaises(ValueError):
+                self.adapter._seed(invalid, 0)
+    def test_prompt_file_is_required_and_options_json_is_optional(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            self.adapter.INPUT_ROOT = Path(directory)
+            self.assertEqual(self.adapter._load_request(), {})
+            with self.assertRaisesRegex(ValueError, "exactly one UTF-8"):
+                self.adapter._load_prompt()
+            (self.adapter.INPUT_ROOT / "prompt.txt").write_text(
+                "  Operator supplied synchronized scene.  ", encoding="utf-8"
+            )
+            self.assertEqual(
+                self.adapter._load_prompt(), "Operator supplied synchronized scene."
+            )
+
+    def test_generation_contract_hashes_raw_tensors_before_mux(self) -> None:
+        source = ADAPTER_PATH.read_text(encoding="utf-8")
+        for expected in (
+            "sigmas=DISTILLED_SIGMA_VALUES",
+            "guidance_scale=1.0",
+            "audio_guidance_scale=1.0",
+            "stg_scale=0.0",
+            "audio_stg_scale=0.0",
+            "guidance_rescale=0.0",
+            "audio_guidance_rescale=0.0",
+            "enable_prompt_enhancement=False",
+            "max_sequence_length=1024",
+            'torch.Generator("cuda").manual_seed(seed)',
+            "num_frames=65",
+            'output_type="np"',
+            '"tensors": tensor_receipt',
+        ):
+            self.assertIn(expected, source)
+        self.assertIn("enable_layerwise_casting", source)
+        self.assertIn("storage_dtype=torch.float8_e4m3fn", source)
+        self.assertIn('enable_sequential_cpu_offload(device="cuda")', source)
+
+        class Array:
+            dtype = "float32"
+            shape = (1, 2)
+
+            def __init__(self, payload: bytes):
+                self.payload = payload
+
+            def tobytes(self, *, order: str) -> bytes:
+                self.assert_order = order
+                return self.payload
+
+        fake_numpy = types.SimpleNamespace(ascontiguousarray=lambda value: value)
+        with mock.patch.dict(sys.modules, {"numpy": fake_numpy}):
+            first = self.adapter._array_receipt(Array(b"one"))
+            second = self.adapter._array_receipt(Array(b"one"))
+            changed = self.adapter._array_receipt(Array(b"two"))
+        self.assertEqual(first, second)
+        self.assertNotEqual(first["sha256"], changed["sha256"])
+
+    def test_joint_audio_video_output_is_verified(self) -> None:
+        video_stream = types.SimpleNamespace(
+            width=768,
+            height=512,
+            average_rate=24,
+            codec_context=types.SimpleNamespace(name="h264"),
+        )
+        audio_stream = types.SimpleNamespace(
+            codec_context=types.SimpleNamespace(
+                name="aac",
+                sample_rate=48_000,
+                layout=types.SimpleNamespace(name="stereo"),
+            )
+        )
+
+        class Container:
+            streams = types.SimpleNamespace(video=[video_stream], audio=[audio_stream])
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def decode(self, *, video=None, audio=None):
+                if video == 0:
+                    return iter([object()] * 65)
+                if audio == 0:
+                    frame = types.SimpleNamespace(
+                        samples=65_000,
+                        to_ndarray=lambda: types.SimpleNamespace(size=1, values=[1.0]),
+                    )
+                    return iter([frame, frame])
+                return iter(())
+
+        fake_av = types.SimpleNamespace(open=lambda *_args, **_kwargs: Container())
+        fake_numpy = types.SimpleNamespace(
+            abs=lambda value: value.values,
+            max=max,
+        )
+        with mock.patch.dict(sys.modules, {"av": fake_av, "numpy": fake_numpy}):
+            receipt = self.adapter._verify_joint_av(
+                Path("unused.mp4"),
+                width=768,
+                height=512,
+                frame_count=65,
+                sample_rate=48_000,
+            )
+        self.assertEqual(receipt["frames"], 65)
+        self.assertEqual(receipt["audio_samples"], 130_000)
+        self.assertEqual(receipt["video_codec"], "h264")
+        self.assertEqual(receipt["audio_codec"], "aac")
+        self.assertEqual(receipt["fps"], 24)
+        self.assertEqual(receipt["duration_seconds"], 65 / 24)
+
+
+if __name__ == "__main__":
+    unittest.main()

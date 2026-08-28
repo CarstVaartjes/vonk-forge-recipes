@@ -82,11 +82,16 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
                 expected_version = {
                     "nano": "2.0.2",
                     "omni": "2.0.2",
-                    "super": "2.1.1",
+                    "super": "2.1.2",
                 }[name]
                 self.assertEqual(release["version"], expected_version)
+                expected_upgrade_effect = {
+                    "nano": "metadata-only",
+                    "omni": "metadata-only",
+                    "super": "reinstall",
+                }[name]
                 self.assertEqual(
-                    release["history"][0]["upgrade_effect"], "metadata-only"
+                    release["history"][0]["upgrade_effect"], expected_upgrade_effect
                 )
 
     def test_all_recipes_use_exact_current_models_and_runtime(self) -> None:

@@ -3,11 +3,12 @@ from __future__ import annotations
 import hashlib
 import json
 import runpy
+import sys
 import tempfile
 import types
 import unittest
 from pathlib import Path
-
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/minimax-h3-modular-diffusers"
@@ -107,12 +108,127 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
             '"audio"',
             '"sampling_rate"',
             "encode_video(",
-            "_verify_joint_av(temporary)",
+            "_verify_joint_av(",
+            "frame_count=frame_count",
             "audio.sample_rate != 32000",
             'audio.layout.name != "stereo"',
             "os.replace(temporary, destination)",
         ):
             self.assertIn(required, source)
+
+    def test_output_media_contract_is_exact(self) -> None:
+        module = _adapter_module()
+        video_stream = types.SimpleNamespace(
+            width=960,
+            height=544,
+            average_rate=24,
+            codec_context=types.SimpleNamespace(name="h264"),
+        )
+        audio_stream = types.SimpleNamespace(
+            codec_context=types.SimpleNamespace(
+                name="aac",
+                sample_rate=32_000,
+                layout=types.SimpleNamespace(name="stereo"),
+            )
+        )
+
+        class Container:
+            streams = types.SimpleNamespace(video=[video_stream], audio=[audio_stream])
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def decode(self, *, video=None, audio=None):
+                if video == 0:
+                    return iter([object()] * 124)
+                if audio == 0:
+                    return iter([types.SimpleNamespace(samples=82_667)] * 2)
+                return iter(())
+
+        with mock.patch.dict(
+            sys.modules, {"av": types.SimpleNamespace(open=lambda *_a, **_k: Container())}
+        ):
+            module._verify_joint_av(
+                Path("unused.mp4"), width=960, height=544, frame_count=124
+            )
+
+        video_stream.codec_context.name = "hevc"
+        with mock.patch.dict(
+            sys.modules, {"av": types.SimpleNamespace(open=lambda *_a, **_k: Container())}
+        ), self.assertRaisesRegex(RuntimeError, "H.264 video and AAC audio"):
+            module._verify_joint_av(
+                Path("unused.mp4"), width=960, height=544, frame_count=124
+            )
+
+    def test_recipe_declares_explicit_smoke_balanced_and_qualification_profiles(
+        self,
+    ) -> None:
+        recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
+        arguments = {
+            argument["name"]: argument["value"]
+            for argument in recipe["runtime"]["arguments"]
+        }
+        self.assertEqual(arguments["num-inference-steps"], 31)
+        self.assertNotIn("profile", arguments)
+
+        benchmarks = {
+            benchmark["name"]: benchmark["configuration"]
+            for benchmark in recipe["validation"]["benchmarks"]
+        }
+        self.assertEqual(
+            benchmarks,
+            {
+                "smoke-only-startup": {
+                    "profile": "smoke-only",
+                    "sigma_grid_points": 4,
+                    "model_evaluations": 3,
+                    "smoke_only": True,
+                    "timeout_seconds": 14400,
+                },
+                "balanced-generation": {
+                    "profile": "balanced",
+                    "sigma_grid_points": 31,
+                    "model_evaluations": 30,
+                    "timeout_seconds": 28800,
+                },
+                "qualification-reference": {
+                    "profile": "qualification-reference",
+                    "sigma_grid_points": 51,
+                    "model_evaluations": 50,
+                    "timeout_seconds": 43200,
+                },
+            },
+        )
+
+    def test_recipe_declares_truthful_typed_input_slots(self) -> None:
+        recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
+        input_contract = recipe["interfaces"][0]["input"]
+        slots = {slot["id"]: slot for slot in input_contract["slots"]}
+        self.assertEqual(
+            set(slots), {"prompt", "request", "images", "videos", "audio"}
+        )
+        self.assertEqual(slots["prompt"]["media_types"], ["text/plain"])
+        self.assertEqual(slots["prompt"]["min_files"], 1)
+        self.assertEqual(slots["request"]["media_types"], ["application/json"])
+        self.assertEqual(slots["request"]["max_files"], 1)
+        self.assertEqual(slots["request"]["max_file_bytes"], 64 * 1024)
+        self.assertEqual(slots["images"]["max_files"], 11)
+        self.assertEqual(slots["videos"]["max_files"], 3)
+        self.assertEqual(slots["audio"]["max_files"], 3)
+        self.assertEqual(slots["request"]["min_files"], 0)
+        for slot_id in ("request", "images", "videos", "audio"):
+            self.assertEqual(slots[slot_id]["min_files"], 0)
+        for slot in slots.values():
+            self.assertLessEqual(slot["max_file_bytes"], 512 * 1024 * 1024)
+            self.assertLessEqual(slot["max_total_bytes"], 1024 * 1024 * 1024)
+        output = recipe["interfaces"][0]["output"]
+        self.assertEqual(output["max_total_bytes"], 1024**3)
+        self.assertEqual(output["slots"][0]["media_types"], ["video/mp4"])
+        self.assertEqual(output["slots"][0]["min_files"], 1)
+        self.assertEqual(output["slots"][0]["max_files"], 1)
 
 
 class MiniMaxH3InputContractTests(unittest.TestCase):
@@ -121,6 +237,17 @@ class MiniMaxH3InputContractTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.module.INPUT_ROOT = Path(self.temporary.name)
+
+    def test_prompt_is_required_and_options_json_is_optional(self) -> None:
+        self.assertEqual(self.module._load_request(), {})
+        with self.assertRaisesRegex(ValueError, "exactly one UTF-8"):
+            self.module._load_prompt()
+        (self.module.INPUT_ROOT / "prompt.txt").write_text(
+            "  Operator supplied synchronized scene.  ", encoding="utf-8"
+        )
+        self.assertEqual(
+            self.module._load_prompt(), "Operator supplied synchronized scene."
+        )
 
     def test_request_rejects_unknown_fields_and_traversal(self) -> None:
         request = self.module.INPUT_ROOT / "request.json"
@@ -134,12 +261,11 @@ class MiniMaxH3InputContractTests(unittest.TestCase):
         request = self.module.INPUT_ROOT / "request.json"
         request.write_text(
             json.dumps(
-                {"prompt": "snowy fox", "num_frames": 124, "width": 960, "height": 544}
+                {"num_frames": 124, "width": 960, "height": 544}
             ),
             encoding="utf-8",
         )
         value = self.module._load_request()
-        self.assertEqual(self.module._prompt(value["prompt"]), "snowy fox")
         self.assertEqual(self.module._num_frames(value["num_frames"]), 124)
         self.assertEqual(
             self.module._positive_multiple(value["width"], "width", 1344), 960
@@ -149,6 +275,41 @@ class MiniMaxH3InputContractTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "120..345"):
             self.module._num_frames(346)
+
+    def test_profiles_map_named_intent_to_exact_model_evaluations(self) -> None:
+        self.assertEqual(
+            self.module.PROFILE_SIGMA_GRID_POINTS,
+            {
+                "smoke-only": 4,
+                "balanced": 31,
+                "qualification-reference": 51,
+            },
+        )
+        for profile, evaluations in (
+            ("smoke-only", 3),
+            ("balanced", 30),
+            ("qualification-reference", 50),
+        ):
+            sigma_grid_points = self.module._profile_sigma_grid_points(
+                profile, 31
+            )
+            self.assertEqual(sigma_grid_points - 1, evaluations)
+
+        self.assertEqual(
+            self.module._profile_sigma_grid_points(None, 31), 31
+        )
+        with self.assertRaisesRegex(ValueError, "profile must be one of"):
+            self.module._profile_sigma_grid_points("quick", 31)
+        with self.assertRaisesRegex(ValueError, "must match a named"):
+            self.module._profile_sigma_grid_points(None, 30)
+
+    def test_request_accepts_only_named_profiles(self) -> None:
+        request = self.module.INPUT_ROOT / "request.json"
+        request.write_text('{"profile": "qualification-reference"}', encoding="utf-8")
+        value = self.module._load_request()
+        self.assertEqual(
+            self.module._profile_sigma_grid_points(value["profile"], 31), 51
+        )
 
 
 if __name__ == "__main__":

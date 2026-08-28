@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "laguna-xs-2-1-nvfp4-vllm-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.0.2",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "2fcb3d117cf1436d347416d3249f7a1ea848cad299f4a92af06f935d2c811b7b",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Made non-root runtime caches compatible with the controller-enforced read-only root filesystem.",
+          "details": "The adapter now creates UID 10001 explicitly, routes HOME, Hugging Face, vLLM, FlashInfer workspace and autotune, Triton, PyTorch, CUDA, and uv cache state beneath the declared writable /outputs mount, and uses the bounded writable /tmp tmpfs as its working directory."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",

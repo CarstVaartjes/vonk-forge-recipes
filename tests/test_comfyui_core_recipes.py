@@ -1,12 +1,13 @@
 import hashlib
 import importlib.util
 import json
-from pathlib import Path
-import struct
+import os
 import sys
 import tempfile
 import unittest
-
+from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters" / "media" / "comfyui-core"
@@ -53,12 +54,27 @@ CORE_NODES = {
 
 
 class ComfyUICoreRecipeTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        spec = importlib.util.spec_from_file_location(
+            "comfyui_job", ADAPTER / "comfyui_job.py"
+        )
+        assert spec and spec.loader
+        cls.module = importlib.util.module_from_spec(spec)
+        previous = sys.dont_write_bytecode
+        sys.dont_write_bytecode = True
+        try:
+            spec.loader.exec_module(cls.module)
+        finally:
+            sys.dont_write_bytecode = previous
+
     def test_all_recipes_bind_hash_locked_core_workflows(self) -> None:
         for slug in RECIPE_SLUGS:
             with self.subTest(slug=slug):
                 recipe = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
                 arguments = {
-                    item["name"]: item["value"] for item in recipe["runtime"]["arguments"]
+                    item["name"]: item["value"]
+                    for item in recipe["runtime"]["arguments"]
                 }
                 workflow = ADAPTER / Path(arguments["workflow"]).name
                 if not workflow.exists():
@@ -68,55 +84,36 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
                     arguments["workflow-sha256"],
                 )
                 document = json.loads(workflow.read_text())
-                node_types = {node["class_type"] for node in document["prompt"].values()}
+                prompt_input = document["text_inputs"]["prompt"]
+                self.assertTrue(prompt_input["required"])
+                self.assertEqual(prompt_input["slot"], "prompt")
+                self.assertEqual(prompt_input["maximum_bytes"], 16384)
+                node_types = {
+                    node["class_type"] for node in document["prompt"].values()
+                }
                 self.assertLessEqual(node_types, CORE_NODES)
                 self.assertTrue(node_types & {"SaveImage", "SaveVideo"})
                 artifact_ids = {artifact["id"] for artifact in recipe["artifacts"]}
-                workflow_ids = {
-                    item["artifact_id"] for item in document.get("models", [])
-                } | {
-                    item["artifact_id"]
-                    for item in document.get("diffusers_snapshots", [])
-                } | {
-                    item["artifact_id"] for item in document.get("snapshot_models", [])
-                }
+                workflow_ids = (
+                    {item["artifact_id"] for item in document.get("models", [])}
+                    | {
+                        item["artifact_id"]
+                        for item in document.get("diffusers_snapshots", [])
+                    }
+                    | {
+                        item["artifact_id"]
+                        for item in document.get("snapshot_models", [])
+                    }
+                )
                 self.assertEqual(artifact_ids, workflow_ids)
-
-    def test_streaming_safetensors_merger_preserves_names_and_bytes(self) -> None:
-        spec = importlib.util.spec_from_file_location("comfyui_job", ADAPTER / "comfyui_job.py")
-        assert spec and spec.loader
-        module = importlib.util.module_from_spec(spec)
-        previous = sys.dont_write_bytecode
-        sys.dont_write_bytecode = True
-        try:
-            spec.loader.exec_module(module)
-        finally:
-            sys.dont_write_bytecode = previous
-
-        def write_shard(path: Path, name: str, payload: bytes) -> None:
-            header = json.dumps(
-                {name: {"dtype": "U8", "shape": [len(payload)], "data_offsets": [0, len(payload)]}},
-                separators=(",", ":"),
-            ).encode()
-            header += b" " * ((8 - len(header) % 8) % 8)
-            path.write_bytes(struct.pack("<Q", len(header)) + header + payload)
-
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            first, second, merged = root / "a.safetensors", root / "b.safetensors", root / "merged.safetensors"
-            write_shard(first, "alpha", b"abc")
-            write_shard(second, "beta", b"12345")
-            module.merge_safetensors([first, second], merged)
-            header_length = struct.unpack("<Q", merged.read_bytes()[:8])[0]
-            header = json.loads(merged.read_bytes()[8 : 8 + header_length])
-            self.assertEqual(header["alpha"]["data_offsets"], [0, 3])
-            self.assertEqual(header["beta"]["data_offsets"], [3, 8])
-            self.assertEqual(merged.read_bytes()[8 + header_length :], b"abc12345")
 
     def test_runtime_is_pinned_and_has_no_custom_node_supply_chain(self) -> None:
         dockerfile = (ADAPTER / "Dockerfile").read_text()
         self.assertIn("7a131a3afadc8200120f67f9236311a2c48b7445", dockerfile)
-        self.assertIn("7e123716ae698194b3ded7ecbd8028b792d9015ce56d2318ebf4b8066efc6016", dockerfile)
+        self.assertIn(
+            "7e123716ae698194b3ded7ecbd8028b792d9015ce56d2318ebf4b8066efc6016",
+            dockerfile,
+        )
         self.assertNotIn("ComfyUI-Manager", dockerfile)
         self.assertNotIn("custom_nodes", dockerfile)
         for slug in RECIPE_SLUGS:
@@ -124,6 +121,252 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
             self.assertIn("candidate", recipe["metadata"]["tags"])
             self.assertEqual(recipe["execution"]["harness"]["slug"], "comfyui")
             self.assertFalse(recipe["runtime"]["security"]["host_network"])
+
+    def test_wan_workflows_declare_exact_prompt_and_video_contracts(self) -> None:
+        expected = {
+            "wan-2-2-i2v-14b-comfyui-single": (640, 640, 16, 81),
+            "wan-2-2-t2v-14b-comfyui-single": (640, 640, 16, 81),
+            "wan-2-2-ti2v-5b-comfyui-single": (1280, 704, 24, 121),
+        }
+        for slug, media in expected.items():
+            with self.subTest(slug=slug):
+                recipe = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
+                arguments = {
+                    item["name"]: item["value"]
+                    for item in recipe["runtime"]["arguments"]
+                }
+                workflow = json.loads(
+                    (
+                        ADAPTER / "workflows" / Path(arguments["workflow"]).name
+                    ).read_text()
+                )
+                self.assertTrue(workflow["text_inputs"]["prompt"]["required"])
+                self.assertEqual(workflow["text_inputs"]["prompt"]["slot"], "prompt")
+                if slug != "wan-2-2-t2v-14b-comfyui-single":
+                    self.assertEqual(workflow["inputs"]["slot"], "image")
+                self.assertEqual(workflow["result"]["mime"], "video/mp4")
+                self.assertEqual(workflow["result"]["count"], 1)
+                video = workflow["result"]["video"]
+                self.assertEqual(video["codec"], "h264")
+                self.assertEqual(
+                    (video["width"], video["height"], video["fps"], video["frames"]),
+                    media,
+                )
+                benchmark = recipe["validation"]["benchmarks"][0]["configuration"]
+                self.assertEqual(
+                    (
+                        benchmark["width"],
+                        benchmark["height"],
+                        benchmark["fps"],
+                        benchmark["frames"],
+                    ),
+                    media,
+                )
+                interface = recipe["interfaces"][0]
+                slots = {slot["id"]: slot for slot in interface["input"]["slots"]}
+                self.assertEqual(slots["prompt"]["media_types"], ["text/plain"])
+                self.assertEqual(
+                    (slots["prompt"]["min_files"], slots["prompt"]["max_files"]), (1, 1)
+                )
+                if slug == "wan-2-2-t2v-14b-comfyui-single":
+                    self.assertNotIn("image", slots)
+                else:
+                    self.assertEqual(
+                        (slots["image"]["min_files"], slots["image"]["max_files"]),
+                        (1, 1),
+                    )
+                output = interface["output"]
+                self.assertEqual(output["max_total_bytes"], 536870912)
+                self.assertEqual(output["slots"][0]["media_types"], ["video/mp4"])
+                self.assertEqual(
+                    (output["slots"][0]["min_files"], output["slots"][0]["max_files"]),
+                    (1, 1),
+                )
+
+    def test_empty_required_prompt_is_rejected_before_model_linking(self) -> None:
+        document = {
+            "text_inputs": {
+                "prompt": {"required": True, "maximum_characters": 4096},
+            },
+            "prompt": {},
+        }
+        arguments = SimpleNamespace(
+            workflow="wan.json",
+            workflow_sha256="0" * 64,
+            output_mime="video/mp4",
+            seed=0,
+            output_dir="/outputs",
+        )
+        with (
+            mock.patch.object(self.module, "parse_args", return_value=arguments),
+            mock.patch.object(self.module, "load_workflow", return_value=document),
+            mock.patch.object(self.module, "load_input_manifest", return_value=None),
+            mock.patch.object(self.module, "input_names", return_value=[]),
+            mock.patch.object(self.module, "link_models") as link_models,
+            mock.patch.dict(os.environ, {"VONK_PROMPT": " \t "}),
+            self.assertRaisesRegex(ValueError, "non-empty prompt"),
+        ):
+            self.module.main()
+        link_models.assert_not_called()
+
+    def test_manifest_prompt_is_verified_and_excluded_from_image_inputs(self) -> None:
+        document = {
+            "inputs": {"minimum": 1, "maximum": 1, "slot": "image"},
+            "text_inputs": {
+                "prompt": {
+                    "required": True,
+                    "slot": "prompt",
+                    "maximum_bytes": 16384,
+                    "maximum_characters": 4096,
+                }
+            },
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            prompt = root / "prompt.txt"
+            image = root / "reference.png"
+            prompt.write_text("A red panda dancing", encoding="utf-8")
+            image.write_bytes(b"png")
+            write_input_manifest(root, {"prompt": prompt, "image": image})
+            previous = self.module.INPUT_ROOT
+            self.module.INPUT_ROOT = root
+            try:
+                manifest = self.module.load_input_manifest()
+                names = self.module.input_names(document, manifest)
+                replacements = self.module.workflow_replacements(
+                    document, names, 7, manifest
+                )
+            finally:
+                self.module.INPUT_ROOT = previous
+        self.assertEqual(names, ["reference.png"])
+        self.assertEqual(replacements["__VONK_PROMPT__"], "A red panda dancing")
+        self.assertEqual(replacements["__VONK_INPUT_1__"], "reference.png")
+        self.assertEqual(replacements["__VONK_SEED__"], 7)
+
+    def test_qwen_edit_single_image_repeats_second_reference_deterministically(
+        self,
+    ) -> None:
+        document = json.loads(
+            (ADAPTER / "workflows/qwen-image-edit-2511-bf16.json").read_text()
+        )
+        with mock.patch.dict(os.environ, {"VONK_PROMPT": "Edit the reference"}):
+            replacements = self.module.workflow_replacements(
+                document,
+                ["only.png"],
+                0,
+                None,
+            )
+        self.assertEqual(replacements["__VONK_INPUT_1__"], "only.png")
+        self.assertEqual(replacements["__VONK_INPUT_2__"], "only.png")
+
+    def test_output_selection_rejects_zero_multiple_and_unexpected_media(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            output = root / "comfy"
+            destination = root / "result"
+            output.mkdir()
+            with self.assertRaises(FileNotFoundError):
+                self.module.copy_output(output, destination, "video/mp4")
+
+            (output / "one.mp4").write_bytes(b"one")
+            (output / "two.mp4").write_bytes(b"two")
+            with self.assertRaisesRegex(RuntimeError, "2 video/mp4 outputs"):
+                self.module.copy_output(output, destination, "video/mp4")
+
+            (output / "two.mp4").unlink()
+            (output / "preview.png").write_bytes(b"preview")
+            with self.assertRaisesRegex(RuntimeError, "unexpected media outputs"):
+                self.module.copy_output(output, destination, "video/mp4")
+
+    def test_mp4_contract_accepts_only_exact_declared_media(self) -> None:
+        contract = {
+            "mime": "video/mp4",
+            "count": 1,
+            "video": {
+                "codec": "h264",
+                "width": 640,
+                "height": 640,
+                "fps": 16,
+                "frames": 81,
+            },
+        }
+        exact_probe = {
+            "format": {"format_name": "mov,mp4,m4a,3gp,3g2,mj2", "duration": "5.0625"},
+            "streams": [
+                {
+                    "codec_type": "video",
+                    "codec_name": "h264",
+                    "width": 640,
+                    "height": 640,
+                    "avg_frame_rate": "16/1",
+                    "nb_read_frames": "81",
+                    "duration": "5.0625",
+                }
+            ],
+        }
+        completed = subprocess_result(exact_probe)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "comfy"
+            destination = root / "result"
+            source.mkdir()
+            (source / "wan.mp4").write_bytes(b"valid-video-placeholder")
+            with mock.patch.object(
+                self.module.subprocess, "run", return_value=completed
+            ) as run:
+                result = self.module.copy_output(
+                    source, destination, "video/mp4", contract
+                )
+            self.assertEqual(result.read_bytes(), b"valid-video-placeholder")
+            self.assertIn("-count_frames", run.call_args.args[0])
+
+        invalid = {
+            "codec": ("codec_name", "vp9", "codec must be h264"),
+            "width": ("width", 704, "width must be 640"),
+            "height": ("height", 704, "height must be 640"),
+            "fps": ("avg_frame_rate", "15/1", "frame rate must be 16 fps"),
+            "frames": ("nb_read_frames", "80", "exactly 81 frames"),
+            "duration": ("duration", "6.0", "duration must match"),
+        }
+        for name, (field, value, message) in invalid.items():
+            with self.subTest(field=name):
+                probe = json.loads(json.dumps(exact_probe))
+                probe["streams"][0][field] = value
+                with (
+                    tempfile.NamedTemporaryFile(suffix=".mp4") as media,
+                    mock.patch.object(
+                        self.module.subprocess,
+                        "run",
+                        return_value=subprocess_result(probe),
+                    ),
+                    self.assertRaisesRegex(RuntimeError, message),
+                ):
+                    self.module.validate_mp4(Path(media.name), contract)
+
+
+def subprocess_result(document: dict[str, object]) -> SimpleNamespace:
+    return SimpleNamespace(stdout=json.dumps(document))
+
+
+def write_input_manifest(root: Path, files: dict[str, Path]) -> None:
+    entries = []
+    total = 0
+    for slot, path in files.items():
+        payload = path.read_bytes()
+        total += len(payload)
+        entries.append(
+            {
+                "slot": slot,
+                "name": path.name,
+                "media_type": "text/plain" if path.suffix == ".txt" else "image/png",
+                "size_bytes": len(payload),
+                "sha256": hashlib.sha256(payload).hexdigest(),
+            }
+        )
+    (root / "manifest.json").write_text(
+        json.dumps({"schema_version": 1, "total_bytes": total, "files": entries}),
+        encoding="utf-8",
+    )
 
 
 if __name__ == "__main__":

@@ -4,9 +4,10 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan-video-15-i2v-step-distilled-diffusers-single"
   },
-  "version": "1.2.1",
-  "released_at": "2026-08-26",
+  "version": "1.3.0",
+  "released_at": "2026-08-28",
   "history": [
+    {"version": "1.3.0", "released_at": "2026-08-28", "recipe_content_sha256": "2b07298c861ea716c2caed0d9a58ded4fbab64f66fa07b0f949ac73b02b64db8", "upgrade_effect": "rebuild", "changes": [{"kind": "fix", "summary": "Declared separate required prompt and source-image slots plus the exact MP4 output contract."}, {"kind": "compatibility", "summary": "Made the adapter consume the controller-authenticated slot manifest before model loading."}]},
     {
       "version": "1.2.1",
       "released_at": "2026-08-26",

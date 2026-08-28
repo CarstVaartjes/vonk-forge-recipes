@@ -66,6 +66,18 @@
       "license": "BSD-3-Clause"
     },
     {
+      "name": "CuPy CUDA 13.x",
+      "version": "13.6.0",
+      "source": "https://pypi.org/project/cupy-cuda13x/13.6.0/",
+      "license": "MIT"
+    },
+    {
+      "name": "fastrlock",
+      "version": "0.8.3",
+      "source": "https://pypi.org/project/fastrlock/0.8.3/",
+      "license": "MIT"
+    },
+    {
       "name": "CUDA toolkit",
       "version": "13.2.1-ubuntu24.04",
       "source": "nvcr.io/nvidia/cuda",

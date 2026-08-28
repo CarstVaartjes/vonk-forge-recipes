@@ -3,21 +3,24 @@
 from __future__ import annotations
 
 import argparse
-from fractions import Fraction
+import hashlib
 import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import sys
 import tempfile
-
+from fractions import Fraction
+from pathlib import Path
 
 _ENTRYPOINT = "/opt/vonk/source/pipelines/run.py"
 _MODEL_INDEX = Path("/models/model_index.json")
 _OFFICIAL_RUNNER = Path("/opt/mova-source/scripts/inference_single.py")
+_INPUT_ROOT = Path("/inputs")
 _IMAGE_SUFFIXES = frozenset({".jpg", ".jpeg", ".png", ".webp"})
 _MAX_INPUT_BYTES = 16 * 1024 * 1024
+_MAX_MANIFEST_BYTES = 256 * 1024
+_MAX_PROMPT_BYTES = 16 * 1024
 _OUTPUT_FRAMES = 193
 _OUTPUT_FPS = 24
 _VARIANTS = {
@@ -57,23 +60,120 @@ def _variant() -> tuple[int, int]:
     return resolution
 
 
-def _reference_frame(directory: Path, height: int, width: int) -> Path:
-    input_directory = Path("/inputs")
-    images = (
-        sorted(
-            path
-            for path in input_directory.iterdir()
-            if path.is_file() and path.suffix.lower() in _IMAGE_SUFFIXES
+def _input_manifest() -> dict[str, object] | None:
+    path = _INPUT_ROOT / "manifest.json"
+    if not path.exists():
+        return None
+    if (
+        path.is_symlink()
+        or not path.is_file()
+        or path.stat().st_size > _MAX_MANIFEST_BYTES
+    ):
+        raise SystemExit("input manifest must be a bounded regular file")
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise SystemExit("input manifest must contain UTF-8 JSON") from error
+    if not isinstance(document, dict) or set(document) != {
+        "schema_version",
+        "total_bytes",
+        "files",
+    }:
+        raise SystemExit("input manifest shape is invalid")
+    files = document["files"]
+    if document["schema_version"] != 1 or not isinstance(files, list):
+        raise SystemExit("input manifest version is invalid")
+    names: set[str] = set()
+    total = 0
+    for item in files:
+        if not isinstance(item, dict) or set(item) != {
+            "slot",
+            "name",
+            "media_type",
+            "size_bytes",
+            "sha256",
+        }:
+            raise SystemExit("input manifest file declaration is invalid")
+        name = item["name"]
+        size = item["size_bytes"]
+        if (
+            not isinstance(name, str)
+            or Path(name).name != name
+            or name == "manifest.json"
+            or name in names
+            or not isinstance(item["slot"], str)
+            or type(size) is not int
+            or size < 0
+        ):
+            raise SystemExit("input manifest file identity is invalid")
+        candidate = _INPUT_ROOT / name
+        if (
+            candidate.is_symlink()
+            or not candidate.is_file()
+            or candidate.stat().st_size != size
+        ):
+            raise SystemExit(f"staged input does not match its manifest: {name}")
+        if hashlib.sha256(candidate.read_bytes()).hexdigest() != item["sha256"]:
+            raise SystemExit(f"staged input digest does not match its manifest: {name}")
+        names.add(name)
+        total += size
+    if document["total_bytes"] != total:
+        raise SystemExit("input manifest total_bytes does not match staged files")
+    return document
+
+
+def _slot_files(manifest: dict[str, object], slot: str) -> list[Path]:
+    files = manifest["files"]
+    assert isinstance(files, list)
+    return [_INPUT_ROOT / item["name"] for item in files if item["slot"] == slot]
+
+
+def _prompt(manifest: dict[str, object] | None) -> str:
+    if manifest is None:
+        value = os.environ.get("VONK_PROMPT", "")
+    else:
+        files = _slot_files(manifest, "prompt")
+        if len(files) != 1:
+            raise SystemExit("MOVA requires exactly one prompt text file")
+        if files[0].stat().st_size > _MAX_PROMPT_BYTES:
+            raise SystemExit("the MOVA prompt exceeds 16 KiB")
+        try:
+            value = files[0].read_text(encoding="utf-8")
+        except UnicodeDecodeError as error:
+            raise SystemExit("the MOVA prompt must be UTF-8 text") from error
+    prompt = value.strip()
+    if not prompt or len(prompt) > 4096:
+        raise SystemExit("prompt must contain between 1 and 4096 characters")
+    return prompt
+
+
+def _reference_frame(
+    directory: Path,
+    height: int,
+    width: int,
+    manifest: dict[str, object] | None,
+) -> Path:
+    input_directory = _INPUT_ROOT
+    if manifest is not None:
+        images = _slot_files(manifest, "reference-image")
+    else:
+        images = (
+            sorted(
+                path
+                for path in input_directory.iterdir()
+                if path.is_file() and path.suffix.lower() in _IMAGE_SUFFIXES
+            )
+            if input_directory.is_dir()
+            else []
         )
-        if input_directory.is_dir()
-        else []
-    )
     if len(images) > 1:
         raise SystemExit("MOVA accepts at most one reference image")
     destination = directory / "reference.png"
     from PIL import Image
 
     if images:
+        if images[0].suffix.lower() not in _IMAGE_SUFFIXES:
+            raise SystemExit("the MOVA reference image has an unsupported extension")
         if images[0].stat().st_size > _MAX_INPUT_BYTES:
             raise SystemExit("the MOVA reference image exceeds 16 MiB")
         with Image.open(images[0]) as image:
@@ -101,6 +201,7 @@ def _verify_synchronized_mp4(path: Path, *, height: int, width: int) -> None:
             "ffprobe",
             "-v",
             "error",
+            "-count_frames",
             "-show_streams",
             "-show_format",
             "-of",
@@ -120,15 +221,19 @@ def _verify_synchronized_mp4(path: Path, *, height: int, width: int) -> None:
     streams = document.get("streams")
     if not isinstance(streams, list):
         raise SystemExit("ffprobe did not return an MP4 stream inventory")
-    video = next((item for item in streams if item.get("codec_type") == "video"), None)
-    audio = next((item for item in streams if item.get("codec_type") == "audio"), None)
-    if not isinstance(video, dict) or not isinstance(audio, dict):
-        raise SystemExit("MOVA output must contain both video and audio streams")
+    videos = [item for item in streams if item.get("codec_type") == "video"]
+    audios = [item for item in streams if item.get("codec_type") == "audio"]
+    if len(streams) != 2 or len(videos) != 1 or len(audios) != 1:
+        raise SystemExit("MOVA output must contain exactly one video and audio stream")
+    video = videos[0]
+    audio = audios[0]
+    if video.get("codec_name") != "h264" or audio.get("codec_name") != "aac":
+        raise SystemExit("MOVA output codecs must be H.264 video and AAC audio")
     if video.get("height") != height or video.get("width") != width:
         raise SystemExit("MOVA output video dimensions do not match the recipe")
     try:
         frame_rate = float(Fraction(str(video.get("avg_frame_rate"))))
-        frame_count = int(str(video.get("nb_frames")))
+        frame_count = int(str(video.get("nb_read_frames", video.get("nb_frames"))))
     except (TypeError, ValueError, ZeroDivisionError) as exc:
         raise SystemExit("MOVA output must expose a bounded frame contract") from exc
     if abs(frame_rate - _OUTPUT_FPS) > 0.01 or frame_count != _OUTPUT_FRAMES:
@@ -141,7 +246,9 @@ def _verify_synchronized_mp4(path: Path, *, height: int, width: int) -> None:
         raise SystemExit("MOVA output streams must expose bounded durations")
     expected_duration = _OUTPUT_FRAMES / _OUTPUT_FPS
     if abs(video_duration - expected_duration) > 1.0 / _OUTPUT_FPS:
-        raise SystemExit("MOVA output video duration does not match 193 frames at 24 fps")
+        raise SystemExit(
+            "MOVA output video duration does not match 193 frames at 24 fps"
+        )
     if abs(audio_duration - expected_duration) > 0.25:
         raise SystemExit("MOVA output audio duration is outside the synchronized bound")
     if abs(video_duration - audio_duration) > max(0.25, 1.0 / 24.0):
@@ -150,23 +257,21 @@ def _verify_synchronized_mp4(path: Path, *, height: int, width: int) -> None:
 
 def main() -> None:
     args = _arguments()
+    manifest = _input_manifest()
+    prompt = _prompt(manifest)
     height, width = _variant()
-    prompt = os.environ.get(
-        "VONK_PROMPT",
-        "A quiet alpine lake at sunrise, with natural wind and water sounds.",
-    ).strip()
-    if not prompt or len(prompt) > 4096:
-        raise SystemExit("prompt must contain between 1 and 4096 characters")
     if not _OFFICIAL_RUNNER.is_file():
         raise SystemExit("the pinned official MOVA inference runner is missing")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     if any(args.output_dir.iterdir()):
-        raise SystemExit("MOVA requires a fresh output directory for atomic publication")
+        raise SystemExit(
+            "MOVA requires a fresh output directory for atomic publication"
+        )
     final_output = args.output_dir / "mova.mp4"
     with tempfile.TemporaryDirectory(prefix="vonk-mova-") as temporary:
         temporary_path = Path(temporary)
-        reference = _reference_frame(temporary_path, height, width)
+        reference = _reference_frame(temporary_path, height, width, manifest)
         staged_output = temporary_path / "mova.mp4"
         command = [
             sys.executable,
@@ -214,7 +319,9 @@ def main() -> None:
                 "TRANSFORMERS_OFFLINE": "1",
             }
         )
-        subprocess.run(command, check=True, env=environment, timeout=args.timeout_seconds)
+        subprocess.run(
+            command, check=True, env=environment, timeout=args.timeout_seconds
+        )
         _verify_synchronized_mp4(staged_output, height=height, width=width)
         temporary_final = args.output_dir / ".mova.mp4.complete"
         shutil.copyfile(staged_output, temporary_final)

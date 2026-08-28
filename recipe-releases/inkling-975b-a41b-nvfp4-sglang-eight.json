@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "inkling-975b-a41b-nvfp4-sglang-eight"
   },
-  "version": "1.0.2",
-  "released_at": "2026-08-26",
+  "version": "1.0.3",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.0.3",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "aa7c429e59a296a10bb2a77f1aec2cbf5b34fea6e7b95c5e2df3406b14fd829c",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Marked TP8 unavailable on the current two-Spark fleet and named the dual alternative.",
+          "details": "The eight-rank contract remains an executable Candidate for future hardware, without claiming physical DGX Spark evidence. Inkling Small NVFP4 dual is the deployable fleet alternative."
+        }
+      ]
+    },
     {
       "version": "1.0.2",
       "released_at": "2026-08-26",

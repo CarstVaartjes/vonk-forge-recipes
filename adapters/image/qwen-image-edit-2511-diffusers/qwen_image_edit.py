@@ -1,10 +1,47 @@
 from __future__ import annotations
 
 import argparse
-import os
 from pathlib import Path
 
+_INPUT_DIR = Path("/inputs")
 _IMAGE_SUFFIXES = frozenset({".jpg", ".jpeg", ".png", ".webp"})
+_PROMPT_SUFFIXES = frozenset({".txt", ".text"})
+_MAX_PROMPT_BYTES = 16 * 1024
+
+
+def _input_files(suffixes: frozenset[str]) -> list[Path]:
+    if not _INPUT_DIR.is_dir():
+        raise SystemExit("the read-only /inputs job mount is required")
+    return sorted(
+        path
+        for path in _INPUT_DIR.iterdir()
+        if path.is_file() and path.suffix.lower() in suffixes
+    )
+
+
+def _prompt() -> str:
+    prompt_files = _input_files(_PROMPT_SUFFIXES)
+    if len(prompt_files) != 1:
+        raise SystemExit(
+            "exactly one UTF-8 text prompt input (.txt or .text) is required"
+        )
+    raw = prompt_files[0].read_bytes()
+    if not raw or len(raw) > _MAX_PROMPT_BYTES:
+        raise SystemExit("the text prompt must contain 1..16384 UTF-8 bytes")
+    try:
+        prompt = raw.decode("utf-8").strip()
+    except UnicodeDecodeError as error:
+        raise SystemExit("the text prompt must be valid UTF-8") from error
+    if not prompt:
+        raise SystemExit("the text prompt must not be blank")
+    return prompt
+
+
+def _image_inputs() -> list[Path]:
+    input_files = _input_files(_IMAGE_SUFFIXES)
+    if not 1 <= len(input_files) <= 2:
+        raise SystemExit("image editing requires one or two image inputs")
+    return input_files
 
 
 def main() -> None:
@@ -23,22 +60,13 @@ def main() -> None:
     if args.output_mime != "image/png":
         raise SystemExit("this candidate currently emits image/png only")
 
-    input_files = sorted(
-        path for path in Path("/inputs").iterdir() if path.suffix.lower() in _IMAGE_SUFFIXES
-    )
-    if not input_files:
-        raise SystemExit("at least one image input is required")
-    if len(input_files) > 2:
-        raise SystemExit("this candidate accepts at most two image inputs")
+    prompt = _prompt()
+    input_files = _image_inputs()
 
     import torch
     from diffusers import QwenImageEditPlusPipeline
     from PIL import Image
 
-    prompt = os.environ.get(
-        "VONK_PROMPT",
-        "Preserve the subject and composition while improving the lighting and color grading",
-    )
     images = [Image.open(path).convert("RGB") for path in input_files]
     pipe = QwenImageEditPlusPipeline.from_pretrained(
         "/models",

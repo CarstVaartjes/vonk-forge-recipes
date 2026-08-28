@@ -4,9 +4,25 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-dev-fp4-pytorch-single"
   },
-  "version": "1.1.1",
-  "released_at": "2026-08-26",
+  "version": "2.0.0",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "2.0.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "4688f67ce0605752479a6bbe93337d7d2364c3787b87e4c4abebe73ef155f0ea",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "breaking",
+          "summary": "Replaced the hidden default prompt with one required bounded UTF-8 prompt file and declared exact synchronized-MP4 output bounds."
+        },
+        {
+          "kind": "fix",
+          "summary": "Removed automatic duration for the legacy checkpoint by fixing 97 frames at 768x512/24 fps and validating synchronized H.264/AAC before publication."
+        }
+      ]
+    },
     {
       "version": "1.1.1",
       "released_at": "2026-08-26",

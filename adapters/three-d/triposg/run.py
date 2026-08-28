@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 import torch
 import trimesh
+from glb_validation import normalize_glb_json_padding, validate_mesh_glb
 from PIL import Image
 
 SOURCE = Path("/opt/triposg")
@@ -68,10 +70,15 @@ def main() -> None:
         samples[0].astype(np.float32), np.ascontiguousarray(samples[1]), process=True
     )
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    output = args.output_dir / "output.glb"
-    mesh.export(output, file_type="glb")
-    if not output.is_file() or output.stat().st_size < 20 or output.read_bytes()[:4] != b"glTF":
-        raise SystemExit("TripoSG did not produce a valid GLB artifact")
+    temporary = args.output_dir / ".output.tmp.glb"
+    mesh.export(temporary, file_type="glb")
+    normalize_glb_json_padding(temporary)
+    try:
+        validate_mesh_glb(temporary, profile="geometry")
+    except ValueError as exc:
+        temporary.unlink(missing_ok=True)
+        raise SystemExit(f"TripoSG produced an invalid GLB artifact: {exc}") from exc
+    os.replace(temporary, args.output_dir / "output.glb")
 
 
 if __name__ == "__main__":

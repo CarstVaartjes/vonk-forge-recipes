@@ -4,9 +4,37 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-distilled-diffusers-single"
   },
-  "version": "2.0.1",
-  "released_at": "2026-08-26",
+  "version": "3.0.0",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "3.0.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "62b3a3c55829404ec0b96fa9f32d3649893dbc01182fa11325ca486e085ebc28",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "breaking",
+          "summary": "Replaced the hidden default prompt with one required bounded UTF-8 prompt file and declared exact synchronized-MP4 output bounds."
+        },
+        {
+          "kind": "fix",
+          "summary": "Validate the exact H.264/AAC codec, geometry, frame rate, frame count, duration, stereo audio rate, and synchronization before atomic publication."
+        }
+      ]
+    },
+    {
+      "version": "2.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "911355f6c5bd04dc7731dbdb1d189f7439ea244abb601e0ca2f812896eef6d32",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Resolved the spatial upscaler from the immutable runtime artifact set instead of hardcoding a companion filename."
+        }
+      ]
+    },
     {
       "version": "2.0.1",
       "released_at": "2026-08-26",

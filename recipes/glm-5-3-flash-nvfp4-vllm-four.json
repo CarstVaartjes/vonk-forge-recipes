@@ -3,7 +3,7 @@
   "identity": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-four"},
   "metadata": {
     "title": "GLM 5.3 Flash NVFP4 vLLM four Sparks",
-    "description": "Executable Candidate native TP4 recipe for LibertAI's 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint. It uses Tech2Wild's stable v8 profile with fixed FP8 KV memory and MTP4 while rebuilding the complete runtime from public sources; the experimental v9 InstantTensor path is deliberately excluded.",
+    "description": "Executable Candidate native TP4 recipe for LibertAI's 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint. Its exact four-rank topology cannot run on Vonk's current two-Spark fleet and is retained for a future scale canary; the dual-Spark Ray recipe is the current fleet profile. It uses Tech2Wild's stable v8 profile and excludes the experimental v9 InstantTensor path.",
     "tags": ["executable", "candidate", "glm-5.3", "mtp", "multimodal", "nvfp4", "reasoning", "spark", "tool-use", "tp4", "vllm"]
   },
   "model": {"kind": "model-version", "publisher": "libertaidai", "slug": "glm-5-3-flash-nvfp4-11d73216", "content_sha256": "7a5258f1ab8c01d973515eefa8312c0672dc9acd9f1c4c426c5b9570a2d62221"},

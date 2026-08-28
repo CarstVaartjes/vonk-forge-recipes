@@ -37,7 +37,7 @@
   "build": {
     "context": {
       "path": "adapters/image/qwen-image-edit-2511-diffusers",
-      "sha256": "c2fcb5bf77a44b8acb284c41805dc542d3eaf858b1d11a3d4c7373e343bc764c",
+      "sha256": "fa623c23059ec3af624212cf3084599139355986cdbd9f3b24ac7838baf639d3",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -225,12 +225,18 @@
         "path": "/inputs",
         "required": true,
         "media_types": [
+          "text/plain",
           "image/jpeg",
           "image/png",
           "image/webp"
         ],
-        "max_bytes": 8388608
-      }
+        "max_bytes": 33570816,
+        "slots": [
+          {"id": "prompt", "label": "Prompt", "description": "UTF-8 instructions describing the requested image edit.", "media_types": ["text/plain"], "extensions": [".txt"], "min_files": 1, "max_files": 1, "max_file_bytes": 16384, "max_total_bytes": 16384},
+          {"id": "image", "label": "Reference images", "description": "One or two source images to edit or combine.", "media_types": ["image/jpeg", "image/png", "image/webp"], "extensions": [".jpg", ".jpeg", ".png", ".webp"], "min_files": 1, "max_files": 2, "max_file_bytes": 16777216, "max_total_bytes": 33554432}
+        ]
+      },
+      "output": {"path": "/outputs", "max_total_bytes": 16777216, "slots": [{"id": "image", "label": "Edited image", "description": "Single edited PNG image.", "media_types": ["image/png"], "extensions": [".png"], "min_files": 1, "max_files": 1, "max_file_bytes": 16777216, "max_total_bytes": 16777216}]}
     }
   ],
   "validation": {

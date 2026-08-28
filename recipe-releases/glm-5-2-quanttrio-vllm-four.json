@@ -4,9 +4,26 @@
     "publisher": "vonk-forge",
     "slug": "glm-5-2-quanttrio-vllm-four"
   },
-  "version": "2.0.1",
-  "released_at": "2026-08-26",
+  "version": "2.0.2",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "2.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "89dacde88001f81f9f02569e537c58a2eb30fb952d44fb92a77e125b3277dca6",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Marked the historical TP4 recipe superseded and unavailable on the two-Spark fleet.",
+          "details": "The archived upstream directs new four-node installations to its canonical DFlash successor. The immutable executable contract remains published solely for release reproducibility; runtime and artifacts are unchanged.",
+          "references": [
+            "https://github.com/drowzeys/keys-GLM5.2-Quantrio-INT4-INT8-Mixed-Abliterated-C1-30toks-4x-DGX-Sparks/tree/296699b44e024de938cb8b3251d49d4b1306a507",
+            "https://github.com/drowzeys/keys-latest-GLM-5.2-Quantrio-INT4-INT8-Mixed-Abliterated-DFlash-4x-DGX-Sparks"
+          ]
+        }
+      ]
+    },
     {
       "version": "2.0.1",
       "released_at": "2026-08-26",
