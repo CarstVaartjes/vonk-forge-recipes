@@ -4,9 +4,41 @@
     "publisher": "vonk-forge",
     "slug": "qwen3-8-27b-fp8-vllm-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.1.0",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "4ba4bdee446d9b1bbcf1004d36ff1a2e357fead4871ad60d37846b0ff68ed65a",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Migrated to the official vLLM 0.28.0 ARM64 release image and pinned the changed batch and CUDA-graph defaults."
+        }
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "98d7d134788487163334b804ddc99cb80acdb20eaa466683645305eefeec7fbb",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "model",
+          "summary": "Regenerated the complete paginated FP8 artifact manifest and corrected resource accounting."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Routed non-root vLLM caches to the writable outputs mount."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Declared the model's native multimodal, vision, reasoning, and agentic capabilities."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",

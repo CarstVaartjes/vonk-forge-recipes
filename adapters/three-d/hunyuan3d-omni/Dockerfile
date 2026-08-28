@@ -32,9 +32,10 @@ RUN apt-get update \
     && useradd --uid 10001 --create-home --shell /usr/sbin/nologin vonk
 
 COPY run.py /opt/vonk/source/run.py
+COPY glb_validation.py /opt/vonk/source/glb_validation.py
 
 RUN printf '%s\n' '#!/bin/sh' 'exec python3 /opt/vonk/source/run.py "$@"' > /opt/vonk/bin/pytorch-pipeline \
-    && chmod 0755 /opt/vonk/bin/pytorch-pipeline /opt/vonk/source/run.py \
+    && chmod 0755 /opt/vonk/bin/pytorch-pipeline /opt/vonk/source/*.py \
     && chown -R 10001:10001 /opt/vonk
 
 USER 10001:10001

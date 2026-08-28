@@ -4,9 +4,41 @@
     "publisher": "vonk-forge",
     "slug": "step1x-3d-texture-pytorch-single"
   },
-  "version": "1.2.0",
-  "released_at": "2026-08-24",
+  "version": "1.2.2",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.2.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "f565fd83cdfd74140f8b9e5f526eeb490020deddb560c7f071b92ccb9e3fb9fd",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Required valid UVs, material, and an embedded base-color image on bounded triangle geometry before atomic GLB publication."
+        }
+      ]
+    },
+    {
+      "version": "1.2.1",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "b0946dd4be657c0cc068e408a0b2746ed61dd053632ea23ac0ed83608cd3665f",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Pinned exact CUDA 13 CPython 3.12 ARM64 wheels for CuPy and fastrlock, closing the texture pipeline import dependency."
+        },
+        {
+          "kind": "fix",
+          "summary": "Added build-time geometry and texture imports and made optional pymeshlab imports annotation-safe and lazy."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Declared exact image-plus-mesh input slots and a single-GLB output slot with bounded bytes."
+        }
+      ]
+    },
     {
       "version": "1.2.0",
       "released_at": "2026-08-24",

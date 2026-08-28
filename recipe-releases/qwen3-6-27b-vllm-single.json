@@ -4,9 +4,37 @@
     "publisher": "vonk-forge",
     "slug": "qwen3-6-27b-vllm-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.1.0",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "2a689afb748aab082414780f1cf7695b125a9241edd461f745bf8c0d03a19d56",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Migrated to the official vLLM 0.28.0 ARM64 release image and pinned the changed batch and CUDA-graph defaults."
+        }
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "0b54d65357b64730f1cdcecd5ee9fb69ffff60370dae6521e7f5e3a8ffb8f709",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Routed non-root vLLM caches to the writable outputs mount."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Declared the model's native multimodal, vision, reasoning, and agentic capabilities."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",

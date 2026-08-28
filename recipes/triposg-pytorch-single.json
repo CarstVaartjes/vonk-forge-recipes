@@ -36,8 +36,8 @@
   "build": {
     "context": {
       "path": "adapters/three-d/triposg",
-      "sha256": "5ed33281d20b0885e6535bfe4c74cedf2548b1e1bd8e50e03a2512be9eaa40de",
-      "expected_bytes": 10240,
+      "sha256": "5710927e467944ef1a9419fc87b33f896241c415900d62fcf16f9b90f0b030e3",
+      "expected_bytes": 61440,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -101,7 +101,7 @@
       "kind": "runtime-distribution",
       "publisher": "vast-ai",
       "slug": "triposg-native-arm64",
-      "content_sha256": "51566697c4e1c79afc6cfc17f67dfe276e325c5e250a2d8747c0af1bf9197db0"
+      "content_sha256": "dacf695d6450432dd1c78e5e3f7c93e2a895790bf4439d260be310fbbf50ca29"
     },
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"
@@ -233,7 +233,25 @@
           "image/png",
           "image/webp"
         ],
-        "max_bytes": 16777216
+        "max_bytes": 16777216,
+        "slots": [
+          {
+            "id": "image",
+            "label": "Source image",
+            "description": "One object image used to generate the mesh.",
+            "media_types": ["image/jpeg", "image/png", "image/webp"],
+            "extensions": [".jpeg", ".jpg", ".png", ".webp"],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 16777216,
+            "max_total_bytes": 16777216
+          }
+        ]
+      },
+      "output": {
+        "path": "/outputs",
+        "max_total_bytes": 536870912,
+        "slots": [{"id": "mesh", "label": "Generated mesh", "description": "The generated TripoSG binary glTF mesh.", "media_types": ["model/gltf-binary"], "extensions": [".glb"], "min_files": 1, "max_files": 1, "max_file_bytes": 536870912, "max_total_bytes": 536870912}]
       }
     }
   ],

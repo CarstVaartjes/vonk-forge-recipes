@@ -33,11 +33,13 @@ RUN apt-get update \
         transformers==5.15.1 diffusers==0.40.0 einops==0.8.2 \
         omegaconf==2.3.1 lightning==2.6.5 scipy==1.18.1 \
         trimesh==5.0.0 pygltflib==1.16.5 requests==2.32.5 \
+        pillow==12.3.0 \
         flash-attn==2.8.3.post1 --no-build-isolation \
     && install --directory --mode=0755 /opt/vonk/bin /opt/vonk/source \
     && useradd --uid 10001 --create-home --shell /usr/sbin/nologin vonk
 
 COPY run.py /opt/vonk/source/run.py
+COPY glb_validation.py /opt/vonk/source/glb_validation.py
 
 RUN printf '%s\n' '#!/bin/sh' 'exec python3 /opt/vonk/source/run.py "$@"' > /opt/vonk/bin/pytorch-pipeline \
     && chmod 0755 /opt/vonk/bin/pytorch-pipeline /opt/vonk/source/run.py \

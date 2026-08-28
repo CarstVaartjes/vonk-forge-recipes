@@ -46,7 +46,7 @@
   "build": {
     "context": {
       "path": "adapters/video/ltx2-sync-native",
-      "sha256": "fed604739f9211a1af1ee82b29d59ec702b3f44b672810dd239fabcba03431b6",
+      "sha256": "08af5204a34a5d26a78c342f580f8bd3d2c2149fcfcee9beef6ffaeca6b02fb8",
       "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -491,6 +491,11 @@
           "read_only": true
         },
         {
+          "source": "inputs",
+          "target": "/inputs",
+          "read_only": true
+        },
+        {
           "source": "outputs",
           "target": "/outputs",
           "read_only": false
@@ -587,7 +592,53 @@
   "interfaces": [
     {
       "adapter": "video-job",
-      "path": "/outputs"
+      "path": "/outputs",
+      "input": {
+        "path": "/inputs",
+        "required": true,
+        "media_types": [
+          "text/plain"
+        ],
+        "max_bytes": 16384,
+        "slots": [
+          {
+            "id": "prompt",
+            "label": "Generation prompt",
+            "description": "Required UTF-8 prompt.txt describing the video, motion, camera, and synchronized sound.",
+            "media_types": [
+              "text/plain"
+            ],
+            "extensions": [
+              ".txt"
+            ],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 16384,
+            "max_total_bytes": 16384
+          }
+        ]
+      },
+      "output": {
+        "path": "/outputs",
+        "max_total_bytes": 1073741824,
+        "slots": [
+          {
+            "id": "video",
+            "label": "Synchronized video",
+            "description": "Generated 768x512 H.264/AAC MP4 with exactly 65 frames at 24 fps and one synchronized 24 kHz stereo audio stream.",
+            "media_types": [
+              "video/mp4"
+            ],
+            "extensions": [
+              ".mp4"
+            ],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 1073741824,
+            "max_total_bytes": 1073741824
+          }
+        ]
+      }
     }
   ],
   "validation": {

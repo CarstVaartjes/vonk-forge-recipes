@@ -36,8 +36,8 @@
   "build": {
     "context": {
       "path": "adapters/video/wan-dancer-native",
-      "sha256": "2aa5b4d74c14b713afe3f7723c59bbf15922ab57bc3b0466e34cf085410a488a",
-      "expected_bytes": 32071680,
+        "sha256": "cfa81dc25c78a1e76ede6da44d305226867d7a7a1198718d324c8d308cfb7098",
+      "expected_bytes": 32081920,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -216,6 +216,7 @@
         "required": true,
         "media_types": [
           "application/json",
+          "text/plain",
           "image/jpeg",
           "image/png",
           "image/webp",
@@ -225,7 +226,70 @@
           "audio/ogg",
           "audio/wav"
         ],
-        "max_bytes": 536870912
+        "max_bytes": 536870912,
+        "slots": [
+          {
+            "id": "prompt",
+            "label": "Prompt",
+            "description": "Text prompt describing the dancer, scene, and desired motion.",
+            "media_types": ["text/plain"],
+            "extensions": [".txt"],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 16384,
+            "max_total_bytes": 16384
+          },
+          {
+            "id": "reference-image",
+            "label": "Reference image",
+            "description": "Required portrait reference image for the dancer identity and appearance.",
+            "media_types": ["image/jpeg", "image/png", "image/webp"],
+            "extensions": [".jpg", ".jpeg", ".png", ".webp"],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 16777216,
+            "max_total_bytes": 16777216
+          },
+          {
+            "id": "music",
+            "label": "Music",
+            "description": "Required 1 to 5 second music clip that drives the generated dance.",
+            "media_types": ["audio/flac", "audio/mpeg", "audio/mp4", "audio/ogg", "audio/wav"],
+            "extensions": [".flac", ".mp3", ".m4a", ".ogg", ".wav"],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 67108864,
+            "max_total_bytes": 67108864
+          },
+          {
+            "id": "controls",
+            "label": "Generation controls",
+            "description": "Optional JSON controls for style, dimensions, inference steps, and guidance scale.",
+            "media_types": ["application/json"],
+            "extensions": [".json"],
+            "min_files": 0,
+            "max_files": 1,
+            "max_file_bytes": 65536,
+            "max_total_bytes": 65536
+          }
+        ]
+      },
+      "output": {
+        "path": "/outputs",
+        "max_total_bytes": 536870912,
+        "slots": [
+          {
+            "id": "video",
+            "label": "Dance video",
+            "description": "Generated H.264/AAC MP4 at 30 fps, cropped to the reference-image aspect with frame count and duration derived from the 1 to 5 second music input.",
+            "media_types": ["video/mp4"],
+            "extensions": [".mp4"],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 536870912,
+            "max_total_bytes": 536870912
+          }
+        ]
       }
     }
   ],
@@ -248,7 +312,13 @@
           "fps": 30,
           "global_steps": 48,
           "local_steps": 24,
-          "audio_stream_required": true,
+        "audio_stream_required": true,
+        "video_codec": "h264",
+        "audio_codec": "aac",
+        "audio_sample_rate": 44100,
+        "output_crop_rule": "reference-aspect-within-generation-canvas",
+        "output_frame_rule": "floor((music-duration-seconds-0.2)*30)",
+        "output_duration_tolerance_milliseconds": 100,
           "timeout_seconds": 3600
         }
       }

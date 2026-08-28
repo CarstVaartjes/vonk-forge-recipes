@@ -27,7 +27,7 @@ RUN apt-get update \
         --requirement /tmp/requirements.lock \
     && rm /tmp/requirements.lock
 
-COPY NOTICE session.schema.json example-session.json run.py /opt/vonk/source/
+COPY NOTICE session.schema.json example-session.json input_contract.py run.py /opt/vonk/source/
 RUN install --directory --mode=0755 /opt/vonk/bin /inputs /outputs \
     && printf '%s\n' '#!/bin/sh' 'exec python3 /opt/vonk/source/run.py "$@"' > /opt/vonk/bin/pytorch-pipeline \
     && chmod 0755 /opt/vonk/bin/pytorch-pipeline \

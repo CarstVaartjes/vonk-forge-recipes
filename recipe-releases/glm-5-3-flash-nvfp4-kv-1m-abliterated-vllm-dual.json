@@ -1,9 +1,25 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual"},
-  "version": "1.0.0",
-  "released_at": "2026-08-27",
+  "version": "1.0.1",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.0.1",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "979b7a7d3c4290c4a5de962d1fc1aa92ea8bf86327b679cb2917564dbf396208",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Removed the synthetic snapshot digest and failed closed on gated Git files.",
+          "details": "The withdrawn model entity now lists 126 files with upstream-verifiable SHA-256 values. Thirteen Git files totaling 50,928 bytes return HTTP 401 without an accepted token and are explicitly excluded until an authenticated refresh; runtime and installed snapshot pins are unchanged.",
+          "references": [
+            "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock/tree/d7f8afa81e62c156446fda43304d704563622590"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-27",

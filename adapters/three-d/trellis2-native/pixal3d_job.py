@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from types import MethodType
 
+from glb_validation import normalize_glb_json_padding, validate_mesh_glb
 
 SUPPORTED_SUFFIXES = {".jpeg", ".jpg", ".png", ".webp"}
 
@@ -29,6 +30,18 @@ def camera_params(field_of_view: float, mesh_scale: float, image_resolution: int
     x_ndc = -image_resolution / 2.0
     distance = focal_pixels * x_world / x_ndc - y_world
     return {"camera_angle_x": field_of_view, "distance": distance, "mesh_scale": mesh_scale}
+
+
+def validated_input(path: Path) -> object:
+    from PIL import Image, ImageOps, UnidentifiedImageError
+
+    try:
+        with Image.open(path) as opened:
+            opened.verify()
+        with Image.open(path) as opened:
+            return ImageOps.exif_transpose(opened).convert("RGB")
+    except (OSError, UnidentifiedImageError) as exc:
+        raise SystemExit(f"invalid image input: {path.name}") from exc
 
 
 def main() -> None:
@@ -59,16 +72,18 @@ def main() -> None:
     if not 1 <= args.decimation_target <= 2_000_000:
         raise SystemExit("decimation target must be between 1 and 2,000,000")
 
+    input_image = validated_input(one_input(args.input_dir))
+
     os.environ.setdefault("ATTN_BACKEND", "sdpa")
     os.environ.setdefault("SPARSE_ATTN_BACKEND", "sdpa")
     os.environ.setdefault("SPARSE_CONV_BACKEND", "flex_gemm")
+    os.environ.setdefault("FLEX_GEMM_AUTOTUNE_CACHE_PATH", "/opt/vonk/flexgemm-source/autotune_cache.json")
+    os.environ.setdefault("FLEX_GEMM_AUTOSAVE_AUTOTUNE_CACHE", "0")
 
     import numpy as np
-    import torch
-    from PIL import Image, ImageOps
     import o_voxel
-    from pixal3d.pipelines import Pixal3DImageTo3DPipeline
-    from pixal3d.pipelines import rembg
+    import torch
+    from pixal3d.pipelines import Pixal3DImageTo3DPipeline, rembg
     from pixal3d.trainers.flow_matching.mixins.image_conditioned_proj import (
         DinoV3ProjFeatureExtractor,
     )
@@ -77,7 +92,7 @@ def main() -> None:
         def __init__(self, **_: object) -> None:
             pass
 
-        def to(self, _: object) -> "NoBackgroundModel":
+        def to(self, _: object) -> NoBackgroundModel:
             return self
 
         cuda = to
@@ -135,10 +150,8 @@ def main() -> None:
         if module.use_naf_upsample:
             module._load_naf()
 
-    with Image.open(one_input(args.input_dir)) as opened:
-        image = ImageOps.exif_transpose(opened).convert("RGB")
     meshes, (_, _, resolution) = pipeline.run(
-        image,
+        input_image,
         camera_params=camera_params(args.field_of_view_radians, args.mesh_scale),
         seed=args.seed,
         preprocess_image=False,
@@ -170,6 +183,12 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     temporary = args.output_dir / ".output.tmp.glb"
     glb.export(temporary, extension_webp=True)
+    normalize_glb_json_padding(temporary)
+    try:
+        validate_mesh_glb(temporary, profile="textured-pbr")
+    except ValueError as exc:
+        temporary.unlink(missing_ok=True)
+        raise SystemExit(f"Pixal3D produced an invalid GLB artifact: {exc}") from exc
     os.replace(temporary, args.output_dir / "output.glb")
 
 

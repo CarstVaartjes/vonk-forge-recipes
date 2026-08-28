@@ -1,8 +1,39 @@
 from __future__ import annotations
 
 import argparse
-import os
 from pathlib import Path
+
+_INPUT_DIR = Path("/inputs")
+_PROMPT_SUFFIXES = frozenset({".txt", ".text"})
+_MAX_PROMPT_BYTES = 16 * 1024
+_NEGATIVE_PROMPT = (
+    "低分辨率，低画质，肢体畸形，手指畸形，画面过饱和，蜡像感，人脸无细节，"
+    "过度光滑，画面具有AI感。构图混乱。文字模糊，扭曲。"
+)
+
+
+def _prompt() -> str:
+    if not _INPUT_DIR.is_dir():
+        raise SystemExit("the read-only /inputs job mount is required")
+    prompt_files = sorted(
+        path
+        for path in _INPUT_DIR.iterdir()
+        if path.is_file() and path.suffix.lower() in _PROMPT_SUFFIXES
+    )
+    if len(prompt_files) != 1:
+        raise SystemExit(
+            "exactly one UTF-8 text prompt input (.txt or .text) is required"
+        )
+    raw = prompt_files[0].read_bytes()
+    if not raw or len(raw) > _MAX_PROMPT_BYTES:
+        raise SystemExit("the text prompt must contain 1..16384 UTF-8 bytes")
+    try:
+        prompt = raw.decode("utf-8").strip()
+    except UnicodeDecodeError as error:
+        raise SystemExit("the text prompt must be valid UTF-8") from error
+    if not prompt:
+        raise SystemExit("the text prompt must not be blank")
+    return prompt
 
 
 def main() -> None:
@@ -25,14 +56,7 @@ def main() -> None:
     import torch
     from diffusers import QwenImagePipeline
 
-    prompt = os.environ.get(
-        "VONK_PROMPT",
-        "A studio photograph of a small red fox reading a book beside a window",
-    )
-    negative_prompt = os.environ.get(
-        "VONK_NEGATIVE_PROMPT",
-        "低分辨率，低画质，肢体畸形，手指畸形，画面过饱和，蜡像感，人脸无细节，过度光滑，画面具有AI感。构图混乱。文字模糊，扭曲。",
-    )
+    prompt = _prompt()
     generator = torch.Generator(device="cuda").manual_seed(args.seed)
     pipe = QwenImagePipeline.from_pretrained(
         "/models",
@@ -45,7 +69,7 @@ def main() -> None:
         height=args.height,
         num_inference_steps=args.num_inference_steps,
         true_cfg_scale=args.true_cfg_scale,
-        negative_prompt=negative_prompt,
+        negative_prompt=_NEGATIVE_PROMPT,
         generator=generator,
     ).images[0]
     args.output_dir.mkdir(parents=True, exist_ok=True)

@@ -37,7 +37,7 @@
   "build": {
     "context": {
       "path": "adapters/image/qwen-image-layered-diffusers",
-      "sha256": "fdcabbdd46f6375734d846c9dd68d7ee69a256a0eb4ba5bac310cd44b6907f6a",
+      "sha256": "8600d75e4c9bc29bf16ce46d8dc817a4d34b12cf03ec4bbcb80e5e8f7eb8a239",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -238,8 +238,12 @@
           "image/png",
           "image/webp"
         ],
-        "max_bytes": 8388608
-      }
+        "max_bytes": 8388608,
+        "slots": [
+          {"id": "image", "label": "Source image", "description": "Single image to decompose into transparent layers.", "media_types": ["image/jpeg", "image/png", "image/webp"], "extensions": [".jpg", ".jpeg", ".png", ".webp"], "min_files": 1, "max_files": 1, "max_file_bytes": 8388608, "max_total_bytes": 8388608}
+        ]
+      },
+      "output": {"path": "/outputs", "max_total_bytes": 33554432, "slots": [{"id": "layers", "label": "Image layers", "description": "Exactly four generated transparent PNG layers.", "media_types": ["image/png"], "extensions": [".png"], "min_files": 4, "max_files": 4, "max_file_bytes": 8388608, "max_total_bytes": 33554432}]}
     }
   ],
   "validation": {

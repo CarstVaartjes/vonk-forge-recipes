@@ -31,9 +31,11 @@ RUN apt-get update \
         torchvision==0.28.0 \
     && python3 -m pip install --break-system-packages --no-cache-dir \
         accelerate==1.5.2 \
+        "cupy-cuda13x @ https://files.pythonhosted.org/packages/55/73/68a35a4c027be4c24844585441176635d814ada7d1330c771e410bad9816/cupy_cuda13x-13.6.0-cp312-cp312-manylinux2014_aarch64.whl#sha256=a3bb49fb023757bfaf0b82c5a1740739a2108ea46d944d699bcff92963c7b87f" \
         diffusers==0.32.2 \
         easydict==1.13 \
         einops==0.8.0 \
+        "fastrlock @ https://files.pythonhosted.org/packages/57/21/ea1511b0ef0d5457efca3bf1823effb9c5cad4fc9dca86ce08e4d65330ce/fastrlock-0.8.3-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_28_aarch64.whl#sha256=85a49a1f1e020097d087e1963e42cea6f307897d5ebe2cb6daf4af47ffdd3eed" \
         huggingface-hub==0.26.2 \
         imageio==2.34.1 \
         jaxtyping==0.2.28 \
@@ -78,9 +80,10 @@ RUN python3 /tmp/prepare_upstream.py \
     && rm /tmp/prepare_upstream.py \
     && python3 -m pip install --break-system-packages --no-cache-dir --no-build-isolation \
         /opt/step1x/step1x3d_texture/custom_rasterizer \
-        /opt/step1x/step1x3d_texture/differentiable_renderer
+        /opt/step1x/step1x3d_texture/differentiable_renderer \
+    && python3 -c 'from step1x3d_geometry.models.pipelines.pipeline import Step1X3DGeometryPipeline; from step1x3d_texture.pipelines.step1x_3d_texture_synthesis_pipeline import Step1X3DTexturePipeline'
 
-COPY run.py geometry.py label-geometry.py texture.py /opt/vonk/source/
+COPY run.py geometry.py label-geometry.py texture.py glb_validation.py /opt/vonk/source/
 
 RUN install --directory --mode=0755 /opt/vonk/bin /opt/vonk/source \
     && printf '%s\n' '#!/bin/sh' \

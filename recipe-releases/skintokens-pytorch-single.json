@@ -4,9 +4,33 @@
     "publisher": "vonk-forge",
     "slug": "skintokens-pytorch-single"
   },
-  "version": "2.0.1",
-  "released_at": "2026-08-26",
+  "version": "2.0.3",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "2.0.3",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "8631b1513364c4ef282567eaceb4964f8f1ed902dce83641fb12db2b244ff382",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Validated bounded geometry, joints, inverse bind matrices, normals, and normalized skin weights before atomic GLB publication."
+        }
+      ]
+    },
+    {
+      "version": "2.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "e24e36e810c5f8096e01196467a3f88b8d1024d0852bc269b61b9e72db347b4f",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared exact one-GLB input and single-GLB rigged output slots with bounded bytes."
+        }
+      ]
+    },
     {
       "version": "2.0.1",
       "released_at": "2026-08-26",

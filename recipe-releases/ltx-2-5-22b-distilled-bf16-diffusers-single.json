@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "ltx-2-5-22b-distilled-bf16-diffusers-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-28",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "e81e2140225faa481db9cb03749cfe4aeeb3837b44f78cb72c691afe19729623",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added gated LTX-2.5 distilled Diffusers with a simple prompt, optional advanced options, deterministic AV, and exact video/receipt outputs.",
+          "references": [
+            "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc",
+            "https://github.com/huggingface/diffusers/tree/d035dcd7cc7c88e0a154609b62887d50bba9fdc2"
+          ]
+        },
+        {
+          "kind": "fix",
+          "summary": "Verify H.264 video, AAC stereo audio, exact geometry, timing, and synchronization and record those facts in the deterministic receipt before publication."
+        }
+      ]
+    }
+  ]
+}

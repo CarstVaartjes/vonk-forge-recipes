@@ -7,13 +7,10 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-
 MODEL_ROOT = Path("/models")
+INPUT_ROOT = Path("/inputs")
+MAX_PROMPT_BYTES = 16 * 1024
 RUNTIME_SPEC = Path(os.environ.get("VONK_RUNTIME_SPEC", "/run/vonk/runtime.json"))
-DEFAULT_PROMPT = (
-    "A red fox runs through fresh snow while wind moves the pine branches; "
-    "natural synchronized footsteps and forest ambience."
-)
 GEMMA_FILES = {
     "text_encoder/config.json": "config.json",
     "text_encoder/generation_config.json": "generation_config.json",
@@ -41,6 +38,10 @@ TARGET_FILENAMES = frozenset(
         "ltx-2.3-22b-distilled-1.1.safetensors",
     }
 )
+WIDTH = 768
+HEIGHT = 512
+FRAME_COUNT = 65
+FPS = 24
 
 
 def _runtime_artifacts() -> list[dict[str, str]]:
@@ -118,22 +119,67 @@ def _target_checkpoint() -> Path:
     return _single_artifact(matches[0])
 
 
+def _spatial_upscaler(target: Path) -> Path:
+    prefix = (
+        "ltx-2.3-spatial-upscaler-"
+        if target.name.startswith("ltx-2.3-")
+        else "ltx-2-spatial-upscaler-"
+    )
+    matches = [
+        artifact["repository"].rsplit("/", 1)[-1]
+        for artifact in _runtime_artifacts()
+        if artifact["repository"].rsplit("/", 1)[-1].startswith(prefix)
+        and artifact["repository"].endswith(".safetensors")
+    ]
+    if len(matches) != 1:
+        raise SystemExit(
+            f"checkpoint {target.name!r} requires exactly one {prefix!r} "
+            f"artifact; found {len(matches)}"
+        )
+    return _single_artifact(matches[0])
+
+
 def _link_gemma(root: Path) -> None:
     for repository_suffix, filename in GEMMA_FILES.items():
         source = _single_artifact(repository_suffix)
         (root / filename).symlink_to(source)
 
 
+def _load_prompt() -> str:
+    if not INPUT_ROOT.is_dir() or INPUT_ROOT.is_symlink():
+        raise SystemExit("/inputs must be a directory containing prompt.txt")
+    entries = list(INPUT_ROOT.iterdir())
+    if len(entries) != 1:
+        raise SystemExit("exactly one regular UTF-8 .txt prompt file is required")
+    prompt_path = entries[0]
+    if (
+        prompt_path.suffix.lower() != ".txt"
+        or prompt_path.is_symlink()
+        or not prompt_path.is_file()
+    ):
+        raise SystemExit("exactly one regular UTF-8 .txt prompt file is required")
+    size = prompt_path.stat().st_size
+    if not 1 <= size <= MAX_PROMPT_BYTES:
+        raise SystemExit("prompt.txt must contain 1..16384 UTF-8 bytes")
+    try:
+        prompt = prompt_path.read_text(encoding="utf-8").strip()
+    except UnicodeDecodeError as error:
+        raise SystemExit("prompt.txt must contain valid UTF-8") from error
+    if not 1 <= len(prompt) <= 4096 or "\x00" in prompt:
+        raise SystemExit("prompt.txt must contain 1..4096 non-NUL characters")
+    return prompt
+
+
 def _pipeline_command(
-    target: Path, gemma_root: Path, output: Path, seed: int
+    target: Path, gemma_root: Path, output: Path, seed: int, prompt: str
 ) -> list[str]:
     common = [
         "--gemma-root",
         str(gemma_root),
         "--spatial-upsampler-path",
-        str(_single_artifact("ltx-2-spatial-upscaler-x2-1.0.safetensors")),
+        str(_spatial_upscaler(target)),
         "--prompt",
-        os.environ.get("VONK_PROMPT", DEFAULT_PROMPT),
+        prompt,
         "--output-path",
         str(output),
         "--seed",
@@ -183,7 +229,13 @@ def _pipeline_command(
     raise SystemExit(f"unsupported immutable LTX checkpoint: {name}")
 
 
-def _verify_synchronized_mp4(output: Path, timeout_seconds: int) -> None:
+def _expected_audio_sample_rate(target: Path) -> int:
+    return 48_000 if target.name.startswith("ltx-2.3-") else 24_000
+
+
+def _verify_synchronized_mp4(
+    output: Path, timeout_seconds: int, *, audio_sample_rate: int
+) -> None:
     if not output.is_file() or output.stat().st_size == 0:
         raise SystemExit("LTX pipeline did not produce a non-empty MP4")
     probe = subprocess.run(
@@ -191,8 +243,13 @@ def _verify_synchronized_mp4(output: Path, timeout_seconds: int) -> None:
             "ffprobe",
             "-v",
             "error",
+            "-count_frames",
             "-show_entries",
-            "stream=codec_type",
+            (
+                "format=format_name:"
+                "stream=codec_type,codec_name,width,height,avg_frame_rate,"
+                "nb_read_frames,sample_rate,channels,duration"
+            ),
             "-of",
             "json",
             str(output),
@@ -202,15 +259,40 @@ def _verify_synchronized_mp4(output: Path, timeout_seconds: int) -> None:
         text=True,
         timeout=min(timeout_seconds, 60),
     )
-    streams = {
-        stream.get("codec_type")
-        for stream in json.loads(probe.stdout).get("streams", [])
-        if isinstance(stream, dict)
-    }
-    if not {"video", "audio"}.issubset(streams):
-        raise SystemExit(
-            "LTX output must contain both synchronized video and audio streams"
-        )
+    document = json.loads(probe.stdout)
+    if "mp4" not in document.get("format", {}).get("format_name", "").split(","):
+        raise SystemExit("LTX output must use an MP4 container")
+    streams = document.get("streams", [])
+    videos = [stream for stream in streams if stream.get("codec_type") == "video"]
+    audios = [stream for stream in streams if stream.get("codec_type") == "audio"]
+    if len(videos) != 1 or len(audios) != 1:
+        raise SystemExit("LTX output must contain exactly one video and one audio stream")
+    video, audio = videos[0], audios[0]
+    if (
+        video.get("codec_name") != "h264"
+        or video.get("width") != WIDTH
+        or video.get("height") != HEIGHT
+        or video.get("avg_frame_rate") != f"{FPS}/1"
+        or video.get("nb_read_frames") != str(FRAME_COUNT)
+    ):
+        raise SystemExit("LTX output video properties changed")
+    if (
+        audio.get("codec_name") != "aac"
+        or audio.get("sample_rate") != str(audio_sample_rate)
+        or audio.get("channels") != 2
+    ):
+        raise SystemExit("LTX output audio properties changed")
+    expected_duration = FRAME_COUNT / FPS
+    try:
+        video_duration = float(video["duration"])
+        audio_duration = float(audio["duration"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise SystemExit("LTX output durations are unavailable") from error
+    if abs(video_duration - expected_duration) > 1e-5:
+        raise SystemExit("LTX output video duration changed")
+    synchronization_tolerance = max(1 / FPS, 1024 / audio_sample_rate) + 1e-5
+    if abs(audio_duration - expected_duration) > synchronization_tolerance:
+        raise SystemExit("LTX output audio and video durations are not synchronized")
 
 
 def main() -> None:
@@ -229,8 +311,10 @@ def main() -> None:
     if not 1 <= args.timeout_seconds <= 3600:
         raise SystemExit("timeout-seconds must be between 1 and 3600")
 
+    prompt = _load_prompt()
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    output = args.output_dir / "ltx-synchronized.mp4"
+    temporary = args.output_dir / ".ltx-synchronized.partial.mp4"
+    destination = args.output_dir / "ltx-synchronized.mp4"
     with tempfile.TemporaryDirectory(prefix="vonk-ltx-gemma-") as gemma_dir:
         gemma_root = Path(gemma_dir)
         _link_gemma(gemma_root)
@@ -242,13 +326,22 @@ def main() -> None:
                 "HF_HOME": "/tmp/vonk-hf",
             }
         )
-        subprocess.run(
-            _pipeline_command(_target_checkpoint(), gemma_root, output, args.seed),
-            check=True,
-            env=env,
-            timeout=args.timeout_seconds,
-        )
-    _verify_synchronized_mp4(output, args.timeout_seconds)
+        target = _target_checkpoint()
+        try:
+            subprocess.run(
+                _pipeline_command(target, gemma_root, temporary, args.seed, prompt),
+                check=True,
+                env=env,
+                timeout=args.timeout_seconds,
+            )
+            _verify_synchronized_mp4(
+                temporary,
+                args.timeout_seconds,
+                audio_sample_rate=_expected_audio_sample_rate(target),
+            )
+            os.replace(temporary, destination)
+        finally:
+            temporary.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

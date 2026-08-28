@@ -12,8 +12,19 @@ import argparse
 import os
 from pathlib import Path
 
+from glb_validation import normalize_glb_json_padding, validate_mesh_glb
 
 _IMAGE_SUFFIXES = frozenset({".jpeg", ".jpg", ".png", ".webp"})
+
+
+def _publish_glb(temporary: Path, output: Path, *, profile: str) -> None:
+    normalize_glb_json_padding(temporary)
+    try:
+        validate_mesh_glb(temporary, profile=profile)
+    except ValueError as exc:
+        temporary.unlink(missing_ok=True)
+        raise SystemExit(f"Step1X produced an invalid {profile} GLB artifact: {exc}") from exc
+    os.replace(temporary, output)
 
 
 def _files(suffixes: frozenset[str]) -> list[Path]:
@@ -30,6 +41,16 @@ def _one_input(label: str, suffixes: frozenset[str]) -> Path:
     if len(matches) != 1:
         raise SystemExit(f"expected exactly one {label} input, found {len(matches)}")
     return matches[0]
+
+
+def _validated_input_glb(path: Path) -> Path:
+    """Reject malformed or semantically empty meshes before loading upstream."""
+
+    try:
+        validate_mesh_glb(path, profile="geometry")
+    except ValueError as exc:
+        raise SystemExit(f"Step1X texture input is not a valid GLB mesh: {exc}") from exc
+    return path
 
 
 def _offline_geometry_image(source: Path, destination: Path) -> Path:
@@ -54,7 +75,6 @@ def _offline_geometry_image(source: Path, destination: Path) -> Path:
 
 def _geometry(*, label_control: bool, seed: int, output_dir: Path) -> None:
     import torch
-
     from step1x3d_geometry.models.pipelines.pipeline import (
         Step1X3DGeometryPipeline,
     )
@@ -84,24 +104,28 @@ def _geometry(*, label_control: bool, seed: int, output_dir: Path) -> None:
     }
     if label_control:
         arguments.update(
-            label={"symmetry": "x", "edge_type": "sharp"},
+            label={"symmetry": "x", "geometry_type": "sharp"},
             octree_resolution=384,
             max_facenum=400000,
         )
     result = pipeline(str(prepared), **arguments)
-    result.mesh[0].export(output_dir / "step1x-geometry.glb")
+    temporary = output_dir / ".step1x-geometry.tmp.glb"
+    result.mesh[0].export(temporary)
+    _publish_glb(temporary, output_dir / "step1x-geometry.glb", profile="geometry")
 
 
 def _texture(*, seed: int, output_dir: Path) -> None:
-    import trimesh
+    image_path = _one_input("image", _IMAGE_SUFFIXES)
+    mesh_path = _validated_input_glb(
+        _one_input("GLB mesh", frozenset({".glb"}))
+    )
 
+    import trimesh
     from step1x3d_texture.pipelines.step1x_3d_texture_synthesis_pipeline import (
         Step1X3DTextureConfig,
         Step1X3DTexturePipeline,
     )
 
-    image_path = _one_input("image", _IMAGE_SUFFIXES)
-    mesh_path = _one_input("GLB mesh", frozenset({".glb"}))
     config = Step1X3DTextureConfig()
     config.base_model = "/models/sdxl"
     config.vae_model = "/models/sdxl-vae"
@@ -111,7 +135,9 @@ def _texture(*, seed: int, output_dir: Path) -> None:
     # BiRefNet is optional upstream preprocessing.  Disabling it prevents the
     # hidden remote-code download and retains the caller-provided image exactly.
     textured_mesh = pipeline(image_path, mesh, remove_bg=False, seed=seed)
-    textured_mesh.export(output_dir / "step1x-textured.glb")
+    temporary = output_dir / ".step1x-textured.tmp.glb"
+    textured_mesh.export(temporary)
+    _publish_glb(temporary, output_dir / "step1x-textured.glb", profile="textured")
 
 
 def main(mode: str) -> None:

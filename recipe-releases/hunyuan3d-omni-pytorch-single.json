@@ -4,9 +4,49 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan3d-omni-pytorch-single"
   },
-  "version": "2.0.1",
-  "released_at": "2026-08-26",
+  "version": "2.0.3",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "2.0.3",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "efca27d07ffeb067256c428242fd281bbd915bbf9ac6b9bb57de71b3d98928df",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Required a bounded reachable finite nondegenerate indexed triangle mesh before atomic GLB publication."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Made the upstream EU, UK, and South Korea territorial restriction authoritative without an unrelated operator-acceptance gate."
+        }
+      ]
+    },
+    {
+      "version": "2.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "70805f1d7c423199eb16597b863215d16ef310e38cfdeeec38b05ae7758f7e45",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Added the exact official DINOv2-large companion snapshot and forced its offline local loading."
+        },
+        {
+          "kind": "fix",
+          "summary": "Seeded voxel surface sampling and structurally validated each GLB before atomic publication."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Declared exact manifest, image, control-geometry, and single-GLB job slots with bounded bytes."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Encoded the upstream exclusions for the EU, United Kingdom, and South Korea for fail-closed admission."
+        }
+      ]
+    },
     {
       "version": "2.0.1",
       "released_at": "2026-08-26",

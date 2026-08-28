@@ -10,7 +10,11 @@
     "description": "Qwen3.8 27B open-weight native vision-language, coding, reasoning, and agentic model.",
     "tags": [
       "qwen",
-      "language"
+      "language",
+      "multimodal",
+      "vision",
+      "reasoning",
+      "agentic"
     ]
   },
   "model_group": {

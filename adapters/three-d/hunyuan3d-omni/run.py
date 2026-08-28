@@ -4,17 +4,22 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import random
 import sys
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import torch
 import trimesh
+from glb_validation import normalize_glb_json_padding, validate_mesh_glb
 from PIL import Image
 
 SOURCE = Path("/opt/hunyuan3d-omni")
 INPUTS = Path("/inputs")
-TARGET = Path("/models")
+TARGET = Path("/models/target")
+DINO = Path("/models/dinov2-large")
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 GEOMETRY_SUFFIXES = {".glb", ".gltf", ".obj", ".ply"}
 
@@ -60,7 +65,7 @@ def job() -> tuple[str, Path, object]:
     return "bbox", images[0], [-0.95, -0.95, -0.95, 0.95, 0.95, 0.95]
 
 
-def normalized_surface(path: Path, *, sample: bool) -> torch.Tensor:
+def normalized_surface(path: Path, *, sample: bool, seed: int) -> torch.Tensor:
     loaded = trimesh.load(path, force="mesh", process=True)
     if not isinstance(loaded, trimesh.Trimesh) or loaded.is_empty:
         raise SystemExit("control geometry does not contain a mesh")
@@ -69,7 +74,10 @@ def normalized_surface(path: Path, *, sample: bool) -> torch.Tensor:
         raise SystemExit("control geometry has invalid bounds")
     loaded.apply_translation(-loaded.bounding_box.centroid)
     loaded.apply_scale(1.9 / extent)
-    values = loaded.sample(81920) if sample else loaded.vertices
+    if sample:
+        values, _face_index = trimesh.sample.sample_surface(loaded, 81920, seed=seed)
+    else:
+        values = loaded.vertices
     return torch.as_tensor(values, dtype=torch.float16, device="cuda").unsqueeze(0)
 
 
@@ -83,14 +91,30 @@ def main() -> None:
     args = parser.parse_args()
     if args.entrypoint != "/opt/vonk/source/run.py" or args.output_mime != "model/gltf-binary":
         raise SystemExit("unexpected signed adapter contract")
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
 
     sys.path.insert(0, str(SOURCE))
     from hy3dshape.pipelines import Hunyuan3DOmniSiTFlowMatchingPipeline
+    from transformers import Dinov2Model
 
     kind, image_path, control = job()
     with Image.open(image_path) as image:
         image.verify()
-    pipeline = Hunyuan3DOmniSiTFlowMatchingPipeline.from_pretrained(str(TARGET))
+    if not DINO.is_dir():
+        raise SystemExit("missing pinned local DINOv2-large artifact")
+    original_dino_loader = Dinov2Model.from_pretrained
+
+    def load_local_dino(identifier: object, *loader_args: object, **loader_kwargs: object) -> object:
+        if identifier != "facebook/dinov2-large":
+            raise RuntimeError(f"unexpected DINO model identifier: {identifier}")
+        loader_kwargs["local_files_only"] = True
+        return original_dino_loader(str(DINO), *loader_args, **loader_kwargs)
+
+    with patch.object(Dinov2Model, "from_pretrained", side_effect=load_local_dino):
+        pipeline = Hunyuan3DOmniSiTFlowMatchingPipeline.from_pretrained(str(TARGET))
     kwargs: dict[str, object] = {"image": str(image_path)}
     if kind == "bbox":
         kwargs["bbox"] = torch.tensor(control, dtype=torch.float16, device="cuda").reshape(1, 1, 6)
@@ -98,7 +122,7 @@ def main() -> None:
         kwargs["pose"] = torch.tensor(control, dtype=torch.float16, device="cuda").unsqueeze(0)
     else:
         assert isinstance(control, Path)
-        kwargs[kind] = normalized_surface(control, sample=kind == "voxel")
+        kwargs[kind] = normalized_surface(control, sample=kind == "voxel", seed=args.seed)
     result = pipeline(
         **kwargs,
         num_inference_steps=50,
@@ -111,10 +135,16 @@ def main() -> None:
     if not isinstance(mesh, trimesh.Trimesh) or mesh.is_empty:
         raise SystemExit("Hunyuan3D-Omni did not return a mesh")
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    temporary = args.output_dir / ".output.tmp.glb"
     output = args.output_dir / "output.glb"
-    mesh.export(output, file_type="glb")
-    if output.read_bytes()[:4] != b"glTF":
-        raise SystemExit("Hunyuan3D-Omni did not produce a valid GLB artifact")
+    mesh.export(temporary, file_type="glb")
+    normalize_glb_json_padding(temporary)
+    try:
+        validate_mesh_glb(temporary, profile="geometry")
+    except ValueError as exc:
+        temporary.unlink(missing_ok=True)
+        raise SystemExit(f"Hunyuan3D-Omni produced an invalid GLB artifact: {exc}") from exc
+    os.replace(temporary, output)
 
 
 if __name__ == "__main__":

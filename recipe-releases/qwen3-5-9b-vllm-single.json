@@ -4,9 +4,37 @@
     "publisher": "vonk-forge",
     "slug": "qwen3-5-9b-vllm-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.1.0",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "09209aaec7d077883ad175715b32b89237e3d004760d7d693ff7b2aeea5ca788",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Migrated to the official vLLM 0.28.0 ARM64 release image and pinned the changed batch and CUDA-graph defaults."
+        }
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "a00fd718ca80d10ee242ca8c45b9cf19594f33b951223e27ae25f60b94d93d8c",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Routed non-root vLLM caches to the writable outputs mount."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Corrected the dense architecture and multimodal discovery metadata."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",

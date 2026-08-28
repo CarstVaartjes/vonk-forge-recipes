@@ -4,9 +4,35 @@
     "publisher": "vonk-forge",
     "slug": "wan-2-2-t2v-14b-comfyui-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.0.3",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.0.3",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "225109abbdf2d6ce867fefff5196c0496be1d23c893d8bf779b755474b740d17",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Added signed typed prompt and MP4 result slots.",
+          "details": "The adapter now consumes the prompt from its signed manifest slot, while the recipe declares exact input limits and one bounded MP4 result."
+        }
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "3064a8f590893e05ad29986198727be94da4d867d8ad78c25fb2ad0f3352c2cc",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Required a prompt and fail-closed Wan MP4 result validation.",
+          "details": "The adapter rejects blank prompts before model linking and requires one H.264 640x640, 81-frame, 16 fps MP4 with a matching duration."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",

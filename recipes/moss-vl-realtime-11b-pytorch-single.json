@@ -39,7 +39,7 @@
   "build": {
     "context": {
       "path": "adapters/video/moss-vl-realtime",
-      "sha256": "87b94b15c8242a56b63de8d05e50676322eccced6b8cef92af9e3ac49c3dde3e",
+      "sha256": "c42981f09777ee937177db9a230b645b4fa0e91933bc61d0db9e438a2e6703df",
       "expected_bytes": 102400,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -224,7 +224,80 @@
           "image/png",
           "image/webp"
         ],
-        "max_bytes": 1082130432
+        "max_bytes": 261095424,
+        "slots": [
+          {
+            "id": "frames",
+            "label": "Session frames",
+            "description": "Timestamped JPEG, PNG, or WebP frames referenced by the session document.",
+            "media_types": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "extensions": [
+              ".jpeg",
+              ".jpg",
+              ".png",
+              ".webp"
+            ],
+            "min_files": 1,
+            "max_files": 31,
+            "max_file_bytes": 8388608,
+            "max_total_bytes": 260046848
+          },
+          {
+            "id": "session",
+            "label": "Session document",
+            "description": "The bounded realtime event schedule and frame references as JSON.",
+            "media_types": [
+              "application/json"
+            ],
+            "extensions": [
+              ".json"
+            ],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 1048576,
+            "max_total_bytes": 1048576
+          }
+        ]
+      },
+      "output": {
+        "path": "/outputs",
+        "max_total_bytes": 1090519040,
+        "slots": [
+          {
+            "id": "replay",
+            "label": "Session replay",
+            "description": "The timestamped frame sequence encoded as an MP4 replay.",
+            "media_types": [
+              "video/mp4"
+            ],
+            "extensions": [
+              ".mp4"
+            ],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 1073741824,
+            "max_total_bytes": 1073741824
+          },
+          {
+            "id": "transcript",
+            "label": "Realtime transcript",
+            "description": "The authoritative ordered MOSS session events as newline-delimited JSON.",
+            "media_types": [
+              "application/x-ndjson"
+            ],
+            "extensions": [
+              ".jsonl"
+            ],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 16777216,
+            "max_total_bytes": 16777216
+          }
+        ]
       }
     }
   ],

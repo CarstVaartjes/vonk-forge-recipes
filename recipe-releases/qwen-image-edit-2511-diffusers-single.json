@@ -4,9 +4,38 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-diffusers-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.1.1",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.1.1",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "eec95a8c3a157e95a1924aafeb7e71bae918727f2341243fd43cab87b631f173",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Added typed artifact input and output slot contracts.",
+          "details": "Declared separate prompt and one-or-two-reference image slots plus the exact edited-PNG output."
+        }
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "86a7603136c76ed71c2e63f31301e9d0d21cc2f4c714f611bdd07dcd3c37b6d5",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Added one bounded UTF-8 prompt file to the existing one-or-two-image input contract."
+        },
+        {
+          "kind": "fix",
+          "summary": "Rejects missing, extra, invalid, or oversized prompt and image inputs before model loading."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",

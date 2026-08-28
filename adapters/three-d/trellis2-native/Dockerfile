@@ -16,6 +16,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     ATTN_BACKEND="sdpa" \
     SPARSE_ATTN_BACKEND="sdpa" \
     SPARSE_CONV_BACKEND="flex_gemm" \
+    FLEX_GEMM_AUTOTUNE_CACHE_PATH="/opt/vonk/flexgemm-source/autotune_cache.json" \
+    FLEX_GEMM_AUTOSAVE_AUTOTUNE_CACHE="0" \
     PYTHONPATH="/opt/vonk/trellis2-source:/opt/vonk/pixal3d-source"
 
 RUN apt-get update \
@@ -92,6 +94,7 @@ RUN python3 /opt/vonk/source/apply-sdpa-arm64.py \
 
 COPY trellis2_job.py /opt/vonk/source/trellis2_job.py
 COPY pixal3d_job.py /opt/vonk/source/pixal3d_job.py
+COPY glb_validation.py /opt/vonk/source/glb_validation.py
 
 RUN install --directory --mode=0755 /opt/vonk/bin /opt/vonk/source \
     && printf '%s\n' '#!/bin/sh' \

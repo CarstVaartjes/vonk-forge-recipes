@@ -4,9 +4,28 @@
     "publisher": "vonk-forge",
     "slug": "gemma-4-26b-a4b-vllm-single"
   },
-  "version": "2.0.1",
-  "released_at": "2026-08-26",
+  "version": "2.0.2",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "2.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "bbff6dca398fd30f1a843be5b6352186eaa439c5de4caedb67c7ca3367f0856a",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Routed non-root vLLM caches to the writable outputs mount."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Removed automatic tool calling and its capability claim until vLLM handles Gemma 4's canonical bare function opener.",
+          "references": [
+            "https://github.com/vllm-project/vllm/issues/53431"
+          ]
+        }
+      ]
+    },
     {
       "version": "2.0.1",
       "released_at": "2026-08-26",

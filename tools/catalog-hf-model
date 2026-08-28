@@ -8,6 +8,7 @@ import hashlib
 import json
 import re
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
@@ -144,19 +145,28 @@ def main() -> int:
                     f"refusing to download non-LFS artifact larger than "
                     f"{MAX_INLINE_ARTIFACT_BYTES} bytes: {path} ({size} bytes)"
                 )
-            payload = _get_bytes(
-                f"https://huggingface.co/{args.repository}/resolve/{revision}/{quote(path, safe='/')}"
-            )
+            try:
+                payload = _get_bytes(
+                    f"https://huggingface.co/{args.repository}/resolve/{revision}/{quote(path, safe='/')}"
+                )
+            except HTTPError as error:
+                raise SystemExit(
+                    "cannot inventory exact non-LFS artifact without access: "
+                    f"{path} (HTTP {error.code}); authenticate to Hugging Face "
+                    "and rerun"
+                ) from error
             if len(payload) != size:
                 raise SystemExit(f"download size changed for {path}")
             sha256 = _sha256(payload)
         artifact_stem = _slug(path.rsplit("/", 1)[-1].rsplit(".", 1)[0])
+        path_sha256 = _sha256(path.encode())
         artifacts.append(
             {
-                # Basenames are not globally unique in a Hugging Face tree
-                # (and dotfiles have an empty stem), so bind the readable id
-                # to the frozen artifact digest as well.
-                "id": f"{artifact_stem[:48]}-{sha256[:12]}",
+                # Basenames and even basename/content pairs are not globally
+                # unique in a Hugging Face tree. Trace repositories commonly
+                # repeat byte-identical result files in different directories,
+                # so bind the readable id to both content and full-path digests.
+                "id": f"{artifact_stem[:39]}-{sha256[:12]}-{path_sha256[:10]}",
                 "path": path,
                 "kind": "huggingface.file",
                 "repository": f"https://huggingface.co/{args.repository}",

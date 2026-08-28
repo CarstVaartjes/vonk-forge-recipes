@@ -7,7 +7,7 @@ import tempfile
 import types
 import unittest
 from pathlib import Path
-
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/ltx2-sync-native"
@@ -74,6 +74,21 @@ class LtxSyncAuthorityTests(unittest.TestCase):
             self.assertEqual(recipe["dependencies"][0]["content_sha256"], gemma_digest)
             self.assertEqual(model["dependencies"], recipe["dependencies"])
             self.assertIsNone(recipe["execution"]["patch_bundle"])
+            prompt_input = recipe["interfaces"][0]["input"]
+            self.assertTrue(prompt_input["required"])
+            self.assertEqual(prompt_input["max_bytes"], 16 * 1024)
+            self.assertEqual(prompt_input["slots"][0]["id"], "prompt")
+            self.assertEqual(prompt_input["slots"][0]["min_files"], 1)
+            self.assertIn(
+                {"source": "inputs", "target": "/inputs", "read_only": True},
+                recipe["runtime"]["security"]["mounts"],
+            )
+            output_contract = recipe["interfaces"][0]["output"]
+            self.assertEqual(output_contract["path"], "/outputs")
+            self.assertEqual(output_contract["max_total_bytes"], 1024**3)
+            self.assertEqual(output_contract["slots"][0]["media_types"], ["video/mp4"])
+            self.assertEqual(output_contract["slots"][0]["min_files"], 1)
+            self.assertEqual(output_contract["slots"][0]["max_files"], 1)
 
             tags = set(recipe["metadata"]["tags"])
             self.assertTrue({"candidate", "video", "audio", "synchronized"} <= tags)
@@ -134,6 +149,9 @@ class LtxSyncRunnerTests(unittest.TestCase):
         self.module.MODEL_ROOT = self.root / "models"
         self.module.MODEL_ROOT.mkdir()
         self.module.RUNTIME_SPEC = self.root / "runtime.json"
+        self.module.INPUT_ROOT = self.root / "inputs"
+        self.module.INPUT_ROOT.mkdir()
+        self.prompt_path = self.module.INPUT_ROOT / "scene.txt"
 
         files = {
             **self.module.GEMMA_FILES,
@@ -190,6 +208,31 @@ class LtxSyncRunnerTests(unittest.TestCase):
         self.module.RUNTIME_SPEC.write_text(json.dumps(document), encoding="utf-8")
         return target
 
+    def _upscaler(self, filename: str) -> Path:
+        mount = self.module.MODEL_ROOT / "sha256" / f"{998:064x}"
+        mount.mkdir(exist_ok=True)
+        for path in mount.iterdir():
+            path.unlink()
+        upscaler = mount / filename
+        upscaler.write_bytes(b"fixture")
+        (mount / ".vonk-manifest.json").write_text("{}", encoding="utf-8")
+        document = json.loads(self.module.RUNTIME_SPEC.read_text(encoding="utf-8"))
+        document["artifacts"] = [
+            artifact
+            for artifact in document["artifacts"]
+            if "spatial-upscaler" not in artifact["repository"]
+        ]
+        document["artifacts"].append(
+            {
+                "kind": "http.file",
+                "repository": f"https://models.example/{filename}",
+                "revision": f"sha256:{998:064x}",
+                "path": str(mount),
+            }
+        )
+        self.module.RUNTIME_SPEC.write_text(json.dumps(document), encoding="utf-8")
+        return upscaler
+
     def test_gemma_assets_are_reassembled_without_the_storage_manifest(self) -> None:
         destination = self.root / "gemma"
         destination.mkdir()
@@ -207,35 +250,152 @@ class LtxSyncRunnerTests(unittest.TestCase):
             "ltx-2-19b-dev.safetensors": (
                 "ltx_pipelines.ti2vid_two_stages",
                 "--distilled-lora",
+                "ltx-2-spatial-upscaler-x2-1.0.safetensors",
             ),
             "ltx-2-19b-distilled.safetensors": (
                 "ltx_pipelines.distilled",
                 "--distilled-checkpoint-path",
+                "ltx-2-spatial-upscaler-x2-1.0.safetensors",
             ),
             "ltx-2-19b-distilled-fp8.safetensors": (
                 "ltx_pipelines.distilled",
                 "--quantization",
+                "ltx-2-spatial-upscaler-x2-1.0.safetensors",
             ),
             "ltx-2.3-22b-distilled-1.1.safetensors": (
                 "ltx_pipelines.distilled",
                 "--distilled-checkpoint-path",
+                "ltx-2.3-spatial-upscaler-x2-1.1.safetensors",
             ),
         }
-        for filename, (pipeline, required_flag) in cases.items():
+        for filename, (pipeline, required_flag, upscaler_name) in cases.items():
+            upscaler = self._upscaler(upscaler_name)
             command = self.module._pipeline_command(
-                self._target(filename), gemma, self.root / "output.mp4", 7
+                self._target(filename),
+                gemma,
+                self.root / "output.mp4",
+                7,
+                "Operator supplied prompt",
             )
             self.assertIn(pipeline, command)
             self.assertIn(required_flag, command)
+            self.assertEqual(
+                command[command.index("--spatial-upsampler-path") + 1],
+                str(upscaler),
+            )
             self.assertFalse(
                 any("http://" in value or "https://" in value for value in command)
             )
+            self.assertEqual(
+                command[command.index("--prompt") + 1], "Operator supplied prompt"
+            )
 
-    def test_export_requires_both_video_and_audio_streams(self) -> None:
+    def test_ltx23_resolves_the_recipe_supplied_upscaler(self) -> None:
+        recipe = _document(
+            ROOT / "recipes/ltx-2-3-22b-distilled-1-1-diffusers-single.json"
+        )
+        upscaler_name = next(
+            artifact["repository"].rsplit("/", 1)[-1]
+            for artifact in recipe["artifacts"]
+            if artifact["id"] == "spatial-upscaler"
+        )
+        expected = self._upscaler(upscaler_name)
+        gemma = self.root / "gemma"
+        gemma.mkdir()
+        self.module._link_gemma(gemma)
+        command = self.module._pipeline_command(
+            self._target("ltx-2.3-22b-distilled-1.1.safetensors"),
+            gemma,
+            self.root / "output.mp4",
+            7,
+            "Operator supplied prompt",
+        )
+        self.assertEqual(
+            upscaler_name, "ltx-2.3-spatial-upscaler-x2-1.1.safetensors"
+        )
+        self.assertEqual(
+            command[command.index("--spatial-upsampler-path") + 1], str(expected)
+        )
+
+    def test_prompt_file_is_required_bounded_utf8_and_read_before_models(self) -> None:
+        with self.assertRaisesRegex(SystemExit, "exactly one regular"):
+            self.module._load_prompt()
+        self.prompt_path.write_text(
+            "  Snow, wind, and footsteps.  ", encoding="utf-8"
+        )
+        self.assertEqual(self.module._load_prompt(), "Snow, wind, and footsteps.")
+        (self.module.INPUT_ROOT / "extra.txt").write_text("extra", encoding="utf-8")
+        with self.assertRaisesRegex(SystemExit, "exactly one regular"):
+            self.module._load_prompt()
+        (self.module.INPUT_ROOT / "extra.txt").unlink()
+        self.prompt_path.write_bytes(b"\xff")
+        with self.assertRaisesRegex(SystemExit, "valid UTF-8"):
+            self.module._load_prompt()
+
         source = ADAPTER_PATH.read_text(encoding="utf-8")
-        self.assertIn('if not {"video", "audio"}.issubset(streams):', source)
-        self.assertIn("ffprobe", source)
-        self.assertIn("ltx-synchronized.mp4", source)
+        self.assertLess(
+            source.index("prompt = _load_prompt()"), source.rindex("_target_checkpoint()")
+        )
+        self.assertNotIn("VONK_PROMPT", source)
+
+    def test_export_requires_exact_synchronized_media_before_publication(self) -> None:
+        output = self.root / "output.mp4"
+        output.write_bytes(b"fixture")
+        probe = {
+            "format": {"format_name": "mov,mp4,m4a,3gp,3g2,mj2"},
+            "streams": [
+                {
+                    "codec_type": "video",
+                    "codec_name": "h264",
+                    "width": 768,
+                    "height": 512,
+                    "avg_frame_rate": "24/1",
+                    "nb_read_frames": "65",
+                    "duration": "2.708333",
+                },
+                {
+                    "codec_type": "audio",
+                    "codec_name": "aac",
+                    "sample_rate": "24000",
+                    "channels": 2,
+                    "duration": "2.708333",
+                },
+            ],
+        }
+        completed = types.SimpleNamespace(stdout=json.dumps(probe))
+        with mock.patch.object(
+            self.module.subprocess, "run", return_value=completed
+        ) as run:
+            self.module._verify_synchronized_mp4(
+                output, 3600, audio_sample_rate=24_000
+            )
+        self.assertIn("-count_frames", run.call_args.args[0])
+
+        probe["streams"][0]["codec_name"] = "hevc"
+        with mock.patch.object(
+            self.module.subprocess,
+            "run",
+            return_value=types.SimpleNamespace(stdout=json.dumps(probe)),
+        ), self.assertRaisesRegex(SystemExit, "video properties changed"):
+            self.module._verify_synchronized_mp4(
+                output, 3600, audio_sample_rate=24_000
+            )
+
+        source = ADAPTER_PATH.read_text(encoding="utf-8")
+        self.assertLess(source.index("_verify_synchronized_mp4("), source.rindex("os.replace("))
+        self.assertIn(".ltx-synchronized.partial.mp4", source)
+        self.assertEqual(
+            self.module._expected_audio_sample_rate(
+                Path("ltx-2.3-22b-distilled-1.1.safetensors")
+            ),
+            48_000,
+        )
+        self.assertEqual(
+            self.module._expected_audio_sample_rate(
+                Path("ltx-2-19b-distilled.safetensors")
+            ),
+            24_000,
+        )
 
 
 if __name__ == "__main__":

@@ -1,16 +1,20 @@
 {
   "schema_version": 1,
-  "identity": "comfyui-core/qwen-image-edit-2511-bf16@2",
+  "identity": "comfyui-core/qwen-image-edit-2511-bf16@3",
   "upstream_template": "https://github.com/Comfy-Org/workflow_templates/blob/2ded761bde3af3b4c8e905e162f45551cbec12ea/templates/image_qwen_image_edit_2511.json",
-  "snapshot_models": [
-    {"artifact_id": "weights", "category": "diffusion_models", "filename": "qwen_image_edit_2511_bf16.safetensors", "mode": "merge-safetensors", "glob": "transformer/*.safetensors"},
-    {"artifact_id": "weights", "category": "text_encoders", "filename": "qwen_2.5_vl_7b_bf16.safetensors", "mode": "merge-safetensors", "glob": "text_encoder/*.safetensors"},
-    {"artifact_id": "weights", "category": "vae", "filename": "qwen_image_vae.safetensors", "mode": "link", "path": "vae/diffusion_pytorch_model.safetensors"}
+  "models": [
+    {"artifact_id": "target", "category": "diffusion_models", "filename": "qwen_image_edit_2511_bf16.safetensors"},
+    {"artifact_id": "text-encoder", "category": "text_encoders", "filename": "qwen_2.5_vl_7b_fp8_scaled.safetensors"},
+    {"artifact_id": "vae", "category": "vae", "filename": "qwen_image_vae.safetensors"}
   ],
-  "inputs": {"minimum": 2, "maximum": 2},
+  "inputs": {"minimum": 1, "maximum": 2, "slot": "image", "placeholder_count": 2},
+  "text_inputs": {
+    "prompt": {"required": true, "slot": "prompt", "maximum_bytes": 16384, "maximum_characters": 4096},
+    "negative_prompt": {"required": false, "maximum_characters": 4096}
+  },
   "prompt": {
     "1": {"class_type": "UNETLoader", "inputs": {"unet_name": "qwen_image_edit_2511_bf16.safetensors", "weight_dtype": "default"}},
-    "2": {"class_type": "CLIPLoader", "inputs": {"clip_name": "qwen_2.5_vl_7b_bf16.safetensors", "type": "qwen_image", "device": "default"}},
+    "2": {"class_type": "CLIPLoader", "inputs": {"clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors", "type": "qwen_image", "device": "default"}},
     "3": {"class_type": "VAELoader", "inputs": {"vae_name": "qwen_image_vae.safetensors"}},
     "4": {"class_type": "ModelSamplingAuraFlow", "inputs": {"model": ["1", 0], "shift": 3.1}},
     "5": {"class_type": "CFGNorm", "inputs": {"model": ["4", 0], "strength": 1.0, "pre_cfg": false}},

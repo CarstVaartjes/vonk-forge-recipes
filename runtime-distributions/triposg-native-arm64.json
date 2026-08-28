@@ -30,7 +30,7 @@
   "dependencies": [
     {"name": "PyTorch", "version": "2.13.0+cu132", "source": "https://download.pytorch.org/whl/cu132", "license": "BSD-3-Clause"},
     {"name": "TorchVision", "version": "0.28.0+cu132", "source": "https://download.pytorch.org/whl/cu132", "license": "BSD-3-Clause"},
-    {"name": "DiffDMC", "version": "0.1.4", "source": "https://pypi.org/project/diso/0.1.4/", "license": "Apache-2.0"},
+    {"name": "DiffDMC", "version": "0.1.4", "source": "https://pypi.org/project/diso/0.1.4/", "license": "CC-BY-NC-4.0"},
     {"name": "Diffusers", "version": "0.40.0", "source": "https://pypi.org/project/diffusers/0.40.0/", "license": "Apache-2.0"},
     {"name": "Transformers", "version": "5.15.1", "source": "https://pypi.org/project/transformers/5.15.1/", "license": "Apache-2.0"},
     {"name": "Einops", "version": "0.8.2", "source": "https://pypi.org/project/einops/0.8.2/", "license": "MIT"},

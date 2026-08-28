@@ -4,9 +4,35 @@
     "publisher": "vonk-forge",
     "slug": "flux-2-klein-4b-comfyui-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.0.3",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.0.3",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "573f46aec697f3504695a5a3f5bc2e2f56b8e0ace4b76a2e822f1496d8ed7912",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Added signed prompt and PNG output slots to the core ComfyUI job.",
+          "details": "The shared adapter now resolves a bounded UTF-8 prompt file from its signed manifest while preserving the legacy VONK_PROMPT fallback."
+        }
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "a30b6376eacd8c8c0935ee7939f0c5534972f0bf9e03cce6e95e9d90e8b4ce21",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Hardened shared ComfyUI job result selection.",
+          "details": "Jobs now fail closed on missing, empty, multiple, or unexpected media outputs before atomically publishing one declared result."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",

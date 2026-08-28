@@ -4,9 +4,37 @@
     "publisher": "vonk-forge",
     "slug": "triposg-pytorch-single"
   },
-  "version": "2.0.1",
-  "released_at": "2026-08-26",
+  "version": "2.0.3",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "2.0.3",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "9d5706094292adb20aa0cfb35d2413be6a24046abc86edb1e3d00ccd7e87b01e",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Replaced header-only output checks with bounded semantic triangle-mesh validation before atomic GLB publication."
+        }
+      ]
+    },
+    {
+      "version": "2.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "18f8339c0559d25efe2b48aee18a0e9dabe253d92f758b21e8308a49a3e5d137",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Corrected the pinned diso 0.1.4 DiffDMC dependency license from Apache-2.0 to its published CC-BY-NC-4.0 license."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Declared exact one-image input and single-GLB output slots with bounded bytes."
+        }
+      ]
+    },
     {
       "version": "2.0.1",
       "released_at": "2026-08-26",

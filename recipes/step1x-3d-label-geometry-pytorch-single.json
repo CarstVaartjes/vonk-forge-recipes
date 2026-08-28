@@ -36,8 +36,8 @@
   "build": {
     "context": {
       "path": "adapters/three-d/step1x-3d",
-      "sha256": "8147adab979514f9cf4dd1eb4508e87b17ad26a1e750bca78ba6d776dd66d176",
-      "expected_bytes": 20480,
+      "sha256": "644001157fdff2bd6852f7633730353b97c5aaee70f03002805102031df06672",
+      "expected_bytes": 81920,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -116,7 +116,7 @@
       "kind": "runtime-distribution",
       "publisher": "stepfun-ai",
       "slug": "step1x-3d-arm64",
-      "content_sha256": "e4c938de239fcb2b52f0b0cc85f542a0c5082aeebb3932570f217673b25002f3"
+      "content_sha256": "d3fa8a696abcd00436c0166e9db6b3a4026d4fd96aaf3cf6b1fa42cb4082211a"
     },
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"
@@ -249,7 +249,25 @@
           "image/png",
           "image/webp"
         ],
-        "max_bytes": 16777216
+        "max_bytes": 16777216,
+        "slots": [
+          {
+            "id": "image",
+            "label": "Source image",
+            "description": "One object image used to generate label-controlled geometry.",
+            "media_types": ["image/jpeg", "image/png", "image/webp"],
+            "extensions": [".jpeg", ".jpg", ".png", ".webp"],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 16777216,
+            "max_total_bytes": 16777216
+          }
+        ]
+      },
+      "output": {
+        "path": "/outputs",
+        "max_total_bytes": 536870912,
+        "slots": [{"id": "mesh", "label": "Generated mesh", "description": "The generated label-controlled Step1X binary glTF mesh.", "media_types": ["model/gltf-binary"], "extensions": [".glb"], "min_files": 1, "max_files": 1, "max_file_bytes": 536870912, "max_total_bytes": 536870912}]
       }
     }
   ],

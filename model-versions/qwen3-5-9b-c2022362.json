@@ -22,7 +22,7 @@
     "kind": "model",
     "publisher": "qwen",
     "slug": "qwen3-5-9b",
-    "content_sha256": "ea6872246d0b8c7de0223527cac6f9a92ea5a992d2fd4a4763f0cacfea5fb35f"
+    "content_sha256": "231e57f405bd9857208be09421260730934fa150015306e70b52f97695661d39"
   },
   "version": "c2022362",
   "source": {
@@ -36,7 +36,7 @@
       "kind": "model",
       "publisher": "qwen",
       "slug": "qwen3-5-9b",
-      "content_sha256": "ea6872246d0b8c7de0223527cac6f9a92ea5a992d2fd4a4763f0cacfea5fb35f"
+      "content_sha256": "231e57f405bd9857208be09421260730934fa150015306e70b52f97695661d39"
     },
     "derivation": "Official Qwen3.5-9B Hugging Face checkpoint."
   },

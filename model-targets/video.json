@@ -7,9 +7,28 @@
   },
   "metadata": {
     "title": "Video generation and understanding targets",
-    "updated": "2026-08-25"
+    "updated": "2026-08-28"
   },
   "targets": [
+    {
+      "modality": "video",
+      "group": "LTX",
+      "model": "LTX-2.5",
+      "version": "22B distilled BF16 Diffusers 426936f8",
+      "status": "candidate",
+      "source": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc",
+      "harnesses": [
+        "diffusers"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "ltx-2-5-22b-distilled-bf16-diffusers-single"
+      ],
+      "notes": "Exact gated filtered snapshot, pinned Diffusers 0.40 source, convolutional VAE, deterministic eight-sigma AV export, BF16 and FP8 layerwise-cast offload profiles; authenticated install and physical GB10 qualification remain pending.",
+      "catalog_model_version": "ltx-2-5-22b-distilled-bf16-diffusers"
+    },
     {
       "modality": "video",
       "group": "Wan 2.2",

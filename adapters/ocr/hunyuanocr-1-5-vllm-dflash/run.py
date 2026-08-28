@@ -53,40 +53,65 @@ def safe_input(name: object) -> Path:
     return candidate
 
 
+def manifest_inputs() -> tuple[list[Path], Path | None]:
+    manifest_path = INPUTS / "manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise SystemExit("missing or invalid signed input manifest") from error
+    files = manifest.get("files") if isinstance(manifest, dict) else None
+    if not isinstance(files, list):
+        raise SystemExit("signed input manifest files are invalid")
+    documents: list[Path] = []
+    configs: list[Path] = []
+    for item in files:
+        if not isinstance(item, dict):
+            raise SystemExit("signed input manifest entry is invalid")
+        name = item.get("name")
+        slot = item.get("slot")
+        if not isinstance(name, str) or Path(name).name != name:
+            raise SystemExit("signed input manifest contains an unsafe name")
+        candidate = INPUTS / name
+        if candidate.is_symlink() or not candidate.is_file():
+            raise SystemExit("signed input file is unavailable")
+        if slot == "document":
+            documents.append(safe_input(name))
+        elif slot == "config" and candidate.suffix.lower() == ".json":
+            configs.append(candidate)
+        else:
+            raise SystemExit("signed input manifest contains an unexpected slot")
+    if not 1 <= len(documents) <= 31 or len(configs) > 1:
+        raise SystemExit("OCR requires 1..31 documents and at most one config")
+    return sorted(documents), configs[0] if configs else None
+
+
 def read_job() -> tuple[list[Path], str, int]:
-    manifest_path = INPUTS / "job.json"
-    if manifest_path.is_file() and not manifest_path.is_symlink():
+    manifest_images, config_path = manifest_inputs()
+    if config_path is not None:
         try:
-            document = json.loads(manifest_path.read_text(encoding="utf-8"))
+            document = json.loads(config_path.read_text(encoding="utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as error:
-            raise SystemExit("job.json must be UTF-8 JSON") from error
+            raise SystemExit("OCR config must be UTF-8 JSON") from error
         if not isinstance(document, dict) or set(document) - {
             "images",
             "task_type",
             "max_tokens",
         }:
-            raise SystemExit("job.json has unsupported fields")
+            raise SystemExit("OCR config has unsupported fields")
         names = document.get("images")
         if (
             not isinstance(names, list)
-            or not 1 <= len(names) <= 32
+            or not 1 <= len(names) <= 31
             or len(set(map(str, names))) != len(names)
         ):
-            raise SystemExit("job.json images must contain 1..32 unique filenames")
+            raise SystemExit("OCR config images must contain 1..31 unique filenames")
         images = [safe_input(name) for name in names]
+        if {item.name for item in images} != {item.name for item in manifest_images}:
+            raise SystemExit("OCR config images must match the document slot")
         task_type = document.get("task_type", "doc_parse")
         max_tokens = document.get("max_tokens", 32768)
     else:
-        images = sorted(
-            candidate
-            for candidate in INPUTS.iterdir()
-            if candidate.is_file()
-            and not candidate.is_symlink()
-            and candidate.suffix.lower() in IMAGE_SUFFIXES
-        )
-        if not 1 <= len(images) <= 32:
-            raise SystemExit("provide 1..32 document images, optionally selected by job.json")
-        images = [safe_input(candidate.name) for candidate in images]
+        images = manifest_images
         task_type = "doc_parse"
         max_tokens = 32768
     if task_type not in OUTPUT_SUFFIXES:
@@ -319,8 +344,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.entrypoint != "/opt/vonk/source/run.py":
         raise SystemExit("unexpected signed adapter entrypoint")
-    if args.output_mime != "application/octet-stream":
-        raise SystemExit("HunyuanOCR emits an application/octet-stream ZIP bundle")
+    if args.output_mime != "application/zip":
+        raise SystemExit("HunyuanOCR emits an application/zip bundle")
     if args.seed != 0:
         raise SystemExit("HunyuanOCR uses deterministic greedy decoding; seed must be zero")
 

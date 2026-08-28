@@ -26,7 +26,7 @@
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen3-8-27b-fp8-017b9c7a",
-    "content_sha256": "db83db3b9b4326fe27044aa9390a7cfd90f5703621c2b1546c517ee6dfea2d2e"
+    "content_sha256": "5b0e052e251d6a38e028d755c7c8ea7380d594ce70fa453b9a80db56521ab15f"
   },
   "execution": {
     "harness": {
@@ -39,8 +39,8 @@
   },
   "build": {
     "context": {
-      "path": "adapters/llm/vllm-openai",
-      "sha256": "0b286a9510e765cab3e9e061e48132797b635a8c092695c8db9b5930b5672bfe",
+      "path": "adapters/llm/vllm-openai-028",
+      "sha256": "1c04ac63234fc02ded9a3ce23cee001d342729a0b65f58282104a5c14ebbd355",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -52,8 +52,8 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 26912423266,
-      "temporary_bytes": 32758575290,
+      "download_bytes": 40591545320,
+      "temporary_bytes": 61780099194,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
     }
@@ -65,8 +65,8 @@
       "kind": "huggingface.snapshot",
       "repository": "Qwen/Qwen3.8-27B-FP8",
       "revision": "017b9c7af6b5689d5dd426a76e0bc077eb5ca20a",
-      "download_bytes": 16379287645,
-      "installed_bytes": 16379287645,
+      "download_bytes": 30890049597,
+      "installed_bytes": 30890049597,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -80,8 +80,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "vllm",
-      "slug": "vllm-0-27-1-nvidia-arm64",
-      "content_sha256": "95b0467cb73eeabfe8fd0c4f5f5e4f19a935b6bca3d56ed4bb6fc888470eca4a"
+      "slug": "vllm-0-28-0-nvidia-arm64",
+      "content_sha256": "15c98035c9bbba7ec61d25acd93c3c34b0516754c299813e5f51344e858abd2d"
     },
     "entrypoint": [
       "/opt/vonk/bin/vllm",
@@ -100,6 +100,14 @@
       {
         "name": "max-num-seqs",
         "value": 4
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "value": 8192
+      },
+      {
+        "name": "max-cudagraph-capture-size",
+        "value": 8
       },
       {
         "name": "gpu-memory-utilization",
@@ -183,8 +191,8 @@
         "resources": {
           "disk": {
             "image_bytes": 12000000000,
-            "artifact_bytes": 16379287645,
-            "staging_bytes": 32758575290,
+            "artifact_bytes": 30890049597,
+            "staging_bytes": 61780099194,
             "cache_bytes": 4000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000

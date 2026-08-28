@@ -34,7 +34,7 @@
   "build": {
     "context": {
       "path": "adapters/audio/hunyuan-video-foley-native",
-      "sha256": "65e7ca8e66f4dab2f3e142fdce0be12c1792644e3b6c17bcad6050927c7c7786",
+      "sha256": "48023fcfeeca43461cfd1d05dcf0d34de0a1bc8e7840ecd237a31a6eafc972b7",
       "expected_bytes": 20992000,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -248,9 +248,19 @@
           "video/mp4",
           "video/quicktime",
           "video/webm",
-          "video/x-matroska"
+          "video/x-matroska",
+          "text/plain"
         ],
-        "max_bytes": 536870912
+        "max_bytes": 536870912,
+        "slots": [
+          {"id": "prompt", "label": "Foley prompt", "description": "UTF-8 description of the desired synchronized sound.", "media_types": ["text/plain"], "extensions": [".txt"], "min_files": 1, "max_files": 1, "max_file_bytes": 65536, "max_total_bytes": 65536},
+          {"id": "video", "label": "Source video", "description": "One source video for Foley audio generation.", "media_types": ["video/mp4", "video/quicktime", "video/webm", "video/x-matroska"], "extensions": [".mkv", ".mov", ".mp4", ".webm"], "min_files": 1, "max_files": 1, "max_file_bytes": 536805376, "max_total_bytes": 536805376}
+        ]
+      },
+      "output": {
+        "path": "/outputs",
+        "max_total_bytes": 536870912,
+        "slots": [{"id": "audio", "label": "Foley audio", "description": "Generated synchronized WAV audio.", "media_types": ["audio/wav"], "extensions": [".wav"], "min_files": 1, "max_files": 1, "max_file_bytes": 536870912, "max_total_bytes": 536870912}]
       }
     }
   ],

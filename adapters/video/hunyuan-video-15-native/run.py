@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import argparse
-import os
+import json
 from pathlib import Path
 
 import torch
@@ -15,12 +15,44 @@ _IMAGE_SUFFIXES = frozenset({".jpeg", ".jpg", ".png", ".webp"})
 _MODEL_INDEX = Path("/models/model_index.json")
 
 
+def _slot_files(path: Path, slot: str) -> list[Path]:
+    manifest = path / "manifest.json"
+    try:
+        document = json.loads(manifest.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise SystemExit("missing or invalid signed input manifest") from error
+    files = document.get("files") if isinstance(document, dict) else None
+    if not isinstance(files, list):
+        raise SystemExit("signed input manifest files are invalid")
+    selected: list[Path] = []
+    for item in files:
+        if not isinstance(item, dict) or item.get("slot") != slot:
+            continue
+        name = item.get("name")
+        if not isinstance(name, str) or Path(name).name != name:
+            raise SystemExit("signed input manifest contains an unsafe name")
+        candidate = path / name
+        if candidate.is_symlink() or not candidate.is_file():
+            raise SystemExit("signed input file is unavailable")
+        selected.append(candidate)
+    return selected
+
+
+def _one_prompt(path: Path) -> str:
+    candidates = _slot_files(path, "prompt")
+    if len(candidates) != 1 or candidates[0].suffix.lower() != ".txt":
+        raise SystemExit("text/video inference requires one prompt text file")
+    try:
+        prompt = candidates[0].read_text(encoding="utf-8").strip()
+    except UnicodeDecodeError as error:
+        raise SystemExit("prompt text must be UTF-8") from error
+    if not 1 <= len(prompt.encode("utf-8")) <= 65536:
+        raise SystemExit("prompt text must contain 1..65536 UTF-8 bytes")
+    return prompt
+
+
 def _one_image(path: Path) -> Image.Image:
-    candidates = sorted(
-        item
-        for item in path.iterdir()
-        if item.is_file() and item.suffix.lower() in _IMAGE_SUFFIXES
-    )
+    candidates = sorted(_slot_files(path, "image"))
     if len(candidates) != 1:
         raise SystemExit(
             "image-to-video requires exactly one supported file in /inputs"
@@ -78,6 +110,10 @@ def main() -> None:
             "complete pinned Diffusers snapshot is missing model_index.json"
         )
 
+    input_root = Path("/inputs")
+    prompt = _one_prompt(input_root)
+    image = _one_image(input_root) if args.pipeline == "image-to-image" else None
+
     pipeline_class = (
         HunyuanVideo15ImageToVideoPipeline
         if class_name == "HunyuanVideo15ImageToVideoPipeline"
@@ -97,18 +133,15 @@ def main() -> None:
     pipe.enable_model_cpu_offload()
     pipe.vae.enable_tiling()
 
-    prompt = os.environ.get(
-        "VONK_PROMPT", "A red fox walking through a quiet alpine meadow"
-    )
     call = {
         "prompt": prompt,
-        "negative_prompt": os.environ.get("VONK_NEGATIVE_PROMPT", ""),
+        "negative_prompt": "",
         "generator": torch.Generator(device="cuda:0").manual_seed(args.seed),
         "num_frames": 121,
         "num_inference_steps": args.num_inference_steps,
     }
     if args.pipeline == "image-to-image":
-        call["image"] = _one_image(Path("/inputs"))
+        call["image"] = image
 
     frames = pipe(**call).frames[0]
     args.output_dir.mkdir(parents=True, exist_ok=True)

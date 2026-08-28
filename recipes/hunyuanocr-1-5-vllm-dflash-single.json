@@ -45,7 +45,7 @@
   "build": {
     "context": {
       "path": "adapters/ocr/hunyuanocr-1-5-vllm-dflash",
-      "sha256": "3d26f95b07b3d1c0a9376bdc56bfa94016eef3d40ed987866e8c1220bee712d4",
+      "sha256": "345589a49af90632cab8a90901d617021196358db4d703706b48c60d8e55a672",
       "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -100,7 +100,7 @@
       },
       {
         "name": "output-mime",
-        "value": "application/octet-stream"
+        "value": "application/zip"
       },
       {
         "name": "timeout-seconds",
@@ -220,7 +220,16 @@
           "image/png",
           "image/webp"
         ],
-        "max_bytes": 1073741824
+        "max_bytes": 1040252928,
+        "slots": [
+          {"id": "document", "label": "Document images", "description": "One to 31 document images to recognize.", "media_types": ["image/jpeg", "image/png", "image/webp"], "extensions": [".jpeg", ".jpg", ".png", ".webp"], "min_files": 1, "max_files": 31, "max_file_bytes": 33554432, "max_total_bytes": 1040187392},
+          {"id": "config", "label": "OCR config", "description": "Optional UTF-8 JSON selecting document filenames, task type, and max tokens.", "media_types": ["application/json"], "extensions": [".json"], "min_files": 0, "max_files": 1, "max_file_bytes": 65536, "max_total_bytes": 65536}
+        ]
+      },
+      "output": {
+        "path": "/outputs",
+        "max_total_bytes": 536870912,
+        "slots": [{"id": "bundle", "label": "OCR bundle", "description": "ZIP bundle containing recognized documents and an evidence manifest.", "media_types": ["application/zip"], "extensions": [".zip"], "min_files": 1, "max_files": 1, "max_file_bytes": 536870912, "max_total_bytes": 536870912}]
       }
     }
   ],
@@ -229,7 +238,7 @@
       {
         "interface": "artifact-job",
         "checks": [
-          "artifact.mime.application-octet-stream"
+          "artifact.mime.application-zip"
         ]
       }
     ],

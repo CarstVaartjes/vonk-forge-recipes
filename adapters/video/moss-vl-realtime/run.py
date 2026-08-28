@@ -21,9 +21,10 @@ import torch
 from PIL import Image
 from transformers import AutoModelForCausalLM, AutoProcessor
 
+from input_contract import resolve_moss_inputs
+
 INPUTS = Path("/inputs")
 MODEL = Path("/models")
-MANIFEST = INPUTS / "session.json"
 ALLOWED_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 def fail(message: str) -> NoReturn:
     raise SystemExit(message)
@@ -59,9 +60,11 @@ def bounded_text(
     return value
 
 
-def safe_frame(name: Any) -> Path:
+def safe_frame(name: Any, authenticated_frames: frozenset[str]) -> Path:
     if not isinstance(name, str) or Path(name).name != name or len(name) > 132:
         fail("frame path must be a plain filename")
+    if name not in authenticated_frames:
+        fail(f"frame is not present in the authenticated frames slot: {name}")
     frame = INPUTS / name
     if (
         frame.suffix.lower() not in ALLOWED_IMAGE_SUFFIXES
@@ -83,10 +86,14 @@ def safe_frame(name: Any) -> Path:
 
 
 def load_manifest() -> tuple[dict[str, Any], list[dict[str, Any]]]:
-    if not MANIFEST.is_file() or MANIFEST.is_symlink() or MANIFEST.stat().st_size > 1024 * 1024:
-        fail("/inputs/session.json must be a regular manifest no larger than 1 MiB")
     try:
-        document = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        manifest, authenticated_frames = resolve_moss_inputs(INPUTS)
+    except ValueError as exc:
+        fail(str(exc))
+    if not manifest.is_file() or manifest.is_symlink() or manifest.stat().st_size > 1024 * 1024:
+        fail("the session slot must contain a regular manifest no larger than 1 MiB")
+    try:
+        document = json.loads(manifest.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         fail(f"invalid session.json: {exc}")
     if not isinstance(document, dict):
@@ -128,7 +135,7 @@ def load_manifest() -> tuple[dict[str, Any], list[dict[str, Any]]]:
                 fail("a session may contain at most 128 frames")
             if set(event) - {"type", "path", "timestamp", "at_seconds", "prompt"}:
                 fail(f"frame event {index} contains unsupported fields")
-            frame = safe_frame(event.get("path"))
+            frame = safe_frame(event.get("path"), authenticated_frames)
             timestamp = bounded_number(event, "timestamp", -1, 0, 86400)
             prompt = bounded_text(event, "prompt", "", required="prompt" in event)
             if timestamp < previous_timestamp:

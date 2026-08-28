@@ -39,7 +39,7 @@
   "build": {
     "context": {
       "path": "adapters/video/minimax-h3-modular-diffusers",
-      "sha256": "40839de5feb60348f90c8a80c28ce10642f3f1f332705b62cc194675fda0642b",
+      "sha256": "39fe3c3fef8171d9c1b1f48d51b5dd69f0966c3397487a6a873359048f9a147b",
       "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -109,7 +109,7 @@
       },
       {
         "name": "num-inference-steps",
-        "value": 4
+        "value": 31
       },
       {
         "name": "width",
@@ -226,7 +226,7 @@
       "path": "/outputs",
       "input": {
         "path": "/inputs",
-        "required": false,
+        "required": true,
         "media_types": [
           "application/json",
           "image/jpeg",
@@ -237,9 +237,121 @@
           "video/webm",
           "audio/flac",
           "audio/mpeg",
-          "audio/wav"
+          "audio/wav",
+          "text/plain"
         ],
-        "max_bytes": 1073741824
+        "max_bytes": 1073741824,
+        "slots": [
+          {
+            "id": "prompt",
+            "label": "Generation prompt",
+            "description": "Required UTF-8 text describing the desired video motion, camera, scene, and synchronized sound.",
+            "media_types": [
+              "text/plain"
+            ],
+            "extensions": [
+              ".txt"
+            ],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 16384,
+            "max_total_bytes": 16384
+          },
+          {
+            "id": "request",
+            "label": "Advanced options",
+            "description": "Optional request.json selecting profile, geometry, keyframes, and ordered multimodal references.",
+            "media_types": [
+              "application/json"
+            ],
+            "extensions": [
+              ".json"
+            ],
+            "min_files": 0,
+            "max_files": 1,
+            "max_file_bytes": 65536,
+            "max_total_bytes": 65536
+          },
+          {
+            "id": "images",
+            "label": "Images and keyframes",
+            "description": "Optional first/last keyframes and ordered image references; at most nine images may be references.",
+            "media_types": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "extensions": [
+              ".jpeg",
+              ".jpg",
+              ".png",
+              ".webp"
+            ],
+            "min_files": 0,
+            "max_files": 11,
+            "max_file_bytes": 536870912,
+            "max_total_bytes": 1073741824
+          },
+          {
+            "id": "videos",
+            "label": "Video references",
+            "description": "Optional ordered video references declared in request.json.",
+            "media_types": [
+              "video/mp4",
+              "video/quicktime",
+              "video/webm"
+            ],
+            "extensions": [
+              ".mov",
+              ".mp4",
+              ".webm"
+            ],
+            "min_files": 0,
+            "max_files": 3,
+            "max_file_bytes": 536870912,
+            "max_total_bytes": 1073741824
+          },
+          {
+            "id": "audio",
+            "label": "Audio references",
+            "description": "Optional ordered audio references; request.json must also name an image or video reference.",
+            "media_types": [
+              "audio/flac",
+              "audio/mpeg",
+              "audio/wav"
+            ],
+            "extensions": [
+              ".flac",
+              ".mp3",
+              ".wav"
+            ],
+            "min_files": 0,
+            "max_files": 3,
+            "max_file_bytes": 536870912,
+            "max_total_bytes": 1073741824
+          }
+        ]
+      },
+      "output": {
+        "path": "/outputs",
+        "max_total_bytes": 1073741824,
+        "slots": [
+          {
+            "id": "video",
+            "label": "Synchronized video",
+            "description": "Generated H.264/AAC MP4 with requested 32-multiple geometry and 120..345 frames at 24 fps, plus synchronized 32 kHz stereo audio.",
+            "media_types": [
+              "video/mp4"
+            ],
+            "extensions": [
+              ".mp4"
+            ],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 1073741824,
+            "max_total_bytes": 1073741824
+          }
+        ]
       }
     }
   ],
@@ -254,10 +366,34 @@
     ],
     "benchmarks": [
       {
-        "name": "bounded-startup",
+        "name": "smoke-only-startup",
         "framework": "diffusers",
         "configuration": {
+          "profile": "smoke-only",
+          "sigma_grid_points": 4,
+          "model_evaluations": 3,
+          "smoke_only": true,
           "timeout_seconds": 14400
+        }
+      },
+      {
+        "name": "balanced-generation",
+        "framework": "diffusers",
+        "configuration": {
+          "profile": "balanced",
+          "sigma_grid_points": 31,
+          "model_evaluations": 30,
+          "timeout_seconds": 28800
+        }
+      },
+      {
+        "name": "qualification-reference",
+        "framework": "diffusers",
+        "configuration": {
+          "profile": "qualification-reference",
+          "sigma_grid_points": 51,
+          "model_evaluations": 50,
+          "timeout_seconds": 43200
         }
       }
     ]

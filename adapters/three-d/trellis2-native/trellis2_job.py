@@ -9,6 +9,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from glb_validation import normalize_glb_json_padding, validate_mesh_glb
 
 SUPPORTED_SUFFIXES = {".jpeg", ".jpg", ".png", ".webp"}
 
@@ -65,16 +66,15 @@ def main() -> None:
     os.environ.setdefault("SPARSE_ATTN_BACKEND", "sdpa")
     os.environ.setdefault("SPARSE_CONV_BACKEND", "flex_gemm")
 
-    from PIL import Image, ImageOps
     import o_voxel
-    from trellis2.pipelines import Trellis2ImageTo3DPipeline
-    from trellis2.pipelines import rembg
+    from PIL import Image, ImageOps
+    from trellis2.pipelines import Trellis2ImageTo3DPipeline, rembg
 
     class NoBackgroundModel:
         def __init__(self, **_: object) -> None:
             pass
 
-        def to(self, _: object) -> "NoBackgroundModel":
+        def to(self, _: object) -> NoBackgroundModel:
             return self
 
         cuda = to
@@ -116,6 +116,12 @@ def main() -> None:
         args.output_dir.mkdir(parents=True, exist_ok=True)
         temporary = args.output_dir / ".output.tmp.glb"
         glb.export(temporary, extension_webp=True)
+        normalize_glb_json_padding(temporary)
+        try:
+            validate_mesh_glb(temporary, profile="textured-pbr")
+        except ValueError as exc:
+            temporary.unlink(missing_ok=True)
+            raise SystemExit(f"TRELLIS.2 produced an invalid GLB artifact: {exc}") from exc
         os.replace(temporary, args.output_dir / "output.glb")
     finally:
         shutil.rmtree(model_root, ignore_errors=True)

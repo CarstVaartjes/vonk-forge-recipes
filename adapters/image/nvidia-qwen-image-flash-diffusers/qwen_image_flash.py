@@ -1,8 +1,35 @@
 from __future__ import annotations
 
 import argparse
-import os
 from pathlib import Path
+
+_INPUT_DIR = Path("/inputs")
+_PROMPT_SUFFIXES = frozenset({".txt", ".text"})
+_MAX_PROMPT_BYTES = 16 * 1024
+
+
+def _prompt() -> str:
+    if not _INPUT_DIR.is_dir():
+        raise SystemExit("the read-only /inputs job mount is required")
+    prompt_files = sorted(
+        path
+        for path in _INPUT_DIR.iterdir()
+        if path.is_file() and path.suffix.lower() in _PROMPT_SUFFIXES
+    )
+    if len(prompt_files) != 1:
+        raise SystemExit(
+            "exactly one UTF-8 text prompt input (.txt or .text) is required"
+        )
+    raw = prompt_files[0].read_bytes()
+    if not raw or len(raw) > _MAX_PROMPT_BYTES:
+        raise SystemExit("the text prompt must contain 1..16384 UTF-8 bytes")
+    try:
+        prompt = raw.decode("utf-8").strip()
+    except UnicodeDecodeError as error:
+        raise SystemExit("the text prompt must be valid UTF-8") from error
+    if not prompt:
+        raise SystemExit("the text prompt must not be blank")
+    return prompt
 
 
 def main() -> None:
@@ -22,17 +49,16 @@ def main() -> None:
     if args.output_mime != "image/png":
         raise SystemExit("NVIDIA Qwen Image Flash emits image/png only")
     if args.num_inference_steps != 4:
-        raise SystemExit("NVIDIA Qwen Image Flash requires its packaged four-step schedule")
+        raise SystemExit(
+            "NVIDIA Qwen Image Flash requires its packaged four-step schedule"
+        )
     if args.width % 16 or args.height % 16:
         raise SystemExit("width and height must be divisible by 16")
 
     import torch
     from diffusers import QwenImagePipeline
 
-    prompt = os.environ.get(
-        "VONK_PROMPT",
-        "A red fox in a snowy pine forest at golden hour, photorealistic, sharp focus, soft bokeh",
-    )
+    prompt = _prompt()
     pipe = QwenImagePipeline.from_pretrained(
         "/models",
         dtype=torch.bfloat16,

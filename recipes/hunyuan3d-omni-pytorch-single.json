@@ -22,7 +22,7 @@
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "hunyuan3d-omni",
-    "content_sha256": "2144ec484ed8923149be6756fdc8ec55626493676c8ee2ef73eaa6fc8309743f"
+    "content_sha256": "9941c419b61805e392f6d9cb9c901292895bb9f637fb6b8dd0dfd5fad9f5c188"
   },
   "execution": {
     "harness": {
@@ -36,8 +36,8 @@
   "build": {
     "context": {
       "path": "adapters/three-d/hunyuan3d-omni",
-      "sha256": "02a547965aedb0c9ddb2318b762c4c68fc207a477ad572993e12ad309d7299f5",
-      "expected_bytes": 10240,
+      "sha256": "f458c1fe53b940fc943bc49fa00bbaccb7842a009072c2ba290b1bc09ab1dec5",
+      "expected_bytes": 71680,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -57,8 +57,8 @@
       ]
     },
     "resources": {
-      "download_bytes": 34000000000,
-      "temporary_bytes": 60000000000,
+      "download_bytes": 36435137457,
+      "temporary_bytes": 63000000000,
       "memory_bytes": 16000000000,
       "timeout_seconds": 14400
     }
@@ -66,14 +66,29 @@
   "parameters": [],
   "artifacts": [
     {
-      "id": "weights",
+      "id": "target",
       "kind": "huggingface.snapshot",
       "repository": "tencent/Hunyuan3D-Omni",
       "revision": "70e803bfb4e127d534049d8ab8c8cb511780d485",
       "download_bytes": 25729134701,
       "installed_bytes": 25729134701,
       "mount": {
-        "target": "/models",
+        "target": "/models/target",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "dinov2-large",
+      "kind": "huggingface.snapshot",
+      "repository": "facebook/dinov2-large",
+      "revision": "47b73eefe95e8d44ec3623f8890bd894b6ea2d6c",
+      "download_bytes": 2435137457,
+      "installed_bytes": 2435137457,
+      "mount": {
+        "target": "/models/dinov2-large",
         "read_only": true
       },
       "roles": [
@@ -166,13 +181,14 @@
         "count": 1,
         "endpoint_owner": true,
         "artifacts": [
-          "weights"
+          "target",
+          "dinov2-large"
         ],
         "resources": {
           "disk": {
             "image_bytes": 12000000000,
-            "artifact_bytes": 25729134701,
-            "staging_bytes": 51458269402,
+            "artifact_bytes": 28164272158,
+            "staging_bytes": 56328544316,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
@@ -218,10 +234,63 @@
           "image/png",
           "image/webp",
           "model/gltf-binary",
+          "model/gltf+json",
           "model/obj",
           "model/ply"
         ],
-        "max_bytes": 268435456
+        "max_bytes": 268435456,
+        "slots": [
+          {
+            "id": "job",
+            "label": "Control manifest",
+            "description": "Optional job.json selecting the image and Omni control mode.",
+            "media_types": ["application/json"],
+            "extensions": [".json"],
+            "min_files": 0,
+            "max_files": 1,
+            "max_file_bytes": 16384,
+            "max_total_bytes": 16384
+          },
+          {
+            "id": "image",
+            "label": "Source image",
+            "description": "One object image used to generate the mesh.",
+            "media_types": ["image/jpeg", "image/png", "image/webp"],
+            "extensions": [".jpeg", ".jpg", ".png", ".webp"],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 16777216,
+            "max_total_bytes": 16777216
+          },
+          {
+            "id": "control",
+            "label": "Control geometry",
+            "description": "Optional GLB, glTF, OBJ, or PLY geometry for point-cloud or voxel conditioning.",
+            "media_types": ["model/gltf-binary", "model/gltf+json", "model/obj", "model/ply"],
+            "extensions": [".glb", ".gltf", ".obj", ".ply"],
+            "min_files": 0,
+            "max_files": 1,
+            "max_file_bytes": 251641856,
+            "max_total_bytes": 251641856
+          }
+        ]
+      },
+      "output": {
+        "path": "/outputs",
+        "max_total_bytes": 536870912,
+        "slots": [
+          {
+            "id": "mesh",
+            "label": "Generated mesh",
+            "description": "The generated Hunyuan binary glTF mesh.",
+            "media_types": ["model/gltf-binary"],
+            "extensions": [".glb"],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 536870912,
+            "max_total_bytes": 536870912
+          }
+        ]
       }
     }
   ],
@@ -248,7 +317,8 @@
     "source_kind": "global",
     "source_reference": "https://huggingface.co/tencent/Hunyuan3D-Omni/tree/70e803bfb4e127d534049d8ab8c8cb511780d485",
     "attribution": [
-      "tencent"
+      "tencent",
+      "Meta DINOv2 contributors"
     ]
   }
 }

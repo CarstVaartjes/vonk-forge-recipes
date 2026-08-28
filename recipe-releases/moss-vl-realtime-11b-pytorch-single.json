@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "moss-vl-realtime-11b-pytorch-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.1.0",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "f67fcf526ca23c23fab7a74e15e92c0a841cf1065e38ac1d4c8909899583c8e5",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Added typed session and frame slots to the one-shot job contract.",
+          "details": "The adapter now discovers arbitrary controller-authenticated input names through /inputs/manifest.json, verifies every declared file and rejects unmanifested inputs. The contract reserves one bounded JSON session plus up to 31 bounded image frames within the platform's 32-file transport fence, and declares the MP4 replay and JSONL transcript as typed outputs."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",

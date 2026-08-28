@@ -4,9 +4,41 @@
     "publisher": "vonk-forge",
     "slug": "step1x-3d-geometry-pytorch-single"
   },
-  "version": "1.2.0",
-  "released_at": "2026-08-24",
+  "version": "1.2.2",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.2.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "d1fc53b506cc1a1f851c93389538aa1d16136bf0209b9502872caf3929fbcc26",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Validated reachable finite nondegenerate indexed triangle geometry before atomically publishing each GLB."
+        }
+      ]
+    },
+    {
+      "version": "1.2.1",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "a769c07a3279a65cc91ef59d96342dae163dd12f1bf0bb48a22d3016a0933e4d",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Postponed mesh annotations and made every pymeshlab use lazy so the geometry pipeline imports without the unavailable ARM64 wheel."
+        },
+        {
+          "kind": "runtime",
+          "summary": "Pinned exact CUDA 13 CPython 3.12 ARM64 wheels for CuPy and fastrlock and added geometry and texture import smoke tests."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Declared exact one-image input and single-GLB output slots with bounded bytes."
+        }
+      ]
+    },
     {
       "version": "1.2.0",
       "released_at": "2026-08-24",

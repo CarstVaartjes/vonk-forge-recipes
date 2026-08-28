@@ -33,7 +33,7 @@
   "build": {
     "context": {
       "path": "adapters/image/nvidia-qwen-image-flash-diffusers",
-      "sha256": "f7d05e5d714d8079b06472e9b32e422beed8d3482bf57bc775d43dc25a43a8d0",
+      "sha256": "fa7655947cf62c27613c505f8451cb961882611c7a04bb60c825d042f212783b",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -143,6 +143,11 @@
           "read_only": true
         },
         {
+          "source": "inputs",
+          "target": "/inputs",
+          "read_only": true
+        },
+        {
           "source": "outputs",
           "target": "/outputs",
           "read_only": false
@@ -187,8 +192,8 @@
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 32000000000,
-            "steady_state_bytes": 24000000000,
+            "startup_peak_bytes": 118000000000,
+            "steady_state_bytes": 98000000000,
             "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
@@ -216,7 +221,19 @@
   "interfaces": [
     {
       "adapter": "image-job",
-      "path": "/outputs"
+      "path": "/outputs",
+      "input": {
+        "path": "/inputs",
+        "required": true,
+        "media_types": [
+          "text/plain"
+        ],
+        "max_bytes": 16384,
+        "slots": [
+          {"id": "prompt", "label": "Prompt", "description": "UTF-8 text prompt for image generation.", "media_types": ["text/plain"], "extensions": [".txt"], "min_files": 1, "max_files": 1, "max_file_bytes": 16384, "max_total_bytes": 16384}
+        ]
+      },
+      "output": {"path": "/outputs", "max_total_bytes": 16777216, "slots": [{"id": "image", "label": "Generated image", "description": "Single generated PNG image.", "media_types": ["image/png"], "extensions": [".png"], "min_files": 1, "max_files": 1, "max_file_bytes": 16777216, "max_total_bytes": 16777216}]}
     }
   ],
   "validation": {

@@ -157,8 +157,13 @@
         "path": "/inputs",
         "required": true,
         "media_types": ["text/plain", "image/jpeg", "image/png", "image/webp"],
-        "max_bytes": 16793600
-      }
+        "max_bytes": 33570816,
+        "slots": [
+          {"id": "prompt", "label": "Prompt", "description": "UTF-8 instructions describing the requested image edit.", "media_types": ["text/plain"], "extensions": [".txt"], "min_files": 1, "max_files": 1, "max_file_bytes": 16384, "max_total_bytes": 16384},
+          {"id": "image", "label": "Reference images", "description": "One or two source images to edit or combine.", "media_types": ["image/jpeg", "image/png", "image/webp"], "extensions": [".jpg", ".jpeg", ".png", ".webp"], "min_files": 1, "max_files": 2, "max_file_bytes": 16777216, "max_total_bytes": 33554432}
+        ]
+      },
+      "output": {"path": "/outputs", "max_total_bytes": 16777216, "slots": [{"id": "image", "label": "Edited image", "description": "Single edited PNG image.", "media_types": ["image/png"], "extensions": [".png"], "min_files": 1, "max_files": 1, "max_file_bytes": 16777216, "max_total_bytes": 16777216}]}
     }
   ],
   "validation": {

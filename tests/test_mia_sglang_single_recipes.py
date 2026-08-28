@@ -38,6 +38,17 @@ class MiaSglangSingleRecipeTests(unittest.TestCase):
     def test_ling_profile_binds_external_dspark_draft(self) -> None:
         recipe = load("recipes/ling-3-0-flash-dspark-sglang-single.json")
         self.assertEqual(
+            recipe["dependencies"],
+            [
+                {
+                    "kind": "model-version",
+                    "publisher": "inclusionai",
+                    "slug": "ling-3-0-flash-dspark-8e5d9988",
+                    "content_sha256": "8785c5e09b6f5ccda7b780a94926650593563f59cf640acf7ab7f83f3b799343",
+                }
+            ],
+        )
+        self.assertEqual(
             [artifact["id"] for artifact in recipe["artifacts"]],
             ["target", "draft"],
         )
@@ -57,6 +68,19 @@ class MiaSglangSingleRecipeTests(unittest.TestCase):
         self.assertIn("DSPARK", captured)
         self.assertIn("--enable-linear-replayssm-spec", captured)
 
+    def test_ling_target_ledger_uses_the_exact_int4_revision(self) -> None:
+        target_set = load("model-targets/language.json")
+        target = next(
+            item
+            for item in target_set["targets"]
+            if item["model"] == "Ling 3.0 Flash"
+        )
+        self.assertEqual(
+            target["source"],
+            "https://huggingface.co/inclusionAI/Ling-3.0-flash-int4/tree/7a27e9eb8179b2c2eb71eb214f0dab14ec6a63f2",
+        )
+        self.assertEqual(target["version"], "INT4 7a27e9eb + DSpark 8e5d9988")
+
     def test_qwen27_profile_binds_external_dspark_draft(self) -> None:
         recipe = load("recipes/qwen3-8-27b-nvfp4-dspark-sglang-single.json")
         self.assertEqual(recipe["topology"]["node_count"], 1)
@@ -65,7 +89,7 @@ class MiaSglangSingleRecipeTests(unittest.TestCase):
             [
                 "--model-path", "/models", "--served-model-name", "qwen3-8-27b",
                 "--tensor-parallel-size", "1", "--context-length", "262144",
-                "--mem-fraction-static", "0.90", "--host", "0.0.0.0", "--port", "30000",
+                "--mem-fraction-static", "0.80", "--host", "0.0.0.0", "--port", "30000",
             ],
         )
         self.assertEqual(captured[captured.index("--model-path") + 1], "/models/target")
@@ -73,7 +97,19 @@ class MiaSglangSingleRecipeTests(unittest.TestCase):
             captured[captured.index("--speculative-draft-model-path") + 1],
             "/models/draft",
         )
-        self.assertIn("EAGLE", captured)
+        self.assertEqual(
+            captured[captured.index("--speculative-algorithm") + 1],
+            "DSPARK",
+        )
+        self.assertEqual(
+            captured[captured.index("--speculative-dspark-block-size") + 1],
+            "7",
+        )
+        self.assertIn("--num-continuous-decode-steps", captured)
+        self.assertNotIn("--continuous-decode-steps", captured)
+        self.assertNotIn("--speculative-num-steps", captured)
+        self.assertNotIn("--speculative-eagle-topk", captured)
+        self.assertIn("--enable-torch-compile", captured)
         self.assertIn("--disable-prefill-cuda-graph", captured)
 
     def test_runtime_images_and_sources_are_immutable(self) -> None:

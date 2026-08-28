@@ -4,9 +4,37 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-3-22b-distilled-1-1-diffusers-single"
   },
-  "version": "2.0.1",
-  "released_at": "2026-08-26",
+  "version": "3.0.0",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "3.0.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "607ccdf9c88f4b03df5f76bb3091ecf4f096fe67cf5cf95f9d7981f28e983c22",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "breaking",
+          "summary": "Replaced the hidden default prompt with one required bounded UTF-8 prompt file and declared exact synchronized-MP4 output bounds."
+        },
+        {
+          "kind": "fix",
+          "summary": "Validate the exact H.264/AAC codec, geometry, frame rate, frame count, duration, 48 kHz stereo audio, and synchronization before atomic publication."
+        }
+      ]
+    },
+    {
+      "version": "2.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "0cfe5a86b495648569f695e6af2d70b645c440ec8d308c453752f19fc7d2e399",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Resolved the recipe-supplied LTX 2.3 spatial upscaler instead of hardcoding the incompatible LTX 2.0 companion filename."
+        }
+      ]
+    },
     {
       "version": "2.0.1",
       "released_at": "2026-08-26",

@@ -4,9 +4,45 @@
     "publisher": "vonk-forge",
     "slug": "step1x-3d-label-geometry-pytorch-single"
   },
-  "version": "1.2.0",
-  "released_at": "2026-08-24",
+  "version": "1.2.2",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.2.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "52e4c710fcc13abafc321238e432a08867bd00f18ca08030854024635dc7320f",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Validated reachable finite nondegenerate label-controlled triangle geometry before atomically publishing each GLB."
+        }
+      ]
+    },
+    {
+      "version": "1.2.1",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "46e071199f85b5edc9b30d973fcbadb6b9f40dd0516dc50af5ed8a6cfebcafe5",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Sent geometry_type to the label encoder and repaired its lookup so sharp control selects a different embedding than normal."
+        },
+        {
+          "kind": "fix",
+          "summary": "Postponed mesh annotations and made every pymeshlab use lazy so controlled geometry imports without its unavailable ARM64 wheel."
+        },
+        {
+          "kind": "runtime",
+          "summary": "Pinned exact CUDA 13 CPython 3.12 ARM64 wheels for CuPy and fastrlock and added geometry and texture import smoke tests."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Declared exact one-image input and single-GLB output slots with bounded bytes."
+        }
+      ]
+    },
     {
       "version": "1.2.0",
       "released_at": "2026-08-24",

@@ -3,10 +3,10 @@
   "identity": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual"},
   "metadata": {
     "title": "GLM 5.3 Flash Abliterated NVFP4 KV 1M vLLM two Sparks",
-    "description": "Executable gated Candidate reproducing Drowzeys' native-mp TP2, 1,048,576-token GLM 5.3 Flash profile with NVFP4 weights and KV cache, B12X sparse MLA, MTP2, Marlin experts, vision, reasoning, and tools. A Hugging Face token with auto-gated checkpoint access is required; Vonk physical acceptance remains pending.",
-    "tags": ["abliterated", "candidate", "executable", "gated", "glm-5.3", "mtp", "multimodal", "native-mp", "nvfp4", "reasoning", "spark", "tool-use", "vllm"]
+    "description": "Executable gated Candidate reproducing Drowzeys' native-mp TP2, 1,048,576-token GLM 5.3 Flash profile with NVFP4 weights and KV cache, B12X sparse MLA, MTP2, Marlin experts, vision, reasoning, and tools. Installation requires an accepted Hugging Face token; qualification is blocked until an authenticated inventory refresh supplies SHA-256 values for the 13 gated Git files omitted from the withdrawn model-version manifest.",
+    "tags": ["abliterated", "candidate", "executable", "gated", "glm-5.3", "inventory-blocked", "mtp", "multimodal", "native-mp", "nvfp4", "reasoning", "spark", "tool-use", "vllm"]
   },
-  "model": {"kind": "model-version", "publisher": "drowzeys", "slug": "glm-5-3-flash-nvfp4-abliterated-d7f8afa8", "content_sha256": "e76023cce7bcb9d112189cbb59195e67274227e53941ea9961c70eb6c8c0df8d"},
+  "model": {"kind": "model-version", "publisher": "drowzeys", "slug": "glm-5-3-flash-nvfp4-abliterated-d7f8afa8", "content_sha256": "206d70bc7470b79349c94fafe89d595cdc0ac771f52875302438a7305f9cf77e"},
   "execution": {
     "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"},
     "patch_bundle": {"kind": "patch-bundle", "publisher": "drowzeys", "slug": "drowzeys-glm53-nvfp4-kv-1m-dual-profile", "content_sha256": "9cd753b30115981069b363a73050a78a865423aab0dbeb35d1de74b33ba41ac8"}

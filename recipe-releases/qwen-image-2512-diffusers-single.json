@@ -4,9 +4,34 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-2512-diffusers-single"
   },
-  "version": "1.1.1",
-  "released_at": "2026-08-26",
+  "version": "1.2.1",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.2.1",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "e974c866fda586348ccef9dc878b61453b97af8be4658238f1bf41427c505792",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Added typed artifact input and output slot contracts.",
+          "details": "Declared exact prompt-file and generated-PNG slots for signed artifact jobs."
+        }
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "ac721d78b137e8a46e01421025bca037392051a621c185746f01913354c54676",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Standardized generation prompts as one bounded UTF-8 text file in the read-only inputs mount."
+        }
+      ]
+    },
     {
       "version": "1.1.1",
       "released_at": "2026-08-26",

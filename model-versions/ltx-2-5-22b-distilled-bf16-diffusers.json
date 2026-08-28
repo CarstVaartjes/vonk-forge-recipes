@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {
+    "publisher": "lightricks",
+    "slug": "ltx-2-5-22b-distilled-bf16-diffusers"
+  },
+  "metadata": {
+    "title": "LTX-2.5 distilled BF16 Diffusers",
+    "description": "Filtered official gated Diffusers closure at 426936f8: distilled split transformer, convolutional video VAE, audio VAE, BWE vocoder, connectors, and text stack.",
+    "tags": [
+      "lightricks",
+      "ltx",
+      "video",
+      "audio",
+      "diffusers",
+      "bf16",
+      "gated",
+      "candidate"
+    ]
+  },
+  "model": {
+    "kind": "model",
+    "publisher": "lightricks",
+    "slug": "ltx-2-5",
+    "content_sha256": "466b3c3cd927a5671a13913dbf308452aee3c21cc6e3a2b35d6aa025191053e6"
+  },
+  "version": "22b-distilled-bf16-diffusers-426936f8",
+  "source": {
+    "repository": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers",
+    "revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc"
+  },
+  "lineage": {
+    "publisher": "Lightricks",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "lightricks",
+      "slug": "ltx-2-5",
+      "content_sha256": "466b3c3cd927a5671a13913dbf308452aee3c21cc6e3a2b35d6aa025191053e6"
+    },
+    "derivation": "Official gated Diffusers repository filtered to the distilled split components. The four-shard transformer closure is inferred from the identical pinned index used by transformer_full, which contains exactly those four shards, and is rejected at runtime if the authenticated index differs."
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "parameters": {
+    "total": 22000000000,
+    "active": null
+  },
+  "limits": {
+    "context_tokens": 1024,
+    "resolution_pixels": 393216,
+    "frames": 65,
+    "sample_rate_hz": 48000
+  },
+  "sizes": {
+    "download_bytes": 70090051372,
+    "installed_bytes": 70090051372
+  },
+  "license": {
+    "spdx": "LicenseRef-LTX-2-Community",
+    "url": "https://github.com/Lightricks/LTX-2/blob/a95ab856bf29407b6b066ede0abe1846050db56c/LICENSE-2_x",
+    "attribution": [
+      "Lightricks"
+    ],
+    "operator_acceptance_required": true
+  },
+  "access": {
+    "visibility": "restricted",
+    "gated": true,
+    "authentication": "token"
+  },
+  "artifacts": [
+    {
+      "id": "filtered-snapshot",
+      "path": "filtered-snapshot",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers",
+      "revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
+      "sha256": "6ad49fdbc4b6d35644a45ecd0310d95e25d178bc942d909ced168e498754b0ef",
+      "download_bytes": 70090051372,
+      "installed_bytes": 70090051372,
+      "roles": [
+        "weights",
+        "text-encoder",
+        "tokenizer",
+        "video-vae",
+        "audio-vae",
+        "vocoder"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}

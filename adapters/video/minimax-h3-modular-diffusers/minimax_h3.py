@@ -7,14 +7,10 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-
 MODEL_ROOT = Path("/models")
 INPUT_ROOT = Path("/inputs")
-DEFAULT_PROMPT = (
-    "A small red fox trots through a snowy pine forest, snow crunching underfoot"
-)
 ALLOWED_REQUEST_KEYS = {
-    "prompt",
+    "profile",
     "num_frames",
     "width",
     "height",
@@ -25,13 +21,19 @@ ALLOWED_REQUEST_KEYS = {
 ALLOWED_REFERENCE_KEYS = {"type", "path"}
 ALLOWED_REFERENCE_TYPES = {"image", "video", "audio"}
 MAX_REQUEST_BYTES = 64 * 1024
+# MiniMax H3 includes terminal sigma 0 in this value, so evaluations = points - 1.
+PROFILE_SIGMA_GRID_POINTS = {
+    "smoke-only": 4,
+    "balanced": 31,
+    "qualification-reference": 51,
+}
 
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--pipeline", required=True)
     parser.add_argument("--output-mime", required=True)
-    parser.add_argument("--num-inference-steps", type=int, default=4)
+    parser.add_argument("--num-inference-steps", type=int, default=31)
     parser.add_argument("--width", type=int, default=960)
     parser.add_argument("--height", type=int, default=544)
     parser.add_argument("--seed", type=int, default=0)
@@ -88,12 +90,41 @@ def _num_frames(value: object) -> int:
     return value
 
 
-def _prompt(value: object) -> str:
+def _load_prompt() -> str:
+    if not INPUT_ROOT.is_dir() or INPUT_ROOT.is_symlink():
+        raise ValueError("/inputs must contain one UTF-8 .txt prompt")
+    prompt_files = [
+        path for path in INPUT_ROOT.iterdir() if path.suffix.lower() == ".txt"
+    ]
+    if len(prompt_files) != 1:
+        raise ValueError("exactly one UTF-8 .txt prompt file is required")
+    path = prompt_files[0]
+    if (
+        path.is_symlink()
+        or not path.is_file()
+        or not 1 <= path.stat().st_size <= 16 * 1024
+    ):
+        raise ValueError("prompt file must contain 1..16384 UTF-8 bytes")
+    try:
+        prompt = path.read_text(encoding="utf-8").strip()
+    except UnicodeDecodeError as error:
+        raise ValueError("prompt file must contain valid UTF-8") from error
+    if not 1 <= len(prompt) <= 4096 or "\x00" in prompt:
+        raise ValueError("prompt must contain 1..4096 non-NUL characters")
+    return prompt
+
+
+def _profile_sigma_grid_points(value: object, default: int) -> int:
     if value is None:
-        return DEFAULT_PROMPT
-    if not isinstance(value, str) or not value.strip() or len(value) > 4096:
-        raise ValueError("prompt must contain 1..4096 characters")
-    return value.strip()
+        if default not in PROFILE_SIGMA_GRID_POINTS.values():
+            raise ValueError(
+                "num-inference-steps must match a named MiniMax H3 profile"
+            )
+        return default
+    if not isinstance(value, str) or value not in PROFILE_SIGMA_GRID_POINTS:
+        choices = ", ".join(PROFILE_SIGMA_GRID_POINTS)
+        raise ValueError(f"profile must be one of: {choices}")
+    return PROFILE_SIGMA_GRID_POINTS[value]
 
 
 def _load_references(values: object) -> list[object] | None:
@@ -217,7 +248,9 @@ def _load_pipeline(workflow: str):
     return pipe
 
 
-def _verify_joint_av(path: Path) -> None:
+def _verify_joint_av(
+    path: Path, *, width: int, height: int, frame_count: int
+) -> None:
     import av
 
     with av.open(str(path), mode="r") as container:
@@ -227,7 +260,12 @@ def _verify_joint_av(path: Path) -> None:
             raise RuntimeError(
                 "MiniMax H3 output must contain one video and one audio stream"
             )
+        video = video_streams[0]
         audio = audio_streams[0].codec_context
+        if video.codec_context.name != "h264" or audio.name != "aac":
+            raise RuntimeError("MiniMax H3 output must contain H.264 video and AAC audio")
+        if video.width != width or video.height != height:
+            raise RuntimeError("MiniMax H3 output dimensions do not match the job")
         if (
             audio.sample_rate != 32000
             or audio.layout is None
@@ -235,10 +273,26 @@ def _verify_joint_av(path: Path) -> None:
         ):
             raise RuntimeError("MiniMax H3 output must contain 32 kHz stereo audio")
         if (
-            video_streams[0].average_rate is None
-            or float(video_streams[0].average_rate) != 24.0
+            video.average_rate is None
+            or float(video.average_rate) != 24.0
         ):
             raise RuntimeError("MiniMax H3 output must contain 24 fps video")
+
+    with av.open(str(path), mode="r") as container:
+        decoded_frames = sum(1 for _ in container.decode(video=0))
+    if decoded_frames != frame_count:
+        raise RuntimeError("MiniMax H3 output frame count changed")
+
+    audio_samples = 0
+    with av.open(str(path), mode="r") as container:
+        for frame in container.decode(audio=0):
+            audio_samples += frame.samples
+    if audio_samples == 0:
+        raise RuntimeError("MiniMax H3 output audio is empty")
+    expected_duration = frame_count / 24
+    audio_duration = audio_samples / 32_000
+    if abs(expected_duration - audio_duration) > max(1 / 24, 1024 / 32_000):
+        raise RuntimeError("MiniMax H3 output audio and video durations are not synchronized")
 
 
 def main() -> None:
@@ -247,8 +301,6 @@ def main() -> None:
         raise SystemExit("this runtime supports MiniMax H3 audio-video generation only")
     if args.output_mime != "video/mp4":
         raise SystemExit("this runtime emits a joint video/audio MP4 only")
-    if not 2 <= args.num_inference_steps <= 1000:
-        raise SystemExit("num-inference-steps must be between 2 and 1000")
     if not 0 <= args.seed < 2**63:
         raise SystemExit("seed is outside the supported range")
 
@@ -278,12 +330,17 @@ def main() -> None:
     from diffusers.utils import load_image
     from diffusers.utils.export_utils import encode_video
 
+    frame_count = _num_frames(request.get("num_frames"))
+    height = _positive_multiple(request.get("height"), "height", args.height)
+    width = _positive_multiple(request.get("width"), "width", args.width)
     call: dict[str, object] = {
-        "prompt": _prompt(request.get("prompt")),
-        "num_frames": _num_frames(request.get("num_frames")),
-        "height": _positive_multiple(request.get("height"), "height", args.height),
-        "width": _positive_multiple(request.get("width"), "width", args.width),
-        "num_inference_steps": args.num_inference_steps,
+        "prompt": _load_prompt(),
+        "num_frames": frame_count,
+        "height": height,
+        "width": width,
+        "num_inference_steps": _profile_sigma_grid_points(
+            request.get("profile"), args.num_inference_steps
+        ),
         "generator": torch.Generator().manual_seed(args.seed),
         "output": ["videos", "audio", "sampling_rate"],
     }
@@ -307,7 +364,9 @@ def main() -> None:
         audio=results["audio"][0],
         audio_sample_rate=results["sampling_rate"],
     )
-    _verify_joint_av(temporary)
+    _verify_joint_av(
+        temporary, width=width, height=height, frame_count=frame_count
+    )
     os.replace(temporary, destination)
 
 

@@ -4,9 +4,10 @@
     "publisher": "vonk-forge",
     "slug": "hunyuanocr-1-5-vllm-dflash-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.1.0",
+  "released_at": "2026-08-28",
   "history": [
+    {"version": "1.1.0", "released_at": "2026-08-28", "recipe_content_sha256": "4f12846efdfaf6c32b28556391eba298254c068df99f7fc95acf27954cf914ef", "upgrade_effect": "rebuild", "changes": [{"kind": "fix", "summary": "Declared separate document and optional OCR-config slots and the exact application/zip output contract."}, {"kind": "compatibility", "summary": "Made the adapter consume the controller-authenticated slot manifest before model loading."}]},
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",

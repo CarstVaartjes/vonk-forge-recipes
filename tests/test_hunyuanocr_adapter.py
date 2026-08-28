@@ -114,12 +114,24 @@ class HunyuanOCRInputTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.module.INPUTS = Path(self.temporary.name)
 
+    def manifest(self, files: list[dict[str, object]]) -> None:
+        (self.module.INPUTS / "manifest.json").write_text(
+            json.dumps({"schema_version": 1, "total_bytes": 0, "files": files}),
+            encoding="utf-8",
+        )
+
     def test_manifest_selects_only_bounded_official_tasks(self) -> None:
         image = self.module.INPUTS / "page.png"
         image.write_bytes(b"not-decoded-by-contract-test")
         (self.module.INPUTS / "job.json").write_text(
             json.dumps({"images": ["page.png"], "task_type": "table", "max_tokens": 2048}),
             encoding="utf-8",
+        )
+        self.manifest(
+            [
+                {"slot": "document", "name": "page.png"},
+                {"slot": "config", "name": "job.json"},
+            ]
         )
         images, task_type, max_tokens = self.module.read_job()
         self.assertEqual(images, [image])
@@ -134,13 +146,19 @@ class HunyuanOCRInputTests(unittest.TestCase):
             self.module.read_job()
 
     def test_manifest_rejects_traversal_and_unknown_fields(self) -> None:
-        (self.module.INPUTS / "job.json").write_text(
-            json.dumps({"images": ["../page.png"]}), encoding="utf-8"
-        )
-        with self.assertRaisesRegex(SystemExit, "plain filenames"):
+        self.manifest([{"slot": "document", "name": "../page.png"}])
+        with self.assertRaisesRegex(SystemExit, "unsafe name"):
             self.module.read_job()
+        image = self.module.INPUTS / "page.png"
+        image.write_bytes(b"fixture")
         (self.module.INPUTS / "job.json").write_text(
             json.dumps({"images": ["page.png"], "prompt": "override"}), encoding="utf-8"
+        )
+        self.manifest(
+            [
+                {"slot": "document", "name": "page.png"},
+                {"slot": "config", "name": "job.json"},
+            ]
         )
         with self.assertRaisesRegex(SystemExit, "unsupported fields"):
             self.module.read_job()

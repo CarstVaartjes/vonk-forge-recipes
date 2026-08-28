@@ -4,9 +4,37 @@
     "publisher": "vonk-forge",
     "slug": "trellis-2-4b-pytorch-single"
   },
-  "version": "2.0.0",
-  "released_at": "2026-08-24",
+  "version": "2.0.2",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "2.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "65d1e5156e8928a94e525c35567bf40bd25e3b10a4aa7b9cb06daccd76bc9f2e",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Validated embedded UV, base-color, and metallic-roughness PBR data on a bounded triangle mesh before atomic GLB publication."
+        }
+      ]
+    },
+    {
+      "version": "2.0.1",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "7a0f9536deb28dd40dddc21db1ba04c6c9c7fb8e946667af7dd62cb9ca4dfac1",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Loaded FlexGEMM's shipped autotune cache read-only and disabled runtime cache writes for UID 10001."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Declared exact one-image input and single-GLB output slots with bounded bytes."
+        }
+      ]
+    },
     {
       "version": "2.0.0",
       "released_at": "2026-08-24",

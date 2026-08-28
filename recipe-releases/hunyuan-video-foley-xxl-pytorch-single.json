@@ -4,9 +4,10 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan-video-foley-xxl-pytorch-single"
   },
-  "version": "1.2.1",
-  "released_at": "2026-08-26",
+  "version": "1.3.0",
+  "released_at": "2026-08-28",
   "history": [
+    {"version": "1.3.0", "released_at": "2026-08-28", "recipe_content_sha256": "aac486a1a1d60f9d1d9a95176193d7ad318ecace4e2bc38272d7042644dbc52f", "upgrade_effect": "rebuild", "changes": [{"kind": "fix", "summary": "Replaced the hidden Foley prompt default with required prompt and video slots and an exact WAV output contract."}, {"kind": "compatibility", "summary": "Made the adapter consume the controller-authenticated slot manifest before model loading."}]},
     {
       "version": "1.2.1",
       "released_at": "2026-08-26",

@@ -42,8 +42,8 @@
   "build": {
     "context": {
       "path": "adapters/video/mova-pytorch",
-      "sha256": "ee2f59e989a7993fefa70852627e1c3aa34a4375f13c4c21115145b233651361",
-      "expected_bytes": 20480,
+        "sha256": "5a929c3aa1727a2448c3794b36906c02487354b506b7514c9ec8e76fe19b5cd2",
+      "expected_bytes": 30720,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -221,13 +221,55 @@
       "path": "/outputs",
       "input": {
         "path": "/inputs",
-        "required": false,
+        "required": true,
         "media_types": [
+          "text/plain",
           "image/jpeg",
           "image/png",
           "image/webp"
         ],
-        "max_bytes": 16777216
+        "max_bytes": 16793600,
+        "slots": [
+          {
+            "id": "prompt",
+            "label": "Prompt",
+            "description": "Text prompt describing the synchronized video and audio to generate.",
+            "media_types": ["text/plain"],
+            "extensions": [".txt"],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 16384,
+            "max_total_bytes": 16384
+          },
+          {
+            "id": "reference-image",
+            "label": "Reference image",
+            "description": "Optional first-frame visual reference; omit it to use MOVA's white-frame text-to-video-and-audio path.",
+            "media_types": ["image/jpeg", "image/png", "image/webp"],
+            "extensions": [".jpg", ".jpeg", ".png", ".webp"],
+            "min_files": 0,
+            "max_files": 1,
+            "max_file_bytes": 16777216,
+            "max_total_bytes": 16777216
+          }
+        ]
+      },
+      "output": {
+        "path": "/outputs",
+        "max_total_bytes": 536870912,
+        "slots": [
+          {
+            "id": "video",
+            "label": "Synchronized video",
+            "description": "Generated MP4 containing 1280x720 H.264 video at 24 fps and synchronized 48 kHz AAC audio.",
+            "media_types": ["video/mp4"],
+            "extensions": [".mp4"],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 536870912,
+            "max_total_bytes": 536870912
+          }
+        ]
       }
     }
   ],
@@ -249,7 +291,9 @@
           "fps": 24,
           "height": 720,
           "width": 1280,
-          "audio_sample_rate": 48000,
+        "audio_sample_rate": 48000,
+        "video_codec": "h264",
+        "audio_codec": "aac",
           "num_inference_steps": 50,
           "timeout_seconds": 3600
         }

@@ -7,7 +7,16 @@
     {"artifact_id": "text-encoder", "category": "text_encoders", "filename": "umt5_xxl_fp8_e4m3fn_scaled.safetensors"},
     {"artifact_id": "vae", "category": "vae", "filename": "wan2.2_vae.safetensors"}
   ],
-  "inputs": {"minimum": 1, "maximum": 1},
+  "inputs": {"minimum": 1, "maximum": 1, "slot": "image"},
+  "text_inputs": {
+    "prompt": {"required": true, "slot": "prompt", "maximum_bytes": 16384, "maximum_characters": 4096},
+    "negative_prompt": {"required": false, "maximum_characters": 4096}
+  },
+  "result": {
+    "mime": "video/mp4",
+    "count": 1,
+    "video": {"codec": "h264", "width": 1280, "height": 704, "fps": 24, "frames": 121}
+  },
   "prompt": {
     "1": {"class_type": "UNETLoader", "inputs": {"unet_name": "wan2.2_ti2v_5B_fp16.safetensors", "weight_dtype": "default"}},
     "2": {"class_type": "ModelSamplingSD3", "inputs": {"model": ["1", 0], "shift": 8.0}},
