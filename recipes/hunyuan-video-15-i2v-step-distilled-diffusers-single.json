@@ -35,7 +35,7 @@
   "build": {
     "context": {
       "path": "adapters/video/hunyuan-video-15-native",
-      "sha256": "660ffe143133f5edf11cfbe8f569cdfc7b4a09666036da2c58cca6533bce0c63",
+      "sha256": "5e349aab121c2b9f8501281e039c8945a79fbf4b3eec815f596fb08156899b99",
       "expected_bytes": 92160,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -224,9 +224,19 @@
         "media_types": [
           "image/jpeg",
           "image/png",
-          "image/webp"
+          "image/webp",
+          "text/plain"
         ],
-        "max_bytes": 16777216
+        "max_bytes": 16842752,
+        "slots": [
+          {"id": "prompt", "label": "Prompt", "description": "UTF-8 text prompt for video generation.", "media_types": ["text/plain"], "extensions": [".txt"], "min_files": 1, "max_files": 1, "max_file_bytes": 65536, "max_total_bytes": 65536},
+          {"id": "image", "label": "Source image", "description": "One source image for image-to-video generation.", "media_types": ["image/jpeg", "image/png", "image/webp"], "extensions": [".jpeg", ".jpg", ".png", ".webp"], "min_files": 1, "max_files": 1, "max_file_bytes": 16777216, "max_total_bytes": 16777216}
+        ]
+      },
+      "output": {
+        "path": "/outputs",
+        "max_total_bytes": 1073741824,
+        "slots": [{"id": "video", "label": "Video", "description": "Generated MP4 video.", "media_types": ["video/mp4"], "extensions": [".mp4"], "min_files": 1, "max_files": 1, "max_file_bytes": 1073741824, "max_total_bytes": 1073741824}]
       }
     }
   ],

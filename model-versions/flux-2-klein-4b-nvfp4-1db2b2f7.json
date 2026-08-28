@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {"publisher": "black-forest-labs", "slug": "flux-2-klein-4b-nvfp4-1db2b2f7"},
+  "metadata": {
+    "title": "FLUX.2 Klein 4B NVFP4 revision 1db2b2f7",
+    "description": "Official Black Forest Labs NVFP4 transformer with the exact Comfy-Org Qwen3 encoder and VAE companions required for core ComfyUI inference.",
+    "tags": ["flux", "image", "comfyui", "nvfp4", "distilled", "candidate", "spark"]
+  },
+  "model": {"kind": "model", "publisher": "black-forest-labs", "slug": "flux-2-klein-4b", "content_sha256": "26d119eac472f93e4e48a9ff4770ed220c3d544d98452ea787ce65bf603baa80"},
+  "version": "nvfp4-1db2b2f7",
+  "source": {"repository": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4", "revision": "1db2b2f776c24b76f1122e5f69ab1949fc620068"},
+  "lineage": {
+    "publisher": "black-forest-labs",
+    "relation": "official",
+    "source_model": {"kind": "model", "publisher": "black-forest-labs", "slug": "flux-2-klein-4b", "content_sha256": "26d119eac472f93e4e48a9ff4770ed220c3d544d98452ea787ce65bf603baa80"},
+    "derivation": "Official Apache-2.0 Black Forest Labs NVFP4 transformer at the pinned revision, paired without mutation with the exact Comfy-Org encoder and VAE used by the BF16 recipe."
+  },
+  "format": {"container": "safetensors", "precision": "mixed", "quantization": "nvfp4"},
+  "parameters": {"total": 4000000000, "active": 4000000000},
+  "limits": {"context_tokens": null, "resolution_pixels": null},
+  "sizes": {"download_bytes": 2460413488, "installed_bytes": 2460413488},
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4/blob/1db2b2f776c24b76f1122e5f69ab1949fc620068/LICENSE.md",
+    "attribution": ["Black Forest Labs", "Comfy-Org"],
+    "operator_acceptance_required": false
+  },
+  "access": {"visibility": "public", "gated": false, "authentication": "none"},
+  "artifacts": [
+    {"id": "diffusion", "path": "flux-2-klein-4b-nvfp4.safetensors", "kind": "huggingface.file", "repository": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4/resolve/1db2b2f776c24b76f1122e5f69ab1949fc620068/flux-2-klein-4b-nvfp4.safetensors", "revision": "1db2b2f776c24b76f1122e5f69ab1949fc620068", "sha256": "d8c5007b6a3bbbdfd38538bbcef5101a55dfde81894f58d2e3c8701cdef3542b", "download_bytes": 2460413488, "installed_bytes": 2460413488, "roles": ["weights"]}
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}

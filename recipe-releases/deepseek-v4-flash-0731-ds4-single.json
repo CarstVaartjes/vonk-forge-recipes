@@ -4,9 +4,25 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-ds4-single"
   },
-  "version": "2.0.1",
-  "released_at": "2026-08-24",
+  "version": "2.0.2",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "2.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "3215abb5d3b3757df547c7ace3f328bab40044951684e45ad971e5f54d4c272f",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Corrected the CUDA concurrency contract to two resident sessions using DS4's ordered exact fallback.",
+          "details": "On a single CUDA GPU, including DGX Spark, the two sessions provide concurrency and fairness but do not use DS4's native batched-kernel speedup. Runtime arguments, target artifact, and installed service remain unchanged.",
+          "references": [
+            "https://github.com/antirez/ds4/blob/c1d4597a80e300b803dc642519718f2c999589da/README.md"
+          ]
+        }
+      ]
+    },
     {
       "version": "2.0.1",
       "released_at": "2026-08-24",

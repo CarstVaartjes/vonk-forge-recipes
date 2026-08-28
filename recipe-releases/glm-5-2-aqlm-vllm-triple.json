@@ -4,9 +4,38 @@
     "publisher": "vonk-forge",
     "slug": "glm-5-2-aqlm-vllm-triple"
   },
-  "version": "2.0.1",
-  "released_at": "2026-08-26",
+  "version": "2.0.3",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "2.0.3",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "02cd40fa95d14bf1bdcb095d594734ca9f40c01bbc6b50dcdc847607c5c4e1d1",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Closed the exact model inventory against all 751 pinned snapshot files.",
+          "details": "Added the 603 Terminal-Bench trace files previously omitted from the model entity, reconciling the 83,970,453-byte difference without changing the installed snapshot, runtime, or adapter.",
+          "references": [
+            "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid/tree/c5d93567f1ff2de4dbba6018b58a653654c1309a"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "c59ae207ee7e5d5483e87619bee38c51c7243072eaf81f36f7e6baf26e6c8d71",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Marked the exact TP3 contract unavailable on the current two-Spark fleet.",
+          "details": "The executable historical contract is preserved for a future three-Spark canary. GLM 5.3 Flash NVFP4 dual is identified as the deployable fleet alternative; runtime and artifacts are unchanged."
+        }
+      ]
+    },
     {
       "version": "2.0.1",
       "released_at": "2026-08-26",

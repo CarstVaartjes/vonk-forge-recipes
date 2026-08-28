@@ -12,6 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update \
     && apt-get install --no-install-recommends --yes \
         ca-certificates \
+        ffmpeg \
         git \
         python3 \
         python3-pip \

@@ -4,9 +4,38 @@
     "publisher": "vonk-forge",
     "slug": "nvidia-qwen-image-flash-diffusers-single"
   },
-  "version": "1.1.1",
-  "released_at": "2026-08-26",
+  "version": "1.2.1",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.2.1",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "8a030dac663e43f10aca54f189d70ebed36ff6bf7ef4f1ef48b104a9fa6fdd89",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Added typed artifact input and output slot contracts.",
+          "details": "Declared exact prompt-file and generated-PNG slots for signed artifact jobs."
+        }
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "ea901deedd3a8ee0d31f7d5669a057d90de19d5f0d40d67f2b43907f796faf2b",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Corrected unified-memory admission for the 57.7 GB BF16 artifact instead of admitting it at an impossible 32 GB startup peak."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Standardized generation prompts as one bounded UTF-8 text file in the read-only inputs mount."
+        }
+      ]
+    },
     {
       "version": "1.1.1",
       "released_at": "2026-08-26",

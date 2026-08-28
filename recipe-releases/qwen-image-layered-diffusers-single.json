@@ -4,9 +4,38 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-layered-diffusers-single"
   },
-  "version": "1.1.1",
-  "released_at": "2026-08-26",
+  "version": "1.1.3",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.1.3",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "72fb0b18e261e90bca688cd347c02c3184849b24ccbb4dc0604ec3d62925c8c8",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Added typed artifact input and output slot contracts.",
+          "details": "Declared the exact source-image slot and four-PNG layered output cardinality."
+        }
+      ]
+    },
+    {
+      "version": "1.1.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "4e4b0e73672c221f42d3b6290fe8e7f058a6f37591a658e6e27562c76da5b9b7",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Requires exactly one regular image input and fails if decomposition returns fewer or more layers than requested."
+        },
+        {
+          "kind": "fix",
+          "summary": "Preserves every requested RGBA layer as a deterministic numbered PNG output."
+        }
+      ]
+    },
     {
       "version": "1.1.1",
       "released_at": "2026-08-26",

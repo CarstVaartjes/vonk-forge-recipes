@@ -22,7 +22,7 @@
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen3-5-9b-c2022362",
-    "content_sha256": "188ebb3802097ecf45880217a7697350f6496c4ee7dba59c2e77817fb61f6d9f"
+    "content_sha256": "0d0f3748a152c2e3a83408af11485d3a930f0a66ad78bc2d12815f837f2b08dc"
   },
   "execution": {
     "harness": {
@@ -36,7 +36,7 @@
   "build": {
     "context": {
       "path": "adapters/llm/qwen35-vllm",
-      "sha256": "654b2eb41b16eb860109cd034130b7bf346e9fe04f5dca30f686abb8e7281744",
+      "sha256": "61463d7b208011a297a3e5093009822e408d35015009d1215e52546807886470",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -48,7 +48,7 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 29862529282,
+      "download_bytes": 29030889384,
       "temporary_bytes": 32000000000,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
@@ -76,8 +76,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "vllm",
-      "slug": "vllm-0-27-1-nvidia-arm64",
-      "content_sha256": "95b0467cb73eeabfe8fd0c4f5f5e4f19a935b6bca3d56ed4bb6fc888470eca4a"
+      "slug": "vllm-0-28-0-nvidia-arm64",
+      "content_sha256": "15c98035c9bbba7ec61d25acd93c3c34b0516754c299813e5f51344e858abd2d"
     },
     "entrypoint": [
       "/opt/vonk/bin/vllm",
@@ -96,6 +96,14 @@
       {
         "name": "max-num-seqs",
         "value": 2
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "value": 8192
+      },
+      {
+        "name": "max-cudagraph-capture-size",
+        "value": 4
       },
       {
         "name": "gpu-memory-utilization",

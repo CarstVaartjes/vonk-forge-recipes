@@ -4,9 +4,39 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-comfyui-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.0.3",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.0.3",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "632896560319b21cee3b6f2e4cb013d17185d8bb4293a05cc5c43b8ba9b26b61",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Replaced per-job shard merging with Comfy-Org's upstream-supported monolithic checkpoint.",
+          "details": "The recipe now installs the exact monolithic transformer, scaled-FP8 encoder, and VAE as ordinary core-node files, supports one or two signed reference-image inputs plus a bounded prompt file, and declares one PNG output.",
+          "references": [
+            "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/commit/b6a0794717d3f5600f85c5edcdcd0c0eb93d7446",
+            "https://github.com/Comfy-Org/workflow_templates/blob/2ded761bde3af3b4c8e905e162f45551cbec12ea/templates/image_qwen_image_edit_2511.json"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "75ae0e5fd49969ee130e0e1d1813819d5a0847e7e794c007b507006c0f0b5f44",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Hardened shared ComfyUI job result selection.",
+          "details": "Jobs now fail closed on missing, empty, multiple, or unexpected media outputs before atomically publishing one declared result."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",

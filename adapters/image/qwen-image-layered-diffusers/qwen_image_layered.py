@@ -1,10 +1,39 @@
 from __future__ import annotations
 
 import argparse
-import os
 from pathlib import Path
 
 _IMAGE_SUFFIXES = frozenset({".jpg", ".jpeg", ".png", ".webp"})
+
+
+def _image_input(input_dir: Path = Path("/inputs")) -> Path:
+    if not input_dir.is_dir():
+        raise SystemExit("the read-only /inputs job mount is required")
+    input_files = sorted(
+        path
+        for path in input_dir.iterdir()
+        if path.is_file() and path.suffix.lower() in _IMAGE_SUFFIXES
+    )
+    if len(input_files) != 1:
+        raise SystemExit("exactly one image input is required")
+    return input_files[0]
+
+
+def _save_layers(
+    layers: list[object], output_dir: Path, expected_count: int
+) -> list[Path]:
+    values = list(layers)
+    if len(values) != expected_count:
+        raise SystemExit(
+            f"layer decomposition returned {len(values)} layers; expected {expected_count}"
+        )
+    output_dir.mkdir(parents=True, exist_ok=True)
+    outputs: list[Path] = []
+    for index, layer in enumerate(values):
+        destination = output_dir / f"layer-{index:02d}.png"
+        layer.save(destination, format="PNG")
+        outputs.append(destination)
+    return outputs
 
 
 def main() -> None:
@@ -27,17 +56,13 @@ def main() -> None:
     if not 1 <= args.layers <= 8:
         raise SystemExit("layers must be between 1 and 8")
 
-    input_files = sorted(
-        path for path in Path("/inputs").iterdir() if path.suffix.lower() in _IMAGE_SUFFIXES
-    )
-    if len(input_files) != 1:
-        raise SystemExit("exactly one image input is required")
+    input_file = _image_input()
 
     import torch
     from diffusers import QwenImageLayeredPipeline
     from PIL import Image
 
-    image = Image.open(input_files[0]).convert("RGBA")
+    image = Image.open(input_file).convert("RGBA")
     pipe = QwenImageLayeredPipeline.from_pretrained(
         "/models",
         dtype=torch.bfloat16,
@@ -55,9 +80,7 @@ def main() -> None:
         cfg_normalize=args.cfg_normalize == "true",
         use_en_prompt=True,
     ).images[0]
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-    for index, layer in enumerate(output):
-        layer.save(args.output_dir / f"layer-{index:02d}.png", format="PNG")
+    _save_layers(output, args.output_dir, args.layers)
 
 
 if __name__ == "__main__":

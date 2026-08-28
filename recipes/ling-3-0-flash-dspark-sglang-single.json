@@ -7,6 +7,7 @@
     "tags": ["executable", "candidate", "ling", "inclusionai", "int4", "dspark", "sglang", "reasoning", "tool-use", "single", "spark", "speculative-decoding"]
   },
   "model": {"kind": "model-version", "publisher": "inclusionai", "slug": "ling-3-0-flash-int4-7a27e9eb", "content_sha256": "dc0cf5e835504a8602a996934f18850613f2faf9f5384b43a623f5fad98fcfb8"},
+  "dependencies": [{"kind": "model-version", "publisher": "inclusionai", "slug": "ling-3-0-flash-dspark-8e5d9988", "content_sha256": "8785c5e09b6f5ccda7b780a94926650593563f59cf640acf7ab7f83f3b799343"}],
   "execution": {"harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "sglang", "content_sha256": "9bd9a41fe12dd4e551fac821623801b6df9af8943d42ddba9f46717636286947"}, "patch_bundle": null},
   "build": {
     "context": {"path": "adapters/ling/flash-dspark-single", "sha256": "1f1e8299a420b7b3ecfadfdd56ecd8056ce4283c4500b1e947d8f6274d74ee58", "expected_bytes": 10240, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},

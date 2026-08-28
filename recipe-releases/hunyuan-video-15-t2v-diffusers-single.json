@@ -4,9 +4,10 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan-video-15-t2v-diffusers-single"
   },
-  "version": "1.2.1",
-  "released_at": "2026-08-26",
+  "version": "1.3.0",
+  "released_at": "2026-08-28",
   "history": [
+    {"version": "1.3.0", "released_at": "2026-08-28", "recipe_content_sha256": "850d912a9ad2e0a3f3d82c81bd7b7bc7d35eb0568dd369f52117a7d749687654", "upgrade_effect": "rebuild", "changes": [{"kind": "fix", "summary": "Replaced the hidden prompt default with a required signed prompt slot and bound the exact MP4 output contract."}, {"kind": "compatibility", "summary": "Made the adapter consume the controller-authenticated slot manifest before model loading."}]},
     {
       "version": "1.2.1",
       "released_at": "2026-08-26",

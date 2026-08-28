@@ -36,7 +36,7 @@
   "build": {
     "context": {
       "path": "adapters/image/qwen-image-2512-diffusers",
-      "sha256": "ac600d9363e8f80b2dc067e871a12f93af1a7b203480f6bc275c6ab29db73118",
+      "sha256": "42492c30a8ec5ec49eb01d95e0d97f5902fcb8001ab3e10c285fad21c6dba55d",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -149,6 +149,11 @@
           "read_only": true
         },
         {
+          "source": "inputs",
+          "target": "/inputs",
+          "read_only": true
+        },
+        {
           "source": "outputs",
           "target": "/outputs",
           "read_only": false
@@ -222,7 +227,19 @@
   "interfaces": [
     {
       "adapter": "image-job",
-      "path": "/outputs"
+      "path": "/outputs",
+      "input": {
+        "path": "/inputs",
+        "required": true,
+        "media_types": [
+          "text/plain"
+        ],
+        "max_bytes": 16384,
+        "slots": [
+          {"id": "prompt", "label": "Prompt", "description": "UTF-8 text prompt for image generation.", "media_types": ["text/plain"], "extensions": [".txt"], "min_files": 1, "max_files": 1, "max_file_bytes": 16384, "max_total_bytes": 16384}
+        ]
+      },
+      "output": {"path": "/outputs", "max_total_bytes": 16777216, "slots": [{"id": "image", "label": "Generated image", "description": "Single generated PNG image.", "media_types": ["image/png"], "extensions": [".png"], "min_files": 1, "max_files": 1, "max_file_bytes": 16777216, "max_total_bytes": 16777216}]}
     }
   ],
   "validation": {

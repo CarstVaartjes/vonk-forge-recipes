@@ -38,7 +38,7 @@
   "build": {
     "context": {
       "path": "adapters/llm/laguna-vllm",
-      "sha256": "d351637e72e800f06e82e993d6d84f9e3dba2aa20d7d0d51f7ab4554acca581c",
+      "sha256": "4a0d912eb96a5ebf4416542c49048e4072b1668f3a359559ad7e413b0b957faa",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },

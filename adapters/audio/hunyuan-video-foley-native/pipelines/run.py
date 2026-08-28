@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -22,12 +23,43 @@ _ENTRYPOINTS = {
 _VIDEO_SUFFIXES = frozenset({".mkv", ".mov", ".mp4", ".webm"})
 
 
+def _slot_files(path: Path, slot: str) -> list[Path]:
+    try:
+        document = json.loads((path / "manifest.json").read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise SystemExit("missing or invalid signed input manifest") from error
+    files = document.get("files") if isinstance(document, dict) else None
+    if not isinstance(files, list):
+        raise SystemExit("signed input manifest files are invalid")
+    selected: list[Path] = []
+    for item in files:
+        if not isinstance(item, dict) or item.get("slot") != slot:
+            continue
+        name = item.get("name")
+        if not isinstance(name, str) or Path(name).name != name:
+            raise SystemExit("signed input manifest contains an unsafe name")
+        candidate = path / name
+        if candidate.is_symlink() or not candidate.is_file():
+            raise SystemExit("signed input file is unavailable")
+        selected.append(candidate)
+    return selected
+
+
+def _one_prompt(path: Path) -> str:
+    candidates = _slot_files(path, "prompt")
+    if len(candidates) != 1 or candidates[0].suffix.lower() != ".txt":
+        raise SystemExit("Foley inference requires one prompt text file")
+    try:
+        prompt = candidates[0].read_text(encoding="utf-8").strip()
+    except UnicodeDecodeError as error:
+        raise SystemExit("Foley prompt must be UTF-8") from error
+    if not 1 <= len(prompt.encode("utf-8")) <= 65536:
+        raise SystemExit("Foley prompt must contain 1..65536 UTF-8 bytes")
+    return prompt
+
+
 def _one_video(path: Path) -> Path:
-    candidates = sorted(
-        item
-        for item in path.iterdir()
-        if item.is_file() and item.suffix.lower() in _VIDEO_SUFFIXES
-    )
+    candidates = sorted(_slot_files(path, "video"))
     if len(candidates) != 1:
         raise SystemExit(
             "Foley inference requires exactly one supported video in /inputs"
@@ -63,7 +95,9 @@ def main() -> None:
         raise SystemExit(
             f"pinned Foley auxiliary snapshot is missing: {', '.join(missing_auxiliary)}"
         )
-    video = _one_video(Path("/inputs"))
+    input_root = Path("/inputs")
+    video = _one_video(input_root)
+    prompt = _one_prompt(input_root)
     if not _SOURCE.is_file():
         raise SystemExit("pinned HunyuanVideo-Foley source is missing")
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -80,7 +114,7 @@ def main() -> None:
         "--single_video",
         str(video),
         "--single_prompt",
-        os.environ.get("VONK_PROMPT", "Natural synchronized ambient sound"),
+        prompt,
         "--output_dir",
         str(args.output_dir),
         "--guidance_scale",

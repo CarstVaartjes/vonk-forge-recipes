@@ -4,9 +4,35 @@
     "publisher": "vonk-forge",
     "slug": "wan-dancer-14b-pytorch-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.0.3",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.0.3",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "8794c9f1f71095dce7b53e41c959c8dcdd7fa45dd017d0da59f328927e65f9fb",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Made derived Wan-Dancer MP4 acceptance fail closed.",
+          "details": "The adapter validates the reference image before inference, derives its even output crop and music-bound frame contract, then requires exact H.264/AAC streams, dimensions, frame rate, frame count, and synchronized durations."
+        }
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "c60a92b3e91c7bbe1a1dff400ba5760c85a5bd68184e0118fc0d159b9f57328b",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Added signed typed prompt, reference-image, music, controls, and MP4 result slots.",
+          "details": "The adapter verifies the signed manifest, consumes required prompt/image/music slots, and keeps generation controls in an optional bounded JSON slot."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",

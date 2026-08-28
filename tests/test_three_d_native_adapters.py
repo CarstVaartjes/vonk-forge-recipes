@@ -9,7 +9,6 @@ import sys
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG_TOOL = ROOT / "tools/build-catalog-index"
 LOADER = importlib.machinery.SourceFileLoader("three_d_catalog_tool", str(CATALOG_TOOL))
@@ -33,9 +32,42 @@ CASES = {
         "runtime-distributions/hunyuan3d-omni-native-arm64.json",
     ),
 }
+SLOTTED_RECIPES = (
+    "hunyuan3d-omni-pytorch-single",
+    "pixal3d-pytorch-single",
+    "skintokens-pytorch-single",
+    "step1x-3d-geometry-pytorch-single",
+    "step1x-3d-label-geometry-pytorch-single",
+    "step1x-3d-texture-pytorch-single",
+    "trellis-2-4b-pytorch-single",
+    "triposg-pytorch-single",
+)
 
 
 class NativeThreeDAdapterTests(unittest.TestCase):
+    def test_three_d_job_contracts_have_truthful_bounded_input_and_glb_output_slots(self) -> None:
+        for slug in SLOTTED_RECIPES:
+            with self.subTest(slug=slug):
+                recipe = json.loads((ROOT / f"recipes/{slug}.json").read_text())
+                interface = recipe["interfaces"][0]
+                input_contract = interface["input"]
+                output_contract = interface["output"]
+                self.assertEqual(input_contract["path"], "/inputs")
+                self.assertTrue(input_contract["slots"])
+                self.assertLessEqual(
+                    sum(slot["max_total_bytes"] for slot in input_contract["slots"]),
+                    input_contract["max_bytes"],
+                )
+                self.assertEqual(output_contract["path"], "/outputs")
+                self.assertEqual(len(output_contract["slots"]), 1)
+                output = output_contract["slots"][0]
+                self.assertEqual(output["media_types"], ["model/gltf-binary"])
+                self.assertEqual(output["extensions"], [".glb"])
+                self.assertEqual((output["min_files"], output["max_files"]), (1, 1))
+                self.assertLessEqual(
+                    output["max_total_bytes"], output_contract["max_total_bytes"]
+                )
+
     def test_recipes_bind_exact_native_context_and_runtime(self) -> None:
         for slug, (context_name, runtime_name) in CASES.items():
             with self.subTest(slug=slug):
@@ -55,7 +87,7 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 self.assertFalse(tags.intersection({"metadata-only", "non-executable", "integration-required"}))
 
     def test_runtime_is_offline_and_source_authorities_are_immutable(self) -> None:
-        for _slug, (_context_name, runtime_name) in CASES.items():
+        for _context_name, runtime_name in CASES.values():
             with self.subTest(runtime=runtime_name):
                 runtime = json.loads((ROOT / runtime_name).read_text())
                 self.assertTrue(runtime["build"]["offline_after_installation"])
@@ -66,14 +98,88 @@ class NativeThreeDAdapterTests(unittest.TestCase):
 
     def test_entrypoints_are_syntax_valid_and_have_no_runtime_downloads(self) -> None:
         forbidden = ("snapshot_download", "hf_hub_download", "requests.get", "requests.post", "urlopen(", "curl ")
-        for _slug, (context_name, _runtime_name) in CASES.items():
+        for context_name, _runtime_name in CASES.values():
             with self.subTest(context=context_name):
                 source = (ROOT / context_name / "run.py").read_text()
                 ast.parse(source)
                 for marker in forbidden:
                     self.assertNotIn(marker, source)
                 self.assertIn("output.glb", source)
-                self.assertIn("b\"glTF\"", source)
+                self.assertIn("validate_mesh_glb(", source)
+
+    def test_hunyuan_declares_and_forces_exact_local_dinov2(self) -> None:
+        recipe = json.loads((ROOT / "recipes/hunyuan3d-omni-pytorch-single.json").read_text())
+        model_version = json.loads(
+            (ROOT / "model-versions/hunyuan3d-omni.json").read_text()
+        )
+        self.assertEqual(
+            model_version["license"]["territorial_restrictions"],
+            {
+                "denied_jurisdictions": ["EU", "GB", "KR"],
+                "notice": (
+                    "The upstream Hunyuan3D-Omni Community License does not apply "
+                    "in the European Union, United Kingdom, or South Korea."
+                ),
+            },
+        )
+        self.assertFalse(model_version["license"]["operator_acceptance_required"])
+        self.assertEqual(
+            recipe["model"]["content_sha256"],
+            hashlib.sha256(CATALOG.canonical(model_version)).hexdigest(),
+        )
+        artifacts = {artifact["id"]: artifact for artifact in recipe["artifacts"]}
+        dino = artifacts["dinov2-large"]
+        self.assertEqual(dino["repository"], "facebook/dinov2-large")
+        self.assertEqual(dino["revision"], "47b73eefe95e8d44ec3623f8890bd894b6ea2d6c")
+        self.assertEqual(dino["mount"]["target"], "/models/dinov2-large")
+        self.assertIn("dinov2-large", recipe["topology"]["roles"][0]["artifacts"])
+        source = (ROOT / "adapters/three-d/hunyuan3d-omni/run.py").read_text()
+        self.assertIn('identifier != "facebook/dinov2-large"', source)
+        self.assertIn('loader_kwargs["local_files_only"] = True', source)
+        self.assertIn("np.random.seed(args.seed)", source)
+        self.assertIn("sample_surface(loaded, 81920, seed=seed)", source)
+
+    def test_pixal_validates_input_before_model_load_and_disables_cache_writes(self) -> None:
+        source = (ROOT / "adapters/three-d/trellis2-native/pixal3d_job.py").read_text()
+        dockerfile = (ROOT / "adapters/three-d/trellis2-native/Dockerfile").read_text()
+        self.assertLess(source.index("input_image = validated_input"), source.index("    import torch"))
+        self.assertIn('FLEX_GEMM_AUTOTUNE_CACHE_PATH="/opt/vonk/flexgemm-source/autotune_cache.json"', dockerfile)
+        self.assertIn('FLEX_GEMM_AUTOSAVE_AUTOTUNE_CACHE="0"', dockerfile)
+        self.assertIn('validate_mesh_glb(temporary, profile="textured-pbr")', source)
+        self.assertLess(
+            source.index('validate_mesh_glb(temporary, profile="textured-pbr")'),
+            source.index("os.replace(temporary"),
+        )
+
+    def test_all_native_adapters_validate_before_atomic_publication(self) -> None:
+        cases = {
+            "hunyuan3d-omni/run.py": 'validate_mesh_glb(temporary, profile="geometry")',
+            "trellis2-native/pixal3d_job.py": 'validate_mesh_glb(temporary, profile="textured-pbr")',
+            "trellis2-native/trellis2_job.py": 'validate_mesh_glb(temporary, profile="textured-pbr")',
+            "step1x-3d/run.py": '_publish_glb(temporary, output_dir / "step1x-textured.glb", profile="textured")',
+            "triposg/run.py": 'validate_mesh_glb(temporary, profile="geometry")',
+            "skintokens/run.py": 'validate_mesh_glb(temporary_output, profile="skinned")',
+        }
+        for relative, validation in cases.items():
+            with self.subTest(adapter=relative):
+                source = (ROOT / "adapters/three-d" / relative).read_text()
+                self.assertIn(validation, source)
+                self.assertIn("os.replace(", source)
+
+    def test_mesh_conditioned_adapters_validate_inputs_before_model_work(self) -> None:
+        step = (ROOT / "adapters/three-d/step1x-3d/run.py").read_text()
+        skin = (ROOT / "adapters/three-d/skintokens/run.py").read_text()
+
+        self.assertIn('validate_mesh_glb(path, profile="geometry")', step)
+        self.assertLess(
+            step.index("mesh_path = _validated_input_glb("),
+            step.index("pipeline = Step1X3DTexturePipeline(config)"),
+        )
+        self.assertIn('validate_mesh_glb(candidate, profile="geometry")', skin)
+        self.assertLess(
+            skin.index('validate_mesh_glb(candidate, profile="geometry")'),
+            skin.index("model = get_model(str(CHECKPOINT))"),
+        )
 
 
 if __name__ == "__main__":

@@ -8,6 +8,9 @@
     {"artifact_id": "vae", "category": "vae", "filename": "qwen_image_vae.safetensors"}
   ],
   "inputs": {"minimum": 0, "maximum": 0},
+  "text_inputs": {
+    "prompt": {"required": true, "slot": "prompt", "maximum_bytes": 16384, "maximum_characters": 4096}
+  },
   "prompt": {
     "1": {"class_type": "UNETLoader", "inputs": {"unet_name": "qwen_image_2512_bf16.safetensors", "weight_dtype": "default"}},
     "2": {"class_type": "ModelSamplingAuraFlow", "inputs": {"model": ["1", 0], "shift": 3.1}},

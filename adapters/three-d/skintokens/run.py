@@ -3,16 +3,19 @@
 from __future__ import annotations
 
 import argparse
+import os
 import tempfile
 from pathlib import Path
 
 import numpy as np
 import torch
 import trimesh
+from glb_validation import normalize_glb_json_padding, validate_mesh_glb
 from pygltflib import (
     ARRAY_BUFFER,
     ELEMENT_ARRAY_BUFFER,
     FLOAT,
+    GLTF2,
     MAT4,
     SCALAR,
     UNSIGNED_INT,
@@ -20,16 +23,17 @@ from pygltflib import (
     VEC3,
     VEC4,
     Accessor,
-    Asset as GltfAsset,
     Attributes,
     Buffer,
     BufferView,
-    GLTF2,
     Mesh,
     Node,
     Primitive,
     Scene,
     Skin,
+)
+from pygltflib import (
+    Asset as GltfAsset,
 )
 
 INPUTS = Path("/inputs")
@@ -44,9 +48,12 @@ def one_input_mesh() -> Path:
     )
     if len(candidates) != 1:
         raise SystemExit("SkinTokens requires exactly one GLB input")
-    if candidates[0].read_bytes()[:4] != b"glTF":
-        raise SystemExit("input is not a GLB binary")
-    return candidates[0]
+    candidate = candidates[0]
+    try:
+        validate_mesh_glb(candidate, profile="geometry")
+    except ValueError as exc:
+        raise SystemExit(f"SkinTokens input is not a valid GLB mesh: {exc}") from exc
+    return candidate
 
 
 def append_blob(blob: bytearray, value: bytes) -> tuple[int, int]:
@@ -201,10 +208,15 @@ def main() -> None:
         if result is None:
             raise SystemExit("TokenRig did not return a rigged asset")
         args.output_dir.mkdir(parents=True, exist_ok=True)
-        output = args.output_dir / "output.glb"
-        export_rigged_glb(result, output)
-        if output.read_bytes()[:4] != b"glTF":
-            raise SystemExit("SkinTokens did not produce a valid GLB artifact")
+        temporary_output = args.output_dir / ".output.tmp.glb"
+        export_rigged_glb(result, temporary_output)
+        normalize_glb_json_padding(temporary_output)
+        try:
+            validate_mesh_glb(temporary_output, profile="skinned")
+        except ValueError as exc:
+            temporary_output.unlink(missing_ok=True)
+            raise SystemExit(f"SkinTokens produced an invalid GLB artifact: {exc}") from exc
+        os.replace(temporary_output, args.output_dir / "output.glb")
 
 
 if __name__ == "__main__":

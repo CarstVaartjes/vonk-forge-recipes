@@ -18,7 +18,7 @@
     "kind": "model",
     "publisher": "qwen",
     "slug": "qwen3-8-27b",
-    "content_sha256": "48387629aca6e301ebff90966931756266947c56155123f3e4805ea1d3c1fc11"
+    "content_sha256": "54859a7b13fb24baf42bf63aa417bad3f47bae25b73df20516c2bdda81a9379e"
   },
   "version": "Qwen3.8 27B BF16",
   "source": {
@@ -32,7 +32,7 @@
       "kind": "model",
       "publisher": "qwen",
       "slug": "qwen3-8-27b",
-      "content_sha256": "48387629aca6e301ebff90966931756266947c56155123f3e4805ea1d3c1fc11"
+      "content_sha256": "54859a7b13fb24baf42bf63aa417bad3f47bae25b73df20516c2bdda81a9379e"
     },
     "derivation": "Official upstream checkpoint at the pinned revision."
   },

@@ -1,9 +1,22 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-four"},
-  "version": "1.0.0",
-  "released_at": "2026-08-27",
+  "version": "1.0.1",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "1.0.1",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "23584bd8d1ff8eeb5ad21ad30fb6290eaff998ddc75f34a9dba238b061108bed",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Marked TP4 unavailable on the current fleet and promoted the dual profile for fleet trials.",
+          "details": "The exact four-rank contract is retained for future scale qualification. No runtime, model, adapter, artifact, or validation claim changed."
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-27",

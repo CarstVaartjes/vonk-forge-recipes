@@ -4,9 +4,37 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-dev-bf16-diffusers-single"
   },
-  "version": "2.0.1",
-  "released_at": "2026-08-26",
+  "version": "3.0.0",
+  "released_at": "2026-08-28",
   "history": [
+    {
+      "version": "3.0.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "f6626eb0313140e99d6b0aa0389ff3035c062650114c8c9eb7cb77a4f8e99692",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "breaking",
+          "summary": "Replaced the hidden default prompt with one required bounded UTF-8 prompt file and declared exact synchronized-MP4 output bounds."
+        },
+        {
+          "kind": "fix",
+          "summary": "Validate the exact H.264/AAC codec, geometry, frame rate, frame count, duration, stereo audio rate, and synchronization before atomic publication."
+        }
+      ]
+    },
+    {
+      "version": "2.0.2",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "3ad4f542a4a210609aae46f1da24cd8fe8dbdfb7acabcee6ff42fee5131647f3",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Resolved the spatial upscaler from the immutable runtime artifact set instead of hardcoding a companion filename."
+        }
+      ]
+    },
     {
       "version": "2.0.1",
       "released_at": "2026-08-26",

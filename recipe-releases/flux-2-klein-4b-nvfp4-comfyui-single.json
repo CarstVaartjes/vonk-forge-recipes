@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "recipe": {"publisher": "vonk-forge", "slug": "flux-2-klein-4b-nvfp4-comfyui-single"},
+  "version": "1.0.0",
+  "released_at": "2026-08-28",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "1895e4eb8a9a1d9f12d5c036b7b8f70ab3b33ee1176877ee598f9f79f4001490",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial core-node ComfyUI Candidate for the official FLUX.2 Klein 4B NVFP4 checkpoint on one Spark.",
+          "references": [
+            "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4/tree/1db2b2f776c24b76f1122e5f69ab1949fc620068"
+          ]
+        }
+      ]
+    }
+  ]
+}
