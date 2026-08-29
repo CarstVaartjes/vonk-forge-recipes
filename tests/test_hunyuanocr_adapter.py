@@ -13,11 +13,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/ocr/hunyuanocr-1-5-vllm-dflash"
 ADAPTER_PATH = ADAPTER_ROOT / "run.py"
-MODEL_PATH = ROOT / "model-versions/hunyuanocr-1-5-449e7d47.json"
+MODEL_PATH = ROOT / "model-versions/hunyuanocr-1-5-47644ecc.json"
 RUNTIME_PATH = ROOT / "runtime-distributions/hunyuanocr-1-5-vllm-dflash-arm64.json"
 RECIPE_PATH = ROOT / "recipes/hunyuanocr-1-5-vllm-dflash-single.json"
 RELEASE_PATH = ROOT / "recipe-releases/hunyuanocr-1-5-vllm-dflash-single.json"
-MODEL_REVISION = "449e7d471a8a1ef5bd5d652e4881183d7252cbc7"
+MODEL_REVISION = "47644ecc4fc854efa4f505155158831f36773ee4"
 SOURCE_REVISION = "c55965d3da1e6f41987abec8068f2e70851318bc"
 
 
@@ -59,6 +59,24 @@ class HunyuanOCRAuthorityTests(unittest.TestCase):
         self.assertEqual(model["source"]["revision"], MODEL_REVISION)
         self.assertEqual(runtime["source"]["revision"], SOURCE_REVISION)
         self.assertEqual(recipe["artifacts"][0]["revision"], MODEL_REVISION)
+        artifact = recipe["artifacts"][0]
+        selectors = artifact["include_paths"]
+        self.assertEqual(selectors, sorted(selectors))
+        self.assertNotIn("v1.0/", selectors)
+        selected = [
+            item
+            for item in model["artifacts"]
+            if any(
+                item["path"] == selector
+                or (selector.endswith("/") and item["path"].startswith(selector))
+                for selector in selectors
+            )
+        ]
+        self.assertEqual(len(selected), len(model["artifacts"]) - 15)
+        self.assertEqual(
+            artifact["download_bytes"],
+            sum(item["download_bytes"] for item in selected),
+        )
         self.assertEqual(recipe["topology"]["node_count"], 1)
         self.assertEqual(recipe["interfaces"][0]["adapter"], "artifact-job")
         self.assertTrue(recipe["interfaces"][0]["input"]["required"])
@@ -79,6 +97,12 @@ class HunyuanOCRAuthorityTests(unittest.TestCase):
             "v1.0/model-00004-of-00004.safetensors",
         ):
             self.assertIn(required, paths)
+
+    def test_license_fails_closed_for_tencent_excluded_territories(self) -> None:
+        model = json.loads(MODEL_PATH.read_text(encoding="utf-8"))
+        restrictions = model["license"]["territorial_restrictions"]
+        self.assertEqual(restrictions["denied_jurisdictions"], ["EU", "GB", "KR"])
+        self.assertTrue(model["license"]["operator_acceptance_required"])
 
     def test_signed_source_bundle_matches_recipe(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))

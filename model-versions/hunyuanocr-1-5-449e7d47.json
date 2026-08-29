@@ -63,7 +63,15 @@
     "attribution": [
       "Tencent Hunyuan"
     ],
-    "operator_acceptance_required": true
+    "operator_acceptance_required": true,
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR"
+      ],
+      "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
+    }
   },
   "access": {
     "visibility": "public",
@@ -110,6 +118,6 @@
     {"id":"video-preprocessor-config","path":"video_preprocessor_config.json","kind":"huggingface.file","repository":"https://huggingface.co/tencent/HunyuanOCR/resolve/449e7d471a8a1ef5bd5d652e4881183d7252cbc7/video_preprocessor_config.json","revision":"449e7d471a8a1ef5bd5d652e4881183d7252cbc7","sha256":"f0b9fba99cdc7d556adb3a9023f961534d46c1b7c84b31c6684d8562cd866b79","download_bytes":916,"installed_bytes":916,"roles":["processor"]}
   ],
   "dependencies": [],
-  "availability": "active",
+  "availability": "superseded",
   "supersedes": null
 }

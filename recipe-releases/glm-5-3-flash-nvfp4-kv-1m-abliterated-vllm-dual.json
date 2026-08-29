@@ -1,9 +1,30 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual"},
-  "version": "1.0.1",
-  "released_at": "2026-08-28",
+  "version": "1.1.0",
+  "released_at": "2026-08-29",
   "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-29",
+      "recipe_content_sha256": "a576566f96a875157aae37d5db76de071580e427855ab1950bb0644675e5c47b",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Adopted Drowzeys' upstream-published digest-pinned B12X runtime image.",
+          "details": "The adapter now builds directly from the validated linux/arm64 GHCR image instead of reinstalling b12x and Cutlass DSL from PyPI on every Spark; the reviewed overlays and non-root offline runtime remain unchanged.",
+          "references": [
+            "https://github.com/drowzeys/keys-vLLm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated/commit/c36b5958412158a69629e7fbed321312e6d0761d"
+          ]
+        },
+        {
+          "kind": "fix",
+          "summary": "Applied upstream's 0.85 unified-memory hard cap for the 1M profile.",
+          "details": "The previous 0.87 value is no longer recommended; operators should reduce concurrency or batched-token limits instead of raising the cap. Gated checkpoint inventory and physical two-Spark acceptance remain blocked separately."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-28",

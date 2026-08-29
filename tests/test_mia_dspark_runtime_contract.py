@@ -3,8 +3,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import runpy
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -14,8 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/deepseek/mia-vllm"
 RECIPE = ROOT / "recipes/deepseek-v4-flash-0731-mia-dual.json"
 PATCH_BUNDLE = ROOT / "patch-bundles/mia-deepseek-v4-flash-0731.json"
-MIA_REVISION = "70a7cc4b49664e83b51e9b73c0ed41db18ac3190"
-MIA_ARCHIVE_SHA256 = "7d17f73ca4f444f8518d8535a237e7f3c7b3c3a8d6f0f5a36bbabdfcfe2b5b02"
+MIA_REVISION = "03d4776fa8977ed9f7fd077c4776ba164c7127b6"
+MIA_ARCHIVE_SHA256 = "578e4a84b900794d23c91cd64d263f9196a86fb612b46c6b8c4232031e2040c2"
 
 
 class MiaDSparkRuntimeContractTest(unittest.TestCase):
@@ -71,6 +73,65 @@ class MiaDSparkRuntimeContractTest(unittest.TestCase):
         verify_position = dockerfile.index("verify-dspark-runtime.py")
         patch_position = dockerfile.index("apply-build-patches.py", verify_position)
         self.assertLess(verify_position, patch_position)
+
+    def test_xgrammar_termination_fix_is_source_exact_and_verified(self) -> None:
+        patch_path = ADAPTER / "patches/hotfix-vllm-issue136-xgrammar-termination.py"
+        patch_bytes = patch_path.read_bytes()
+        patch_bundle = json.loads(PATCH_BUNDLE.read_text(encoding="utf-8"))
+        patch_contract = next(
+            item
+            for item in patch_bundle["patches"]
+            if item["path"].endswith("issue136-xgrammar-termination.py")
+        )
+        apply_script = (ADAPTER / "apply-build-patches.py").read_text(encoding="utf-8")
+        dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
+
+        self.assertEqual(
+            hashlib.sha256(patch_bytes).hexdigest(), patch_contract["sha256"]
+        )
+        self.assertIn(
+            'run("hotfix-vllm-issue136-xgrammar-termination.py")', apply_script
+        )
+        self.assertIn(
+            "hotfix-vllm-issue136-xgrammar-termination.py --status", dockerfile
+        )
+
+    def test_xgrammar_stock_to_patched_apply_executes_successfully(self) -> None:
+        patch_path = (
+            ADAPTER / "patches/hotfix-vllm-issue136-xgrammar-termination.py"
+        )
+        module = runpy.run_path(str(patch_path), run_name="issue136_apply_test")
+        old_region = module["OLD_REGION"]
+        new_region = module["NEW_REGION"]
+        stock = b"class SyntheticGrammar:\n" + old_region + b"\n"
+        patched = stock.replace(old_region, new_region)
+        versions = {
+            "vllm": module["EXPECTED_VLLM_VERSION"],
+            "xgrammar": module["EXPECTED_XGRAMMAR_VERSION"],
+        }
+        exact_fixture_constants = {
+            "STOCK_SIZE": len(stock),
+            "STOCK_SHA256": hashlib.sha256(stock).hexdigest(),
+            "PATCHED_SIZE": len(patched),
+            "PATCHED_SHA256": hashlib.sha256(patched).hexdigest(),
+        }
+
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "backend_xgrammar.py"
+            target.write_bytes(stock)
+            target.chmod(0o640)
+            with patch.dict(module["apply"].__globals__, exact_fixture_constants):
+                result = module["apply"](target, versions.__getitem__)
+
+            self.assertEqual(result.outcome, "applied")
+            self.assertEqual(result.pre_sha256, exact_fixture_constants["STOCK_SHA256"])
+            self.assertEqual(
+                result.post_sha256, exact_fixture_constants["PATCHED_SHA256"]
+            )
+            self.assertEqual(result.vllm_version, versions["vllm"])
+            self.assertEqual(result.xgrammar_version, versions["xgrammar"])
+            self.assertEqual(target.read_bytes(), patched)
+            self.assertEqual(target.stat().st_mode & 0o777, 0o640)
 
     def test_verifier_accepts_the_exact_required_mapping(self) -> None:
         verifier = ADAPTER / "verify-dspark-runtime.py"

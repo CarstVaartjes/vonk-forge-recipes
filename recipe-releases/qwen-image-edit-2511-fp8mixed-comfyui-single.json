@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-edit-2511-fp8mixed-comfyui-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-29",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-29",
+      "recipe_content_sha256": "bec89526ff4f4302dd55464e933d37b42050c23be4ab6dc83da9e15871f52063",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added the exact mixed-precision FP8 Qwen Image Edit 2511 Candidate for one Spark.",
+          "details": "The isolated core-node ComfyUI adapter installs the exact FP8mixed transformer, scaled-FP8 encoder, and VAE, accepts one or two signed reference images plus a bounded prompt, and publishes exactly one PNG without changing existing ComfyUI source bundles.",
+          "references": [
+            "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/commit/4c7c4ea236326cbae56d403d22a03c6cd86ad9a0",
+            "https://github.com/Comfy-Org/workflow_templates/blob/2ded761bde3af3b4c8e905e162f45551cbec12ea/templates/image_qwen_image_edit_2511.json"
+          ]
+        }
+      ]
+    }
+  ]
+}

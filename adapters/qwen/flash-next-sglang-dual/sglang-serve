@@ -43,6 +43,7 @@ except ValueError:
     raise SystemExit("distributed SGLang requires complete two-node placement rendezvous and fabric") from None
 
 arguments[init_index + 1] = f"{master_address}:{master_port}"
+os.environ["SGLANG_HOST_IP"] = local_address
 
 
 def add_value(name: str, value: str) -> None:
@@ -65,7 +66,7 @@ for name, value in (
     ("--chunked-prefill-size", "1024"),
     ("--max-prefill-tokens", "2048"),
     ("--max-running-requests", "28"),
-    ("--context-length", "900000"),
+    ("--context-length", "1048576"),
     ("--mem-fraction-static", "0.82"),
     ("--kv-cache-dtype", "nvfp4"),
     (

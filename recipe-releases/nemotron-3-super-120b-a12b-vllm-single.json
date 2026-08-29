@@ -4,9 +4,26 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-super-120b-a12b-vllm-single"
   },
-  "version": "2.1.2",
-  "released_at": "2026-08-28",
+  "version": "2.1.3",
+  "released_at": "2026-08-29",
   "history": [
+    {
+      "version": "2.1.3",
+      "released_at": "2026-08-29",
+      "recipe_content_sha256": "30f07a81ab63f9112225f30c1e42d08ce4c473c39cdf0a56cb30f6b52ee84de8",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Advanced the immutable target to NVIDIA's current ff433f54 model-card revision.",
+          "details": "The only upstream change is a 234-byte README addition linking NVIDIA's public summary of training content. Weights, runtime code, tokenizer, parser, vLLM 0.27.1 launch, and MTPv2 companion are byte-identical, so existing deployments need no rebuild or restart.",
+          "references": [
+            "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4/tree/ff433f5493e25d631c9f12b5d55c674229923d02",
+            "https://developer.download.nvidia.com/assets/nemo/docs/public-summary-of-training-content-for-nvidia-nemotron.pdf"
+          ]
+        }
+      ]
+    },
     {
       "version": "2.1.2",
       "released_at": "2026-08-28",

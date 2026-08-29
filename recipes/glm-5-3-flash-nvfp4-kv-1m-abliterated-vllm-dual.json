@@ -9,27 +9,27 @@
   "model": {"kind": "model-version", "publisher": "drowzeys", "slug": "glm-5-3-flash-nvfp4-abliterated-d7f8afa8", "content_sha256": "206d70bc7470b79349c94fafe89d595cdc0ac771f52875302438a7305f9cf77e"},
   "execution": {
     "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"},
-    "patch_bundle": {"kind": "patch-bundle", "publisher": "drowzeys", "slug": "drowzeys-glm53-nvfp4-kv-1m-dual-profile", "content_sha256": "9cd753b30115981069b363a73050a78a865423aab0dbeb35d1de74b33ba41ac8"}
+    "patch_bundle": {"kind": "patch-bundle", "publisher": "drowzeys", "slug": "drowzeys-glm53-nvfp4-kv-1m-dual-profile", "content_sha256": "068c157c1029785cf8e8ce9c34d18a145df027ea2699411e37236f0f5b059507"}
   },
   "build": {
-    "context": {"path": "adapters/glm/drowzeys-glm53-1m", "sha256": "d5b74b072e73d9e5c2167041f9ad53d66059f4fb69d781c5ecce97123daf1495", "expected_bytes": 788480, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
+    "context": {"path": "adapters/glm/drowzeys-glm53-1m", "sha256": "8c2d848776b4b0f67f0bcd216a796d14daf3d1fc55f5117f3e0e542c09fabfb3", "expected_bytes": 788480, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
-    "network": {"mode": "public", "hosts": ["docker.io", "files.pythonhosted.org", "pypi.org"]},
-    "resources": {"download_bytes": 9710629881, "temporary_bytes": 25000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
+    "network": {"mode": "public", "hosts": ["ghcr.io"]},
+    "resources": {"download_bytes": 10083828030, "temporary_bytes": 25000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
   },
   "parameters": [],
   "artifacts": [
     {"id": "weights", "kind": "huggingface.snapshot", "repository": "drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock", "revision": "d7f8afa81e62c156446fda43304d704563622590", "download_bytes": 194692761489, "installed_bytes": 194692761489, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}
   ],
   "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "drowzeys", "slug": "vllm-glm53-drowzeys-1m-ee0dabad-arm64", "content_sha256": "1bdc0de561022bc6c7533b015841e8debb5f6da52e6211c446ade015e3cf904c"},
+    "distribution": {"kind": "runtime-distribution", "publisher": "drowzeys", "slug": "vllm-glm53-drowzeys-1m-c36b5958-arm64", "content_sha256": "7b68fe00a4c150faa8797b358500edf18107721c26b6467abbd004d56c8f4ed6"},
     "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
     "arguments": [
       {"name": "served-model-name", "value": "glm-5.3-flash-nvfp4"},
       {"name": "trust-remote-code", "value": true},
       {"name": "tensor-parallel-size", "value": 2},
       {"name": "pipeline-parallel-size", "value": 1},
-      {"name": "gpu-memory-utilization", "value": "0.87"},
+      {"name": "gpu-memory-utilization", "value": "0.85"},
       {"name": "max-model-len", "value": 1048576},
       {"name": "max-num-seqs", "value": 2},
       {"name": "max-num-batched-tokens", "value": 4096},
@@ -83,7 +83,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://github.com/drowzeys/keys-vLLm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated/tree/ee0dabadc83f11f8c97cdd8b9b367488755bb846",
+    "source_reference": "https://github.com/drowzeys/keys-vLLm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated/tree/c36b5958412158a69629e7fbed321312e6d0761d",
     "attribution": ["Z.ai", "LibertAI", "DealignAI", "drowzeys", "b12x contributors", "vLLM contributors"]
   }
 }

@@ -37,7 +37,7 @@ def _arguments(recipe: dict[str, object]) -> dict[str, object]:
 class OriginAlignedProfileTests(unittest.TestCase):
     def test_drowzeys_glm53_1m_profile_and_gated_contract(self) -> None:
         recipe_path = ROOT / "recipes/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual.json"
-        runtime_path = ROOT / "runtime-distributions/vllm-glm53-drowzeys-1m-ee0dabad-arm64.json"
+        runtime_path = ROOT / "runtime-distributions/vllm-glm53-drowzeys-1m-c36b5958-arm64.json"
         patch_path = ROOT / "patch-bundles/drowzeys-glm53-nvfp4-kv-1m-dual-profile.json"
         model_path = ROOT / "model-versions/glm-5-3-flash-nvfp4-abliterated-d7f8afa8.json"
         adapter = ROOT / "adapters/glm/drowzeys-glm53-1m"
@@ -53,13 +53,19 @@ class OriginAlignedProfileTests(unittest.TestCase):
         self.assertEqual(arguments["kv-cache-dtype"], "nvfp4_ds_mla")
         self.assertEqual(arguments["max-num-batched-tokens"], 4096)
         self.assertEqual(arguments["max-num-seqs"], 2)
-        self.assertEqual(arguments["gpu-memory-utilization"], "0.87")
+        self.assertEqual(arguments["gpu-memory-utilization"], "0.85")
         self.assertEqual(
             json.loads(arguments["speculative-config"])["num_speculative_tokens"],
             2,
         )
         self.assertEqual(model["access"], {"visibility": "restricted", "gated": True, "authentication": "token"})
-        self.assertEqual(runtime["source"]["revision"], "ee0dabadc83f11f8c97cdd8b9b367488755bb846")
+        self.assertEqual(runtime["source"]["revision"], "c36b5958412158a69629e7fbed321312e6d0761d")
+        self.assertEqual(
+            runtime["image"],
+            "ghcr.io/drowzeys/keys-vllm-glm53-flash-nvfp4-ablit@sha256:"
+            "f722ec19d8260833e948d5bf46949d9ac574841860060caa24213cf550d1a41b",
+        )
+        self.assertEqual(runtime["build"]["network_hosts"], ["ghcr.io"])
         self.assertEqual(recipe["runtime"]["distribution"]["content_sha256"], _canonical_digest(runtime_path))
         self.assertEqual(patch["applies_to"]["content_sha256"], _canonical_digest(runtime_path))
         self.assertEqual(recipe["execution"]["patch_bundle"]["content_sha256"], _canonical_digest(patch_path))
@@ -75,9 +81,9 @@ class OriginAlignedProfileTests(unittest.TestCase):
         self.assertIn('text_config["index_topk"] = 2044', wrapper)
         compile(wrapper, str(adapter / "vllm-wrapper.py"), "exec")
 
-    def test_qwen_announced_900k_profile_and_closure(self) -> None:
+    def test_qwen_current_1m_profile_and_closure(self) -> None:
         recipe_path = ROOT / "recipes/qwen3-8-flash-next-nvfp4-sglang-dual.json"
-        runtime_path = ROOT / "runtime-distributions/sglang-qwen38-flash-next-dspark-6d1a5194-arm64.json"
+        runtime_path = ROOT / "runtime-distributions/sglang-qwen38-flash-next-dspark-344f9d0d-arm64.json"
         patch_path = ROOT / "patch-bundles/sglang-qwen38-flash-next-dual-profile.json"
         adapter = ROOT / "adapters/qwen/flash-next-sglang-dual"
         recipe = _document(recipe_path)
@@ -85,11 +91,11 @@ class OriginAlignedProfileTests(unittest.TestCase):
         patch = _document(patch_path)
         arguments = _arguments(recipe)
 
-        self.assertEqual(arguments["context-length"], 900000)
+        self.assertEqual(arguments["context-length"], 1048576)
         self.assertEqual(arguments["chunked-prefill-size"], 1024)
         self.assertEqual(arguments["max-running-requests"], 28)
         self.assertEqual(arguments["mem-fraction-static"], "0.82")
-        self.assertEqual(runtime["source"]["revision"], "6d1a51947d2f8aed61780ee17429ea4812ba0579")
+        self.assertEqual(runtime["source"]["revision"], "344f9d0d5e9523d8398fa2804d5a3e123fd3d21a")
         self.assertEqual(recipe["runtime"]["distribution"]["content_sha256"], _canonical_digest(runtime_path))
         self.assertEqual(patch["applies_to"]["content_sha256"], _canonical_digest(runtime_path))
         self.assertEqual(recipe["execution"]["patch_bundle"]["content_sha256"], _canonical_digest(patch_path))
@@ -103,7 +109,15 @@ class OriginAlignedProfileTests(unittest.TestCase):
         self.assertIn('("--kv-cache-dtype", "nvfp4")', wrapper)
         self.assertIn('"--max-prefill-tokens", "2048"', wrapper)
         self.assertIn('"original_max_position_embeddings":262144', wrapper)
+        self.assertIn('os.environ["SGLANG_HOST_IP"] = local_address', wrapper)
+        qsa_patch = (adapter / "patch-qsa.py").read_text(encoding="utf-8")
+        self.assertIn("SM121 must not use TRT-LLM sparse decode", qsa_patch)
+        self.assertIn("qsa.sm121_varlen", qsa_patch)
+        fallback = (adapter / "sm121_varlen.py").read_text(encoding="utf-8")
+        self.assertIn("qsa_sm121_varlen_attention", fallback)
         compile(wrapper, str(adapter / "sglang-serve"), "exec")
+        compile(qsa_patch, str(adapter / "patch-qsa.py"), "exec")
+        compile(fallback, str(adapter / "sm121_varlen.py"), "exec")
 
     def test_mia_deepseek_384k_profile_packages_exact_overlays(self) -> None:
         recipe_path = ROOT / "recipes/deepseek-v4-flash-0731-mia-sparkinfer-single.json"

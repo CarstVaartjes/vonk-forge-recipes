@@ -21,7 +21,7 @@
     "kind": "model-version",
     "publisher": "nvidia",
     "slug": "nemotron-3-super-120b-a12b-nvfp4",
-    "content_sha256": "decb5bf4819517bb38f85d330b351ef02df411eec3eb58a746eb99eee63617be"
+    "content_sha256": "2a2632dd6d8791dc8449db8cbfabf34fe5195168f654fc6140fe53eb29de8b5f"
   },
   "dependencies": [
     {
@@ -55,8 +55,8 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 96783709038,
-      "temporary_bytes": 172501146834,
+      "download_bytes": 96783709272,
+      "temporary_bytes": 172501147302,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
     }
@@ -67,9 +67,9 @@
       "id": "target",
       "kind": "huggingface.snapshot",
       "repository": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
-      "revision": "445d56f38229f7a37ae5207734f7e8af0fa9a2c8",
-      "download_bytes": 80365684028,
-      "installed_bytes": 80365684028,
+      "revision": "ff433f5493e25d631c9f12b5d55c674229923d02",
+      "download_bytes": 80365684262,
+      "installed_bytes": 80365684262,
       "mount": {
         "target": "/models/target",
         "read_only": true
@@ -246,8 +246,8 @@
         "resources": {
           "disk": {
             "image_bytes": 12000000000,
-            "artifact_bytes": 86250573417,
-            "staging_bytes": 172501146834,
+            "artifact_bytes": 86250573651,
+            "staging_bytes": 172501147302,
             "cache_bytes": 4000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
@@ -315,7 +315,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4/tree/445d56f38229f7a37ae5207734f7e8af0fa9a2c8",
+    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4/tree/ff433f5493e25d631c9f12b5d55c674229923d02",
     "attribution": [
       "nvidia"
     ]

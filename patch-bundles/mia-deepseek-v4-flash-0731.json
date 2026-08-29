@@ -15,8 +15,8 @@
   },
   "source": {
     "repository": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark",
-    "revision": "70a7cc4b49664e83b51e9b73c0ed41db18ac3190",
-    "archive_sha256": "7d17f73ca4f444f8518d8535a237e7f3c7b3c3a8d6f0f5a36bbabdfcfe2b5b02"
+    "revision": "03d4776fa8977ed9f7fd077c4776ba164c7127b6",
+    "archive_sha256": "578e4a84b900794d23c91cd64d263f9196a86fb612b46c6b8c4232031e2040c2"
   },
   "base_source": {
     "repository": "https://github.com/vllm-project/vllm",
@@ -158,6 +158,14 @@
       "purpose": "Bound global top-k Triton compilation to the two stable block-size variants instead of traffic-dependent pointer-alignment variants.",
       "upstream_reference": "Mia issue 133 at d5ae65cc173e9567de62d19defb885d091406962",
       "license": "MIT"
+    },
+    {
+      "order": 18,
+      "path": "patches/hotfix-vllm-issue136-xgrammar-termination.py",
+      "sha256": "f6c4690d3de7d7325d21c708a5c6b46aa7249665b8206785b5c4cd5c4e108ccb",
+      "purpose": "Stop XGrammar at a terminating speculative token and reset its cached termination state correctly.",
+      "upstream_reference": "Mia issue 136 and vLLM pull request 52805 at 03d4776fa8977ed9f7fd077c4776ba164c7127b6",
+      "license": "MIT"
     }
   ],
   "pre_patch_tree_sha256": "4a1ee8ac6eaefb8dfc9e3d15792daf9154dbaee0acab6295f1e4b95c8397c432",
@@ -178,6 +186,7 @@
     "gb10-spin-wait",
     "scheduler-fairness",
     "triton-specialization-stability",
+    "xgrammar-termination-correctness",
     "persistent-compile-caches",
     "nccl-flight-recorder",
     "tool-call-correctness"
@@ -188,8 +197,8 @@
     "attribution": ["MiaAI-Lab", "vLLM contributors"]
   },
   "source_bundle": {
-    "sha256": "8f5ed21f43771797d08662e22da8223f93f6a971ffbac8873bf3bd4f967743b6",
-    "expected_bytes": 256000,
+    "sha256": "d22ad3cd71ac3f5bd81387892234b3922bbfea6ed52901f24e00ad7a223a938a",
+    "expected_bytes": 276480,
     "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
   },
   "sha256": "e2ae14508454ef3f60ffec2a8acc9d28383e9d5239a9758ee8cf4d07a5dc975a"

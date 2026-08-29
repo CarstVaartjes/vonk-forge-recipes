@@ -1,20 +1,13 @@
-FROM docker.io/vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce
+FROM ghcr.io/drowzeys/keys-vllm-glm53-flash-nvfp4-ablit@sha256:f722ec19d8260833e948d5bf46949d9ac574841860060caa24213cf550d1a41b
 
 LABEL org.opencontainers.image.source="https://github.com/drowzeys/keys-vLLm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated" \
-      org.opencontainers.image.revision="ee0dabadc83f11f8c97cdd8b9b367488755bb846" \
+      org.opencontainers.image.revision="c36b5958412158a69629e7fbed321312e6d0761d" \
       org.opencontainers.image.licenses="Apache-2.0"
 
-# Exact kernel layer from the upstream two-Spark 1M profile. Dependencies are
-# deliberately no-deps so the digest-pinned GLM 5.3 CUDA and torch stack stays
-# intact. The base image's vendored DeepGEMM supplies the arch-12 MQA kernels.
-RUN pip install -q --no-deps b12x==1.2.6 \
-    && pip install -q --no-deps \
-      nvidia-cutlass-dsl==4.7.0 \
-      nvidia-cutlass-dsl-libs-base==4.7.0 \
-      nvidia-cutlass-dsl-libs-core==4.7.0 \
-      nvidia-cutlass-dsl-libs-cu12==4.7.0 \
-      nvidia-cutlass-dsl-libs-cu13==4.7.0 \
-    && python3 -c "import b12x, cutlass; assert b12x and cutlass"
+# Upstream now publishes the exact validated GLM 5.3 CUDA stack with b12x 1.2.6
+# and Cutlass DSL 4.7.0. Verify it instead of rebuilding that network layer on
+# every Spark; the local source bundle below still binds every reviewed overlay.
+RUN python3 -c "import b12x, cutlass; assert b12x and cutlass"
 
 COPY overlays/official/attention.py /usr/local/lib/python3.12/dist-packages/vllm/models/glm5next/nvidia/attention.py
 COPY overlays/official/flashinfer_mla_sparse_sm120.py /usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/flashinfer_mla_sparse_sm120.py

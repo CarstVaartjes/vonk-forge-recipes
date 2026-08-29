@@ -4,9 +4,38 @@
     "publisher": "vonk-forge",
     "slug": "ui-mate-27b-vllm-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.1.0",
+  "released_at": "2026-08-29",
   "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-29",
+      "recipe_content_sha256": "4af963bd5be4812acac7d7233657270135cc39cfd7461ecd32aa65ec1ad91016",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Moved UI-Mate to the immutable vLLM 0.28.0 ARM64 release image.",
+          "details": "Pins the 0.28 scheduling and CUDA-graph bounds used by the other current Qwen-family recipes, while keeping the single-Spark 32K and one-sequence memory envelope.",
+          "references": [
+            "https://github.com/vllm-project/vllm/releases/tag/v0.28.0"
+          ]
+        },
+        {
+          "kind": "runtime",
+          "summary": "Made all runtime compilation and model caches writable for the unprivileged service user.",
+          "details": "The entrypoint now creates its bounded cache directories on the mounted outputs volume before vLLM starts, avoiding first-launch failures caused by root-owned or missing cache paths."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Refreshed Tencent UI-Mate source provenance to d185dc9.",
+          "details": "The upstream change publishes OSWorkerBench and README links only; the three vendored serving-harness files remain byte-identical to the prior revision.",
+          "references": [
+            "https://github.com/Tencent/UI-Mate/tree/d185dc9d74cfcab3a890d7ffb2bb011ecdd64c64"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",
