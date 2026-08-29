@@ -294,7 +294,7 @@ def write_bundle(
     manifest: dict[str, object] = {
         "schema_version": 1,
         "model": SERVED_NAME,
-        "model_revision": "449e7d471a8a1ef5bd5d652e4881183d7252cbc7",
+        "model_revision": "47644ecc4fc854efa4f505155158831f36773ee4",
         "runtime_source_revision": "c55965d3da1e6f41987abec8068f2e70851318bc",
         "inference": "vllm-dflash",
         "task_type": task_type,

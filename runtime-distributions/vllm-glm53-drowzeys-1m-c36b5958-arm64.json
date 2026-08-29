@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "kind": "runtime-distribution",
+  "identity": {"publisher": "drowzeys", "slug": "vllm-glm53-drowzeys-1m-c36b5958-arm64"},
+  "metadata": {
+    "title": "Drowzeys GLM 5.3 NVFP4 KV 1M dual-Spark runtime c36b5958",
+    "description": "Upstream-published digest-pinned GLM 5.3 day-zero vLLM image with Drowzeys' exact B12X NVFP4 KV-cache and sparse-MLA overlays for the native-mp two-Spark 1M profile.",
+    "tags": ["b12x", "candidate", "distributed", "glm-5.3", "native-mp", "nvfp4-kv", "spark", "vllm"]
+  },
+  "implements_harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"},
+  "platform": "linux/arm64",
+  "source": {
+    "repository": "https://github.com/drowzeys/keys-vLLm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated",
+    "revision": "c36b5958412158a69629e7fbed321312e6d0761d",
+    "archive_sha256": "4f0d31434dd171bc95c4c760f38a31c23e4cbdcfa400ee2e3da0f60e84ca4d67",
+    "license": "Apache-2.0"
+  },
+  "image": "ghcr.io/drowzeys/keys-vllm-glm53-flash-nvfp4-ablit@sha256:f722ec19d8260833e948d5bf46949d9ac574841860060caa24213cf550d1a41b",
+  "image_manifest": {"digest": "f722ec19d8260833e948d5bf46949d9ac574841860060caa24213cf550d1a41b", "size": 7236, "config_digest": "71bc69491a0363373a5e7c2811c3bb342c371204c979266a09fb5b44f78ec971", "compressed_layers_bytes": 10083828030},
+  "dependencies": [
+    {"name": "Drowzeys GLM 5.3 B12X runtime image", "version": "c36b5958412158a69629e7fbed321312e6d0761d", "source": "ghcr.io/drowzeys/keys-vllm-glm53-flash-nvfp4-ablit@sha256:f722ec19d8260833e948d5bf46949d9ac574841860060caa24213cf550d1a41b", "license": "Apache-2.0"},
+    {"name": "vLLM GLM 5.3 day-zero", "version": "0.27.1-glm53", "source": "docker.io/vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce", "license": "Apache-2.0"},
+    {"name": "Drowzeys GLM 5.3 1M overlays", "version": "c36b5958412158a69629e7fbed321312e6d0761d", "source": "https://github.com/drowzeys/keys-vLLm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated/tree/c36b5958412158a69629e7fbed321312e6d0761d", "license": "Apache-2.0"},
+    {"name": "b12x", "version": "1.2.6", "source": "https://pypi.org/project/b12x/1.2.6/", "license": "Apache-2.0"},
+    {"name": "NVIDIA Cutlass DSL", "version": "4.7.0", "source": "https://pypi.org/project/nvidia-cutlass-dsl/4.7.0/", "license": "BSD-3-Clause"},
+    {"name": "DeepGEMM", "version": "vLLM-vendored-arch12", "source": "docker.io/vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce", "license": "MIT"}
+  ],
+  "build": {"network_hosts": ["ghcr.io"], "offline_after_installation": true},
+  "capabilities": {
+    "distributed_vllm": {
+      "verified": true,
+      "mechanism": "vllm-mp",
+      "topology_mode": "distributed",
+      "node_count": 2,
+      "world_size": 2,
+      "tensor_parallel_size": 2,
+      "pipeline_parallel_size": 1,
+      "data_parallel_size": 1,
+      "fabric": "nccl-roce",
+      "endpoint_role": "entrypoint",
+      "worker_role": "worker",
+      "rank_loss_withdraws_endpoint": true,
+      "launch": {
+        "rendezvous": {"local_address_environment": "VONK_LOCAL_ADDR", "master_address_environment": "VONK_MASTER_ADDR", "master_port_environment": "VONK_MASTER_PORT", "master_role": "entrypoint"},
+        "rank_profiles": [
+          {"rank": 0, "role": "entrypoint", "environment": {"GLOO_SOCKET_IFNAME": "enp1s0f1np1", "NCCL_IB_GID_INDEX": "3", "NCCL_IB_HCA": "=rocep1s0f1:1", "NCCL_SOCKET_IFNAME": "=enp1s0f1np1", "TP_SOCKET_IFNAME": "enp1s0f1np1"}},
+          {"rank": 1, "role": "worker", "environment": {"GLOO_SOCKET_IFNAME": "enp1s0f0np0", "NCCL_IB_GID_INDEX": "3", "NCCL_IB_HCA": "=rocep1s0f0:1", "NCCL_SOCKET_IFNAME": "=enp1s0f0np0", "TP_SOCKET_IFNAME": "enp1s0f0np0"}}
+        ]
+      }
+    }
+  },
+  "security": {"network_mode": "none", "user": "10001:10001", "no_new_privileges": true, "capabilities": []}
+}

@@ -23,7 +23,7 @@
     "kind": "model-version",
     "publisher": "nvidia",
     "slug": "nemotron-3-nano-omni-30b-a3b-reasoning-nvfp4",
-    "content_sha256": "3b6f644a482e0c65927929ab6062a480a46b52d81a03a74a4bc961821d4c3b02"
+    "content_sha256": "e4a22133985286705052c619560385b2e985f6a469873c4b8043b5a23f364b43"
   },
   "execution": {
     "harness": {
@@ -49,8 +49,8 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 31664813151,
-      "temporary_bytes": 44863295642,
+      "download_bytes": 31664813385,
+      "temporary_bytes": 44863296110,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
     }
@@ -61,9 +61,9 @@
       "id": "weights",
       "kind": "huggingface.snapshot",
       "repository": "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4",
-      "revision": "dc5f0b0bfddf8b6e0f5891475be9af05b80126fe",
-      "download_bytes": 22431647821,
-      "installed_bytes": 22431647821,
+      "revision": "16993199e436da4ba75ddc410855f87e0d996ee6",
+      "download_bytes": 22431648055,
+      "installed_bytes": 22431648055,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -200,8 +200,8 @@
         "resources": {
           "disk": {
             "image_bytes": 12000000000,
-            "artifact_bytes": 22431647821,
-            "staging_bytes": 44863295642,
+            "artifact_bytes": 22431648055,
+            "staging_bytes": 44863296110,
             "cache_bytes": 4000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
@@ -269,7 +269,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4/tree/dc5f0b0bfddf8b6e0f5891475be9af05b80126fe",
+    "source_reference": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4/tree/16993199e436da4ba75ddc410855f87e0d996ee6",
     "attribution": [
       "nvidia"
     ]

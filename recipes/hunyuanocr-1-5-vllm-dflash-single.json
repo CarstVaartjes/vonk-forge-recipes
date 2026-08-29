@@ -30,8 +30,8 @@
   "model": {
     "kind": "model-version",
     "publisher": "tencent",
-    "slug": "hunyuanocr-1-5-449e7d47",
-    "content_sha256": "2cf9b3c1dce7233b6fc0052ea5c8b2c8eff90293808579d824e3043894925b66"
+    "slug": "hunyuanocr-1-5-47644ecc",
+    "content_sha256": "1267577f5e6ee6c1ba970d9dcaf04a08b86d521280d7377e807d00f667f7f464"
   },
   "execution": {
     "harness": {
@@ -45,7 +45,7 @@
   "build": {
     "context": {
       "path": "adapters/ocr/hunyuanocr-1-5-vllm-dflash",
-      "sha256": "345589a49af90632cab8a90901d617021196358db4d703706b48c60d8e55a672",
+      "sha256": "1233e60176f1382abf72678fc0d7091dd435479673c6c65842ec5037ded06fc7",
       "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -71,9 +71,25 @@
       "id": "weights",
       "kind": "huggingface.snapshot",
       "repository": "tencent/HunyuanOCR",
-      "revision": "449e7d471a8a1ef5bd5d652e4881183d7252cbc7",
-      "download_bytes": 4622602968,
-      "installed_bytes": 4622602968,
+      "revision": "47644ecc4fc854efa4f505155158831f36773ee4",
+      "include_paths": [
+        ".gitattributes",
+        "LICENSE",
+        "README.md",
+        "assets/",
+        "chat_template.jinja",
+        "config.json",
+        "dflash/",
+        "generation_config.json",
+        "model.safetensors",
+        "preprocessor_config.json",
+        "special_tokens_map.json",
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "video_preprocessor_config.json"
+      ],
+      "download_bytes": 2623793897,
+      "installed_bytes": 2623793897,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -173,7 +189,7 @@
         "resources": {
           "disk": {
             "image_bytes": 12000000000,
-            "artifact_bytes": 4622602968,
+            "artifact_bytes": 2623793897,
             "staging_bytes": 6000000000,
             "cache_bytes": 4000000000,
             "rollback_bytes": 0,
@@ -257,7 +273,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/tencent/HunyuanOCR/tree/449e7d471a8a1ef5bd5d652e4881183d7252cbc7",
+    "source_reference": "https://huggingface.co/tencent/HunyuanOCR/tree/47644ecc4fc854efa4f505155158831f36773ee4",
     "attribution": [
       "Tencent Hunyuan",
       "vLLM"

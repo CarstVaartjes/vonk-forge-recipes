@@ -36,8 +36,8 @@ MODELS = {
 SUPER_MTPV2 = ROOT / "model-versions/nemotron-3-super-120b-a12b-bf16-mtpv2.json"
 REVISIONS = {
     "nano": "ce1b118ae66ec705d02c241525192832eb045fd3",
-    "omni": "dc5f0b0bfddf8b6e0f5891475be9af05b80126fe",
-    "super": "445d56f38229f7a37ae5207734f7e8af0fa9a2c8",
+    "omni": "16993199e436da4ba75ddc410855f87e0d996ee6",
+    "super": "ff433f5493e25d631c9f12b5d55c674229923d02",
 }
 
 
@@ -81,14 +81,14 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
                 )
                 expected_version = {
                     "nano": "2.0.2",
-                    "omni": "2.0.2",
-                    "super": "2.1.2",
+                    "omni": "2.0.3",
+                    "super": "2.1.3",
                 }[name]
                 self.assertEqual(release["version"], expected_version)
                 expected_upgrade_effect = {
                     "nano": "metadata-only",
                     "omni": "metadata-only",
-                    "super": "reinstall",
+                    "super": "metadata-only",
                 }[name]
                 self.assertEqual(
                     release["history"][0]["upgrade_effect"], expected_upgrade_effect
@@ -192,10 +192,10 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
         target_readme = next(
             item for item in target_artifacts if item["path"] == "README.md"
         )
-        self.assertEqual(target_readme["download_bytes"], 81392)
+        self.assertEqual(target_readme["download_bytes"], 81626)
         self.assertEqual(
             target_readme["sha256"],
-            "4e07131b1a37d311cc220487cb7731801ea57effd69a7b9eefc605231c76435c",
+            "75a09249ef13176b32cc198bae54d83c234d4bf3f75ec996b59ad81f902b68cd",
         )
 
         companion = _read(SUPER_MTPV2)
@@ -244,6 +244,24 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
         self.assertIn("text", tags)
         self.assertTrue({"audio", "image", "video", "multimodal"}.isdisjoint(tags))
         self.assertEqual(recipe["interfaces"][0]["adapter"], "openai")
+
+    def test_omni_current_snapshot_changes_only_reviewed_metadata(self) -> None:
+        model = _read(MODELS["omni"])
+        artifacts = model["artifacts"]
+        self.assertEqual(len(artifacts), 26)
+        self.assertTrue(
+            all(item["revision"] == REVISIONS["omni"] for item in artifacts)
+        )
+        self.assertEqual(
+            sum(item["download_bytes"] for item in artifacts),
+            model["sizes"]["download_bytes"],
+        )
+        readme = next(item for item in artifacts if item["path"] == "README.md")
+        self.assertEqual(readme["download_bytes"], 48304)
+        self.assertEqual(
+            readme["sha256"],
+            "57e90233a9efb3c482ece1fc91fe71038dcec388ed9f8f2417c2d8354a3a76fd",
+        )
 
     def test_source_bundle_and_runtime_have_no_hidden_download_step(self) -> None:
         source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[

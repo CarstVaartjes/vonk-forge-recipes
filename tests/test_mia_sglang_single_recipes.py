@@ -84,6 +84,25 @@ class MiaSglangSingleRecipeTests(unittest.TestCase):
     def test_qwen27_profile_binds_external_dspark_draft(self) -> None:
         recipe = load("recipes/qwen3-8-27b-nvfp4-dspark-sglang-single.json")
         self.assertEqual(recipe["topology"]["node_count"], 1)
+        self.assertEqual(
+            recipe["dependencies"],
+            [
+                {
+                    "kind": "model-version",
+                    "publisher": "radixark",
+                    "slug": "qwen3-8-27b-dspark-b3c99101",
+                    "content_sha256": "03d09c5dd8d95d901da360644010ad546521625eef37a26df26cc3624a1f8937",
+                }
+            ],
+        )
+        draft = next(
+            artifact for artifact in recipe["artifacts"] if artifact["id"] == "draft"
+        )
+        self.assertEqual(
+            draft["revision"],
+            "b3c9910194dc7ae53fea3d95a1959b654f495416",
+        )
+        self.assertEqual(draft["download_bytes"], 3714763499)
         captured = self._capture(
             ROOT / "adapters/qwen/qwen38-27b-dspark-single/sglang-serve",
             [

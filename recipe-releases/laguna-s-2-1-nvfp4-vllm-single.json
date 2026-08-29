@@ -4,9 +4,31 @@
     "publisher": "vonk-forge",
     "slug": "laguna-s-2-1-nvfp4-vllm-single"
   },
-  "version": "1.0.2",
-  "released_at": "2026-08-28",
+  "version": "1.0.3",
+  "released_at": "2026-08-29",
   "history": [
+    {
+      "version": "1.0.3",
+      "released_at": "2026-08-29",
+      "recipe_content_sha256": "18174702cf2eec28b2e5f8db0e201b0cd2e22efebe8e97c54331f4ce9a9083f3",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Completed the immutable checkpoint manifest and corrected its snapshot and staging sizes.",
+          "references": [
+            "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/tree/64734b3a449a05c79657451513d97544f2f53436"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Declared the GB10 CUDA architecture and bounded cold FlashInfer JIT concurrency.",
+          "references": [
+            "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.2",
       "released_at": "2026-08-28",
