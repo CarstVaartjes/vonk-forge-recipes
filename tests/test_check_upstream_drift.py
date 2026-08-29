@@ -98,6 +98,7 @@ class DiscoveryTests(unittest.TestCase):
                 == "recipe/vonk-forge/inkling-small-nvfp4-sglang-dual"
                 and watch.pinned_revision
                 == "a74222ef6e690f851e2e4ff1c0be7dc1357be313"
+                and watch.policy == "manual"
                 for watch in watches
             )
         )

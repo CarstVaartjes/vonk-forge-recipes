@@ -24,7 +24,7 @@
     "kind": "model-version",
     "publisher": "poolside",
     "slug": "laguna-s-2-1-nvfp4",
-    "content_sha256": "29f1f4b38375c2b1dd8224a010c8f9394a6cd6d99ec4985efbecbf913a95434d"
+    "content_sha256": "56f96dbc46964ba0b0f4742228801e4921efe108827bdcb6f2577205fc34843d"
   },
   "execution": {
     "harness": {
@@ -37,8 +37,8 @@
   },
   "build": {
     "context": {
-      "path": "adapters/llm/vllm-openai",
-      "sha256": "071b799afd9a3dbc74360a323faea7283b1f7ca1bef6eff0aaa8fe2cf3cca98f",
+      "path": "adapters/llm/laguna-s-vllm",
+      "sha256": "adfafd7c94de5dd280d2d9791bbe740b0b95fe1b9f4d834fa08b544c1870f9fd",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -50,8 +50,8 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 102435501270,
-      "temporary_bytes": 183804731298,
+      "download_bytes": 110250415483,
+      "temporary_bytes": 199434559724,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
     }
@@ -63,8 +63,8 @@
       "kind": "huggingface.snapshot",
       "repository": "poolside/Laguna-S-2.1-NVFP4",
       "revision": "64734b3a449a05c79657451513d97544f2f53436",
-      "download_bytes": 91902365649,
-      "installed_bytes": 91902365649,
+      "download_bytes": 99717279862,
+      "installed_bytes": 99717279862,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -181,8 +181,8 @@
         "resources": {
           "disk": {
             "image_bytes": 12000000000,
-            "artifact_bytes": 91902365649,
-            "staging_bytes": 183804731298,
+            "artifact_bytes": 99717279862,
+            "staging_bytes": 199434559724,
             "cache_bytes": 4000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000

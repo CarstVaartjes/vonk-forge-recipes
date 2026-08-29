@@ -25,7 +25,7 @@
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "ui-mate-27b-3ade2378",
-    "content_sha256": "b91cb2017586a96c727ca33201efd0a88b29d16ddad05705043afb7dfc96e4d0"
+    "content_sha256": "7818062bde3d185616b4410f501a59cc0ca554312a6de02f1be0a40f8f285fbc"
   },
   "execution": {
     "harness": {
@@ -39,7 +39,7 @@
   "build": {
     "context": {
       "path": "adapters/llm/ui-mate-vllm",
-      "sha256": "804ca1106280b867a04e589df249541393edd3ef125c2dbdf6f8ba3376379116",
+      "sha256": "617da05a0afd62e6a7508b0c04dea52dae6f166a9ce8578cfb73754401738540",
       "expected_bytes": 102400,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -51,7 +51,7 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 65266859770,
+      "download_bytes": 64435219872,
       "temporary_bytes": 109467448298,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
@@ -79,8 +79,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "tencent",
-      "slug": "ui-mate-vllm-0-27-1-arm64",
-      "content_sha256": "6e859a7cc28ad4889fecd59db012cd6471ae572556e92a5b86533eddba95743e"
+      "slug": "ui-mate-vllm-0-28-0-arm64",
+      "content_sha256": "efc18bacec1697d2b3b4d2d2d3cb09e2b4cfede3d0c3ee24f7b2a11d688a48e8"
     },
     "entrypoint": [
       "/opt/vonk/bin/vllm",
@@ -103,6 +103,14 @@
       {
         "name": "max-num-seqs",
         "value": 1
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "value": 8192
+      },
+      {
+        "name": "max-cudagraph-capture-size",
+        "value": 4
       },
       {
         "name": "gpu-memory-utilization",
@@ -255,7 +263,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://github.com/Tencent/UI-Mate/tree/d2b2e0aede83eeacfb1bc86f66503acbc4a6738a",
+    "source_reference": "https://github.com/Tencent/UI-Mate/tree/d185dc9d74cfcab3a890d7ffb2bb011ecdd64c64",
     "attribution": [
       "Tencent",
       "Tencent HY Frontier Team"

@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import runpy
 import sys
 import types
 import unittest
@@ -11,12 +12,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = ROOT / "model-versions/ui-mate-27b-3ade2378.json"
-RUNTIME = ROOT / "runtime-distributions/ui-mate-vllm-0-27-1-arm64.json"
+RUNTIME = ROOT / "runtime-distributions/ui-mate-vllm-0-28-0-arm64.json"
 RECIPE = ROOT / "recipes/ui-mate-27b-vllm-single.json"
 ADAPTER = ROOT / "adapters/llm/ui-mate-vllm"
 
 MODEL_REVISION = "3ade2378fc84032d5017c1a9c93c4eaa77d65e57"
-HARNESS_REVISION = "d2b2e0aede83eeacfb1bc86f66503acbc4a6738a"
+HARNESS_REVISION = "d185dc9d74cfcab3a890d7ffb2bb011ecdd64c64"
 
 
 def _read(path: Path) -> dict[str, object]:
@@ -83,7 +84,13 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
         self.assertEqual(runtime["source"]["revision"], HARNESS_REVISION)
         self.assertEqual(
             runtime["source"]["archive_sha256"],
-            "98d13c2f66cc128d5b96b3c574243d02adb89b27f9a4dab4aae5ef0a7bbf9f28",
+            "12046e80b390539417bfc803d1effcd7b867a4bb95ac8a20a5631ce60db9ab4d",
+        )
+        dependencies = {item["name"]: item for item in runtime["dependencies"]}
+        self.assertEqual(dependencies["vLLM"]["version"], "0.28.0")
+        self.assertEqual(
+            dependencies["vLLM"]["source"],
+            "https://github.com/vllm-project/vllm@2cf0a6915ce544dc493a0990f2ea38d81601128a",
         )
 
     def test_recipe_uses_official_protocol_with_bounded_spark_resources(self) -> None:
@@ -104,6 +111,8 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
         self.assertEqual(arguments["mm-encoder-tp-mode"], "data")
         self.assertEqual(arguments["max-model-len"], 32_768)
         self.assertEqual(arguments["max-num-seqs"], 1)
+        self.assertEqual(arguments["max-num-batched-tokens"], 8192)
+        self.assertEqual(arguments["max-cudagraph-capture-size"], 4)
         self.assertEqual(recipe["topology"]["node_count"], 1)
         self.assertEqual(recipe["topology"]["parallelism"]["tensor"], 1)
         self.assertLessEqual(
@@ -114,14 +123,28 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
     def test_adapter_build_is_offline_and_never_executes_actions(self) -> None:
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
         self.assertIn(
-            "FROM docker.io/vllm/vllm-openai@sha256:1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+            "FROM docker.io/vllm/vllm-openai@sha256:41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4",
             dockerfile,
         )
+        for cache in ("HOME", "HF_HOME", "VLLM_CACHE_ROOT", "TRITON_CACHE_DIR"):
+            self.assertIn(cache, dockerfile)
+        runtime_wrapper = (ADAPTER / "vllm-wrapper.sh").read_text(encoding="utf-8")
+        self.assertIn('mkdir -p \\\n  "$HOME"', runtime_wrapper)
         for forbidden in ("curl ", "wget ", "git clone", "pip install", "uv pip"):
             self.assertNotIn(forbidden, dockerfile)
         wrapper = (ADAPTER / "ui-mate-step.py").read_text(encoding="utf-8")
         self.assertNotIn("exec(", wrapper)
         self.assertNotIn("pyautogui.", wrapper)
+
+    def test_recipe_binds_the_exact_offline_adapter_bundle(self) -> None:
+        recipe = _read(RECIPE)
+        context = recipe["build"]["context"]
+        source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[
+            "source_bundle"
+        ]
+        archive, _, digest = source_bundle(ADAPTER)
+        self.assertEqual(context["sha256"], digest)
+        self.assertEqual(context["expected_bytes"], len(archive))
 
     def test_vendored_parser_scales_official_actions_without_actuating(self) -> None:
         pil = types.ModuleType("PIL")

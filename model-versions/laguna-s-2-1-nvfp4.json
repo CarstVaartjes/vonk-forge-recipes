@@ -7,7 +7,7 @@
   },
   "metadata": {
     "title": "NVFP4 64734b3a",
-    "description": "Exact public NVFP4 64734b3a checkpoint.",
+    "description": "Exact public 1M-context NVFP4 64734b3a checkpoint.",
     "tags": [
       "poolside",
       "language",
@@ -46,11 +46,11 @@
     "active": 8500000000
   },
   "limits": {
-    "context_tokens": 262144
+    "context_tokens": 1048576
   },
   "sizes": {
-    "download_bytes": 91902365649,
-    "installed_bytes": 91902365649
+    "download_bytes": 99717279862,
+    "installed_bytes": 99717279862
   },
   "license": {
     "spdx": "LicenseRef-OpenMDW-1.1",
@@ -714,6 +714,149 @@
       "installed_bytes": 1438986824,
       "roles": [
         "weights"
+      ]
+    },
+    {
+      "id": "model-00044-of-00049-55122368f6e8",
+      "path": "model-00044-of-00049.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4",
+      "revision": "64734b3a449a05c79657451513d97544f2f53436",
+      "sha256": "55122368f6e8134f96460610aa8f7297e6f9c0e52baa84414331938275ffeea5",
+      "download_bytes": 1438986824,
+      "installed_bytes": 1438986824,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00045-of-00049-e0b857108b6d",
+      "path": "model-00045-of-00049.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4",
+      "revision": "64734b3a449a05c79657451513d97544f2f53436",
+      "sha256": "e0b857108b6de051d3d8bab673101a9d606f562f6204fe150ad7ce59ccce568c",
+      "download_bytes": 1438986824,
+      "installed_bytes": 1438986824,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00046-of-00049-a6d1ea38de93",
+      "path": "model-00046-of-00049.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4",
+      "revision": "64734b3a449a05c79657451513d97544f2f53436",
+      "sha256": "a6d1ea38de9380cdb44879881001d86d654ffee7582d1b58e1fe1ddc1869521f",
+      "download_bytes": 1438986976,
+      "installed_bytes": 1438986976,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00047-of-00049-795619eb5f02",
+      "path": "model-00047-of-00049.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4",
+      "revision": "64734b3a449a05c79657451513d97544f2f53436",
+      "sha256": "795619eb5f0216794caaa8571abc4884b865f10e8ded45ca1161b5536464ae07",
+      "download_bytes": 1438987000,
+      "installed_bytes": 1438987000,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00048-of-00049-05a20b093032",
+      "path": "model-00048-of-00049.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4",
+      "revision": "64734b3a449a05c79657451513d97544f2f53436",
+      "sha256": "05a20b09303298b99f31ff4ebaaaf104777df24af8e0edee1343237d1d60dc15",
+      "download_bytes": 1438987000,
+      "installed_bytes": 1438987000,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-00049-of-00049-be9beed132e2",
+      "path": "model-00049-of-00049.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4",
+      "revision": "64734b3a449a05c79657451513d97544f2f53436",
+      "sha256": "be9beed132e2f88cc4d0eaf9c39e29f031cfbd7506e1af85b33bc18c9e2dd9f4",
+      "download_bytes": 600020064,
+      "installed_bytes": 600020064,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "model-index-d21d362ea5b8",
+      "path": "model.safetensors.index.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4",
+      "revision": "64734b3a449a05c79657451513d97544f2f53436",
+      "sha256": "d21d362ea5b85abc642a721b208834fe1d66a07dfa1c43a70f28a9932f568902",
+      "download_bytes": 12617729,
+      "installed_bytes": 12617729,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "modeling-laguna-765fd328542d",
+      "path": "modeling_laguna.py",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4",
+      "revision": "64734b3a449a05c79657451513d97544f2f53436",
+      "sha256": "765fd328542d176ff6a62ac814327b11a824df29bdca001d341e9a7c2fe9d876",
+      "download_bytes": 40927,
+      "installed_bytes": 40927,
+      "roles": [
+        "config"
+      ]
+    },
+    {
+      "id": "special-tokens-map-70cd3459fde6",
+      "path": "special_tokens_map.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4",
+      "revision": "64734b3a449a05c79657451513d97544f2f53436",
+      "sha256": "70cd3459fde61761e9440751a590e89a108c09b1803cc7727f5ad1ed1ea6122b",
+      "download_bytes": 214,
+      "installed_bytes": 214,
+      "roles": [
+        "tokenizer"
+      ]
+    },
+    {
+      "id": "tokenizer-809240f7a182",
+      "path": "tokenizer.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4",
+      "revision": "64734b3a449a05c79657451513d97544f2f53436",
+      "sha256": "809240f7a182cde859a4fc4ebc902e619a173d507e99304c1092aa04e7a6658e",
+      "download_bytes": 7287677,
+      "installed_bytes": 7287677,
+      "roles": [
+        "tokenizer"
+      ]
+    },
+    {
+      "id": "tokenizer-config-8103b5dd4baf",
+      "path": "tokenizer_config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4",
+      "revision": "64734b3a449a05c79657451513d97544f2f53436",
+      "sha256": "8103b5dd4baf13b38ee927370fbfeab2b1378457efaa233d1c5f0410c40dc9f9",
+      "download_bytes": 12978,
+      "installed_bytes": 12978,
+      "roles": [
+        "tokenizer"
       ]
     }
   ],

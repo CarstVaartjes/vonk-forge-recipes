@@ -1,9 +1,37 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-dual"},
-  "version": "1.0.0",
-  "released_at": "2026-08-27",
+  "version": "1.1.0",
+  "released_at": "2026-08-29",
   "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-29",
+      "recipe_content_sha256": "05312736fbb027bb166bd99fa8d8d7b9cfbf7fa8a391906e1aaa67fb10c2f452",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "model",
+          "summary": "Advanced to LibertAI's corrected 357b45cc checkpoint.",
+          "details": "The immutable snapshot adds per-expert input_scale=1.0 tensors required by vLLM's NVFP4 MoE alpha fold, expands fused-module quantization exclusions, and retains the byte-identical 120 original weight shards.",
+          "references": [
+            "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/commit/357b45cc73a07a541cede88861f7736c9487ebf7",
+            "https://github.com/vllm-project/vllm/issues/54189"
+          ]
+        },
+        {
+          "kind": "fix",
+          "summary": "Selected vLLM's deepseek_r1 reasoning parser instead of the SGLang-only glm45 parser.",
+          "references": [
+            "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/commit/24c04b8677b14504d2274339005dd54e86661515"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Kept the two-Spark Ray profile Candidate pending a fresh build and physical semantic canary."
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-27",

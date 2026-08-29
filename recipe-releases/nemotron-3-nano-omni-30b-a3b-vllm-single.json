@@ -4,9 +4,26 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-nano-omni-30b-a3b-vllm-single"
   },
-  "version": "2.0.2",
-  "released_at": "2026-08-26",
+  "version": "2.0.3",
+  "released_at": "2026-08-29",
   "history": [
+    {
+      "version": "2.0.3",
+      "released_at": "2026-08-29",
+      "recipe_content_sha256": "add7123431ff0c5697b221c97dbd2bdb4750879e9504ebc13e0fdd9cb8af8931",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Refreshed the immutable model snapshot after NVIDIA added its public training-content summary link; all executable artifacts and runtime pins are unchanged.",
+          "details": "The sole upstream change after dc5f0b0b is a 234-byte README addition. Weights, configuration, tokenizer, remote code, launch guidance, vLLM 0.20.0 runtime, and the text-only single-Spark contract remain byte-identical.",
+          "references": [
+            "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4/commit/16993199e436da4ba75ddc410855f87e0d996ee6",
+            "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4/compare/dc5f0b0bfddf8b6e0f5891475be9af05b80126fe...16993199e436da4ba75ddc410855f87e0d996ee6"
+          ]
+        }
+      ]
+    },
     {
       "version": "2.0.2",
       "released_at": "2026-08-26",

@@ -15,6 +15,10 @@ All patches are QSA-scoped and inert unless ``--kv-cache-dtype nvfp4`` is set:
 5. ``memory_pool.py`` — NVFP4 write path: ignore hybrid pool's Python
    ``k_scale=1.0`` default and use on-device ``k_scales_gpu`` (host→CUDA
    ``torch.tensor`` is illegal during decode CUDA-graph capture).
+6. ``sparse_attn.py`` — SM121 Triton cannot ``tl.dot`` fp8e4nv. The
+   chunk-prefill / prefill GQA kernels upcast K/V (and Q) to fp32 before
+   the dots so ``--kv-cache-dtype fp8_e4m3`` survives extend, not only
+   the paged-varlen decode fallback.
 """
 
 import pathlib
@@ -313,6 +317,64 @@ QUANT_SCALES_REPLACEMENT = """    def _quantized_scales(self, global_layer_id: i
         return k_scale, v_scale
 """
 
+# ---------------------------------------------------------------------------
+# 6. sparse_attn.py: Triton GQA cannot tl.dot fp8e4nv on SM121
+# ---------------------------------------------------------------------------
+SPARSE_ATTN = SRT / "layers" / "attention" / "qsa" / "sparse_attn.py"
+FP8_DOT_MARKER = "dspark: SM121 Triton cannot tl.dot fp8e4nv"
+
+GQA_DOT_ANCHOR = """        keys = tl.load(
+            k_base + token[None, :] * sk_n + offs_d[:, None] * sk_d,
+            mask=valid[None, :],
+            other=0.0,
+        )
+        values = tl.load(
+            v_base + token[:, None] * sv_n + offs_d[None, :] * sv_d,
+            mask=valid[:, None],
+            other=0.0,
+        )
+        scores = tl.where(valid[None, :], tl.dot(q_values, keys), -float("inf"))
+        next_max = tl.maximum(max_value, tl.max(scores, 1))
+        alpha = tl.math.exp2(max_value - next_max)
+        probabilities = tl.math.exp2(scores - next_max[:, None])
+        accumulator = tl.dot(
+            probabilities.to(values.dtype), values, accumulator * alpha[:, None]
+        )
+"""
+GQA_DOT_REPLACEMENT = """        keys = tl.load(
+            k_base + token[None, :] * sk_n + offs_d[:, None] * sk_d,
+            mask=valid[None, :],
+            other=0.0,
+        )
+        values = tl.load(
+            v_base + token[:, None] * sv_n + offs_d[None, :] * sv_d,
+            mask=valid[:, None],
+            other=0.0,
+        )
+        # dspark: SM121 Triton cannot tl.dot fp8e4nv (fp8 KV cache).
+        keys = keys.to(tl.float32)
+        values = values.to(tl.float32)
+        q_dot = q_values.to(tl.float32)
+        scores = tl.where(valid[None, :], tl.dot(q_dot, keys), -float("inf"))
+        next_max = tl.maximum(max_value, tl.max(scores, 1))
+        alpha = tl.math.exp2(max_value - next_max)
+        probabilities = tl.math.exp2(scores - next_max[:, None])
+        accumulator = tl.dot(probabilities, values, accumulator * alpha[:, None])
+"""
+
+
+def patch_count(path, anchor, replacement, expected, marker):
+    s = path.read_text()
+    if marker in s:
+        print(f"{path.name}: already patched")
+        return
+    count = s.count(anchor)
+    assert count == expected, (
+        f"{path.name}: anchor matched {count} times (want {expected}):\n{anchor}"
+    )
+    path.write_text(s.replace(anchor, replacement))
+    print(f"{path.name}: patched ({expected} sites)")
+
 
 def main() -> None:
     patch(
@@ -329,6 +391,13 @@ def main() -> None:
     patch(SERVER_ARGS, [(SERVER_ARGS_ANCHOR, SERVER_ARGS_REPLACEMENT)])
     patch(POOL_CFG, [(POOL_CFG_ANCHOR, POOL_CFG_REPLACEMENT)])
     patch(POOL, [(QUANT_SCALES_ANCHOR, QUANT_SCALES_REPLACEMENT)])
+    patch_count(
+        SPARSE_ATTN,
+        GQA_DOT_ANCHOR,
+        GQA_DOT_REPLACEMENT,
+        expected=2,
+        marker=FP8_DOT_MARKER,
+    )
     print("NVFP4 KV patches applied")
 
 

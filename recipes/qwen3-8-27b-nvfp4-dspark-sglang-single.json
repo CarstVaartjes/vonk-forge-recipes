@@ -3,7 +3,7 @@
   "identity": {"publisher": "vonk-forge", "slug": "qwen3-8-27b-nvfp4-dspark-sglang-single"},
   "metadata": {
     "title": "Qwen3.8 27B NVFP4 SGLang DSpark single Spark",
-    "description": "Executable Candidate adaptation of MiaAI-Lab's one-DGX-Spark Qwen3.8 27B profile, pairing the NVFP4 target with its immutable external DSpark drafter for an offline OpenAI-compatible endpoint.",
+    "description": "Executable Candidate adaptation of MiaAI-Lab's one-DGX-Spark Qwen3.8 27B profile, pairing the NVFP4 target with RadixArk's immutable DSpark v2 drafter for an offline OpenAI-compatible endpoint.",
     "tags": ["executable", "candidate", "qwen", "qwen3-8", "27b", "nvfp4", "dspark", "sglang", "reasoning", "tool-use", "single", "spark", "speculative-decoding"]
   },
   "model": {"kind": "model-version", "publisher": "radixark", "slug": "qwen3-8-27b-nvfp4-009632fe", "content_sha256": "79c3e035794987e1b8dc72c12966e37bd2eb345ebeeaef5b33c03cb76de4f7cc"},
@@ -15,9 +15,12 @@
     "resources": {"download_bytes": 17793228389, "temporary_bytes": 24000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
   },
   "parameters": [],
+  "dependencies": [
+    {"kind": "model-version", "publisher": "radixark", "slug": "qwen3-8-27b-dspark-b3c99101", "content_sha256": "03d09c5dd8d95d901da360644010ad546521625eef37a26df26cc3624a1f8937"}
+  ],
   "artifacts": [
     {"id": "target", "kind": "huggingface.snapshot", "repository": "RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead", "revision": "009632fef96dd349150baa780c984e62e70e91fe", "download_bytes": 23772921363, "installed_bytes": 23772921363, "mount": {"target": "/models/target", "read_only": true}, "roles": ["entrypoint"]},
-    {"id": "draft", "kind": "huggingface.snapshot", "repository": "RadixArk/Qwen3.8-27B-DSpark", "revision": "85ef153be924f17ce4bf62726954eeaa4a73e854", "download_bytes": 2718609744, "installed_bytes": 2718609744, "mount": {"target": "/models/draft", "read_only": true}, "roles": ["entrypoint"]}
+    {"id": "draft", "kind": "huggingface.snapshot", "repository": "RadixArk/Qwen3.8-27B-DSpark", "revision": "b3c9910194dc7ae53fea3d95a1959b654f495416", "download_bytes": 3714763499, "installed_bytes": 3714763499, "mount": {"target": "/models/draft", "read_only": true}, "roles": ["entrypoint"]}
   ],
   "runtime": {
     "distribution": {"kind": "runtime-distribution", "publisher": "sglang", "slug": "sglang-qwen38-27b-c4271c3f-arm64", "content_sha256": "eed6835ce8aff92b63e1d779a9db51853eca56a5052baa5432d5e59d56383c97"},
@@ -32,7 +35,7 @@
   },
   "topology": {
     "name": "solo", "mode": "single", "node_count": 1,
-    "roles": [{"name": "entrypoint", "count": 1, "endpoint_owner": true, "artifacts": ["target", "draft"], "resources": {"disk": {"image_bytes": 36000000000, "artifact_bytes": 26491531107, "staging_bytes": 12000000000, "cache_bytes": 20000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 92000000000, "steady_state_bytes": 76000000000, "runtime_growth_bytes": 8000000000, "system_reserve_bytes": 8000000000}}}],
+    "roles": [{"name": "entrypoint", "count": 1, "endpoint_owner": true, "artifacts": ["target", "draft"], "resources": {"disk": {"image_bytes": 36000000000, "artifact_bytes": 27487684862, "staging_bytes": 12000000000, "cache_bytes": 20000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 92000000000, "steady_state_bytes": 76000000000, "runtime_growth_bytes": 8000000000, "system_reserve_bytes": 8000000000}}}],
     "parallelism": {"world_size": 1, "tensor": 1, "pipeline": 1, "data": 1, "backend": "local"}, "fabric": {"connectivity": "none", "minimum_bandwidth_mbps": 0}, "start_order": ["entrypoint"], "stop_order": ["entrypoint"]
   },
   "interfaces": [{"adapter": "openai", "port": 30000, "model_aliases": ["qwen3-8-27b"], "health_path": "/v1/models"}],

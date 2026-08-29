@@ -1,9 +1,12 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "qwen3-8-27b-nvfp4-dspark-sglang-single"},
-  "version": "1.0.1",
-  "released_at": "2026-08-28",
+  "version": "1.1.0",
+  "released_at": "2026-08-29",
   "history": [{
+    "version": "1.1.0", "released_at": "2026-08-29", "recipe_content_sha256": "7e6add08a42a7b21981837219b260c9c75b85157d88b58fbb8e7046e47cd075b", "upgrade_effect": "reinstall",
+    "changes": [{"kind": "model", "summary": "Updated the external draft from DSpark v1 to RadixArk's validated v2 checkpoint.", "details": "Pins the Stage 2 step-5500 export and its complete immutable 3.71 GB snapshot; the SGLang launch contract remains block-size 7 with eight draft tokens.", "references": ["https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark/tree/b3c9910194dc7ae53fea3d95a1959b654f495416"]}]
+  }, {
     "version": "1.0.1", "released_at": "2026-08-28", "recipe_content_sha256": "f4b7e6f8bc98a2fa0ed32a667ededaf713f2c460c8083568d08c29fa8f50a277", "upgrade_effect": "reinstall",
     "changes": [{"kind": "fix", "summary": "Corrected the DSpark launcher profile and lowered the validated Spark memory fraction.", "details": "Uses the DSPARK algorithm, block size 7, the supported continuous-decode flag, torch compilation, and mem-fraction-static 0.80."}]
   }, {
