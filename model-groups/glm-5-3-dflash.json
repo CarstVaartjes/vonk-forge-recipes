@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "incoai",
+    "slug": "glm-5-3-dflash"
+  },
+  "metadata": {
+    "title": "GLM 5.3 DFlash",
+    "description": "IncoAI DFlash speculative decoding companions for GLM 5.3 models.",
+    "tags": [
+      "incoai",
+      "glm-5-3-dflash",
+      "language"
+    ]
+  },
+  "family": "glm-5-3-dflash"
+}

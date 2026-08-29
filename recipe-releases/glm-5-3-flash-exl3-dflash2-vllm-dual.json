@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-exl3-dflash2-vllm-dual"},
+  "version": "1.0.0",
+  "released_at": "2026-08-29",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-29",
+      "recipe_content_sha256": "915fa81e1b2424ec396d3073be066d92084d13633ad3bd724f54d6b11fba599a",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added the directly installable MiaAI-Lab GLM 5.3 Flash EXL3 DFlash2 two-Spark Candidate.",
+          "details": "Pins runtime source 79f10b91, the resolved ARM64 GHCR digest, MiaAI-Lab's exact 25a44fdb EXL3/TR3 target pin and the complete dc77ff1c DFlash2 inventory, separate ShapleyMCG and CC BY-NC-ND operator acceptance, Controller-native mp deployment without SSH, and a conservative 126 GB per-node unified-memory admission envelope derived from MiaAI-Lab's measured 105.9 GiB post-init requirement and 18.67 GiB KV pool. Physical Vonk acceptance remains pending.",
+          "references": [
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/79f10b91f84779b2b1ff2c9327b1a5847cd97f70",
+            "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/tree/25a44fdbf16862a46b7cc9921142c6c81350af2f",
+            "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/tree/dc77ff1c99eeb2df044ee3d4f0094eb033fee410"
+          ]
+        }
+      ]
+    }
+  ]
+}
