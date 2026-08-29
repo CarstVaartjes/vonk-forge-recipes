@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "model-group",
+  "identity": {
+    "publisher": "mia-ai-lab",
+    "slug": "glm-5-3-mia"
+  },
+  "metadata": {
+    "title": "GLM 5.3 MiaAI-Lab",
+    "description": "MiaAI-Lab immutable GLM 5.3 Spark-serving checkpoints and companions.",
+    "tags": [
+      "mia-ai-lab",
+      "glm-5-3-mia",
+      "multimodal"
+    ]
+  },
+  "family": "glm-5-3-mia"
+}
