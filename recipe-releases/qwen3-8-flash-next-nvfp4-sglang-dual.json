@@ -1,9 +1,34 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "qwen3-8-flash-next-nvfp4-sglang-dual"},
-  "version": "1.1.0",
-  "released_at": "2026-08-27",
+  "version": "1.2.0",
+  "released_at": "2026-08-29",
   "history": [
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-29",
+      "recipe_content_sha256": "2706120ce6876ed561a096a8be46018cb6c8c186d2a92923af93a449693552b7",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Updated to MiaAI-Lab's SM121-safe dual-Spark serving revision.",
+          "details": "Binds SGLANG_HOST_IP to each rank's ConnectX address, replaces the unsafe SM121 sparse-decode routes with SGLang's packed Triton fallback, retains CUDA-graph-safe NVFP4 KV, and adds the FP8 GQA upcast variant.",
+          "references": [
+            "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/344f9d0d5e9523d8398fa2804d5a3e123fd3d21a",
+            "https://github.com/sgl-project/sglang/pull/36845"
+          ]
+        },
+        {
+          "kind": "performance",
+          "summary": "Adopted the upstream 1M YaRN launch profile.",
+          "details": "Raises the advertised context contract from 900,000 to 1,048,576 tokens while retaining 1,024-token chunks, 28 request slots, MTP3, and Candidate status pending Vonk's own physical long-context acceptance.",
+          "references": [
+            "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/blob/344f9d0d5e9523d8398fa2804d5a3e123fd3d21a/CHANGELOG.md"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-27",

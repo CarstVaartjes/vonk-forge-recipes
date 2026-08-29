@@ -24,6 +24,45 @@ def canonical_digest(document: dict[str, object]) -> str:
 
 
 class GlmModelInventoryTests(unittest.TestCase):
+    def test_glm53_current_inventory_adds_vllm_activation_scales(self) -> None:
+        previous = load("model-versions/glm-5-3-flash-nvfp4-11d73216.json")
+        current = load("model-versions/glm-5-3-flash-nvfp4-357b45cc.json")
+        recipe = load("recipes/glm-5-3-flash-nvfp4-vllm-dual.json")
+        previous_shards = {
+            item["path"]: item["sha256"]
+            for item in previous["artifacts"]
+            if item["path"].startswith("model-")
+            and item["path"].endswith(".safetensors")
+        }
+        current_shards = {
+            item["path"]: item["sha256"]
+            for item in current["artifacts"]
+            if item["path"].startswith("model-")
+            and item["path"].endswith(".safetensors")
+            and item["path"] != "model-input-scales.safetensors"
+        }
+        artifacts = {item["path"]: item for item in current["artifacts"]}
+        arguments = {
+            item["name"]: item["value"] for item in recipe["runtime"]["arguments"]
+        }
+
+        self.assertEqual(current["source"]["revision"], "357b45cc73a07a541cede88861f7736c9487ebf7")
+        self.assertEqual(len(current["artifacts"]), 131)
+        self.assertEqual(current["sizes"]["download_bytes"], 194_701_808_085)
+        self.assertEqual(previous_shards, current_shards)
+        self.assertEqual(
+            artifacts["model-input-scales.safetensors"]["sha256"],
+            "0903db05bdea00f279dd859f3975076c8b8bbdf960950eba687da29082590130",
+        )
+        self.assertEqual(
+            artifacts["model.safetensors.index.json"]["sha256"],
+            "0a5cb10ccc9bfdfe7a4e857e69fb6eea229cc98343986db27ca95e4266e1a2d9",
+        )
+        self.assertEqual(recipe["model"]["content_sha256"], canonical_digest(current))
+        self.assertEqual(recipe["artifacts"][0]["revision"], current["source"]["revision"])
+        self.assertEqual(arguments["tool-call-parser"], "glm47")
+        self.assertEqual(arguments["reasoning-parser"], "deepseek_r1")
+
     def test_aqlm_inventory_closes_the_full_pinned_snapshot(self) -> None:
         model = load("model-versions/glm-5-2-nvfp4-aqlm-hybrid-53e0082e.json")
         recipe = load("recipes/glm-5-2-aqlm-vllm-triple.json")

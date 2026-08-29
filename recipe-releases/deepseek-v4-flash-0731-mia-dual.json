@@ -4,9 +4,34 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-mia-dual"
   },
-  "version": "2.1.1",
-  "released_at": "2026-08-26",
+  "version": "2.2.0",
+  "released_at": "2026-08-29",
   "history": [
+    {
+      "version": "2.2.0",
+      "released_at": "2026-08-29",
+      "recipe_content_sha256": "ad792e4a030dc55d83db5608746a0fb46d174e8c4c9311dd518832f15f070543",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Backported Mia's source-exact XGrammar termination correction for speculative structured output.",
+          "details": "The immutable build now stops at the terminating token, ignores later speculative tokens, and resets cached termination state. The patch accepts only the pinned vLLM and xgrammar package versions plus exact stock bytes, publishes atomically, verifies the post-image, and fails the build closed on drift.",
+          "references": [
+            "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/de0bc1d07e12e86a1be876ff2f0f736dda68d155",
+            "https://github.com/vllm-project/vllm/pull/52805"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Advanced the reviewed Mia source authority to 03d4776 without enabling its unqualified optional compatibility and sparse-MLA workarounds.",
+          "details": "Issue 138 changes Responses replay acceptance and issue 141 remains a stochastic workaround with outstanding two-rank validation, so neither is silently enabled in this exact recipe. Candidate qualification remains pending a fresh two-Spark canary.",
+          "references": [
+            "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/03d4776fa8977ed9f7fd077c4776ba164c7127b6"
+          ]
+        }
+      ]
+    },
     {
       "version": "2.1.1",
       "released_at": "2026-08-26",

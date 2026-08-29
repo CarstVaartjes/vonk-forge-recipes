@@ -3,7 +3,7 @@
   "identity": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-0731-mia-dual"},
   "metadata": {
     "title": "DeepSeek V4 Flash 0731 Mia dual Spark",
-    "description": "Installable Candidate two-Spark profile for the official DeepSeek V4 Flash 0731 checkpoint, refreshed to MiaAI-Lab's current fail-closed patches, persistent compile caches, and NCCL diagnostics.",
+    "description": "Installable Candidate two-Spark profile for the official DeepSeek V4 Flash 0731 checkpoint, refreshed to MiaAI-Lab's source-exact XGrammar termination fix, fail-closed patches, persistent compile caches, and NCCL diagnostics.",
     "tags": ["executable", "candidate", "deepseek", "distributed", "mia", "openai", "spark"]
   },
   "model": {
@@ -23,14 +23,14 @@
       "kind": "patch-bundle",
       "publisher": "miaai-lab",
       "slug": "mia-deepseek-v4-flash-0731",
-      "content_sha256": "2cb014ed7c3a0d89edffbb73c15ee146a9688615863a0b6564d4be3dfe8916d0"
+      "content_sha256": "96b99d7b6bf62d735360ac4cfec1cd87f356c8d23407aa77af4469e11312f0b0"
     }
   },
   "build": {
     "context": {
       "path": "adapters/deepseek/mia-vllm",
-      "sha256": "8f5ed21f43771797d08662e22da8223f93f6a971ffbac8873bf3bd4f967743b6",
-      "expected_bytes": 256000,
+      "sha256": "d22ad3cd71ac3f5bd81387892234b3922bbfea6ed52901f24e00ad7a223a938a",
+      "expected_bytes": 276480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -228,7 +228,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/70a7cc4b49664e83b51e9b73c0ed41db18ac3190",
+    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/03d4776fa8977ed9f7fd077c4776ba164c7127b6",
     "attribution": ["DeepSeek AI", "MiaAI-Lab", "Anemll", "vLLM contributors"]
   }
 }

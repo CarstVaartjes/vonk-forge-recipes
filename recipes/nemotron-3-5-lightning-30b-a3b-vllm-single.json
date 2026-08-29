@@ -10,7 +10,7 @@
     "kind": "model-version",
     "publisher": "nvidia",
     "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4",
-    "content_sha256": "294a5e7951c8d5eec253e0b2c193954581627da417ed97277c08f23870a2b4f9"
+    "content_sha256": "8a4c926de7fe315f9a2fe75067f6bc7107e9e6be39002e0b3a905fe5bd2f9220"
   },
   "execution": {
     "harness": {
@@ -45,9 +45,9 @@
       "id": "weights",
       "kind": "huggingface.snapshot",
       "repository": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4",
-      "revision": "e8f3c7c4de75ad84fe1bcef95d38eca76214480b",
-      "download_bytes": 21583785126,
-      "installed_bytes": 21583785126,
+      "revision": "cc84af2fe71647d87f4486c064f320e1e7535243",
+      "download_bytes": 21583785362,
+      "installed_bytes": 21583785362,
       "mount": {"target": "/models", "read_only": true},
       "roles": ["entrypoint"]
     }
@@ -123,5 +123,5 @@
   },
   "interfaces": [{"adapter": "openai", "port": 8000, "model_aliases": ["nemotron-3-5-lightning"], "health_path": "/v1/models"}],
   "validation": {"validators": [{"interface": "openai", "checks": ["endpoint.healthy", "chat.nonempty", "chat.max-output-64"]}], "benchmarks": [{"name": "bounded-chat", "framework": "openai", "configuration": {"max_output_tokens": 64, "requests": 1, "timeout_seconds": 300}}]},
-  "provenance": {"source_kind": "global", "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/e8f3c7c4de75ad84fe1bcef95d38eca76214480b", "attribution": ["NVIDIA Corporation"]}
+  "provenance": {"source_kind": "global", "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/cc84af2fe71647d87f4486c064f320e1e7535243", "attribution": ["NVIDIA Corporation"]}
 }

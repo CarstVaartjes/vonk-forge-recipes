@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
   "kind": "runtime-distribution",
-  "identity": {"publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dspark-6d1a5194-arm64"},
+  "identity": {"publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dspark-344f9d0d-arm64"},
   "metadata": {
-    "title": "Mia Qwen3.8 Flash Next dual-Spark SGLang runtime",
-    "description": "Digest-pinned CUDA 13 ARM64 SGLang runtime with MiaAI-Lab's QSA FlashAttention and NVFP4 KV patches, exact NCCL 2.30.7, automatic PLE placement, MTP3, and the native TP2 launch contract exercised on two DGX Sparks.",
+    "title": "Mia Qwen3.8 Flash Next dual-Spark SGLang runtime 344f9d0d",
+    "description": "Digest-pinned CUDA 13 ARM64 SGLang runtime with MiaAI-Lab's SM121-safe QSA Triton fallback, NVFP4 and FP8 KV patches, ConnectX MessageQueue binding, exact NCCL 2.30.7, automatic PLE placement, MTP3, and the native TP2 launch contract exercised on two DGX Sparks.",
     "tags": ["candidate", "distributed", "multimodal", "qwen3.8", "sglang", "spark"]
   },
   "implements_harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "sglang", "content_sha256": "9bd9a41fe12dd4e551fac821623801b6df9af8943d42ddba9f46717636286947"},
   "platform": "linux/arm64",
   "source": {
     "repository": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks",
-    "revision": "6d1a51947d2f8aed61780ee17429ea4812ba0579",
-    "archive_sha256": "4f8af7b89897a26606845b8a2b14e3a5a653023e960de738c88f67d645abd25b",
+    "revision": "344f9d0d5e9523d8398fa2804d5a3e123fd3d21a",
+    "archive_sha256": "fba0c83308d657ae5719678c51eafaa980e45bb66b96abdcfc29352d3d360b1c",
     "license": "MIT"
   },
   "image": "docker.io/lmsysorg/sglang@sha256:14ed582518584c5c830206b5318a2c2769e68229c3422e48a28b952b3a888bd4",
@@ -24,7 +24,7 @@
   },
   "dependencies": [
     {"name": "SGLang", "version": "d91c3682b0b429e4c70df63cd57f819588ce29b0", "source": "https://github.com/sgl-project/sglang/tree/d91c3682b0b429e4c70df63cd57f819588ce29b0", "license": "Apache-2.0"},
-    {"name": "Qwen3.8 Flash Next Spark patches", "version": "6d1a51947d2f8aed61780ee17429ea4812ba0579", "source": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/6d1a51947d2f8aed61780ee17429ea4812ba0579", "license": "MIT"},
+    {"name": "Qwen3.8 Flash Next Spark patches", "version": "344f9d0d5e9523d8398fa2804d5a3e123fd3d21a", "source": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/344f9d0d5e9523d8398fa2804d5a3e123fd3d21a", "license": "MIT"},
     {"name": "NCCL", "version": "2.30.7", "source": "https://pypi.org/project/nvidia-nccl-cu13/2.30.7/", "license": "BSD-3-Clause"},
     {"name": "CUDA", "version": "13.0", "source": "docker.io/lmsysorg/sglang@sha256:14ed582518584c5c830206b5318a2c2769e68229c3422e48a28b952b3a888bd4", "license": "NVIDIA CUDA Toolkit EULA"}
   ],

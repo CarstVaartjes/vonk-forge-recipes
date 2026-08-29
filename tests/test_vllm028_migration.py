@@ -46,6 +46,13 @@ class Vllm028MigrationTests(unittest.TestCase):
         )
         self.assertEqual(runtime["dependencies"][0]["version"], "0.28.0")
         self.assertEqual(runtime["image_manifest"]["compressed_layers_bytes"], 9_701_495_723)
+        watch = load("upstream-watch.json")
+        self.assertEqual(
+            watch["overrides"][
+                "runtime-distribution/vllm/vllm-0-28-0-nvidia-arm64"
+            ]["policy"],
+            "latest-release",
+        )
 
     def test_migrated_recipes_pin_changed_vllm_defaults(self) -> None:
         module = catalog_index_module()
