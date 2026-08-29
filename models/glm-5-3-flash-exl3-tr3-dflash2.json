@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "mia-ai-lab",
+    "slug": "glm-5-3-flash-exl3-tr3-dflash2"
+  },
+  "metadata": {
+    "title": "GLM 5.3 Flash EXL3 TR3 with DFlash2",
+    "description": "MiaAI-Lab two-Spark GLM 5.3 Flash lane using the ShapleyMCG EXL3/TR3 4 bpw target and IncoAI DFlash2 companion.",
+    "tags": [
+      "mia-ai-lab",
+      "glm-5-3-mia",
+      "text",
+      "image",
+      "video"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "mia-ai-lab",
+    "slug": "glm-5-3-mia",
+    "content_sha256": "4402cebea1b5cd04d8dbc3ff0183919941e4a449d1cfedbb4db5729cfc71404c"
+  },
+  "architecture": "GLM5 Next sparse and linear attention multimodal MoE transformer with DFlash2 speculative drafter"
+}
