@@ -63,7 +63,16 @@
     "attribution": [
       "minimax"
     ],
-    "operator_acceptance_required": true
+    "operator_acceptance_required": true,
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR",
+        "US"
+      ],
+      "notice": "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."
+    }
   },
   "access": {
     "visibility": "public",

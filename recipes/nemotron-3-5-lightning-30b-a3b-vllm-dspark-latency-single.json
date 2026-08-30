@@ -235,7 +235,7 @@
         "resources": {
           "disk": {
             "image_bytes": 12000000000,
-            "artifact_bytes": 22932862787,
+            "artifact_bytes": 22932863023,
             "staging_bytes": 36000000000,
             "cache_bytes": 4000000000,
             "rollback_bytes": 0,

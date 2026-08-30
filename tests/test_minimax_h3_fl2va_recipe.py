@@ -62,6 +62,20 @@ class MiniMaxH3Fl2vaRecipeTests(unittest.TestCase):
             "42ed227ee7df40d41602854ae760620d6eb651fe",
         )
 
+    def test_license_fails_closed_for_exact_excluded_territories(self) -> None:
+        restrictions = self.model["license"]["territorial_restrictions"]
+        self.assertEqual(
+            restrictions["denied_jurisdictions"],
+            ["EU", "GB", "KR", "US"],
+        )
+        self.assertEqual(
+            restrictions["notice"],
+            "The MiniMax H3 Community License Agreement excludes the European "
+            "Union, United Kingdom, Republic of Korea, and United States of "
+            "America from its Applicable Territory.",
+        )
+        self.assertTrue(self.model["license"]["operator_acceptance_required"])
+
     def test_filtered_snapshot_matches_exact_immutable_manifest(self) -> None:
         artifact = self.recipe["artifacts"][0]
         entries = self.model["artifacts"]

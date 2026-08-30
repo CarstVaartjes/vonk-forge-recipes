@@ -111,7 +111,7 @@
         "endpoint_owner": true,
         "artifacts": ["weights"],
         "resources": {
-          "disk": {"image_bytes": 12000000000, "artifact_bytes": 21583785126, "staging_bytes": 32000000000, "cache_bytes": 4000000000, "rollback_bytes": 0, "safety_margin_bytes": 12000000000},
+          "disk": {"image_bytes": 12000000000, "artifact_bytes": 21583785362, "staging_bytes": 32000000000, "cache_bytes": 4000000000, "rollback_bytes": 0, "safety_margin_bytes": 12000000000},
           "memory": {"kind": "unified", "startup_peak_bytes": 90000000000, "steady_state_bytes": 78000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}
         }
       }

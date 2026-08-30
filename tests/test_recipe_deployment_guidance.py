@@ -47,6 +47,23 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
         }
         self.assertEqual(arguments["max-model-len"], 1_048_576)
 
+        standard_artifact_bytes = sum(
+            item["installed_bytes"] for item in standard["artifacts"]
+        )
+        latency_artifact_bytes = sum(
+            item["installed_bytes"] for item in latency["artifacts"]
+        )
+        self.assertEqual(standard_artifact_bytes, 21_583_785_362)
+        self.assertEqual(latency_artifact_bytes, 22_932_863_023)
+        self.assertEqual(
+            standard["topology"]["roles"][0]["resources"]["disk"]["artifact_bytes"],
+            standard_artifact_bytes,
+        )
+        self.assertEqual(
+            latency["topology"]["roles"][0]["resources"]["disk"]["artifact_bytes"],
+            latency_artifact_bytes,
+        )
+
         nano_tags = set(nano["metadata"]["tags"])
         self.assertTrue({"executable", "historical", "superseded"} <= nano_tags)
         self.assertIn("Nemotron 3.5 Lightning", nano["metadata"]["description"])
@@ -100,8 +117,8 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
 
     def test_metadata_releases_bind_current_recipe_digests(self) -> None:
         versions = {
-            "nemotron-3-5-lightning-30b-a3b-vllm-single": "1.3.3",
-            "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single": "1.1.2",
+            "nemotron-3-5-lightning-30b-a3b-vllm-single": "1.3.4",
+            "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single": "1.1.3",
             "nemotron-3-nano-30b-a3b-vllm-single": "2.0.3",
             "moss-vl-realtime-11b-pytorch-single": "1.1.1",
             "mova-360p-diffusers-single": "2.0.4",

@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-5-lightning-30b-a3b-vllm-single"
   },
-  "version": "1.3.3",
+  "version": "1.3.4",
   "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.3.4",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "eac9aa50eeda5f01a21b01a0177b85c3062699ce85a5d1a1a3678f35acfe0468",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Matched declared artifact disk bytes to the exact retained target snapshot.",
+          "details": "Corrected a 236-byte underdeclaration without changing the pinned artifact, runtime, or execution contract."
+        }
+      ]
+    },
     {
       "version": "1.3.3",
       "released_at": "2026-08-30",
