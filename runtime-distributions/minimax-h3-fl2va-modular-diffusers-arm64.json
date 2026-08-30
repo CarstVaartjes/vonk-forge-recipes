@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "kind": "runtime-distribution",
+  "identity": {
+    "publisher": "huggingface",
+    "slug": "minimax-h3-fl2va-modular-diffusers-arm64"
+  },
+  "metadata": {
+    "title": "MiniMax H3 FL2VA-only Modular Diffusers CUDA 13 ARM64 runtime",
+    "description": "Pinned FL2VA-only Modular Diffusers runtime with TorchAO int8 loading, streamed group offload, early rejection of Ref2VA requests, PyAV joint audio-video export, and no runtime network dependency.",
+    "tags": [
+      "candidate",
+      "minimax-h3",
+      "modular-diffusers",
+      "video",
+      "audio",
+      "torchao",
+      "cuda",
+      "arm64",
+      "spark",
+      "fl2va",
+      "t2va",
+      "keyframe",
+      "artifact-slim"
+    ]
+  },
+  "implements_harness": {
+    "kind": "execution-harness",
+    "publisher": "vonk-forge",
+    "slug": "diffusers",
+    "content_sha256": "9776b37f1bf4596bf4a0c75c3e9fd6da8b25050aa2cefded2ffd5e35baa583b2"
+  },
+  "platform": "linux/arm64",
+  "source": {
+    "repository": "https://github.com/huggingface/diffusers",
+    "revision": "efabd60d61c2b7aabf9f182bee6b5b6058980304",
+    "archive_sha256": "9862d11f398fcd07395590a25aefd709fc6f1989620c4b83fb8a3155c01b694c",
+    "license": "Apache-2.0"
+  },
+  "image": "nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+  "image_manifest": {
+    "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+    "size": 2207,
+    "config_digest": "55e3a0bc92ce6d14b77cd8f4a81414f2b75c6b3964b17dc452028b55e09ab168",
+    "compressed_layers_bytes": 1765183632
+  },
+  "dependencies": [
+    {
+      "name": "Diffusers",
+      "version": "0.40.0.dev0+efabd60d",
+      "source": "https://github.com/huggingface/diffusers@efabd60d61c2b7aabf9f182bee6b5b6058980304",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "PyTorch",
+      "version": "2.13.0+cu130",
+      "source": "https://download.pytorch.org/whl/cu130",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "name": "TorchVision",
+      "version": "0.28.0+cu130",
+      "source": "https://download.pytorch.org/whl/cu130",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "name": "Transformers",
+      "version": "5.15.1",
+      "source": "https://pypi.org/project/transformers/5.15.1/",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "Accelerate",
+      "version": "1.14.0",
+      "source": "https://pypi.org/project/accelerate/1.14.0/",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "TorchAO",
+      "version": "0.18.0",
+      "source": "https://pypi.org/project/torchao/0.18.0/",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "name": "PyAV",
+      "version": "18.1.0",
+      "source": "https://pypi.org/project/av/18.1.0/",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "name": "Pillow",
+      "version": "12.3.0",
+      "source": "https://pypi.org/project/pillow/12.3.0/",
+      "license": "MIT-CMU"
+    },
+    {
+      "name": "Safetensors",
+      "version": "0.8.0",
+      "source": "https://pypi.org/project/safetensors/0.8.0/",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "SentencePiece",
+      "version": "0.2.2",
+      "source": "https://pypi.org/project/sentencepiece/0.2.2/",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "CUDA runtime",
+      "version": "13.0.1-ubuntu24.04",
+      "source": "nvcr.io/nvidia/cuda",
+      "license": "NVIDIA CUDA Toolkit EULA"
+    }
+  ],
+  "build": {
+    "network_hosts": [
+      "github.com",
+      "pypi.org",
+      "files.pythonhosted.org",
+      "download.pytorch.org",
+      "archive.ubuntu.com",
+      "security.ubuntu.com",
+      "ports.ubuntu.com"
+    ],
+    "offline_after_installation": true
+  },
+  "capabilities": {
+    "distributed_vllm": null
+  },
+  "security": {
+    "network_mode": "none",
+    "user": "10001:10001",
+    "no_new_privileges": true,
+    "capabilities": []
+  }
+}
