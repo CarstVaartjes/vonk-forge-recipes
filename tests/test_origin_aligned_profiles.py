@@ -7,7 +7,6 @@ import subprocess
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -141,6 +140,17 @@ class OriginAlignedProfileTests(unittest.TestCase):
         self.assertEqual(arguments["max-num-seqs"], 1)
         self.assertEqual(arguments["max-cudagraph-capture-size"], 24)
         self.assertEqual(arguments["gpu-memory-utilization"], "0.94")
+        memory = recipe["topology"]["roles"][0]["resources"]["memory"]
+        self.assertEqual(memory["startup_peak_bytes"], 122_800_000_000)
+        self.assertEqual(memory["system_reserve_bytes"], 4_000_000_000)
+        self.assertEqual(
+            max(
+                memory["startup_peak_bytes"],
+                memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
+            )
+            + memory["system_reserve_bytes"],
+            126_800_000_000,
+        )
         self.assertEqual(runtime["source"]["revision"], "fdcd538fbf95fb15b2d6850db9613d22b2c889b8")
         self.assertEqual(recipe["runtime"]["distribution"]["content_sha256"], _canonical_digest(runtime_path))
         self.assertEqual(recipe["execution"]["patch_bundle"]["content_sha256"], _canonical_digest(patch_path))
