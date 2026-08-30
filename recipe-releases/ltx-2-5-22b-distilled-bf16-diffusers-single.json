@@ -4,9 +4,33 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-5-22b-distilled-bf16-diffusers-single"
   },
-  "version": "1.0.0",
-  "released_at": "2026-08-28",
+  "version": "1.1.0",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "feaf3dfc1cd57dc58ebaa63cfb76dadf8bb18bf6901dd4abdc1fb9bbc69afac2",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Require an exact pinned-license acknowledgement and verify the approved account token with a bounded 505-byte gated object before build or large model transfer.",
+          "references": [
+            "https://github.com/Lightricks/LTX-2/blob/a95ab856bf29407b6b066ede0abe1846050db56c/LICENSE-2_x",
+            "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc"
+          ]
+        },
+        {
+          "kind": "fix",
+          "summary": "Make the 505-byte gated config the first installed artifact, so unavailable Spark credentials fail before the 70 GB runtime closure."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Document secure token handling, clear gate failures, the generic agent-error boundary, exact disk arithmetic, and the physical canary gate."
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-28",
