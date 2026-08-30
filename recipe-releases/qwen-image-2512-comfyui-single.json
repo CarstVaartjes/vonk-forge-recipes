@@ -4,9 +4,25 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-2512-comfyui-single"
   },
-  "version": "1.0.3",
-  "released_at": "2026-08-28",
+  "version": "1.0.4",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.0.4",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "8435da5ff3c67973cf4984dbae614d642ff2eae869e87f15c23fb7dd72f1d55d",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Applied Qwen Image 2512's published negative-prompt default to ComfyUI jobs.",
+          "details": "An isolated source bundle now bakes Qwen's exact quality-oriented negative prompt into the immutable 50-step, true-CFG 4.0 workflow instead of silently using an empty negative conditioning string. Other ComfyUI recipes keep their existing source-bundle identities.",
+          "references": [
+            "https://huggingface.co/Qwen/Qwen-Image-2512/blob/25468b98e3276ca6700de15c6628e51b7de54a26/README.md"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.3",
       "released_at": "2026-08-28",

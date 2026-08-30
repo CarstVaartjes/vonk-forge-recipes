@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "identity": "comfyui-core/qwen-image-2512-fp8-lightning@1",
+  "upstream_template": "https://github.com/Comfy-Org/ComfyUI/blob/7a131a3afadc8200120f67f9236311a2c48b7445/blueprints/Text%20to%20Image%20(Qwen-Image%202512).json",
+  "models": [
+    {"artifact_id": "target", "category": "diffusion_models", "filename": "qwen_image_2512_fp8_e4m3fn.safetensors"},
+    {"artifact_id": "lightning-lora", "category": "loras", "filename": "Qwen-Image-2512-Lightning-4steps-V1.0-fp32.safetensors"},
+    {"artifact_id": "text-encoder", "category": "text_encoders", "filename": "qwen_2.5_vl_7b_fp8_scaled.safetensors"},
+    {"artifact_id": "vae", "category": "vae", "filename": "qwen_image_vae.safetensors"}
+  ],
+  "inputs": {"minimum": 0, "maximum": 0},
+  "text_inputs": {
+    "prompt": {"required": true, "slot": "prompt", "maximum_bytes": 16384, "maximum_characters": 4096}
+  },
+  "prompt": {
+    "1": {"class_type": "UNETLoader", "inputs": {"unet_name": "qwen_image_2512_fp8_e4m3fn.safetensors", "weight_dtype": "default"}},
+    "2": {"class_type": "LoraLoaderModelOnly", "inputs": {"model": ["1", 0], "lora_name": "Qwen-Image-2512-Lightning-4steps-V1.0-fp32.safetensors", "strength_model": 1.0}},
+    "3": {"class_type": "ModelSamplingAuraFlow", "inputs": {"model": ["2", 0], "shift": 3.1}},
+    "4": {"class_type": "CLIPLoader", "inputs": {"clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors", "type": "qwen_image", "device": "default"}},
+    "5": {"class_type": "VAELoader", "inputs": {"vae_name": "qwen_image_vae.safetensors"}},
+    "6": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["4", 0], "text": "__VONK_PROMPT__"}},
+    "7": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["4", 0], "text": "低分辨率，低画质，肢体畸形，手指畸形，画面过饱和，蜡像感，人脸无细节，过度光滑，画面具有AI感。构图混乱。文字模糊，扭曲。"}},
+    "8": {"class_type": "EmptySD3LatentImage", "inputs": {"width": 1328, "height": 1328, "batch_size": 1}},
+    "9": {"class_type": "KSampler", "inputs": {"model": ["3", 0], "seed": "__VONK_SEED__", "steps": 4, "cfg": 1.0, "sampler_name": "euler", "scheduler": "simple", "positive": ["6", 0], "negative": ["7", 0], "latent_image": ["8", 0], "denoise": 1.0}},
+    "10": {"class_type": "VAEDecode", "inputs": {"samples": ["9", 0], "vae": ["5", 0]}},
+    "11": {"class_type": "SaveImage", "inputs": {"images": ["10", 0], "filename_prefix": "vonk/qwen-image-2512-fp8-lightning"}}
+  }
+}
