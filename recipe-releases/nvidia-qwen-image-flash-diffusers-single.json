@@ -4,9 +4,30 @@
     "publisher": "vonk-forge",
     "slug": "nvidia-qwen-image-flash-diffusers-single"
   },
-  "version": "1.2.1",
-  "released_at": "2026-08-28",
+  "version": "1.2.2",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.2.2",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "84846b238017fdfcf005bff4b47c2926affb301d84bce1540a78a418c700fa93",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Closed the immutable Qwen Image Flash source inventory.",
+          "details": "Replaced the synthetic snapshot pseudo-file with all 24 files in NVIDIA's exact eafac15f revision, including file sizes and SHA-256 digests, and recorded the official full-pipeline parameter count, 1,024-token prompt limit, and tested 1024px resolution. The hydrated recipe artifact, four-step launch, and runtime image are unchanged, so deployments need no rebuild or restart.",
+          "references": [
+            "https://huggingface.co/nvidia/Qwen-Image-Flash/tree/eafac15f6140e6dd9c6031217d658ac10bfb604b"
+          ]
+        },
+        {
+          "kind": "fix",
+          "summary": "Made the physical canary profile explicit.",
+          "details": "The bounded image canary now records the model card's tested 1024x1024 resolution and required four inference steps instead of relying on runtime defaults."
+        }
+      ]
+    },
     {
       "version": "1.2.1",
       "released_at": "2026-08-28",

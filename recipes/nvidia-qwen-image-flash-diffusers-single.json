@@ -19,7 +19,7 @@
     "kind": "model-version",
     "publisher": "nvidia",
     "slug": "nvidia-qwen-image-flash",
-    "content_sha256": "c03d83e646c93a7eb66b78a48bf3dc98a06f39b5bb302c7a1491b62f78851295"
+    "content_sha256": "b94741cc1a55c85401499b5a07442798ed179ab5d4631e6d3187d9951b8488b4"
   },
   "execution": {
     "harness": {
@@ -247,9 +247,12 @@
     ],
     "benchmarks": [
       {
-        "name": "bounded-startup",
+        "name": "bounded-four-step-image",
         "framework": "diffusers",
         "configuration": {
+          "width": 1024,
+          "height": 1024,
+          "num_inference_steps": 4,
           "timeout_seconds": 14400
         }
       }
