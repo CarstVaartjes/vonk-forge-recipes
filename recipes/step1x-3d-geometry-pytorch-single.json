@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "Step1X-3D geometry pytorch-pipeline single Spark",
-    "description": "Installable single-DGX Spark image-to-geometry Candidate using the exact Step1X source, an SM121-native CUDA 13 runtime, deterministic offline input handling, and GLB output. Physical Spark quality, memory, and latency acceptance is still required.",
+    "description": "Installable single-DGX Spark image-to-geometry Candidate using the exact Step1X source, an SM121-native CUDA 13 runtime, deterministic offline input handling, and GLB output. For generated GLBs up to 240 MiB, the linked next step is vonk-forge/step1x-3d-texture-pytorch-single with the same reference image. Physical Spark quality, memory, and latency acceptance is still required.",
     "tags": [
       "candidate",
       "three-d",
@@ -15,7 +15,9 @@
       "spark",
       "executable",
       "offline",
-      "source-bundled"
+      "source-bundled",
+      "stage-geometry",
+      "next-step-texture"
     ]
   },
   "model": {

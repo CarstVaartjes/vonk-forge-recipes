@@ -4,9 +4,16 @@
     "publisher": "vonk-forge",
     "slug": "step1x-3d-geometry-pytorch-single"
   },
-  "version": "1.2.2",
-  "released_at": "2026-08-28",
+  "version": "1.2.3",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.2.3",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "034e0c4aad9a43e02160f833fbff0962e8bdd184b2bb86c4cbe1341fd84572d0",
+      "upgrade_effect": "metadata-only",
+      "changes": [{"kind": "metadata", "summary": "Linked bounded geometry output to the Step1X texture stage.", "details": "Operator guidance names the exact next recipe and the existing 240 MiB downstream input limit without claiming unsupported composite orchestration."}]
+    },
     {
       "version": "1.2.2",
       "released_at": "2026-08-28",

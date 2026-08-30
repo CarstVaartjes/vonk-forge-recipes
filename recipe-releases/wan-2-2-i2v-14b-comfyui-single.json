@@ -4,9 +4,16 @@
     "publisher": "vonk-forge",
     "slug": "wan-2-2-i2v-14b-comfyui-single"
   },
-  "version": "1.0.3",
-  "released_at": "2026-08-28",
+  "version": "1.0.4",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.0.4",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "9b468bbb6fd6d2570db7015369171974997ce6f309cd7b6f803c9777235f8388",
+      "upgrade_effect": "metadata-only",
+      "changes": [{"kind": "metadata", "summary": "Marked the 14B I2V profile memory-tight and physical-OOM-gated.", "details": "The catalog now exposes the declared 126 GB startup-plus-reserve envelope and makes clear this Candidate is not the default before a physical OOM canary passes."}]
+    },
     {
       "version": "1.0.3",
       "released_at": "2026-08-28",

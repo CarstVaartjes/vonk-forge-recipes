@@ -4,9 +4,16 @@
     "publisher": "vonk-forge",
     "slug": "wan-2-2-ti2v-5b-comfyui-single"
   },
-  "version": "1.0.3",
-  "released_at": "2026-08-28",
+  "version": "1.0.4",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.0.4",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "03c3a56415791d17b059e7df7055c771f31dfc51a57e1de2a806971dee5a6e13",
+      "upgrade_effect": "metadata-only",
+      "changes": [{"kind": "metadata", "summary": "Made TI2V 5B the recommended default single-Spark Wan profile.", "details": "Recommendation metadata now distinguishes its declared 86 GB startup-plus-reserve envelope from the OOM-gated 14B Candidates while retaining the physical acceptance gate."}]
+    },
     {
       "version": "1.0.3",
       "released_at": "2026-08-28",
