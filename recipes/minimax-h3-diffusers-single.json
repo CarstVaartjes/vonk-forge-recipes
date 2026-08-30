@@ -25,7 +25,7 @@
     "kind": "model-version",
     "publisher": "minimax",
     "slug": "minimax-h3",
-    "content_sha256": "579b0e6a48a794b7aef3fa95289316c7e80c78d9838518dc99d11890d2b27b51"
+    "content_sha256": "93604718d430eacd39203f5e62709e4901d49b7cfc157e38039fbe40ce3d22c1"
   },
   "execution": {
     "harness": {
