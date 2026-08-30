@@ -16,8 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/deepseek/mia-vllm"
 RECIPE = ROOT / "recipes/deepseek-v4-flash-0731-mia-dual.json"
 PATCH_BUNDLE = ROOT / "patch-bundles/mia-deepseek-v4-flash-0731.json"
-MIA_REVISION = "03d4776fa8977ed9f7fd077c4776ba164c7127b6"
-MIA_ARCHIVE_SHA256 = "578e4a84b900794d23c91cd64d263f9196a86fb612b46c6b8c4232031e2040c2"
+MIA_REVISION = "0107cef1835a56d1a2bcdabf7d9e1a085b70338b"
+MIA_ARCHIVE_SHA256 = "8491b7006312ce666cfb7f1d6cb67bc2dce15260732b184b666c280ea7d26d78"
 
 
 class MiaDSparkRuntimeContractTest(unittest.TestCase):
@@ -67,6 +67,20 @@ class MiaDSparkRuntimeContractTest(unittest.TestCase):
         self.assertEqual(benchmarks["sampler-shape-canary"]["top_k"], 40)
         self.assertEqual(benchmarks["sampler-shape-canary"]["top_p"], "0.9")
         self.assertIn("candidate", recipe["metadata"]["tags"])
+
+    def test_shipped_partial_prefill_default_is_the_safe_single_lane(self) -> None:
+        recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
+        environment = {
+            item["name"]: item["value"]
+            for item in recipe["runtime"]["environment"]
+        }
+        patch_source = (
+            ADAPTER / "patches/hotfix-dsv4-issue27-partial-prefill-concurrency.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertEqual(environment["DSPARK_MAX_INFLIGHT_PREFILLS"], "1")
+        self.assertIn("default 1 via", patch_source)
+        self.assertNotIn("default 2 via", patch_source)
 
     def test_docker_build_runs_loader_verifier_before_patching(self) -> None:
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")

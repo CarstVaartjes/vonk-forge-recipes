@@ -1,9 +1,26 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-exl3-dflash2-vllm-dual"},
-  "version": "1.0.0",
-  "released_at": "2026-08-29",
+  "version": "1.1.0",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "43d54e87682fb898beddd4fcca8b8da7829ad9130e82409f9d6a8600dff44357",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Advanced to MiaAI-Lab b5ab8091 with the K-pool tail slot-map correction.",
+          "details": "The image build applies and executes the exact fail-closed circular slot-map regression, updates DFlash2 to draft TP2, and preserves Controller-native rank-local GID injection with no SSH. The exact 25a44fdb target checkpoint and strict admission envelope remain unchanged.",
+          "references": [
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/b5ab8091dec88e324c943deb96c2dfd957db9f36",
+            "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/tree/25a44fdbf16862a46b7cc9921142c6c81350af2f"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-29",

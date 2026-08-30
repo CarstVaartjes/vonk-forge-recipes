@@ -87,7 +87,7 @@
     "runtime-distribution/sglang/sglang-qwen38-27b-c4271c3f-arm64": {
       "policy": "manual"
     },
-    "runtime-distribution/miaai-lab/sglang-qwen38-flash-next-dspark-344f9d0d-arm64": {
+    "runtime-distribution/miaai-lab/sglang-qwen38-flash-next-dspark-0f950012-arm64": {
       "policy": "default-branch"
     }
   }

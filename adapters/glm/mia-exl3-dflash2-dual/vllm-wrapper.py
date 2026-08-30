@@ -56,6 +56,8 @@ try:
         or not master_address
         or not master_port
         or any(not os.environ.get(name) for name in fabric_names)
+        or not os.environ["NCCL_IB_GID_INDEX"].isascii()
+        or not os.environ["NCCL_IB_GID_INDEX"].isdigit()
         or not master_port.isascii()
         or not master_port.isdigit()
         or not 1024 <= int(master_port) <= 65535
@@ -94,7 +96,7 @@ expected_specification = {
     "model": str(DRAFTER),
     "num_speculative_tokens": 7,
     "kv_cache_dtype": "auto",
-    "draft_tensor_parallel_size": 1,
+    "draft_tensor_parallel_size": 2,
     "draft_sample_method": "probabilistic",
     "rejection_sample_method": "standard",
 }

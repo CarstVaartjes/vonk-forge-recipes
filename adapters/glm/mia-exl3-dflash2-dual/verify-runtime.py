@@ -13,9 +13,11 @@ required = (
     "/opt/glm53/patch_glm5_drafter_group.py",
     "/opt/glm53/patch_glm_video_placeholders.py",
     "/opt/glm53/patch_hybrid_prefix_hit.py",
+    "/opt/glm53/patch_kpool_tail_slotmap.py",
     "/opt/glm53/patch_scheduler_decode_floor.py",
     "/opt/glm53/patch_suppress_stops_in_reasoning.py",
     "/opt/glm53/patch_xgrammar_termination.py",
+    "/opt/glm53/test_kpool_tail_slotmap.py",
     "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3.py",
 )
 missing = [path for path in required if not Path(path).is_file()]

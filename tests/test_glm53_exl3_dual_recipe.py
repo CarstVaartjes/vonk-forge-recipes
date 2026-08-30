@@ -28,7 +28,7 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
     def setUp(self) -> None:
         self.recipe_path = ROOT / "recipes/glm-5-3-flash-exl3-dflash2-vllm-dual.json"
         self.release_path = ROOT / "recipe-releases/glm-5-3-flash-exl3-dflash2-vllm-dual.json"
-        self.runtime_path = ROOT / "runtime-distributions/vllm-glm53-exl3-dflash2-mia-79f10b91-arm64.json"
+        self.runtime_path = ROOT / "runtime-distributions/vllm-glm53-exl3-dflash2-mia-b5ab8091-arm64.json"
         self.patch_path = ROOT / "patch-bundles/glm-5-3-flash-exl3-dflash2-mia-dual-profile.json"
         self.target_path = ROOT / "model-versions/glm-5-3-flash-exl3-tr3-4bpw-dflash2-25a44fdb.json"
         self.drafter_path = ROOT / "model-versions/glm-5-3-flash-dflash2-dc77ff1c.json"
@@ -36,8 +36,8 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
 
     def test_exact_upstream_runtime_and_image_are_pinned(self) -> None:
         runtime = _document(self.runtime_path)
-        self.assertEqual(runtime["source"]["revision"], "79f10b91f84779b2b1ff2c9327b1a5847cd97f70")
-        self.assertEqual(runtime["source"]["archive_sha256"], "e0f71a57ef2f1b598256ab642287132eb483f0d0fef5c69507f7e51f98508e12")
+        self.assertEqual(runtime["source"]["revision"], "b5ab8091dec88e324c943deb96c2dfd957db9f36")
+        self.assertEqual(runtime["source"]["archive_sha256"], "21ace8020de76ad77fda26832fbdec4842bd2724f7533bc08bfdfdea76636fbd")
         self.assertEqual(runtime["image_manifest"]["digest"], "9bb1557a4234fce63d59599e44d10747eabd742beb337eebf9e7070be8a0fd58")
         self.assertEqual(runtime["image_manifest"]["config_digest"], "ad0cdd86d1ddd15ee758f519d16da15ac237f7f0648a5c52fbc20f9554944263")
         self.assertEqual(runtime["image_manifest"]["compressed_layers_bytes"], 9_788_994_117)
@@ -77,7 +77,7 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         specification = json.loads(arguments["speculative-config"])
         self.assertEqual(specification["model"], "/models/drafter")
         self.assertEqual(specification["num_speculative_tokens"], 7)
-        self.assertEqual(specification["draft_tensor_parallel_size"], 1)
+        self.assertEqual(specification["draft_tensor_parallel_size"], 2)
         self.assertEqual(specification["kv_cache_dtype"], "auto")
         self.assertEqual(recipe["topology"]["start_order"], ["worker", "entrypoint"])
         self.assertEqual(recipe["topology"]["parallelism"], {"world_size": 2, "tensor": 2, "pipeline": 1, "data": 1, "backend": "mp"})
@@ -106,16 +106,27 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         archive, _files, digest = source_bundle(self.adapter)
         recipe = _document(self.recipe_path)
         patch = _document(self.patch_path)
-        self.assertEqual(len(archive), 20_480)
-        self.assertEqual(digest, "219edc73cc7eb377b44a57c8098a7ae95fd077988236a1e1e23580a3b0f2474c")
+        self.assertEqual(len(archive), 30_720)
+        self.assertEqual(digest, "f4839b48762e34c8f20e315b7238f05db69f7e19ef79f00782d288f2e7298c23")
         self.assertEqual(recipe["build"]["context"]["sha256"], digest)
         self.assertEqual(patch["source_bundle"]["sha256"], digest)
         dockerfile = (self.adapter / "Dockerfile").read_text(encoding="utf-8")
         wrapper = (self.adapter / "vllm-wrapper.py").read_text(encoding="utf-8")
         self.assertIn("@sha256:9bb1557a4234fce63d59599e44d10747eabd742beb337eebf9e7070be8a0fd58", dockerfile)
+        self.assertIn("python3 /opt/glm53/patch_kpool_tail_slotmap.py", dockerfile)
+        self.assertIn("python3 /opt/glm53/test_kpool_tail_slotmap.py", dockerfile)
         self.assertNotIn("ssh", wrapper.lower())
         self.assertIn('os.environ["VLLM_HOST_IP"] = local_address', wrapper)
         compile(wrapper, str(self.adapter / "vllm-wrapper.py"), "exec")
+
+    def test_rank_profiles_own_their_gid_and_kpool_patch_is_fail_closed(self) -> None:
+        runtime = _document(self.runtime_path)
+        profiles = runtime["capabilities"]["distributed_vllm"]["launch"]["rank_profiles"]
+        self.assertEqual([profile["rank"] for profile in profiles], [0, 1])
+        self.assertTrue(all(profile["environment"]["NCCL_IB_GID_INDEX"] == "3" for profile in profiles))
+        patch = (self.adapter / "patch_kpool_tail_slotmap.py").read_text(encoding="utf-8")
+        self.assertIn("tl.minimum(block_indices, block_table_stride - 1)", patch)
+        self.assertIn("pinned block_table slot-mapping anchor drifted", patch)
 
     def test_wrapper_accepts_controller_mounts_and_executes_exact_profile(self) -> None:
         recipe = _document(self.recipe_path)
@@ -171,7 +182,7 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
 
     def test_release_tracks_exact_recipe_digest(self) -> None:
         release = _document(self.release_path)
-        self.assertEqual(release["version"], "1.0.0")
+        self.assertEqual(release["version"], "1.1.0")
         self.assertEqual(release["history"][0]["recipe_content_sha256"], _digest(self.recipe_path))
 
 
