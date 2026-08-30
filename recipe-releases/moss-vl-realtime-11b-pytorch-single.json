@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "moss-vl-realtime-11b-pytorch-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-28",
+  "version": "1.1.1",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.1.1",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "8e463bad03d9479b59f9d964af4692160559b29978f8dcc42cb1cfb1abed6102",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Clarified that this installable contract is a bounded session-replay job rather than an interactive streaming service.",
+          "details": "The existing MP4 replay and JSONL transcript contract is unchanged; the catalog no longer implies that this recipe exposes the upstream WebSocket, camera, or screen-capture service."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-28",

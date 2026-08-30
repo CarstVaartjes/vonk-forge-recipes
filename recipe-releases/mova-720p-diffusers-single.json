@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "mova-720p-diffusers-single"
   },
-  "version": "2.0.3",
-  "released_at": "2026-08-28",
+  "version": "2.0.4",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "2.0.4",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "b52595b5efa9b9996327a9c29a0c9203e1ddc7ca6b8e50b3bf7a970c69665819",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Labeled the 720p recipe as the higher-resolution, memory-tight MOVA profile.",
+          "details": "The execution and resource declarations are unchanged; the catalog now recommends 360p by default until the 720p physical memory canary passes."
+        }
+      ]
+    },
     {
       "version": "2.0.3",
       "released_at": "2026-08-28",

@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-nano-30b-a3b-vllm-single"
   },
-  "version": "2.0.2",
-  "released_at": "2026-08-26",
+  "version": "2.0.3",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "2.0.3",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "fadadffcff1fda26e64d0a52f89765c24b94185b7bb2a83d465bed24dc20531f",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Marked Nemotron 3 Nano as a superseded but still installable historical text profile.",
+          "details": "Nemotron 3.5 Lightning is now the preferred default for new text deployments; this immutable Nano contract remains available for reproducibility."
+        }
+      ]
+    },
     {
       "version": "2.0.2",
       "released_at": "2026-08-26",

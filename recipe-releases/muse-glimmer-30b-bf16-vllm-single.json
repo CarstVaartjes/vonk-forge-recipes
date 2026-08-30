@@ -4,9 +4,26 @@
     "publisher": "vonk-forge",
     "slug": "muse-glimmer-30b-bf16-vllm-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.0.2",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.0.2",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "03d702f37d99dd8338b615ca8bb73a346128d785695842e763630eb00c65c97a",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Corrected stale release wording and documented the pinned vLLM structured-output limitation.",
+          "details": "The image digest, source commit, launch arguments, and Candidate qualification are unchanged. The runtime is now described as an exact development image for the released model, and reasoning combined with JSON-schema structured output is explicitly unsupported.",
+          "references": [
+            "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+            "https://github.com/vllm-project/vllm/issues/52594"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",

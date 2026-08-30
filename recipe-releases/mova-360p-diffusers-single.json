@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "mova-360p-diffusers-single"
   },
-  "version": "2.0.3",
-  "released_at": "2026-08-28",
+  "version": "2.0.4",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "2.0.4",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "66f28da24cc2420ad8c1805d737202788a5cd087f0ad3d705cee9b6af76c56d6",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Marked the 360p recipe as the preferred default MOVA profile for one Spark.",
+          "details": "The synchronized-media execution contract is unchanged; the label distinguishes this profile from the tighter 720p candidate while physical acceptance remains pending."
+        }
+      ]
+    },
     {
       "version": "2.0.3",
       "released_at": "2026-08-28",
