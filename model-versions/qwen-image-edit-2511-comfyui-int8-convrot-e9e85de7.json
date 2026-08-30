@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen-image-edit-2511-comfyui-int8-convrot-e9e85de7"
+  },
+  "metadata": {
+    "title": "Qwen Image Edit 2511 ComfyUI INT8 ConvRot revision e9e85de7",
+    "description": "Exact Comfy-Org stock-ComfyUI INT8 tensorwise ConvRot Qwen Image Edit 2511 transformer, used with the catalog's immutable scaled-FP8 Qwen-VL encoder and Qwen Image VAE companions.",
+    "tags": [
+      "qwen",
+      "image",
+      "editing",
+      "comfyui",
+      "int8",
+      "convrot",
+      "mixed-precision",
+      "candidate",
+      "spark"
+    ]
+  },
+  "model": {
+    "kind": "model",
+    "publisher": "qwen",
+    "slug": "qwen-image-edit",
+    "content_sha256": "fa73840bee2df1613f101a5950620f85399785be00fe86fad4e512dac9ba9e6a"
+  },
+  "version": "comfyui-int8-convrot-e9e85de7",
+  "source": {
+    "repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI",
+    "revision": "e9e85de74a8f48c1e3e2656617626348675a2f21"
+  },
+  "lineage": {
+    "publisher": "Comfy-Org",
+    "relation": "quantized",
+    "source_model": {
+      "kind": "model",
+      "publisher": "qwen",
+      "slug": "qwen-image-edit",
+      "content_sha256": "fa73840bee2df1613f101a5950620f85399785be00fe86fad4e512dac9ba9e6a"
+    },
+    "derivation": "Comfy-Org's upstream-supported stock-ComfyUI INT8 tensorwise conversion with ConvRot channel rotation of the official Qwen Image Edit 2511 transformer; no custom quantization node or runtime-side shard merge is required."
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "mixed",
+    "quantization": "int8_tensorwise_convrot"
+  },
+  "parameters": {
+    "total": 20000000000,
+    "active": null
+  },
+  "limits": {
+    "context_tokens": null,
+    "resolution_pixels": null
+  },
+  "sizes": {
+    "download_bytes": 20499083824,
+    "installed_bytes": 20499083824
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/blob/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9/LICENSE",
+    "attribution": [
+      "Qwen",
+      "Comfy-Org"
+    ],
+    "operator_acceptance_required": false
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "artifacts": [
+    {
+      "id": "target",
+      "path": "split_files/diffusion_models/qwen_image_edit_2511_int8_convrot.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/resolve/e9e85de74a8f48c1e3e2656617626348675a2f21/split_files/diffusion_models/qwen_image_edit_2511_int8_convrot.safetensors",
+      "revision": "e9e85de74a8f48c1e3e2656617626348675a2f21",
+      "sha256": "11b5af5ac601821d73930c84846c9a158e67177356daf927ce1c8d10f3963829",
+      "download_bytes": 20499083824,
+      "installed_bytes": 20499083824,
+      "roles": [
+        "weights"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}

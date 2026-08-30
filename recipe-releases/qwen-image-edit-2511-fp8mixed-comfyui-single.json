@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-fp8mixed-comfyui-single"
   },
-  "version": "1.0.0",
-  "released_at": "2026-08-29",
+  "version": "1.0.1",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.0.1",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "51ab53220c7a8710a6d420bac595e797b6259b7282163c991a6aaae610eb6fdb",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Identified FP8mixed as the memory-efficient single-Spark edit variant.",
+          "details": "Published its exact 108.00 GB unified-memory and 95.17 GB peak installation-disk envelopes while preserving Candidate qualification and the 40-step quality schedule."
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-29",

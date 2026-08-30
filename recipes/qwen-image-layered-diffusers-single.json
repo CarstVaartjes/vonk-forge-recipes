@@ -6,9 +6,10 @@
   },
   "metadata": {
     "title": "Qwen Image Layered Diffusers single Spark",
-    "description": "Candidate single-Spark Diffusers binding for decomposing one input image into independently editable RGBA layers.",
+    "description": "Separate layer-decomposition Candidate, not a general Qwen Image Edit variant: one Spark converts exactly one input image into four deterministic RGBA PNG layers at the pinned 640-pixel, 50-step schedule. Its declared admission envelope is 126.00 GB unified memory including reserve and 149.72 GB peak installation disk.",
     "tags": ["executable",
       "candidate",
+      "layer-decomposition",
       "qwen",
       "image",
       "editing",
