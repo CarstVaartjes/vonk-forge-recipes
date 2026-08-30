@@ -3,8 +3,8 @@
   "identity": {"publisher": "vonk-forge", "slug": "pixal3d-pytorch-single"},
   "metadata": {
     "title": "Pixal3D native single Spark",
-    "description": "Installable single-DGX Spark image-to-3D Candidate using the pinned official Pixal3D source, local DINOv3 and NAF feature stack, bounded manual camera calibration, ARM64-native extensions, and deterministic GLB adapter. Physical Spark quality, memory, and latency acceptance is still required.",
-    "tags": ["candidate", "three-d", "image-to-3d", "glb", "pytorch-pipeline", "single", "spark", "executable", "offline", "source-bundled"]
+    "description": "Installable single-DGX Spark image-to-3D Candidate using the pinned official Pixal3D source, local DINOv3 and NAF feature stack, bounded manual camera calibration, ARM64-native extensions, and deterministic GLB adapter. Its pinned nvdiffrast runtime dependency is limited to non-commercial research or evaluation; operator acceptance and physical Spark quality, memory, and latency evidence are still required.",
+    "tags": ["candidate", "three-d", "image-to-3d", "glb", "pytorch-pipeline", "single", "spark", "executable", "offline", "source-bundled", "non-commercial-runtime"]
   },
   "model": {
     "kind": "model-version",
@@ -29,7 +29,7 @@
   "build": {
     "context": {
       "path": "adapters/three-d/trellis2-native",
-      "sha256": "0c6c472e4f9a44e0d180c73b9584920c7cf0f32d0962c21ee342a32b7f9896bc",
+      "sha256": "b4a92759570e2cbccb9d31904746326e07c914337fbbe4cc400329a4d432c158",
       "expected_bytes": 81920,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },

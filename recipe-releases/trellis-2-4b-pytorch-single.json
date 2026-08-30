@@ -4,9 +4,25 @@
     "publisher": "vonk-forge",
     "slug": "trellis-2-4b-pytorch-single"
   },
-  "version": "2.0.2",
-  "released_at": "2026-08-28",
+  "version": "2.0.3",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "2.0.3",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "a01291d9f6a8a0aa8b3172c278668ae665a9c400637e571d4b6a6844d85f26ab",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Rejected symlinked, empty, over-16 MiB, and corrupt image inputs before loading the TRELLIS.2 pipeline."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Exposed the pinned nvdiffrast dependency's non-commercial research and evaluation restriction on the recipe card."
+        }
+      ]
+    },
     {
       "version": "2.0.2",
       "released_at": "2026-08-28",

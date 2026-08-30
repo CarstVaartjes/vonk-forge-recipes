@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "Wan-Dancer 14B PyTorch single Spark",
-    "description": "Executable Pending recipe for Wan-Dancer's official global-planning and local-refinement music-to-dance pipeline, with isolated reference-image, music, style and prompt inputs; physical Spark acceptance remains pending.",
+    "description": "Installable single-DGX Spark Candidate for Wan-Dancer's official global-planning and local-refinement music-to-dance pipeline, with isolated reference-image, music, style and prompt inputs. Controller admission requires the full declared 128 GB memory envelope; physical Spark memory, quality, and latency acceptance remain pending.",
     "tags": ["executable",
       "candidate",
       "video",
@@ -15,7 +15,9 @@
       "audio-conditioned",
       "pytorch",
       "single",
-      "spark"
+      "spark",
+      "offline",
+      "source-bundled"
     ]
   },
   "model": {
@@ -36,7 +38,7 @@
   "build": {
     "context": {
       "path": "adapters/video/wan-dancer-native",
-        "sha256": "cfa81dc25c78a1e76ede6da44d305226867d7a7a1198718d324c8d308cfb7098",
+        "sha256": "3ee37bc3c0a3c85cadbaf2353a3ed5f4affb5e087cfc627288ab2661da0b22e8",
       "expected_bytes": 32081920,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },

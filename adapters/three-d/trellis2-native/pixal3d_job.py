@@ -12,15 +12,24 @@ from types import MethodType
 from glb_validation import normalize_glb_json_padding, validate_mesh_glb
 
 SUPPORTED_SUFFIXES = {".jpeg", ".jpg", ".png", ".webp"}
+MAX_INPUT_BYTES = 16 * 1024 * 1024
 
 
 def one_input(input_dir: Path) -> Path:
     candidates = sorted(
-        path for path in input_dir.iterdir() if path.is_file() and path.suffix.lower() in SUPPORTED_SUFFIXES
+        path
+        for path in input_dir.iterdir()
+        if path.is_file()
+        and not path.is_symlink()
+        and path.suffix.lower() in SUPPORTED_SUFFIXES
     )
     if len(candidates) != 1:
         raise SystemExit(f"expected exactly one JPEG, PNG, or WebP input; found {len(candidates)}")
-    return candidates[0]
+    candidate = candidates[0]
+    size = candidate.stat().st_size
+    if not 1 <= size <= MAX_INPUT_BYTES:
+        raise SystemExit("image input must contain 1 byte through 16 MiB")
+    return candidate
 
 
 def camera_params(field_of_view: float, mesh_scale: float, image_resolution: int = 512) -> dict[str, float]:
