@@ -4,9 +4,34 @@
     "publisher": "vonk-forge",
     "slug": "laguna-s-2-1-nvfp4-vllm-single"
   },
-  "version": "1.0.3",
-  "released_at": "2026-08-29",
+  "version": "1.0.4",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.0.4",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "6411a685d6f2b1aa518ffb1fc2fabd8b27a612751a0082b175188a98ed4cbf3a",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Corrected OCI labels to identify the vLLM runtime actually baked into the image.",
+          "details": "Laguna weights are mounted after the image is built and retain exact Poolside repository, revision, license, and attribution metadata in the model and recipe contracts. The image source, revision, and license labels now bind its Apache-2.0 vLLM payload instead of misidentifying the external model as image source code.",
+          "references": [
+            "https://github.com/vllm-project/vllm/tree/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
+            "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/tree/64734b3a449a05c79657451513d97544f2f53436"
+          ]
+        },
+        {
+          "kind": "metadata",
+          "summary": "Confirmed the newer upstream head changes documentation only.",
+          "details": "Upstream 826aacdf differs from the complete immutable 64734b3a snapshot only in README.md; all model, tokenizer, configuration, and weight payloads remain byte-identical. Physical single-Spark memory and runtime acceptance are still required.",
+          "references": [
+            "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/commit/826aacdf6d8b2699d4e367def6f17c83b06044c2"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.3",
       "released_at": "2026-08-29",
