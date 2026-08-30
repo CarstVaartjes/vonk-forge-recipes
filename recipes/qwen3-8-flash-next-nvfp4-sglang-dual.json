@@ -9,10 +9,10 @@
   "model": {"kind": "model-version", "publisher": "radixark", "slug": "qwen3-8-flash-next-nvfp4-7b719225", "content_sha256": "92b1890def1113c809b2f48a76f4296231fc4920c261d9764aea09224b4963bf"},
   "execution": {
     "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "sglang", "content_sha256": "9bd9a41fe12dd4e551fac821623801b6df9af8943d42ddba9f46717636286947"},
-    "patch_bundle": {"kind": "patch-bundle", "publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dual-profile", "content_sha256": "def23a973eb529563d64621a9f9a04434edff6203c3e77384777253e822dd0ff"}
+    "patch_bundle": {"kind": "patch-bundle", "publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dual-profile", "content_sha256": "353a7890f597eddec289698d33940b80abeae5cc08ea6c0ecceb11183fd7ad82"}
   },
   "build": {
-    "context": {"path": "adapters/qwen/flash-next-sglang-dual", "sha256": "d382c6535ba9b0688222b8b47eba400db8b6679017f7851351e0d0e374b5af7f", "expected_bytes": 51200, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
+    "context": {"path": "adapters/qwen/flash-next-sglang-dual", "sha256": "c4c5e5d542082ba2af57eb5d06b76a95aaf3b26f232ac358c4298283bab0ca6b", "expected_bytes": 61440, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile",
     "platform": "linux/arm64",
     "arguments": [],
@@ -24,7 +24,7 @@
     {"id": "weights", "kind": "huggingface.snapshot", "repository": "RadixArk/Qwen3.8-Flash-Next-NVFP4", "revision": "7b719225242aacd3dbd3f9407468c2ee9a9d2594", "download_bytes": 135253622894, "installed_bytes": 135253622894, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}
   ],
   "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dspark-344f9d0d-arm64", "content_sha256": "e456eba225ffdd9185ddf6fc73527fa95dd6321a37bded22e4dadeee76f9ab64"},
+    "distribution": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dspark-0f950012-arm64", "content_sha256": "9e10ab31f143ef09cf25724c0940d10e56498984dc213fdb5535f7487ee6f8fe"},
     "entrypoint": ["/opt/vonk/bin/sglang-serve"],
     "arguments": [
       {"name": "model-path", "value": "/models"},
@@ -54,6 +54,7 @@
     "environment": [
       {"name": "HF_HUB_OFFLINE", "value": "1"},
       {"name": "NCCL_DEBUG", "value": "WARN"},
+      {"name": "SGLANG_SANITIZE_NAN_LOGITS", "value": "1"},
       {"name": "SGLANG_ENABLE_UNIFIED_RADIX_TREE", "value": "1"}
     ],
     "security": {
@@ -83,7 +84,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/344f9d0d5e9523d8398fa2804d5a3e123fd3d21a",
+    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/0f950012c8d8323acac9a08846a32ef7953f5f62",
     "attribution": ["Qwen", "RadixArk", "MiaAI-Lab", "Tony D2 Wild", "SGLang contributors"]
   }
 }

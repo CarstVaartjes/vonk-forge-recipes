@@ -4,9 +4,25 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-mia-dual"
   },
-  "version": "2.2.0",
-  "released_at": "2026-08-29",
+  "version": "2.3.0",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "2.3.0",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "3e74f5b62cf395882fe1c3e06fa2c3902833e92bdf2a99cda3c2086308918b5f",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Advanced to MiaAI-Lab 0107cef and restored the shipped single partial-prefill lane.",
+          "details": "Pins the exact upstream source archive and sets DSPARK_MAX_INFLIGHT_PREFILLS=1, matching Mia's current safe default while retaining strict fail-closed adapter hashing and Candidate physical acceptance.",
+          "references": [
+            "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/0107cef1835a56d1a2bcdabf7d9e1a085b70338b"
+          ]
+        }
+      ]
+    },
     {
       "version": "2.2.0",
       "released_at": "2026-08-29",

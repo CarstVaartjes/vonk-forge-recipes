@@ -15,8 +15,8 @@
   },
   "source": {
     "repository": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark",
-    "revision": "03d4776fa8977ed9f7fd077c4776ba164c7127b6",
-    "archive_sha256": "578e4a84b900794d23c91cd64d263f9196a86fb612b46c6b8c4232031e2040c2"
+    "revision": "0107cef1835a56d1a2bcdabf7d9e1a085b70338b",
+    "archive_sha256": "8491b7006312ce666cfb7f1d6cb67bc2dce15260732b184b666c280ea7d26d78"
   },
   "base_source": {
     "repository": "https://github.com/vllm-project/vllm",
@@ -122,7 +122,7 @@
     {
       "order": 13,
       "path": "patches/hotfix-dsv4-issue27-partial-prefill-concurrency.py",
-      "sha256": "31e7b14213dc6983c07716cf625c4245a42f9d884733e5f7e21a79ab459a8f8b",
+      "sha256": "1b99e7e220d027bca313ae024785a222e790e1cc62513e4c17fc0d33bda89956",
       "purpose": "Correct scheduler accounting for bounded partial-prefill concurrency.",
       "upstream_reference": "Mia issue 27 at d1b76251535daef578d8751b04b39c29ad7ecdf9",
       "license": "MIT"
@@ -197,7 +197,7 @@
     "attribution": ["MiaAI-Lab", "vLLM contributors"]
   },
   "source_bundle": {
-    "sha256": "d22ad3cd71ac3f5bd81387892234b3922bbfea6ed52901f24e00ad7a223a938a",
+    "sha256": "6b36c33cfed7c6078c6ebd29b7426d8dc82d05db25e92c994369a8ff5e26f88f",
     "expected_bytes": 276480,
     "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
   },

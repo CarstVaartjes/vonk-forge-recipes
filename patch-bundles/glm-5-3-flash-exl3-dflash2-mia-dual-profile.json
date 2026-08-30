@@ -4,12 +4,12 @@
   "identity": {"publisher": "miaai-lab", "slug": "glm-5-3-flash-exl3-dflash2-mia-dual-profile"},
   "metadata": {
     "title": "GLM 5.3 Flash EXL3 DFlash2 Mia dual-Spark profile",
-    "description": "Immutable Controller-native binding to MiaAI-Lab 79f10b91: EXL3/TR3 TP2, DFlash2 K7 with rank-0 draft TP, FP8 sparse-MLA target KV, BF16 draft KV, 1M context, 0.87 unified-memory utilization, 2048-token prefill chunks, four sequences, CUDA graphs, prefix caching, multimodal serving, and accepted f1 dual rails. Upstream measured a 1,754,237-token / 18.67 GiB KV pool and requires at least 105.9 GiB free after approximately 9 GiB initialization; the recipe converts that receipt into a strict 126,000,000,000-byte Controller admission contract per node.",
+    "description": "Immutable Controller-native binding to MiaAI-Lab b5ab8091: EXL3/TR3 TP2, DFlash2 K7 with draft TP2, the K-pool tail slot-map correctness fix, FP8 sparse-MLA target KV, BF16 draft KV, 1M context, 0.87 unified-memory utilization, 2048-token prefill chunks, four sequences, CUDA graphs, prefix caching, multimodal serving, and accepted f1 dual rails with Controller-injected per-rank GID values. Upstream measured a 1,754,237-token / 18.67 GiB KV pool and requires at least 105.9 GiB free after approximately 9 GiB initialization; the recipe retains the strict 126,000,000,000-byte Controller admission contract per node.",
     "tags": ["candidate", "dflash2", "exl3", "glm-5.3", "multimodal", "spark", "topology", "tp2"]
   },
-  "applies_to": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "vllm-glm53-exl3-dflash2-mia-79f10b91-arm64", "content_sha256": "33e730653fc5fdee6c2dd1e032726c346bb16a83902cb102bd7053fd7d7e15f0"},
+  "applies_to": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "vllm-glm53-exl3-dflash2-mia-b5ab8091-arm64", "content_sha256": "d3a4202a46d7e53a3e83e43af1fd96e95ee135e339896d0a48b6ecc4382689ea"},
   "removal_condition": "Remove only after stock vLLM supports the exact GLM 5.3 NoPE sparse-MLA, EXL3, DFlash2, hybrid-KV, reasoning, tool, and SM121 behavior and the two-Spark qualification is repeated.",
   "license": {"spdx": "MIT AND Apache-2.0", "attribution": ["MiaAI-Lab", "vLLM contributors", "Turboderp", "IncoAI"]},
-  "source_bundle": {"sha256": "219edc73cc7eb377b44a57c8098a7ae95fd077988236a1e1e23580a3b0f2474c", "expected_bytes": 20480, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
-  "sha256": "219edc73cc7eb377b44a57c8098a7ae95fd077988236a1e1e23580a3b0f2474c"
+  "source_bundle": {"sha256": "f4839b48762e34c8f20e315b7238f05db69f7e19ef79f00782d288f2e7298c23", "expected_bytes": 30720, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
+  "sha256": "f4839b48762e34c8f20e315b7238f05db69f7e19ef79f00782d288f2e7298c23"
 }

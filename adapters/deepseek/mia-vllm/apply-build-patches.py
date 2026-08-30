@@ -25,7 +25,7 @@ EXPECTED = {
     "hotfix-dsv4-flashmla-workspace-50298.sh": "213fd93fb6c4dd70f38eefbd331f0ce08b64331feb2ff03643394857acd96078",
     "hotfix-dsv4-grammar-advance.sh": "6318c0959816156ba0015fba9d3d56e4e128acdfb778aee373d9bf227c6faaa5",
     "hotfix-vllm-empty-encoder-output.py": "e417bcdcb6d62f4790885fe5c64bef3a3015a17cea00e3901eb3e2f4b7cf35a6",
-    "hotfix-dsv4-issue27-partial-prefill-concurrency.py": "31e7b14213dc6983c07716cf625c4245a42f9d884733e5f7e21a79ab459a8f8b",
+    "hotfix-dsv4-issue27-partial-prefill-concurrency.py": "1b99e7e220d027bca313ae024785a222e790e1cc62513e4c17fc0d33bda89956",
     "hotfix-dsv4-issue43-decode-fairness-and-diag.py": "0059144ce08e825354718c8b0aa3799dcf434045f40241f75a4211fe4f199dc4",
     "hotfix-dsv4-issue26-hybrid-swa-min.py": "8c76a65207d5f30b898cf5f60e39b8a59e4febb3217c34fe57f6a7fb225a3c3f",
     "hotfix-dsv4-issue133-triton-specialization.py": "64d23c25fdd40bf1d6418c217c76d90b6eed8991a26f66c92d002b4b45523b3f",

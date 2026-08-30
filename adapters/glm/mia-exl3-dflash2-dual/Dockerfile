@@ -1,14 +1,17 @@
 FROM ghcr.io/miaai-lab/glm-5.3-flash-2x-dgx-sparks@sha256:9bb1557a4234fce63d59599e44d10747eabd742beb337eebf9e7070be8a0fd58
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks" \
-      org.opencontainers.image.revision="79f10b91f84779b2b1ff2c9327b1a5847cd97f70" \
+      org.opencontainers.image.revision="b5ab8091dec88e324c943deb96c2dfd957db9f36" \
       org.opencontainers.image.licenses="MIT"
 
 # The published image already contains MiaAI-Lab's compiled SM121 EXL3 and
 # DFlash2 overlays. Apply every source-exact launch-time patch while the image
 # is still writable so the Controller can run the final runtime as an
 # unprivileged, offline container without SSH or host-side mutation.
-RUN python3 /opt/glm53/patch_glm_video_placeholders.py \
+COPY patch_kpool_tail_slotmap.py test_kpool_tail_slotmap.py /opt/glm53/
+
+RUN python3 /opt/glm53/patch_kpool_tail_slotmap.py \
+    && python3 /opt/glm53/patch_glm_video_placeholders.py \
     && python3 /opt/glm53/patch_suppress_stops_in_reasoning.py \
     && python3 /opt/glm53/patch_scheduler_decode_floor.py \
     && python3 /opt/glm53/patch_glm5_drafter_group.py \
@@ -18,7 +21,8 @@ RUN python3 /opt/glm53/patch_glm_video_placeholders.py \
     && python3 /opt/glm53/test_suppress_stops.py \
     && python3 /opt/glm53/test_scheduler_decode_floor.py \
     && python3 /opt/glm53/test_hybrid_prefix_hit.py \
-    && python3 /opt/glm53/test_xgrammar_termination.py
+    && python3 /opt/glm53/test_xgrammar_termination.py \
+    && python3 /opt/glm53/test_kpool_tail_slotmap.py
 
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 COPY verify-runtime.py /opt/vonk/verify-runtime.py

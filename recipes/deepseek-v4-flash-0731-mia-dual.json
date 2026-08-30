@@ -23,13 +23,13 @@
       "kind": "patch-bundle",
       "publisher": "miaai-lab",
       "slug": "mia-deepseek-v4-flash-0731",
-      "content_sha256": "96b99d7b6bf62d735360ac4cfec1cd87f356c8d23407aa77af4469e11312f0b0"
+      "content_sha256": "ccf57ad694d42ecbf10a0a5a65c2fe801ef329521a98968341063aa316388e1c"
     }
   },
   "build": {
     "context": {
       "path": "adapters/deepseek/mia-vllm",
-      "sha256": "d22ad3cd71ac3f5bd81387892234b3922bbfea6ed52901f24e00ad7a223a938a",
+      "sha256": "6b36c33cfed7c6078c6ebd29b7426d8dc82d05db25e92c994369a8ff5e26f88f",
       "expected_bytes": 276480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -105,7 +105,7 @@
       {"name": "VLLM_USE_B12X_MOE", "value": "1"},
       {"name": "VLLM_B12X_W4A16_FORCE_BLOCKS_PER_SM", "value": "0"},
       {"name": "VLLM_B12X_W4A16_FORCE_BLOCKS_MAX_M", "value": "16"},
-      {"name": "DSPARK_MAX_INFLIGHT_PREFILLS", "value": "2"},
+      {"name": "DSPARK_MAX_INFLIGHT_PREFILLS", "value": "1"},
       {"name": "TORCH_CUDA_ARCH_LIST", "value": "12.1a"},
       {"name": "FLASHINFER_CUDA_ARCH_LIST", "value": "12.1a"},
       {"name": "CUTE_DSL_ARCH", "value": "sm_121a"},
@@ -228,7 +228,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/03d4776fa8977ed9f7fd077c4776ba164c7127b6",
+    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/0107cef1835a56d1a2bcdabf7d9e1a085b70338b",
     "attribution": ["DeepSeek AI", "MiaAI-Lab", "Anemll", "vLLM contributors"]
   }
 }
