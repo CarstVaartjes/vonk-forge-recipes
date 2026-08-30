@@ -4,9 +4,29 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan-video-15-i2v-step-distilled-diffusers-single"
   },
-  "version": "1.3.0",
-  "released_at": "2026-08-28",
+  "version": "1.4.0",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.4.0",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "a62a299bc9ca84b9cf74a96c784460e6e802562db2de8cb9e0fde41122db37ef",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Fail closed in the EU, UK, and South Korea as required by the exact Tencent Hunyuan Community License Agreement."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Correct the offloaded single-Spark memory envelope to require 112 GB plus the existing 8 GB system reserve, allowing admission on a healthy 128 GB Spark."
+        },
+        {
+          "kind": "fix",
+          "summary": "Validate the exact 121-frame MP4 stream before atomically publishing output.mp4 and reject oversized or unsupported image inputs before model loading."
+        }
+      ]
+    },
     {"version": "1.3.0", "released_at": "2026-08-28", "recipe_content_sha256": "2b07298c861ea716c2caed0d9a58ded4fbab64f66fa07b0f949ac73b02b64db8", "upgrade_effect": "rebuild", "changes": [{"kind": "fix", "summary": "Declared separate required prompt and source-image slots plus the exact MP4 output contract."}, {"kind": "compatibility", "summary": "Made the adapter consume the controller-authenticated slot manifest before model loading."}]},
     {
       "version": "1.2.1",

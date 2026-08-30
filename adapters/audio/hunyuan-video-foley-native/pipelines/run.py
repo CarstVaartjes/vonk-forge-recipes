@@ -5,8 +5,10 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
+import wave
 from pathlib import Path
 
 _SOURCE = Path("/opt/hunyuan-video-foley/infer.py")
@@ -21,6 +23,7 @@ _ENTRYPOINTS = {
     ),
 }
 _VIDEO_SUFFIXES = frozenset({".mkv", ".mov", ".mp4", ".webm"})
+_MAX_VIDEO_BYTES = 536805376
 
 
 def _slot_files(path: Path, slot: str) -> list[Path]:
@@ -60,11 +63,29 @@ def _one_prompt(path: Path) -> str:
 
 def _one_video(path: Path) -> Path:
     candidates = sorted(_slot_files(path, "video"))
-    if len(candidates) != 1:
+    if (
+        len(candidates) != 1
+        or candidates[0].suffix.lower() not in _VIDEO_SUFFIXES
+        or candidates[0].stat().st_size > _MAX_VIDEO_BYTES
+    ):
         raise SystemExit(
             "Foley inference requires exactly one supported video in /inputs"
         )
     return candidates[0]
+
+
+def _validate_wav(path: Path) -> None:
+    try:
+        with wave.open(str(path), "rb") as audio:
+            if (
+                audio.getnchannels() not in {1, 2}
+                or audio.getframerate() <= 0
+                or audio.getsampwidth() not in {1, 2, 3, 4}
+                or audio.getnframes() <= 0
+            ):
+                raise ValueError("unexpected WAV stream contract")
+    except (OSError, EOFError, ValueError, wave.Error) as error:
+        raise SystemExit("upstream Foley inference produced an invalid WAV artifact") from error
 
 
 def main() -> None:
@@ -75,7 +96,6 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--output-dir", required=True, type=Path)
     args = parser.parse_args()
-    del args.timeout_seconds
 
     if args.output_mime != "audio/wav":
         raise SystemExit(
@@ -101,6 +121,9 @@ def main() -> None:
     if not _SOURCE.is_file():
         raise SystemExit("pinned HunyuanVideo-Foley source is missing")
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    staging = args.output_dir / ".staging"
+    shutil.rmtree(staging, ignore_errors=True)
+    staging.mkdir()
 
     env = dict(os.environ)
     env["PYTHONHASHSEED"] = str(args.seed)
@@ -116,7 +139,7 @@ def main() -> None:
         "--single_prompt",
         prompt,
         "--output_dir",
-        str(args.output_dir),
+        str(staging),
         "--guidance_scale",
         "4.5",
         "--num_inference_steps",
@@ -127,10 +150,23 @@ def main() -> None:
         "0",
         "--enable_offload",
     ]
-    subprocess.run(command, cwd=_SOURCE.parent, env=env, check=True)
-    outputs = list(args.output_dir.glob("*_generated.wav"))
-    if len(outputs) != 1 or outputs[0].stat().st_size == 0:
-        raise SystemExit("upstream Foley inference did not produce one WAV artifact")
+    try:
+        subprocess.run(
+            command,
+            cwd=_SOURCE.parent,
+            env=env,
+            check=True,
+            timeout=args.timeout_seconds,
+        )
+        outputs = list(staging.glob("*_generated.wav"))
+        if len(outputs) != 1:
+            raise SystemExit("upstream Foley inference did not produce one WAV artifact")
+        _validate_wav(outputs[0])
+        os.replace(outputs[0], args.output_dir / "output.wav")
+    except subprocess.TimeoutExpired as error:
+        raise SystemExit("upstream Foley inference timed out") from error
+    finally:
+        shutil.rmtree(staging, ignore_errors=True)
 
 
 if __name__ == "__main__":

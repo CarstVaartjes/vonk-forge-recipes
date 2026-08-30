@@ -58,7 +58,15 @@
     "attribution": [
       "tencent"
     ],
-    "operator_acceptance_required": true
+    "operator_acceptance_required": true,
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR"
+      ],
+      "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
+    }
   },
   "access": {
     "visibility": "public",
