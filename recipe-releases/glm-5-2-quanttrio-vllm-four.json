@@ -4,9 +4,26 @@
     "publisher": "vonk-forge",
     "slug": "glm-5-2-quanttrio-vllm-four"
   },
-  "version": "2.0.2",
-  "released_at": "2026-08-28",
+  "version": "2.0.3",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "2.0.3",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "8847067b83194f8b7e8127997cbf2fa2763bc31ea7efde1273acf36e0ada730f",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Recorded the exact TP2 checkpoint lower bound and the fleet-fit GLM alternative.",
+          "details": "The exact TP4 contract is unsupported on the current one- or two-Spark configuration. Half of the immutable 405,518,511,891-byte snapshot is already 202.8 GB per rank before KV cache and runtime memory, so no safe TP2 variant can fit the roughly 126.9 GB-per-node inventory. The superseded TP4 contract remains installable; the 126 GB-envelope GLM 5.3 EXL3 DFlash2 TP2 recipe is the current alternative.",
+          "references": [
+            "https://github.com/drowzeys/keys-latest-GLM-5.2-Quantrio-INT4-INT8-Mixed-Abliterated-DFlash-4x-DGX-Sparks",
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks"
+          ]
+        }
+      ]
+    },
     {
       "version": "2.0.2",
       "released_at": "2026-08-28",

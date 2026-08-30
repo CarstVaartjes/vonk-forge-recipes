@@ -4,9 +4,26 @@
     "publisher": "vonk-forge",
     "slug": "inkling-975b-a41b-nvfp4-sglang-eight"
   },
-  "version": "1.0.3",
-  "released_at": "2026-08-28",
+  "version": "1.0.4",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.0.4",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "6407a0382f89762e27c282f11826de632496ceffd9f17b54a414047fb295c0be",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Recorded the exact TP2 checkpoint lower bound and the smaller-model admission gate.",
+          "details": "The exact TP8 contract is unsupported on the current one- or two-Spark configuration. Half of the immutable 592,037,337,118-byte Inkling snapshot is already 296.0 GB per rank before KV cache and runtime memory, so no safe TP2 variant can fit. Inkling Small TP2 is physically verified upstream but its current Vonk envelope is 128 GB per node, 1.1 GB above the roughly 126.9 GB inventory; the TP8 contract remains installable for future hardware.",
+          "references": [
+            "https://github.com/sgl-project/sglang/issues/31359",
+            "https://github.com/sgl-project/sglang/blob/a74222ef6e690f851e2e4ff1c0be7dc1357be313/docs_new/src/snippets/configs/thinkingmachines/inkling-small.jsx"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.3",
       "released_at": "2026-08-28",

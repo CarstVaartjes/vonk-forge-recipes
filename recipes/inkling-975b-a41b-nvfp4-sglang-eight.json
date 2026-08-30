@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "Inkling 975B-A41B NVFP4 SGLang eight Sparks",
-    "description": "Complete offline Candidate TP8 recipe for Thinking Machines' flagship Inkling NVFP4 checkpoint. Its exact eight-rank topology cannot run on Vonk's current two-Spark fleet and has no DGX Spark physical evidence; it is retained for a future eight-Spark canary. Inkling Small NVFP4 dual is the current fleet alternative for text, image, and 16 kHz WAV audio.",
+    "description": "Complete offline Candidate TP8 recipe for Thinking Machines' flagship Inkling NVFP4 checkpoint. Its exact eight-rank topology is unsupported on Vonk's current one- or two-Spark configuration: a two-rank split alone would require at least 296.0 GB of checkpoint bytes per Spark before KV cache or runtime overhead. The executable contract remains installable for a future eight-Spark canary and has no DGX Spark physical evidence. Inkling Small NVFP4 dual is the same-family alternative for text, image, and 16 kHz WAV audio, but its current 128 GB Controller admission envelope also needs either at least 128 GB free per node or a separately proven lower-memory profile.",
     "tags": ["executable",
       "audio",
       "candidate",
