@@ -5,31 +5,36 @@ import json
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 RECIPES = {
     "glm-5-2-aqlm-vllm-triple": {
         "nodes": 3,
-        "version": "2.0.3",
-        "alternative": "GLM 5.3 Flash NVFP4 dual",
+        "version": "2.0.4",
+        "alternative": "glm-5-3-flash-exl3-dflash2-vllm-dual",
+        "tp2_weight_floor": 146_299_574_266,
     },
     "glm-5-2-quanttrio-vllm-four": {
         "nodes": 4,
-        "version": "2.0.2",
-        "alternative": "GLM 5.3 Flash NVFP4 dual",
+        "version": "2.0.3",
+        "alternative": "glm-5-3-flash-exl3-dflash2-vllm-dual",
+        "tp2_weight_floor": 202_759_255_945,
     },
     "glm-5-3-flash-nvfp4-vllm-four": {
         "nodes": 4,
-        "version": "1.0.1",
-        "alternative": "dual-Spark Ray recipe",
+        "version": "1.0.2",
+        "alternative": "glm-5-3-flash-exl3-dflash2-vllm-dual",
     },
     "inkling-975b-a41b-nvfp4-sglang-eight": {
         "nodes": 8,
-        "version": "1.0.3",
+        "version": "1.0.4",
         "alternative": "Inkling Small NVFP4 dual",
+        "tp2_weight_floor": 296_018_668_559,
     },
 }
+
+FLEET_FREE_MEMORY_BYTES = 126_900_000_000
+FLEET_FREE_DISK_BYTES = 3_500_000_000_000
 
 
 def load(path: Path) -> dict[str, object]:
@@ -47,16 +52,64 @@ def canonical_digest(document: dict[str, object]) -> str:
 
 
 class DistributedRecipeAvailabilityTests(unittest.TestCase):
-    def test_larger_topologies_are_explicitly_unavailable_on_two_sparks(self) -> None:
+    def test_larger_topologies_are_explicitly_unsupported_on_current_fleet(
+        self,
+    ) -> None:
         for slug, expected in RECIPES.items():
             with self.subTest(recipe=slug):
                 recipe = load(ROOT / f"recipes/{slug}.json")
                 self.assertEqual(recipe["topology"]["node_count"], expected["nodes"])
                 description = recipe["metadata"]["description"]
-                self.assertIn("cannot run on Vonk's current two-Spark fleet", description)
+                self.assertIn(
+                    "unsupported on Vonk's current one- or two-Spark configuration",
+                    description,
+                )
                 self.assertIn(expected["alternative"], description)
                 self.assertIn("candidate", recipe["metadata"]["tags"])
                 self.assertIn("executable", recipe["metadata"]["tags"])
+
+    def test_checkpoint_lower_bounds_reject_unprovable_tp2_variants(self) -> None:
+        for slug, expected in RECIPES.items():
+            weight_floor = expected.get("tp2_weight_floor")
+            if weight_floor is None:
+                continue
+            with self.subTest(recipe=slug):
+                recipe = load(ROOT / f"recipes/{slug}.json")
+                checkpoint_bytes = recipe["topology"]["roles"][0]["resources"]["disk"][
+                    "artifact_bytes"
+                ]
+                self.assertEqual(checkpoint_bytes // 2, weight_floor)
+                self.assertGreater(weight_floor, FLEET_FREE_MEMORY_BYTES)
+
+    def test_all_historical_contracts_fit_the_per_node_disk_inventory(self) -> None:
+        for slug in RECIPES:
+            with self.subTest(recipe=slug):
+                recipe = load(ROOT / f"recipes/{slug}.json")
+                disk = recipe["topology"]["roles"][0]["resources"]["disk"]
+                envelope = sum(disk.values())
+                self.assertLess(envelope, FLEET_FREE_DISK_BYTES)
+
+    def test_glm53_fit_guidance_uses_controller_admission_envelopes(self) -> None:
+        four = load(ROOT / "recipes/glm-5-3-flash-nvfp4-vllm-four.json")
+        ray = load(ROOT / "recipes/glm-5-3-flash-nvfp4-vllm-dual.json")
+        exl3 = load(ROOT / "recipes/glm-5-3-flash-exl3-dflash2-vllm-dual.json")
+
+        def admission_bytes(recipe: dict[str, object]) -> int:
+            memory = recipe["topology"]["roles"][0]["resources"]["memory"]
+            required = max(
+                memory["startup_peak_bytes"],
+                memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
+            )
+            return required + memory["system_reserve_bytes"]
+
+        self.assertEqual(admission_bytes(ray), 132_000_000_000)
+        self.assertEqual(admission_bytes(exl3), 126_000_000_000)
+        self.assertIn(
+            "132 GB Controller admission envelope", four["metadata"]["description"]
+        )
+        self.assertIn(
+            "126 GB-envelope fleet Candidate", four["metadata"]["description"]
+        )
 
     def test_metadata_only_releases_bind_the_exact_current_recipes(self) -> None:
         for slug, expected in RECIPES.items():
@@ -64,8 +117,10 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
                 recipe = load(ROOT / f"recipes/{slug}.json")
                 release = load(ROOT / f"recipe-releases/{slug}.json")
                 self.assertEqual(release["version"], expected["version"])
-                self.assertEqual(release["released_at"], "2026-08-28")
-                self.assertEqual(release["history"][0]["upgrade_effect"], "metadata-only")
+                self.assertEqual(release["released_at"], "2026-08-30")
+                self.assertEqual(
+                    release["history"][0]["upgrade_effect"], "metadata-only"
+                )
                 self.assertEqual(
                     release["history"][0]["recipe_content_sha256"],
                     canonical_digest(recipe),
@@ -73,7 +128,9 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
 
     def test_quanttrio_is_superseded_without_mutating_historical_contract(self) -> None:
         recipe = load(ROOT / "recipes/glm-5-2-quanttrio-vllm-four.json")
-        self.assertTrue({"historical", "superseded", "tp4"} <= set(recipe["metadata"]["tags"]))
+        self.assertTrue(
+            {"historical", "superseded", "tp4"} <= set(recipe["metadata"]["tags"])
+        )
         self.assertEqual(
             recipe["artifacts"][0]["repository"],
             "QuantTrio/GLM-5.2-Int4-Int8Mix",
@@ -98,9 +155,21 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
             for target in targets
             for slug in target.get("recipe_slugs", [])
         }
-        self.assertIn("unavailable on the current two-Spark fleet", by_recipe["glm-5-2-aqlm-vllm-triple"]["notes"])
-        self.assertIn("Superseded historical TP4", by_recipe["glm-5-2-quanttrio-vllm-four"]["notes"])
-        self.assertIn("TP4 recipe is unavailable", by_recipe["glm-5-3-flash-nvfp4-vllm-four"]["notes"])
+        self.assertIn(
+            "146.3 GB-per-node checkpoint lower bound",
+            by_recipe["glm-5-2-aqlm-vllm-triple"]["notes"],
+        )
+        self.assertIn(
+            "Superseded historical TP4",
+            by_recipe["glm-5-2-quanttrio-vllm-four"]["notes"],
+        )
+        self.assertIn(
+            "132 GB per node", by_recipe["glm-5-3-flash-nvfp4-vllm-four"]["notes"]
+        )
+        self.assertIn(
+            "128 GB Controller admission envelope",
+            by_recipe["inkling-small-nvfp4-sglang-dual"]["notes"],
+        )
 
 
 if __name__ == "__main__":
