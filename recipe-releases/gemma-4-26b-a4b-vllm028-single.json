@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "gemma-4-26b-a4b-vllm028-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-29",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-29",
+      "recipe_content_sha256": "078047fc8139b5ed42da608e6d131df791b45ee74b2eedccea45c50f22d39469",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added a separate vLLM 0.28 Candidate while retaining the vLLM 0.27.1 fallback recipe.",
+          "references": [
+            "https://github.com/vllm-project/vllm/tree/2cf0a6915ce544dc493a0990f2ea38d81601128a",
+            "https://huggingface.co/google/gemma-4-26B-A4B-it/tree/4d7ae4984b7db7de8f8457170b3f1a419ee76d52"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Bound local-image serving and exact Gemma 4 multimodal/parser import checks to the immutable ARM64 image.",
+          "references": [
+            "https://docs.vllm.ai/en/v0.28.0/api/vllm/model_executor/models/gemma4_mm/",
+            "https://github.com/vllm-project/vllm/issues/53431"
+          ]
+        }
+      ]
+    }
+  ]
+}

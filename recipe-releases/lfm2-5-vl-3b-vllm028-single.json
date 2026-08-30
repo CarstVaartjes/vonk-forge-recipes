@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "lfm2-5-vl-3b-vllm028-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-29",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-29",
+      "recipe_content_sha256": "26d475b2b589cf655d461729de3bc16944e6ca9e8a1e605347946258a032b2b7",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added a separate vLLM 0.28 Candidate while retaining the vLLM 0.27.1 fallback recipe.",
+          "references": [
+            "https://github.com/vllm-project/vllm/tree/2cf0a6915ce544dc493a0990f2ea38d81601128a",
+            "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/tree/5a414ead75d45db003906d06fb62bd5b6846cec0"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Bound exact LFM2.5-VL image and tool-parser checks to the immutable ARM64 image.",
+          "references": [
+            "https://docs.vllm.ai/en/v0.28.0/api/vllm/model_executor/models/lfm2_vl/",
+            "https://docs.vllm.ai/en/v0.28.0/api/vllm/tool_parsers/lfm2_tool_parser/"
+          ]
+        }
+      ]
+    }
+  ]
+}
