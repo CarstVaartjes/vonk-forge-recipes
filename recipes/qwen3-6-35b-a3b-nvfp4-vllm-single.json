@@ -3,8 +3,8 @@
   "identity": {"publisher": "vonk-forge", "slug": "qwen3-6-35b-a3b-nvfp4-vllm-single"},
   "metadata": {
     "title": "NVIDIA Qwen3.6 35B-A3B NVFP4 vLLM single Spark",
-    "description": "Executable Candidate binding of NVIDIA's official agent-ready Qwen3.6 35B-A3B NVFP4 checkpoint and stable vLLM 0.28 ARM64 image for one DGX Spark.",
-    "tags": ["executable", "candidate", "nvidia", "qwen", "qwen3-6", "moe", "nvfp4", "multimodal", "vision", "reasoning", "agentic", "tool-use", "vllm", "openai", "single", "spark"]
+    "description": "Executable Candidate binding of NVIDIA's official agent-ready Qwen3.6 35B-A3B NVFP4 checkpoint and stable vLLM 0.28 ARM64 image for one DGX Spark. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
+    "tags": ["executable", "candidate", "nvidia", "qwen", "qwen3-6", "moe", "nvfp4", "multimodal", "vision", "reasoning", "agentic", "tool-use", "text-qualified", "vision-unproven", "vllm", "openai", "single", "spark"]
   },
   "model": {"kind": "model-version", "publisher": "nvidia", "slug": "qwen3-6-35b-a3b-nvfp4-491c2f1e", "content_sha256": "cbe7ca267af32035235f098c4aba76278c55882b591e5bc1997e4884035844f5"},
   "execution": {"harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"}, "patch_bundle": null},

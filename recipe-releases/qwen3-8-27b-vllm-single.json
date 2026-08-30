@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "qwen3-8-27b-vllm-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-28",
+  "version": "1.1.1",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.1.1",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "ad0c85bc2e50c24d465926f085565b6895ed6a911fa88d100c89c1eb0fa1ee2e",
+      "upgrade_effect": "metadata-only",
+      "changes": [{
+        "kind": "metadata",
+        "summary": "Marked BF16 as an alternative to the FP8 default and made its text-only qualification boundary explicit.",
+        "details": "The immutable official checkpoint and runtime contract are unchanged. Bounded text chat is qualified; Spark vision serving remains unproven.",
+        "references": ["https://huggingface.co/Qwen/Qwen3.8-27B/tree/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"]
+      }]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-28",
