@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "Muse Glimmer 30B BF16 vLLM single Spark",
-    "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B BF16, using the official Muse-specific vLLM CUDA 13 ARM64 image and immutable local media inputs.",
+    "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B BF16, using an exact official vLLM development image and immutable local media inputs. Chat, vision, reasoning, and tool calling remain Candidate capabilities; combining reasoning with JSON-schema structured output is not supported by this pinned runtime.",
     "tags": ["executable",
       "candidate",
       "pending",
@@ -20,6 +20,8 @@
       "bf16",
       "vllm",
       "openai",
+      "development-runtime",
+      "structured-output-limited",
       "single",
       "spark"
     ]
@@ -83,7 +85,7 @@
       "kind": "runtime-distribution",
       "publisher": "vllm",
       "slug": "vllm-muse-glimmer-99a10304-cu130-arm64",
-      "content_sha256": "d899a38e8a7723707636c77b21b2d166e88f92f26dd45df7ff3c855522c374c1"
+      "content_sha256": "4366fdfeabad443f26c7f22a18df2061c51876a791eeeb491dc7b59c3fe34a68"
     },
     "entrypoint": [
       "/opt/vonk/bin/vllm",

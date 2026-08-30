@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single"
   },
-  "version": "1.1.1",
-  "released_at": "2026-08-29",
+  "version": "1.1.2",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.1.2",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "d4479e12a7de26469aa750f158b4a1345c51e6e457502322ae758c6d8657f1be",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Labeled the 1M-token DSpark recipe as a specialized, memory-tight high-context latency profile.",
+          "details": "No execution field changed; the catalog now directs ordinary text deployments to the refreshed target-only profile and retains this exact profile for explicit high-context qualification."
+        }
+      ]
+    },
     {
       "version": "1.1.1",
       "released_at": "2026-08-29",

@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-5-lightning-30b-a3b-vllm-single"
   },
-  "version": "1.3.2",
-  "released_at": "2026-08-29",
+  "version": "1.3.3",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.3.3",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "188fac9553055d8eea9d4bc9d10999e9c9721a616a7aac69d107c195adece71d",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Marked the target-only profile as the preferred default Nemotron text deployment on one Spark.",
+          "details": "The refreshed immutable model, runtime, arguments, and resource contract are unchanged; the catalog now distinguishes this profile from the specialized high-context DSpark latency variant."
+        }
+      ]
+    },
     {
       "version": "1.3.2",
       "released_at": "2026-08-29",

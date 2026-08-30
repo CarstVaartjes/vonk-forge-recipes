@@ -130,7 +130,7 @@ class MossRealtimeJobTests(unittest.TestCase):
         self.assertEqual(context["expected_bytes"], len(archive))
 
         release = json.loads(RELEASE_PATH.read_text(encoding="utf-8"))
-        self.assertEqual(release["version"], "1.1.0")
+        self.assertEqual(release["version"], "1.1.1")
         self.assertEqual(
             release["history"][0]["recipe_content_sha256"],
             _canonical_digest(RECIPE_PATH),
