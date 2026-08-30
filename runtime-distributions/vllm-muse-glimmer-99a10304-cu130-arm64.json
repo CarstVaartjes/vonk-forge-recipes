@@ -7,7 +7,7 @@
   },
   "metadata": {
     "title": "vLLM Muse Glimmer 99a10304 CUDA 13 ARM64 runtime",
-    "description": "Official digest-pinned vLLM ARM64 image containing the unreleased Muse Glimmer multimodal model, reasoning parser, and ATEM tool-call parser used by the upstream recipe.",
+    "description": "Official digest-pinned vLLM ARM64 development image at commit 99a10304, containing Muse Glimmer multimodal model support plus its reasoning and ATEM tool-call parsers. The image predates stable tagged vLLM support for this model; reasoning combined with JSON-schema structured output is not supported by this runtime.",
     "tags": [
       "vllm",
       "muse-glimmer",
@@ -15,7 +15,9 @@
       "cuda13",
       "arm64",
       "spark",
-      "candidate"
+      "candidate",
+      "development-runtime",
+      "structured-output-limited"
     ]
   },
   "implements_harness": {

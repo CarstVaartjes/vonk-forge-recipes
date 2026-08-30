@@ -77,7 +77,7 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
                     recipe_digest=_canonical_digest(recipe_path),
                 )
                 expected_version = {
-                    "nano": "2.0.2",
+                    "nano": "2.0.3",
                     "omni": "2.0.4",
                     "super": "2.1.3",
                 }[name]

@@ -5,11 +5,13 @@
     "slug": "mova-720p-diffusers-single"
   },
   "metadata": {
-    "title": "MOVA 720p native synchronized media single Spark",
-    "description": "Installable Candidate for the exact official MOVA 720p checkpoint and native pipeline. It produces one fail-closed MP4 containing synchronized 24 fps video and 48 kHz audio; the ARM64 image builds reproducibly and only the physical Spark canary remains pending.",
+    "title": "MOVA 720p native synchronized media single Spark (tight)",
+    "description": "Higher-resolution, memory-tight MOVA profile for one Spark, using the exact official 720p checkpoint and native pipeline. It produces one fail-closed MP4 containing synchronized 24 fps video and 48 kHz audio; use the 360p recipe as the default until this profile completes its physical Spark memory canary.",
     "tags": [
       "candidate",
       "executable",
+      "memory-tight",
+      "high-resolution",
       "openmoss",
       "mova",
       "video",
