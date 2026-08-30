@@ -6,9 +6,10 @@
   },
   "metadata": {
     "title": "Qwen Image Edit 2511 Diffusers single Spark",
-    "description": "Candidate single-Spark Diffusers image-editing binding for the exact Qwen Image Edit 2511 checkpoint.",
+    "description": "Quality-reference Candidate for one-or-two-reference Qwen Image Edit 2511 jobs on one Spark, using the exact official BF16 Diffusers snapshot and 40-step schedule. Its declared admission envelope is 126.00 GB unified memory including reserve and 149.72 GB peak installation disk; choose Lightning for four-step latency or FP8mixed ComfyUI for more headroom.",
     "tags": ["executable",
       "candidate",
+      "quality-reference",
       "qwen",
       "image",
       "editing",
