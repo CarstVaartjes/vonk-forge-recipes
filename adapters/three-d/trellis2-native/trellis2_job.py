@@ -12,15 +12,36 @@ from pathlib import Path
 from glb_validation import normalize_glb_json_padding, validate_mesh_glb
 
 SUPPORTED_SUFFIXES = {".jpeg", ".jpg", ".png", ".webp"}
+MAX_INPUT_BYTES = 16 * 1024 * 1024
 
 
 def one_input(input_dir: Path) -> Path:
     candidates = sorted(
-        path for path in input_dir.iterdir() if path.is_file() and path.suffix.lower() in SUPPORTED_SUFFIXES
+        path
+        for path in input_dir.iterdir()
+        if path.is_file()
+        and not path.is_symlink()
+        and path.suffix.lower() in SUPPORTED_SUFFIXES
     )
     if len(candidates) != 1:
         raise SystemExit(f"expected exactly one JPEG, PNG, or WebP input; found {len(candidates)}")
-    return candidates[0]
+    candidate = candidates[0]
+    size = candidate.stat().st_size
+    if not 1 <= size <= MAX_INPUT_BYTES:
+        raise SystemExit("image input must contain 1 byte through 16 MiB")
+    return candidate
+
+
+def validated_input(path: Path) -> object:
+    from PIL import Image, ImageOps, UnidentifiedImageError
+
+    try:
+        with Image.open(path) as opened:
+            opened.verify()
+        with Image.open(path) as opened:
+            return ImageOps.exif_transpose(opened).convert("RGB")
+    except (OSError, UnidentifiedImageError) as exc:
+        raise SystemExit(f"invalid image input: {path.name}") from exc
 
 
 def local_model_root(target: Path, decoder_config: Path, decoder_weights: Path) -> Path:
@@ -62,12 +83,13 @@ def main() -> None:
     if not 1 <= args.decimation_target <= 2_000_000:
         raise SystemExit("decimation target must be between 1 and 2,000,000")
 
+    input_image = validated_input(one_input(args.input_dir))
+
     os.environ.setdefault("ATTN_BACKEND", "sdpa")
     os.environ.setdefault("SPARSE_ATTN_BACKEND", "sdpa")
     os.environ.setdefault("SPARSE_CONV_BACKEND", "flex_gemm")
 
     import o_voxel
-    from PIL import Image, ImageOps
     from trellis2.pipelines import Trellis2ImageTo3DPipeline, rembg
 
     class NoBackgroundModel:
@@ -89,10 +111,8 @@ def main() -> None:
     try:
         pipeline = Trellis2ImageTo3DPipeline.from_pretrained(str(model_root))
         pipeline.cuda()
-        with Image.open(one_input(args.input_dir)) as opened:
-            image = ImageOps.exif_transpose(opened).convert("RGB")
         mesh = pipeline.run(
-            image,
+            input_image,
             seed=args.seed,
             preprocess_image=False,
             pipeline_type=args.pipeline_resolution,

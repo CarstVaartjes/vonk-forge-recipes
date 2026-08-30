@@ -4,9 +4,25 @@
     "publisher": "vonk-forge",
     "slug": "pixal3d-pytorch-single"
   },
-  "version": "2.0.2",
-  "released_at": "2026-08-28",
+  "version": "2.0.3",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "2.0.3",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "4f9d810e4b2d2c32b8b0c7d9e93620b333ed1ed74890c192c30824c4250b1990",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Rejected symlinked, empty, and over-16 MiB image inputs before loading the Pixal3D pipeline."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Exposed the pinned nvdiffrast dependency's non-commercial research and evaluation restriction on the recipe card."
+        }
+      ]
+    },
     {
       "version": "2.0.2",
       "released_at": "2026-08-28",
