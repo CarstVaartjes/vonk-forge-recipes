@@ -21,7 +21,7 @@
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "hunyuan-video-15-distilled",
-    "content_sha256": "4665e829327c2b252a7d07a90641b98343ae3905c8977e733099a3a322df7abe"
+    "content_sha256": "0c9954b6f9f59e52278a7c5844e3b4e26d29c617e76f9be1e6419b049df8560d"
   },
   "execution": {
     "harness": {
@@ -35,8 +35,8 @@
   "build": {
     "context": {
       "path": "adapters/video/hunyuan-video-15-native",
-      "sha256": "5e349aab121c2b9f8501281e039c8945a79fbf4b3eec815f596fb08156899b99",
-      "expected_bytes": 92160,
+      "sha256": "455543f964628442497909e7d282941661ba7c572ca769d69b8c58834fe492b1",
+      "expected_bytes": 102400,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -188,8 +188,8 @@
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 120000000000,
-            "steady_state_bytes": 110000000000,
+            "startup_peak_bytes": 112000000000,
+            "steady_state_bytes": 104000000000,
             "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }

@@ -20,7 +20,7 @@
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "hunyuan-video-foley-xxl",
-    "content_sha256": "b5ba386c1be3bfacb7239c4542ee150adfd44b6df626e116491b8187ede1cfdf"
+    "content_sha256": "945d1ecbd6d80e9de8248ab64dfd4a249bc258deafeaaad4415d200f0847092e"
   },
   "execution": {
     "harness": {
@@ -34,7 +34,7 @@
   "build": {
     "context": {
       "path": "adapters/audio/hunyuan-video-foley-native",
-      "sha256": "48023fcfeeca43461cfd1d05dcf0d34de0a1bc8e7840ecd237a31a6eafc972b7",
+      "sha256": "9beb6e1e89c1e8a85c626408b2331c6d60d9e34bcf82d2f6237873e42557ecc0",
       "expected_bytes": 20992000,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },

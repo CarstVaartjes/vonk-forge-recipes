@@ -4,9 +4,29 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan-video-foley-xxl-pytorch-single"
   },
-  "version": "1.3.0",
-  "released_at": "2026-08-28",
+  "version": "1.4.0",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.4.0",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "8678cf96d8401d535d58a8e0c61a4c4b9c518840cbb307bd2f41e9adc04fe939",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Fail closed in the EU, UK, and South Korea as required by the exact Tencent Hunyuan Community License Agreement."
+        },
+        {
+          "kind": "fix",
+          "summary": "Enforce the signed one-hour inference timeout and reject oversized or unsupported video inputs before model loading."
+        },
+        {
+          "kind": "fix",
+          "summary": "Validate a non-empty mono or stereo WAV stream in an isolated staging directory before atomically publishing output.wav."
+        }
+      ]
+    },
     {"version": "1.3.0", "released_at": "2026-08-28", "recipe_content_sha256": "aac486a1a1d60f9d1d9a95176193d7ad318ecace4e2bc38272d7042644dbc52f", "upgrade_effect": "rebuild", "changes": [{"kind": "fix", "summary": "Replaced the hidden Foley prompt default with required prompt and video slots and an exact WAV output contract."}, {"kind": "compatibility", "summary": "Made the adapter consume the controller-authenticated slot manifest before model loading."}]},
     {
       "version": "1.2.1",
