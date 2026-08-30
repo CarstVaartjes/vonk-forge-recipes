@@ -7,12 +7,40 @@ import subprocess
 from pathlib import Path
 
 INPUT_ROOT = Path("/inputs")
+MODEL_ROOT = Path("/models")
 MAX_PROMPT_BYTES = 16 * 1024
 WIDTH = 768
 HEIGHT = 512
 FRAME_COUNT = 97
 FPS = 24
 AUDIO_SAMPLE_RATE = 24_000
+GEMMA_REQUIRED_PATHS = (
+    "text_encoder/config.json",
+    "text_encoder/generation_config.json",
+    "text_encoder/model.safetensors.index.json",
+    "tokenizer/added_tokens.json",
+    "tokenizer/chat_template.jinja",
+    "tokenizer/preprocessor_config.json",
+    "tokenizer/processor_config.json",
+    "tokenizer/special_tokens_map.json",
+    "tokenizer/tokenizer.json",
+    "tokenizer/tokenizer.model",
+    "tokenizer/tokenizer_config.json",
+    *(f"text_encoder/model-{index:05d}-of-00011.safetensors" for index in range(1, 12)),
+)
+
+
+def _gemma_root() -> Path:
+    missing = [
+        relative
+        for relative in GEMMA_REQUIRED_PATHS
+        if not (MODEL_ROOT / relative).is_file()
+    ]
+    if missing:
+        raise SystemExit(
+            "immutable Gemma closure is incomplete under /models: " + ", ".join(missing)
+        )
+    return MODEL_ROOT
 
 
 def _verify_synchronized_mp4(output: Path, timeout_seconds: int) -> None:
@@ -46,7 +74,9 @@ def _verify_synchronized_mp4(output: Path, timeout_seconds: int) -> None:
     videos = [stream for stream in streams if stream.get("codec_type") == "video"]
     audios = [stream for stream in streams if stream.get("codec_type") == "audio"]
     if len(videos) != 1 or len(audios) != 1:
-        raise SystemExit("LTX FP4 output must contain exactly one video and one audio stream")
+        raise SystemExit(
+            "LTX FP4 output must contain exactly one video and one audio stream"
+        )
     video, audio = videos[0], audios[0]
     if (
         video.get("codec_name") != "h264"
@@ -72,7 +102,9 @@ def _verify_synchronized_mp4(output: Path, timeout_seconds: int) -> None:
         raise SystemExit("LTX FP4 output video duration changed")
     synchronization_tolerance = max(1 / FPS, 1024 / AUDIO_SAMPLE_RATE) + 1e-5
     if abs(audio_duration - expected_duration) > synchronization_tolerance:
-        raise SystemExit("LTX FP4 output audio and video durations are not synchronized")
+        raise SystemExit(
+            "LTX FP4 output audio and video durations are not synchronized"
+        )
 
 
 def _load_prompt() -> str:
@@ -115,6 +147,7 @@ def main() -> None:
         raise SystemExit("this candidate currently emits video/mp4")
 
     prompt = _load_prompt()
+    gemma_root = _gemma_root()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     temporary = args.output_dir / ".ltx2.partial.mp4"
     destination = args.output_dir / "ltx2.mp4"
@@ -123,14 +156,14 @@ def main() -> None:
         "-m",
         "ltx_pipelines.ti2vid_two_stages",
         "--checkpoint-path",
-        "/models/ltx-2-19b-dev-fp4.safetensors",
+        str(MODEL_ROOT / "ltx-2-19b-dev-fp4.safetensors"),
         "--distilled-lora",
-        "/models/ltx-2-19b-distilled-lora-384.safetensors",
+        str(MODEL_ROOT / "ltx-2-19b-distilled-lora-384.safetensors"),
         "0.8",
         "--spatial-upsampler-path",
-        "/models/ltx-2-spatial-upscaler-x2-1.0.safetensors",
+        str(MODEL_ROOT / "ltx-2-spatial-upscaler-x2-1.0.safetensors"),
         "--gemma-root",
-        "/models/text_encoder",
+        str(gemma_root),
         "--prompt",
         prompt,
         "--output-path",

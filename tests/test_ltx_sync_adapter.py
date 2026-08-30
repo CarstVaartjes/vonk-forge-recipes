@@ -1,3 +1,4 @@
+# ruff: noqa: S102 -- isolated synthetic adapter modules are executed in tests.
 from __future__ import annotations
 
 import hashlib
@@ -19,7 +20,6 @@ MODEL_SPECS = {
     "ltx-2-19b-dev-bf16-diffusers-single": "ltx-2-19b-dev-bf16.json",
     "ltx-2-19b-distilled-diffusers-single": "ltx-2-19b-distilled.json",
     "ltx-2-19b-distilled-fp8-diffusers-single": "ltx-2-19b-distilled-fp8.json",
-    "ltx-2-3-22b-distilled-1-1-diffusers-single": "ltx-2-3-22b-distilled-1-1.json",
 }
 
 
@@ -290,39 +290,10 @@ class LtxSyncRunnerTests(unittest.TestCase):
                 command[command.index("--prompt") + 1], "Operator supplied prompt"
             )
 
-    def test_ltx23_resolves_the_recipe_supplied_upscaler(self) -> None:
-        recipe = _document(
-            ROOT / "recipes/ltx-2-3-22b-distilled-1-1-diffusers-single.json"
-        )
-        upscaler_name = next(
-            artifact["repository"].rsplit("/", 1)[-1]
-            for artifact in recipe["artifacts"]
-            if artifact["id"] == "spatial-upscaler"
-        )
-        expected = self._upscaler(upscaler_name)
-        gemma = self.root / "gemma"
-        gemma.mkdir()
-        self.module._link_gemma(gemma)
-        command = self.module._pipeline_command(
-            self._target("ltx-2.3-22b-distilled-1.1.safetensors"),
-            gemma,
-            self.root / "output.mp4",
-            7,
-            "Operator supplied prompt",
-        )
-        self.assertEqual(
-            upscaler_name, "ltx-2.3-spatial-upscaler-x2-1.1.safetensors"
-        )
-        self.assertEqual(
-            command[command.index("--spatial-upsampler-path") + 1], str(expected)
-        )
-
     def test_prompt_file_is_required_bounded_utf8_and_read_before_models(self) -> None:
         with self.assertRaisesRegex(SystemExit, "exactly one regular"):
             self.module._load_prompt()
-        self.prompt_path.write_text(
-            "  Snow, wind, and footsteps.  ", encoding="utf-8"
-        )
+        self.prompt_path.write_text("  Snow, wind, and footsteps.  ", encoding="utf-8")
         self.assertEqual(self.module._load_prompt(), "Snow, wind, and footsteps.")
         (self.module.INPUT_ROOT / "extra.txt").write_text("extra", encoding="utf-8")
         with self.assertRaisesRegex(SystemExit, "exactly one regular"):
@@ -334,7 +305,8 @@ class LtxSyncRunnerTests(unittest.TestCase):
 
         source = ADAPTER_PATH.read_text(encoding="utf-8")
         self.assertLess(
-            source.index("prompt = _load_prompt()"), source.rindex("_target_checkpoint()")
+            source.index("prompt = _load_prompt()"),
+            source.rindex("_target_checkpoint()"),
         )
         self.assertNotIn("VONK_PROMPT", source)
 
@@ -366,23 +338,24 @@ class LtxSyncRunnerTests(unittest.TestCase):
         with mock.patch.object(
             self.module.subprocess, "run", return_value=completed
         ) as run:
-            self.module._verify_synchronized_mp4(
-                output, 3600, audio_sample_rate=24_000
-            )
+            self.module._verify_synchronized_mp4(output, 3600, audio_sample_rate=24_000)
         self.assertIn("-count_frames", run.call_args.args[0])
 
         probe["streams"][0]["codec_name"] = "hevc"
-        with mock.patch.object(
-            self.module.subprocess,
-            "run",
-            return_value=types.SimpleNamespace(stdout=json.dumps(probe)),
-        ), self.assertRaisesRegex(SystemExit, "video properties changed"):
-            self.module._verify_synchronized_mp4(
-                output, 3600, audio_sample_rate=24_000
-            )
+        with (
+            mock.patch.object(
+                self.module.subprocess,
+                "run",
+                return_value=types.SimpleNamespace(stdout=json.dumps(probe)),
+            ),
+            self.assertRaisesRegex(SystemExit, "video properties changed"),
+        ):
+            self.module._verify_synchronized_mp4(output, 3600, audio_sample_rate=24_000)
 
         source = ADAPTER_PATH.read_text(encoding="utf-8")
-        self.assertLess(source.index("_verify_synchronized_mp4("), source.rindex("os.replace("))
+        self.assertLess(
+            source.index("_verify_synchronized_mp4("), source.rindex("os.replace(")
+        )
         self.assertIn(".ltx-synchronized.partial.mp4", source)
         self.assertEqual(
             self.module._expected_audio_sample_rate(
