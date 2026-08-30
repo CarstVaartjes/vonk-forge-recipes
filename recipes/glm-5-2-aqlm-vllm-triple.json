@@ -3,7 +3,7 @@
   "identity": {"publisher": "vonk-forge", "slug": "glm-5-2-aqlm-vllm-triple"},
   "metadata": {
     "title": "GLM 5.2 AQLM three Sparks",
-    "description": "Historical, offline-serving Candidate TP3 recipe for the GLM 5.2 NVFP4/AQLM hybrid vision checkpoint. Its exact three-rank Ray topology cannot run on Vonk's current two-Spark fleet and is retained as an executable, reproducible contract for a future three-Spark canary; GLM 5.3 Flash NVFP4 dual is the current fleet alternative.",
+    "description": "Historical, offline-serving Candidate TP3 recipe for the GLM 5.2 NVFP4/AQLM hybrid vision checkpoint. It is unsupported on Vonk's current one- or two-Spark configuration: a two-rank split alone would require at least 146.3 GB of checkpoint bytes per Spark before KV cache or runtime overhead, above the roughly 126.9 GB-per-node inventory. The executable contract remains installable for a future three-Spark canary; glm-5-3-flash-exl3-dflash2-vllm-dual is the current 126 GB-admission-envelope GLM alternative.",
     "tags": ["executable", "candidate", "chat", "distributed", "glm-5.2", "historical", "reasoning", "spark", "tp3", "vision"]
   },
   "model": {
