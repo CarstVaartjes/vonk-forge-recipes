@@ -4,9 +4,25 @@
     "publisher": "vonk-forge",
     "slug": "wan-dancer-14b-pytorch-single"
   },
-  "version": "1.0.3",
-  "released_at": "2026-08-28",
+  "version": "1.0.4",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.0.4",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "a025b2b3d701f60857370a783041e18356d639b1d61f38b8eab816c7f2d0601b",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Rejected unknown signed-manifest slots and mismatched media types, extensions, and per-slot byte bounds before inference."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Made the exact 128 GB Controller admission envelope and offline source-bundled execution status explicit."
+        }
+      ]
+    },
     {
       "version": "1.0.3",
       "released_at": "2026-08-28",

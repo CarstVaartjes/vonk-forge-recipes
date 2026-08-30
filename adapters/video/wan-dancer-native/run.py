@@ -21,6 +21,7 @@ MAX_MANIFEST_BYTES = 256 * 1024
 MAX_PROMPT_BYTES = 16 * 1024
 MAX_IMAGE_BYTES = 16 * 1024 * 1024
 MAX_AUDIO_BYTES = 64 * 1024 * 1024
+MAX_TOTAL_INPUT_BYTES = 512 * 1024 * 1024
 OUTPUT_FPS = 30
 OUTPUT_TRIM_SECONDS = 0.2
 OUTPUT_AUDIO_SAMPLE_RATE = "44100"
@@ -38,6 +39,20 @@ ALLOWED_KEYS = {
 CONTROL_KEYS = ALLOWED_KEYS - {"reference_image", "music", "prompt"}
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 AUDIO_SUFFIXES = {".wav", ".flac", ".mp3", ".m4a", ".ogg"}
+SLOT_CONTRACTS = {
+    "prompt": ({"text/plain"}, {".txt"}, MAX_PROMPT_BYTES),
+    "reference-image": (
+        {"image/jpeg", "image/png", "image/webp"},
+        IMAGE_SUFFIXES,
+        MAX_IMAGE_BYTES,
+    ),
+    "music": (
+        {"audio/flac", "audio/mpeg", "audio/mp4", "audio/ogg", "audio/wav"},
+        AUDIO_SUFFIXES,
+        MAX_AUDIO_BYTES,
+    ),
+    "controls": ({"application/json"}, {".json"}, MAX_REQUEST_BYTES),
+}
 REQUIRED_MODEL_FILES = {
     "global_model.safetensors",
     "local_model.safetensors",
@@ -107,16 +122,29 @@ def _manifest() -> dict[str, Any] | None:
             raise ValueError("input manifest file declaration is invalid")
         name = item["name"]
         size = item["size_bytes"]
+        slot = item["slot"]
+        media_type = item["media_type"]
         if (
             not isinstance(name, str)
             or Path(name).name != name
             or name == "manifest.json"
             or name in names
-            or not isinstance(item["slot"], str)
+            or not isinstance(slot, str)
             or type(size) is not int
             or size < 0
         ):
             raise ValueError("input manifest file identity is invalid")
+        contract = SLOT_CONTRACTS.get(slot)
+        if contract is None:
+            raise ValueError(f"input manifest declares unsupported slot: {slot}")
+        media_types, suffixes, maximum_bytes = contract
+        if (
+            not isinstance(media_type, str)
+            or media_type not in media_types
+            or Path(name).suffix.lower() not in suffixes
+            or size > maximum_bytes
+        ):
+            raise ValueError(f"input manifest violates the {slot} slot contract")
         candidate = INPUT_ROOT / name
         if (
             candidate.is_symlink()
@@ -130,6 +158,8 @@ def _manifest() -> dict[str, Any] | None:
         total += size
     if document["total_bytes"] != total:
         raise ValueError("input manifest total_bytes does not match staged files")
+    if total > MAX_TOTAL_INPUT_BYTES:
+        raise ValueError("input manifest exceeds the total input contract")
     return document
 
 
