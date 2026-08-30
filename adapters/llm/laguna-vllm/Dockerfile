@@ -1,8 +1,8 @@
 FROM docker.io/vllm/vllm-openai@sha256:1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c
 
-LABEL org.opencontainers.image.source="https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4" \
-      org.opencontainers.image.revision="d32afde8b09af1539b49ff96ff5551c674485f8e" \
-      org.opencontainers.image.licenses="OpenMDW-1.1" \
+LABEL org.opencontainers.image.source="https://github.com/vllm-project/vllm" \
+      org.opencontainers.image.revision="6e448d0ea9bf3d88d898b65449ca6dc2aec170ac" \
+      org.opencontainers.image.licenses="Apache-2.0" \
       io.vonk.vllm.build-commit="6e448d0ea9bf3d88d898b65449ca6dc2aec170ac"
 
 RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \

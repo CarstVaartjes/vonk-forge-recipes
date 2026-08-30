@@ -16,6 +16,10 @@ LAGUNA_S_RELEASE = ROOT / "recipe-releases/laguna-s-2-1-nvfp4-vllm-single.json"
 LAGUNA_S_MODEL = ROOT / "model-versions/laguna-s-2-1-nvfp4.json"
 LAGUNA_S_DOCKERFILE = ROOT / "adapters/llm/laguna-s-vllm/Dockerfile"
 LAGUNA_S_REVISION = "64734b3a449a05c79657451513d97544f2f53436"
+CURRENT_LAGUNA_S_REVISION = "826aacdf6d8b2699d4e367def6f17c83b06044c2"
+LAGUNA_XS_REVISION = "d32afde8b09af1539b49ff96ff5551c674485f8e"
+VLLM_REVISION = "6e448d0ea9bf3d88d898b65449ca6dc2aec170ac"
+LANGUAGE_TARGETS = ROOT / "model-targets/language.json"
 CACHE_ENVIRONMENT = {
     "HOME": "/outputs/cache/home",
     "XDG_CACHE_HOME": "/outputs/cache/xdg",
@@ -71,6 +75,38 @@ def canonical_digest(path: Path) -> str:
 
 
 class LagunaVllmAdapterRuntimeTests(unittest.TestCase):
+    def test_adapter_oci_labels_describe_baked_vllm_not_mounted_weights(self) -> None:
+        for dockerfile in (DOCKERFILE, LAGUNA_S_DOCKERFILE):
+            with self.subTest(adapter=dockerfile.parent.name):
+                source = dockerfile.read_text(encoding="utf-8")
+                self.assertIn(
+                    'org.opencontainers.image.source="https://github.com/vllm-project/vllm"',
+                    source,
+                )
+                self.assertIn(
+                    f'org.opencontainers.image.revision="{VLLM_REVISION}"', source
+                )
+                self.assertIn('org.opencontainers.image.licenses="Apache-2.0"', source)
+                self.assertNotIn("huggingface.co/poolside", source)
+                self.assertNotIn(LAGUNA_S_REVISION, source)
+                self.assertNotIn(LAGUNA_XS_REVISION, source)
+
+    def test_model_provenance_remains_exact_outside_the_runtime_image(self) -> None:
+        expected = {
+            RECIPE: ("poolside/Laguna-XS-2.1-NVFP4", LAGUNA_XS_REVISION),
+            LAGUNA_S_RECIPE: ("poolside/Laguna-S-2.1-NVFP4", LAGUNA_S_REVISION),
+        }
+        for recipe_path, (repository, revision) in expected.items():
+            with self.subTest(recipe=recipe_path.name):
+                recipe = json.loads(recipe_path.read_text(encoding="utf-8"))
+                artifact = recipe["artifacts"][0]
+                self.assertEqual(artifact["repository"], repository)
+                self.assertEqual(artifact["revision"], revision)
+                self.assertEqual(
+                    recipe["provenance"]["source_reference"],
+                    f"https://huggingface.co/{repository}/tree/{revision}",
+                )
+
     def test_non_root_runtime_survives_a_read_only_root_filesystem(self) -> None:
         source = DOCKERFILE.read_text(encoding="utf-8")
         recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
@@ -122,7 +158,7 @@ class LagunaVllmAdapterRuntimeTests(unittest.TestCase):
             separators=(",", ":"),
         ).encode("utf-8")
         recipe_digest = hashlib.sha256(canonical).hexdigest()
-        self.assertEqual(release["version"], "1.0.2")
+        self.assertEqual(release["version"], "1.0.3")
         self.assertEqual(release["history"][0]["upgrade_effect"], "rebuild")
         self.assertEqual(release["history"][0]["recipe_content_sha256"], recipe_digest)
 
@@ -192,7 +228,7 @@ class LagunaSVllmRecipeTests(unittest.TestCase):
         self.assertIn("MAX_JOBS=4", source)
         self.assertEqual(docker_environment(source), CACHE_ENVIRONMENT)
         self.assertEqual(
-            set(item["name"] for item in self.recipe["runtime"]["environment"]),
+            {item["name"] for item in self.recipe["runtime"]["environment"]},
             {"HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE", "VLLM_NO_USAGE_STATS"},
         )
         self.assertEqual(
@@ -210,11 +246,23 @@ class LagunaSVllmRecipeTests(unittest.TestCase):
         self.assertEqual(context["expected_bytes"], len(archive))
 
     def test_release_tracks_the_corrected_recipe(self) -> None:
-        self.assertEqual(self.release["version"], "1.0.3")
+        self.assertEqual(self.release["version"], "1.0.4")
         self.assertEqual(
             self.release["history"][0]["recipe_content_sha256"],
             canonical_digest(LAGUNA_S_RECIPE),
         )
+
+    def test_current_upstream_is_documentation_only_not_a_new_model_payload(
+        self,
+    ) -> None:
+        target_set = json.loads(LANGUAGE_TARGETS.read_text(encoding="utf-8"))
+        target = next(
+            item for item in target_set["targets"] if item["model"] == "Laguna S"
+        )
+        self.assertEqual(target["status"], "candidate")
+        self.assertEqual(target["recipe_slugs"], [LAGUNA_S_RECIPE.stem])
+        self.assertIn(CURRENT_LAGUNA_S_REVISION[:8], target["notes"])
+        self.assertIn("changes only README.md", target["notes"])
 
 
 if __name__ == "__main__":
