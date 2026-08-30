@@ -7,7 +7,7 @@
   },
   "metadata": {
     "title": "Audio and music generation targets",
-    "updated": "2026-08-24"
+    "updated": "2026-08-29"
   },
   "targets": [
     {
@@ -26,7 +26,7 @@
       "recipe_slugs": [
         "ltx-2-3-22b-distilled-1-1-diffusers-single"
       ],
-      "notes": "Pinned official LTX 1.2 native ARM64 source, exact companion closure, and synchronized audio-video export are executable; physical Spark canary remains pending.",
+      "notes": "Directly deployable Candidate uses upstream's lowest-memory disk offload (~5 GB host RAM versus ~36 GB for CPU offload). Its conservative 93 GB startup and 77 GB steady declarations subtract only that documented 31 GB delta from the prior profile, retain 8 GB growth and 8 GB reserve, and admit within 128 GB. Physical Spark acceptance remains pending.",
       "catalog_model_version": "ltx-2-3-22b-distilled-1-1"
     },
     {

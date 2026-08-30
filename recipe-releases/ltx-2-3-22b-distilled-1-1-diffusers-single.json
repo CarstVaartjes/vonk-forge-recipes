@@ -4,9 +4,26 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-3-22b-distilled-1-1-diffusers-single"
   },
-  "version": "3.0.0",
-  "released_at": "2026-08-28",
+  "version": "3.1.0",
+  "released_at": "2026-08-29",
   "history": [
+    {
+      "version": "3.1.0",
+      "released_at": "2026-08-29",
+      "recipe_content_sha256": "c8757fcfc0f4d3a466eeb33584b875d82b828c47c1ba3e2364199a67e8581a8e",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Selected the pinned upstream's explicit disk-streaming offload mode for the LTX-2.3 single-Spark Candidate.",
+          "details": "Pinned upstream quantifies disk offload at about 5 GB host RAM plus 5 GB accelerator memory versus about 36 GB host RAM plus 5 GB accelerator memory for CPU offload. The dedicated adapter preserves the exact checkpoint, Gemma closure, and output contract. Its conservative Candidate envelope subtracts only that documented 31 GB host-memory delta from the prior profile: startup 124 to 93 GB and steady 108 to 77 GB, with growth and system reserve unchanged at 8 GB each. Admission therefore requires 101 GB including reserve and fits a 128 GB Spark; physical acceptance and refinement remain pending.",
+          "references": [
+            "https://github.com/Lightricks/LTX-2/blob/400fd31054597515f47125691032c04b1c3ee24e/packages/ltx-pipelines/src/ltx_pipelines/utils/types.py#L117-L127",
+            "https://github.com/Lightricks/LTX-2/blob/400fd31054597515f47125691032c04b1c3ee24e/packages/ltx-pipelines/src/ltx_pipelines/utils/args.py#L596-L608"
+          ]
+        }
+      ]
+    },
     {
       "version": "3.0.0",
       "released_at": "2026-08-28",
