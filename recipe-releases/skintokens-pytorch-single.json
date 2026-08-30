@@ -4,9 +4,16 @@
     "publisher": "vonk-forge",
     "slug": "skintokens-pytorch-single"
   },
-  "version": "2.0.3",
-  "released_at": "2026-08-28",
+  "version": "2.0.4",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "2.0.4",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "c9195fb2bfd95242491df225153750b2d1aa5a00198ddd5dadaaabf6c47ef704",
+      "upgrade_effect": "metadata-only",
+      "changes": [{"kind": "metadata", "summary": "Published SkinTokens native-build and physical acceptance gates.", "details": "The installable Candidate is explicitly not accepted until its ARM64 container build and a physical GB10 rigged-GLB canary both pass."}]
+    },
     {
       "version": "2.0.3",
       "released_at": "2026-08-28",

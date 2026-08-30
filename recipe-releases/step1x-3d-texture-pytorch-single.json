@@ -4,9 +4,16 @@
     "publisher": "vonk-forge",
     "slug": "step1x-3d-texture-pytorch-single"
   },
-  "version": "1.2.2",
-  "released_at": "2026-08-28",
+  "version": "1.2.3",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.2.3",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "3595f1a0a92ea0dcf0fbed63ab8e2a240ab4aa39976c734c8350447cf9351adf",
+      "upgrade_effect": "metadata-only",
+      "changes": [{"kind": "metadata", "summary": "Linked the Step1X texture stage to both geometry producers.", "details": "Operator guidance names both exact upstream recipes, the same-reference-image requirement, and the existing 240 MiB mesh input limit."}]
+    },
     {
       "version": "1.2.2",
       "released_at": "2026-08-28",
