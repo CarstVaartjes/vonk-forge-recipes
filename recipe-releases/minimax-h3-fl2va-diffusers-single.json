@@ -4,9 +4,25 @@
     "publisher": "vonk-forge",
     "slug": "minimax-h3-fl2va-diffusers-single"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.0.1",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "405bfbcf878ee3eb8f6c8e627652541074901be2433306ace7d73fd63fbc0f55",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Enforced the exact MiniMax H3 Community License territorial exclusions during install and run admission.",
+          "details": "The pinned license excludes the European Union, United Kingdom, Republic of Korea, and United States of America; no selected artifacts or runtime behavior changed.",
+          "references": [
+            "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-30",

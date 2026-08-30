@@ -74,6 +74,21 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
             {"metadata-only", "non-executable", "integration-required"}.isdisjoint(tags)
         )
 
+    def test_license_fails_closed_for_exact_excluded_territories(self) -> None:
+        model = json.loads(MODEL_PATH.read_text(encoding="utf-8"))
+        restrictions = model["license"]["territorial_restrictions"]
+        self.assertEqual(
+            restrictions["denied_jurisdictions"],
+            ["EU", "GB", "KR", "US"],
+        )
+        self.assertEqual(
+            restrictions["notice"],
+            "The MiniMax H3 Community License Agreement excludes the European "
+            "Union, United Kingdom, Republic of Korea, and United States of "
+            "America from its Applicable Territory.",
+        )
+        self.assertTrue(model["license"]["operator_acceptance_required"])
+
     def test_signed_source_bundle_matches_recipe(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
         source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[
