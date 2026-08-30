@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "minimax-h3-fl2va-diffusers-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-30",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "e2f60df2dfc868f087e4416eff951679d03e55167385a15b9403950804d706e2",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added a separate official FL2VA-only Candidate without changing the full Ref2VA-capable recipe.",
+          "details": "Pins the exact root Modular Diffusers loader closure at 42ed227e: shared conditioning, schedulers, audio/video VAEs, and the FL2VA transformer only. It supports text generation and optional first/last keyframes, excludes ordered Ref2VA inputs and duplicate checkpoint layouts, and remains physically unaccepted.",
+          "references": [
+            "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe",
+            "https://github.com/huggingface/diffusers/blob/efabd60d61c2b7aabf9f182bee6b5b6058980304/docs/source/en/api/pipelines/minimax_h3.md"
+          ]
+        },
+        {
+          "kind": "performance",
+          "summary": "Reduced retained model artifacts from 498.475 GB to 144.051 GB and peak declared disk from 1.517 TB to 454.153 GB by excluding unused layouts.",
+          "references": [
+            "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/model_index.json"
+          ]
+        }
+      ]
+    }
+  ]
+}
