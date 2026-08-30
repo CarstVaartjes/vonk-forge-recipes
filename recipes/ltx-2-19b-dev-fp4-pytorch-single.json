@@ -38,8 +38,8 @@
   "build": {
     "context": {
       "path": "adapters/video/ltx2-pytorch",
-      "sha256": "2d25c57d0d4abe233069cb38b1de52a806442f1b20ca3cccd8b25a80ca0958d2",
-      "expected_bytes": 10240,
+      "sha256": "88792737fd7945ee2598b6f2d02fb07350f302d18cec5836f38324a3c234d216",
+      "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -59,8 +59,8 @@
       ]
     },
     "resources": {
-      "download_bytes": 316346439951,
-      "temporary_bytes": 628692879902,
+      "download_bytes": 85447526016,
+      "temporary_bytes": 154895052032,
       "memory_bytes": 8000000000,
       "timeout_seconds": 14400
     }
@@ -79,8 +79,35 @@
       "kind": "huggingface.snapshot",
       "repository": "Lightricks/LTX-2",
       "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
-      "download_bytes": 314346439951,
-      "installed_bytes": 314346439951,
+      "include_paths": [
+        "ltx-2-19b-dev-fp4.safetensors",
+        "ltx-2-19b-distilled-lora-384.safetensors",
+        "ltx-2-spatial-upscaler-x2-1.0.safetensors",
+        "text_encoder/config.json",
+        "text_encoder/generation_config.json",
+        "text_encoder/model-00001-of-00011.safetensors",
+        "text_encoder/model-00002-of-00011.safetensors",
+        "text_encoder/model-00003-of-00011.safetensors",
+        "text_encoder/model-00004-of-00011.safetensors",
+        "text_encoder/model-00005-of-00011.safetensors",
+        "text_encoder/model-00006-of-00011.safetensors",
+        "text_encoder/model-00007-of-00011.safetensors",
+        "text_encoder/model-00008-of-00011.safetensors",
+        "text_encoder/model-00009-of-00011.safetensors",
+        "text_encoder/model-00010-of-00011.safetensors",
+        "text_encoder/model-00011-of-00011.safetensors",
+        "text_encoder/model.safetensors.index.json",
+        "tokenizer/added_tokens.json",
+        "tokenizer/chat_template.jinja",
+        "tokenizer/preprocessor_config.json",
+        "tokenizer/processor_config.json",
+        "tokenizer/special_tokens_map.json",
+        "tokenizer/tokenizer.json",
+        "tokenizer/tokenizer.model",
+        "tokenizer/tokenizer_config.json"
+      ],
+      "download_bytes": 77447526016,
+      "installed_bytes": 77447526016,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -179,9 +206,9 @@
         ],
         "resources": {
           "disk": {
-            "image_bytes": 2000000000,
-            "artifact_bytes": 314346439951,
-            "staging_bytes": 628692879902,
+            "image_bytes": 8000000000,
+            "artifact_bytes": 77447526016,
+            "staging_bytes": 154895052032,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
