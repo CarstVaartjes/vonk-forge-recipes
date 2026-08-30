@@ -1,9 +1,25 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "qwen3-8-flash-next-nvfp4-sglang-dual"},
-  "version": "1.2.0",
-  "released_at": "2026-08-29",
+  "version": "1.3.0",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.3.0",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "e784fed74099b500700538c0cb31cfee4425315370dc5c3571fd5d7affb2f15e",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Advanced to MiaAI-Lab 0f950012 and hardened long-context QSA failure handling.",
+          "details": "The immutable adapter now returns zero for empty or non-finite selected-KV attention, aborts sixteen-token token-id-0 loops, excludes poisoned completions from radix insertion, resets prefix cache before the next prefill, and enables SGLang NaN-logit sanitation.",
+          "references": [
+            "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/0f950012c8d8323acac9a08846a32ef7953f5f62"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.2.0",
       "released_at": "2026-08-29",

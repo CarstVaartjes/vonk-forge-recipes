@@ -19,6 +19,9 @@ All patches are QSA-scoped and inert unless ``--kv-cache-dtype nvfp4`` is set:
    chunk-prefill / prefill GQA kernels upcast K/V (and Q) to fp32 before
    the dots so ``--kv-cache-dtype fp8_e4m3`` survives extend, not only
    the paged-varlen decode fallback.
+7. SGLang scheduling — abort a sticky run of sixteen token-id-0 outputs,
+   keep the poisoned completion out of radix cache, and flush the cache
+   before the next prefill.
 """
 
 import pathlib
@@ -376,6 +379,146 @@ def patch_count(path, anchor, replacement, expected, marker):
     print(f"{path.name}: patched ({expected} sites)")
 
 
+TOKEN0_MARKER = "dspark_token0_guard"
+TOKEN0_RUN = 16
+
+
+def patch_token0_guard() -> None:
+    """Abort a token-id-0 decode loop and drop the poisoned prefix cache."""
+    schedule_batch = SRT / "managers" / "schedule_batch.py"
+    processor = (
+        SRT / "managers" / "scheduler_components" / "batch_result_processor.py"
+    )
+    scheduler = SRT / "managers" / "scheduler.py"
+
+    pad_anchor = '''def _compute_pad_value(hash: int) -> int:
+    """Compute pad value from hash."""
+    return MM_PAD_SHIFT_VALUE + (hash % (1 << 30))
+'''
+    pad_replacement = pad_anchor + '''
+# dspark_token0_guard: set when a request hits a repeated token-id-0 run.
+DSPARK_TOKEN0_FLUSH_NEEDED = False
+
+
+def dspark_note_token0_loop() -> None:
+    global DSPARK_TOKEN0_FLUSH_NEEDED
+    DSPARK_TOKEN0_FLUSH_NEEDED = True
+
+
+def dspark_consume_token0_flush() -> bool:
+    global DSPARK_TOKEN0_FLUSH_NEEDED
+    needed = DSPARK_TOKEN0_FLUSH_NEEDED
+    DSPARK_TOKEN0_FLUSH_NEEDED = False
+    return needed
+
+'''
+    vocab_anchor = '''    def _check_vocab_boundary_finish(self, new_accepted_tokens: List[int] = None):
+'''
+    vocab_replacement = f'''    def _check_token0_loop_finish(self) -> bool:
+        """Stop a decoded token-id-0 (`!`) run before it fills max_tokens."""
+        ids = self.output_ids
+        if len(ids) < {TOKEN0_RUN}:
+            return False
+        if any(token != 0 for token in ids[-{TOKEN0_RUN}:]):
+            return False
+        self.finished_reason = FINISH_ABORT(
+            "token-id-0 loop (decoded '!'); aborting to avoid poisoning later requests",
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+            "InternalServerError",
+        )
+        self.finished_len = len(ids) - {TOKEN0_RUN} + 1
+        self.token0_loop = True
+        dspark_note_token0_loop()
+        logger.error(
+            "dspark: token-id-0 loop after %s output tokens rid=%s",
+            len(ids),
+            self.rid,
+        )
+        return True
+
+    def _check_vocab_boundary_finish(self, new_accepted_tokens: List[int] = None):
+'''
+    finish_anchor = '''        new_accepted_tokens = self.output_ids[-new_accepted_len:]
+
+        # Sanitize out-of-range / NaN token ids before any decode.
+        if self._check_vocab_boundary_finish(new_accepted_tokens):
+            self._cap_finished_len_at_max_new_tokens()
+            return
+'''
+    finish_replacement = '''        new_accepted_tokens = self.output_ids[-new_accepted_len:]
+
+        # Sanitize out-of-range / NaN token ids before any decode.
+        if self._check_vocab_boundary_finish(new_accepted_tokens):
+            self._cap_finished_len_at_max_new_tokens()
+            return
+
+        # dspark_token0_guard: abort a repeated token-id-0 (`!`) run.
+        if self._check_token0_loop_finish():
+            return
+'''
+    insert_anchor = '''                is_insert = (
+                    req.mamba_lazy_is_insert
+                    if mamba_extra_buffer_lazy_enabled()
+                    else True
+                )
+                release_kv_cache(req, self.tree_cache, is_insert=is_insert)
+'''
+    insert_replacement = '''                is_insert = (
+                    req.mamba_lazy_is_insert
+                    if mamba_extra_buffer_lazy_enabled()
+                    else True
+                )
+                if getattr(req, "token0_loop", False):  # dspark_token0_guard
+                    is_insert = False
+                release_kv_cache(req, self.tree_cache, is_insert=is_insert)
+'''
+    next_anchor = '''    def get_next_batch_to_run(
+        self, running_batch: ScheduleBatch, last_batch: Optional[ScheduleBatch]
+    ) -> NextBatchPlan:
+        self.process_pending_chunked_abort()
+'''
+    next_replacement = '''    def get_next_batch_to_run(
+        self, running_batch: ScheduleBatch, last_batch: Optional[ScheduleBatch]
+    ) -> NextBatchPlan:
+        self.process_pending_chunked_abort()
+        # dspark_token0_guard: drop the radix tree before the next prefill so
+        # a later request cannot reuse prefix KV corrupted by a token-id-0 run.
+        if running_batch.is_empty():
+            from sglang.srt.managers.schedule_batch import dspark_consume_token0_flush
+
+            if dspark_consume_token0_flush():
+                logger.warning(
+                    "dspark: token-id-0 loop; resetting prefix cache before the next prefill"
+                )
+                self.tree_cache.reset()
+'''
+
+    for path, replacements in (
+        (
+            schedule_batch,
+            (
+                (pad_anchor, pad_replacement),
+                (vocab_anchor, vocab_replacement),
+                (finish_anchor, finish_replacement),
+            ),
+        ),
+        (processor, ((insert_anchor, insert_replacement),)),
+        (scheduler, ((next_anchor, next_replacement),)),
+    ):
+        source = path.read_text()
+        if TOKEN0_MARKER in source:
+            print(f"{path.name}: token0 guard already patched")
+            continue
+        for anchor, replacement in replacements:
+            count = source.count(anchor)
+            assert count == 1, (
+                f"{path.name}: token0 anchor matched {count} times (want 1):\n{anchor}"
+            )
+            source = source.replace(anchor, replacement, 1)
+        path.write_text(source)
+        print(f"{path.name}: token0 guard patched")
+
+
 def main() -> None:
     patch(
         BACKEND,
@@ -398,6 +541,7 @@ def main() -> None:
         expected=2,
         marker=FP8_DOT_MARKER,
     )
+    patch_token0_guard()
     print("NVFP4 KV patches applied")
 
 
