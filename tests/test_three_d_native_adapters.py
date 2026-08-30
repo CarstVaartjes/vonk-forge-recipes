@@ -6,8 +6,10 @@ import importlib.machinery
 import importlib.util
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG_TOOL = ROOT / "tools/build-catalog-index"
@@ -45,6 +47,40 @@ SLOTTED_RECIPES = (
 
 
 class NativeThreeDAdapterTests(unittest.TestCase):
+    def test_trellis_and_pixal_reject_unsafe_or_oversized_images_before_model_load(self) -> None:
+        for adapter in ("pixal3d_job.py", "trellis2_job.py"):
+            with self.subTest(adapter=adapter), tempfile.TemporaryDirectory() as value:
+                source_path = ROOT / "adapters/three-d/trellis2-native" / adapter
+                module = {"__name__": "adapter_test"}
+                validation = type(sys)("glb_validation")
+                validation.normalize_glb_json_padding = lambda _path: None
+                validation.validate_mesh_glb = lambda _path, *, profile: None
+                with mock.patch.dict(sys.modules, {"glb_validation": validation}):
+                    exec(compile(source_path.read_bytes(), str(source_path), "exec"), module)  # noqa: S102
+                inputs = Path(value)
+                image = inputs / "source.png"
+                image.write_bytes(b"png")
+                self.assertEqual(module["one_input"](inputs), image)
+                image.unlink()
+                target = inputs / "target.bin"
+                target.write_bytes(b"png")
+                (inputs / "source.png").symlink_to(target)
+                with self.assertRaisesRegex(SystemExit, "found 0"):
+                    module["one_input"](inputs)
+                (inputs / "source.png").unlink()
+                target.unlink()
+                oversized = inputs / "large.png"
+                with oversized.open("wb") as stream:
+                    stream.truncate(16 * 1024 * 1024 + 1)
+                with self.assertRaisesRegex(SystemExit, "16 MiB"):
+                    module["one_input"](inputs)
+
+        trellis = (ROOT / "adapters/three-d/trellis2-native/trellis2_job.py").read_text()
+        self.assertLess(
+            trellis.index("input_image = validated_input"),
+            trellis.index("    import o_voxel"),
+        )
+
     def test_three_d_job_contracts_have_truthful_bounded_input_and_glb_output_slots(self) -> None:
         for slug in SLOTTED_RECIPES:
             with self.subTest(slug=slug):

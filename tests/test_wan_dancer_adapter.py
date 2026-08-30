@@ -266,6 +266,12 @@ class WanDancerInputTests(unittest.TestCase):
             )
             entries = []
             total = 0
+            media_types = {
+                "prompt": "text/plain",
+                "reference-image": "image/png",
+                "music": "audio/wav",
+                "controls": "application/json",
+            }
             for slot, path in files.items():
                 payload = path.read_bytes()
                 total += len(payload)
@@ -273,7 +279,7 @@ class WanDancerInputTests(unittest.TestCase):
                     {
                         "slot": slot,
                         "name": path.name,
-                        "media_type": "application/octet-stream",
+                        "media_type": media_types[slot],
                         "size_bytes": len(payload),
                         "sha256": hashlib.sha256(payload).hexdigest(),
                     }
@@ -291,6 +297,42 @@ class WanDancerInputTests(unittest.TestCase):
             self.assertEqual(request["music"], "music.wav")
             self.assertEqual(request["style"], "street")
             self.assertEqual(request["num_inference_steps_global"], 2)
+
+    def test_manifest_rejects_unknown_slots_and_mismatched_media_types(self) -> None:
+        runner = load_runner()
+        with tempfile.TemporaryDirectory() as value:
+            inputs = Path(value)
+            runner.INPUT_ROOT = inputs
+            prompt = inputs / "prompt.txt"
+            prompt.write_text("Dance", encoding="utf-8")
+
+            def write_manifest(slot: str, media_type: str) -> None:
+                payload = prompt.read_bytes()
+                (inputs / "manifest.json").write_text(
+                    json.dumps(
+                        {
+                            "schema_version": 1,
+                            "total_bytes": len(payload),
+                            "files": [
+                                {
+                                    "slot": slot,
+                                    "name": prompt.name,
+                                    "media_type": media_type,
+                                    "size_bytes": len(payload),
+                                    "sha256": hashlib.sha256(payload).hexdigest(),
+                                }
+                            ],
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+
+            write_manifest("extra", "text/plain")
+            with self.assertRaisesRegex(ValueError, "unsupported slot"):
+                runner._manifest()
+            write_manifest("prompt", "application/json")
+            with self.assertRaisesRegex(ValueError, "prompt slot contract"):
+                runner._manifest()
 
 
 if __name__ == "__main__":
