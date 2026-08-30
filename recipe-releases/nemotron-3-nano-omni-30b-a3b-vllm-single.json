@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-nano-omni-30b-a3b-vllm-single"
   },
-  "version": "2.0.3",
-  "released_at": "2026-08-29",
+  "version": "2.0.4",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "2.0.4",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "9ce13960369a44d4571cfe2719208944ce3b5e75140d135610e78996d9d6c943",
+      "upgrade_effect": "metadata-only",
+      "changes": [{
+        "kind": "metadata",
+        "summary": "Made the existing Omni recipe explicitly text-only in its title, description, and capability tags.",
+        "details": "The refreshed immutable checkpoint and language-model-only runtime contract are unchanged. A separate full-media identity remains deferred until the required vLLM audio extra and dependency inventory can be pinned exactly.",
+        "references": ["https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4/tree/16993199e436da4ba75ddc410855f87e0d996ee6"]
+      }]
+    },
     {
       "version": "2.0.3",
       "released_at": "2026-08-29",

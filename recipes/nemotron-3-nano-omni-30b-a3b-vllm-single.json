@@ -5,8 +5,8 @@
     "slug": "nemotron-3-nano-omni-30b-a3b-vllm-single"
   },
   "metadata": {
-    "title": "Nemotron 3 Nano Omni 30B-A3B NVFP4 vLLM single Spark",
-    "description": "Executable Candidate text-serving recipe for the exact NVIDIA Nemotron 3 Nano Omni NVFP4 checkpoint on one Spark. It intentionally enables vLLM's language-model-only mode, so the advertised OpenAI interface has no undeclared audio, image, or video dependency.",
+    "title": "Nemotron 3 Nano Omni 30B-A3B NVFP4 text-only vLLM single Spark",
+    "description": "Executable Candidate text-only recipe for the exact NVIDIA Nemotron 3 Nano Omni NVFP4 checkpoint on one Spark. It intentionally enables vLLM's language-model-only mode, so this identity advertises no audio, image, or video capability or hidden media dependency.",
     "tags": ["executable",
       "candidate",
       "nemotron",
@@ -16,7 +16,8 @@
       "openai",
       "single",
       "spark",
-      "text"
+      "text",
+      "text-only"
     ]
   },
   "model": {

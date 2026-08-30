@@ -6,13 +6,16 @@
   },
   "metadata": {
     "title": "Qwen3.5 9B vLLM single Spark",
-    "description": "Candidate single-Spark vLLM binding for the exact Qwen3.5-9B checkpoint and its official multimodal serving contract.",
+    "description": "Candidate single-Spark vLLM binding for the exact multimodal Qwen3.5-9B checkpoint. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
     "tags": ["executable",
       "candidate",
       "qwen",
       "qwen3-5",
       "vllm",
       "multimodal",
+      "vision",
+      "text-qualified",
+      "vision-unproven",
       "openai",
       "single",
       "spark"

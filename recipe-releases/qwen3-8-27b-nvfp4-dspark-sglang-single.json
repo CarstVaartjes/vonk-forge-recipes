@@ -1,9 +1,12 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "qwen3-8-27b-nvfp4-dspark-sglang-single"},
-  "version": "1.1.0",
-  "released_at": "2026-08-29",
+  "version": "1.1.1",
+  "released_at": "2026-08-30",
   "history": [{
+    "version": "1.1.1", "released_at": "2026-08-30", "recipe_content_sha256": "523aae6db13461d517d974c01b811591f08988ba5a544453d597430c18d76b9a", "upgrade_effect": "metadata-only",
+    "changes": [{"kind": "metadata", "summary": "Separated the refreshed NVFP4 DSpark v2 profile's multimodal capability from text-only qualification.", "details": "The immutable target, refreshed DSpark v2 drafter, and runtime contract are unchanged. Bounded text chat is qualified; Spark vision serving remains unproven.", "references": ["https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead/tree/009632fef96dd349150baa780c984e62e70e91fe", "https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark/tree/b3c9910194dc7ae53fea3d95a1959b654f495416"]}]
+  }, {
     "version": "1.1.0", "released_at": "2026-08-29", "recipe_content_sha256": "7e6add08a42a7b21981837219b260c9c75b85157d88b58fbb8e7046e47cd075b", "upgrade_effect": "reinstall",
     "changes": [{"kind": "model", "summary": "Updated the external draft from DSpark v1 to RadixArk's validated v2 checkpoint.", "details": "Pins the Stage 2 step-5500 export and its complete immutable 3.71 GB snapshot; the SGLang launch contract remains block-size 7 with eight draft tokens.", "references": ["https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark/tree/b3c9910194dc7ae53fea3d95a1959b654f495416"]}]
   }, {
