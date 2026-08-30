@@ -1,3 +1,4 @@
+# ruff: noqa: S102 -- isolated synthetic adapter module is executed in tests.
 from __future__ import annotations
 
 import hashlib
@@ -46,14 +47,29 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.adapter.INPUT_ROOT = Path(self.temporary.name) / "inputs"
         self.adapter.INPUT_ROOT.mkdir()
+        self.adapter.MODEL_ROOT = Path(self.temporary.name) / "models"
+        self.adapter.MODEL_ROOT.mkdir()
+        for relative in self.adapter.GEMMA_REQUIRED_PATHS:
+            path = self.adapter.MODEL_ROOT / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"fixture")
         self.prompt_path = self.adapter.INPUT_ROOT / "scene.txt"
+
+    def test_gemma_loader_root_contains_encoder_and_tokenizer_closure(self) -> None:
+        root = self.adapter._gemma_root()
+        self.assertEqual(root, self.adapter.MODEL_ROOT)
+        self.assertTrue((root / "text_encoder/model.safetensors.index.json").is_file())
+        self.assertTrue((root / "tokenizer/tokenizer.model").is_file())
+        self.assertNotEqual(root, root / "text_encoder")
+
+        (root / "tokenizer/tokenizer.model").unlink()
+        with self.assertRaisesRegex(SystemExit, "tokenizer/tokenizer.model"):
+            self.adapter._gemma_root()
 
     def test_prompt_must_be_exactly_one_bounded_utf8_file(self) -> None:
         with self.assertRaisesRegex(SystemExit, "exactly one regular"):
             self.adapter._load_prompt()
-        self.prompt_path.write_text(
-            "  A precise operator prompt.  ", encoding="utf-8"
-        )
+        self.prompt_path.write_text("  A precise operator prompt.  ", encoding="utf-8")
         self.assertEqual(self.adapter._load_prompt(), "A precise operator prompt.")
         self.prompt_path.write_bytes(b"\xff")
         with self.assertRaisesRegex(SystemExit, "valid UTF-8"):
@@ -71,16 +87,33 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             "--output-dir",
             str(output),
         ]
+
         def run_pipeline(command, **_kwargs):
             output_path = Path(command[command.index("--output-path") + 1])
             output_path.write_bytes(b"fixture")
 
-        with mock.patch.object(sys, "argv", argv), mock.patch.object(
-            self.adapter.subprocess, "run", side_effect=run_pipeline
-        ) as run, mock.patch.object(self.adapter, "_verify_synchronized_mp4") as verify:
+        with (
+            mock.patch.object(sys, "argv", argv),
+            mock.patch.object(
+                self.adapter.subprocess, "run", side_effect=run_pipeline
+            ) as run,
+            mock.patch.object(self.adapter, "_verify_synchronized_mp4") as verify,
+        ):
             self.adapter.main()
         command = run.call_args_list[0].args[0]
-        self.assertEqual(command[command.index("--prompt") + 1], "Synchronized fox scene")
+        self.assertEqual(
+            command[command.index("--prompt") + 1], "Synchronized fox scene"
+        )
+        self.assertEqual(
+            Path(command[command.index("--gemma-root") + 1]),
+            self.adapter.MODEL_ROOT,
+        )
+        self.assertTrue(
+            (
+                Path(command[command.index("--gemma-root") + 1])
+                / "tokenizer/tokenizer.model"
+            ).is_file()
+        )
         for flag, expected in (
             ("--width", "768"),
             ("--height", "512"),
@@ -129,11 +162,14 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         ):
             self.adapter._verify_synchronized_mp4(output, 3600)
         probe["streams"][1]["channels"] = 1
-        with mock.patch.object(
-            self.adapter.subprocess,
-            "run",
-            return_value=types.SimpleNamespace(stdout=json.dumps(probe)),
-        ), self.assertRaisesRegex(SystemExit, "audio properties changed"):
+        with (
+            mock.patch.object(
+                self.adapter.subprocess,
+                "run",
+                return_value=types.SimpleNamespace(stdout=json.dumps(probe)),
+            ),
+            self.assertRaisesRegex(SystemExit, "audio properties changed"),
+        ):
             self.adapter._verify_synchronized_mp4(output, 3600)
 
         dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text(encoding="utf-8")
@@ -162,9 +198,9 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         archive, _, digest = source_bundle(ADAPTER_ROOT)
         self.assertEqual(recipe["build"]["context"]["sha256"], digest)
         self.assertEqual(recipe["build"]["context"]["expected_bytes"], len(archive))
-        self.assertEqual(
-            _document(RELEASE)["history"][0]["recipe_content_sha256"], _digest(RECIPE)
-        )
+        current_release = _document(RELEASE)["history"][0]
+        self.assertEqual(current_release["recipe_content_sha256"], _digest(RECIPE))
+        self.assertEqual(current_release["upgrade_effect"], "rebuild")
 
 
 if __name__ == "__main__":

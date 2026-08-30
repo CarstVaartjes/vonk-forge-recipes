@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-dev-fp4-pytorch-single"
   },
-  "version": "2.0.0",
-  "released_at": "2026-08-28",
+  "version": "2.1.0",
+  "released_at": "2026-08-29",
   "history": [
+    {
+      "version": "2.1.0",
+      "released_at": "2026-08-29",
+      "recipe_content_sha256": "bfed18fb1fe5e0768c5c765448038e017c0fe8c1bf5b33a94824c46955cb7868",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Filtered the pinned Hugging Face snapshot to the 25 immutable files required by the native FP4 runtime.",
+          "details": "The checkpoint, distilled LoRA, spatial upscaler, Gemma shards and indexes, and tokenizer closure remain byte-identical. Repository metadata and unrelated checkpoints are no longer downloaded. Gemma now receives the common root containing both text_encoder and tokenizer. The image/build allowance matches the conservative 8 GB envelope used by the same pinned LTX 1.2 runtime family."
+        }
+      ]
+    },
     {
       "version": "2.0.0",
       "released_at": "2026-08-28",
