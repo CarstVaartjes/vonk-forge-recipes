@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "ui-mate-27b-vllm-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-29",
+  "version": "1.1.1",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.1.1",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "ab5eb233a4b80c775b99e542be7eb344f78732971652227f722c6041557b7182",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Clarified UI-Mate as a non-actuating action-proposal endpoint.",
+          "details": "The catalog and benchmark name now make the caller-owned screenshot loop and external human approval and execution boundary explicit."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-29",

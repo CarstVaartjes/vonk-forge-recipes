@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "SkinTokens / TokenRig pytorch-pipeline single Spark",
-    "description": "Candidate native SkinTokens/TokenRig single-Spark rigging pipeline with an exact upstream source build, offline checkpoint binding, and deterministic rigged-GLB exporter; physical GB10 acceptance remains pending.",
+    "description": "Installable but not accepted SkinTokens/TokenRig single-Spark Candidate with an exact upstream source build, offline checkpoint binding, and deterministic rigged-GLB exporter. The native ARM64 container build is unvalidated and both that build and a physical GB10 rigged-GLB canary must pass before acceptance.",
     "tags": ["executable",
       "candidate",
       "three-d",
@@ -15,7 +15,9 @@
       "spark",
       "rigging",
       "native",
-      "build-unvalidated"
+      "build-unvalidated",
+      "native-build-required",
+      "physical-acceptance-required"
     ]
   },
   "model": {

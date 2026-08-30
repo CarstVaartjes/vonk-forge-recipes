@@ -4,9 +4,16 @@
     "publisher": "vonk-forge",
     "slug": "triposg-pytorch-single"
   },
-  "version": "2.0.3",
-  "released_at": "2026-08-28",
+  "version": "2.0.4",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "2.0.4",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "63e052fa5a49575c1f39b2131294e1031f4a1b3d0dc74677d6f87571d59cf547",
+      "upgrade_effect": "metadata-only",
+      "changes": [{"kind": "metadata", "summary": "Published TripoSG native-build and physical acceptance gates.", "details": "The installable Candidate is explicitly not accepted until its ARM64 container build and a physical GB10 image-to-GLB canary both pass."}]
+    },
     {
       "version": "2.0.3",
       "released_at": "2026-08-28",
