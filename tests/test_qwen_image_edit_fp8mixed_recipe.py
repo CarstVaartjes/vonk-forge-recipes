@@ -16,7 +16,6 @@ ADAPTER = ROOT / "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed"
 SHARED_ADAPTER = ROOT / "adapters/media/comfyui-core"
 SHARED_RECIPES = (
     "flux-2-klein-4b-comfyui-single",
-    "qwen-image-2512-comfyui-single",
     "qwen-image-edit-2511-comfyui-single",
     "wan-2-2-i2v-14b-comfyui-single",
     "wan-2-2-t2v-14b-comfyui-single",

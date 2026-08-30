@@ -14,6 +14,7 @@ ADAPTER = ROOT / "adapters" / "media" / "comfyui-core"
 RECIPE_SLUGS = (
     "flux-2-klein-4b-comfyui-single",
     "qwen-image-2512-comfyui-single",
+    "qwen-image-2512-fp8-lightning-comfyui-single",
     "qwen-image-edit-2511-comfyui-single",
     "wan-2-2-i2v-14b-comfyui-single",
     "wan-2-2-t2v-14b-comfyui-single",
@@ -37,6 +38,7 @@ CORE_NODES = {
     "KSamplerAdvanced",
     "KSamplerSelect",
     "LoadImage",
+    "LoraLoaderModelOnly",
     "ModelSamplingAuraFlow",
     "ModelSamplingSD3",
     "RandomNoise",
@@ -76,9 +78,10 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
                     item["name"]: item["value"]
                     for item in recipe["runtime"]["arguments"]
                 }
-                workflow = ADAPTER / Path(arguments["workflow"]).name
+                context = ROOT / recipe["build"]["context"]["path"]
+                workflow = context / Path(arguments["workflow"]).name
                 if not workflow.exists():
-                    workflow = ADAPTER / "workflows" / Path(arguments["workflow"]).name
+                    workflow = context / "workflows" / Path(arguments["workflow"]).name
                 self.assertEqual(
                     hashlib.sha256(workflow.read_bytes()).hexdigest(),
                     arguments["workflow-sha256"],
@@ -118,9 +121,67 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
         self.assertNotIn("custom_nodes", dockerfile)
         for slug in RECIPE_SLUGS:
             recipe = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
+            recipe_dockerfile = (
+                ROOT / recipe["build"]["context"]["path"] / "Dockerfile"
+            ).read_text()
+            self.assertIn("7a131a3afadc8200120f67f9236311a2c48b7445", recipe_dockerfile)
+            self.assertNotIn("ComfyUI-Manager", recipe_dockerfile)
+            self.assertNotIn("custom_nodes", recipe_dockerfile)
             self.assertIn("candidate", recipe["metadata"]["tags"])
             self.assertEqual(recipe["execution"]["harness"]["slug"], "comfyui")
             self.assertFalse(recipe["runtime"]["security"]["host_network"])
+
+    def test_qwen_2512_uses_the_published_quality_defaults(self) -> None:
+        recipe = json.loads(
+            (ROOT / "recipes/qwen-image-2512-comfyui-single.json").read_text()
+        )
+        workflow = json.loads(
+            (
+                ROOT
+                / recipe["build"]["context"]["path"]
+                / "workflows/qwen-image-2512-bf16.json"
+            ).read_text()
+        )
+        self.assertEqual(
+            workflow["prompt"]["6"]["inputs"]["text"],
+            "低分辨率，低画质，肢体畸形，手指畸形，画面过饱和，蜡像感，人脸无细节，"
+            "过度光滑，画面具有AI感。构图混乱。文字模糊，扭曲。",
+        )
+        arguments = {
+            item["name"]: item["value"] for item in recipe["runtime"]["arguments"]
+        }
+        self.assertEqual(
+            arguments["workflow-sha256"],
+            hashlib.sha256(
+                (
+                    ROOT
+                    / recipe["build"]["context"]["path"]
+                    / "workflows/qwen-image-2512-bf16.json"
+                ).read_bytes()
+            ).hexdigest(),
+        )
+        benchmark = recipe["validation"]["benchmarks"][0]["configuration"]
+        self.assertEqual(
+            (benchmark["width"], benchmark["height"], benchmark["steps"]),
+            (1328, 1328, 50),
+        )
+
+    def test_lightning_targets_claim_only_implemented_harnesses(self) -> None:
+        targets = json.loads((ROOT / "model-targets/image.json").read_text())["targets"]
+        lightning = [
+            item for item in targets if item["model"] == "Qwen Image 2512 Lightning"
+        ]
+        self.assertEqual(len(lightning), 2)
+        target = next(item for item in lightning if item["harnesses"] == ["diffusers"])
+        self.assertEqual(
+            target["recipe_slugs"],
+            ["qwen-image-2512-lightning-diffusers-single"],
+        )
+        target = next(item for item in lightning if item["harnesses"] == ["comfyui"])
+        self.assertEqual(
+            target["recipe_slugs"],
+            ["qwen-image-2512-fp8-lightning-comfyui-single"],
+        )
 
     def test_wan_workflows_declare_exact_prompt_and_video_contracts(self) -> None:
         expected = {
