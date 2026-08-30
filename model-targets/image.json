@@ -58,8 +58,7 @@
       "status": "candidate",
       "source": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
       "harnesses": [
-        "diffusers",
-        "comfyui"
+        "diffusers"
       ],
       "topologies": [
         "single"
@@ -69,6 +68,25 @@
       ],
       "notes": "Source-complete executable Candidate binding the exact Qwen Image 2512 base checkpoint to the selected 849 MB four-step BF16 LoRA, offline LoRA-aware Diffusers adapter, shift-3 scheduler, UTF-8 prompt input, and PNG output contract; physical Spark output, latency, and peak-memory acceptance remain pending.",
       "catalog_model_version": "qwen-image-2512-lightning"
+    },
+    {
+      "modality": "image",
+      "group": "Qwen Image",
+      "model": "Qwen Image 2512 Lightning",
+      "version": "FP8 plus 4-step FP32 LoRA ComfyUI a52649c9",
+      "status": "candidate",
+      "source": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
+      "harnesses": [
+        "comfyui"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "qwen-image-2512-fp8-lightning-comfyui-single"
+      ],
+      "notes": "Exact pinned ComfyUI 0.33.4 blueprint profile with the 20.4 GB FP8 transformer, 1.7 GB FP32 four-step Lightning LoRA, scaled-FP8 encoder, and VAE. The directly installable 31.8 GB artifact closure has a conservative 108 GB memory admission requirement; physical Spark output, latency, and peak-memory acceptance remain pending.",
+      "catalog_model_version": "qwen-image-2512-lightning-fp32-a52649c9"
     },
     {
       "modality": "image",
