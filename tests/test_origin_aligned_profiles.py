@@ -83,7 +83,7 @@ class OriginAlignedProfileTests(unittest.TestCase):
 
     def test_qwen_current_1m_profile_and_closure(self) -> None:
         recipe_path = ROOT / "recipes/qwen3-8-flash-next-nvfp4-sglang-dual.json"
-        runtime_path = ROOT / "runtime-distributions/sglang-qwen38-flash-next-dspark-344f9d0d-arm64.json"
+        runtime_path = ROOT / "runtime-distributions/sglang-qwen38-flash-next-dspark-0f950012-arm64.json"
         patch_path = ROOT / "patch-bundles/sglang-qwen38-flash-next-dual-profile.json"
         adapter = ROOT / "adapters/qwen/flash-next-sglang-dual"
         recipe = _document(recipe_path)
@@ -95,7 +95,7 @@ class OriginAlignedProfileTests(unittest.TestCase):
         self.assertEqual(arguments["chunked-prefill-size"], 1024)
         self.assertEqual(arguments["max-running-requests"], 28)
         self.assertEqual(arguments["mem-fraction-static"], "0.82")
-        self.assertEqual(runtime["source"]["revision"], "344f9d0d5e9523d8398fa2804d5a3e123fd3d21a")
+        self.assertEqual(runtime["source"]["revision"], "0f950012c8d8323acac9a08846a32ef7953f5f62")
         self.assertEqual(recipe["runtime"]["distribution"]["content_sha256"], _canonical_digest(runtime_path))
         self.assertEqual(patch["applies_to"]["content_sha256"], _canonical_digest(runtime_path))
         self.assertEqual(recipe["execution"]["patch_bundle"]["content_sha256"], _canonical_digest(patch_path))
@@ -115,9 +115,17 @@ class OriginAlignedProfileTests(unittest.TestCase):
         self.assertIn("qsa.sm121_varlen", qsa_patch)
         fallback = (adapter / "sm121_varlen.py").read_text(encoding="utf-8")
         self.assertIn("qsa_sm121_varlen_attention", fallback)
+        self.assertIn("finite & valid", fallback)
+        nvfp4_patch = (adapter / "apply_nvfp4_patches.py").read_text(encoding="utf-8")
+        self.assertIn("dspark_token0_guard", nvfp4_patch)
+        self.assertIn("is_insert = False", nvfp4_patch)
+        self.assertIn("self.tree_cache.reset()", nvfp4_patch)
+        environment = {item["name"]: item["value"] for item in recipe["runtime"]["environment"]}
+        self.assertEqual(environment["SGLANG_SANITIZE_NAN_LOGITS"], "1")
         compile(wrapper, str(adapter / "sglang-serve"), "exec")
         compile(qsa_patch, str(adapter / "patch-qsa.py"), "exec")
         compile(fallback, str(adapter / "sm121_varlen.py"), "exec")
+        compile(nvfp4_patch, str(adapter / "apply_nvfp4_patches.py"), "exec")
 
     def test_mia_deepseek_384k_profile_packages_exact_overlays(self) -> None:
         recipe_path = ROOT / "recipes/deepseek-v4-flash-0731-mia-sparkinfer-single.json"
