@@ -1,9 +1,26 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-four"},
-  "version": "1.0.1",
-  "released_at": "2026-08-28",
+  "version": "1.0.2",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.0.2",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "a376b3124de81311726705125aff226d744dede3f000aeaa6e3b96fafb706bff",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Separated upstream TP2 feasibility from current Controller admission fit.",
+          "details": "The exact TP4 contract is unsupported on the current one- or two-Spark configuration. MiaAI-Lab now physically exercises the corrected GLM 5.3 NVFP4 family at Ray TP2, but Vonk's conservative same-model recipe needs a 132 GB admission envelope per node. The independently pinned EXL3 DFlash2 TP2 Candidate needs 126 GB and is the current fleet-fit canary; this TP4 contract remains installable for future scale qualification.",
+          "references": [
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-NVFP4-Dual-DGX-Spark/tree/aed98a13ca75140d2691cc5c651ea5817d9a3e44",
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-28",

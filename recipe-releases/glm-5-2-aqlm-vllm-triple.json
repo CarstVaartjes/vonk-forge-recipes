@@ -4,9 +4,26 @@
     "publisher": "vonk-forge",
     "slug": "glm-5-2-aqlm-vllm-triple"
   },
-  "version": "2.0.3",
-  "released_at": "2026-08-28",
+  "version": "2.0.4",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "2.0.4",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "18147cbcf9707265489075211c53dd017352c3308180ba162ab2629920089914",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Recorded the exact TP2 checkpoint lower bound and the fleet-fit GLM alternative.",
+          "details": "The exact TP3 contract is unsupported on the current one- or two-Spark configuration. Half of the immutable 292,599,148,533-byte snapshot is already 146.3 GB per rank before KV cache and runtime memory, so no safe TP2 variant can fit the roughly 126.9 GB-per-node inventory. The TP3 contract remains installable; the 126 GB-envelope GLM 5.3 EXL3 DFlash2 TP2 recipe is the current alternative.",
+          "references": [
+            "https://github.com/MiaAI-Lab/GLM-5.2-NVFP4-AQLM-Triple-DGX-Sparks/tree/5c85163ccb8d98d395880e71e2dbd03976a3f4ad",
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks"
+          ]
+        }
+      ]
+    },
     {
       "version": "2.0.3",
       "released_at": "2026-08-28",
