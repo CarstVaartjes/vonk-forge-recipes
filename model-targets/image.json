@@ -129,6 +129,25 @@
     },
     {
       "modality": "image",
+      "group": "Qwen Image Edit",
+      "model": "Qwen Image Edit",
+      "version": "2511 INT8 ConvRot e9e85de7",
+      "status": "candidate",
+      "source": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/e9e85de74a8f48c1e3e2656617626348675a2f21",
+      "harnesses": [
+        "comfyui"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "qwen-image-edit-2511-int8-convrot-comfyui-single"
+      ],
+      "notes": "Exact official stock-ComfyUI INT8 tensorwise ConvRot transformer plus immutable scaled-FP8 encoder and VAE, with the pinned official non-turbo shift-3.1 40-step workflow. ComfyUI 0.33.4 exceeds the quantization node's documented 0.27.0 minimum; the 30.14 GB artifact set is directly installable on one Spark, while physical edit quality, latency, and peak-memory acceptance remain pending.",
+      "catalog_model_version": "qwen-image-edit-2511-comfyui-int8-convrot-e9e85de7"
+    },
+    {
+      "modality": "image",
       "group": "FLUX.2",
       "model": "FLUX.2 Klein 4B",
       "version": "Official NVFP4 1db2b2f7",

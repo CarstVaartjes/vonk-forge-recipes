@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-edit-2511-int8-convrot-comfyui-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-30",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "2d3bbe3b5d52de3d889ca0abd692ed874c109e4dbf9ea3d4c86770e3b41a8e77",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added the official INT8 tensorwise ConvRot Qwen Image Edit 2511 Candidate for one Spark.",
+          "details": "The isolated stock-ComfyUI source bundle installs the exact 20.50 GB INT8 ConvRot transformer plus immutable scaled-FP8 encoder and VAE, pins the official non-turbo shift-3.1 40-step Euler/simple workflow, accepts one or two signed reference images and a bounded prompt, and publishes exactly one PNG. Its 108.00 GB unified-memory and 95.14 GB peak installation-disk envelopes fit one 128 GB Spark, while physical quality, latency, and peak-memory acceptance remain pending.",
+          "references": [
+            "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/commit/e9e85de74a8f48c1e3e2656617626348675a2f21",
+            "https://github.com/Comfy-Org/workflow_templates/blob/d3b4a9e89573162b005961865164c18c8ae2206b/templates/image_qwen_image_edit_2511_int8.json",
+            "https://github.com/Comfy-Org/comfy-quants/blob/main/docs/quantization/int8_tensorwise.md"
+          ]
+        }
+      ]
+    }
+  ]
+}

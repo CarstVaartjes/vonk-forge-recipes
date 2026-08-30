@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-diffusers-single"
   },
-  "version": "1.1.1",
-  "released_at": "2026-08-28",
+  "version": "1.1.2",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.1.2",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "5fead827cba6522bf7ca6ab09aa78085e9693d74dee078bb8b89ae7d4debf4dd",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Identified the official BF16 Diffusers path as a quality-reference variant.",
+          "details": "Published its exact single-Spark admission envelopes and directs operators to Lightning for latency or FP8mixed ComfyUI for additional headroom. Candidate qualification is unchanged."
+        }
+      ]
+    },
     {
       "version": "1.1.1",
       "released_at": "2026-08-28",
