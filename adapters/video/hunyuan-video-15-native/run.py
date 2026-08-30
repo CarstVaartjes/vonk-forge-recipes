@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import subprocess
 from pathlib import Path
 
 import torch
@@ -13,6 +15,7 @@ from PIL import Image
 
 _IMAGE_SUFFIXES = frozenset({".jpeg", ".jpg", ".png", ".webp"})
 _MODEL_INDEX = Path("/models/model_index.json")
+_MAX_IMAGE_BYTES = 16 * 1024 * 1024
 
 
 def _slot_files(path: Path, slot: str) -> list[Path]:
@@ -53,12 +56,68 @@ def _one_prompt(path: Path) -> str:
 
 def _one_image(path: Path) -> Image.Image:
     candidates = sorted(_slot_files(path, "image"))
-    if len(candidates) != 1:
+    if (
+        len(candidates) != 1
+        or candidates[0].suffix.lower() not in _IMAGE_SUFFIXES
+        or candidates[0].stat().st_size > _MAX_IMAGE_BYTES
+    ):
         raise SystemExit(
             "image-to-video requires exactly one supported file in /inputs"
         )
     with Image.open(candidates[0]) as image:
         return image.convert("RGB")
+
+
+def _validate_video(path: Path, resolution: int) -> None:
+    command = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-count_frames",
+        "-select_streams",
+        "v:0",
+        "-show_entries",
+        "stream=codec_type,width,height,nb_read_frames:format=format_name,duration",
+        "-of",
+        "json",
+        str(path),
+    ]
+    try:
+        completed = subprocess.run(
+            command,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        document = json.loads(completed.stdout)
+        streams = document.get("streams")
+        stream = streams[0] if isinstance(streams, list) and len(streams) == 1 else None
+        container = document.get("format")
+        if not isinstance(stream, dict) or not isinstance(container, dict):
+            raise TypeError("missing one video stream")
+        width = int(stream["width"])
+        height = int(stream["height"])
+        frames = int(stream["nb_read_frames"])
+        duration = float(container["duration"])
+        formats = str(container["format_name"]).split(",")
+        if (
+            stream.get("codec_type") != "video"
+            or "mp4" not in formats
+            or min(width, height) != resolution
+            or frames != 121
+            or duration <= 0
+        ):
+            raise ValueError("unexpected MP4 stream contract")
+    except (
+        FileNotFoundError,
+        KeyError,
+        TypeError,
+        ValueError,
+        json.JSONDecodeError,
+        subprocess.SubprocessError,
+    ) as error:
+        raise SystemExit("Diffusers produced an invalid 121-frame MP4 artifact") from error
 
 
 def _variant(pipeline: str, resolution: int, steps: int, guidance: float) -> str:
@@ -145,10 +204,15 @@ def main() -> None:
 
     frames = pipe(**call).frames[0]
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    temporary = args.output_dir / ".output.tmp.mp4"
     output = args.output_dir / "output.mp4"
-    export_to_video(frames, output, fps=24)
-    if not output.is_file() or output.stat().st_size == 0:
-        raise SystemExit("Diffusers did not produce output.mp4")
+    export_to_video(frames, temporary, fps=24)
+    try:
+        _validate_video(temporary, args.resolution)
+    except SystemExit:
+        temporary.unlink(missing_ok=True)
+        raise
+    os.replace(temporary, output)
 
 
 if __name__ == "__main__":
