@@ -6,12 +6,13 @@
   },
   "metadata": {
     "title": "LTX-2.5 distilled BF16 Diffusers single Spark",
-    "description": "Installable single-Spark Candidate using the exact official gated LTX-2.5 Diffusers closure, convolutional VAE, deterministic eight-sigma generation, BF16 offload baseline, and optional FP8 layerwise-cast profiles. Physical authenticated installation and GB10 audiovisual qualification remain pending.",
+    "description": "Installable single-Spark Candidate using the exact official gated LTX-2.5 Diffusers closure, a 505-byte license/token access probe before the 70 GB model artifact, convolutional VAE, deterministic eight-sigma generation, BF16 offload baseline, and optional FP8 layerwise-cast profiles. Exact-license acknowledgement, same-account Hugging Face access, physical authenticated installation, and GB10 audiovisual qualification remain required.",
     "tags": [
       "executable",
       "candidate",
       "build-unvalidated",
       "gated",
+      "preflight-required",
       "lightricks",
       "ltx",
       "video",
@@ -42,8 +43,8 @@
   "build": {
     "context": {
       "path": "adapters/video/ltx25-diffusers",
-      "sha256": "09d906b08334d83573a79ea3f181db378bfebf89980ebf86b6152b3a45855565",
-      "expected_bytes": 30720,
+      "sha256": "3949acf62ba89cde7a241bf4eff0fa10cd727d869fd86c6ad1165ecee10fc7b0",
+      "expected_bytes": 40960,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -72,7 +73,25 @@
   "parameters": [],
   "artifacts": [
     {
-      "id": "weights",
+      "id": "license-token-preflight",
+      "kind": "huggingface.snapshot",
+      "repository": "Lightricks/LTX-2.5-Diffusers",
+      "revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
+      "include_paths": [
+        "audio_vae/config.json"
+      ],
+      "download_bytes": 505,
+      "installed_bytes": 505,
+      "mount": {
+        "target": "/models/license-token-preflight",
+        "read_only": true
+      },
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "id": "target",
       "kind": "huggingface.snapshot",
       "repository": "Lightricks/LTX-2.5-Diffusers",
       "revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
@@ -109,7 +128,7 @@
       "download_bytes": 70090051372,
       "installed_bytes": 70090051372,
       "mount": {
-        "target": "/models",
+        "target": "/models/target",
         "read_only": true
       },
       "roles": [
@@ -214,13 +233,14 @@
         "count": 1,
         "endpoint_owner": true,
         "artifacts": [
-          "weights"
+          "license-token-preflight",
+          "target"
         ],
         "resources": {
           "disk": {
             "image_bytes": 8000000000,
-            "artifact_bytes": 70090051372,
-            "staging_bytes": 140180102744,
+            "artifact_bytes": 70090051877,
+            "staging_bytes": 140180103754,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 16000000000

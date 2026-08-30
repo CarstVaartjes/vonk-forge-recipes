@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-MODEL_ROOT = Path("/models")
+MODEL_ROOT = Path("/models/target")
 INPUT_ROOT = Path("/inputs")
 MAX_REQUEST_BYTES = 64 * 1024
 MODEL_REVISION = "426936f8b22dc28e4def61e515478b0b7e4a53cc"

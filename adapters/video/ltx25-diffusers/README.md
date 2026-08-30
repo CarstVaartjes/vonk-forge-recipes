@@ -1,23 +1,49 @@
 # LTX 2.5 gated-model preflight
 
-This adapter uses the official gated
-`Lightricks/LTX-2.5-Diffusers` repository at commit
-`426936f8b22dc28e4def61e515478b0b7e4a53cc`.
+This adapter uses the official gated `Lightricks/LTX-2.5-Diffusers`
+repository at commit `426936f8b22dc28e4def61e515478b0b7e4a53cc`.
 
-Before installation, the operator must:
+## Required before build and installation
 
-1. Sign in to Hugging Face and review the binding
-   [LTX-2 Community License Agreement](https://github.com/Lightricks/LTX-2/blob/a95ab856bf29407b6b066ede0abe1846050db56c/LICENSE-2_x).
-2. Open the [official model page](https://huggingface.co/Lightricks/LTX-2.5-Diffusers), review the privacy/contact-sharing gate, and choose whether to request access.
-3. Configure Vonk's existing Hugging Face download credential with a read token
-   belonging to the same approved account. Do not put the token in a recipe,
-   build argument, environment entry, prompt, or log.
+1. Sign in to Hugging Face and review the exact pinned
+   [LTX-2 Community License Agreement](https://github.com/Lightricks/LTX-2/blob/a95ab856bf29407b6b066ede0abe1846050db56c/LICENSE-2_x),
+   whose SHA-256 is
+   `be75acae5c99b0fb16ed6cfbf8f731e5121a729bef112d20337699407e796451`.
+2. Open the [official model page](https://huggingface.co/Lightricks/LTX-2.5-Diffusers),
+   review the contact-sharing gate, and request access if the account is not yet
+   approved.
+3. Put a Hugging Face read token for that same account in a file owned by the
+   current user with mode `0600`. Never put the token in a recipe, command-line
+   argument, build argument, environment entry, prompt, receipt, or log.
+4. From this adapter directory, run the bounded preflight before requesting a
+   recipe build or installation:
 
-Installation should fail before downloading weights when the account has not
-accepted the gate or the credential is missing. The signed recipe downloads
-only the 28 pinned distilled/convolutional-decoder files. It excludes the full
-transformer and all optional diffusion-decoder, prompt-enhancer, upsampler,
-duration-head, and LoRA assets.
+   ```shell
+   python3 preflight.py \
+     --token-file /secure/path/huggingface-token \
+     --accept-license-sha256 be75acae5c99b0fb16ed6cfbf8f731e5121a729bef112d20337699407e796451
+   ```
+
+The preflight acknowledges that exact license revision and reads only the
+505-byte gated `audio_vae/config.json` at the pinned model commit. It rejects
+cross-origin redirects, verifies the immutable Git blob, never prints the
+token, and reports actionable `401`, `403`, and `404` failures. A successful
+JSON receipt proves that this token's account can read the pinned gated object;
+it does not grant access or modify either account.
+
+Configure the same approved account token through every target Spark agent's
+existing root-owned `huggingface_curl_config` before installation. The signed
+recipe makes the same 505-byte object its first artifact, ahead of the full
+70,090,051,372-byte runtime closure. A missing, invalid, or unapproved Spark
+credential therefore stops before the model artifact is transferred. The
+current agent reports such an automatic failure as a generic managed-artifact
+error; rerun this preflight for the clear account/token diagnosis.
+
+The runtime closure remains the same 28 pinned distilled/convolutional-decoder
+files. It excludes the full transformer and all optional diffusion-decoder,
+prompt-enhancer, upsampler, duration-head, and LoRA assets. The probe is a
+deliberate 505-byte duplicate of one runtime-required config so the runtime
+snapshot remains a complete `/models/target` tree.
 
 Every job requires one UTF-8 text prompt (the common Prompt field). An optional
 `/inputs/request.json` selects seed and memory profile:
