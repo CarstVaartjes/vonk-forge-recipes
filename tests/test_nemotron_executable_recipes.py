@@ -6,7 +6,6 @@ import runpy
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 RECIPES = {
     "nano": ROOT / "recipes/nemotron-3-nano-30b-a3b-vllm-single.json",
@@ -24,13 +23,11 @@ ADAPTER_ROOTS = {
     "super": ROOT / "adapters/llm/vllm-openai",
 }
 RELEASES = {
-    name: ROOT / f"recipe-releases/{path.stem}.json"
-    for name, path in RECIPES.items()
+    name: ROOT / f"recipe-releases/{path.stem}.json" for name, path in RECIPES.items()
 }
 MODELS = {
     "nano": ROOT / "model-versions/nemotron-3-nano-30b-a3b-nvfp4.json",
-    "omni": ROOT
-    / "model-versions/nemotron-3-nano-omni-30b-a3b-reasoning-nvfp4.json",
+    "omni": ROOT / "model-versions/nemotron-3-nano-omni-30b-a3b-reasoning-nvfp4.json",
     "super": ROOT / "model-versions/nemotron-3-super-120b-a12b-nvfp4.json",
 }
 SUPER_MTPV2 = ROOT / "model-versions/nemotron-3-super-120b-a12b-bf16-mtpv2.json"
@@ -81,7 +78,7 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
                 )
                 expected_version = {
                     "nano": "2.0.2",
-                    "omni": "2.0.3",
+                    "omni": "2.0.4",
                     "super": "2.1.3",
                 }[name]
                 self.assertEqual(release["version"], expected_version)
@@ -176,7 +173,9 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
         )
         drafter = next(item for item in recipe["artifacts"] if item["id"] == "drafter")
         self.assertEqual(drafter["mount"]["target"], "/models/drafter")
-        self.assertEqual(drafter["download_bytes"], companion["sizes"]["download_bytes"])
+        self.assertEqual(
+            drafter["download_bytes"], companion["sizes"]["download_bytes"]
+        )
 
     def test_super_model_inventories_are_exact_and_complete(self) -> None:
         target = _read(MODELS["super"])
@@ -241,8 +240,12 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
         arguments = _arguments(recipe)
         self.assertIs(arguments["language-model-only"], True)
         tags = set(recipe["metadata"]["tags"])
-        self.assertIn("text", tags)
+        self.assertTrue({"text", "text-only"} <= tags)
         self.assertTrue({"audio", "image", "video", "multimodal"}.isdisjoint(tags))
+        self.assertIn("text-only", recipe["metadata"]["title"].lower())
+        self.assertIn(
+            "no audio, image, or video capability", recipe["metadata"]["description"]
+        )
         self.assertEqual(recipe["interfaces"][0]["adapter"], "openai")
 
     def test_omni_current_snapshot_changes_only_reviewed_metadata(self) -> None:

@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "qwen3-5-9b-vllm-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-28",
+  "version": "1.1.1",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.1.1",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "5db19392ad2dd5e4931f1c19e8bbbcc4c37e0ca9b22d00ca5f2ea6d028a51955",
+      "upgrade_effect": "metadata-only",
+      "changes": [{
+        "kind": "metadata",
+        "summary": "Separated native multimodal capability from the recipe's currently text-only qualification evidence.",
+        "details": "The checkpoint remains multimodal-capable, while the catalog now states that bounded text chat is qualified and Spark vision serving is still unproven.",
+        "references": ["https://huggingface.co/Qwen/Qwen3.5-9B/tree/c202236235762e1c871ad0ccb60c8ee5ba337b9a"]
+      }]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-28",
