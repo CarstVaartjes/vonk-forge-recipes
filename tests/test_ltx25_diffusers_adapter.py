@@ -7,12 +7,14 @@ import sys
 import tempfile
 import types
 import unittest
+import urllib.error
 from pathlib import Path
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/ltx25-diffusers"
 ADAPTER_PATH = ADAPTER_ROOT / "run.py"
+PREFLIGHT_PATH = ADAPTER_ROOT / "preflight.py"
 MODEL = ROOT / "models/ltx-2-5.json"
 MODEL_VERSION = ROOT / "model-versions/ltx-2-5-22b-distilled-bf16-diffusers.json"
 RECIPE = ROOT / "recipes/ltx-2-5-22b-distilled-bf16-diffusers-single.json"
@@ -41,8 +43,18 @@ def _digest(path: Path) -> str:
 def _adapter_module():
     module = types.ModuleType("ltx25_diffusers_adapter")
     module.__file__ = str(ADAPTER_PATH)
-    exec(
+    exec(  # noqa: S102 - load the adapter without importing its heavy dependencies.
         compile(ADAPTER_PATH.read_text(encoding="utf-8"), str(ADAPTER_PATH), "exec"),
+        module.__dict__,
+    )
+    return module
+
+
+def _preflight_module():
+    module = types.ModuleType("ltx25_diffusers_preflight")
+    module.__file__ = str(PREFLIGHT_PATH)
+    exec(  # noqa: S102 - exercise the standalone preflight module in isolation.
+        compile(PREFLIGHT_PATH.read_text(encoding="utf-8"), str(PREFLIGHT_PATH), "exec"),
         module.__dict__,
     )
     return module
@@ -56,9 +68,14 @@ class Ltx25CatalogTests(unittest.TestCase):
         runtime = _document(RUNTIME)
 
         self.assertEqual(model["source"]["revision"], MODEL_REVISION)
-        self.assertEqual(recipe["artifacts"][0]["revision"], MODEL_REVISION)
+        artifacts = {artifact["id"]: artifact for artifact in recipe["artifacts"]}
+        self.assertEqual(list(artifacts), ["license-token-preflight", "target"])
+        self.assertEqual(artifacts["license-token-preflight"]["revision"], MODEL_REVISION)
+        self.assertEqual(artifacts["target"]["revision"], MODEL_REVISION)
         self.assertTrue(model["access"]["gated"])
         self.assertEqual(model["access"]["authentication"], "token")
+        self.assertTrue(model["license"]["operator_acceptance_required"])
+        self.assertEqual(model["license"]["spdx"], "LicenseRef-LTX-2-Community")
         self.assertEqual(model["model"]["content_sha256"], _digest(MODEL))
         self.assertEqual(recipe["model"]["content_sha256"], _digest(MODEL_VERSION))
         self.assertEqual(
@@ -68,8 +85,31 @@ class Ltx25CatalogTests(unittest.TestCase):
         self.assertEqual(
             release["history"][0]["recipe_content_sha256"], _digest(RECIPE)
         )
+        self.assertEqual(release["version"], "1.1.0")
+        self.assertEqual(release["history"][0]["upgrade_effect"], "rebuild")
         self.assertEqual(model["sizes"]["download_bytes"], 70_090_051_372)
-        self.assertEqual(recipe["artifacts"][0]["download_bytes"], 70_090_051_372)
+        self.assertEqual(artifacts["license-token-preflight"]["download_bytes"], 505)
+        self.assertEqual(
+            artifacts["license-token-preflight"]["include_paths"],
+            ["audio_vae/config.json"],
+        )
+        self.assertEqual(artifacts["target"]["download_bytes"], 70_090_051_372)
+        self.assertEqual(artifacts["target"]["mount"]["target"], "/models/target")
+        role = recipe["topology"]["roles"][0]
+        self.assertEqual(
+            role["artifacts"], ["license-token-preflight", "target"]
+        )
+        disk = role["resources"]["disk"]
+        self.assertEqual(
+            disk["artifact_bytes"], sum(item["installed_bytes"] for item in artifacts.values())
+        )
+        self.assertEqual(disk["staging_bytes"], 2 * disk["artifact_bytes"])
+        memory = role["resources"]["memory"]
+        required = max(
+            memory["startup_peak_bytes"],
+            memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
+        ) + memory["system_reserve_bytes"]
+        self.assertEqual(required, 128_000_000_000)
         input_contract = recipe["interfaces"][0]["input"]
         self.assertEqual(input_contract["max_bytes"], 81_920)
         input_slots = {slot["id"]: slot for slot in input_contract["slots"]}
@@ -89,7 +129,9 @@ class Ltx25CatalogTests(unittest.TestCase):
 
     def test_filtered_snapshot_matches_adapter_closure(self) -> None:
         adapter = _adapter_module()
-        artifact = _document(RECIPE)["artifacts"][0]
+        artifact = next(
+            item for item in _document(RECIPE)["artifacts"] if item["id"] == "target"
+        )
         self.assertEqual(artifact["include_paths"], sorted(artifact["include_paths"]))
         self.assertEqual(set(artifact["include_paths"]), set(adapter.REQUIRED_FILES))
         self.assertEqual(len(artifact["include_paths"]), 28)
@@ -116,9 +158,93 @@ class Ltx25CatalogTests(unittest.TestCase):
         self.assertIn("HF_HUB_OFFLINE=1", dockerfile)
         self.assertIn("TRANSFORMERS_OFFLINE=1", dockerfile)
         self.assertIn("a95ab856bf29407b6b066ede0abe1846050db56c/LICENSE-2_x", readme)
-        self.assertIn("Hugging Face download credential", readme)
+        self.assertIn("Hugging Face read token", readme)
+        self.assertIn("be75acae5c99b0fb16ed6cfbf8f731e5121a729bef112d20337699407e796451", readme)
+        self.assertIn("505-byte", readme)
+        self.assertIn("generic managed-artifact", readme)
+        self.assertIn("error; rerun this preflight", readme)
+        self.assertEqual(_adapter_module().MODEL_ROOT, Path("/models/target"))
         self.assertIn("NVFP4 is intentionally not an install profile", readme)
         self.assertIn("SM121", readme)
+
+
+class Ltx25PreflightTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.preflight = _preflight_module()
+
+    def test_license_acknowledgement_is_bound_to_exact_pinned_text(self) -> None:
+        self.preflight._verify_license_acknowledgement(
+            self.preflight.LICENSE_SHA256
+        )
+        with self.assertRaisesRegex(
+            self.preflight.PreflightError, "pinned LTX-2 Community License"
+        ):
+            self.preflight._verify_license_acknowledgement("0" * 64)
+
+    def test_token_file_must_be_private_and_is_never_returned(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "token"
+            path.write_text("hf_private_test_value\n", encoding="ascii")
+            path.chmod(0o600)
+            self.assertEqual(
+                self.preflight._token_from_file(path), "hf_private_test_value"
+            )
+            path.chmod(0o644)
+            with self.assertRaisesRegex(
+                self.preflight.PreflightError, "permissions.*0600"
+            ):
+                self.preflight._token_from_file(path)
+
+    def test_access_probe_is_bounded_and_verifies_immutable_blob(self) -> None:
+        payload = b"probe"
+        blob_sha1 = hashlib.sha1(b"blob 5\0" + payload).hexdigest()
+
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            @staticmethod
+            def geturl() -> str:
+                return self.preflight.PROBE_URL
+
+            @staticmethod
+            def read(limit: int) -> bytes:
+                self.assertEqual(limit, 6)
+                return payload
+
+        opener = mock.Mock()
+        opener.open.return_value = Response()
+        with mock.patch.object(self.preflight, "PROBE_BYTES", 5), mock.patch.object(
+            self.preflight, "PROBE_GIT_BLOB_SHA1", blob_sha1
+        ):
+            digest = self.preflight._verify_gated_access(
+                "hf_private_test_value", opener=opener
+            )
+        self.assertEqual(digest, hashlib.sha256(payload).hexdigest())
+        request = opener.open.call_args.args[0]
+        self.assertEqual(request.get_header("Authorization"), "Bearer hf_private_test_value")
+        self.assertEqual(opener.open.call_args.kwargs["timeout"], 30)
+
+    def test_access_failures_are_clear_and_do_not_echo_token(self) -> None:
+        opener = mock.Mock()
+        response_error = urllib.error.HTTPError(
+            self.preflight.PROBE_URL, 401, "Unauthorized", {}, None
+        )
+        opener.open.side_effect = response_error
+        try:
+            with self.assertRaises(self.preflight.PreflightError) as captured:
+                self.preflight._verify_gated_access(
+                    "hf_private_test_value", opener=opener
+                )
+        finally:
+            response_error.close()
+        message = str(captured.exception)
+        self.assertIn("401 GatedRepo", message)
+        self.assertIn("No model weights were downloaded", message)
+        self.assertNotIn("hf_private_test_value", message)
 
 
 class Ltx25AdapterTests(unittest.TestCase):
