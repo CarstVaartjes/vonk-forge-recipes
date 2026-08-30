@@ -2,11 +2,11 @@
   "schema_version": 1,
   "identity": {
     "publisher": "vonk-forge",
-    "slug": "qwen-image-edit-2511-fp8mixed-comfyui-single"
+    "slug": "qwen-image-edit-2511-int8-convrot-comfyui-single"
   },
   "metadata": {
-    "title": "Qwen Image Edit 2511 FP8mixed ComfyUI single Spark",
-    "description": "Memory-efficient single-Spark Candidate for one-or-two-reference Qwen Image Edit 2511 jobs, using Comfy-Org's mixed-precision FP8 transformer, scaled-FP8 Qwen-VL encoder, and Qwen Image VAE. It preserves the 40-step quality schedule while reducing the declared admission envelope to 108.00 GB unified memory including reserve and 95.17 GB peak installation disk.",
+    "title": "Qwen Image Edit 2511 INT8 ConvRot ComfyUI single Spark",
+    "description": "Memory-efficient executable single-Spark Candidate for one-or-two-reference Qwen Image Edit 2511 jobs, using Comfy-Org's official stock-ComfyUI INT8 tensorwise ConvRot transformer, scaled-FP8 Qwen-VL encoder, and Qwen Image VAE. It pins the official non-turbo 40-step workflow and declares a conservative 108.00 GB unified-memory admission envelope including reserve and 95.14 GB peak installation disk; physical Spark quality, latency, and peak-memory acceptance remain pending.",
     "tags": [
       "executable",
       "candidate",
@@ -15,8 +15,9 @@
       "image",
       "editing",
       "comfyui",
-      "fp8",
-      "fp8mixed",
+      "int8",
+      "convrot",
+      "int8-tensorwise",
       "mixed-precision",
       "single",
       "spark"
@@ -25,8 +26,8 @@
   "model": {
     "kind": "model-version",
     "publisher": "qwen",
-    "slug": "qwen-image-edit-2511-comfyui-fp8mixed-4c7c4ea2",
-    "content_sha256": "784a36feeb9e7e3d5ddaa87a30d88c958dbeb93716202b07ce109b9e5f047879"
+    "slug": "qwen-image-edit-2511-comfyui-int8-convrot-e9e85de7",
+    "content_sha256": "b50c2d098623eb86e6d51dd7dffbe75c717f8b9e065abcfeca3ddd19e2e405e8"
   },
   "execution": {
     "harness": {
@@ -39,8 +40,8 @@
   },
   "build": {
     "context": {
-      "path": "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed",
-      "sha256": "ee59043bd60f723b27f09f1b192503c833b029ccf5c3872860653a056b10b690",
+      "path": "adapters/media/comfyui-qwen-image-edit-2511-int8-convrot",
+      "sha256": "cdd586a7fbc5f8de1d4dd8b93a8a2cd0f712180fc0bcd5bd5576f1a052db9056",
       "expected_bytes": 30720,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -61,7 +62,7 @@
       ]
     },
     "resources": {
-      "download_bytes": 30172239743,
+      "download_bytes": 30137560750,
       "temporary_bytes": 40000000000,
       "memory_bytes": 8000000000,
       "timeout_seconds": 14400
@@ -70,7 +71,7 @@
   "parameters": [],
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/4c7c4ea236326cbae56d403d22a03c6cd86ad9a0",
+    "source_reference": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/e9e85de74a8f48c1e3e2656617626348675a2f21",
     "attribution": [
       "Qwen",
       "Comfy-Org"
@@ -80,10 +81,10 @@
     {
       "id": "target",
       "kind": "http.file",
-      "repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/resolve/4c7c4ea236326cbae56d403d22a03c6cd86ad9a0/split_files/diffusion_models/qwen_image_edit_2511_fp8mixed.safetensors",
-      "revision": "sha256:c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e",
-      "download_bytes": 20533762817,
-      "installed_bytes": 20533762817,
+      "repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/resolve/e9e85de74a8f48c1e3e2656617626348675a2f21/split_files/diffusion_models/qwen_image_edit_2511_int8_convrot.safetensors",
+      "revision": "sha256:11b5af5ac601821d73930c84846c9a158e67177356daf927ce1c8d10f3963829",
+      "download_bytes": 20499083824,
+      "installed_bytes": 20499083824,
       "mount": {
         "target": "/models/target",
         "read_only": true
@@ -136,11 +137,11 @@
     "arguments": [
       {
         "name": "workflow",
-        "value": "/opt/vonk/source/workflows/qwen-image-edit-2511-fp8mixed.json"
+        "value": "/opt/vonk/source/workflows/qwen-image-edit-2511-int8-convrot.json"
       },
       {
         "name": "workflow-sha256",
-        "value": "4007996393e3ae582d60e0c4f4bcbdc94b1b1ae72cdcb284e863f8b2db9900c0"
+        "value": "5febcb5a4d392d5d38813a191a64f7269c8e346476e0bb4764364ef3383749fa"
       },
       {
         "name": "output-mime",
@@ -219,7 +220,7 @@
         "resources": {
           "disk": {
             "image_bytes": 5000000000,
-            "artifact_bytes": 30172239743,
+            "artifact_bytes": 30137560750,
             "staging_bytes": 40000000000,
             "cache_bytes": 8000000000,
             "rollback_bytes": 0,
@@ -339,7 +340,7 @@
     ],
     "benchmarks": [
       {
-        "name": "qwen-image-edit-2511-fp8mixed-two-reference",
+        "name": "qwen-image-edit-2511-int8-convrot-two-reference",
         "framework": "comfyui",
         "configuration": {
           "references": 2,

@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-comfyui-single"
   },
-  "version": "1.0.3",
-  "released_at": "2026-08-28",
+  "version": "1.0.4",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.0.4",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "f57efb1c5c650f6dc740616f09751c4c2c8fe8931c9d86a2d50deb18aa6c7f50",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Identified the BF16 ComfyUI path as a quality-reference variant.",
+          "details": "Published its exact single-Spark memory and peak installation-disk envelopes and points operators to FP8mixed when headroom matters. Candidate qualification is unchanged."
+        }
+      ]
+    },
     {
       "version": "1.0.3",
       "released_at": "2026-08-28",

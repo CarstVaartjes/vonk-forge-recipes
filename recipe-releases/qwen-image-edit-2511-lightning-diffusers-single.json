@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-lightning-diffusers-single"
   },
-  "version": "1.2.2",
-  "released_at": "2026-08-28",
+  "version": "1.2.3",
+  "released_at": "2026-08-30",
   "history": [
+    {
+      "version": "1.2.3",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "859cfe5d8784590595834a494dcd81cbdee5f2122a8e147789b7a60640ee49c4",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Identified Lightning as the fast four-step single-Spark edit variant.",
+          "details": "Published its exact admission envelopes and points operators to FP8mixed ComfyUI when memory or installation headroom matters. Candidate qualification is unchanged."
+        }
+      ]
+    },
     {
       "version": "1.2.2",
       "released_at": "2026-08-28",
