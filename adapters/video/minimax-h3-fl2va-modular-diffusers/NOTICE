@@ -1,0 +1,11 @@
+MiniMax H3 model snapshot
+  Source: https://huggingface.co/MiniMaxAI/MiniMax-H3
+  Revision: 42ed227ee7df40d41602854ae760620d6eb651fe
+  License: MiniMax H3 Community License Agreement
+
+Hugging Face Diffusers MiniMax H3 integration
+  Source: https://github.com/huggingface/diffusers
+  Revision: efabd60d61c2b7aabf9f182bee6b5b6058980304
+  License: Apache-2.0
+
+The model license remains inside the immutable model snapshot mounted at /models.
