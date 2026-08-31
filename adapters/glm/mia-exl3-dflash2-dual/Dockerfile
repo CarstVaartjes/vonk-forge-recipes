@@ -1,7 +1,7 @@
 FROM ghcr.io/miaai-lab/glm-5.3-flash-2x-dgx-sparks@sha256:9bb1557a4234fce63d59599e44d10747eabd742beb337eebf9e7070be8a0fd58
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks" \
-      org.opencontainers.image.revision="b5ab8091dec88e324c943deb96c2dfd957db9f36" \
+      org.opencontainers.image.revision="493cb88fc69f8ba73ac87404f429d763e2739d89" \
       org.opencontainers.image.licenses="MIT"
 
 # The published image already contains MiaAI-Lab's compiled SM121 EXL3 and

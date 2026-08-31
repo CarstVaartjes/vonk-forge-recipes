@@ -1949,8 +1949,8 @@
     {
       "kind": "model-version",
       "publisher": "incoai",
-      "slug": "glm-5-3-flash-dflash2-dc77ff1c",
-      "content_sha256": "863ad49deb39430fc08a9da4645beec0f631ddb3900051cc996e95f928a77b39"
+      "slug": "glm-5-3-flash-dflash2-bf582e4e",
+      "content_sha256": "78102f61e07270f24d60ad50dc523530c2d8dfce7bafe4f2db8e4b4ddc8f59da"
     }
   ],
   "availability": "active",

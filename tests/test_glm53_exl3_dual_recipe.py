@@ -28,16 +28,16 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
     def setUp(self) -> None:
         self.recipe_path = ROOT / "recipes/glm-5-3-flash-exl3-dflash2-vllm-dual.json"
         self.release_path = ROOT / "recipe-releases/glm-5-3-flash-exl3-dflash2-vllm-dual.json"
-        self.runtime_path = ROOT / "runtime-distributions/vllm-glm53-exl3-dflash2-mia-b5ab8091-arm64.json"
+        self.runtime_path = ROOT / "runtime-distributions/vllm-glm53-exl3-dflash2-mia-493cb88f-arm64.json"
         self.patch_path = ROOT / "patch-bundles/glm-5-3-flash-exl3-dflash2-mia-dual-profile.json"
         self.target_path = ROOT / "model-versions/glm-5-3-flash-exl3-tr3-4bpw-dflash2-25a44fdb.json"
-        self.drafter_path = ROOT / "model-versions/glm-5-3-flash-dflash2-dc77ff1c.json"
+        self.drafter_path = ROOT / "model-versions/glm-5-3-flash-dflash2-bf582e4e.json"
         self.adapter = ROOT / "adapters/glm/mia-exl3-dflash2-dual"
 
     def test_exact_upstream_runtime_and_image_are_pinned(self) -> None:
         runtime = _document(self.runtime_path)
-        self.assertEqual(runtime["source"]["revision"], "b5ab8091dec88e324c943deb96c2dfd957db9f36")
-        self.assertEqual(runtime["source"]["archive_sha256"], "21ace8020de76ad77fda26832fbdec4842bd2724f7533bc08bfdfdea76636fbd")
+        self.assertEqual(runtime["source"]["revision"], "493cb88fc69f8ba73ac87404f429d763e2739d89")
+        self.assertEqual(runtime["source"]["archive_sha256"], "bdd535e461ab85d16d93a3d2c6970674f560ba1e0a7d27a0d13839c1bc15b88d")
         self.assertEqual(runtime["image_manifest"]["digest"], "9bb1557a4234fce63d59599e44d10747eabd742beb337eebf9e7070be8a0fd58")
         self.assertEqual(runtime["image_manifest"]["config_digest"], "ad0cdd86d1ddd15ee758f519d16da15ac237f7f0648a5c52fbc20f9554944263")
         self.assertEqual(runtime["image_manifest"]["compressed_layers_bytes"], 9_788_994_117)
@@ -52,9 +52,13 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertTrue(target["license"]["operator_acceptance_required"])
         self.assertEqual(target["dependencies"][0]["content_sha256"], _digest(self.drafter_path))
 
-        self.assertEqual(drafter["source"]["revision"], "dc77ff1c99eeb2df044ee3d4f0094eb033fee410")
-        self.assertEqual(len(drafter["artifacts"]), 4)
-        self.assertEqual(sum(item["download_bytes"] for item in drafter["artifacts"]), 2_342_175_855)
+        self.assertEqual(drafter["source"]["revision"], "bf582e4eacc1810f76656d1811693ff6c6737d2a")
+        self.assertEqual(len(drafter["artifacts"]), 5)
+        self.assertEqual(sum(item["download_bytes"] for item in drafter["artifacts"]), 2_342_460_697)
+        self.assertEqual(
+            next(item for item in drafter["artifacts"] if item["path"] == "model.safetensors")["sha256"],
+            "b038e1d9d1e7833fa3880c2c0135ba9b673013f03da1b29fb831931584759dac",
+        )
         self.assertEqual(drafter["license"]["spdx"], "CC-BY-NC-ND-4.0")
         self.assertTrue(drafter["license"]["operator_acceptance_required"])
 
@@ -74,6 +78,15 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertEqual(arguments["max-num-seqs"], 4)
         self.assertEqual(arguments["max-num-batched-tokens"], 2048)
         self.assertEqual(arguments["kv-cache-dtype"], "fp8")
+        benchmarks = {item["name"]: item for item in recipe["validation"]["benchmarks"]}
+        self.assertEqual(
+            {
+                benchmarks[name]["configuration"]["prompt_tokens"]
+                for name in benchmarks
+                if name.startswith("cold-prefill-")
+            },
+            {8_000, 16_000, 100_000, 256_000, 300_000},
+        )
         specification = json.loads(arguments["speculative-config"])
         self.assertEqual(specification["model"], "/models/drafter")
         self.assertEqual(specification["num_speculative_tokens"], 7)
@@ -91,7 +104,7 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         for role, snapshot in zip(recipe["topology"]["roles"], live, strict=True):
             disk = role["resources"]["disk"]
             required_disk = sum(disk.values())
-            self.assertEqual(required_disk, 297_058_030_609)
+            self.assertEqual(required_disk, 297_058_315_451)
             self.assertGreater(snapshot["disk"] - required_disk, 3_193_000_000_000)
             memory = role["resources"]["memory"]
             required_memory = max(
@@ -107,12 +120,13 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         recipe = _document(self.recipe_path)
         patch = _document(self.patch_path)
         self.assertEqual(len(archive), 30_720)
-        self.assertEqual(digest, "f4839b48762e34c8f20e315b7238f05db69f7e19ef79f00782d288f2e7298c23")
+        self.assertEqual(digest, "7f2796adb97fa3a55e3ff698dca03f35dbe530b2ba540498ae0ef7857580270b")
         self.assertEqual(recipe["build"]["context"]["sha256"], digest)
         self.assertEqual(patch["source_bundle"]["sha256"], digest)
         dockerfile = (self.adapter / "Dockerfile").read_text(encoding="utf-8")
         wrapper = (self.adapter / "vllm-wrapper.py").read_text(encoding="utf-8")
         self.assertIn("@sha256:9bb1557a4234fce63d59599e44d10747eabd742beb337eebf9e7070be8a0fd58", dockerfile)
+        self.assertIn("493cb88fc69f8ba73ac87404f429d763e2739d89", dockerfile)
         self.assertIn("python3 /opt/glm53/patch_kpool_tail_slotmap.py", dockerfile)
         self.assertIn("python3 /opt/glm53/test_kpool_tail_slotmap.py", dockerfile)
         self.assertNotIn("ssh", wrapper.lower())
@@ -182,7 +196,7 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
 
     def test_release_tracks_exact_recipe_digest(self) -> None:
         release = _document(self.release_path)
-        self.assertEqual(release["version"], "1.1.0")
+        self.assertEqual(release["version"], "1.2.0")
         self.assertEqual(release["history"][0]["recipe_content_sha256"], _digest(self.recipe_path))
 
 

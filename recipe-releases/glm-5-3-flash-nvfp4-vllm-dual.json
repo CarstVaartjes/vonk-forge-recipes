@@ -1,9 +1,25 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-dual"},
-  "version": "1.1.0",
-  "released_at": "2026-08-29",
+  "version": "1.2.0",
+  "released_at": "2026-08-31",
   "history": [
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-31",
+      "recipe_content_sha256": "97e28bf3ebff5e672b8c11945628a78ee891d88945f13b5343e27ff81385d1a1",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "model",
+          "summary": "Advanced to LibertAI's calibrated 92d8bfb9 checkpoint.",
+          "details": "The model-input-scales payload now contains real calibrated per-projection scales instead of 1.0 placeholders, preventing FP8 block-scale underflow and the reported long-context repetition failure. All 120 original weight shards remain byte-identical; a physical long-context semantic regression remains required before acceptance.",
+          "references": [
+            "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/commit/92d8bfb91c19ceb6fb530dfb538a3a24eceb6ef7"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-29",

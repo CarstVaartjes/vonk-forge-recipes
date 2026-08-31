@@ -11,23 +11,31 @@ RECIPES = {
     "glm-5-2-aqlm-vllm-triple": {
         "nodes": 3,
         "version": "2.0.4",
+        "released_at": "2026-08-30",
+        "effect": "metadata-only",
         "alternative": "glm-5-3-flash-exl3-dflash2-vllm-dual",
         "tp2_weight_floor": 146_299_574_266,
     },
     "glm-5-2-quanttrio-vllm-four": {
         "nodes": 4,
         "version": "2.0.3",
+        "released_at": "2026-08-30",
+        "effect": "metadata-only",
         "alternative": "glm-5-3-flash-exl3-dflash2-vllm-dual",
         "tp2_weight_floor": 202_759_255_945,
     },
     "glm-5-3-flash-nvfp4-vllm-four": {
         "nodes": 4,
-        "version": "1.0.2",
+        "version": "1.1.0",
+        "released_at": "2026-08-31",
+        "effect": "reinstall",
         "alternative": "glm-5-3-flash-exl3-dflash2-vllm-dual",
     },
     "inkling-975b-a41b-nvfp4-sglang-eight": {
         "nodes": 8,
         "version": "1.0.4",
+        "released_at": "2026-08-30",
+        "effect": "metadata-only",
         "alternative": "Inkling Small NVFP4 dual",
         "tp2_weight_floor": 296_018_668_559,
     },
@@ -110,16 +118,28 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
         self.assertIn(
             "126 GB-envelope fleet Candidate", four["metadata"]["description"]
         )
+        self.assertEqual(
+            four["artifacts"][0]["revision"],
+            "92d8bfb91c19ceb6fb530dfb538a3a24eceb6ef7",
+        )
+        self.assertIn(
+            "unsupported on Vonk's current one- or two-Spark configuration",
+            four["metadata"]["description"],
+        )
+        self.assertIn(
+            "collective.two-ranks",
+            four["validation"]["validators"][0]["checks"],
+        )
 
-    def test_metadata_only_releases_bind_the_exact_current_recipes(self) -> None:
+    def test_current_releases_bind_the_exact_current_recipes(self) -> None:
         for slug, expected in RECIPES.items():
             with self.subTest(recipe=slug):
                 recipe = load(ROOT / f"recipes/{slug}.json")
                 release = load(ROOT / f"recipe-releases/{slug}.json")
                 self.assertEqual(release["version"], expected["version"])
-                self.assertEqual(release["released_at"], "2026-08-30")
+                self.assertEqual(release["released_at"], expected["released_at"])
                 self.assertEqual(
-                    release["history"][0]["upgrade_effect"], "metadata-only"
+                    release["history"][0]["upgrade_effect"], expected["effect"]
                 )
                 self.assertEqual(
                     release["history"][0]["recipe_content_sha256"],
