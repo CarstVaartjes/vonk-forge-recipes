@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "flux-2-klein-4b-comfyui-single"
   },
-  "version": "1.0.4",
-  "released_at": "2026-08-31",
+  "version": "1.0.5",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.5",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "2169cae98b93ef16b8ea63c508b0319a32736fb309191a0e4b0e3c73743898f6",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
+        }
+      ]
+    },
     {
       "version": "1.0.4",
       "released_at": "2026-08-31",

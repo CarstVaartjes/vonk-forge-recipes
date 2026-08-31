@@ -1,9 +1,22 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-dual"},
-  "version": "1.2.0",
-  "released_at": "2026-08-31",
+  "version": "1.2.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "44678c6c6a86bca5a70dd10144278d98e1e9e9f8dd56bfcec3dc16df52bd2351",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Corrected the dual-Spark GLM public build host allowlist.",
+          "details": "Added pypi.org for ordinary pip resolution and removed docker.io because the digest-pinned base image is transferred separately."
+        }
+      ]
+    },
     {
       "version": "1.2.0",
       "released_at": "2026-08-31",

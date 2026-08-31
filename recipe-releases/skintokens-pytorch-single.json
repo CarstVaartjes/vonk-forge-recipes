@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "skintokens-pytorch-single"
   },
-  "version": "2.0.4",
-  "released_at": "2026-08-30",
+  "version": "2.0.5",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.0.5",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "1078fec55c9d6b58ecdb2c94ed0e515912e0a2bac08379fb7d7f21c98ab6283a",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
+        }
+      ]
+    },
     {
       "version": "2.0.4",
       "released_at": "2026-08-30",

@@ -85,7 +85,6 @@
   ],
   "build": {
     "network_hosts": [
-      "nvcr.io",
       "developer.download.nvidia.com",
       "pypi.nvidia.com",
       "github.com",

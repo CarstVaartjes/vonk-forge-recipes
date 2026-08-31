@@ -25,7 +25,7 @@
     {"name": "NVIDIA Cutlass DSL", "version": "4.7.0", "source": "https://pypi.org/project/nvidia-cutlass-dsl/4.7.0/", "license": "BSD-3-Clause"},
     {"name": "DeepGEMM", "version": "vLLM-vendored-arch12", "source": "docker.io/vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce", "license": "MIT"}
   ],
-  "build": {"network_hosts": ["ghcr.io"], "offline_after_installation": true},
+  "build": {"network_hosts": [], "offline_after_installation": true},
   "capabilities": {
     "distributed_vllm": {
       "verified": true,

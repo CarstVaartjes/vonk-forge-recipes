@@ -9,12 +9,12 @@
   "model": {"kind": "model-version", "publisher": "drowzeys", "slug": "glm-5-3-flash-nvfp4-abliterated-d7f8afa8", "content_sha256": "206d70bc7470b79349c94fafe89d595cdc0ac771f52875302438a7305f9cf77e"},
   "execution": {
     "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"},
-    "patch_bundle": {"kind": "patch-bundle", "publisher": "drowzeys", "slug": "drowzeys-glm53-nvfp4-kv-1m-dual-profile", "content_sha256": "068c157c1029785cf8e8ce9c34d18a145df027ea2699411e37236f0f5b059507"}
+    "patch_bundle": {"kind": "patch-bundle", "publisher": "drowzeys", "slug": "drowzeys-glm53-nvfp4-kv-1m-dual-profile", "content_sha256": "d9e1c1928a9b929cf773111b053e0eac4435e4bd2bfb4040f031b60efdde91fd"}
   },
   "build": {
     "context": {"path": "adapters/glm/drowzeys-glm53-1m", "sha256": "8c2d848776b4b0f67f0bcd216a796d14daf3d1fc55f5117f3e0e542c09fabfb3", "expected_bytes": 788480, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
-    "network": {"mode": "public", "hosts": ["ghcr.io"]},
+    "network": {"mode": "none", "hosts": []},
     "resources": {"download_bytes": 10083828030, "temporary_bytes": 25000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
   },
   "parameters": [],
@@ -22,7 +22,7 @@
     {"id": "weights", "kind": "huggingface.snapshot", "repository": "drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock", "revision": "d7f8afa81e62c156446fda43304d704563622590", "download_bytes": 194692761489, "installed_bytes": 194692761489, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}
   ],
   "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "drowzeys", "slug": "vllm-glm53-drowzeys-1m-c36b5958-arm64", "content_sha256": "7b68fe00a4c150faa8797b358500edf18107721c26b6467abbd004d56c8f4ed6"},
+    "distribution": {"kind": "runtime-distribution", "publisher": "drowzeys", "slug": "vllm-glm53-drowzeys-1m-c36b5958-arm64", "content_sha256": "d657b3ddb6c6c99b1693c25df9ad002d94a986a9b54817ba71ba0ec91072a5e2"},
     "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
     "arguments": [
       {"name": "served-model-name", "value": "glm-5.3-flash-nvfp4"},

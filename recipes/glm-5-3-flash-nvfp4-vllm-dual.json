@@ -9,12 +9,12 @@
   "model": {"kind": "model-version", "publisher": "libertaidai", "slug": "glm-5-3-flash-nvfp4-92d8bfb9", "content_sha256": "ec0898e40fe4857344db4a8e390150130789947681c5f032fabae330c5fe04d5"},
   "execution": {
     "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"},
-    "patch_bundle": {"kind": "patch-bundle", "publisher": "miaai-lab", "slug": "glm-5-3-flash-nvfp4-ray-dual-profile", "content_sha256": "2c9a67809c8f260e665eea84eb8b1f77edc3d39783c79319929ecb502c74359b"}
+    "patch_bundle": {"kind": "patch-bundle", "publisher": "miaai-lab", "slug": "glm-5-3-flash-nvfp4-ray-dual-profile", "content_sha256": "bb6656890ce84e50d86f2b00060b9f857fd377071953aa30a902d61034a58eb5"}
   },
   "build": {
     "context": {"path": "adapters/glm/glm53-sm121", "sha256": "d2fd5f500f6fad30f41e10ea8db680cf130166fc2721b03bbcb6d81a555ab8b3", "expected_bytes": 40960, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
-    "network": {"mode": "public", "hosts": ["docker.io", "files.pythonhosted.org", "flashinfer.ai"]},
+    "network": {"mode": "public", "hosts": ["files.pythonhosted.org", "flashinfer.ai", "pypi.org"]},
     "resources": {"download_bytes": 9710629881, "temporary_bytes": 25000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
   },
   "parameters": [],
@@ -22,7 +22,7 @@
     {"id": "weights", "kind": "huggingface.snapshot", "repository": "LibertAIDAI/GLM-5.3-Flash-NVFP4", "revision": "92d8bfb91c19ceb6fb530dfb538a3a24eceb6ef7", "download_bytes": 194701810857, "installed_bytes": 194701810857, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}
   ],
   "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "glm-5-3-flash-nvfp4-ray-dual", "content_sha256": "f5809f88fdcd30db8716eb8eb81684efb8997b5bf300802d6df4f4a7fb3709d6"},
+    "distribution": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "glm-5-3-flash-nvfp4-ray-dual", "content_sha256": "8c792f2d7badb950489a5d6acc1dcf6f6c540e4df41085e083897dad12192e87"},
     "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
     "arguments": [
       {"name": "served-model-name", "value": "glm-5.3-flash"},

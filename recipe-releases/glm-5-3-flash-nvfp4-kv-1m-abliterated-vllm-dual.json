@@ -1,9 +1,22 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual"},
-  "version": "1.1.0",
-  "released_at": "2026-08-29",
+  "version": "1.1.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.1.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "9892cf5b96978bdbb736b96ab7f7b2b97b47552138182adccfea2b9c95358694",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Removed unnecessary public network access from the deterministic dual-Spark image build.",
+          "details": "The Dockerfile performs only local patching and verification after the digest-pinned base image is transferred separately."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-29",
