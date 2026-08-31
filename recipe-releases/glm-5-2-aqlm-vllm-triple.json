@@ -4,9 +4,25 @@
     "publisher": "vonk-forge",
     "slug": "glm-5-2-aqlm-vllm-triple"
   },
-  "version": "2.0.4",
-  "released_at": "2026-08-30",
+  "version": "2.0.5",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.0.5",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "ac6a4a19cda607243dce9e9b6647c704a3b59c05d1996a9e01e7a04a2ded5fd0",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Aligned the distributed backend with the verified Ray runtime.",
+          "details": "The pinned MiaAI-Lab runtime declares and implements vllm-ray for its three-node topology. The recipe remains installable but outside the current one- and two-Spark fleet envelope.",
+          "references": [
+            "https://github.com/MiaAI-Lab/GLM-5.2-NVFP4-AQLM-Triple-DGX-Sparks/tree/5c85163ccb8d98d395880e71e2dbd03976a3f4ad"
+          ]
+        }
+      ]
+    },
     {
       "version": "2.0.4",
       "released_at": "2026-08-30",

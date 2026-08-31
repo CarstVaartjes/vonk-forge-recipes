@@ -1,9 +1,25 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-dual"},
-  "version": "1.2.1",
+  "version": "1.2.2",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "713ef2a7f87998e2a99447e6dabc3838114c41c2ee2977dc47c79d5bd298b059",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Corrected the dual-Spark execution backend to Ray.",
+          "details": "MiaAI-Lab's authoritative start.sh launches a Ray head and worker before vLLM; the existing runtime wrapper implements that exercised Ray TP2 topology. No runtime distribution, image, model, or launch-profile pin changed.",
+          "references": [
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-NVFP4-Dual-DGX-Spark/tree/aed98a13ca75140d2691cc5c651ea5817d9a3e44"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.2.1",
       "released_at": "2026-09-01",
