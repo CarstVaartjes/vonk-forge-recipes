@@ -4,9 +4,29 @@
     "publisher": "vonk-forge",
     "slug": "wan-dancer-14b-pytorch-single"
   },
-  "version": "1.0.4",
-  "released_at": "2026-08-30",
+  "version": "1.0.5",
+  "released_at": "2026-08-31",
   "history": [
+    {
+      "version": "1.0.5",
+      "released_at": "2026-08-31",
+      "recipe_content_sha256": "950296d999671c60362fecb5623d0bf4ad15cbf2d3b6863a9c87ef2cf9fdd940",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Bounded every generation request to a 921,600-pixel canvas before either Wan-Dancer inference stage starts.",
+          "details": "Portrait 720x1280 and landscape 1280x720 remain available within the existing per-dimension and multiple-of-16 contract, while larger combinations such as 1280x1280 fail closed before inference. The declared 128 GB memory envelope and blocked physical single-Spark qualification remain unchanged.",
+          "references": [
+            "https://github.com/Wan-Video/Wan-Dancer/blob/e6c87a94ec733230dac15b924c015f6e6501e618/README.md#-environment-setup"
+          ]
+        },
+        {
+          "kind": "metadata",
+          "summary": "Published the canvas ceiling and retained the exact pinned upstream provenance for this local safety bound."
+        }
+      ]
+    },
     {
       "version": "1.0.4",
       "released_at": "2026-08-30",
