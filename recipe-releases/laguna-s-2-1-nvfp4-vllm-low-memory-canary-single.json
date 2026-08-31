@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "laguna-s-2-1-nvfp4-vllm-low-memory-canary-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-31",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-31",
+      "recipe_content_sha256": "c384397f261aba1328f6e167041f04975cca67f111bcf89afaae41c1a0ffecf0",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added a distinct 32K Laguna S low-memory physical canary without changing the original profile.",
+          "details": "The canary reuses the exact 64734b3a checkpoint, vLLM 0.27.1 ARM64 runtime, adapter, and OpenAI reasoning/tool contract. It explicitly bounds the FP8 KV cache to 3 GB, one sequence, 4K chunked prefills, and eager execution so physical qualification can test a 126 GB admission hypothesis independently of the original 130 GB profile.",
+          "references": [
+            "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/tree/64734b3a449a05c79657451513d97544f2f53436",
+            "https://github.com/vllm-project/vllm/tree/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
+            "https://docs.vllm.ai/en/v0.27.1/cli/serve/"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Kept the new envelope fail-closed behind physical startup, memory, and output acceptance.",
+          "details": "The declared 118 GB startup peak plus 8 GB system reserve fits the observed 126,946,283,520-byte lower fleet baseline by 946,283,520 bytes. This is a canary estimate derived from stricter supported allocation controls, not a claim that the exact image has already demonstrated the bound. CPU weight offload is intentionally not counted as savings because GB10 CPU and GPU allocations share unified physical memory."
+        }
+      ]
+    }
+  ]
+}

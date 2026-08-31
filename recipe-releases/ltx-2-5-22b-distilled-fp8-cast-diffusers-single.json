@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "ltx-2-5-22b-distilled-fp8-cast-diffusers-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-08-31",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-31",
+      "recipe_content_sha256": "412f01ef4bc380b409b73eab9a340a9b37464cd119028111903ed57b39bb1edc",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added a distinct LTX-2.5 single-Spark physical canary with immutable FP8 E4M3FN layerwise storage and sequential offload.",
+          "details": "The original BF16 recipe remains unchanged. The canary uses the same exact gated 70,090,051,372-byte model closure and pinned Diffusers runtime, but request input cannot select a BF16 fallback. The official four-shard transformer closure contains 37,976,221,088 bytes of BF16 weights. Pinned Diffusers stores eligible transformer weights in FP8 and excludes only normalization modules for this model. The Candidate envelope claims only an 8 GB reduction from the original conservative startup and steady declarations, retains 6 GB growth and 10 GB system reserve, and admits at 120 GB. Physical GB10 memory and audiovisual acceptance remain pending.",
+          "references": [
+            "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc/transformer",
+            "https://github.com/huggingface/diffusers/blob/d035dcd7cc7c88e0a154609b62887d50bba9fdc2/src/diffusers/models/transformers/transformer_ltx2.py",
+            "https://github.com/huggingface/diffusers/blob/d035dcd7cc7c88e0a154609b62887d50bba9fdc2/docs/source/en/optimization/memory.md"
+          ]
+        }
+      ]
+    }
+  ]
+}
