@@ -31,7 +31,7 @@ EXPECTED = {
     "hotfix-dsv4-issue133-triton-specialization.py": "64d23c25fdd40bf1d6418c217c76d90b6eed8991a26f66c92d002b4b45523b3f",
     "hotfix-vllm-issue136-xgrammar-termination.py": "f6c4690d3de7d7325d21c708a5c6b46aa7249665b8206785b5c4cd5c4e108ccb",
     "hotfix-dsv4-suppress-stops-in-reasoning.py": "618a66c58fc422ae65d0f08018fac69370657e4ead1285c8104a56f507f6279f",
-    "hotfix-dsv4-vision-exp.py": "882c26ed30e1e2f611bd902bd2ee63853f4eeea3eb3ca23137b2adf8b27449e8",
+    "hotfix-dsv4-vision-exp.py": "ee4176ce9b0c50cf5624e85c21046c406a47d92baf60a52174cecd027f7e26fe",
 }
 OVERLAY_EXPECTED = {
     "__init__.py": "ab22bd0f2d77a29c7e9253c65104f07578c007debdadf09513e9998e0c22b81f",

@@ -1,9 +1,27 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-vision-exp-mia-dual"},
-  "version": "1.0.0",
-  "released_at": "2026-08-31",
+  "version": "1.0.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "44efc986cd6740f9da8fb57d3471c60966adeedac9094afddda7efa029ffcd51",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Refreshed the native Vision-Exp hotfix to MiaAI-Lab de230b45.",
+          "details": "The exact upstream patch now requires paired <image> tags before treating text as an image and keeps tool/function result text opaque while still rejecting structured images in those roles. The Anemll base, official e46e16bf model snapshot, topology, and Candidate acceptance state are unchanged; installed containers must be recreated.",
+          "references": [
+            "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/de230b45bc49e88ea92af898650b6bbb92f0e266",
+            "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/aa25c89ea4b0be1cbf18683a5476fb1ccdd60c81",
+            "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/7662f606ecfe7fb0e0319952f672ba3048879631"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-31",
