@@ -1,0 +1,21 @@
+This adapter reuses the immutable public image and launch scripts from
+0xSero/deepseek-v4-flash-0731-spark-sparkinfer at commit
+590d2172394dd83c1f36ff29f0dc9ec6032ea9e2 (Apache-2.0).
+
+Vonk supplies the exact 0xSero/deepseek-v4-flash-0731-spark snapshot from its
+digest-bound artifact store at /models/weights. The adapter invokes upstream's
+lossless TP4-to-TP1 coalescer, target verifier, SparkInfer self-test, and
+serving launcher without downloading or modifying the published target.
+
+The canary deliberately selects upstream's physically recorded target-only
+MODE=mtp0 profile. It does not construct or load the K64 DSpark draft. Upstream
+recorded 92.13 GiB loaded target weights, a 12.49 GiB padded-FP8 KV cache,
+262,144-token capacity, four scheduling slots, semantic generation, and strict
+JSON-schema output for that mode. The later DSpark profile recorded 95.39 GiB
+after target plus draft load. Those exact records remain pinned at commit
+590d2172394dd83c1f36ff29f0dc9ec6032ea9e2 under results/acceptance.json and
+results/clean-image-acceptance.json.
+
+This separate recipe remains a Candidate until the exact published image,
+126 GB admission envelope, endpoint, generation, structured output, and memory
+headroom pass a Vonk-managed physical Spark canary.
