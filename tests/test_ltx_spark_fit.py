@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 LTX23_SLUG = "ltx-2-3-22b-distilled-1-1-diffusers-single"
 FP4_SLUG = "ltx-2-19b-dev-fp4-pytorch-single"
+BF16_SLUG = "ltx-2-19b-dev-bf16-diffusers-single"
 
 
 def load(path: Path) -> dict:
@@ -16,6 +17,100 @@ def load(path: Path) -> dict:
 
 
 class LtxSparkFitTests(unittest.TestCase):
+    def test_ltx2_dev_bf16_has_dedicated_disk_offload_and_97gb_admission(self) -> None:
+        adapter_root = ROOT / "adapters/video/ltx23-sync-native-disk"
+        namespace = runpy.run_path(str(adapter_root / "run.py"))
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            model_root = root / "models"
+            upscaler_root = model_root / "sha256" / ("a" * 64)
+            upscaler_root.mkdir(parents=True)
+            (upscaler_root / "ltx-2-spatial-upscaler-x2-1.0.safetensors").write_bytes(
+                b"fixture"
+            )
+            lora_root = model_root / "sha256" / ("b" * 64)
+            lora_root.mkdir(parents=True)
+            (lora_root / "ltx-2-19b-distilled-lora-384.safetensors").write_bytes(
+                b"fixture"
+            )
+            runtime_spec = root / "runtime.json"
+            runtime_spec.write_text(
+                json.dumps(
+                    {
+                        "artifacts": [
+                            {
+                                "kind": "http.file",
+                                "repository": (
+                                    "https://huggingface.co/Lightricks/LTX-2/resolve/"
+                                    "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/"
+                                    "ltx-2-spatial-upscaler-x2-1.0.safetensors"
+                                ),
+                                "revision": "sha256:" + ("a" * 64),
+                                "path": str(upscaler_root),
+                            },
+                            {
+                                "kind": "http.file",
+                                "repository": (
+                                    "https://huggingface.co/Lightricks/LTX-2/resolve/"
+                                    "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/"
+                                    "ltx-2-19b-distilled-lora-384.safetensors"
+                                ),
+                                "revision": "sha256:" + ("b" * 64),
+                                "path": str(lora_root),
+                            },
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            globals_ = namespace["_pipeline_command"].__globals__
+            globals_["MODEL_ROOT"] = model_root
+            globals_["RUNTIME_SPEC"] = runtime_spec
+            target = root / "ltx-2-19b-dev.safetensors"
+            target.write_bytes(b"fixture")
+            command = namespace["_pipeline_command"](
+                target,
+                root / "gemma",
+                root / "output.mp4",
+                7,
+                "Operator supplied prompt",
+            )
+
+        self.assertEqual(command[command.index("--offload") + 1], "disk")
+        self.assertEqual(command[2], "ltx_pipelines.ti2vid_two_stages")
+        recipe = load(ROOT / f"recipes/{BF16_SLUG}.json")
+        self.assertEqual(
+            recipe["build"]["context"]["path"],
+            "adapters/video/ltx23-sync-native-disk",
+        )
+        self.assertIn("disk-offload", recipe["metadata"]["tags"])
+        memory = recipe["topology"]["roles"][0]["resources"]["memory"]
+        self.assertEqual(
+            (
+                memory["startup_peak_bytes"],
+                memory["steady_state_bytes"],
+                memory["runtime_growth_bytes"],
+                memory["system_reserve_bytes"],
+            ),
+            (89_000_000_000, 75_000_000_000, 8_000_000_000, 8_000_000_000),
+        )
+        self.assertEqual(
+            max(
+                memory["startup_peak_bytes"],
+                memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
+            )
+            + memory["system_reserve_bytes"],
+            97_000_000_000,
+        )
+
+        distilled = load(
+            ROOT / "recipes/ltx-2-19b-distilled-diffusers-single.json"
+        )
+        self.assertEqual(
+            distilled["build"]["context"]["path"],
+            "adapters/video/ltx2-sync-native",
+        )
+
     def test_ltx23_disk_offload_candidate_is_admissible_but_unaccepted(self) -> None:
         recipe = load(ROOT / f"recipes/{LTX23_SLUG}.json")
         tags = set(recipe["metadata"]["tags"])

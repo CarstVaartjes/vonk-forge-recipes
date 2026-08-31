@@ -6,10 +6,11 @@
   },
   "metadata": {
     "title": "LTX-2 19B dev BF16 native synchronized single Spark",
-    "description": "Runnable Candidate using the exact official native LTX 1.3.0 two-stage pipeline, BF16 checkpoint, distilled refinement LoRA, spatial upscaler, and Gemma 3 companion closure; physical Spark acceptance remains pending.",
+    "description": "Directly deployable disk-offload Candidate using the exact official native LTX 1.3.0 two-stage pipeline, BF16 checkpoint, distilled refinement LoRA, spatial upscaler, and Gemma 3 companion closure. The 89 GB startup and 75 GB steady declarations conservatively apply only the pinned upstream's documented 31 GB disk-versus-CPU offload reduction, with 8 GB growth and 8 GB system reserve for a 97 GB admission total; physical Spark acceptance remains pending.",
     "tags": ["executable",
       "candidate",
       "build-unvalidated",
+      "disk-offload",
       "lightricks",
       "ltx",
       "video",
@@ -45,8 +46,8 @@
   },
   "build": {
     "context": {
-      "path": "adapters/video/ltx2-sync-native",
-      "sha256": "ad4f57a148b888ad5a2b4b4d4229a2c92581140e4e0371dcbe692650f023f04d",
+      "path": "adapters/video/ltx23-sync-native-disk",
+      "sha256": "ff999ce2e86a89952e47149812ffccbd1cbe5ef3faa537fd4412f959e27e85ad",
       "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -579,8 +580,8 @@
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 120000000000,
-            "steady_state_bytes": 106000000000,
+            "startup_peak_bytes": 89000000000,
+            "steady_state_bytes": 75000000000,
             "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }

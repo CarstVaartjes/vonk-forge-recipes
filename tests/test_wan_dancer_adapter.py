@@ -45,7 +45,17 @@ class WanDancerAuthorityTests(unittest.TestCase):
             recipe["artifacts"][0]["revision"],
             "85ce88dd8d025459dcf0fe93982d6da8b9002957",
         )
+        self.assertEqual(
+            recipe["provenance"]["source_reference"],
+            "https://github.com/Wan-Video/Wan-Dancer/tree/"
+            "e6c87a94ec733230dac15b924c015f6e6501e618",
+        )
         self.assertEqual(recipe["topology"]["node_count"], 1)
+        memory = recipe["topology"]["roles"][0]["resources"]["memory"]
+        self.assertEqual(memory["startup_peak_bytes"], 120000000000)
+        self.assertEqual(memory["steady_state_bytes"], 110000000000)
+        self.assertEqual(memory["runtime_growth_bytes"], 8000000000)
+        self.assertEqual(memory["system_reserve_bytes"], 8000000000)
         self.assertIn(
             {"source": "inputs", "target": "/inputs", "read_only": True},
             recipe["runtime"]["security"]["mounts"],
@@ -67,6 +77,7 @@ class WanDancerAuthorityTests(unittest.TestCase):
         self.assertEqual(configuration["video_codec"], "h264")
         self.assertEqual(configuration["audio_codec"], "aac")
         self.assertEqual(configuration["audio_sample_rate"], 44100)
+        self.assertEqual(configuration["maximum_generation_pixels"], 921600)
         self.assertEqual(
             configuration["output_frame_rule"],
             "floor((music-duration-seconds-0.2)*30)",
@@ -112,6 +123,24 @@ class WanDancerAuthorityTests(unittest.TestCase):
 
 
 class WanDancerInputTests(unittest.TestCase):
+    def test_generation_canvas_accepts_portrait_and_landscape_720p(self) -> None:
+        runner = load_runner()
+
+        self.assertEqual(
+            runner._generation_dimensions({"height": 720, "width": 1280}),
+            (720, 1280),
+        )
+        self.assertEqual(
+            runner._generation_dimensions({"height": 1280, "width": 720}),
+            (1280, 720),
+        )
+
+    def test_generation_canvas_rejects_1280_square(self) -> None:
+        runner = load_runner()
+
+        with self.assertRaisesRegex(ValueError, "at most 921600 pixels"):
+            runner._generation_dimensions({"height": 1280, "width": 1280})
+
     def test_expected_output_is_derived_from_reference_aspect_and_music(self) -> None:
         runner = load_runner()
 
