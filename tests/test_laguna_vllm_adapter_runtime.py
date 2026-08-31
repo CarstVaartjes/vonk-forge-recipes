@@ -260,7 +260,13 @@ class LagunaSVllmRecipeTests(unittest.TestCase):
             item for item in target_set["targets"] if item["model"] == "Laguna S"
         )
         self.assertEqual(target["status"], "candidate")
-        self.assertEqual(target["recipe_slugs"], [LAGUNA_S_RECIPE.stem])
+        self.assertEqual(
+            target["recipe_slugs"],
+            [
+                LAGUNA_S_RECIPE.stem,
+                "laguna-s-2-1-nvfp4-vllm-low-memory-canary-single",
+            ],
+        )
         self.assertIn(CURRENT_LAGUNA_S_REVISION[:8], target["notes"])
         self.assertIn("changes only README.md", target["notes"])
 

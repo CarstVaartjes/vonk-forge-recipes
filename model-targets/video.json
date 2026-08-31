@@ -24,9 +24,10 @@
         "single"
       ],
       "recipe_slugs": [
-        "ltx-2-5-22b-distilled-bf16-diffusers-single"
+        "ltx-2-5-22b-distilled-bf16-diffusers-single",
+        "ltx-2-5-22b-distilled-fp8-cast-diffusers-single"
       ],
-      "notes": "Exact gated filtered snapshot with a required exact-license/same-account-token preflight and an automatic 505-byte gated probe before the 70 GB model artifact; pinned Diffusers 0.40 source, convolutional VAE, deterministic eight-sigma AV export, and BF16/FP8 layerwise-cast offload profiles. Physical authenticated install and GB10 qualification remain pending.",
+      "notes": "Exact gated filtered snapshot with a required exact-license/same-account-token preflight and an automatic 505-byte gated probe before the 70 GB model artifact; pinned Diffusers 0.40 source, convolutional VAE, deterministic eight-sigma AV export, the original BF16 recipe, and a distinct fixed FP8-cast sequential-offload canary admitted at 120 GB from a deliberately limited 8 GB storage-reduction claim. Physical authenticated install, measured memory, and GB10 qualification remain pending.",
       "catalog_model_version": "ltx-2-5-22b-distilled-bf16-diffusers"
     },
     {
@@ -309,9 +310,10 @@
         "single"
       ],
       "recipe_slugs": [
-        "wan-dancer-14b-pytorch-single"
+        "wan-dancer-14b-pytorch-single",
+        "wan-dancer-14b-disk-offload-pytorch-single"
       ],
-      "notes": "Pinned official global-to-local music-to-dance source, exact complete checkpoint, reference-image/music contract, and offline MP4 export are executable; physical Spark canary remains pending.",
+      "notes": "The original pinned global-to-local recipe remains available. A distinct DiffSynth-Studio disk-offload canary now fits Controller capacity admission with a 126 GB declared envelope, but it remains experimental and physical-OOM-gated until a Spark run proves memory, quality, and latency.",
       "catalog_model_version": "wan-dancer-14b"
     }
   ]
