@@ -120,7 +120,7 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             ("--height", "512"),
             ("--num-frames", "97"),
             ("--frame-rate", "24"),
-            ("--offload", "cpu"),
+            ("--offload", "disk"),
             ("--max-batch-size", "1"),
         ):
             self.assertEqual(command[command.index(flag) + 1], expected)
@@ -229,6 +229,26 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         self.assertEqual(output["slots"][0]["media_types"], ["video/mp4"])
         self.assertEqual(output["slots"][0]["min_files"], 1)
         self.assertEqual(output["slots"][0]["max_files"], 1)
+        self.assertIn("disk-offload", recipe["metadata"]["tags"])
+        memory = recipe["topology"]["roles"][0]["resources"]["memory"]
+        self.assertEqual(
+            memory,
+            {
+                "kind": "unified",
+                "startup_peak_bytes": 89_000_000_000,
+                "steady_state_bytes": 75_000_000_000,
+                "runtime_growth_bytes": 8_000_000_000,
+                "system_reserve_bytes": 8_000_000_000,
+            },
+        )
+        self.assertEqual(
+            max(
+                memory["startup_peak_bytes"],
+                memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
+            )
+            + memory["system_reserve_bytes"],
+            97_000_000_000,
+        )
         source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[
             "source_bundle"
         ]
