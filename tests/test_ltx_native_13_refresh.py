@@ -30,6 +30,13 @@ MEMORY_ENVELOPES = {
     "ltx-2-19b-distilled-fp8-diffusers-single": (96, 82, 8, 8),
     "ltx-2-3-22b-distilled-1-1-diffusers-single": (93, 77, 8, 8),
 }
+OPERATIONAL_DIGESTS = {
+    "ltx-2-19b-dev-fp4-pytorch-single": "689de9c3eb673f8d06b4c7b2a36c9eb8a4840301e6705ca94fde7cd1f0354d32",
+    "ltx-2-19b-dev-bf16-diffusers-single": "b9a5ae2fb7de303d4c38577c3f55029be541e7ee928ae74a10287504c7bfad6a",
+    "ltx-2-19b-distilled-diffusers-single": "350773b3808d1cf0004d306c207a120a9fdc000bab567b14a8e9469d068dba8c",
+    "ltx-2-19b-distilled-fp8-diffusers-single": "91c56b89ed0cbd9dd817269d17c8c92969f3c98310b57a56ad8a76609c55df59",
+    "ltx-2-3-22b-distilled-1-1-diffusers-single": "d9b8a4ee62f1239389610c1c72bfb3eae68cf38d4492a329d2140882d1962aea",
+}
 
 
 def load(path: Path) -> dict:
@@ -39,6 +46,17 @@ def load(path: Path) -> dict:
 def digest(path: Path) -> str:
     payload = json.dumps(
         load(path),
+        ensure_ascii=False,
+        allow_nan=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def operational_digest(document: dict) -> str:
+    payload = json.dumps(
+        {key: value for key, value in document.items() if key != "metadata"},
         ensure_ascii=False,
         allow_nan=False,
         sort_keys=True,
@@ -110,7 +128,32 @@ class LtxNative13RefreshTests(unittest.TestCase):
             self.assertEqual(
                 release["history"][0]["recipe_content_sha256"], digest(recipe_path)
             )
-            self.assertEqual(release["history"][0]["upgrade_effect"], "rebuild")
+            self.assertEqual(release["history"][0]["upgrade_effect"], "metadata-only")
+
+    def test_historical_recipes_are_superseded_without_operational_mutation(self) -> None:
+        for slug in RECIPES:
+            recipe = load(ROOT / "recipes" / f"{slug}.json")
+            tags = set(recipe["metadata"]["tags"])
+            self.assertTrue(
+                {"executable", "candidate", "historical", "superseded"} <= tags
+            )
+            self.assertIn("LTX-2.5 BF16", recipe["metadata"]["description"])
+            self.assertIn("LTX-2.5 FP8-cast", recipe["metadata"]["description"])
+            self.assertEqual(operational_digest(recipe), OPERATIONAL_DIGESTS[slug])
+
+            model = load(
+                ROOT / "model-versions" / f"{recipe['model']['slug']}.json"
+            )
+            self.assertEqual(model["availability"], "active")
+            self.assertIsNone(model["supersedes"])
+
+        for slug in (
+            "ltx-2-5-22b-distilled-bf16-diffusers-single",
+            "ltx-2-5-22b-distilled-fp8-cast-diffusers-single",
+        ):
+            tags = set(load(ROOT / "recipes" / f"{slug}.json")["metadata"]["tags"])
+            self.assertNotIn("historical", tags)
+            self.assertNotIn("superseded", tags)
 
     def test_builds_are_archive_verified_and_fail_closed_on_pipeline_shape(self) -> None:
         for adapter in set(RECIPES.values()):

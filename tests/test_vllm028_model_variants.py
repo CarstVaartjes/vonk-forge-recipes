@@ -167,14 +167,14 @@ class Vllm028ModelVariantTests(unittest.TestCase):
                 self.assertIn("missing read-only multimodal input mount", wrapper_text)
 
     def test_releases_bind_the_exact_candidate_recipes(self) -> None:
-        for slug, recipe in (
-            ("gemma-4-26b-a4b-vllm028-single", self.gemma),
-            ("lfm2-5-vl-3b-vllm028-single", self.lfm),
+        for slug, recipe, version, released_at in (
+            ("gemma-4-26b-a4b-vllm028-single", self.gemma, "1.0.0", "2026-08-29"),
+            ("lfm2-5-vl-3b-vllm028-single", self.lfm, "1.1.0", "2026-09-01"),
         ):
             with self.subTest(recipe=slug):
                 release = load(f"recipe-releases/{slug}.json")
-                self.assertEqual(release["version"], "1.0.0")
-                self.assertEqual(release["released_at"], "2026-08-29")
+                self.assertEqual(release["version"], version)
+                self.assertEqual(release["released_at"], released_at)
                 self.assertEqual(
                     release["history"][0]["recipe_content_sha256"], digest(recipe)
                 )
