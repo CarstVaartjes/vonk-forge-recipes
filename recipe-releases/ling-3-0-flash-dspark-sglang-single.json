@@ -1,9 +1,25 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "ling-3-0-flash-dspark-sglang-single"},
-  "version": "1.0.1",
-  "released_at": "2026-08-28",
+  "version": "1.0.2",
+  "released_at": "2026-08-31",
   "history": [
+    {
+      "version": "1.0.2",
+      "released_at": "2026-08-31",
+      "recipe_content_sha256": "9aeb0fccb4e32eab73e51b2bf82e46be00bc1cd6cd436d31cbd9c20f3975b2df",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Aligned the full-context Ling launch and Controller admission envelope with the pinned DGX Spark evidence.",
+          "details": "Keeps the complete 262144-token context while raising mem-fraction-static from 0.75 to 0.80. MiaAI-Lab's pinned DGX Spark table measures that profile with a 328898-token KV pool, about 12.5 GB of KV memory, 22.0 GB free GPU-side memory after graphs, and about 20 GB host MemAvailable. Vonk separately applies a conservative 119 GB startup, 114 GB steady-state, 5 GB growth, and 7 GB reserve contract, yielding an exact 126 GB admission envelope; physical Vonk acceptance remains pending.",
+          "references": [
+            "https://github.com/MiaAI-Lab/Ling-3.0-Flash-SGLang-DSpark-DGX-Spark/blob/ca840cb8d032353e24648aeee06312b0938348f6/README.md"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-28",

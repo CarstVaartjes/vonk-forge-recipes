@@ -20,7 +20,6 @@ SOURCE_ARCHIVE_SHA256 = (
     "4698fc5f635196edc08e891f209402d6b80e0b64d6c55589266e2448966500e8"
 )
 MODEL_SPECS = {
-    "ltx-2-19b-dev-bf16-diffusers-single": "ltx-2-19b-dev-bf16.json",
     "ltx-2-19b-distilled-diffusers-single": "ltx-2-19b-distilled.json",
     "ltx-2-19b-distilled-fp8-diffusers-single": "ltx-2-19b-distilled-fp8.json",
 }
@@ -350,6 +349,7 @@ class LtxSyncRunnerTests(unittest.TestCase):
             self.assertEqual(
                 command[command.index("--prompt") + 1], "Operator supplied prompt"
             )
+            self.assertEqual(command[command.index("--offload") + 1], "cpu")
 
     def test_prompt_file_is_required_bounded_utf8_and_read_before_models(self) -> None:
         with self.assertRaisesRegex(SystemExit, "exactly one regular"):

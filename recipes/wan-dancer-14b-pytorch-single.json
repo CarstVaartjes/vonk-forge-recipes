@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "Wan-Dancer 14B PyTorch single Spark",
-    "description": "Installable single-DGX Spark Candidate for Wan-Dancer's official global-planning and local-refinement music-to-dance pipeline, with isolated reference-image, music, style and prompt inputs. Controller admission requires the full declared 128 GB memory envelope; physical Spark memory, quality, and latency acceptance remain pending.",
+    "description": "Installable single-DGX Spark Candidate for Wan-Dancer's official global-planning and local-refinement music-to-dance pipeline, with isolated reference-image, music, style and prompt inputs. Generation is bounded to a 921,600-pixel canvas (including 720x1280 portrait and 1280x720 landscape). Controller admission still requires the full declared 128 GB memory envelope; physical Spark memory, quality, and latency acceptance remain pending.",
     "tags": ["executable",
       "candidate",
       "video",
@@ -38,7 +38,7 @@
   "build": {
     "context": {
       "path": "adapters/video/wan-dancer-native",
-        "sha256": "3ee37bc3c0a3c85cadbaf2353a3ed5f4affb5e087cfc627288ab2661da0b22e8",
+        "sha256": "71b98bb6f2ca9e6bca213a96cd444919eb4644a456fec3f09468b6dc565acbf5",
       "expected_bytes": 32081920,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -266,7 +266,7 @@
           {
             "id": "controls",
             "label": "Generation controls",
-            "description": "Optional JSON controls for style, dimensions, inference steps, and guidance scale.",
+            "description": "Optional JSON controls for style, dimensions, inference steps, and guidance scale. Height and width must remain within their documented per-dimension bounds, be multiples of 16, and define no more than 921,600 pixels.",
             "media_types": ["application/json"],
             "extensions": [".json"],
             "min_files": 0,
@@ -310,6 +310,7 @@
         "framework": "pytorch",
         "configuration": {
           "resolution": "720x1280",
+          "maximum_generation_pixels": 921600,
           "frames_per_segment": 149,
           "fps": 30,
           "global_steps": 48,

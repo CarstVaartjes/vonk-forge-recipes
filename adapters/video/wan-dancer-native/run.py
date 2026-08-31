@@ -25,6 +25,7 @@ MAX_TOTAL_INPUT_BYTES = 512 * 1024 * 1024
 OUTPUT_FPS = 30
 OUTPUT_TRIM_SECONDS = 0.2
 OUTPUT_AUDIO_SAMPLE_RATE = "44100"
+MAX_GENERATION_PIXELS = 921_600
 ALLOWED_KEYS = {
     "reference_image",
     "music",
@@ -261,6 +262,18 @@ def _number(
     return float(value)
 
 
+def _generation_dimensions(request: dict[str, Any]) -> tuple[int, int]:
+    height = _integer(request.get("height"), "height", 1280, 512, 1280)
+    width = _integer(request.get("width"), "width", 720, 288, 1280)
+    if height % 16 or width % 16:
+        raise ValueError("height and width must be multiples of 16")
+    if height * width > MAX_GENERATION_PIXELS:
+        raise ValueError(
+            "height and width must define a canvas of at most 921600 pixels"
+        )
+    return height, width
+
+
 def _probe_duration(music: Path, timeout: int) -> float:
     result = subprocess.run(
         [
@@ -471,10 +484,7 @@ def main() -> None:
     style = request.get("style", "k-pop")
     if not isinstance(style, str) or style not in STYLE_PROMPTS:
         raise ValueError(f"style must be one of {sorted(STYLE_PROMPTS)}")
-    height = _integer(request.get("height"), "height", 1280, 512, 1280)
-    width = _integer(request.get("width"), "width", 720, 288, 1280)
-    if height % 16 or width % 16:
-        raise ValueError("height and width must be multiples of 16")
+    height, width = _generation_dimensions(request)
     global_steps = _integer(
         request.get("num_inference_steps_global"),
         "num_inference_steps_global",

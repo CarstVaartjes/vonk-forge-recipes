@@ -208,7 +208,7 @@ def main() -> None:
         "--frame-rate",
         str(FPS),
         "--offload",
-        "cpu",
+        "disk",
         "--max-batch-size",
         "1",
     ]

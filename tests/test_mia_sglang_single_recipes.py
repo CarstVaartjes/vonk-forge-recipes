@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import subprocess
@@ -57,7 +58,7 @@ class MiaSglangSingleRecipeTests(unittest.TestCase):
             [
                 "--model-path", "/models", "--served-model-name", "ling-3-0-flash",
                 "--tensor-parallel-size", "1", "--context-length", "262144",
-                "--mem-fraction-static", "0.75", "--host", "0.0.0.0", "--port", "30000",
+                "--mem-fraction-static", "0.80", "--host", "0.0.0.0", "--port", "30000",
             ],
         )
         self.assertEqual(captured[captured.index("--model-path") + 1], "/models/target")
@@ -67,6 +68,65 @@ class MiaSglangSingleRecipeTests(unittest.TestCase):
         )
         self.assertIn("DSPARK", captured)
         self.assertIn("--enable-linear-replayssm-spec", captured)
+
+    def test_ling_full_context_profile_has_a_126_gb_admission_envelope(self) -> None:
+        recipe = load("recipes/ling-3-0-flash-dspark-sglang-single.json")
+        arguments = {
+            argument["name"]: argument["value"]
+            for argument in recipe["runtime"]["arguments"]
+        }
+        self.assertEqual(arguments["context-length"], 262144)
+        self.assertEqual(arguments["mem-fraction-static"], "0.80")
+
+        memory = recipe["topology"]["roles"][0]["resources"]["memory"]
+        self.assertEqual(memory["startup_peak_bytes"], 119_000_000_000)
+        self.assertEqual(memory["steady_state_bytes"], 114_000_000_000)
+        self.assertEqual(memory["runtime_growth_bytes"], 5_000_000_000)
+        self.assertEqual(memory["system_reserve_bytes"], 7_000_000_000)
+        workload_peak = max(
+            memory["startup_peak_bytes"],
+            memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
+        )
+        self.assertEqual(workload_peak + memory["system_reserve_bytes"], 126_000_000_000)
+
+        description = recipe["metadata"]["description"]
+        for evidence in (
+            "262144 context",
+            "328898-token KV pool",
+            "12.5 GB of KV memory",
+            "22.0 GB free GPU-side memory",
+            "20 GB host MemAvailable",
+            "119 GB startup",
+            "114 GB steady state",
+            "5 GB runtime growth",
+            "7 GB system reserve",
+            "126 GB admission envelope",
+        ):
+            self.assertIn(evidence, description)
+        self.assertEqual(
+            recipe["provenance"]["source_reference"],
+            "https://github.com/MiaAI-Lab/Ling-3.0-Flash-SGLang-DSpark-DGX-Spark/blob/ca840cb8d032353e24648aeee06312b0938348f6/README.md",
+        )
+
+        release = load("recipe-releases/ling-3-0-flash-dspark-sglang-single.json")
+        latest = release["history"][0]
+        self.assertEqual(latest["version"], "1.0.2")
+        self.assertEqual(latest["upgrade_effect"], "reinstall")
+        recipe_digest = hashlib.sha256(
+            json.dumps(
+                recipe,
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=False,
+            ).encode()
+        ).hexdigest()
+        self.assertEqual(latest["recipe_content_sha256"], recipe_digest)
+        self.assertIn("262144", latest["changes"][0]["details"])
+        self.assertIn("328898-token", latest["changes"][0]["details"])
+        self.assertEqual(
+            latest["changes"][0]["references"],
+            [recipe["provenance"]["source_reference"]],
+        )
 
     def test_ling_target_ledger_uses_the_exact_int4_revision(self) -> None:
         target_set = load("model-targets/language.json")

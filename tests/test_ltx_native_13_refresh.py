@@ -14,7 +14,9 @@ SOURCE_ARCHIVE_SHA256 = (
 )
 RECIPES = {
     "ltx-2-19b-dev-fp4-pytorch-single": "adapters/video/ltx2-pytorch",
-    "ltx-2-19b-dev-bf16-diffusers-single": "adapters/video/ltx2-sync-native",
+    "ltx-2-19b-dev-bf16-diffusers-single": (
+        "adapters/video/ltx23-sync-native-disk"
+    ),
     "ltx-2-19b-distilled-diffusers-single": "adapters/video/ltx2-sync-native",
     "ltx-2-19b-distilled-fp8-diffusers-single": "adapters/video/ltx2-sync-native",
     "ltx-2-3-22b-distilled-1-1-diffusers-single": (
@@ -22,8 +24,8 @@ RECIPES = {
     ),
 }
 MEMORY_ENVELOPES = {
-    "ltx-2-19b-dev-fp4-pytorch-single": (120, 106, 8, 8),
-    "ltx-2-19b-dev-bf16-diffusers-single": (120, 106, 8, 8),
+    "ltx-2-19b-dev-fp4-pytorch-single": (89, 75, 8, 8),
+    "ltx-2-19b-dev-bf16-diffusers-single": (89, 75, 8, 8),
     "ltx-2-19b-distilled-diffusers-single": (116, 102, 8, 8),
     "ltx-2-19b-distilled-fp8-diffusers-single": (96, 82, 8, 8),
     "ltx-2-3-22b-distilled-1-1-diffusers-single": (93, 77, 8, 8),
