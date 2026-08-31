@@ -310,9 +310,10 @@
         "single"
       ],
       "recipe_slugs": [
-        "wan-dancer-14b-pytorch-single"
+        "wan-dancer-14b-pytorch-single",
+        "wan-dancer-14b-disk-offload-pytorch-single"
       ],
-      "notes": "Pinned official global-to-local music-to-dance source, exact complete checkpoint, reference-image/music contract, and offline MP4 export are executable; physical Spark canary remains pending.",
+      "notes": "The original pinned global-to-local recipe remains available. A distinct DiffSynth-Studio disk-offload canary now fits Controller capacity admission with a 126 GB declared envelope, but it remains experimental and physical-OOM-gated until a Spark run proves memory, quality, and latency.",
       "catalog_model_version": "wan-dancer-14b"
     }
   ]
