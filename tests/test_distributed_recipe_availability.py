@@ -10,9 +10,9 @@ ROOT = Path(__file__).resolve().parents[1]
 RECIPES = {
     "glm-5-2-aqlm-vllm-triple": {
         "nodes": 3,
-        "version": "2.0.4",
-        "released_at": "2026-08-30",
-        "effect": "metadata-only",
+        "version": "2.0.5",
+        "released_at": "2026-09-01",
+        "effect": "reinstall",
         "alternative": "glm-5-3-flash-exl3-dflash2-vllm-dual",
         "tp2_weight_floor": 146_299_574_266,
     },
