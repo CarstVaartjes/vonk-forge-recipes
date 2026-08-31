@@ -1,9 +1,25 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-four"},
-  "version": "1.0.2",
-  "released_at": "2026-08-30",
+  "version": "1.1.0",
+  "released_at": "2026-08-31",
   "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-08-31",
+      "recipe_content_sha256": "0d5006f9516282949fc3411417a6e5b1391d9fe5d8adf2d4f0144f577aac06ec",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "model",
+          "summary": "Advanced the future TP4 contract to LibertAI's calibrated 92d8bfb9 checkpoint.",
+          "details": "The immutable pin now carries calibrated per-projection input scales that prevent FP8 block-scale underflow and long-context repetition. The exact four-rank topology remains unsupported on Vonk's current one- or two-Spark fleet and has no physical acceptance claim; its validation checks retain the platform-supported distributed structural contract.",
+          "references": [
+            "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/commit/92d8bfb91c19ceb6fb530dfb538a3a24eceb6ef7"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.2",
       "released_at": "2026-08-30",

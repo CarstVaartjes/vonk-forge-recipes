@@ -1,9 +1,33 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-exl3-dflash2-vllm-dual"},
-  "version": "1.1.0",
-  "released_at": "2026-08-30",
+  "version": "1.2.0",
+  "released_at": "2026-08-31",
   "history": [
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-31",
+      "recipe_content_sha256": "cff8d29ca0ec6cd3b233c424b5f7c2155d1701a7ac5e1819fb8a3538bf5496c3",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "model",
+          "summary": "Advanced the DFlash2 companion to checkpoint bf582e4e.",
+          "details": "The complete five-file snapshot is pinned at 2,342,460,697 bytes, including the changed b038e1d9 model payload. The target checkpoint and strict 126 GB Controller memory envelope are unchanged; acceptance rate, output equivalence, latency, and memory require a fresh physical two-Spark canary.",
+          "references": [
+            "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/commit/bf582e4eacc1810f76656d1811693ff6c6737d2a"
+          ]
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Aligned the runtime authority with MiaAI-Lab 493cb88f.",
+          "details": "The consumed Dockerfile and overlays are byte-identical to the prior pin. The newer source adds launcher numeric validation and a cold-prefill harness; the Controller wrapper already fixes and validates the exact numeric serving profile, and the recipe now declares the 8K through 300K cold-prefill ladder.",
+          "references": [
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/493cb88fc69f8ba73ac87404f429d763e2739d89"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-30",
