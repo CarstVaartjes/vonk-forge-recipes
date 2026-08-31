@@ -29,8 +29,8 @@
   "model": {
     "kind": "model-version",
     "publisher": "liquidai",
-    "slug": "lfm2-5-vl-3b-bf16-5a414ead",
-    "content_sha256": "0747adfc7ac96a529b8a576093b4bced06fd04dff3b06b35a3eb3098c8980b80"
+    "slug": "lfm2-5-vl-3b-bf16-a3af5799",
+    "content_sha256": "7e3e867d87484a0d04ba983d087e01ee65aa87b19e48809538d2da0756918040"
   },
   "execution": {
     "harness": {
@@ -44,7 +44,7 @@
   "build": {
     "context": {
       "path": "adapters/liquidai/lfm25-vl-vllm-028",
-      "sha256": "3f2967eac3ba8557e670c62ef62963bd3736cabb80a214f81bdd65885c65d5bc",
+      "sha256": "8a70ef3c06595c0b32331113df0a34982bbcf38151b00e94725012cf013b177a",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -68,9 +68,9 @@
       "id": "weights",
       "kind": "huggingface.snapshot",
       "repository": "LiquidAI/LFM2.5-VL-3B",
-      "revision": "5a414ead75d45db003906d06fb62bd5b6846cec0",
-      "download_bytes": 6265014122,
-      "installed_bytes": 6265014122,
+      "revision": "a3af5799199acdd2a4f56ac4342816abb46c12a9",
+      "download_bytes": 6265014121,
+      "installed_bytes": 6265014121,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -204,7 +204,7 @@
         "resources": {
           "disk": {
             "image_bytes": 12000000000,
-            "artifact_bytes": 6265014122,
+            "artifact_bytes": 6265014121,
             "staging_bytes": 32000000000,
             "cache_bytes": 4000000000,
             "rollback_bytes": 0,
@@ -273,7 +273,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/tree/5a414ead75d45db003906d06fb62bd5b6846cec0",
+    "source_reference": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/tree/a3af5799199acdd2a4f56ac4342816abb46c12a9",
     "attribution": [
       "Liquid AI",
       "vLLM contributors"

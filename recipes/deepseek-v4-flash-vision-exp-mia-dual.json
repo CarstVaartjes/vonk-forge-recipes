@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "DeepSeek V4 Flash Vision Experimental Mia dual Spark",
-    "description": "Installable Candidate two-Spark native-vision profile for the official DeepSeek V4 Flash Vision Experimental checkpoint. It reproduces MiaAI-Lab 7963d432 on the immutable Anemll ARM64 runtime with OpenAI image_url input, the 32-layer ViT and aligner, FP4/FP8 weights, NVFP4 DS-MLA KV, DSpark K6, 1M context, and a measured 17.04 GiB / 2,331,430-token KV pool at 0.835 utilization; Vonk physical image and dual-Spark acceptance remain pending.",
+    "description": "Installable Candidate two-Spark native-vision profile for the official DeepSeek V4 Flash Vision Experimental checkpoint. It reproduces MiaAI-Lab de230b45 on the immutable Anemll ARM64 runtime, including the issue 165/167 false-positive fixes for image-tag mentions and tool-result text, with OpenAI image_url input, the 32-layer ViT and aligner, FP4/FP8 weights, NVFP4 DS-MLA KV, DSpark K6, 1M context, and a measured 17.04 GiB / 2,331,430-token KV pool at 0.835 utilization; Vonk physical image and dual-Spark acceptance remain pending.",
     "tags": [
       "executable",
       "candidate",
@@ -40,13 +40,13 @@
       "kind": "patch-bundle",
       "publisher": "miaai-lab",
       "slug": "mia-deepseek-v4-flash-vision-exp",
-      "content_sha256": "066806c98f89c9517c4b8158a8b26948f321dcc26f6a840d9b5381e65d9ab238"
+      "content_sha256": "0dea614a695886768cc3dd1616bf281dd261d408157f56ac7f5b2573bc2c0382"
     }
   },
   "build": {
     "context": {
       "path": "adapters/deepseek/mia-vllm-vision",
-      "sha256": "48cbe006f69b229493cea87a4198440d8e553ce71883c27724575d65aff1e210",
+      "sha256": "4d74d4297591c30cb8f5086859d919604a9231e80a361b42d843350ae92e30e9",
       "expected_bytes": 337920,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -522,7 +522,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/7963d432bfe717f2a7249a53fb4c0673c239c03e",
+    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/de230b45bc49e88ea92af898650b6bbb92f0e266",
     "attribution": [
       "DeepSeek AI",
       "MiaAI-Lab",

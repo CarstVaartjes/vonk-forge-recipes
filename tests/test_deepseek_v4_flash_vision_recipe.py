@@ -71,8 +71,8 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
             self.patch["source"],
             {
                 "repository": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark",
-                "revision": "7963d432bfe717f2a7249a53fb4c0673c239c03e",
-                "archive_sha256": "342b20c7245f8e46e39b16d679d71f2bd772e12bce2c681e52b979b16f2f730e",
+                "revision": "de230b45bc49e88ea92af898650b6bbb92f0e266",
+                "archive_sha256": "3bcd0b4c70677bf7e2d1f2a790315624edf0a8cba1920f33bd8daa944804fced",
             },
         )
         self.assertEqual(
@@ -81,26 +81,31 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
         )
         self.assertEqual(
             self.patch["post_patch_tree_sha256"],
-            "8079b5e2a300e12c55ec7ccb5182d89f4966de5e2dcf3d5d0917eca5164343f1",
+            "8be1b911a35d798a8cda5c548ed071ef6605d63c2bb40951a6e9c81e65d7872c",
         )
         patch_hashes = {item["path"]: item["sha256"] for item in self.patch["patches"]}
         self.assertEqual(
             patch_hashes["patches/hotfix-dsv4-vision-exp.py"],
-            "882c26ed30e1e2f611bd902bd2ee63853f4eeea3eb3ca23137b2adf8b27449e8",
+            "ee4176ce9b0c50cf5624e85c21046c406a47d92baf60a52174cecd027f7e26fe",
         )
         self.assertEqual(
             patch_hashes["patches/vision_exp/vision.py"],
             "e29feb76d7b7abfc5ae15fd152ded145d3c7c370030dfd35a0d96565112b3891",
         )
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
-        self.assertIn("7963d432bfe717f2a7249a53fb4c0673c239c03e", dockerfile)
-        self.assertIn("8079b5e2a300e12c55ec7ccb5182d89f4966de5e2dcf3d5d0917eca5164343f1", dockerfile)
+        self.assertIn("de230b45bc49e88ea92af898650b6bbb92f0e266", dockerfile)
+        self.assertIn("8be1b911a35d798a8cda5c548ed071ef6605d63c2bb40951a6e9c81e65d7872c", dockerfile)
+        hotfix = (ADAPTER / "patches/hotfix-dsv4-vision-exp.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('needle, close = "<image>", "</image>"', hotfix)
+        self.assertIn('scan_text = role not in ("tool", "function")', hotfix)
 
     def test_adapter_bundle_recipe_and_patch_bundle_match(self) -> None:
         source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["source_bundle"]
         archive, _files, digest = source_bundle(ADAPTER)
         self.assertEqual(len(archive), 337_920)
-        self.assertEqual(digest, "48cbe006f69b229493cea87a4198440d8e553ce71883c27724575d65aff1e210")
+        self.assertEqual(digest, "4d74d4297591c30cb8f5086859d919604a9231e80a361b42d843350ae92e30e9")
         self.assertEqual(self.recipe["build"]["context"]["sha256"], digest)
         self.assertEqual(self.patch["source_bundle"]["sha256"], digest)
         self.assertEqual(self.recipe["model"]["content_sha256"], canonical_digest(MODEL))
