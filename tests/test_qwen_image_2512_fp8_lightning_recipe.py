@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SLUG = "qwen-image-2512-fp8-lightning-comfyui-single"
 MODEL_SLUG = "qwen-image-2512-lightning-fp32-a52649c9"
 BASE_MODEL_SLUG = "qwen-image-2512-comfyui-fp8-7beb7b64"
-COMFY_REVISION = "7a131a3afadc8200120f67f9236311a2c48b7445"
+COMFY_REVISION = "12d5279438bfefc058a269eae805ceab6047777f"
 QWEN_REVISION = "7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f"
 LIGHTNING_REVISION = "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52"
 ADAPTER = ROOT / "adapters/media/comfyui-qwen-image-2512-fp8-lightning"
@@ -141,7 +141,7 @@ class QwenImage2512FP8LightningRecipeTests(unittest.TestCase):
     def test_release_and_target_bind_the_unaccepted_candidate(self) -> None:
         recipe = load(f"recipes/{SLUG}.json")
         release = load(f"recipe-releases/{SLUG}.json")
-        self.assertEqual(release["version"], "1.0.0")
+        self.assertEqual(release["version"], "1.0.1")
         self.assertEqual(
             release["history"][0]["recipe_content_sha256"],
             canonical_digest(recipe),

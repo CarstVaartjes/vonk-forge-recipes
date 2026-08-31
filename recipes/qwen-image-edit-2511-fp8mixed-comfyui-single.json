@@ -40,7 +40,7 @@
   "build": {
     "context": {
       "path": "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed",
-      "sha256": "ee59043bd60f723b27f09f1b192503c833b029ccf5c3872860653a056b10b690",
+      "sha256": "d9322370825f2ff68ff88cf18287667e24a146e29c05488ad6751257cd1ad35a",
       "expected_bytes": 30720,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -127,8 +127,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "comfy-org",
-      "slug": "comfyui-0-33-4-cuda13-arm64",
-      "content_sha256": "bbb0dcf4cc585c7e52e0625f5329b7278312ed0c82bae895b8540cfd40a6035f"
+      "slug": "comfyui-0-34-0-cuda13-arm64",
+      "content_sha256": "0400a5a7298a57cca1a049ef17baf21ce81c29fa897fbfa157256d4fde931d9c"
     },
     "entrypoint": [
       "/opt/vonk/bin/comfyui-job"

@@ -76,17 +76,17 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
         self.assertEqual(context["expected_bytes"], len(archive))
         self.assertEqual(
             recipe["runtime"]["distribution"]["slug"],
-            "comfyui-0-33-4-cuda13-arm64",
+            "comfyui-0-34-0-cuda13-arm64",
         )
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
-        self.assertIn("7a131a3afadc8200120f67f9236311a2c48b7445", dockerfile)
-        self.assertIn("7e123716ae698194b3ded7ecbd8028b792d9015ce56d2318ebf4b8066efc6016", dockerfile)
+        self.assertIn("12d5279438bfefc058a269eae805ceab6047777f", dockerfile)
+        self.assertIn("6d8ab87ec1250e60101f0caf9e11658834c29d9cd76c9174e2b84ec9436f4886", dockerfile)
         self.assertEqual(
             (ADAPTER / "comfyui_job.py").read_bytes(),
             (SHARED_ADAPTER / "comfyui_job.py").read_bytes(),
         )
 
-    def test_existing_comfyui_source_bundle_and_recipe_digests_are_unchanged(
+    def test_shared_comfyui_source_bundle_and_recipes_use_the_current_digest(
         self,
     ) -> None:
         source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[
@@ -95,7 +95,7 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
         _, _, shared_digest = source_bundle(SHARED_ADAPTER)
         self.assertEqual(
             shared_digest,
-            "3216626366786e759d07a3ee15eb3ba1ffeb5c5d9cd491d8e4dca54379d01a45",
+            "ab8f73d84fa6b14bf00beb4b3bd6188033759f1607549d9a7ca09d2c07c30b38",
         )
         for slug in SHARED_RECIPES:
             with self.subTest(slug=slug):
@@ -142,7 +142,7 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
     def test_release_and_target_matrix_bind_current_candidate(self) -> None:
         recipe = load(f"recipes/{SLUG}.json")
         release = load(f"recipe-releases/{SLUG}.json")
-        self.assertEqual(release["version"], "1.0.1")
+        self.assertEqual(release["version"], "1.0.2")
         self.assertEqual(
             release["history"][0]["recipe_content_sha256"],
             canonical_digest(recipe),

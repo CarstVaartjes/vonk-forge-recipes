@@ -85,7 +85,7 @@
       "recipe_slugs": [
         "qwen-image-2512-fp8-lightning-comfyui-single"
       ],
-      "notes": "Exact pinned ComfyUI 0.33.4 blueprint profile with the 20.4 GB FP8 transformer, 1.7 GB FP32 four-step Lightning LoRA, scaled-FP8 encoder, and VAE. The directly installable 31.8 GB artifact closure has a conservative 108 GB memory admission requirement; physical Spark output, latency, and peak-memory acceptance remain pending.",
+      "notes": "Exact pinned ComfyUI 0.34.0 blueprint profile with the 20.4 GB FP8 transformer, 1.7 GB FP32 four-step Lightning LoRA, scaled-FP8 encoder, and VAE. The directly installable 31.8 GB artifact closure has a conservative 108 GB memory admission requirement; physical Spark output, latency, and peak-memory acceptance remain pending.",
       "catalog_model_version": "qwen-image-2512-lightning-fp32-a52649c9"
     },
     {
@@ -143,7 +143,7 @@
       "recipe_slugs": [
         "qwen-image-edit-2511-int8-convrot-comfyui-single"
       ],
-      "notes": "Exact official stock-ComfyUI INT8 tensorwise ConvRot transformer plus immutable scaled-FP8 encoder and VAE, with the pinned official non-turbo shift-3.1 40-step workflow. ComfyUI 0.33.4 exceeds the quantization node's documented 0.27.0 minimum; the 30.14 GB artifact set is directly installable on one Spark, while physical edit quality, latency, and peak-memory acceptance remain pending.",
+      "notes": "Exact official stock-ComfyUI INT8 tensorwise ConvRot transformer plus immutable scaled-FP8 encoder and VAE, with the pinned official non-turbo shift-3.1 40-step workflow. ComfyUI 0.34.0 exceeds the quantization node's documented 0.27.0 minimum; the 30.14 GB artifact set is directly installable on one Spark, while physical edit quality, latency, and peak-memory acceptance remain pending.",
       "catalog_model_version": "qwen-image-edit-2511-comfyui-int8-convrot-e9e85de7"
     },
     {

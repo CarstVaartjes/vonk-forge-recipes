@@ -4,9 +4,26 @@
     "publisher": "vonk-forge",
     "slug": "flux-2-klein-4b-comfyui-single"
   },
-  "version": "1.0.3",
-  "released_at": "2026-08-28",
+  "version": "1.0.4",
+  "released_at": "2026-08-31",
   "history": [
+    {
+      "version": "1.0.4",
+      "released_at": "2026-08-31",
+      "recipe_content_sha256": "eea5ea1b7d83e13fc609d05fd6fbbcdc90e75ba48268a9d80841a356282bc0cd",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0.",
+          "details": "The source bundle now hash-locks stable tag v0.34.0 at exact commit 12d52794 and its verified source archive. Model artifacts, core-node workflow parameters, admission envelopes, and Candidate qualification are unchanged.",
+          "references": [
+            "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.34.0",
+            "https://github.com/Comfy-Org/ComfyUI/commit/12d5279438bfefc058a269eae805ceab6047777f"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.3",
       "released_at": "2026-08-28",

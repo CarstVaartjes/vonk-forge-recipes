@@ -5,7 +5,7 @@
   "model": {"kind": "model-version", "publisher": "wan-ai", "slug": "wan-2-2-ti2v-5b-comfyui-c4f60d30", "content_sha256": "c31eb027d0ae2716da9c249bf76d8a56c746e5cdc49ac58810aea1c6c0ee38d0"},
   "execution": {"harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "comfyui", "content_sha256": "0d97fceaa9a7ab64bf3d826b5d9ca427ea10be79b54a8d4fe9190711c9bf70d6"}, "patch_bundle": null},
   "build": {
-    "context": {"path": "adapters/media/comfyui-core", "sha256": "3216626366786e759d07a3ee15eb3ba1ffeb5c5d9cd491d8e4dca54379d01a45", "expected_bytes": 51200, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
+    "context": {"path": "adapters/media/comfyui-core", "sha256": "ab8f73d84fa6b14bf00beb4b3bd6188033759f1607549d9a7ca09d2c07c30b38", "expected_bytes": 51200, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
     "network": {"mode": "public", "hosts": ["nvcr.io", "codeload.github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]},
     "resources": {"download_bytes": 18144966705, "temporary_bytes": 26000000000, "memory_bytes": 8000000000, "timeout_seconds": 14400}
@@ -18,7 +18,7 @@
     {"id": "vae", "kind": "http.file", "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/c4f60d30c55a624e35427060fdd217579a6c1d77/split_files/vae/wan2.2_vae.safetensors", "revision": "sha256:e40321bd36b9709991dae2530eb4ac303dd168276980d3e9bc4b6e2b75fed156", "download_bytes": 1409400960, "installed_bytes": 1409400960, "mount": {"target": "/models/vae", "read_only": true}, "roles": ["entrypoint"]}
   ],
   "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "comfy-org", "slug": "comfyui-0-33-4-cuda13-arm64", "content_sha256": "bbb0dcf4cc585c7e52e0625f5329b7278312ed0c82bae895b8540cfd40a6035f"},
+    "distribution": {"kind": "runtime-distribution", "publisher": "comfy-org", "slug": "comfyui-0-34-0-cuda13-arm64", "content_sha256": "0400a5a7298a57cca1a049ef17baf21ce81c29fa897fbfa157256d4fde931d9c"},
     "entrypoint": ["/opt/vonk/bin/comfyui-job"],
     "arguments": [{"name": "workflow", "value": "/opt/vonk/source/workflows/wan-2-2-ti2v-5b.json"}, {"name": "workflow-sha256", "value": "a4e13f2182492958efa30205590bbbbb3be43522cbb6a26c98ab60ae05e221c3"}, {"name": "output-mime", "value": "video/mp4"}, {"name": "seed", "value": 0}],
     "environment": [{"name": "HF_HUB_OFFLINE", "value": "1"}, {"name": "COMFYUI_DISABLE_TELEMETRY", "value": "1"}],
