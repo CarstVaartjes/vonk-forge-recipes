@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "LTX-2 19B distilled native synchronized single Spark",
-    "description": "Runnable Candidate using the exact official native LTX distilled pipeline, BF16 checkpoint, spatial upscaler, and Gemma 3 companion closure; physical Spark acceptance remains pending.",
+    "description": "Runnable Candidate using the exact official native LTX 1.3.0 distilled pipeline, BF16 checkpoint, spatial upscaler, and Gemma 3 companion closure; physical Spark acceptance remains pending.",
     "tags": ["executable",
       "candidate",
       "build-unvalidated",
@@ -46,7 +46,7 @@
   "build": {
     "context": {
       "path": "adapters/video/ltx2-sync-native",
-      "sha256": "08af5204a34a5d26a78c342f580f8bd3d2c2149fcfcee9beef6ffaeca6b02fb8",
+      "sha256": "ad4f57a148b888ad5a2b4b4d4229a2c92581140e4e0371dcbe692650f023f04d",
       "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -442,8 +442,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "lightricks",
-      "slug": "ltx2-pipelines-1-2-arm64",
-      "content_sha256": "75b386952bb48581aef3487074ea0e41a88db1d841007faea88c4c486d648f3a"
+      "slug": "ltx2-pipelines-1-3-arm64",
+      "content_sha256": "ca55b66b31169753e7226f6e1cf35239dfc3ce33d74fdc1767ffbfd96991e184"
     },
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"

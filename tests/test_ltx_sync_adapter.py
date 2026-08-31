@@ -13,9 +13,12 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/ltx2-sync-native"
 ADAPTER_PATH = ADAPTER_ROOT / "run.py"
-RUNTIME_PATH = ROOT / "runtime-distributions/ltx2-pipelines-1-2-arm64.json"
+RUNTIME_PATH = ROOT / "runtime-distributions/ltx2-pipelines-1-3-arm64.json"
 GEMMA_PATH = ROOT / "model-versions/ltx-2-gemma3-text-encoder-dfcc2108.json"
-SOURCE_REVISION = "400fd31054597515f47125691032c04b1c3ee24e"
+SOURCE_REVISION = "a95ab856bf29407b6b066ede0abe1846050db56c"
+SOURCE_ARCHIVE_SHA256 = (
+    "4698fc5f635196edc08e891f209402d6b80e0b64d6c55589266e2448966500e8"
+)
 MODEL_SPECS = {
     "ltx-2-19b-dev-bf16-diffusers-single": "ltx-2-19b-dev-bf16.json",
     "ltx-2-19b-distilled-diffusers-single": "ltx-2-19b-distilled.json",
@@ -130,9 +133,17 @@ class LtxSyncAuthorityTests(unittest.TestCase):
         runtime = _document(RUNTIME_PATH)
 
         self.assertEqual(runtime["source"]["revision"], SOURCE_REVISION)
+        self.assertEqual(
+            runtime["source"]["archive_sha256"], SOURCE_ARCHIVE_SHA256
+        )
         self.assertIn(f"LTX-2/archive/{SOURCE_REVISION}.tar.gz", dockerfile)
-        self.assertIn(runtime["source"]["archive_sha256"], dockerfile)
+        self.assertIn(SOURCE_ARCHIVE_SHA256, dockerfile)
         self.assertIn("sha256sum --check --strict", dockerfile)
+        self.assertIn("torchvision==0.28.0", dockerfile)
+        self.assertIn(
+            "nvidia-cudnn-cu13==9.24.0.43",
+            (ADAPTER_ROOT / "requirements.lock").read_text(encoding="utf-8"),
+        )
         self.assertTrue(runtime["build"]["offline_after_installation"])
         self.assertEqual(runtime["security"]["network_mode"], "none")
         self.assertNotIn("huggingface.co", runner)
@@ -241,6 +252,56 @@ class LtxSyncRunnerTests(unittest.TestCase):
             {path.name for path in destination.iterdir()},
             set(self.module.GEMMA_FILES.values()),
         )
+
+    def test_named_pipeline_output_contract_is_required(self) -> None:
+        pipeline_output = types.SimpleNamespace(
+            _fields=self.module.PIPELINE_OUTPUT_FIELDS
+        )
+        imported = types.SimpleNamespace(PipelineOutput=pipeline_output)
+        with (
+            mock.patch.object(
+                self.module.importlib.metadata,
+                "version",
+                return_value="1.3.0",
+            ),
+            mock.patch.object(
+                self.module.importlib, "import_module", return_value=imported
+            ),
+        ):
+            self.module._verify_ltx_runtime_contract()
+
+        old_tuple_shape = types.SimpleNamespace(
+            PipelineOutput=types.SimpleNamespace(
+                _fields=("video", "audio", "num_frames", "tiling_config")
+            )
+        )
+        with (
+            mock.patch.object(
+                self.module.importlib.metadata,
+                "version",
+                return_value="1.3.0",
+            ),
+            mock.patch.object(
+                self.module.importlib,
+                "import_module",
+                return_value=old_tuple_shape,
+            ),
+            self.assertRaisesRegex(SystemExit, "PipelineOutput contract changed"),
+        ):
+            self.module._verify_ltx_runtime_contract()
+
+        with (
+            mock.patch.object(
+                self.module.importlib.metadata,
+                "version",
+                return_value="1.2.0",
+            ),
+            mock.patch.object(
+                self.module.importlib, "import_module", return_value=imported
+            ),
+            self.assertRaisesRegex(SystemExit, "runtime version changed"),
+        ):
+            self.module._verify_ltx_runtime_contract()
 
     def test_each_checkpoint_selects_the_official_native_pipeline(self) -> None:
         gemma = self.root / "gemma"

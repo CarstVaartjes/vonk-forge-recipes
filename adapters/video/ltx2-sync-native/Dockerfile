@@ -1,9 +1,9 @@
 FROM nvcr.io/nvidia/cuda:13.2.1-runtime-ubuntu24.04@sha256:a52783d8d73ace53998d4e740515e9942e73072dc7fbd5322917eb382a0bc7fb
 
 LABEL org.opencontainers.image.source="https://github.com/Lightricks/LTX-2" \
-      org.opencontainers.image.revision="400fd31054597515f47125691032c04b1c3ee24e" \
+      org.opencontainers.image.revision="a95ab856bf29407b6b066ede0abe1846050db56c" \
       org.opencontainers.image.licenses="LTX-2 Community License Agreement" \
-      io.vonk.ltx2.source-archive-sha256="16a155ba255ff4a2c07a5e3bb7942305527e2de943252f2a19ae12789bbbf571"
+      io.vonk.ltx2.source-archive-sha256="4698fc5f635196edc08e891f209402d6b80e0b64d6c55589266e2448966500e8"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -22,7 +22,7 @@ RUN apt-get update \
 
 RUN python3 -m pip install --break-system-packages --no-cache-dir \
         --index-url https://download.pytorch.org/whl/cu132 \
-        torch==2.13.0 \
+        torch==2.13.0 torchvision==0.28.0 \
     && python3 -m pip install --break-system-packages --no-cache-dir --no-deps \
         --index-url https://download.pytorch.org/whl/test/cu132 \
         torchaudio==2.11.0
@@ -33,9 +33,9 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
         --requirement /opt/vonk/source/requirements.lock \
     && curl --fail --location --silent --show-error \
         --output /tmp/ltx2-source.tar.gz \
-        https://github.com/Lightricks/LTX-2/archive/400fd31054597515f47125691032c04b1c3ee24e.tar.gz \
+        https://github.com/Lightricks/LTX-2/archive/a95ab856bf29407b6b066ede0abe1846050db56c.tar.gz \
     && printf '%s  %s\n' \
-        16a155ba255ff4a2c07a5e3bb7942305527e2de943252f2a19ae12789bbbf571 \
+        4698fc5f635196edc08e891f209402d6b80e0b64d6c55589266e2448966500e8 \
         /tmp/ltx2-source.tar.gz \
         | sha256sum --check --strict \
     && mkdir -p /opt/vonk/source/ltx2 \

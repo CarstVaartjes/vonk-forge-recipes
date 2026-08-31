@@ -3,7 +3,8 @@ FROM nvcr.io/nvidia/cuda:13.2.1-runtime-ubuntu24.04@sha256:a52783d8d73ace53998d4
 LABEL org.opencontainers.image.source="https://huggingface.co/Lightricks/LTX-2" \
       org.opencontainers.image.revision="dfcc2108383fe1aaa0584bdf55d368a4bdadd90c" \
       org.opencontainers.image.licenses="LTX-2 Community License Agreement" \
-      io.vonk.ltx2.source-commit="400fd31054597515f47125691032c04b1c3ee24e"
+      io.vonk.ltx2.source-commit="a95ab856bf29407b6b066ede0abe1846050db56c" \
+      io.vonk.ltx2.source-archive-sha256="4698fc5f635196edc08e891f209402d6b80e0b64d6c55589266e2448966500e8"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -12,20 +13,37 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update \
     && apt-get install --no-install-recommends --yes \
         ca-certificates \
+        curl \
         ffmpeg \
-        git \
         python3 \
         python3-pip \
     && rm -rf /var/lib/apt/lists/* \
     && python3 -m pip install --break-system-packages --no-cache-dir \
         --index-url https://download.pytorch.org/whl/cu132 \
-        torch==2.13.0 \
+        torch==2.13.0 torchvision==0.28.0 \
     && python3 -m pip install --break-system-packages --no-cache-dir --no-deps \
         --index-url https://download.pytorch.org/whl/test/cu132 \
-        torchaudio==2.11.0 \
+        torchaudio==2.11.0
+
+COPY requirements.lock /opt/vonk/source/requirements.lock
+
+RUN python3 -m pip install --break-system-packages --no-cache-dir \
+        --requirement /opt/vonk/source/requirements.lock \
+    && curl --fail --location --silent --show-error \
+        --output /tmp/ltx2-source.tar.gz \
+        https://github.com/Lightricks/LTX-2/archive/a95ab856bf29407b6b066ede0abe1846050db56c.tar.gz \
+    && printf '%s  %s\n' \
+        4698fc5f635196edc08e891f209402d6b80e0b64d6c55589266e2448966500e8 \
+        /tmp/ltx2-source.tar.gz \
+        | sha256sum --check --strict \
+    && mkdir -p /opt/vonk/source/ltx2 \
+    && tar --extract --gzip --file /tmp/ltx2-source.tar.gz \
+        --directory /opt/vonk/source/ltx2 --strip-components=1 \
+    && rm /tmp/ltx2-source.tar.gz \
     && python3 -m pip install --break-system-packages --no-cache-dir \
-        "ltx-core @ git+https://github.com/Lightricks/LTX-2.git@400fd31054597515f47125691032c04b1c3ee24e#subdirectory=packages/ltx-core" \
-        "ltx-pipelines @ git+https://github.com/Lightricks/LTX-2.git@400fd31054597515f47125691032c04b1c3ee24e#subdirectory=packages/ltx-pipelines"
+        --no-build-isolation --no-deps /opt/vonk/source/ltx2/packages/ltx-core \
+    && python3 -m pip install --break-system-packages --no-cache-dir \
+        --no-build-isolation --no-deps /opt/vonk/source/ltx2/packages/ltx-pipelines
 
 COPY pipelines/run.py /opt/vonk/source/pipelines/run.py
 

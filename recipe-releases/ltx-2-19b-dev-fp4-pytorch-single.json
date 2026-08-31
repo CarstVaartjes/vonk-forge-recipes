@@ -4,9 +4,35 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-dev-fp4-pytorch-single"
   },
-  "version": "2.1.0",
-  "released_at": "2026-08-29",
+  "version": "2.2.0",
+  "released_at": "2026-08-31",
   "history": [
+    {
+      "version": "2.2.0",
+      "released_at": "2026-08-31",
+      "recipe_content_sha256": "b458ed9412c5c8036ba79f2210dead04f0843dae56fcf1e6bd1bd4baef6576a5",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Refreshed the native pipeline from LTX 1.2 to exact 1.3.0 source and its named six-field PipelineOutput contract.",
+          "details": "The adapter fails closed unless ltx-pipelines is version 1.3.0 and PipelineOutput exposes video, audio, num_frames, tiling_config, keyframes, and video_latent.",
+          "references": [
+            "https://github.com/Lightricks/LTX-2/tree/a95ab856bf29407b6b066ede0abe1846050db56c"
+          ]
+        },
+        {
+          "kind": "fix",
+          "summary": "Replaced live Git package resolution with a checksummed source archive and added the required TorchVision and cuDNN 9.24 pins.",
+          "details": "The FP4 build now uses the same deterministic archive and dependency-lock path as the other native LTX adapters."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Kept the declared two-stage interface and conservative memory envelope while inheriting upstream decode-tiling OOM fixes.",
+          "details": "LTX 1.3 contains DFR and keyframe-aware decode support, but this recipe does not claim those artifact-dependent paths and remains a physical-acceptance Candidate."
+        }
+      ]
+    },
     {
       "version": "2.1.0",
       "released_at": "2026-08-29",

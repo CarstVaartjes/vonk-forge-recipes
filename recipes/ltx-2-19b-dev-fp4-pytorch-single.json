@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "LTX-2 19B dev FP4 native pipeline single Spark",
-    "description": "Candidate native LTX-2 video/audio pipeline pinned to exact upstream source and current ARM64 CUDA 13.2 wheels; container build and physical Spark acceptance remain required.",
+    "description": "Candidate native LTX-2 video/audio pipeline pinned to the exact official LTX 1.3.0 source and ARM64 CUDA 13.2 wheels; container build and physical Spark acceptance remain required.",
     "tags": ["executable",
       "candidate",
       "build-unvalidated",
@@ -38,7 +38,7 @@
   "build": {
     "context": {
       "path": "adapters/video/ltx2-pytorch",
-      "sha256": "88792737fd7945ee2598b6f2d02fb07350f302d18cec5836f38324a3c234d216",
+      "sha256": "fe1e4e8151d182a5f93e0d2ddcade7cbf5be2207eba59a3194170e05faa842cc",
       "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -121,8 +121,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "lightricks",
-      "slug": "ltx2-pipelines-arm64",
-      "content_sha256": "8b84026cc69d5151b64e62936b3a8535720d7da8ba7a18316223a8ad24749639"
+      "slug": "ltx2-pipelines-1-3-arm64",
+      "content_sha256": "ca55b66b31169753e7226f6e1cf35239dfc3ce33d74fdc1767ffbfd96991e184"
     },
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"

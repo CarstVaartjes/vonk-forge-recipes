@@ -21,7 +21,7 @@ mdurl==0.1.2
 mpmath==1.3.0
 networkx==3.6.1
 numpy==2.5.2
-nvidia-cudnn-cu13==9.21.1.3
+nvidia-cudnn-cu13==9.24.0.43
 openimageio==3.1.16.0
 packaging==26.3
 pillow==12.3.0

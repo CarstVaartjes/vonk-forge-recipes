@@ -4,9 +4,34 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-dev-bf16-diffusers-single"
   },
-  "version": "3.0.0",
-  "released_at": "2026-08-28",
+  "version": "3.1.0",
+  "released_at": "2026-08-31",
   "history": [
+    {
+      "version": "3.1.0",
+      "released_at": "2026-08-31",
+      "recipe_content_sha256": "aa04af6689b07c224aca55cbb3cd163e5126a553e636cc230c631f428bb33f23",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Refreshed the native two-stage pipeline from LTX 1.2 to exact 1.3.0 source and its named PipelineOutput contract.",
+          "details": "The adapter fails closed unless ltx-pipelines is version 1.3.0 and PipelineOutput exposes video, audio, num_frames, tiling_config, keyframes, and video_latent.",
+          "references": [
+            "https://github.com/Lightricks/LTX-2/tree/a95ab856bf29407b6b066ede0abe1846050db56c"
+          ]
+        },
+        {
+          "kind": "fix",
+          "summary": "Added the upstream-required TorchVision 0.28 and cuDNN 9.24 pins to the checksummed ARM64 source build."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Kept the declared two-stage interface and conservative memory envelope while inheriting upstream decode-tiling OOM fixes.",
+          "details": "LTX 1.3 contains DFR and keyframe-aware decode support, but this recipe does not claim those artifact-dependent paths and remains a physical-acceptance Candidate."
+        }
+      ]
+    },
     {
       "version": "3.0.0",
       "released_at": "2026-08-28",
