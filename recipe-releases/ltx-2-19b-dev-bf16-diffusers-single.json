@@ -4,9 +4,26 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-dev-bf16-diffusers-single"
   },
-  "version": "3.2.1",
+  "version": "3.2.2",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "3.2.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "0addc2134149c337544fcc6c67d375e24b9a202f4ee88971c24826b3ae893f12",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Marked the historical LTX-2 profile superseded while retaining its directly deployable immutable execution contract.",
+          "details": "LTX-2.5 BF16 is the current fidelity baseline and its fixed FP8-cast sequential-offload variant is the current lower-memory canary. Runtime, artifacts, build context, topology, interfaces, validation, and provenance are unchanged.",
+          "references": [
+            "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
+            "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc"
+          ]
+        }
+      ]
+    },
     {
       "version": "3.2.1",
       "released_at": "2026-09-01",

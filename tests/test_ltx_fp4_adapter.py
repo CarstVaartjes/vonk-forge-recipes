@@ -257,7 +257,7 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         self.assertEqual(recipe["build"]["context"]["expected_bytes"], len(archive))
         current_release = _document(RELEASE)["history"][0]
         self.assertEqual(current_release["recipe_content_sha256"], _digest(RECIPE))
-        self.assertEqual(current_release["upgrade_effect"], "rebuild")
+        self.assertEqual(current_release["upgrade_effect"], "metadata-only")
 
 
 if __name__ == "__main__":

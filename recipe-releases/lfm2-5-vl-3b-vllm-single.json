@@ -4,9 +4,27 @@
     "publisher": "vonk-forge",
     "slug": "lfm2-5-vl-3b-vllm-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.1.0",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "65a63bb642cb822d7d3a815bdbb8f32df7f795549f6abc87bc3c1b2d87355619",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Pinned Liquid AI's corrected a3af5799 LFM2.5-VL snapshot.",
+          "details": "The official correction sets min_tiles to 2 and text_config.max_position_embeddings to 32768. The model weights are unchanged, but config.json and processor_config.json changed, so the immutable model version and adapter source bundle are refreshed and existing installs require reinstall.",
+          "references": [
+            "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/commit/a3af5799199acdd2a4f56ac4342816abb46c12a9",
+            "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/blob/a3af5799199acdd2a4f56ac4342816abb46c12a9/config.json",
+            "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/blob/a3af5799199acdd2a4f56ac4342816abb46c12a9/processor_config.json"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",
