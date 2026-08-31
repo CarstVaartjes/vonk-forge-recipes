@@ -9,14 +9,14 @@
   "model": {"kind": "model-version", "publisher": "mia-ai-lab", "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-25a44fdb", "content_sha256": "1fe4fd2c2fb1a653103cce9aee372257db75b7816769f3a0aa201bc44f9314c5"},
   "execution": {
     "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"},
-    "patch_bundle": {"kind": "patch-bundle", "publisher": "miaai-lab", "slug": "glm-5-3-flash-exl3-dflash2-mia-dual-profile", "content_sha256": "8756e2843f5d75d185d05765614178641ac28f674be5c4924c51f5a4fdfbde10"}
+    "patch_bundle": {"kind": "patch-bundle", "publisher": "miaai-lab", "slug": "glm-5-3-flash-exl3-dflash2-mia-dual-profile", "content_sha256": "fefff65249681f5295f8720286e35aa42f46d81f98dc047473ccdac1549670ae"}
   },
   "build": {
     "context": {"path": "adapters/glm/mia-exl3-dflash2-dual", "sha256": "7f2796adb97fa3a55e3ff698dca03f35dbe530b2ba540498ae0ef7857580270b", "expected_bytes": 30720, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile",
     "platform": "linux/arm64",
     "arguments": [],
-    "network": {"mode": "public", "hosts": ["ghcr.io"]},
+    "network": {"mode": "none", "hosts": []},
     "resources": {"download_bytes": 9788994117, "temporary_bytes": 12000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
   },
   "parameters": [],
@@ -25,7 +25,7 @@
     {"id": "drafter", "kind": "huggingface.snapshot", "repository": "incoai/GLM-5.3-Flash-DFlash2", "revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a", "download_bytes": 2342460697, "installed_bytes": 2342460697, "mount": {"target": "/models/drafter", "read_only": true}, "roles": ["entrypoint", "worker"]}
   ],
   "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "vllm-glm53-exl3-dflash2-mia-493cb88f-arm64", "content_sha256": "21e8afba16be41e1845d1b4fb96dac6b4211e9f28fe1309baa2be8cbcd7a5ff0"},
+    "distribution": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "vllm-glm53-exl3-dflash2-mia-493cb88f-arm64", "content_sha256": "a6a153838bf4b2f09917468aafac752d70ada48123ce64bfe031a0f453f3c02a"},
     "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models/target"],
     "arguments": [
       {"name": "served-model-name", "value": "glm-5.3-flash-exl3"},

@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan3d-omni-pytorch-single"
   },
-  "version": "2.0.3",
-  "released_at": "2026-08-28",
+  "version": "2.0.4",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.0.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "8d7af5d163132b8b2d65c46fea8540176606eeab2e5f8544b2049eb9b0dbdd9d",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
+        }
+      ]
+    },
     {
       "version": "2.0.3",
       "released_at": "2026-08-28",

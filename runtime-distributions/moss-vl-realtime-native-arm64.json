@@ -74,7 +74,6 @@
   ],
   "build": {
     "network_hosts": [
-      "nvcr.io",
       "download.pytorch.org",
       "pypi.org",
       "files.pythonhosted.org",

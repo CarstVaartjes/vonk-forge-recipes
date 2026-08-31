@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-2512-diffusers-single"
   },
-  "version": "1.2.1",
-  "released_at": "2026-08-28",
+  "version": "1.2.2",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "69b791d247068de33f5c16e36ee510ca703e7c35252f422d88b8d64e4a89c730",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
+        }
+      ]
+    },
     {
       "version": "1.2.1",
       "released_at": "2026-08-28",

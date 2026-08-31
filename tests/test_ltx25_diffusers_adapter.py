@@ -85,7 +85,7 @@ class Ltx25CatalogTests(unittest.TestCase):
         self.assertEqual(
             release["history"][0]["recipe_content_sha256"], _digest(RECIPE)
         )
-        self.assertEqual(release["version"], "1.1.0")
+        self.assertEqual(release["version"], "1.1.1")
         self.assertEqual(release["history"][0]["upgrade_effect"], "rebuild")
         self.assertEqual(model["sizes"]["download_bytes"], 70_090_051_372)
         self.assertEqual(artifacts["license-token-preflight"]["download_bytes"], 505)

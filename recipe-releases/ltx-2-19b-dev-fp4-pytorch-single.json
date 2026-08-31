@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-dev-fp4-pytorch-single"
   },
-  "version": "2.3.0",
-  "released_at": "2026-08-31",
+  "version": "2.3.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.3.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "32f866c8eb41e0de62f3c18ce9d9ba6107c9c2ca8846402ac45c4cd5e62999a4",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Corrected public build egress for the pinned LTX source archive and PyTorch wheel redirects.",
+          "details": "Added codeload.github.com and download-r2.pytorch.org, and removed nvcr.io because verified base images are transferred separately from Dockerfile build egress."
+        }
+      ]
+    },
     {
       "version": "2.3.0",
       "released_at": "2026-08-31",
