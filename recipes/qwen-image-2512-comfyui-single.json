@@ -5,7 +5,7 @@
   "model": {"kind": "model-version", "publisher": "qwen", "slug": "qwen-image-2512-comfyui-7beb7b64", "content_sha256": "7a350cb937cd357afe963ebae4b828e5e21dc21789deb69970cc16feb73cce59"},
   "execution": {"harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "comfyui", "content_sha256": "0d97fceaa9a7ab64bf3d826b5d9ca427ea10be79b54a8d4fe9190711c9bf70d6"}, "patch_bundle": null},
   "build": {
-    "context": {"path": "adapters/media/comfyui-qwen-image-2512-bf16", "sha256": "19d67a84ae97ece07b17dd464e150e24f4ef65c111a275a1cb129fd9c24b91da", "expected_bytes": 30720, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
+    "context": {"path": "adapters/media/comfyui-qwen-image-2512-bf16", "sha256": "91acde657f0bfe3d4a95f888bb0eccba68afa8f49be31500f829d62ef9549ae4", "expected_bytes": 30720, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
     "network": {"mode": "public", "hosts": ["nvcr.io", "codeload.github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]},
     "resources": {"download_bytes": 50499508414, "temporary_bytes": 60000000000, "memory_bytes": 8000000000, "timeout_seconds": 14400}
@@ -18,7 +18,7 @@
     {"id": "vae", "kind": "http.file", "repository": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f/split_files/vae/qwen_image_vae.safetensors", "revision": "sha256:a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f", "download_bytes": 253806246, "installed_bytes": 253806246, "mount": {"target": "/models/vae", "read_only": true}, "roles": ["entrypoint"]}
   ],
   "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "comfy-org", "slug": "comfyui-0-33-4-cuda13-arm64", "content_sha256": "bbb0dcf4cc585c7e52e0625f5329b7278312ed0c82bae895b8540cfd40a6035f"},
+    "distribution": {"kind": "runtime-distribution", "publisher": "comfy-org", "slug": "comfyui-0-34-0-cuda13-arm64", "content_sha256": "0400a5a7298a57cca1a049ef17baf21ce81c29fa897fbfa157256d4fde931d9c"},
     "entrypoint": ["/opt/vonk/bin/comfyui-job"],
     "arguments": [{"name": "workflow", "value": "/opt/vonk/source/workflows/qwen-image-2512-bf16.json"}, {"name": "workflow-sha256", "value": "cb4a3c052c6d1e886acf46b26f4922de93085f40614713bb9453993453881f8c"}, {"name": "output-mime", "value": "image/png"}, {"name": "seed", "value": 0}],
     "environment": [{"name": "HF_HUB_OFFLINE", "value": "1"}, {"name": "COMFYUI_DISABLE_TELEMETRY", "value": "1"}],

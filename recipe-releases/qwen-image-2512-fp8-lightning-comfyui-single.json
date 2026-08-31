@@ -1,9 +1,26 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "qwen-image-2512-fp8-lightning-comfyui-single"},
-  "version": "1.0.0",
-  "released_at": "2026-08-30",
+  "version": "1.0.1",
+  "released_at": "2026-08-31",
   "history": [
+    {
+      "version": "1.0.1",
+      "released_at": "2026-08-31",
+      "recipe_content_sha256": "bfde8c32a2adb166815a10306a8bcd09e44c03414ef40261004b1b4c0ee13782",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0.",
+          "details": "The source bundle now hash-locks stable tag v0.34.0 at exact commit 12d52794 and its verified source archive. Model artifacts, core-node workflow parameters, admission envelopes, and Candidate qualification are unchanged.",
+          "references": [
+            "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.34.0",
+            "https://github.com/Comfy-Org/ComfyUI/commit/12d5279438bfefc058a269eae805ceab6047777f"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-30",

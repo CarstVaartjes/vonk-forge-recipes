@@ -143,7 +143,7 @@ class QwenImageEditVariantMatrixTests(unittest.TestCase):
                 self.assertIn(
                     runtime,
                     {
-                        "comfyui-0-33-4-cuda13-arm64",
+                        "comfyui-0-34-0-cuda13-arm64",
                         "diffusers-0-40-0-cuda13-arm64",
                     },
                 )

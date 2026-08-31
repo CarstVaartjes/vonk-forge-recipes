@@ -4,9 +4,26 @@
     "publisher": "vonk-forge",
     "slug": "wan-2-2-ti2v-5b-comfyui-single"
   },
-  "version": "1.0.4",
-  "released_at": "2026-08-30",
+  "version": "1.0.5",
+  "released_at": "2026-08-31",
   "history": [
+    {
+      "version": "1.0.5",
+      "released_at": "2026-08-31",
+      "recipe_content_sha256": "41d7a92f932efa7362bf880cd0b44c37a6e24f3f222677c27b9321bb3cf85bf4",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0.",
+          "details": "The source bundle now hash-locks stable tag v0.34.0 at exact commit 12d52794 and its verified source archive. Model artifacts, core-node workflow parameters, admission envelopes, and Candidate qualification are unchanged.",
+          "references": [
+            "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.34.0",
+            "https://github.com/Comfy-Org/ComfyUI/commit/12d5279438bfefc058a269eae805ceab6047777f"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.4",
       "released_at": "2026-08-30",

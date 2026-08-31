@@ -5,6 +5,12 @@
     "huggingface": "default-branch"
   },
   "overrides": {
+    "runtime-distribution/comfy-org/comfyui-0-33-4-cuda13-arm64": {
+      "policy": "manual"
+    },
+    "runtime-distribution/comfy-org/comfyui-0-34-0-cuda13-arm64": {
+      "policy": "latest-release"
+    },
     "model-version/libertaidai/glm-5-3-flash-nvfp4-11d73216": {
       "policy": "manual"
     },

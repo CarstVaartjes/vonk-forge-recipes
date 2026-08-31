@@ -51,7 +51,7 @@ class Flux2NVFP4RecipeTests(unittest.TestCase):
             {"candidate", "executable", "nvfp4"} <= set(recipe["metadata"]["tags"])
         )
         self.assertEqual(
-            recipe["runtime"]["distribution"]["slug"], "comfyui-0-33-4-cuda13-arm64"
+            recipe["runtime"]["distribution"]["slug"], "comfyui-0-34-0-cuda13-arm64"
         )
         arguments = {
             item["name"]: item["value"] for item in recipe["runtime"]["arguments"]
@@ -82,7 +82,7 @@ class Flux2NVFP4RecipeTests(unittest.TestCase):
     def test_release_and_target_ledger_bind_current_recipe(self) -> None:
         recipe = load(f"recipes/{SLUG}.json")
         release = load(f"recipe-releases/{SLUG}.json")
-        self.assertEqual(release["version"], "1.0.0")
+        self.assertEqual(release["version"], "1.0.1")
         self.assertEqual(
             release["history"][0]["recipe_content_sha256"], canonical_digest(recipe)
         )
