@@ -94,6 +94,7 @@ class LtxFp4PromptContractTests(unittest.TestCase):
 
         with (
             mock.patch.object(sys, "argv", argv),
+            mock.patch.object(self.adapter, "_verify_ltx_runtime_contract"),
             mock.patch.object(
                 self.adapter.subprocess, "run", side_effect=run_pipeline
             ) as run,
@@ -130,6 +131,42 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         verify.assert_called_once()
         self.assertTrue((output / "ltx2.mp4").is_file())
         self.assertNotIn("VONK_PROMPT", ADAPTER_PATH.read_text(encoding="utf-8"))
+
+    def test_named_pipeline_output_contract_is_required(self) -> None:
+        pipeline_output = types.SimpleNamespace(
+            _fields=self.adapter.PIPELINE_OUTPUT_FIELDS
+        )
+        imported = types.SimpleNamespace(PipelineOutput=pipeline_output)
+        with (
+            mock.patch.object(
+                self.adapter.importlib.metadata,
+                "version",
+                return_value="1.3.0",
+            ),
+            mock.patch.object(
+                self.adapter.importlib, "import_module", return_value=imported
+            ),
+        ):
+            self.adapter._verify_ltx_runtime_contract()
+
+        imported.PipelineOutput._fields = (
+            "video",
+            "audio",
+            "num_frames",
+            "tiling_config",
+        )
+        with (
+            mock.patch.object(
+                self.adapter.importlib.metadata,
+                "version",
+                return_value="1.3.0",
+            ),
+            mock.patch.object(
+                self.adapter.importlib, "import_module", return_value=imported
+            ),
+            self.assertRaisesRegex(SystemExit, "PipelineOutput contract changed"),
+        ):
+            self.adapter._verify_ltx_runtime_contract()
 
     def test_output_media_contract_is_exact(self) -> None:
         output = Path(self.temporary.name) / "output.mp4"
