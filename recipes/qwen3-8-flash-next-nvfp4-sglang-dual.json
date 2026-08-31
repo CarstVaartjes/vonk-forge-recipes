@@ -9,14 +9,14 @@
   "model": {"kind": "model-version", "publisher": "radixark", "slug": "qwen3-8-flash-next-nvfp4-7b719225", "content_sha256": "92b1890def1113c809b2f48a76f4296231fc4920c261d9764aea09224b4963bf"},
   "execution": {
     "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "sglang", "content_sha256": "9bd9a41fe12dd4e551fac821623801b6df9af8943d42ddba9f46717636286947"},
-    "patch_bundle": {"kind": "patch-bundle", "publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dual-profile", "content_sha256": "353a7890f597eddec289698d33940b80abeae5cc08ea6c0ecceb11183fd7ad82"}
+    "patch_bundle": {"kind": "patch-bundle", "publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dual-profile", "content_sha256": "7eb810a7a5b22dce5fe5266bbcae8dfbc2edecd54c44be2bf7d1a248caee6e67"}
   },
   "build": {
     "context": {"path": "adapters/qwen/flash-next-sglang-dual", "sha256": "c4c5e5d542082ba2af57eb5d06b76a95aaf3b26f232ac358c4298283bab0ca6b", "expected_bytes": 61440, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile",
     "platform": "linux/arm64",
     "arguments": [],
-    "network": {"mode": "public", "hosts": ["docker.io", "files.pythonhosted.org"]},
+    "network": {"mode": "public", "hosts": ["files.pythonhosted.org"]},
     "resources": {"download_bytes": 14194270832, "temporary_bytes": 22000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
   },
   "parameters": [],
@@ -24,7 +24,7 @@
     {"id": "weights", "kind": "huggingface.snapshot", "repository": "RadixArk/Qwen3.8-Flash-Next-NVFP4", "revision": "7b719225242aacd3dbd3f9407468c2ee9a9d2594", "download_bytes": 135253622894, "installed_bytes": 135253622894, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}
   ],
   "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dspark-0f950012-arm64", "content_sha256": "9e10ab31f143ef09cf25724c0940d10e56498984dc213fdb5535f7487ee6f8fe"},
+    "distribution": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dspark-0f950012-arm64", "content_sha256": "10d62cb112b5066f55fbbbd00c4a2f480c684c4579581c0ec597ab6e22cef775"},
     "entrypoint": ["/opt/vonk/bin/sglang-serve"],
     "arguments": [
       {"name": "model-path", "value": "/models"},

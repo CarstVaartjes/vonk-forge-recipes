@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "minimax-h3-diffusers-single"
   },
-  "version": "3.0.1",
-  "released_at": "2026-08-30",
+  "version": "3.0.2",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "3.0.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "ccc7622d875d7afc1171e66faa1bb20bf98cd10c80e25e7de2709502bde9bb4f",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
+        }
+      ]
+    },
     {
       "version": "3.0.1",
       "released_at": "2026-08-30",

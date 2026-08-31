@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-fp8mixed-comfyui-single"
   },
-  "version": "1.0.2",
-  "released_at": "2026-08-31",
+  "version": "1.0.3",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.3",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "8f70cbe740ca7cd2a4a40161395530fe1f9d86b5a1aeab5a57d92423a347b309",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
+        }
+      ]
+    },
     {
       "version": "1.0.2",
       "released_at": "2026-08-31",

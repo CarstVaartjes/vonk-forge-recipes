@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-3-22b-distilled-1-1-diffusers-single"
   },
-  "version": "3.2.0",
-  "released_at": "2026-08-31",
+  "version": "3.2.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "3.2.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "1850c1240b7028522631d23cd1438bc930db199fcdbddca3606263081ace6b42",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
+        }
+      ]
+    },
     {
       "version": "3.2.0",
       "released_at": "2026-08-31",

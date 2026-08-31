@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "moss-vl-realtime-11b-pytorch-single"
   },
-  "version": "1.1.1",
-  "released_at": "2026-08-30",
+  "version": "1.1.2",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.1.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "6b3f3802322e6edb47490705d96329ef0473a14d95d04e1af7d4da24d9f39bdf",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
+        }
+      ]
+    },
     {
       "version": "1.1.1",
       "released_at": "2026-08-30",

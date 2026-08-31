@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "step1x-3d-label-geometry-pytorch-single"
   },
-  "version": "1.2.3",
-  "released_at": "2026-08-30",
+  "version": "1.2.4",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "5579e710b65141aaf17c1bd207710dc6e278f914ea5297dcf4ceb71eacfef847",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Added the Ubuntu security mirror required by the shared Step1X package-install build.",
+          "details": "The host allowlist now matches the pinned Step1X runtime distribution while preserving offline execution after installation."
+        }
+      ]
+    },
     {
       "version": "1.2.3",
       "released_at": "2026-08-30",

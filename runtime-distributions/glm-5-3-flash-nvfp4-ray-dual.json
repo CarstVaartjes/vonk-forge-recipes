@@ -24,7 +24,7 @@
     {"name": "Ray", "version": "2.58.0", "source": "https://pypi.org/project/ray/2.58.0/", "license": "Apache-2.0"},
     {"name": "NCCL", "version": "2.30.7", "source": "https://pypi.org/project/nvidia-nccl-cu13/2.30.7/", "license": "BSD-3-Clause"}
   ],
-  "build": {"network_hosts": ["docker.io", "files.pythonhosted.org", "flashinfer.ai"], "offline_after_installation": true},
+  "build": {"network_hosts": ["files.pythonhosted.org", "flashinfer.ai", "pypi.org"], "offline_after_installation": true},
   "capabilities": {
     "distributed_vllm": {
       "verified": true,

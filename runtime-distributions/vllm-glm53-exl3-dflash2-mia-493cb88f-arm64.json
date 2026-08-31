@@ -30,7 +30,7 @@
     {"name": "FlashInfer", "version": "0.6.17", "source": "https://github.com/flashinfer-ai/flashinfer", "license": "Apache-2.0"},
     {"name": "NCCL", "version": "2.30.7", "source": "https://pypi.org/project/nvidia-nccl-cu13/2.30.7/", "license": "BSD-3-Clause"}
   ],
-  "build": {"network_hosts": ["ghcr.io"], "offline_after_installation": true},
+  "build": {"network_hosts": [], "offline_after_installation": true},
   "capabilities": {
     "runtime_environment": {
       "allowed_names": [

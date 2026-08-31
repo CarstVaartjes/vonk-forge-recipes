@@ -49,9 +49,10 @@
     "network": {
       "mode": "public",
       "hosts": [
-        "nvcr.io",
         "github.com",
+        "codeload.github.com",
         "download.pytorch.org",
+        "download-r2.pytorch.org",
         "pypi.org",
         "files.pythonhosted.org",
         "archive.ubuntu.com",

@@ -53,7 +53,6 @@
     "network": {
       "mode": "public",
       "hosts": [
-        "nvcr.io",
         "github.com",
         "download.pytorch.org",
         "pypi.org",
