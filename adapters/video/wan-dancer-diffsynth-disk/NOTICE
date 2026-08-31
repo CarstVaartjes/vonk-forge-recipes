@@ -1,0 +1,12 @@
+DiffSynth-Studio runtime source
+Copyright ModelScope contributors
+Source: https://github.com/modelscope/DiffSynth-Studio
+Revision: 84f93fc4907b6c193be5501bab0b5c37f383033c
+License: Apache-2.0 (see /opt/diffsynth-studio/LICENSE)
+
+This adapter uses DiffSynth-Studio's pinned Wan-Dancer low-VRAM inference path.
+The Vonk-specific adaptation pins all model paths to the mounted immutable
+Wan-AI snapshot, disables runtime downloads and sequence parallelism, runs the
+global and local stages as separate processes, preserves the official native
+short-clip keyframe mapping, validates the job contract, and publishes the
+final MP4 artifact. Wan-Dancer model attribution remains Wan-AI and Wan-Video.
