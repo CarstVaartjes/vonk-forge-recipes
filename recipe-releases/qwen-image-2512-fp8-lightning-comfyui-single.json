@@ -1,9 +1,22 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "qwen-image-2512-fp8-lightning-comfyui-single"},
-  "version": "1.0.1",
-  "released_at": "2026-08-31",
+  "version": "1.0.2",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "b7ffa44be4ae99feb10716ee5b46ba68a48632c47072579311f0bcc0b7ee2eab",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-31",

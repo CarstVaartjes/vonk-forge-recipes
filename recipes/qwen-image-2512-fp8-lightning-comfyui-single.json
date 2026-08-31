@@ -8,7 +8,7 @@
   "build": {
     "context": {"path": "adapters/media/comfyui-qwen-image-2512-fp8-lightning", "sha256": "82a59baae4744fce76a79dc82244eb9c7f67d1ab340bf14196ed3f9f7fa7f12e", "expected_bytes": 30720, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
-    "network": {"mode": "public", "hosts": ["nvcr.io", "codeload.github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]},
+    "network": {"mode": "public", "hosts": ["codeload.github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]},
     "resources": {"download_bytes": 31768107174, "temporary_bytes": 40000000000, "memory_bytes": 8000000000, "timeout_seconds": 14400}
   },
   "parameters": [],

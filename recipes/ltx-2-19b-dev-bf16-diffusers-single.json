@@ -57,7 +57,6 @@
     "network": {
       "mode": "public",
       "hosts": [
-        "nvcr.io",
         "github.com",
         "codeload.github.com",
         "download.pytorch.org",

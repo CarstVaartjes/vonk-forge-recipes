@@ -1,9 +1,22 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-exl3-dflash2-vllm-dual"},
-  "version": "1.2.0",
-  "released_at": "2026-08-31",
+  "version": "1.2.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "a068d343ca6c2962f1df66146280a245dd136c6c6cd28556e7b5f0da08853a04",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Removed unnecessary public network access from the deterministic dual-Spark image build.",
+          "details": "The Dockerfile performs only local patching and verification after the digest-pinned base image is transferred separately."
+        }
+      ]
+    },
     {
       "version": "1.2.0",
       "released_at": "2026-08-31",

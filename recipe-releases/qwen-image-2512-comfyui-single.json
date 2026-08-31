@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-2512-comfyui-single"
   },
-  "version": "1.0.5",
-  "released_at": "2026-08-31",
+  "version": "1.0.6",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.6",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "681b33b3c55a91597692ace91c35b099b9278d4eebef597456f5709e0e228190",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
+        }
+      ]
+    },
     {
       "version": "1.0.5",
       "released_at": "2026-08-31",

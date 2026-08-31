@@ -28,7 +28,7 @@
     {"name": "NCCL", "version": "2.30.7", "source": "https://pypi.org/project/nvidia-nccl-cu13/2.30.7/", "license": "BSD-3-Clause"},
     {"name": "CUDA", "version": "13.0", "source": "docker.io/lmsysorg/sglang@sha256:14ed582518584c5c830206b5318a2c2769e68229c3422e48a28b952b3a888bd4", "license": "NVIDIA CUDA Toolkit EULA"}
   ],
-  "build": {"network_hosts": ["docker.io", "files.pythonhosted.org"], "offline_after_installation": true},
+  "build": {"network_hosts": ["files.pythonhosted.org"], "offline_after_installation": true},
   "capabilities": {
     "runtime_environment": {
       "allowed_names": ["SGLANG_SANITIZE_NAN_LOGITS"]

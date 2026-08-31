@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "wan-2-2-i2v-14b-comfyui-single"
   },
-  "version": "1.0.5",
-  "released_at": "2026-08-31",
+  "version": "1.0.6",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.6",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "373a948d4a6163e29e5b41d5f6971057cb1e4bbb5ed3803e0292a94320d3cbf0",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
+        }
+      ]
+    },
     {
       "version": "1.0.5",
       "released_at": "2026-08-31",

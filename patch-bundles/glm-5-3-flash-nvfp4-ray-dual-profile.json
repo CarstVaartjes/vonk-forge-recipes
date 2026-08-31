@@ -7,6 +7,6 @@
     "description": "Immutable binding to the public SM121 sparse-MLA patch, multimodal template, Ray TP2 rendezvous, conservative 0.84 unified-memory budget, FP8 KV cache, Marlin experts, and four-token MTP profile.",
     "tags": ["candidate", "glm-5.3", "multimodal", "ray", "spark", "topology", "tp2"]
   },
-  "applies_to": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "glm-5-3-flash-nvfp4-ray-dual", "content_sha256": "f5809f88fdcd30db8716eb8eb81684efb8997b5bf300802d6df4f4a7fb3709d6"},
+  "applies_to": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "glm-5-3-flash-nvfp4-ray-dual", "content_sha256": "8c792f2d7badb950489a5d6acc1dcf6f6c540e4df41085e083897dad12192e87"},
   "sha256": "d2fd5f500f6fad30f41e10ea8db680cf130166fc2721b03bbcb6d81a555ab8b3"
 }

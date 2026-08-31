@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-dev-bf16-diffusers-single"
   },
-  "version": "3.2.0",
-  "released_at": "2026-08-31",
+  "version": "3.2.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "3.2.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "960b825735a830becc2e42f01fc92ff0edf4b6f2f7a812a0f6c706810f8614da",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
+        }
+      ]
+    },
     {
       "version": "3.2.0",
       "released_at": "2026-08-31",

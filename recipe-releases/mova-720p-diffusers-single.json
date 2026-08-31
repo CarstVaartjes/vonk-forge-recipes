@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "mova-720p-diffusers-single"
   },
-  "version": "2.0.4",
-  "released_at": "2026-08-30",
+  "version": "2.0.5",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.0.5",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "aed23720acc1e5bb7f960a9974e2b5c53c735fed41b72d363924eaa961c88f56",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
+        }
+      ]
+    },
     {
       "version": "2.0.4",
       "released_at": "2026-08-30",

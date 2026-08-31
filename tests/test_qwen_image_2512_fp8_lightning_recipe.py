@@ -141,7 +141,7 @@ class QwenImage2512FP8LightningRecipeTests(unittest.TestCase):
     def test_release_and_target_bind_the_unaccepted_candidate(self) -> None:
         recipe = load(f"recipes/{SLUG}.json")
         release = load(f"recipe-releases/{SLUG}.json")
-        self.assertEqual(release["version"], "1.0.1")
+        self.assertEqual(release["version"], "1.0.2")
         self.assertEqual(
             release["history"][0]["recipe_content_sha256"],
             canonical_digest(recipe),

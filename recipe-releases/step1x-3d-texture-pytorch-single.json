@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "step1x-3d-texture-pytorch-single"
   },
-  "version": "1.2.3",
-  "released_at": "2026-08-30",
+  "version": "1.2.4",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "2ec3e3e53d7cbe51410301dc32bd8e5cfe82cb6222bf1db1b8adceb8b8fabf5c",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Added the Ubuntu security mirror required by the shared Step1X package-install build.",
+          "details": "The host allowlist now matches the pinned Step1X runtime distribution while preserving offline execution after installation."
+        }
+      ]
+    },
     {
       "version": "1.2.3",
       "released_at": "2026-08-30",

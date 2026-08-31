@@ -7,6 +7,6 @@
     "description": "Immutable binding to MiaAI-Lab's 1M YaRN profile: native TP2, modelopt FP4, NaN-safe SM121 QSA NVFP4 and FP8 KV, sticky token-0 abort and cache flush, ConnectX MessageQueue routing, automatic PLE placement, 28 request slots, MTP3, and exact NCCL 2.30.7.",
     "tags": ["candidate", "mtp", "qwen3.8", "sglang", "spark", "topology", "tp2"]
   },
-  "applies_to": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dspark-0f950012-arm64", "content_sha256": "9e10ab31f143ef09cf25724c0940d10e56498984dc213fdb5535f7487ee6f8fe"},
+  "applies_to": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "sglang-qwen38-flash-next-dspark-0f950012-arm64", "content_sha256": "10d62cb112b5066f55fbbbd00c4a2f480c684c4579581c0ec597ab6e22cef775"},
   "sha256": "c4c5e5d542082ba2af57eb5d06b76a95aaf3b26f232ac358c4298283bab0ca6b"
 }
