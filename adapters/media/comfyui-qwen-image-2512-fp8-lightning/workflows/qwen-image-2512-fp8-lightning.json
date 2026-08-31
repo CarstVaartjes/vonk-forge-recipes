@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "identity": "comfyui-core/qwen-image-2512-fp8-lightning@1",
-  "upstream_template": "https://github.com/Comfy-Org/ComfyUI/blob/7a131a3afadc8200120f67f9236311a2c48b7445/blueprints/Text%20to%20Image%20(Qwen-Image%202512).json",
+  "upstream_template": "https://github.com/Comfy-Org/ComfyUI/blob/12d5279438bfefc058a269eae805ceab6047777f/blueprints/Text%20to%20Image%20(Qwen-Image%202512).json",
   "models": [
     {"artifact_id": "target", "category": "diffusion_models", "filename": "qwen_image_2512_fp8_e4m3fn.safetensors"},
     {"artifact_id": "lightning-lora", "category": "loras", "filename": "Qwen-Image-2512-Lightning-4steps-V1.0-fp32.safetensors"},

@@ -20,6 +20,17 @@ RECIPE_SLUGS = (
     "wan-2-2-t2v-14b-comfyui-single",
     "wan-2-2-ti2v-5b-comfyui-single",
 )
+ALL_COMFY_RECIPE_SLUGS = (
+    "flux-2-klein-4b-nvfp4-comfyui-single",
+    "qwen-image-edit-2511-fp8mixed-comfyui-single",
+    "qwen-image-edit-2511-int8-convrot-comfyui-single",
+    *RECIPE_SLUGS,
+)
+COMFY_REVISION = "12d5279438bfefc058a269eae805ceab6047777f"
+COMFY_ARCHIVE_SHA256 = (
+    "6d8ab87ec1250e60101f0caf9e11658834c29d9cd76c9174e2b84ec9436f4886"
+)
+RUNTIME_SLUG = "comfyui-0-34-0-cuda13-arm64"
 CORE_NODES = {
     "CFGGuider",
     "CFGNorm",
@@ -112,11 +123,8 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
 
     def test_runtime_is_pinned_and_has_no_custom_node_supply_chain(self) -> None:
         dockerfile = (ADAPTER / "Dockerfile").read_text()
-        self.assertIn("7a131a3afadc8200120f67f9236311a2c48b7445", dockerfile)
-        self.assertIn(
-            "7e123716ae698194b3ded7ecbd8028b792d9015ce56d2318ebf4b8066efc6016",
-            dockerfile,
-        )
+        self.assertIn(COMFY_REVISION, dockerfile)
+        self.assertIn(COMFY_ARCHIVE_SHA256, dockerfile)
         self.assertNotIn("ComfyUI-Manager", dockerfile)
         self.assertNotIn("custom_nodes", dockerfile)
         for slug in RECIPE_SLUGS:
@@ -124,12 +132,39 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
             recipe_dockerfile = (
                 ROOT / recipe["build"]["context"]["path"] / "Dockerfile"
             ).read_text()
-            self.assertIn("7a131a3afadc8200120f67f9236311a2c48b7445", recipe_dockerfile)
+            self.assertIn(COMFY_REVISION, recipe_dockerfile)
             self.assertNotIn("ComfyUI-Manager", recipe_dockerfile)
             self.assertNotIn("custom_nodes", recipe_dockerfile)
             self.assertIn("candidate", recipe["metadata"]["tags"])
             self.assertEqual(recipe["execution"]["harness"]["slug"], "comfyui")
             self.assertFalse(recipe["runtime"]["security"]["host_network"])
+
+    def test_all_comfy_recipes_bind_the_exact_034_runtime_closure(self) -> None:
+        runtime = json.loads(
+            (ROOT / "runtime-distributions" / f"{RUNTIME_SLUG}.json").read_text()
+        )
+        canonical = json.dumps(
+            runtime,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode()
+        runtime_digest = hashlib.sha256(canonical).hexdigest()
+        self.assertEqual(runtime["source"]["revision"], COMFY_REVISION)
+        self.assertEqual(runtime["source"]["archive_sha256"], COMFY_ARCHIVE_SHA256)
+        dependencies = {item["name"]: item for item in runtime["dependencies"]}
+        self.assertEqual(dependencies["ComfyUI"]["version"], "0.34.0")
+        self.assertEqual(
+            dependencies["comfyui-workflow-templates"]["version"], "0.11.48"
+        )
+        for slug in ALL_COMFY_RECIPE_SLUGS:
+            with self.subTest(slug=slug):
+                recipe = json.loads(
+                    (ROOT / "recipes" / f"{slug}.json").read_text()
+                )
+                distribution = recipe["runtime"]["distribution"]
+                self.assertEqual(distribution["slug"], RUNTIME_SLUG)
+                self.assertEqual(distribution["content_sha256"], runtime_digest)
 
     def test_qwen_2512_uses_the_published_quality_defaults(self) -> None:
         recipe = json.loads(

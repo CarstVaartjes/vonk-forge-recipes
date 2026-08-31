@@ -4,9 +4,26 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-comfyui-single"
   },
-  "version": "1.0.4",
-  "released_at": "2026-08-30",
+  "version": "1.0.5",
+  "released_at": "2026-08-31",
   "history": [
+    {
+      "version": "1.0.5",
+      "released_at": "2026-08-31",
+      "recipe_content_sha256": "a06709b85f4362f0734a29df913f23c193695e46f76e5f9790474cd553dff364",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "runtime",
+          "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0.",
+          "details": "The source bundle now hash-locks stable tag v0.34.0 at exact commit 12d52794 and its verified source archive. Model artifacts, core-node workflow parameters, admission envelopes, and Candidate qualification are unchanged.",
+          "references": [
+            "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.34.0",
+            "https://github.com/Comfy-Org/ComfyUI/commit/12d5279438bfefc058a269eae805ceab6047777f"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.4",
       "released_at": "2026-08-30",

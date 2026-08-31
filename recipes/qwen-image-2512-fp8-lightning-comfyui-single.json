@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "qwen-image-2512-fp8-lightning-comfyui-single"},
-  "metadata": {"title": "Qwen Image 2512 FP8 Lightning ComfyUI single Spark", "description": "Installable Candidate for the exact official ComfyUI 0.33.4 Qwen Image 2512 profile: FP8 transformer, FP32 four-step Lightning LoRA, scaled-FP8 text encoder, and Qwen Image VAE on one Spark.", "tags": ["executable", "candidate", "qwen", "image", "text-to-image", "comfyui", "fp8", "lightning", "lora", "single", "spark"]},
+  "metadata": {"title": "Qwen Image 2512 FP8 Lightning ComfyUI single Spark", "description": "Installable Candidate for the exact official ComfyUI 0.34.0 Qwen Image 2512 profile: FP8 transformer, FP32 four-step Lightning LoRA, scaled-FP8 text encoder, and Qwen Image VAE on one Spark.", "tags": ["executable", "candidate", "qwen", "image", "text-to-image", "comfyui", "fp8", "lightning", "lora", "single", "spark"]},
   "model": {"kind": "model-version", "publisher": "qwen", "slug": "qwen-image-2512-lightning-fp32-a52649c9", "content_sha256": "91f83d22246eb0b1022c3db570ecdb2728a237de3268f53ea90398249f176cc8"},
   "dependencies": [{"kind": "model-version", "publisher": "qwen", "slug": "qwen-image-2512-comfyui-fp8-7beb7b64", "content_sha256": "4d92962dd9c7b9483d023decc9d915edcaab8aab13372ad2b294ae57af1f58cc"}],
   "execution": {"harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "comfyui", "content_sha256": "0d97fceaa9a7ab64bf3d826b5d9ca427ea10be79b54a8d4fe9190711c9bf70d6"}, "patch_bundle": null},
   "build": {
-    "context": {"path": "adapters/media/comfyui-qwen-image-2512-fp8-lightning", "sha256": "052d8683c9e951e552a51db1c2ccb66e9da1f772f00f47ea0999e6fd320a6e48", "expected_bytes": 30720, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
+    "context": {"path": "adapters/media/comfyui-qwen-image-2512-fp8-lightning", "sha256": "82a59baae4744fce76a79dc82244eb9c7f67d1ab340bf14196ed3f9f7fa7f12e", "expected_bytes": 30720, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
     "network": {"mode": "public", "hosts": ["nvcr.io", "codeload.github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]},
     "resources": {"download_bytes": 31768107174, "temporary_bytes": 40000000000, "memory_bytes": 8000000000, "timeout_seconds": 14400}
@@ -20,9 +20,9 @@
     {"id": "vae", "kind": "http.file", "repository": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f/split_files/vae/qwen_image_vae.safetensors", "revision": "sha256:a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f", "download_bytes": 253806246, "installed_bytes": 253806246, "mount": {"target": "/models/vae", "read_only": true}, "roles": ["entrypoint"]}
   ],
   "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "comfy-org", "slug": "comfyui-0-33-4-cuda13-arm64", "content_sha256": "bbb0dcf4cc585c7e52e0625f5329b7278312ed0c82bae895b8540cfd40a6035f"},
+    "distribution": {"kind": "runtime-distribution", "publisher": "comfy-org", "slug": "comfyui-0-34-0-cuda13-arm64", "content_sha256": "0400a5a7298a57cca1a049ef17baf21ce81c29fa897fbfa157256d4fde931d9c"},
     "entrypoint": ["/opt/vonk/bin/comfyui-job"],
-    "arguments": [{"name": "workflow", "value": "/opt/vonk/source/workflows/qwen-image-2512-fp8-lightning.json"}, {"name": "workflow-sha256", "value": "99eafe4a0aa63a77c577d0e3167480558419a79f6f7fdd1de67ebd1be9d364cf"}, {"name": "output-mime", "value": "image/png"}, {"name": "seed", "value": 0}],
+    "arguments": [{"name": "workflow", "value": "/opt/vonk/source/workflows/qwen-image-2512-fp8-lightning.json"}, {"name": "workflow-sha256", "value": "2bd76502d2846d5c0859171d40093e0335a803de42dc1c571cb0d9e3dd98da84"}, {"name": "output-mime", "value": "image/png"}, {"name": "seed", "value": 0}],
     "environment": [{"name": "HF_HUB_OFFLINE", "value": "1"}, {"name": "COMFYUI_DISABLE_TELEMETRY", "value": "1"}],
     "security": {"devices": ["nvidia.com/gpu=all"], "capabilities": [], "host_network": false, "privileged": false, "user": "10001:10001", "mounts": [{"source": "model", "target": "/models", "read_only": true}, {"source": "inputs", "target": "/inputs", "read_only": true}, {"source": "outputs", "target": "/outputs", "read_only": false}]},
     "lifecycle": {"pre_start": [], "post_stop": [], "stop_timeout_seconds": 120, "readiness": {"strategy": "endpoint-owner", "path": "/outputs", "timeout_seconds": 3600}, "failure": {"rank_loss": "not-applicable", "recovery": "restart-entrypoint"}}

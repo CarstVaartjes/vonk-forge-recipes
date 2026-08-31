@@ -5,7 +5,7 @@
   "model": {"kind": "model-version", "publisher": "black-forest-labs", "slug": "flux-2-klein-4b-comfyui-5f526678", "content_sha256": "a81dd096c7aca70899e0da02025f9f35805887122b960061298575ea7c5673e7"},
   "execution": {"harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "comfyui", "content_sha256": "0d97fceaa9a7ab64bf3d826b5d9ca427ea10be79b54a8d4fe9190711c9bf70d6"}, "patch_bundle": null},
   "build": {
-    "context": {"path": "adapters/media/comfyui-core", "sha256": "3216626366786e759d07a3ee15eb3ba1ffeb5c5d9cd491d8e4dca54379d01a45", "expected_bytes": 51200, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
+    "context": {"path": "adapters/media/comfyui-core", "sha256": "ab8f73d84fa6b14bf00beb4b3bd6188033759f1607549d9a7ca09d2c07c30b38", "expected_bytes": 51200, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
     "network": {"mode": "public", "hosts": ["nvcr.io", "codeload.github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]},
     "resources": {"download_bytes": 16132299052, "temporary_bytes": 22000000000, "memory_bytes": 6000000000, "timeout_seconds": 7200}
@@ -18,7 +18,7 @@
     {"id": "vae", "kind": "http.file", "repository": "https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b/resolve/5f526678002e43af5551dadb73ce2e8c91b43afe/split_files/vae/flux2-vae.safetensors", "revision": "sha256:868fe7b343cc8f3a19dbcfcafbc3d5f888802be3f89bd81b65b3621a066ce8f3", "download_bytes": 336211292, "installed_bytes": 336211292, "mount": {"target": "/models/vae", "read_only": true}, "roles": ["entrypoint"]}
   ],
   "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "comfy-org", "slug": "comfyui-0-33-4-cuda13-arm64", "content_sha256": "bbb0dcf4cc585c7e52e0625f5329b7278312ed0c82bae895b8540cfd40a6035f"},
+    "distribution": {"kind": "runtime-distribution", "publisher": "comfy-org", "slug": "comfyui-0-34-0-cuda13-arm64", "content_sha256": "0400a5a7298a57cca1a049ef17baf21ce81c29fa897fbfa157256d4fde931d9c"},
     "entrypoint": ["/opt/vonk/bin/comfyui-job"],
     "arguments": [{"name": "workflow", "value": "/opt/vonk/source/workflows/flux-2-klein-4b.json"}, {"name": "workflow-sha256", "value": "b322f7b92589c49b6d15a4cd935dc12700de9c1f16cde3bba61118fb4dedca1d"}, {"name": "output-mime", "value": "image/png"}, {"name": "seed", "value": 0}],
     "environment": [{"name": "HF_HUB_OFFLINE", "value": "1"}, {"name": "COMFYUI_DISABLE_TELEMETRY", "value": "1"}],
