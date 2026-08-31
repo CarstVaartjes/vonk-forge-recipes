@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "kind": "model-version",
+  "identity": {
+    "publisher": "incoai",
+    "slug": "glm-5-3-flash-dflash2-bf582e4e"
+  },
+  "metadata": {
+    "title": "GLM 5.3 Flash DFlash2 bf582e4e",
+    "description": "Exact public GLM 5.3 Flash DFlash2 bf582e4e checkpoint.",
+    "tags": [
+      "incoai",
+      "glm-5-3-dflash",
+      "language",
+      "candidate"
+    ]
+  },
+  "model": {
+    "kind": "model",
+    "publisher": "incoai",
+    "slug": "glm-5-3-flash-dflash2",
+    "content_sha256": "ecef4f38c980cdc6fe92c8059344bdac68dd26cdbb04165d60ac8335dd1a9741"
+  },
+  "version": "GLM 5.3 Flash DFlash2 bf582e4e",
+  "source": {
+    "repository": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2",
+    "revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a"
+  },
+  "lineage": {
+    "publisher": "incoai",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "incoai",
+      "slug": "glm-5-3-flash-dflash2",
+      "content_sha256": "ecef4f38c980cdc6fe92c8059344bdac68dd26cdbb04165d60ac8335dd1a9741"
+    },
+    "derivation": "Official upstream checkpoint at the pinned revision."
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "parameters": {
+    "total": 1000000000,
+    "active": 1000000000
+  },
+  "limits": {
+    "context_tokens": 1048576
+  },
+  "sizes": {
+    "download_bytes": 2342460697,
+    "installed_bytes": 2342460697
+  },
+  "license": {
+    "spdx": "CC-BY-NC-ND-4.0",
+    "url": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/blob/bf582e4eacc1810f76656d1811693ff6c6737d2a/README.md",
+    "attribution": [
+      "IncoAI"
+    ],
+    "operator_acceptance_required": true
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "artifacts": [
+    {
+      "id": "metadata-70e0ed421d65-618cd5b83d",
+      "path": ".gitattributes",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2",
+      "revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a",
+      "sha256": "70e0ed421d653865ad7ace84728e32ded01ec0a860e989a5ed736fe11b42214f",
+      "download_bytes": 116,
+      "installed_bytes": 116,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "readme-2014434d3e36-b335630551",
+      "path": "README.md",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2",
+      "revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a",
+      "sha256": "2014434d3e3639147d35d61259690d585e7820993180e7d579e3b796dddf5a31",
+      "download_bytes": 2619,
+      "installed_bytes": 2619,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "dflash2-figure-6d8dcc9a9472-e520c8f797",
+      "path": "assets/dflash2-figure.png",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2",
+      "revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a",
+      "sha256": "6d8dcc9a9472bddb644c881fe83050b5343d09bf5ffb0912e5598e55fe671e99",
+      "download_bytes": 286889,
+      "installed_bytes": 286889,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "config-c4aeac010119-587cb980af",
+      "path": "config.json",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2",
+      "revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a",
+      "sha256": "c4aeac0101196a6e26705b34c45230bcd0c7c68ee2d2d1efdb242087f3712573",
+      "download_bytes": 1273,
+      "installed_bytes": 1273,
+      "roles": [
+        "configuration"
+      ]
+    },
+    {
+      "id": "model-b038e1d9d1e7-9d75c1098f",
+      "path": "model.safetensors",
+      "kind": "huggingface.file",
+      "repository": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2",
+      "revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a",
+      "sha256": "b038e1d9d1e7833fa3880c2c0135ba9b673013f03da1b29fb831931584759dac",
+      "download_bytes": 2342169800,
+      "installed_bytes": 2342169800,
+      "roles": [
+        "weights"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "availability": "active",
+  "supersedes": null
+}

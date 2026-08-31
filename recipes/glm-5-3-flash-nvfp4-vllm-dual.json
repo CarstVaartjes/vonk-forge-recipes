@@ -3,10 +3,10 @@
   "identity": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-dual"},
   "metadata": {
     "title": "GLM 5.3 Flash NVFP4 vLLM two Sparks",
-    "description": "Executable Candidate Ray TP2 recipe for LibertAI's 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint. It reproduces MiaAI-Lab's public SM121 sparse-MLA build, 262K profile, FP8 KV cache, MTP4, and conservative 0.84 unified-memory budget; Vonk physical acceptance remains pending.",
+    "description": "Executable Candidate Ray TP2 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint. It reproduces MiaAI-Lab's public SM121 sparse-MLA build, 262K profile, FP8 KV cache, MTP4, and conservative 0.84 unified-memory budget; the calibrated per-projection input scales replace the underflowing 1.0 placeholders, and Vonk physical acceptance plus long-context repetition regression remain pending.",
     "tags": ["executable", "candidate", "glm-5.3", "mtp", "multimodal", "nvfp4", "ray", "reasoning", "spark", "tool-use", "vllm"]
   },
-  "model": {"kind": "model-version", "publisher": "libertaidai", "slug": "glm-5-3-flash-nvfp4-357b45cc", "content_sha256": "eb1bfffd3017a60e3f611e8b78a121a19bf2bb22f8f05e73ac6bf511bc9c59e7"},
+  "model": {"kind": "model-version", "publisher": "libertaidai", "slug": "glm-5-3-flash-nvfp4-92d8bfb9", "content_sha256": "ec0898e40fe4857344db4a8e390150130789947681c5f032fabae330c5fe04d5"},
   "execution": {
     "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"},
     "patch_bundle": {"kind": "patch-bundle", "publisher": "miaai-lab", "slug": "glm-5-3-flash-nvfp4-ray-dual-profile", "content_sha256": "2c9a67809c8f260e665eea84eb8b1f77edc3d39783c79319929ecb502c74359b"}
@@ -19,7 +19,7 @@
   },
   "parameters": [],
   "artifacts": [
-    {"id": "weights", "kind": "huggingface.snapshot", "repository": "LibertAIDAI/GLM-5.3-Flash-NVFP4", "revision": "357b45cc73a07a541cede88861f7736c9487ebf7", "download_bytes": 194701808085, "installed_bytes": 194701808085, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}
+    {"id": "weights", "kind": "huggingface.snapshot", "repository": "LibertAIDAI/GLM-5.3-Flash-NVFP4", "revision": "92d8bfb91c19ceb6fb530dfb538a3a24eceb6ef7", "download_bytes": 194701810857, "installed_bytes": 194701810857, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}
   ],
   "runtime": {
     "distribution": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "glm-5-3-flash-nvfp4-ray-dual", "content_sha256": "f5809f88fdcd30db8716eb8eb81684efb8997b5bf300802d6df4f4a7fb3709d6"},
@@ -71,8 +71,8 @@
   "topology": {
     "name": "dual", "mode": "distributed", "node_count": 2,
     "roles": [
-      {"name": "entrypoint", "count": 1, "endpoint_owner": true, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194701808085, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 124000000000, "steady_state_bytes": 116000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}}},
-      {"name": "worker", "count": 1, "endpoint_owner": false, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194701808085, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 124000000000, "steady_state_bytes": 116000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}}}
+      {"name": "entrypoint", "count": 1, "endpoint_owner": true, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194701810857, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 124000000000, "steady_state_bytes": 116000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}}},
+      {"name": "worker", "count": 1, "endpoint_owner": false, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194701810857, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 124000000000, "steady_state_bytes": 116000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}}}
     ],
     "parallelism": {"world_size": 2, "tensor": 2, "pipeline": 1, "data": 1, "backend": "mp"},
     "fabric": {"connectivity": "connected", "minimum_bandwidth_mbps": 200000},
@@ -81,7 +81,10 @@
   "interfaces": [{"adapter": "openai", "port": 8888, "model_aliases": ["glm-5.3-flash"], "health_path": "/v1/models"}],
   "validation": {
     "validators": [{"interface": "openai", "checks": ["endpoint.healthy", "collective.two-ranks", "chat.nonempty", "chat.max-output-64", "rank-loss.withdrawal", "rank-recovery.healthy"]}],
-    "benchmarks": [{"name": "bounded-chat", "framework": "openai", "configuration": {"max_output_tokens": 64, "requests": 1, "timeout_seconds": 600}}]
+    "benchmarks": [
+      {"name": "bounded-chat", "framework": "openai", "configuration": {"max_output_tokens": 64, "requests": 1, "timeout_seconds": 600}},
+      {"name": "long-context-repetition-regression", "framework": "openai", "configuration": {"prompt_tokens": 32768, "max_output_tokens": 256, "requests": 1, "temperature": 0, "reject_repeated_suffix": true, "timeout_seconds": 1200}}
+    ]
   },
   "provenance": {"source_kind": "global", "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-NVFP4-Dual-DGX-Spark/tree/aed98a13ca75140d2691cc5c651ea5817d9a3e44", "attribution": ["Z.ai", "LibertAI", "MiaAI-Lab", "vLLM contributors"]}
 }
