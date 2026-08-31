@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "recipe": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-vision-exp-mia-dual"},
+  "version": "1.0.0",
+  "released_at": "2026-08-31",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-31",
+      "recipe_content_sha256": "d0121b2d092af5ffeada0555f47ce2acc6ca541c3dcc3bc0a79e818d623f6d09",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added the official native-vision DeepSeek V4 Flash Experimental dual-Spark Candidate.",
+          "details": "Pins all 84 files and 167,831,847,285 bytes at official revision e46e16bf, then reproduces MiaAI-Lab 7963d432 on the immutable Anemll ARM64 runtime with OpenAI image_url input, the official 32-layer ViT and aligner, NVFP4 DS-MLA KV, DSpark K6, TP2, and the measured 1M profile. The older Mia single-Spark repository remains a text-only 0731 EXL3 lane, so no unsupported Vision single-Spark recipe is claimed.",
+          "references": [
+            "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp/tree/e46e16bf6035c6f317eb2ac7458eb0362926d402",
+            "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/7963d432bfe717f2a7249a53fb4c0673c239c03e"
+          ]
+        }
+      ]
+    }
+  ]
+}
