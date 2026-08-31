@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "LTX-2.3 22B distilled 1.1 native synchronized single Spark",
-    "description": "Directly deployable disk-offload Candidate using the exact official native LTX-2.3 distilled pipeline, 1.1 checkpoint/upscaler pair, and Gemma 3 companion closure. The 93 GB startup and 77 GB steady declarations conservatively subtract only upstream's documented 31 GB host-memory advantage for disk over CPU offload from the previous profile, while retaining its 8 GB growth and 8 GB system reserve. Physical Spark acceptance remains pending.",
+    "description": "Directly deployable disk-offload Candidate using the exact official native LTX 1.3.0 pipeline with the LTX-2.3 distilled 1.1 checkpoint/upscaler pair and Gemma 3 companion closure. The 93 GB startup and 77 GB steady declarations conservatively retain the previously reviewed 31 GB disk-versus-CPU offload advantage, 8 GB growth, and 8 GB system reserve; the upstream decode-tiling OOM fix is not used to lower admission bounds without a physical canary. Physical Spark acceptance remains pending.",
     "tags": ["executable",
       "candidate",
       "build-unvalidated",
@@ -47,7 +47,7 @@
   "build": {
     "context": {
       "path": "adapters/video/ltx23-sync-native-disk",
-      "sha256": "ccfcab27ab53c2c092d9390e32743b67c9a4176c4377d266981b7fa9696ca583",
+      "sha256": "ff999ce2e86a89952e47149812ffccbd1cbe5ef3faa537fd4412f959e27e85ad",
       "expected_bytes": 20480,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -443,8 +443,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "lightricks",
-      "slug": "ltx2-pipelines-1-2-arm64",
-      "content_sha256": "75b386952bb48581aef3487074ea0e41a88db1d841007faea88c4c486d648f3a"
+      "slug": "ltx2-pipelines-1-3-arm64",
+      "content_sha256": "ca55b66b31169753e7226f6e1cf35239dfc3ce33d74fdc1767ffbfd96991e184"
     },
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"

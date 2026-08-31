@@ -3,11 +3,11 @@
   "kind": "runtime-distribution",
   "identity": {
     "publisher": "lightricks",
-    "slug": "ltx2-pipelines-1-2-arm64"
+    "slug": "ltx2-pipelines-1-3-arm64"
   },
   "metadata": {
-    "title": "LTX native pipelines 1.2 ARM64 runtime",
-    "description": "Reproducible LTX-2/LTX-2.3 synchronized audio-video runtime pinned to the official 1.2 native source and CUDA 13.2 ARM64 wheels.",
+    "title": "LTX native pipelines 1.3 ARM64 runtime",
+    "description": "Reproducible LTX-2/LTX-2.3 synchronized audio-video runtime pinned to official 1.3.0 source. It includes the named PipelineOutput API, DFR and keyframe-aware decoding support, bounded CUDA-graph input pools, and automatic decode-tiling OOM fixes; individual recipe adapters expose only their declared generation path.",
     "tags": [
       "lightricks",
       "ltx",
@@ -17,6 +17,10 @@
       "cuda",
       "arm64",
       "spark",
+      "pipeline-output",
+      "dfr",
+      "keyframe-aware-decode",
+      "oom-safe-tiling",
       "candidate"
     ]
   },
@@ -29,8 +33,8 @@
   "platform": "linux/arm64",
   "source": {
     "repository": "https://github.com/Lightricks/LTX-2",
-    "revision": "400fd31054597515f47125691032c04b1c3ee24e",
-    "archive_sha256": "16a155ba255ff4a2c07a5e3bb7942305527e2de943252f2a19ae12789bbbf571",
+    "revision": "a95ab856bf29407b6b066ede0abe1846050db56c",
+    "archive_sha256": "4698fc5f635196edc08e891f209402d6b80e0b64d6c55589266e2448966500e8",
     "license": "LTX-2 Community License Agreement"
   },
   "image": "nvcr.io/nvidia/cuda:13.2.1-runtime-ubuntu24.04@sha256:a52783d8d73ace53998d4e740515e9942e73072dc7fbd5322917eb382a0bc7fb",
@@ -54,6 +58,18 @@
       "license": "BSD-2-Clause"
     },
     {
+      "name": "TorchVision",
+      "version": "0.28.0+cu132",
+      "source": "https://download.pytorch.org/whl/cu132",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "name": "cuDNN",
+      "version": "9.24.0.43",
+      "source": "https://pypi.org/project/nvidia-cudnn-cu13/9.24.0.43/",
+      "license": "NVIDIA Software License"
+    },
+    {
       "name": "Transformers",
       "version": "5.14.1",
       "source": "https://pypi.org/project/transformers/5.14.1/",
@@ -61,8 +77,8 @@
     },
     {
       "name": "LTX Core and Pipelines",
-      "version": "1.2.0+400fd310",
-      "source": "https://github.com/Lightricks/LTX-2/tree/400fd31054597515f47125691032c04b1c3ee24e",
+      "version": "1.3.0+a95ab856",
+      "source": "https://github.com/Lightricks/LTX-2/tree/a95ab856bf29407b6b066ede0abe1846050db56c",
       "license": "LTX-2 Community License Agreement"
     },
     {
