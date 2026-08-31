@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "laguna-s-2-1-nvfp4-vllm-low-memory-canary-single"
+  },
+  "metadata": {
+    "title": "Laguna S 2.1 NVFP4 vLLM 32K low-memory canary single Spark",
+    "description": "Physical-OOM-gated single-Spark canary for the exact Poolside Laguna S 2.1 NVFP4 checkpoint. It preserves the OpenAI reasoning and tool surface while bounding the FP8 KV cache to 3 GB, one sequence, 32K context, 4K chunked prefills, and eager execution. The 126 GB admission envelope is a conservative canary hypothesis, not measured acceptance; retain the original 65K profile and use Laguna XS as the default fleet-fit alternative until this exact variant passes physical startup, memory, and output checks.",
+    "tags": [
+      "executable", "candidate", "canary", "physical-oom-gated", "memory-tight",
+      "low-memory", "not-default", "poolside", "laguna", "nvfp4", "vllm",
+      "reasoning", "agentic", "openai", "single", "spark"
+    ]
+  },
+  "model": {
+    "kind": "model-version",
+    "publisher": "poolside",
+    "slug": "laguna-s-2-1-nvfp4",
+    "content_sha256": "56f96dbc46964ba0b0f4742228801e4921efe108827bdcb6f2577205fc34843d"
+  },
+  "execution": {
+    "harness": {
+      "kind": "execution-harness",
+      "publisher": "vonk-forge",
+      "slug": "vllm",
+      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"
+    },
+    "patch_bundle": null
+  },
+  "build": {
+    "context": {
+      "path": "adapters/llm/laguna-s-vllm",
+      "sha256": "fff02b4d9e7a5f45a1bba9bd38060d98c1b35b634e1af982cc8f83c1c0c82539",
+      "expected_bytes": 10240,
+      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
+    },
+    "dockerfile": "Dockerfile",
+    "platform": "linux/arm64",
+    "arguments": [],
+    "network": {"mode": "none", "hosts": []},
+    "resources": {
+      "download_bytes": 110250415483,
+      "temporary_bytes": 199434559724,
+      "memory_bytes": 8000000000,
+      "timeout_seconds": 7200
+    }
+  },
+  "parameters": [],
+  "artifacts": [
+    {
+      "id": "weights",
+      "kind": "huggingface.snapshot",
+      "repository": "poolside/Laguna-S-2.1-NVFP4",
+      "revision": "64734b3a449a05c79657451513d97544f2f53436",
+      "download_bytes": 99717279862,
+      "installed_bytes": 99717279862,
+      "mount": {"target": "/models", "read_only": true},
+      "roles": ["entrypoint"]
+    }
+  ],
+  "runtime": {
+    "distribution": {
+      "kind": "runtime-distribution",
+      "publisher": "vllm",
+      "slug": "vllm-0-27-1-nvidia-arm64",
+      "content_sha256": "95b0467cb73eeabfe8fd0c4f5f5e4f19a935b6bca3d56ed4bb6fc888470eca4a"
+    },
+    "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
+    "arguments": [
+      {"name": "served-model-name", "value": "laguna-s-2-1-low-memory-canary"},
+      {"name": "max-model-len", "value": 32768},
+      {"name": "max-num-seqs", "value": 1},
+      {"name": "max-num-batched-tokens", "value": 4096},
+      {"name": "enable-chunked-prefill", "value": true},
+      {"name": "kv-cache-dtype", "value": "fp8"},
+      {"name": "kv-cache-memory-bytes", "value": 3000000000},
+      {"name": "enforce-eager", "value": true},
+      {"name": "reasoning-parser", "value": "poolside_v1"},
+      {"name": "tool-call-parser", "value": "poolside_v1"},
+      {"name": "enable-auto-tool-choice", "value": true}
+    ],
+    "environment": [
+      {"name": "HF_HUB_OFFLINE", "value": "1"},
+      {"name": "TRANSFORMERS_OFFLINE", "value": "1"},
+      {"name": "VLLM_NO_USAGE_STATS", "value": "1"}
+    ],
+    "security": {
+      "devices": ["nvidia.com/gpu=all"],
+      "capabilities": [],
+      "host_network": false,
+      "privileged": false,
+      "user": "10001:10001",
+      "mounts": [
+        {"source": "model", "target": "/models", "read_only": true},
+        {"source": "outputs", "target": "/outputs", "read_only": false}
+      ]
+    },
+    "lifecycle": {
+      "pre_start": [],
+      "post_stop": [],
+      "stop_timeout_seconds": 120,
+      "readiness": {"strategy": "endpoint-owner", "path": "/v1/models", "timeout_seconds": 1800},
+      "failure": {"rank_loss": "not-applicable", "recovery": "restart-entrypoint"}
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "mode": "single",
+    "node_count": 1,
+    "roles": [
+      {
+        "name": "entrypoint",
+        "count": 1,
+        "endpoint_owner": true,
+        "artifacts": ["weights"],
+        "resources": {
+          "disk": {
+            "image_bytes": 12000000000,
+            "artifact_bytes": 99717279862,
+            "staging_bytes": 199434559724,
+            "cache_bytes": 4000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 12000000000
+          },
+          "memory": {
+            "kind": "unified",
+            "startup_peak_bytes": 118000000000,
+            "steady_state_bytes": 105000000000,
+            "runtime_growth_bytes": 3000000000,
+            "system_reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "parallelism": {"world_size": 1, "tensor": 1, "pipeline": 1, "data": 1, "backend": "local"},
+    "fabric": {"connectivity": "none", "minimum_bandwidth_mbps": 0},
+    "start_order": ["entrypoint"],
+    "stop_order": ["entrypoint"]
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "port": 8000,
+      "model_aliases": ["laguna-s-2-1-low-memory-canary"],
+      "health_path": "/v1/models"
+    }
+  ],
+  "validation": {
+    "validators": [
+      {"interface": "openai", "checks": ["endpoint.healthy", "chat.nonempty", "chat.max-output-64"]}
+    ],
+    "benchmarks": [
+      {
+        "name": "bounded-low-memory-chat",
+        "framework": "openai",
+        "configuration": {"max_output_tokens": 64, "requests": 1, "timeout_seconds": 600}
+      }
+    ]
+  },
+  "provenance": {
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/tree/64734b3a449a05c79657451513d97544f2f53436",
+    "attribution": ["poolside"]
+  }
+}
