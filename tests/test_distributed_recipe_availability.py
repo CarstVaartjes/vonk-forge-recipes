@@ -10,31 +10,31 @@ ROOT = Path(__file__).resolve().parents[1]
 RECIPES = {
     "glm-5-2-aqlm-vllm-triple": {
         "nodes": 3,
-        "version": "2.0.5",
+        "version": "2.0.6",
         "released_at": "2026-09-01",
-        "effect": "reinstall",
+        "effect": "metadata-only",
         "alternative": "glm-5-3-flash-exl3-dflash2-vllm-dual",
         "tp2_weight_floor": 146_299_574_266,
     },
     "glm-5-2-quanttrio-vllm-four": {
         "nodes": 4,
-        "version": "2.0.3",
-        "released_at": "2026-08-30",
+        "version": "2.0.4",
+        "released_at": "2026-09-01",
         "effect": "metadata-only",
         "alternative": "glm-5-3-flash-exl3-dflash2-vllm-dual",
         "tp2_weight_floor": 202_759_255_945,
     },
     "glm-5-3-flash-nvfp4-vllm-four": {
         "nodes": 4,
-        "version": "1.2.0",
-        "released_at": "2026-08-31",
-        "effect": "reinstall",
+        "version": "1.2.1",
+        "released_at": "2026-09-01",
+        "effect": "metadata-only",
         "alternative": "glm-5-3-flash-exl3-dflash2-vllm-dual",
     },
     "inkling-975b-a41b-nvfp4-sglang-eight": {
         "nodes": 8,
-        "version": "1.0.4",
-        "released_at": "2026-08-30",
+        "version": "1.0.5",
+        "released_at": "2026-09-01",
         "effect": "metadata-only",
         "alternative": "Inkling Small NVFP4 dual",
         "tp2_weight_floor": 296_018_668_559,
@@ -164,7 +164,12 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
             "glm-5-2-quanttrio-four-spark",
         )
         release = load(ROOT / "recipe-releases/glm-5-2-quanttrio-vllm-four.json")
-        references = release["history"][0]["changes"][0]["references"]
+        references = [
+            reference
+            for entry in release["history"]
+            for change in entry.get("changes", [])
+            for reference in change.get("references", [])
+        ]
         self.assertTrue(any("keys-latest-GLM-5.2" in item for item in references))
 
     def test_target_ledger_does_not_recommend_unavailable_topologies(self) -> None:

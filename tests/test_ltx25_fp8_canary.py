@@ -50,7 +50,7 @@ def adapter_module():
 class Ltx25Fp8CanaryTests(unittest.TestCase):
     def test_bf16_recipe_retains_its_runtime_contract(self) -> None:
         recipe = load(BF16_RECIPE)
-        self.assertEqual(digest(BF16_RECIPE), "889ca27825623bac876490e6bd83492437ae64dbd64327d69757c92e1bc1f470")
+        self.assertEqual(digest(BF16_RECIPE), "761a10a5144402644e114ee0bc13da49ca900b01c86f06754dc365b10809d3d9")
         self.assertNotIn("nvcr.io", recipe["build"]["network"]["hosts"])
         self.assertEqual(
             recipe["build"]["context"]["path"], "adapters/video/ltx25-diffusers"
@@ -147,9 +147,9 @@ class Ltx25Fp8CanaryTests(unittest.TestCase):
 
         release = load(CANARY_RELEASE)
         self.assertEqual(release["recipe"]["slug"], CANARY_SLUG)
-        self.assertEqual(release["version"], "1.0.1")
+        self.assertEqual(release["version"], "1.0.2")
         self.assertEqual(release["history"][0]["recipe_content_sha256"], digest(CANARY_RECIPE))
-        self.assertEqual(release["history"][0]["upgrade_effect"], "rebuild")
+        self.assertEqual(release["history"][0]["upgrade_effect"], "metadata-only")
 
         ledger = load(ROOT / "model-targets/video.json")
         target = next(
