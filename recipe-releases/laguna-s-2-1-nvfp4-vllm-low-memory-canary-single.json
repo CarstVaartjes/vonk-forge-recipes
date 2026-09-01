@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "laguna-s-2-1-nvfp4-vllm-low-memory-canary-single"
   },
-  "version": "1.0.1",
+  "version": "1.0.2",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "57670a38917d14d1877d40e9bcaa66ab98a67d02095c6f96bc4078ccfe2552a5",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-09-01",

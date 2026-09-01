@@ -5,6 +5,7 @@
     "slug": "qwen-image-2512-diffusers-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Qwen Image 2512 Diffusers single Spark",
     "description": "Candidate single-Spark Diffusers image-generation binding for the exact Qwen Image 2512 checkpoint.",
     "tags": ["executable",

@@ -5,6 +5,7 @@
     "slug": "hunyuan-video-foley-xxl-pytorch-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "HunyuanVideo Foley XXL PyTorch single Spark",
     "description": "Installable Candidate for text-conditioned Foley generation from one video, with the exact official XXL checkpoint and pinned local-only SigLIP2 and CLAP encoders; physical Spark acceptance remains pending.",
     "tags": ["executable",

@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-mia-dual"
   },
-  "version": "2.3.0",
-  "released_at": "2026-08-30",
+  "version": "2.3.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.3.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "54113c8f63c909e0044b5a72ae48d7f6cb32c4a6a46d977fcb397753a747efb4",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "2.3.0",
       "released_at": "2026-08-30",

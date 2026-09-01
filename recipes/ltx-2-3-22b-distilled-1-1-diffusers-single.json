@@ -5,6 +5,7 @@
     "slug": "ltx-2-3-22b-distilled-1-1-diffusers-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "LTX-2.3 22B distilled 1.1 native synchronized single Spark (superseded)",
     "description": "Still-deployable historical disk-offload Candidate using the exact official native LTX 1.3.0 pipeline with the LTX-2.3 distilled 1.1 checkpoint/upscaler pair and Gemma 3 companion closure. The 93 GB startup and 77 GB steady declarations conservatively retain the previously reviewed 31 GB disk-versus-CPU offload advantage, 8 GB growth, and 8 GB system reserve; the upstream decode-tiling OOM fix is not used to lower admission bounds without a physical canary. Physical Spark acceptance remains pending. LTX-2.5 BF16 is the current fidelity baseline and LTX-2.5 FP8-cast is the current lower-memory canary; this immutable execution contract remains available for reproducibility.",
     "tags": ["executable",

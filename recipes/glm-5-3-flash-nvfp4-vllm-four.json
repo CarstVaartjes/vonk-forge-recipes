@@ -2,6 +2,7 @@
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-four"},
   "metadata": {
+    "alignment": "unspecified",
     "title": "GLM 5.3 Flash NVFP4 vLLM four Sparks",
     "description": "Executable Candidate native TP4 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint. Its exact four-rank topology is unsupported on Vonk's current one- or two-Spark configuration and remains installable only for a future scale canary. The pin includes calibrated per-projection input scales that prevent FP8 block-scale underflow and long-context repetition. Upstream proves the same model family at TP2, but glm-5-3-flash-nvfp4-vllm-dual has a conservative 132 GB Controller admission envelope and does not fit the present about-126.9 GB inventory; glm-5-3-flash-exl3-dflash2-vllm-dual is the current 126 GB-envelope fleet Candidate. This contract keeps Tech2Wild's stable v8 profile and excludes experimental v9 InstantTensor.",
     "tags": ["executable", "candidate", "glm-5.3", "mtp", "multimodal", "nvfp4", "reasoning", "spark", "tool-use", "tp4", "vllm"]

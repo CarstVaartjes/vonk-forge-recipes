@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "muse-glimmer-30b-bf16-vllm-single"
   },
-  "version": "1.0.2",
-  "released_at": "2026-08-30",
+  "version": "1.0.3",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.3",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "b3115e5c654a93152731a6ac536aa64de8c642a694c2534b2068a9fb649e758e",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.2",
       "released_at": "2026-08-30",

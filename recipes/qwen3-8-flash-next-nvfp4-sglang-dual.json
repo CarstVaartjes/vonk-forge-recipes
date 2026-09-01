@@ -2,6 +2,7 @@
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "qwen3-8-flash-next-nvfp4-sglang-dual"},
   "metadata": {
+    "alignment": "unspecified",
     "title": "Qwen3.8 Flash Next NVFP4 SGLang two Sparks",
     "description": "Executable Candidate dual-DGX-Spark SGLang TP2 recipe for RadixArk's 135 GB NVFP4 checkpoint. It reproduces MiaAI-Lab's current 1M multimodal YaRN profile with SM121-safe QSA NVFP4 KV patches, ConnectX MessageQueue routing, 28 request slots, automatic PLE placement, and MTP3; Vonk physical acceptance remains pending.",
     "tags": ["executable", "candidate", "multimodal", "mtp", "nvfp4", "qwen3.8", "reasoning", "sglang", "spark", "tool-use"]

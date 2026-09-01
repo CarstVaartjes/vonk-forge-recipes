@@ -1,9 +1,21 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "ling-3-0-flash-dspark-sglang-single"},
-  "version": "1.0.2",
-  "released_at": "2026-08-31",
+  "version": "1.0.3",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.3",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "61f7f8309838241c6c9d9ac89cb86736eb75b41760eeee7c18b42d6a2e598924",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.2",
       "released_at": "2026-08-31",

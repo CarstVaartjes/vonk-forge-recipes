@@ -5,6 +5,7 @@
     "slug": "mova-360p-diffusers-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "MOVA 360p native synchronized media single Spark (preferred)",
     "description": "Preferred default MOVA profile for one Spark, using the exact official 360p checkpoint and native pipeline. It produces one fail-closed MP4 containing synchronized 24 fps video and 48 kHz audio; the ARM64 image builds reproducibly and only the physical Spark canary remains pending.",
     "tags": [

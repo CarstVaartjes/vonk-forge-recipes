@@ -55,7 +55,7 @@ class DeepseekDs4RecipeTests(unittest.TestCase):
             slug=identity["slug"],
             recipe_digest=canonical_digest(RECIPE),
         )
-        self.assertEqual(release["version"], "2.0.2")
+        self.assertEqual(release["version"], "2.0.3")
         self.assertEqual(release["history"][0]["upgrade_effect"], "metadata-only")
 
 

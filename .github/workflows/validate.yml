@@ -13,7 +13,7 @@ jobs:
   validate:
     uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@bb75f09063c4580cfb139c8c1defeef09c7c03ed
     with:
-      platform_ref: bb75f09063c4580cfb139c8c1defeef09c7c03ed
+      platform_ref: 28b6ebe33c8b35326521b2fbab5ff437c1982204
 
   catalog-index:
     name: Verify catalog index

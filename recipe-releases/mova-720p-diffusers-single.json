@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "mova-720p-diffusers-single"
   },
-  "version": "2.0.5",
+  "version": "2.0.6",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.0.6",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "c7358901381ff01ba189d84c334f01f456399d282a253b459a2f5ba2780623e3",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "2.0.5",
       "released_at": "2026-09-01",

@@ -82,7 +82,7 @@ class Flux2NVFP4RecipeTests(unittest.TestCase):
     def test_release_and_target_ledger_bind_current_recipe(self) -> None:
         recipe = load(f"recipes/{SLUG}.json")
         release = load(f"recipe-releases/{SLUG}.json")
-        self.assertEqual(release["version"], "1.0.2")
+        self.assertEqual(release["version"], "1.0.3")
         self.assertEqual(
             release["history"][0]["recipe_content_sha256"], canonical_digest(recipe)
         )

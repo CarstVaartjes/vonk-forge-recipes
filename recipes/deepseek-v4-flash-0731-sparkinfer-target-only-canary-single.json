@@ -2,6 +2,7 @@
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-0731-sparkinfer-target-only-canary-single"},
   "metadata": {
+    "alignment": "unspecified",
     "title": "DeepSeek V4 Flash 0731 REAP-K216 SparkInfer target-only canary single Spark",
     "description": "Executable single-Spark Candidate canary for 0xSero's public REAP-K216 EXL3 checkpoint in SparkInfer's physically recorded target-only MODE=mtp0. It preserves the proven padded-FP8 sparse-MLA cache, 262K model limit, four scheduling slots, CUDA graphs, semantic generation, and structured output while omitting the 3.26 GiB K64 DSpark draft load. Its conservative 126 GB admission envelope fits the current lower Spark baseline; use the original speculative recipe for faster decode after that profile has sufficient memory headroom.",
     "tags": ["executable", "candidate", "canary", "deepseek", "exl3", "low-memory", "not-default", "openai-compatible", "reap", "single", "sparkinfer", "spark", "target-only"]

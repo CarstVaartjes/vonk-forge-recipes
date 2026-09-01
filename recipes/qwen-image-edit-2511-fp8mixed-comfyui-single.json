@@ -5,6 +5,7 @@
     "slug": "qwen-image-edit-2511-fp8mixed-comfyui-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Qwen Image Edit 2511 FP8mixed ComfyUI single Spark",
     "description": "Memory-efficient single-Spark Candidate for one-or-two-reference Qwen Image Edit 2511 jobs, using Comfy-Org's mixed-precision FP8 transformer, scaled-FP8 Qwen-VL encoder, and Qwen Image VAE. It preserves the 40-step quality schedule while reducing the declared admission envelope to 108.00 GB unified memory including reserve and 95.17 GB peak installation disk.",
     "tags": [

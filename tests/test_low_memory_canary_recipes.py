@@ -137,9 +137,9 @@ class LowMemoryCanaryRecipeTests(unittest.TestCase):
             with self.subTest(recipe=slug):
                 document = recipe(slug)
                 release = load(f"recipe-releases/{slug}.json")
-                expected_version = "1.0.1" if slug == LAGUNA_CANARY else "1.0.0"
+                expected_version = "1.0.2" if slug == LAGUNA_CANARY else "1.0.1"
                 self.assertEqual(release["version"], expected_version)
-                expected_date = "2026-09-01" if slug == LAGUNA_CANARY else "2026-08-31"
+                expected_date = "2026-09-01"
                 self.assertEqual(release["released_at"], expected_date)
                 self.assertEqual(
                     release["history"][0]["recipe_content_sha256"],
@@ -147,7 +147,8 @@ class LowMemoryCanaryRecipeTests(unittest.TestCase):
                 )
                 references = {
                     reference
-                    for change in release["history"][0]["changes"]
+                    for entry in release["history"]
+                    for change in entry.get("changes", [])
                     for reference in change.get("references", [])
                 }
                 self.assertIn(

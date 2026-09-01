@@ -1,9 +1,21 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-0731-sparkinfer-target-only-canary-single"},
-  "version": "0.1.0",
-  "released_at": "2026-08-31",
+  "version": "0.1.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "0.1.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "84427bc35d3cc5a485ce7cc142b81b223ecd9498ff63c80752a1c774246a9b2c",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "0.1.0",
       "released_at": "2026-08-31",

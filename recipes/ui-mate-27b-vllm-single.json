@@ -5,6 +5,7 @@
     "slug": "ui-mate-27b-vllm-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "UI-Mate 27B BF16 vLLM single Spark",
     "description": "Candidate single-Spark binding for Tencent's exact UI-Mate 27B checkpoint, official prompt/parser/action harness, and OpenAI-compatible vLLM server. It returns non-actuating action proposals only: a caller or operator must supply the screenshot/action loop and approve and execute actions externally.",
     "tags": ["executable",

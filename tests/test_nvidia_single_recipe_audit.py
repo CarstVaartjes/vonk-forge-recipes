@@ -251,10 +251,10 @@ class NvidiaSingleRecipeAuditTests(unittest.TestCase):
 
     def test_qwen_flash_release_records_the_egress_fix(self) -> None:
         release = _read(FLASH_RELEASE)
-        self.assertEqual(release["version"], "1.2.3")
+        self.assertEqual(release["version"], "1.2.4")
         self.assertEqual(release["released_at"], "2026-09-01")
-        self.assertEqual(release["history"][0]["version"], "1.2.3")
-        self.assertEqual(release["history"][0]["upgrade_effect"], "rebuild")
+        self.assertEqual(release["history"][0]["version"], "1.2.4")
+        self.assertEqual(release["history"][0]["upgrade_effect"], "metadata-only")
         self.assertEqual(
             release["history"][0]["recipe_content_sha256"],
             _canonical_digest(FLASH_RECIPE),

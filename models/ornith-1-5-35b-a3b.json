@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {
+    "publisher": "ornith-ai",
+    "slug": "ornith-1-5-35b-a3b"
+  },
+  "metadata": {
+    "title": "Ornith 1.5 35B-A3B",
+    "description": "Ornith 1.5 35B-A3B mixture-of-experts model.",
+    "tags": [
+      "ornith-ai",
+      "ornith-1-5",
+      "language"
+    ]
+  },
+  "model_group": {
+    "kind": "model-group",
+    "publisher": "ornith-ai",
+    "slug": "ornith-1-5",
+    "content_sha256": "f10cdceca849e3371243d1d57ea9c0bb01162d6b22307e6017174bc06648507c"
+  },
+  "architecture": "Qwen3_5MoeForConditionalGeneration"
+}
