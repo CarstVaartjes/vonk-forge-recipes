@@ -3,6 +3,7 @@
   "identity": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual"},
   "metadata": {
     "title": "GLM 5.3 Flash Abliterated NVFP4 KV 1M vLLM two Sparks",
+    "alignment": "abliterated",
     "description": "Executable gated Candidate reproducing Drowzeys' native-mp TP2, 1,048,576-token GLM 5.3 Flash profile with NVFP4 weights and KV cache, B12X sparse MLA, MTP2, Marlin experts, vision, reasoning, and tools. Installation requires an accepted Hugging Face token; qualification is blocked until an authenticated inventory refresh supplies SHA-256 values for the 13 gated Git files omitted from the withdrawn model-version manifest.",
     "tags": ["abliterated", "candidate", "executable", "gated", "glm-5.3", "inventory-blocked", "mtp", "multimodal", "native-mp", "nvfp4", "reasoning", "spark", "tool-use", "vllm"]
   },
