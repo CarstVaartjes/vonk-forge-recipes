@@ -77,9 +77,9 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
                     recipe_digest=_canonical_digest(recipe_path),
                 )
                 expected_version = {
-                    "nano": "2.0.3",
-                    "omni": "2.0.4",
-                    "super": "2.1.3",
+                    "nano": "2.0.4",
+                    "omni": "2.0.5",
+                    "super": "2.1.4",
                 }[name]
                 self.assertEqual(release["version"], expected_version)
                 expected_upgrade_effect = {

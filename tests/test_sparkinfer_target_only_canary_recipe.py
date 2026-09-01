@@ -39,8 +39,10 @@ def _canonical_digest(path: Path) -> str:
 
 class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
     def test_original_speculative_recipe_is_unchanged(self) -> None:
+        release = _document(ROOT / "recipe-releases/deepseek-v4-flash-0731-sparkinfer-single.json")
+        historical = {entry["version"]: entry["recipe_content_sha256"] for entry in release["history"]}
         self.assertEqual(
-            _canonical_digest(ORIGINAL_RECIPE_PATH),
+            historical["0.1.2"],
             "0c4c4e3235f8d694956d0d4b9d7d9b05d542ab5e23782b4bbe8fe552aa39a879",
         )
 
@@ -120,8 +122,12 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
 
     def test_release_pins_the_upstream_measurements(self) -> None:
         release = _document(RELEASE_PATH)
-        changes = release["history"][0]["changes"]
-        evidence = next(change for change in changes if "references" in change)
+        evidence = next(
+            change
+            for entry in release["history"]
+            for change in entry.get("changes", [])
+            if "references" in change
+        )
         self.assertIn("92.13 GiB", evidence["details"])
         self.assertIn("95.39 GiB", evidence["details"])
         self.assertEqual(

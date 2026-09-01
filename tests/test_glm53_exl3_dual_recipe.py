@@ -196,7 +196,7 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
 
     def test_release_tracks_exact_recipe_digest(self) -> None:
         release = _document(self.release_path)
-        self.assertEqual(release["version"], "1.3.0")
+        self.assertEqual(release["version"], "1.3.1")
         self.assertEqual(release["history"][0]["recipe_content_sha256"], _digest(self.recipe_path))
 
 

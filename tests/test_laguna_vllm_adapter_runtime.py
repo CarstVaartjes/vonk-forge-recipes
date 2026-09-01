@@ -158,8 +158,8 @@ class LagunaVllmAdapterRuntimeTests(unittest.TestCase):
             separators=(",", ":"),
         ).encode("utf-8")
         recipe_digest = hashlib.sha256(canonical).hexdigest()
-        self.assertEqual(release["version"], "1.0.3")
-        self.assertEqual(release["history"][0]["upgrade_effect"], "rebuild")
+        self.assertEqual(release["version"], "1.0.4")
+        self.assertEqual(release["history"][0]["upgrade_effect"], "metadata-only")
         self.assertEqual(release["history"][0]["recipe_content_sha256"], recipe_digest)
 
 
@@ -246,7 +246,7 @@ class LagunaSVllmRecipeTests(unittest.TestCase):
         self.assertEqual(context["expected_bytes"], len(archive))
 
     def test_release_tracks_the_corrected_recipe(self) -> None:
-        self.assertEqual(self.release["version"], "1.0.5")
+        self.assertEqual(self.release["version"], "1.0.6")
         self.assertEqual(
             self.release["history"][0]["recipe_content_sha256"],
             canonical_digest(LAGUNA_S_RECIPE),

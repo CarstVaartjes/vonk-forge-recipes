@@ -117,13 +117,13 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
 
     def test_metadata_releases_bind_current_recipe_digests(self) -> None:
         versions = {
-            "nemotron-3-5-lightning-30b-a3b-vllm-single": ("1.3.4", "2026-08-30", "metadata-only"),
-            "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single": ("1.1.3", "2026-08-30", "metadata-only"),
-            "nemotron-3-nano-30b-a3b-vllm-single": ("2.0.3", "2026-08-30", "metadata-only"),
-            "moss-vl-realtime-11b-pytorch-single": ("1.1.2", "2026-09-01", "rebuild"),
-            "mova-360p-diffusers-single": ("2.0.5", "2026-09-01", "rebuild"),
-            "mova-720p-diffusers-single": ("2.0.5", "2026-09-01", "rebuild"),
-            "muse-glimmer-30b-bf16-vllm-single": ("1.0.2", "2026-08-30", "metadata-only"),
+            "nemotron-3-5-lightning-30b-a3b-vllm-single": ("1.3.5", "2026-09-01", "metadata-only"),
+            "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single": ("1.1.4", "2026-09-01", "metadata-only"),
+            "nemotron-3-nano-30b-a3b-vllm-single": ("2.0.4", "2026-09-01", "metadata-only"),
+            "moss-vl-realtime-11b-pytorch-single": ("1.1.3", "2026-09-01", "metadata-only"),
+            "mova-360p-diffusers-single": ("2.0.6", "2026-09-01", "metadata-only"),
+            "mova-720p-diffusers-single": ("2.0.6", "2026-09-01", "metadata-only"),
+            "muse-glimmer-30b-bf16-vllm-single": ("1.0.3", "2026-09-01", "metadata-only"),
         }
         for slug, (version, released_at, upgrade_effect) in versions.items():
             with self.subTest(recipe=slug):

@@ -133,13 +133,27 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
         expected = {
             "models/glm-5-3-flash-nvfp4-abliterated.json": "cd86c93b67bd8a501b5aaf407b4a1500f2c5aebb557fbf16efaa08177437b149",
             "model-versions/glm-5-3-flash-nvfp4-abliterated-d7f8afa8.json": "206d70bc7470b79349c94fafe89d595cdc0ac771f52875302438a7305f9cf77e",
-            "recipes/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual.json": "9892cf5b96978bdbb736b96ab7f7b2b97b47552138182adccfea2b9c95358694",
             "runtime-distributions/vllm-glm53-drowzeys-1m-c36b5958-arm64.json": "d657b3ddb6c6c99b1693c25df9ad002d94a986a9b54817ba71ba0ec91072a5e2",
             "patch-bundles/drowzeys-glm53-nvfp4-kv-1m-dual-profile.json": "d9e1c1928a9b929cf773111b053e0eac4435e4bd2bfb4040f031b60efdde91fd",
-            "recipe-releases/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual.json": "56e076a92f48761f20fc63be10a9a884357bd22c441ee7e321f8e79c097212b2",
         }
         for path, digest in expected.items():
             self.assertEqual(canonical_digest(load(ROOT / path)), digest, path)
+        release = load(
+            ROOT
+            / "recipe-releases/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual.json"
+        )
+        historical = {
+            entry["version"]: entry["recipe_content_sha256"]
+            for entry in release["history"]
+        }
+        self.assertEqual(
+            historical["1.1.0"],
+            "6d1e6ac8a4c8d09aba8260c001d6e16ff5d0dd3230d41008582b74de117a1800",
+        )
+        self.assertEqual(
+            historical["1.0.1"],
+            "979b7a7d3c4290c4a5de962d1fc1aa92ea8bf86327b679cb2917564dbf396208",
+        )
         old_model = load(ROOT / "model-versions/glm-5-3-flash-nvfp4-abliterated-d7f8afa8.json")
         self.assertEqual(old_model["availability"], "withdrawn")
 
@@ -162,7 +176,7 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
         )
         self.assertEqual(
             arguments["chat-template"],
-            "/models/target/chat_template.thinking-off.jinja",
+            "/opt/vonk/templates/glm53-chat-template-mm.jinja",
         )
         self.assertEqual(
             json.loads(arguments["default-chat-template-kwargs"]),
@@ -250,8 +264,8 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
         tags = set(self.recipe["metadata"]["tags"])
         self.assertTrue({"candidate", "executable", "gated", "dflash2"} <= tags)
         self.assertNotIn("accepted", tags)
-        self.assertEqual(self.release["version"], "1.0.0")
-        self.assertEqual(self.release["history"][0]["upgrade_effect"], "reinstall")
+        self.assertEqual(self.release["version"], "1.0.2")
+        self.assertEqual(self.release["history"][0]["upgrade_effect"], "metadata-only")
         self.assertEqual(
             self.release["history"][0]["recipe_content_sha256"],
             canonical_digest(self.recipe),

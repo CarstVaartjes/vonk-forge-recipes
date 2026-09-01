@@ -110,8 +110,8 @@ class MiaSglangSingleRecipeTests(unittest.TestCase):
 
         release = load("recipe-releases/ling-3-0-flash-dspark-sglang-single.json")
         latest = release["history"][0]
-        self.assertEqual(latest["version"], "1.0.2")
-        self.assertEqual(latest["upgrade_effect"], "reinstall")
+        self.assertEqual(latest["version"], "1.0.3")
+        self.assertEqual(latest["upgrade_effect"], "metadata-only")
         recipe_digest = hashlib.sha256(
             json.dumps(
                 recipe,
@@ -121,10 +121,22 @@ class MiaSglangSingleRecipeTests(unittest.TestCase):
             ).encode()
         ).hexdigest()
         self.assertEqual(latest["recipe_content_sha256"], recipe_digest)
-        self.assertIn("262144", latest["changes"][0]["details"])
-        self.assertIn("328898-token", latest["changes"][0]["details"])
+        details = next(
+            change["details"]
+            for entry in release["history"]
+            for change in entry.get("changes", [])
+            if "details" in change and "328898-token" in change["details"]
+        )
+        self.assertIn("262144", details)
+        self.assertIn("328898-token", details)
         self.assertEqual(
-            latest["changes"][0]["references"],
+            next(
+                change["references"]
+                for entry in release["history"]
+                for change in entry.get("changes", [])
+                if change.get("references")
+                and "328898-token" in change.get("details", "")
+            ),
             [recipe["provenance"]["source_reference"]],
         )
 

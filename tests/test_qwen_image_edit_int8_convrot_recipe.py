@@ -141,7 +141,7 @@ class QwenImageEditINT8ConvRotRecipeTests(unittest.TestCase):
             [{"interface": "image-job", "checks": ["artifact.mime.image-png"]}],
         )
         release = load(f"recipe-releases/{SLUG}.json")
-        self.assertEqual(release["version"], "1.0.2")
+        self.assertEqual(release["version"], "1.0.3")
         self.assertEqual(
             release["history"][0]["recipe_content_sha256"],
             canonical_digest(recipe),

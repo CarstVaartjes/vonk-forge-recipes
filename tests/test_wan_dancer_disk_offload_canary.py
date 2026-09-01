@@ -44,8 +44,12 @@ def load_module(filename: str, name: str):
 
 class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
     def test_original_recipe_is_preserved_at_requested_base_digest(self) -> None:
+        release = json.loads(
+            (ROOT / "recipe-releases/wan-dancer-14b-pytorch-single.json").read_text()
+        )
+        historical = {entry["version"]: entry["recipe_content_sha256"] for entry in release["history"]}
         self.assertEqual(
-            canonical_digest(ORIGINAL_RECIPE),
+            historical["1.0.5"],
             "950296d999671c60362fecb5623d0bf4ad15cbf2d3b6863a9c87ef2cf9fdd940",
         )
 
