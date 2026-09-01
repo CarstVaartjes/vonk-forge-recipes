@@ -161,7 +161,7 @@
         }
       }
     ],
-    "parallelism": {"world_size": 3, "tensor": 3, "pipeline": 1, "data": 1, "backend": "ray"},
+    "parallelism": {"world_size": 3, "tensor": 3, "pipeline": 1, "data": 1, "backend": "mp"},
     "fabric": {"connectivity": "connected", "minimum_bandwidth_mbps": 200000},
     "start_order": ["entrypoint", "worker"],
     "stop_order": ["entrypoint", "worker"]
