@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MODEL = ROOT / "model-versions/deepseek-v4-flash-vision-exp-e46e16bf.json"
+MODEL = ROOT / "model-versions/deepseek-v4-flash-vision-exp-6821d6ad.json"
 PATCH = ROOT / "patch-bundles/mia-deepseek-v4-flash-vision-exp.json"
 RECIPE = ROOT / "recipes/deepseek-v4-flash-vision-exp-mia-dual.json"
 RELEASE = ROOT / "recipe-releases/deepseek-v4-flash-vision-exp-mia-dual.json"
@@ -36,12 +36,12 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
     def test_official_checkpoint_closure_is_exact(self) -> None:
         self.assertEqual(
             self.model["source"]["revision"],
-            "e46e16bf6035c6f317eb2ac7458eb0362926d402",
+            "6821d6ad3681a4b137b066b76094fa82ebd0a380",
         )
         artifacts = self.model["artifacts"]
         self.assertEqual(len(artifacts), 84)
-        self.assertEqual(sum(item["download_bytes"] for item in artifacts), 167_831_847_285)
-        self.assertEqual(self.model["sizes"]["download_bytes"], 167_831_847_285)
+        self.assertEqual(sum(item["download_bytes"] for item in artifacts), 167_831_848_791)
+        self.assertEqual(self.model["sizes"]["download_bytes"], 167_831_848_791)
         self.assertEqual(self.model["parameters"]["total"], 304_646_824_126)
         by_path = {item["path"]: item for item in artifacts}
         self.assertEqual(
@@ -152,7 +152,7 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
             item
             for item in targets
             if item.get("catalog_model_version")
-            == "deepseek-v4-flash-vision-exp-e46e16bf"
+            == "deepseek-v4-flash-vision-exp-6821d6ad"
         )
         self.assertEqual(target["modality"], "multimodal")
         self.assertEqual(target["topologies"], ["distributed"])

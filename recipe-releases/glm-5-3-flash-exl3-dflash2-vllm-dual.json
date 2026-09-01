@@ -1,9 +1,26 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-exl3-dflash2-vllm-dual"},
-  "version": "1.2.1",
+  "version": "1.3.0",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.3.0",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "8b26e0c70aa6f2d78a5db0c4e8050db27bba423ed629dfb6aa20b17574986b02",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "model",
+          "summary": "Advanced the EXL3 target snapshot while retaining the tested prefill batching.",
+          "details": "The complete 144-file target inventory is refreshed from 25a44fdb to 024db9f7. All model payload files are byte-identical; only the upstream README changed, increasing the exact inventory by 7 bytes. The pinned 493cb88f runtime image, tested 2,048-token prefill setting, and 126 GB admission contract remain unchanged; the newer upstream 7,168-token launcher default is deliberately not adopted until its newer runtime image is vendored and tested.",
+          "references": [
+            "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/commit/024db9f7e9871e8efdf21538ba55af7442be3cd5",
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/493cb88fc69f8ba73ac87404f429d763e2739d89"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.2.1",
       "released_at": "2026-09-01",
@@ -45,7 +62,7 @@
       "version": "1.1.0",
       "released_at": "2026-08-30",
       "recipe_content_sha256": "43d54e87682fb898beddd4fcca8b8da7829ad9130e82409f9d6a8600dff44357",
-      "upgrade_effect": "rebuild",
+      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "fix",

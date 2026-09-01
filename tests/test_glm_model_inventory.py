@@ -26,7 +26,7 @@ def canonical_digest(document: dict[str, object]) -> str:
 class GlmModelInventoryTests(unittest.TestCase):
     def test_glm53_current_inventory_uses_calibrated_vllm_activation_scales(self) -> None:
         previous = load("model-versions/glm-5-3-flash-nvfp4-357b45cc.json")
-        current = load("model-versions/glm-5-3-flash-nvfp4-92d8bfb9.json")
+        current = load("model-versions/glm-5-3-flash-nvfp4-caca4e6a.json")
         recipe = load("recipes/glm-5-3-flash-nvfp4-vllm-dual.json")
         runtime = load("runtime-distributions/glm-5-3-flash-nvfp4-ray-dual.json")
         previous_shards = {
@@ -48,9 +48,9 @@ class GlmModelInventoryTests(unittest.TestCase):
             item["name"]: item["value"] for item in recipe["runtime"]["arguments"]
         }
 
-        self.assertEqual(current["source"]["revision"], "92d8bfb91c19ceb6fb530dfb538a3a24eceb6ef7")
+        self.assertEqual(current["source"]["revision"], "caca4e6a4ebbd66f159d3d2fc256683fd6e27177")
         self.assertEqual(len(current["artifacts"]), 131)
-        self.assertEqual(current["sizes"]["download_bytes"], 194_701_810_857)
+        self.assertEqual(current["sizes"]["download_bytes"], 194_701_812_547)
         self.assertEqual(previous_shards, current_shards)
         self.assertEqual(
             artifacts["model-input-scales.safetensors"]["sha256"],
