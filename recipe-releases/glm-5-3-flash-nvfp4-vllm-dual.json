@@ -1,9 +1,26 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-dual"},
-  "version": "1.2.2",
+  "version": "1.2.3",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.3",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "db03d00e1436fcb2bc09e7189b9a9fc8f6ef8e45a90982e3f9722b5441cdc410",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Advanced the LibertAI NVFP4 snapshot to caca4e6a.",
+          "details": "The complete 131-file inventory is refreshed from 92d8bfb9 to caca4e6a. All 120 weight shards and runtime configuration files are byte-identical; only the upstream README changed, increasing the exact inventory by 1,690 bytes. The Ray TP2 runtime, admission envelope, and Candidate acceptance state remain unchanged; installed containers must be recreated.",
+          "references": [
+            "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/commit/caca4e6a4ebbd66f159d3d2fc256683fd6e27177",
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-NVFP4-Dual-DGX-Spark/tree/aed98a13ca75140d2691cc5c651ea5817d9a3e44"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.2.2",
       "released_at": "2026-09-01",

@@ -6,7 +6,7 @@
     "description": "Directly installable Candidate reproducing MiaAI-Lab's current 2x DGX Spark EXL3/TR3 4 bpw target with the bf582e4e DFlash2 K7 checkpoint, native-mp TP2, 1M context, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. Exact source, image, target, drafter, licenses, and measured resource envelope are pinned; Vonk physical acceptance and checkpoint requalification remain pending.",
     "tags": ["candidate", "dflash2", "executable", "exl3", "glm-5.3", "multimodal", "native-mp", "pending", "reasoning", "spark", "tool-use", "vllm"]
   },
-  "model": {"kind": "model-version", "publisher": "mia-ai-lab", "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-25a44fdb", "content_sha256": "1fe4fd2c2fb1a653103cce9aee372257db75b7816769f3a0aa201bc44f9314c5"},
+  "model": {"kind": "model-version", "publisher": "mia-ai-lab", "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-024db9f7", "content_sha256": "158c894be21cc8bcd7c4e76e6367f02d9c1c389a3720f995e343d6db4f93ba3f"},
   "execution": {
     "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"},
     "patch_bundle": {"kind": "patch-bundle", "publisher": "miaai-lab", "slug": "glm-5-3-flash-exl3-dflash2-mia-dual-profile", "content_sha256": "fefff65249681f5295f8720286e35aa42f46d81f98dc047473ccdac1549670ae"}
@@ -21,7 +21,7 @@
   },
   "parameters": [],
   "artifacts": [
-    {"id": "target", "kind": "huggingface.snapshot", "repository": "Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw", "revision": "25a44fdbf16862a46b7cc9921142c6c81350af2f", "download_bytes": 175715854754, "installed_bytes": 175715854754, "mount": {"target": "/models/target", "read_only": true}, "roles": ["entrypoint", "worker"]},
+    {"id": "target", "kind": "huggingface.snapshot", "repository": "Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw", "revision": "024db9f7e9871e8efdf21538ba55af7442be3cd5", "download_bytes": 175715854761, "installed_bytes": 175715854761, "mount": {"target": "/models/target", "read_only": true}, "roles": ["entrypoint", "worker"]},
     {"id": "drafter", "kind": "huggingface.snapshot", "repository": "incoai/GLM-5.3-Flash-DFlash2", "revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a", "download_bytes": 2342460697, "installed_bytes": 2342460697, "mount": {"target": "/models/drafter", "read_only": true}, "roles": ["entrypoint", "worker"]}
   ],
   "runtime": {
