@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "DeepSeek V4 Flash Vision Experimental Mia dual Spark",
-    "description": "Installable Candidate two-Spark native-vision profile for the official DeepSeek V4 Flash Vision Experimental checkpoint. It reproduces MiaAI-Lab de230b45 on the immutable Anemll ARM64 runtime, including the issue 165/167 false-positive fixes for image-tag mentions and tool-result text, with OpenAI image_url input, the 32-layer ViT and aligner, FP4/FP8 weights, NVFP4 DS-MLA KV, DSpark K6, 1M context, and a measured 17.04 GiB / 2,331,430-token KV pool at 0.835 utilization; Vonk physical image and dual-Spark acceptance remain pending.",
+    "description": "Installable Candidate two-Spark native-vision profile for the official DeepSeek V4 Flash Vision Experimental checkpoint. It reproduces MiaAI-Lab de230b45 on the immutable Anemll ARM64 runtime, with OpenAI image_url input, the 32-layer ViT and aligner, FP4/FP8 weights, NVFP4 DS-MLA KV, DSpark K6, 1M context, and a measured 17.04 GiB / 2,331,430-token KV pool at 0.835 utilization; Vonk physical image and dual-Spark acceptance remain pending.",
     "tags": [
       "executable",
       "candidate",
@@ -26,8 +26,8 @@
   "model": {
     "kind": "model-version",
     "publisher": "deepseek-ai",
-    "slug": "deepseek-v4-flash-vision-exp-e46e16bf",
-    "content_sha256": "8211ebe5c07f0f3183d6ad2b7905f131181d781180771dfa9b535324e54607e7"
+    "slug": "deepseek-v4-flash-vision-exp-6821d6ad",
+    "content_sha256": "5402da1591849d2db291159ad59cc21e31b2a89f721b50eb48d742c3a48ce8f7"
   },
   "execution": {
     "harness": {
@@ -70,9 +70,9 @@
       "id": "weights",
       "kind": "huggingface.snapshot",
       "repository": "deepseek-ai/DeepSeek-V4-Flash-Vision-Exp",
-      "revision": "e46e16bf6035c6f317eb2ac7458eb0362926d402",
-      "download_bytes": 167831847285,
-      "installed_bytes": 167831847285,
+      "revision": "6821d6ad3681a4b137b066b76094fa82ebd0a380",
+      "download_bytes": 167831848791,
+      "installed_bytes": 167831848791,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -410,7 +410,7 @@
         "resources": {
           "disk": {
             "image_bytes": 25000000000,
-            "artifact_bytes": 167831847285,
+            "artifact_bytes": 167831848791,
             "staging_bytes": 10000000000,
             "cache_bytes": 50000000000,
             "rollback_bytes": 0,
@@ -435,7 +435,7 @@
         "resources": {
           "disk": {
             "image_bytes": 25000000000,
-            "artifact_bytes": 167831847285,
+            "artifact_bytes": 167831848791,
             "staging_bytes": 10000000000,
             "cache_bytes": 50000000000,
             "rollback_bytes": 0,

@@ -6,7 +6,7 @@
     "description": "Executable Candidate Ray TP2 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint. It reproduces MiaAI-Lab's public SM121 sparse-MLA build, 262K profile, FP8 KV cache, MTP4, and conservative 0.84 unified-memory budget; the calibrated per-projection input scales replace the underflowing 1.0 placeholders, and Vonk physical acceptance plus long-context repetition regression remain pending.",
     "tags": ["executable", "candidate", "glm-5.3", "mtp", "multimodal", "nvfp4", "ray", "reasoning", "spark", "tool-use", "vllm"]
   },
-  "model": {"kind": "model-version", "publisher": "libertaidai", "slug": "glm-5-3-flash-nvfp4-92d8bfb9", "content_sha256": "ec0898e40fe4857344db4a8e390150130789947681c5f032fabae330c5fe04d5"},
+  "model": {"kind": "model-version", "publisher": "libertaidai", "slug": "glm-5-3-flash-nvfp4-caca4e6a", "content_sha256": "5a69a92d4eabd533602ffc38844518bd224f579a7b62f832a8a313ece844141d"},
   "execution": {
     "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"},
     "patch_bundle": {"kind": "patch-bundle", "publisher": "miaai-lab", "slug": "glm-5-3-flash-nvfp4-ray-dual-profile", "content_sha256": "bb6656890ce84e50d86f2b00060b9f857fd377071953aa30a902d61034a58eb5"}
@@ -19,7 +19,7 @@
   },
   "parameters": [],
   "artifacts": [
-    {"id": "weights", "kind": "huggingface.snapshot", "repository": "LibertAIDAI/GLM-5.3-Flash-NVFP4", "revision": "92d8bfb91c19ceb6fb530dfb538a3a24eceb6ef7", "download_bytes": 194701810857, "installed_bytes": 194701810857, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}
+    {"id": "weights", "kind": "huggingface.snapshot", "repository": "LibertAIDAI/GLM-5.3-Flash-NVFP4", "revision": "caca4e6a4ebbd66f159d3d2fc256683fd6e27177", "download_bytes": 194701812547, "installed_bytes": 194701812547, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}
   ],
   "runtime": {
     "distribution": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "glm-5-3-flash-nvfp4-ray-dual", "content_sha256": "8c792f2d7badb950489a5d6acc1dcf6f6c540e4df41085e083897dad12192e87"},
@@ -71,8 +71,8 @@
   "topology": {
     "name": "dual", "mode": "distributed", "node_count": 2,
     "roles": [
-      {"name": "entrypoint", "count": 1, "endpoint_owner": true, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194701810857, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 124000000000, "steady_state_bytes": 116000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}}},
-      {"name": "worker", "count": 1, "endpoint_owner": false, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194701810857, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 124000000000, "steady_state_bytes": 116000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}}}
+      {"name": "entrypoint", "count": 1, "endpoint_owner": true, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194701812547, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 124000000000, "steady_state_bytes": 116000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}}},
+      {"name": "worker", "count": 1, "endpoint_owner": false, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194701812547, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 124000000000, "steady_state_bytes": 116000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}}}
     ],
     "parallelism": {"world_size": 2, "tensor": 2, "pipeline": 1, "data": 1, "backend": "ray"},
     "fabric": {"connectivity": "connected", "minimum_bandwidth_mbps": 200000},
