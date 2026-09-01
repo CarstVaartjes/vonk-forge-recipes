@@ -1,19 +1,24 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual"},
-  "version": "1.1.1",
+  "version": "1.1.2",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.1.1",
+      "version": "1.1.2",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "9892cf5b96978bdbb736b96ab7f7b2b97b47552138182adccfea2b9c95358694",
+      "recipe_content_sha256": "a1fb226732c5e750096ae68cc5c97e35e7c768c72f0a1bd226efc0550fee1d84",
       "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "security",
           "summary": "Removed unnecessary public network access from the deterministic dual-Spark image build.",
           "details": "The Dockerfile performs only local patching and verification after the digest-pinned base image is transferred separately."
+        },
+        {
+          "kind": "metadata",
+          "summary": "Declared the checkpoint alignment explicitly.",
+          "details": "The recipe now publishes an explicit abliterated alignment facet; consumers must not infer alignment from names or tags."
         }
       ]
     },
