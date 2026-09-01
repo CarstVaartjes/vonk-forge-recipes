@@ -4,9 +4,25 @@
     "publisher": "vonk-forge",
     "slug": "laguna-s-2-1-nvfp4-vllm-single"
   },
-  "version": "1.0.4",
-  "released_at": "2026-08-30",
+  "version": "1.0.5",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.5",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "5d002b31ce3cb85dc2ff6f4acf798ec3386ce6ac0372061cc7c9a5b8dfa3a335",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Pinned the current immutable Poolside Laguna S 2.1 NVFP4 snapshot at 826aacdf.",
+          "details": "The upstream revision changes README metadata only; model weights, configuration, tokenizer, runtime image, and serving arguments remain byte-identical. Existing runtime containers do not require a rebuild, while the catalog now points at the current immutable source revision.",
+          "references": [
+            "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/commit/826aacdf6d8b2699d4e367def6f17c83b06044c2"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.4",
       "released_at": "2026-08-30",

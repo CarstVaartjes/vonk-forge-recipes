@@ -23,8 +23,8 @@
   "model": {
     "kind": "model-version",
     "publisher": "poolside",
-    "slug": "laguna-s-2-1-nvfp4",
-    "content_sha256": "56f96dbc46964ba0b0f4742228801e4921efe108827bdcb6f2577205fc34843d"
+    "slug": "laguna-s-2-1-nvfp4-826aacdf",
+    "content_sha256": "b0093b3734252f5ed4b954ac5f8aa407e8749aa302c6f8405429db025212192e"
   },
   "execution": {
     "harness": {
@@ -62,7 +62,7 @@
       "id": "weights",
       "kind": "huggingface.snapshot",
       "repository": "poolside/Laguna-S-2.1-NVFP4",
-      "revision": "64734b3a449a05c79657451513d97544f2f53436",
+      "revision": "826aacdf6d8b2699d4e367def6f17c83b06044c2",
       "download_bytes": 99717279862,
       "installed_bytes": 99717279862,
       "mount": {
@@ -250,7 +250,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/tree/64734b3a449a05c79657451513d97544f2f53436",
+    "source_reference": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/tree/826aacdf6d8b2699d4e367def6f17c83b06044c2",
     "attribution": [
       "poolside"
     ]
