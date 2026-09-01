@@ -4,7 +4,8 @@
   "metadata": {
     "title": "GLM 5.3 Flash Abliterated NVFP4 KV 1M vLLM two Sparks",
     "description": "Executable gated Candidate reproducing Drowzeys' native-mp TP2, 1,048,576-token GLM 5.3 Flash profile with NVFP4 weights and KV cache, B12X sparse MLA, MTP2, Marlin experts, vision, reasoning, and tools. Installation requires an accepted Hugging Face token; qualification is blocked until an authenticated inventory refresh supplies SHA-256 values for the 13 gated Git files omitted from the withdrawn model-version manifest.",
-    "tags": ["abliterated", "candidate", "executable", "gated", "glm-5.3", "inventory-blocked", "mtp", "multimodal", "native-mp", "nvfp4", "reasoning", "spark", "tool-use", "vllm"]
+    "tags": ["abliterated", "candidate", "executable", "gated", "glm-5.3", "inventory-blocked", "mtp", "multimodal", "native-mp", "nvfp4", "reasoning", "spark", "tool-use", "vllm"],
+    "alignment": "abliterated"
   },
   "model": {"kind": "model-version", "publisher": "drowzeys", "slug": "glm-5-3-flash-nvfp4-abliterated-d7f8afa8", "content_sha256": "206d70bc7470b79349c94fafe89d595cdc0ac771f52875302438a7305f9cf77e"},
   "execution": {
