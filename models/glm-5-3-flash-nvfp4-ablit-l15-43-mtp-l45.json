@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "kind": "model",
+  "identity": {"publisher": "drowzeys", "slug": "glm-5-3-flash-nvfp4-ablit-l15-43-mtp-l45"},
+  "metadata": {
+    "title": "GLM 5.3 Flash NVFP4 Abliterated L15-43 MTP L45",
+    "description": "Drowzeys' gated Red Hat compressed-tensors GLM 5.3 derivative with refusal directions applied to L15-43 attention output projections and MTP L45 while L44 remains stock.",
+    "tags": ["abliterated", "compressed-tensors", "drowzeys", "gated", "glm-5.3", "multimodal", "nvfp4", "w4a4"]
+  },
+  "model_group": {"kind": "model-group", "publisher": "redhatai", "slug": "glm-5-3-redhat-compressed", "content_sha256": "557b15017c73af7bec7eead222b9bea6c78dc8ba4de2a2dcbf6dd6e1b3dc8f2e"},
+  "architecture": "GLM5 Next sparse and linear attention multimodal MoE transformer"
+}
