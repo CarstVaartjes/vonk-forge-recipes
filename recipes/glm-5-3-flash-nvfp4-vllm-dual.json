@@ -75,7 +75,7 @@
       {"name": "entrypoint", "count": 1, "endpoint_owner": true, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194701812547, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 124000000000, "steady_state_bytes": 116000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}}},
       {"name": "worker", "count": 1, "endpoint_owner": false, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194701812547, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 124000000000, "steady_state_bytes": 116000000000, "runtime_growth_bytes": 4000000000, "system_reserve_bytes": 8000000000}}}
     ],
-    "parallelism": {"world_size": 2, "tensor": 2, "pipeline": 1, "data": 1, "backend": "ray"},
+    "parallelism": {"world_size": 2, "tensor": 2, "pipeline": 1, "data": 1, "backend": "mp"},
     "fabric": {"connectivity": "connected", "minimum_bandwidth_mbps": 200000},
     "start_order": ["entrypoint", "worker"], "stop_order": ["entrypoint", "worker"]
   },

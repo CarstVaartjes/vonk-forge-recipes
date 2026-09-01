@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "glm-5-3-flash-nvfp4-vllm-dual"
   },
-  "version": "1.2.4",
+  "version": "1.2.5",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.5",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "5c9efa42628cbd9c7949b377f24c17582f558a23018e99451d6b48b124ce8a7c",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Restored the recipe topology backend marker required by the verified vLLM compiler contract."
+        }
+      ]
+    },
     {
       "version": "1.2.4",
       "released_at": "2026-09-01",
