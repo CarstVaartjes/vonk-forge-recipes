@@ -5,6 +5,7 @@
     "slug": "qwen3-6-27b-vllm-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Qwen3.6 27B vLLM single Spark",
     "description": "Candidate single-Spark vLLM binding for the exact multimodal Qwen3.6 27B checkpoint. This older dense profile is superseded by Qwen3.8 27B FP8 as the preferred dense default. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
     "tags": ["executable",

@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-distilled-fp8-diffusers-single"
   },
-  "version": "3.1.0",
-  "released_at": "2026-08-31",
+  "version": "3.1.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "3.1.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "a3f9f8a78cb8eb732131e0774eb3a07a4ecd0e54ddc48fdc16f1aa6c0f7663a1",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "3.1.0",
       "released_at": "2026-08-31",

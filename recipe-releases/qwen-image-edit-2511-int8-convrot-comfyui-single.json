@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-int8-convrot-comfyui-single"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-31",
+  "version": "1.0.2",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "267b81a3cc75ffba0e65cdb27b7184b656b7de870215b8763cb70f1d37e77c62",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-31",

@@ -2,6 +2,7 @@
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "nemotron-3-5-lightning-30b-a3b-vllm-single"},
   "metadata": {
+    "alignment": "unspecified",
     "title": "Nemotron 3.5 Lightning 30B-A3B NVFP4 vLLM single Spark (preferred)",
     "description": "Preferred default Nemotron text profile for one Spark, serving the exact Nemotron 3.5 Lightning NVFP4 checkpoint without a speculative companion. NVIDIA's Marlin MoE and aligned Mamba cache settings preserve deployment headroom relative to the specialized high-context latency profile; physical GB10 acceptance is still required.",
     "tags": ["executable", "candidate", "preferred", "default", "nemotron", "nvfp4", "vllm", "openai", "target-only", "single", "spark"]

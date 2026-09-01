@@ -5,6 +5,7 @@
     "slug": "inkling-small-nvfp4-sglang-dual"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Inkling Small NVFP4 SGLang two Sparks",
     "description": "Executable Candidate thin adaptation of SGLang's verified two-DGX-Spark Inkling Small NVFP4 TP2 profile. It serves text, image, and 16 kHz audio inputs through an offline OpenAI-compatible API with bounded 64K context; Candidate status is retained only for Vonk's physical canary.",
     "tags": ["executable",

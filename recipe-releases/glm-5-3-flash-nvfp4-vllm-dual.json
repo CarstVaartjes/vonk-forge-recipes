@@ -1,9 +1,21 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-dual"},
-  "version": "1.2.0",
-  "released_at": "2026-08-31",
+  "version": "1.2.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "13ee41fe6128dec7bf1afc045bb99faf9577c53300a6bd25bc79d7b1de018ca7",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.2.0",
       "released_at": "2026-08-31",

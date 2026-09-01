@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-2512-diffusers-single"
   },
-  "version": "1.2.1",
-  "released_at": "2026-08-28",
+  "version": "1.2.2",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "920c0ae60eaf79d7d1f019733aa9f541fe29bfcde1beb73b53c6f3a49bb1652d",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.2.1",
       "released_at": "2026-08-28",

@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "wan-2-2-ti2v-5b-comfyui-single"
   },
-  "version": "1.0.5",
-  "released_at": "2026-08-31",
+  "version": "1.0.6",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.6",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "e1822f9d403b8a1f3227afc5557b0b5405fd0a5c4d8554c72ede284b946a46f9",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.5",
       "released_at": "2026-08-31",

@@ -2,6 +2,7 @@
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-0731-sparkinfer-single"},
   "metadata": {
+    "alignment": "unspecified",
     "title": "DeepSeek V4 Flash 0731 REAP-K216 SparkInfer single Spark",
     "description": "Executable single-Spark Candidate for 0xSero's public REAP-K216 EXL3 checkpoint and immutable SparkInfer TP1 runtime. The offline adapter losslessly coalesces the hydrated TP4 archive, verifies it, builds the K64 DSpark draft, runs the SparkInfer self-test, and starts the OpenAI-compatible endpoint.",
     "tags": ["executable", "candidate", "deepseek", "dspark", "exl3", "openai-compatible", "reap", "single", "sparkinfer", "spark", "speculative-decoding"]

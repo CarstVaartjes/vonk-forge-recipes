@@ -5,6 +5,7 @@
     "slug": "hunyuan-video-15-t2v-diffusers-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "HunyuanVideo 1.5 T2V diffusers single Spark",
     "description": "Installable Candidate for 720p text-to-video generation with a complete immutable Diffusers snapshot and offline ARM64 runtime; physical Spark acceptance remains pending.",
     "tags": ["executable",

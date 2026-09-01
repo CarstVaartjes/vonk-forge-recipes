@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "glm-5-2-aqlm-vllm-triple"
   },
-  "version": "2.0.4",
-  "released_at": "2026-08-30",
+  "version": "2.0.5",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.0.5",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "bea4e4465cd20a9365b3e45a502684baff9fee9804a093765634757ba4cfd70d",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "2.0.4",
       "released_at": "2026-08-30",

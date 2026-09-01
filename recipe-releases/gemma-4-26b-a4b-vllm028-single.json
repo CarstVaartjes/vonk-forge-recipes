@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "gemma-4-26b-a4b-vllm028-single"
   },
-  "version": "1.0.0",
-  "released_at": "2026-08-29",
+  "version": "1.0.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "ea17c8b424ffbef5ffdaaf9ae732fdbda24c4cb316fed03b60f78822cae93fc0",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-29",

@@ -2,6 +2,7 @@
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-dual"},
   "metadata": {
+    "alignment": "unspecified",
     "title": "GLM 5.3 Flash NVFP4 vLLM two Sparks",
     "description": "Executable Candidate Ray TP2 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint. It reproduces MiaAI-Lab's public SM121 sparse-MLA build, 262K profile, FP8 KV cache, MTP4, and conservative 0.84 unified-memory budget; the calibrated per-projection input scales replace the underflowing 1.0 placeholders, and Vonk physical acceptance plus long-context repetition regression remain pending.",
     "tags": ["executable", "candidate", "glm-5.3", "mtp", "multimodal", "nvfp4", "ray", "reasoning", "spark", "tool-use", "vllm"]

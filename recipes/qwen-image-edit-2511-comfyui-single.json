@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "qwen-image-edit-2511-comfyui-single"},
-  "metadata": {"title": "Qwen Image Edit 2511 ComfyUI single Spark", "description": "Quality-reference Candidate for one-or-two-reference Qwen Image Edit 2511 jobs on one Spark, using Comfy-Org's monolithic BF16 transformer, scaled-FP8 Qwen-VL encoder, and Qwen Image VAE. Its declared admission envelope is 126.00 GB unified memory including reserve and 135.50 GB peak installation disk; choose the FP8mixed ComfyUI variant when memory or installation headroom matters.", "tags": ["executable", "candidate", "quality-reference", "qwen", "image", "editing", "comfyui", "bf16", "fp8", "single", "spark"]},
+  "metadata": {"title": "Qwen Image Edit 2511 ComfyUI single Spark", "description": "Quality-reference Candidate for one-or-two-reference Qwen Image Edit 2511 jobs on one Spark, using Comfy-Org's monolithic BF16 transformer, scaled-FP8 Qwen-VL encoder, and Qwen Image VAE. Its declared admission envelope is 126.00 GB unified memory including reserve and 135.50 GB peak installation disk; choose the FP8mixed ComfyUI variant when memory or installation headroom matters.", "tags": ["executable", "candidate", "quality-reference", "qwen", "image", "editing", "comfyui", "bf16", "fp8", "single", "spark"], "alignment": "unspecified"},
   "model": {"kind": "model-version", "publisher": "qwen", "slug": "qwen-image-edit-2511-comfyui-b6a07947", "content_sha256": "d7dee3da7edabd7ebc5b153166a7b037a3e01c521a66ace0f5f4523b5f39889f"},
   "execution": {"harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "comfyui", "content_sha256": "0d97fceaa9a7ab64bf3d826b5d9ca427ea10be79b54a8d4fe9190711c9bf70d6"}, "patch_bundle": null},
   "build": {

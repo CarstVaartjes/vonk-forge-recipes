@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "qwen-image-2512-comfyui-single"},
-  "metadata": {"title": "Qwen Image 2512 ComfyUI single Spark", "description": "Candidate single-Spark core-node ComfyUI binding for the hash-locked Qwen Image 2512 BF16 repack with Qwen's published 50-step, true-CFG 4.0 generation defaults.", "tags": ["executable", "candidate", "qwen", "image", "text-to-image", "comfyui", "bf16", "single", "spark"]},
+  "metadata": {"title": "Qwen Image 2512 ComfyUI single Spark", "description": "Candidate single-Spark core-node ComfyUI binding for the hash-locked Qwen Image 2512 BF16 repack with Qwen's published 50-step, true-CFG 4.0 generation defaults.", "tags": ["executable", "candidate", "qwen", "image", "text-to-image", "comfyui", "bf16", "single", "spark"], "alignment": "unspecified"},
   "model": {"kind": "model-version", "publisher": "qwen", "slug": "qwen-image-2512-comfyui-7beb7b64", "content_sha256": "7a350cb937cd357afe963ebae4b828e5e21dc21789deb69970cc16feb73cce59"},
   "execution": {"harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "comfyui", "content_sha256": "0d97fceaa9a7ab64bf3d826b5d9ca427ea10be79b54a8d4fe9190711c9bf70d6"}, "patch_bundle": null},
   "build": {

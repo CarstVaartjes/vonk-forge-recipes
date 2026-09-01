@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "trellis-2-4b-pytorch-single"
   },
-  "version": "2.0.3",
-  "released_at": "2026-08-30",
+  "version": "2.0.4",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.0.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "251208898ec2329d1296289ef20c3d1d162fb66b4e2c3389c9b59eccf3c5b8c8",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "2.0.3",
       "released_at": "2026-08-30",

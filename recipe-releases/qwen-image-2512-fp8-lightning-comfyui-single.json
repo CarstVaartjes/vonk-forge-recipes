@@ -1,9 +1,21 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "qwen-image-2512-fp8-lightning-comfyui-single"},
-  "version": "1.0.1",
-  "released_at": "2026-08-31",
+  "version": "1.0.2",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "aca12557ad7ef1fcae48f401778ab0dfeb286ed7491239eb5a7d6fda44371c6c",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-31",

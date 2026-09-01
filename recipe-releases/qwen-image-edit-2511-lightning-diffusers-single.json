@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-lightning-diffusers-single"
   },
-  "version": "1.2.3",
-  "released_at": "2026-08-30",
+  "version": "1.2.4",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "bac2b90845b3486bb9b85681bc084443f00f121d1cbe5bbf7c3438ebb02c1f7a",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.2.3",
       "released_at": "2026-08-30",

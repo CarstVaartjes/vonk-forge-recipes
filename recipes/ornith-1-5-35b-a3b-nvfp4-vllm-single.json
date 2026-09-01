@@ -2,36 +2,33 @@
   "schema_version": 1,
   "identity": {
     "publisher": "vonk-forge",
-    "slug": "lfm2-5-vl-3b-vllm028-single"
+    "slug": "ornith-1-5-35b-a3b-nvfp4-vllm-single"
   },
   "metadata": {
-    "alignment": "unspecified",
-    "title": "LFM2.5-VL-3B BF16 vLLM 0.28 single Spark",
-    "description": "Executable one-Spark Candidate for the exact LFM2.5-VL-3B checkpoint on the pinned vLLM 0.28 ARM64 runtime, with bounded local multi-image chat, OCR/grounding, and parsed tool calls. The vLLM 0.27.1 recipe remains available as the fallback until physical Spark canary acceptance.",
+    "title": "Ornith 1.5 35B-A3B NVFP4 vLLM single Spark",
+    "description": "Executable Candidate single-Spark vLLM profile for Ornith 1.5 35B-A3B NVFP4. It binds the exact quantized checkpoint, official vLLM 0.27.1 ARM64 runtime, ModelOpt mixed NVFP4/FP8 execution, MTP-3 speculative decoding, 262K context, and OpenAI reasoning/tool parsing; physical Spark acceptance remains pending.",
     "tags": [
       "executable",
       "candidate",
-      "liquidai",
-      "lfm2-5",
-      "multimodal",
-      "vision-language",
-      "image",
-      "ocr",
-      "document",
-      "screen-understanding",
-      "grounding",
-      "tool-use",
+      "ornith",
+      "ornith-1.5",
+      "nvfp4",
+      "modelopt",
       "vllm",
+      "mtp",
+      "reasoning",
+      "agentic",
       "openai",
       "single",
       "spark"
-    ]
+    ],
+    "alignment": "unspecified"
   },
   "model": {
     "kind": "model-version",
-    "publisher": "liquidai",
-    "slug": "lfm2-5-vl-3b-bf16-5a414ead",
-    "content_sha256": "0747adfc7ac96a529b8a576093b4bced06fd04dff3b06b35a3eb3098c8980b80"
+    "publisher": "ornith-ai",
+    "slug": "ornith-1-5-35b-a3b-nvfp4-9660379a",
+    "content_sha256": "539e888b120dc0869e41142a175f7235df5310dfd9d80d5de1edca9b2f4cbd2d"
   },
   "execution": {
     "harness": {
@@ -44,8 +41,8 @@
   },
   "build": {
     "context": {
-      "path": "adapters/liquidai/lfm25-vl-vllm-028",
-      "sha256": "3f2967eac3ba8557e670c62ef62963bd3736cabb80a214f81bdd65885c65d5bc",
+      "path": "adapters/llm/vllm-openai",
+      "sha256": "071b799afd9a3dbc74360a323faea7283b1f7ca1bef6eff0aaa8fe2cf3cca98f",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -57,8 +54,8 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 15966509845,
-      "temporary_bytes": 32000000000,
+      "download_bytes": 33953553153,
+      "temporary_bytes": 46840835064,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
     }
@@ -68,10 +65,10 @@
     {
       "id": "weights",
       "kind": "huggingface.snapshot",
-      "repository": "LiquidAI/LFM2.5-VL-3B",
-      "revision": "5a414ead75d45db003906d06fb62bd5b6846cec0",
-      "download_bytes": 6265014122,
-      "installed_bytes": 6265014122,
+      "repository": "ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
+      "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+      "download_bytes": 23420417532,
+      "installed_bytes": 23420417532,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -85,8 +82,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "vllm",
-      "slug": "vllm-0-28-0-nvidia-arm64",
-      "content_sha256": "15c98035c9bbba7ec61d25acd93c3c34b0516754c299813e5f51344e858abd2d"
+      "slug": "vllm-0-27-1-nvidia-arm64",
+      "content_sha256": "95b0467cb73eeabfe8fd0c4f5f5e4f19a935b6bca3d56ed4bb6fc888470eca4a"
     },
     "entrypoint": [
       "/opt/vonk/bin/vllm",
@@ -96,43 +93,63 @@
     "arguments": [
       {
         "name": "served-model-name",
-        "value": "lfm2-5-vl-3b-vllm028"
+        "value": "ornith-1-5-35b-a3b"
       },
       {
         "name": "max-model-len",
-        "value": 32768
+        "value": 262144
       },
       {
         "name": "max-num-seqs",
         "value": 4
       },
       {
-        "name": "max-num-batched-tokens",
-        "value": 4096
-      },
-      {
-        "name": "max-cudagraph-capture-size",
-        "value": 4
-      },
-      {
         "name": "gpu-memory-utilization",
-        "value": "0.45"
+        "value": "0.40"
       },
       {
-        "name": "limit-mm-per-prompt",
-        "value": "{\"image\":4}"
-      },
-      {
-        "name": "allowed-local-media-path",
-        "value": "/inputs"
+        "name": "reasoning-parser",
+        "value": "qwen3"
       },
       {
         "name": "tool-call-parser",
-        "value": "lfm2"
+        "value": "qwen3_xml"
+      },
+      {
+        "name": "trust-remote-code",
+        "value": true
       },
       {
         "name": "enable-auto-tool-choice",
         "value": true
+      },
+      {
+        "name": "kv-cache-dtype",
+        "value": "fp8"
+      },
+      {
+        "name": "moe-backend",
+        "value": "marlin"
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "value": 8192
+      },
+      {
+        "name": "enable-chunked-prefill",
+        "value": true
+      },
+      {
+        "name": "async-scheduling",
+        "value": true
+      },
+      {
+        "name": "enable-prefix-caching",
+        "value": true
+      },
+      {
+        "name": "speculative-config",
+        "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3,\"moe_backend\":\"triton\"}"
       }
     ],
     "environment": [
@@ -161,11 +178,6 @@
         {
           "source": "model",
           "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
           "read_only": true
         },
         {
@@ -205,16 +217,16 @@
         "resources": {
           "disk": {
             "image_bytes": 12000000000,
-            "artifact_bytes": 6265014122,
-            "staging_bytes": 32000000000,
+            "artifact_bytes": 23420417532,
+            "staging_bytes": 46840835064,
             "cache_bytes": 4000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 70000000000,
-            "steady_state_bytes": 64000000000,
+            "startup_peak_bytes": 65000000000,
+            "steady_state_bytes": 59000000000,
             "runtime_growth_bytes": 4000000000,
             "system_reserve_bytes": 8000000000
           }
@@ -244,7 +256,7 @@
       "adapter": "openai",
       "port": 8000,
       "model_aliases": [
-        "lfm2-5-vl-3b-vllm028"
+        "ornith-1-5-35b-a3b"
       ],
       "health_path": "/v1/models"
     }
@@ -274,10 +286,9 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/tree/5a414ead75d45db003906d06fb62bd5b6846cec0",
+    "source_reference": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4/tree/9660379a2f2c429c465eeed2f3a0f2433fc4381e",
     "attribution": [
-      "Liquid AI",
-      "vLLM contributors"
+      "ornith-ai"
     ]
   }
 }

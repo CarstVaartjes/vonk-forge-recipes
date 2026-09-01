@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "step1x-3d-label-geometry-pytorch-single"
   },
-  "version": "1.2.3",
-  "released_at": "2026-08-30",
+  "version": "1.2.4",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "6d190a4a23d04e67d12b27155e64fd44f0f2a4448f6383d80ae4f8c6de6f1ddd",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.2.3",
       "released_at": "2026-08-30",

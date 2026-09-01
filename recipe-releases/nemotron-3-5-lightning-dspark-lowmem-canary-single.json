@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-5-lightning-dspark-lowmem-canary-single"
   },
-  "version": "1.0.0",
-  "released_at": "2026-08-31",
+  "version": "1.0.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "dbcdfdcce6ef41d5766434f568cf1970e9a268c5a8227305f63db0ba247de9ed",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-31",

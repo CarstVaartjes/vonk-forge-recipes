@@ -5,6 +5,7 @@
     "slug": "wan-dancer-14b-pytorch-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Wan-Dancer 14B PyTorch single Spark",
     "description": "Installable single-DGX Spark Candidate for Wan-Dancer's official global-planning and local-refinement music-to-dance pipeline, with isolated reference-image, music, style and prompt inputs. Generation is bounded to a 921,600-pixel canvas (including 720x1280 portrait and 1280x720 landscape). Controller admission still requires the full declared 128 GB memory envelope; physical Spark memory, quality, and latency acceptance remain pending.",
     "tags": ["executable",

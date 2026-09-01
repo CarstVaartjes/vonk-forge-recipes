@@ -2,6 +2,7 @@
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "nemotron-3-nano-30b-a3b-vllm-single"},
   "metadata": {
+    "alignment": "unspecified",
     "title": "Nemotron 3 Nano 30B-A3B NVFP4 vLLM single Spark (superseded)",
     "description": "Executable Candidate legacy single-Spark profile for the exact NVIDIA Nemotron 3 Nano NVFP4 checkpoint. It remains installable for reproducibility, but Nemotron 3.5 Lightning is the preferred default for new text deployments. The immutable snapshot supplies the reviewed nano_v3 reasoning plugin, while FP8 KV and FlashInfer NVFP4 MoE follow NVIDIA's launch contract.",
     "tags": ["executable", "candidate", "historical", "superseded", "nemotron", "nvfp4", "vllm", "openai", "single", "spark"]

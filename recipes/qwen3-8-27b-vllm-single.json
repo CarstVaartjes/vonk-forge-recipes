@@ -5,6 +5,7 @@
     "slug": "qwen3-8-27b-vllm-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Qwen3.8 27B BF16 vLLM single Spark",
     "description": "Candidate full-precision alternative for one Spark, binding the exact official Qwen3.8 27B BF16 multimodal checkpoint; FP8 is the preferred dense/default profile. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
     "tags": ["executable",

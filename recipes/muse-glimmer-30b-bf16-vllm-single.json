@@ -5,6 +5,7 @@
     "slug": "muse-glimmer-30b-bf16-vllm-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Muse Glimmer 30B BF16 vLLM single Spark",
     "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B BF16, using an exact official vLLM development image and immutable local media inputs. Chat, vision, reasoning, and tool calling remain Candidate capabilities; combining reasoning with JSON-schema structured output is not supported by this pinned runtime.",
     "tags": ["executable",
