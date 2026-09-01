@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "hunyuanocr-1-5-vllm-dflash-single"
   },
-  "version": "1.2.0",
-  "released_at": "2026-08-29",
+  "version": "1.2.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "0fe23484acd6aa377aaa55a6ef40254a31bb2340ca10bab7338dbcfe92349d4a",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.2.0",
       "released_at": "2026-08-29",

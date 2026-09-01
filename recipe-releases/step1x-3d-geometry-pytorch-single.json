@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "step1x-3d-geometry-pytorch-single"
   },
-  "version": "1.2.3",
-  "released_at": "2026-08-30",
+  "version": "1.2.4",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "a93cfd6af054872fed74126d56bf84e5b897ff8ee80496b343433fe006f107a8",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.2.3",
       "released_at": "2026-08-30",

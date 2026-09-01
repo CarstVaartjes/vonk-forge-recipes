@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "qwen-image-2512-fp8-lightning-comfyui-single"},
-  "metadata": {"title": "Qwen Image 2512 FP8 Lightning ComfyUI single Spark", "description": "Installable Candidate for the exact official ComfyUI 0.34.0 Qwen Image 2512 profile: FP8 transformer, FP32 four-step Lightning LoRA, scaled-FP8 text encoder, and Qwen Image VAE on one Spark.", "tags": ["executable", "candidate", "qwen", "image", "text-to-image", "comfyui", "fp8", "lightning", "lora", "single", "spark"]},
+  "metadata": {"title": "Qwen Image 2512 FP8 Lightning ComfyUI single Spark", "description": "Installable Candidate for the exact official ComfyUI 0.34.0 Qwen Image 2512 profile: FP8 transformer, FP32 four-step Lightning LoRA, scaled-FP8 text encoder, and Qwen Image VAE on one Spark.", "tags": ["executable", "candidate", "qwen", "image", "text-to-image", "comfyui", "fp8", "lightning", "lora", "single", "spark"], "alignment": "unspecified"},
   "model": {"kind": "model-version", "publisher": "qwen", "slug": "qwen-image-2512-lightning-fp32-a52649c9", "content_sha256": "91f83d22246eb0b1022c3db570ecdb2728a237de3268f53ea90398249f176cc8"},
   "dependencies": [{"kind": "model-version", "publisher": "qwen", "slug": "qwen-image-2512-comfyui-fp8-7beb7b64", "content_sha256": "4d92962dd9c7b9483d023decc9d915edcaab8aab13372ad2b294ae57af1f58cc"}],
   "execution": {"harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "comfyui", "content_sha256": "0d97fceaa9a7ab64bf3d826b5d9ca427ea10be79b54a8d4fe9190711c9bf70d6"}, "patch_bundle": null},

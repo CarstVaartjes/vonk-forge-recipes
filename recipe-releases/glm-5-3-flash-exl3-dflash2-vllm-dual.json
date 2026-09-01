@@ -1,9 +1,21 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-exl3-dflash2-vllm-dual"},
-  "version": "1.2.0",
-  "released_at": "2026-08-31",
+  "version": "1.2.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "0283afbf74ffba1553aa701f5fe25a05672e77db6bdf03e7db7f0a30514dd42b",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.2.0",
       "released_at": "2026-08-31",

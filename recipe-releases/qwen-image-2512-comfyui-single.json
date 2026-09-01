@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-2512-comfyui-single"
   },
-  "version": "1.0.5",
-  "released_at": "2026-08-31",
+  "version": "1.0.6",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.6",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "9c10877ee25522aa3d217ae5f79f63d6b20ba392f99bbce0fc0e15e5ca1db1ba",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.5",
       "released_at": "2026-08-31",

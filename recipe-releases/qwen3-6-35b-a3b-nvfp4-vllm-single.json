@@ -1,9 +1,21 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "qwen3-6-35b-a3b-nvfp4-vllm-single"},
-  "version": "1.0.1",
-  "released_at": "2026-08-30",
+  "version": "1.0.2",
+  "released_at": "2026-09-01",
   "history": [{
+      "version": "1.0.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "939a9f7cbd8b6065d6ad00edc9279b75a3e451e95700405ebbb2500a01d12ffc",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
     "version": "1.0.1",
     "released_at": "2026-08-30",
     "recipe_content_sha256": "fcec4077f3a01e6f68bb8bf55deb43d3114c7ac20b44da12674ce70c6f140c29",

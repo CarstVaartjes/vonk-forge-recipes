@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-5-22b-distilled-bf16-diffusers-single"
   },
-  "version": "1.1.0",
-  "released_at": "2026-08-30",
+  "version": "1.1.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.1.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "ca436e13adfb66dc01e8dda706b2516cfdbaba121929ef9723719a0ebfd8f5e9",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-08-30",

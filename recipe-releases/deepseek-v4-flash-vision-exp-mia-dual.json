@@ -1,9 +1,21 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-vision-exp-mia-dual"},
-  "version": "1.0.0",
-  "released_at": "2026-08-31",
+  "version": "1.0.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "a04b9ac917790bffdc1875e3ccd4189d07a5d1888f515c341b5b5199e56609f1",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-31",

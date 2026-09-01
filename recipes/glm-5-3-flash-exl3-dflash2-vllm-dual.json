@@ -2,6 +2,7 @@
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-exl3-dflash2-vllm-dual"},
   "metadata": {
+    "alignment": "unspecified",
     "title": "GLM 5.3 Flash EXL3 DFlash2 vLLM two Sparks",
     "description": "Directly installable Candidate reproducing MiaAI-Lab's current 2x DGX Spark EXL3/TR3 4 bpw target with the bf582e4e DFlash2 K7 checkpoint, native-mp TP2, 1M context, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. Exact source, image, target, drafter, licenses, and measured resource envelope are pinned; Vonk physical acceptance and checkpoint requalification remain pending.",
     "tags": ["candidate", "dflash2", "executable", "exl3", "glm-5.3", "multimodal", "native-mp", "pending", "reasoning", "spark", "tool-use", "vllm"]

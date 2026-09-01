@@ -5,6 +5,7 @@
     "slug": "ltx-2-19b-dev-fp4-pytorch-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "LTX-2 19B dev FP4 native pipeline single Spark",
     "description": "Directly deployable disk-offload Candidate using the exact official native LTX 1.3.0 two-stage pipeline, FP4 checkpoint, distilled refinement LoRA, spatial upscaler, Gemma 3 companion closure, and ARM64 CUDA 13.2 wheels. The 89 GB startup and 75 GB steady declarations conservatively apply only the pinned upstream's documented 31 GB disk-versus-CPU offload reduction, with 8 GB growth and 8 GB system reserve for a 97 GB admission total; container build and physical Spark acceptance remain required.",
     "tags": ["executable",

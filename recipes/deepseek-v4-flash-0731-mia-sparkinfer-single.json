@@ -2,6 +2,7 @@
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-0731-mia-sparkinfer-single"},
   "metadata": {
+    "alignment": "unspecified",
     "title": "DeepSeek V4 Flash 0731 Mia SparkInfer single Spark",
     "description": "Executable Candidate reproduction of MiaAI-Lab's physically tested one-DGX-Spark DeepSeek V4 Flash profile: native compact NVFP4 KV, 384K single-request context, DSpark K5, CUDA graphs through 24 rows, and 0.94 memory utilization.",
     "tags": ["executable", "candidate", "deepseek", "dspark", "exl3", "openai-compatible", "reap", "single", "sparkinfer", "spark", "speculative-decoding"]

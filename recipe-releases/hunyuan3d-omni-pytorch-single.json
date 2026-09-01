@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan3d-omni-pytorch-single"
   },
-  "version": "2.0.3",
-  "released_at": "2026-08-28",
+  "version": "2.0.4",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.0.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "b4ad19ea257c29e33f38cf636831249a78726b163df374453346ffd28ed1edeb",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "2.0.3",
       "released_at": "2026-08-28",

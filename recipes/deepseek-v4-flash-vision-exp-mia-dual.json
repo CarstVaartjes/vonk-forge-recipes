@@ -5,6 +5,7 @@
     "slug": "deepseek-v4-flash-vision-exp-mia-dual"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "DeepSeek V4 Flash Vision Experimental Mia dual Spark",
     "description": "Installable Candidate two-Spark native-vision profile for the official DeepSeek V4 Flash Vision Experimental checkpoint. It reproduces MiaAI-Lab 7963d432 on the immutable Anemll ARM64 runtime with OpenAI image_url input, the 32-layer ViT and aligner, FP4/FP8 weights, NVFP4 DS-MLA KV, DSpark K6, 1M context, and a measured 17.04 GiB / 2,331,430-token KV pool at 0.835 utilization; Vonk physical image and dual-Spark acceptance remain pending.",
     "tags": [

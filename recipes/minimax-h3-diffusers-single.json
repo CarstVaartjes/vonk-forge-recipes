@@ -5,6 +5,7 @@
     "slug": "minimax-h3-diffusers-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "MiniMax H3 Modular Diffusers single Spark",
     "description": "Installable single-Spark Candidate for text, keyframe, and ordered multimodal-reference generation with TorchAO int8 streamed offload and a verified joint 24-fps video plus 32-kHz stereo audio MP4 export. Physical Spark qualification is pending.",
     "tags": ["executable",

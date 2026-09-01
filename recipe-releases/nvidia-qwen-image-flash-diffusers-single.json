@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "nvidia-qwen-image-flash-diffusers-single"
   },
-  "version": "1.2.2",
-  "released_at": "2026-08-30",
+  "version": "1.2.3",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.3",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "396653b8f55262d6969ce1ab64c6ce46b520b63d8d9514e1e4da2ef8a17cc672",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.2.2",
       "released_at": "2026-08-30",

@@ -1,9 +1,21 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "qwen3-8-flash-next-nvfp4-sglang-dual"},
-  "version": "1.3.0",
-  "released_at": "2026-08-30",
+  "version": "1.3.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.3.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "72c90f0a2e80bb9ac1520bd8c8a44930af9e8327b5a9bd178dd908911f0f5087",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.3.0",
       "released_at": "2026-08-30",

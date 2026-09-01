@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-layered-diffusers-single"
   },
-  "version": "1.1.4",
-  "released_at": "2026-08-30",
+  "version": "1.1.5",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.1.5",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "10ad8492648f32a9710bd4582fcba487c27745fd6cd6ac50cf389bfe543992b9",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.1.4",
       "released_at": "2026-08-30",

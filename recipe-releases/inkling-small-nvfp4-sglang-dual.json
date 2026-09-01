@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "inkling-small-nvfp4-sglang-dual"
   },
-  "version": "1.0.1",
-  "released_at": "2026-08-26",
+  "version": "1.0.2",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "4cbe5b3699a0579651eae97d850016ca8aa3ae4f9653ab742b3e19aa79d90ec9",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.1",
       "released_at": "2026-08-26",

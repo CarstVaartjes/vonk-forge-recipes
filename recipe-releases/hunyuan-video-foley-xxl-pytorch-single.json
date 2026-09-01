@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan-video-foley-xxl-pytorch-single"
   },
-  "version": "1.4.0",
-  "released_at": "2026-08-30",
+  "version": "1.4.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.4.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "c9f2f9e9133e45bcd8427762a3a9fcde3a78aa293a7e9c5a402f40072a77dc55",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.4.0",
       "released_at": "2026-08-30",

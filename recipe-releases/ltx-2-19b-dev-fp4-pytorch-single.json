@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-dev-fp4-pytorch-single"
   },
-  "version": "2.3.0",
-  "released_at": "2026-08-31",
+  "version": "2.3.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.3.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "8460a0ad97d85c02997e8c936ce65ae84218cd1079f618f5c933de902283fcc9",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "2.3.0",
       "released_at": "2026-08-31",

@@ -1,9 +1,21 @@
 {
   "schema_version": 1,
   "recipe": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-0731-mia-sparkinfer-single"},
-  "version": "1.1.1",
-  "released_at": "2026-08-30",
+  "version": "1.1.2",
+  "released_at": "2026-09-01",
   "history": [{
+      "version": "1.1.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "43779dd320cd5dae0e8c7b029e8722953595dd62d23ef63cc0fbf87010b35872",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
     "version": "1.1.1", "released_at": "2026-08-30", "recipe_content_sha256": "a1ce7f3514fcd961b75a90b1e4d1c4c4b1ea2b7f15b13ceb84019e7f3af05d4b", "upgrade_effect": "metadata-only",
     "changes": [{"kind": "compatibility", "summary": "Aligned Controller admission with MiaAI-Lab's measured 0.94-utilization memory envelope.", "details": "Raises the workload peak to 122.8 GB, covering the documented 114.3 GiB launch requirement, and uses the Controller's 4 GB system floor instead of double-counting host memory already absent from free inventory. The resulting 126.8 GB admission envelope preserves the runtime, image, model, and 384K profile unchanged.", "references": ["https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-One-DGX-Spark/tree/fdcd538fbf95fb15b2d6850db9613d22b2c889b8#memory-and-kv-cache"]}]
   }, {

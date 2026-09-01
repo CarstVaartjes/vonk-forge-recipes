@@ -5,6 +5,7 @@
     "slug": "laguna-s-2-1-nvfp4-vllm-low-memory-canary-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Laguna S 2.1 NVFP4 vLLM 32K low-memory canary single Spark",
     "description": "Physical-OOM-gated single-Spark canary for the exact Poolside Laguna S 2.1 NVFP4 checkpoint. It preserves the OpenAI reasoning and tool surface while bounding the FP8 KV cache to 3 GB, one sequence, 32K context, 4K chunked prefills, and eager execution. The 126 GB admission envelope is a conservative canary hypothesis, not measured acceptance; retain the original 65K profile and use Laguna XS as the default fleet-fit alternative until this exact variant passes physical startup, memory, and output checks.",
     "tags": [

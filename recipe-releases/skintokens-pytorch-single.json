@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "skintokens-pytorch-single"
   },
-  "version": "2.0.4",
-  "released_at": "2026-08-30",
+  "version": "2.0.5",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.0.5",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "c749897ac2dd210caa5e23ad41a41adf1cd9945818d3da52506b88dad57ce8ca",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "2.0.4",
       "released_at": "2026-08-30",

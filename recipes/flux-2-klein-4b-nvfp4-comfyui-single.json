@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "flux-2-klein-4b-nvfp4-comfyui-single"},
-  "metadata": {"title": "FLUX.2 Klein 4B NVFP4 ComfyUI single Spark", "description": "Candidate four-step single-Spark core-node ComfyUI text-to-image recipe using Black Forest Labs' official NVFP4 transformer for lower artifact storage and native Blackwell execution.", "tags": ["executable", "candidate", "flux", "image", "text-to-image", "comfyui", "nvfp4", "distilled", "single", "spark"]},
+  "metadata": {"title": "FLUX.2 Klein 4B NVFP4 ComfyUI single Spark", "description": "Candidate four-step single-Spark core-node ComfyUI text-to-image recipe using Black Forest Labs' official NVFP4 transformer for lower artifact storage and native Blackwell execution.", "tags": ["executable", "candidate", "flux", "image", "text-to-image", "comfyui", "nvfp4", "distilled", "single", "spark"], "alignment": "unspecified"},
   "model": {"kind": "model-version", "publisher": "black-forest-labs", "slug": "flux-2-klein-4b-nvfp4-1db2b2f7", "content_sha256": "0bbb725d275f9562193171fc17391ce0f5a2156e365d1b208eaba0f1691a6914"},
   "execution": {"harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "comfyui", "content_sha256": "0d97fceaa9a7ab64bf3d826b5d9ca427ea10be79b54a8d4fe9190711c9bf70d6"}, "patch_bundle": null},
   "build": {

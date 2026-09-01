@@ -5,6 +5,7 @@
     "slug": "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Nemotron 3.5 Lightning 30B-A3B vLLM DSpark 1M latency single Spark (tight)",
     "description": "Specialized high-context, low-concurrency single-DGX-Spark profile pairing NVIDIA's exact Nemotron 3.5 Lightning NVFP4 target with its official DSpark companion at the declared 1M-token context. Its declared memory contract is tight, so it is not the default Nemotron text profile; physical GB10 latency, acceptance-rate, memory, and output-equivalence canaries are still required.",
     "tags": [

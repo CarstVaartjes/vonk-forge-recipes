@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "step1x-3d-texture-pytorch-single"
   },
-  "version": "1.2.3",
-  "released_at": "2026-08-30",
+  "version": "1.2.4",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "eb3bf0be6d6a53ab6eca7ba7b20db3e26cf86b2a8c82f879d425c27f7d92d31d",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.2.3",
       "released_at": "2026-08-30",

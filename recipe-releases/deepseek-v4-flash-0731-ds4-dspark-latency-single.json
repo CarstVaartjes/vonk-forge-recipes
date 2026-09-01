@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-ds4-dspark-latency-single"
   },
-  "version": "1.2.0",
-  "released_at": "2026-08-24",
+  "version": "1.2.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.2.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "9ba5120371b5c0a0050f75a43b1e9c26a2a5cdf5ec8d99750af3b08fec33d694",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.2.0",
       "released_at": "2026-08-24",
