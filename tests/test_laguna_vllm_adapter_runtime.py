@@ -13,9 +13,9 @@ RECIPE = ROOT / "recipes/laguna-xs-2-1-nvfp4-vllm-single.json"
 RELEASE = ROOT / "recipe-releases/laguna-xs-2-1-nvfp4-vllm-single.json"
 LAGUNA_S_RECIPE = ROOT / "recipes/laguna-s-2-1-nvfp4-vllm-single.json"
 LAGUNA_S_RELEASE = ROOT / "recipe-releases/laguna-s-2-1-nvfp4-vllm-single.json"
-LAGUNA_S_MODEL = ROOT / "model-versions/laguna-s-2-1-nvfp4.json"
+LAGUNA_S_MODEL = ROOT / "model-versions/laguna-s-2-1-nvfp4-826aacdf.json"
 LAGUNA_S_DOCKERFILE = ROOT / "adapters/llm/laguna-s-vllm/Dockerfile"
-LAGUNA_S_REVISION = "64734b3a449a05c79657451513d97544f2f53436"
+LAGUNA_S_REVISION = "826aacdf6d8b2699d4e367def6f17c83b06044c2"
 CURRENT_LAGUNA_S_REVISION = "826aacdf6d8b2699d4e367def6f17c83b06044c2"
 LAGUNA_XS_REVISION = "d32afde8b09af1539b49ff96ff5551c674485f8e"
 VLLM_REVISION = "6e448d0ea9bf3d88d898b65449ca6dc2aec170ac"
@@ -192,11 +192,11 @@ class LagunaSVllmRecipeTests(unittest.TestCase):
             {artifact["revision"] for artifact in artifacts}, {LAGUNA_S_REVISION}
         )
         self.assertEqual(
-            sum(artifact["download_bytes"] for artifact in artifacts), 99_717_279_862
+            sum(artifact["download_bytes"] for artifact in artifacts), 99_717_279_420
         )
         self.assertEqual(
             self.model["sizes"],
-            {"download_bytes": 99_717_279_862, "installed_bytes": 99_717_279_862},
+            {"download_bytes": 99_717_279_420, "installed_bytes": 99_717_279_420},
         )
         self.assertEqual(self.model["limits"]["context_tokens"], 1_048_576)
         self.assertTrue(
@@ -246,7 +246,7 @@ class LagunaSVllmRecipeTests(unittest.TestCase):
         self.assertEqual(context["expected_bytes"], len(archive))
 
     def test_release_tracks_the_corrected_recipe(self) -> None:
-        self.assertEqual(self.release["version"], "1.0.4")
+        self.assertEqual(self.release["version"], "1.0.5")
         self.assertEqual(
             self.release["history"][0]["recipe_content_sha256"],
             canonical_digest(LAGUNA_S_RECIPE),
@@ -268,7 +268,7 @@ class LagunaSVllmRecipeTests(unittest.TestCase):
             ],
         )
         self.assertIn(CURRENT_LAGUNA_S_REVISION[:8], target["notes"])
-        self.assertIn("changes only README.md", target["notes"])
+        self.assertIn("README.md only", target["notes"])
 
 
 if __name__ == "__main__":

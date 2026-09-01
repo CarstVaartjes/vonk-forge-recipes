@@ -4,9 +4,27 @@
     "publisher": "vonk-forge",
     "slug": "laguna-s-2-1-nvfp4-vllm-low-memory-canary-single"
   },
-  "version": "1.0.0",
-  "released_at": "2026-08-31",
+  "version": "1.0.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "51d1044c7cea46c57ba0e31ee691b8e78a3a0d30917d225fe01539031feb4c60",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Pinned the current immutable Poolside Laguna S 2.1 NVFP4 snapshot at 826aacdf.",
+          "details": "The upstream revision changes README metadata only; model weights, configuration, tokenizer, runtime image, and serving arguments remain byte-identical. Existing runtime containers do not require a rebuild, while the catalog now points at the current immutable source revision.",
+          "references": [
+            "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/commit/826aacdf6d8b2699d4e367def6f17c83b06044c2",
+            "https://github.com/vllm-project/vllm/tree/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
+            "https://docs.vllm.ai/en/v0.27.1/cli/serve/"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-31",
