@@ -4,13 +4,13 @@
     "publisher": "vonk-forge",
     "slug": "step1x-3d-texture-pytorch-single"
   },
-  "version": "1.2.4",
+  "version": "1.2.5",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.2.4",
+      "version": "1.2.5",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "eb3bf0be6d6a53ab6eca7ba7b20db3e26cf86b2a8c82f879d425c27f7d92d31d",
+      "recipe_content_sha256": "35d98b5960e0acd168baf1a5028079eb37fb16fbb3fddabe20280c6d4afd9c65",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
@@ -20,11 +20,30 @@
       ]
     },
     {
+      "version": "1.2.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "2ec3e3e53d7cbe51410301dc32bd8e5cfe82cb6222bf1db1b8adceb8b8fabf5c",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Added the Ubuntu security mirror required by the shared Step1X package-install build.",
+          "details": "The host allowlist now matches the pinned Step1X runtime distribution while preserving offline execution after installation."
+        }
+      ]
+    },
+    {
       "version": "1.2.3",
       "released_at": "2026-08-30",
       "recipe_content_sha256": "3595f1a0a92ea0dcf0fbed63ab8e2a240ab4aa39976c734c8350447cf9351adf",
       "upgrade_effect": "metadata-only",
-      "changes": [{"kind": "metadata", "summary": "Linked the Step1X texture stage to both geometry producers.", "details": "Operator guidance names both exact upstream recipes, the same-reference-image requirement, and the existing 240 MiB mesh input limit."}]
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Linked the Step1X texture stage to both geometry producers.",
+          "details": "Operator guidance names both exact upstream recipes, the same-reference-image requirement, and the existing 240 MiB mesh input limit."
+        }
+      ]
     },
     {
       "version": "1.2.2",

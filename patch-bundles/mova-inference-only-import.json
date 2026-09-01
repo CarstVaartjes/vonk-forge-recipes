@@ -20,7 +20,7 @@
     "kind": "runtime-distribution",
     "publisher": "openmoss",
     "slug": "mova-native-arm64",
-    "content_sha256": "99f7593ff1dcd3667452efc166b7cc480de35a04782744665bf482faecec5b39"
+    "content_sha256": "679719ffa1a09449959f159b92548514125f21a0cac71f2bc86cf7e535d041a1"
   },
   "source": {
     "repository": "https://github.com/OpenMOSS/MOVA",

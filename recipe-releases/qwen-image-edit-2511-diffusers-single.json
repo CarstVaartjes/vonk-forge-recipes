@@ -4,18 +4,31 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-diffusers-single"
   },
-  "version": "1.1.3",
+  "version": "1.1.4",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.1.3",
+      "version": "1.1.4",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "72a65fba6b8f94c734a85d9bee4ad52f95c3d75615d418d8e514efab587053b9",
+      "recipe_content_sha256": "13f3d7bcb1a87abe790c55a6b0a6b94f27923fdbff4f53e0d59f54b856155d4e",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "1.1.3",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "398f83975b1bd4f48c94ba64b3172b6ad7da8a6e668c24ffca9d147cecf2e164",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
         }
       ]
     },

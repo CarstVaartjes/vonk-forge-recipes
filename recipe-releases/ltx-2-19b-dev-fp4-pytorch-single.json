@@ -4,18 +4,48 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-dev-fp4-pytorch-single"
   },
-  "version": "2.3.1",
+  "version": "2.3.3",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "2.3.1",
+      "version": "2.3.3",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "8460a0ad97d85c02997e8c936ce65ae84218cd1079f618f5c933de902283fcc9",
+      "recipe_content_sha256": "3c4b2151e8514c4970feb7c6fa06715e4735b2f7617af5fd400aa358284042c8",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "2.3.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "baff135e07ea79ae4eb19729ee543edd77805a26c9b3922839ab58a63188b2e1",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Marked the historical LTX-2 profile superseded while retaining its directly deployable immutable execution contract.",
+          "details": "LTX-2.5 BF16 is the current fidelity baseline and its fixed FP8-cast sequential-offload variant is the current lower-memory canary. Runtime, artifacts, build context, topology, interfaces, validation, and provenance are unchanged.",
+          "references": [
+            "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
+            "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.3.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "32f866c8eb41e0de62f3c18ce9d9ba6107c9c2ca8846402ac45c4cd5e62999a4",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Corrected public build egress for the pinned LTX source archive and PyTorch wheel redirects.",
+          "details": "Added codeload.github.com and download-r2.pytorch.org, and removed nvcr.io because verified base images are transferred separately from Dockerfile build egress."
         }
       ]
     },
@@ -113,12 +143,16 @@
         {
           "kind": "fix",
           "summary": "Replaced unavailable ARM64 CUDA 13.2 Torch and TorchAudio pins with the current upstream-tested 2.13.0 and 2.11.0 wheels.",
-          "references": ["https://github.com/Lightricks/LTX-2/blob/400fd31054597515f47125691032c04b1c3ee24e/packages/ltx-core/pyproject.toml"]
+          "references": [
+            "https://github.com/Lightricks/LTX-2/blob/400fd31054597515f47125691032c04b1c3ee24e/packages/ltx-core/pyproject.toml"
+          ]
         },
         {
           "kind": "fix",
           "summary": "Corrected the recipe's whole-snapshot artifact and dependent disk resource sizes.",
-          "references": ["https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"]
+          "references": [
+            "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
+          ]
         },
         {
           "kind": "compatibility",

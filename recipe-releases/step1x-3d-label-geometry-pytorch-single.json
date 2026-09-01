@@ -4,13 +4,13 @@
     "publisher": "vonk-forge",
     "slug": "step1x-3d-label-geometry-pytorch-single"
   },
-  "version": "1.2.4",
+  "version": "1.2.5",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.2.4",
+      "version": "1.2.5",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "6d190a4a23d04e67d12b27155e64fd44f0f2a4448f6383d80ae4f8c6de6f1ddd",
+      "recipe_content_sha256": "dc7d0e3fdd03e5e361edb5a87d77325bfa5771833aa4ea0ff77c7e47ce9d65ea",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
@@ -20,11 +20,30 @@
       ]
     },
     {
+      "version": "1.2.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "5579e710b65141aaf17c1bd207710dc6e278f914ea5297dcf4ceb71eacfef847",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Added the Ubuntu security mirror required by the shared Step1X package-install build.",
+          "details": "The host allowlist now matches the pinned Step1X runtime distribution while preserving offline execution after installation."
+        }
+      ]
+    },
+    {
       "version": "1.2.3",
       "released_at": "2026-08-30",
       "recipe_content_sha256": "734b2734e64bfde1cac2024e80de53c98495789e0d6a7d4820932ebe46fbca47",
       "upgrade_effect": "metadata-only",
-      "changes": [{"kind": "metadata", "summary": "Linked bounded controlled geometry output to the Step1X texture stage.", "details": "Operator guidance names the exact next recipe and the existing 240 MiB downstream input limit without claiming unsupported composite orchestration."}]
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Linked bounded controlled geometry output to the Step1X texture stage.",
+          "details": "Operator guidance names the exact next recipe and the existing 240 MiB downstream input limit without claiming unsupported composite orchestration."
+        }
+      ]
     },
     {
       "version": "1.2.2",

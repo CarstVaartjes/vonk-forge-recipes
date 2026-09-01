@@ -7,9 +7,29 @@
   },
   "metadata": {
     "title": "Audio and music generation targets",
-    "updated": "2026-08-29"
+    "updated": "2026-09-01"
   },
   "targets": [
+    {
+      "modality": "audio",
+      "group": "LTX",
+      "model": "LTX-2.5",
+      "version": "22B distilled BF16 Diffusers 426936f8",
+      "status": "candidate",
+      "source": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc",
+      "harnesses": [
+        "diffusers"
+      ],
+      "topologies": [
+        "single"
+      ],
+      "recipe_slugs": [
+        "ltx-2-5-22b-distilled-bf16-diffusers-single",
+        "ltx-2-5-22b-distilled-fp8-cast-diffusers-single"
+      ],
+      "notes": "Current Candidate alternatives for synchronized audio-video generation: BF16 is the fidelity baseline and the fixed FP8-cast sequential-offload variant is the lower-memory canary. Physical authenticated install, measured memory, and GB10 qualification remain pending.",
+      "catalog_model_version": "ltx-2-5-22b-distilled-bf16-diffusers"
+    },
     {
       "modality": "audio",
       "group": "LTX-2.3",
@@ -26,7 +46,7 @@
       "recipe_slugs": [
         "ltx-2-3-22b-distilled-1-1-diffusers-single"
       ],
-      "notes": "Directly deployable Candidate uses upstream's lowest-memory disk offload (~5 GB host RAM versus ~36 GB for CPU offload). Its conservative 93 GB startup and 77 GB steady declarations subtract only that documented 31 GB delta from the prior profile, retain 8 GB growth and 8 GB reserve, and admit within 128 GB. Physical Spark acceptance remains pending.",
+      "notes": "Superseded historical compatibility profile that remains directly deployable and immutable. The lowest-memory disk offload preserves the documented 31 GB reduction; its conservative 93 GB startup, 77 GB steady, 8 GB growth, and 8 GB reserve declarations admit within 128 GB. LTX-2.5 BF16 is the current fidelity baseline and LTX-2.5 FP8-cast is the current lower-memory canary. Physical Spark acceptance remains pending.",
       "catalog_model_version": "ltx-2-3-22b-distilled-1-1"
     },
     {
@@ -45,7 +65,7 @@
       "recipe_slugs": [
         "ltx-2-19b-distilled-diffusers-single"
       ],
-      "notes": "Pinned official LTX 1.2 native ARM64 source, exact companion closure, and synchronized audio-video export are executable; physical Spark canary remains pending.",
+      "notes": "Superseded historical compatibility profile with pinned official source, exact companion closure, and executable synchronized audio-video export. LTX-2.5 BF16 is the current fidelity baseline and LTX-2.5 FP8-cast is the current lower-memory canary; physical Spark acceptance remains pending.",
       "catalog_model_version": "ltx-2-19b-distilled"
     },
     {
@@ -64,7 +84,7 @@
       "recipe_slugs": [
         "ltx-2-19b-dev-fp4-pytorch-single"
       ],
-      "notes": "Pinned official FP4 checkpoint and native synchronized audio-video pipeline are source-complete; physical Spark canary remains pending."
+      "notes": "Superseded historical compatibility profile with a pinned official FP4 checkpoint and source-complete native synchronized audio-video pipeline. LTX-2.5 BF16 is the current fidelity baseline and LTX-2.5 FP8-cast is the current lower-memory canary; physical Spark acceptance remains pending."
     },
     {
       "modality": "audio",
@@ -82,7 +102,7 @@
       "recipe_slugs": [
         "ltx-2-19b-dev-bf16-diffusers-single"
       ],
-      "notes": "Pinned official LTX 1.2 native ARM64 source, exact companion closure, and synchronized audio-video export are executable; physical Spark canary remains pending.",
+      "notes": "Superseded historical compatibility profile with pinned official source, exact companion closure, and executable synchronized audio-video export. LTX-2.5 BF16 is the current fidelity baseline and LTX-2.5 FP8-cast is the current lower-memory canary; physical Spark acceptance remains pending.",
       "catalog_model_version": "ltx-2-19b-dev-bf16"
     },
     {
@@ -101,7 +121,7 @@
       "recipe_slugs": [
         "ltx-2-19b-distilled-fp8-diffusers-single"
       ],
-      "notes": "Pinned official LTX 1.2 native ARM64 source, exact FP8 companion closure, and synchronized audio-video export are executable; physical Spark canary remains pending.",
+      "notes": "Superseded historical compatibility profile with pinned official source, exact FP8 companion closure, and executable synchronized audio-video export. LTX-2.5 BF16 is the current fidelity baseline and LTX-2.5 FP8-cast is the current lower-memory canary; physical Spark acceptance remains pending.",
       "catalog_model_version": "ltx-2-19b-distilled-fp8"
     },
     {

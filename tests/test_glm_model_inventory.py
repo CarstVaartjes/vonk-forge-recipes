@@ -26,8 +26,9 @@ def canonical_digest(document: dict[str, object]) -> str:
 class GlmModelInventoryTests(unittest.TestCase):
     def test_glm53_current_inventory_uses_calibrated_vllm_activation_scales(self) -> None:
         previous = load("model-versions/glm-5-3-flash-nvfp4-357b45cc.json")
-        current = load("model-versions/glm-5-3-flash-nvfp4-92d8bfb9.json")
+        current = load("model-versions/glm-5-3-flash-nvfp4-caca4e6a.json")
         recipe = load("recipes/glm-5-3-flash-nvfp4-vllm-dual.json")
+        runtime = load("runtime-distributions/glm-5-3-flash-nvfp4-ray-dual.json")
         previous_shards = {
             item["path"]: item["sha256"]
             for item in previous["artifacts"]
@@ -47,9 +48,9 @@ class GlmModelInventoryTests(unittest.TestCase):
             item["name"]: item["value"] for item in recipe["runtime"]["arguments"]
         }
 
-        self.assertEqual(current["source"]["revision"], "92d8bfb91c19ceb6fb530dfb538a3a24eceb6ef7")
+        self.assertEqual(current["source"]["revision"], "caca4e6a4ebbd66f159d3d2fc256683fd6e27177")
         self.assertEqual(len(current["artifacts"]), 131)
-        self.assertEqual(current["sizes"]["download_bytes"], 194_701_810_857)
+        self.assertEqual(current["sizes"]["download_bytes"], 194_701_812_547)
         self.assertEqual(previous_shards, current_shards)
         self.assertEqual(
             artifacts["model-input-scales.safetensors"]["sha256"],
@@ -63,10 +64,21 @@ class GlmModelInventoryTests(unittest.TestCase):
         self.assertEqual(recipe["artifacts"][0]["revision"], current["source"]["revision"])
         self.assertEqual(arguments["tool-call-parser"], "glm47")
         self.assertEqual(arguments["reasoning-parser"], "deepseek_r1")
+        self.assertEqual(recipe["topology"]["parallelism"]["backend"], "ray")
+        self.assertEqual(
+            runtime["source"]["revision"],
+            "aed98a13ca75140d2691cc5c651ea5817d9a3e44",
+        )
+        self.assertEqual(
+            recipe["provenance"]["source_reference"],
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-NVFP4-Dual-DGX-Spark/"
+            "tree/aed98a13ca75140d2691cc5c651ea5817d9a3e44",
+        )
 
     def test_aqlm_inventory_closes_the_full_pinned_snapshot(self) -> None:
         model = load("model-versions/glm-5-2-nvfp4-aqlm-hybrid-53e0082e.json")
         recipe = load("recipes/glm-5-2-aqlm-vllm-triple.json")
+        runtime = load("runtime-distributions/glm-5-2-aqlm-triple-dspark.json")
         artifacts = model["artifacts"]
         traces = [item for item in artifacts if item["path"].startswith("traces/")]
 
@@ -81,6 +93,11 @@ class GlmModelInventoryTests(unittest.TestCase):
         self.assertEqual(recipe["artifacts"][0]["download_bytes"], 292_599_148_533)
         self.assertEqual(len({item["id"] for item in artifacts}), len(artifacts))
         self.assertEqual(recipe["model"]["content_sha256"], canonical_digest(model))
+        self.assertEqual(recipe["topology"]["parallelism"]["backend"], "ray")
+        self.assertEqual(
+            runtime["capabilities"]["distributed_vllm"]["mechanism"],
+            "vllm-ray",
+        )
 
     def test_gated_abliterated_inventory_fails_closed_without_fake_artifact(self) -> None:
         model = load(

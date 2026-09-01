@@ -7,7 +7,7 @@
     "description": "Executable Candidate native TP4 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint. Its exact four-rank topology is unsupported on Vonk's current one- or two-Spark configuration and remains installable only for a future scale canary. The pin includes calibrated per-projection input scales that prevent FP8 block-scale underflow and long-context repetition. Upstream proves the same model family at TP2, but glm-5-3-flash-nvfp4-vllm-dual has a conservative 132 GB Controller admission envelope and does not fit the present about-126.9 GB inventory; glm-5-3-flash-exl3-dflash2-vllm-dual is the current 126 GB-envelope fleet Candidate. This contract keeps Tech2Wild's stable v8 profile and excludes experimental v9 InstantTensor.",
     "tags": ["executable", "candidate", "glm-5.3", "mtp", "multimodal", "nvfp4", "reasoning", "spark", "tool-use", "tp4", "vllm"]
   },
-  "model": {"kind": "model-version", "publisher": "libertaidai", "slug": "glm-5-3-flash-nvfp4-92d8bfb9", "content_sha256": "ec0898e40fe4857344db4a8e390150130789947681c5f032fabae330c5fe04d5"},
+  "model": {"kind": "model-version", "publisher": "libertaidai", "slug": "glm-5-3-flash-nvfp4-caca4e6a", "content_sha256": "5a69a92d4eabd533602ffc38844518bd224f579a7b62f832a8a313ece844141d"},
   "execution": {
     "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"},
     "patch_bundle": {"kind": "patch-bundle", "publisher": "tech2wild", "slug": "glm-5-3-flash-nvfp4-mp-four-profile", "content_sha256": "a8cccded91ca05b9f491e419f3bd71bdd169c4619c38a6f931ab057fc0d6d620"}
@@ -20,7 +20,7 @@
   },
   "parameters": [],
   "artifacts": [
-    {"id": "weights", "kind": "huggingface.snapshot", "repository": "LibertAIDAI/GLM-5.3-Flash-NVFP4", "revision": "92d8bfb91c19ceb6fb530dfb538a3a24eceb6ef7", "download_bytes": 194701810857, "installed_bytes": 194701810857, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}
+    {"id": "weights", "kind": "huggingface.snapshot", "repository": "LibertAIDAI/GLM-5.3-Flash-NVFP4", "revision": "caca4e6a4ebbd66f159d3d2fc256683fd6e27177", "download_bytes": 194701812547, "installed_bytes": 194701812547, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}
   ],
   "runtime": {
     "distribution": {"kind": "runtime-distribution", "publisher": "tech2wild", "slug": "glm-5-3-flash-nvfp4-mp-four", "content_sha256": "93fe462102af5da1fc21a009c85d14c4b98ab1c3a0d53c789b110b4dcde1e55a"},
@@ -73,8 +73,8 @@
   "topology": {
     "name": "four", "mode": "distributed", "node_count": 4,
     "roles": [
-      {"name": "entrypoint", "count": 1, "endpoint_owner": true, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194701810857, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 112000000000, "steady_state_bytes": 104000000000, "runtime_growth_bytes": 8000000000, "system_reserve_bytes": 8000000000}}},
-      {"name": "worker", "count": 3, "endpoint_owner": false, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194701810857, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 112000000000, "steady_state_bytes": 104000000000, "runtime_growth_bytes": 8000000000, "system_reserve_bytes": 8000000000}}}
+      {"name": "entrypoint", "count": 1, "endpoint_owner": true, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194701812547, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 112000000000, "steady_state_bytes": 104000000000, "runtime_growth_bytes": 8000000000, "system_reserve_bytes": 8000000000}}},
+      {"name": "worker", "count": 3, "endpoint_owner": false, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194701812547, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 112000000000, "steady_state_bytes": 104000000000, "runtime_growth_bytes": 8000000000, "system_reserve_bytes": 8000000000}}}
     ],
     "parallelism": {"world_size": 4, "tensor": 4, "pipeline": 1, "data": 1, "backend": "mp"},
     "fabric": {"connectivity": "connected", "minimum_bandwidth_mbps": 200000},

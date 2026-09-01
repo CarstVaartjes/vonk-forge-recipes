@@ -4,18 +4,31 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan3d-omni-pytorch-single"
   },
-  "version": "2.0.4",
+  "version": "2.0.5",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "2.0.4",
+      "version": "2.0.5",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "b4ad19ea257c29e33f38cf636831249a78726b163df374453346ffd28ed1edeb",
+      "recipe_content_sha256": "a7506dcf4ca4df0b0a66acf872678ce7b03dd9afd2542198368019f4c1df6d61",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "2.0.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "8d7af5d163132b8b2d65c46fea8540176606eeab2e5f8544b2049eb9b0dbdd9d",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
         }
       ]
     },
@@ -81,7 +94,9 @@
         {
           "kind": "compatibility",
           "summary": "Replaced the metadata placeholder with the exact upstream Hunyuan3D-Omni controllable mesh pipeline.",
-          "references": ["https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/tree/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8"]
+          "references": [
+            "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/tree/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8"
+          ]
         },
         {
           "kind": "fix",

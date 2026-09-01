@@ -39,7 +39,7 @@
       "kind": "patch-bundle",
       "publisher": "openmoss",
       "slug": "mova-inference-only-import",
-      "content_sha256": "aa05dbd89c0c99055f7ad10b0d1f3fca4c6101d473adacb723c31a743105a3c1"
+      "content_sha256": "9f66a8193a1a762650d849ed429cd404484cbaaff60c8e7a1bfbd1fa7e7e6fa8"
     }
   },
   "build": {
@@ -55,7 +55,6 @@
     "network": {
       "mode": "public",
       "hosts": [
-        "nvcr.io",
         "developer.download.nvidia.com",
         "pypi.nvidia.com",
         "github.com",
@@ -99,7 +98,7 @@
       "kind": "runtime-distribution",
       "publisher": "openmoss",
       "slug": "mova-native-arm64",
-      "content_sha256": "99f7593ff1dcd3667452efc166b7cc480de35a04782744665bf482faecec5b39"
+      "content_sha256": "679719ffa1a09449959f159b92548514125f21a0cac71f2bc86cf7e535d041a1"
     },
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"

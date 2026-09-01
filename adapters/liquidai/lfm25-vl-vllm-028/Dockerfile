@@ -2,7 +2,7 @@
 FROM docker.io/vllm/vllm-openai@sha256:41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4
 
 LABEL org.opencontainers.image.source="https://huggingface.co/LiquidAI/LFM2.5-VL-3B" \
-      org.opencontainers.image.revision="5a414ead75d45db003906d06fb62bd5b6846cec0" \
+      org.opencontainers.image.revision="a3af5799199acdd2a4f56ac4342816abb46c12a9" \
       org.opencontainers.image.licenses="LFM-1.0" \
       org.opencontainers.image.description="Offline vLLM 0.28 CUDA 13 ARM64 OpenAI adapter for LFM2.5-VL-3B" \
       io.vonk.vllm.build-commit="2cf0a6915ce544dc493a0990f2ea38d81601128a"

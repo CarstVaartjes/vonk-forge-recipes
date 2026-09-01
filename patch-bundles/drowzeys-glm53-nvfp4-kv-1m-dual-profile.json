@@ -7,6 +7,6 @@
     "description": "Immutable package of the upstream B12X sparse-MLA overlays, NVFP4 KV format, absolute-link index_topk 2044 model view, and native-mp two-Spark launch wrapper.",
     "tags": ["b12x", "candidate", "glm-5.3", "nvfp4-kv", "spark", "topology", "tp2"]
   },
-  "applies_to": {"kind": "runtime-distribution", "publisher": "drowzeys", "slug": "vllm-glm53-drowzeys-1m-c36b5958-arm64", "content_sha256": "7b68fe00a4c150faa8797b358500edf18107721c26b6467abbd004d56c8f4ed6"},
+  "applies_to": {"kind": "runtime-distribution", "publisher": "drowzeys", "slug": "vllm-glm53-drowzeys-1m-c36b5958-arm64", "content_sha256": "d657b3ddb6c6c99b1693c25df9ad002d94a986a9b54817ba71ba0ec91072a5e2"},
   "sha256": "8c2d848776b4b0f67f0bcd216a796d14daf3d1fc55f5117f3e0e542c09fabfb3"
 }

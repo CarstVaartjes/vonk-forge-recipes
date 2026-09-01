@@ -4,18 +4,31 @@
     "publisher": "vonk-forge",
     "slug": "nvidia-qwen-image-flash-diffusers-single"
   },
-  "version": "1.2.3",
+  "version": "1.2.4",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.2.3",
+      "version": "1.2.4",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "396653b8f55262d6969ce1ab64c6ce46b520b63d8d9514e1e4da2ef8a17cc672",
+      "recipe_content_sha256": "f90397303047422f13e26e85cebcfe755a5fa28957ff39c4169a742bbbad344f",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "1.2.3",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "de66ff6463978fada6d20b367acbbceee202d4628c28fd1eef7c9daaf3e4cbce",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
         }
       ]
     },

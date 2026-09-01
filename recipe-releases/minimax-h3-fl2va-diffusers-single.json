@@ -4,18 +4,31 @@
     "publisher": "vonk-forge",
     "slug": "minimax-h3-fl2va-diffusers-single"
   },
-  "version": "1.0.2",
+  "version": "1.0.3",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.0.2",
+      "version": "1.0.3",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "ae9e1f0e91bed16aa052abb973e4c0a6890ce6f022e91c459bc63084ff21f379",
+      "recipe_content_sha256": "6777aec751e1d43f716c30430a905afc9e46ad2bf7d11d9c4cbcc9d17d2e81a4",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "3d0cc380ae32b9c19e9b0cf2da5a8dd5522dd63690d166c65f41604ca106f1e6",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
         }
       ]
     },

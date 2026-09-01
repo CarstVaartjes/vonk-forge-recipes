@@ -6,11 +6,13 @@
   },
   "metadata": {
     "alignment": "unspecified",
-    "title": "LTX-2 19B dev FP4 native pipeline single Spark",
-    "description": "Directly deployable disk-offload Candidate using the exact official native LTX 1.3.0 two-stage pipeline, FP4 checkpoint, distilled refinement LoRA, spatial upscaler, Gemma 3 companion closure, and ARM64 CUDA 13.2 wheels. The 89 GB startup and 75 GB steady declarations conservatively apply only the pinned upstream's documented 31 GB disk-versus-CPU offload reduction, with 8 GB growth and 8 GB system reserve for a 97 GB admission total; container build and physical Spark acceptance remain required.",
+    "title": "LTX-2 19B dev FP4 native pipeline single Spark (superseded)",
+    "description": "Still-deployable historical disk-offload Candidate using the exact official native LTX 1.3.0 two-stage pipeline, FP4 checkpoint, distilled refinement LoRA, spatial upscaler, Gemma 3 companion closure, and ARM64 CUDA 13.2 wheels. The 89 GB startup and 75 GB steady declarations conservatively apply only the pinned upstream's documented 31 GB disk-versus-CPU offload reduction, with 8 GB growth and 8 GB system reserve for a 97 GB admission total; container build and physical Spark acceptance remain required. LTX-2.5 BF16 is the current fidelity baseline and LTX-2.5 FP8-cast is the current lower-memory canary; this immutable execution contract remains available for reproducibility.",
     "tags": ["executable",
       "candidate",
       "build-unvalidated",
+      "historical",
+      "superseded",
       "disk-offload",
       "lightricks",
       "ltx",
@@ -50,9 +52,10 @@
     "network": {
       "mode": "public",
       "hosts": [
-        "nvcr.io",
         "github.com",
+        "codeload.github.com",
         "download.pytorch.org",
+        "download-r2.pytorch.org",
         "pypi.org",
         "files.pythonhosted.org",
         "archive.ubuntu.com",

@@ -53,7 +53,6 @@
     "network": {
       "mode": "public",
       "hosts": [
-        "nvcr.io",
         "download.pytorch.org",
         "pypi.org",
         "files.pythonhosted.org",
@@ -92,7 +91,7 @@
       "kind": "runtime-distribution",
       "publisher": "openmoss",
       "slug": "moss-vl-realtime-native-arm64",
-      "content_sha256": "c9142ca2c6d822026d715edefc40ad091588f7eee759e752b54811fc856b9f61"
+      "content_sha256": "a5ee77dba4a4683d1df89763c526012620b5ac05579ef751daba83f12dae4e57"
     },
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"

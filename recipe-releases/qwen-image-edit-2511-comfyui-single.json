@@ -4,18 +4,31 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-comfyui-single"
   },
-  "version": "1.0.6",
+  "version": "1.0.7",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.0.6",
+      "version": "1.0.7",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "7b5e6c7ee67f8c4bbc98e9e75459aa90c202ee4d8e953d09bce875e21bebed5e",
+      "recipe_content_sha256": "8209667165db6623c81376f83935cb019018438aa35623b86712d34466a12c57",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "1.0.6",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "7c8c441c009ad0d644db586098e08e1aef0da7ac98faaf83564ef30170827136",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
         }
       ]
     },

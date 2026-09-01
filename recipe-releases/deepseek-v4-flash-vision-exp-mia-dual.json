@@ -1,18 +1,38 @@
 {
   "schema_version": 1,
-  "recipe": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-vision-exp-mia-dual"},
-  "version": "1.0.1",
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-flash-vision-exp-mia-dual"
+  },
+  "version": "1.0.3",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.0.1",
+      "version": "1.0.3",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "a04b9ac917790bffdc1875e3ccd4189d07a5d1888f515c341b5b5199e56609f1",
+      "recipe_content_sha256": "2a090d1628de993e48d5386b0d7ed743f566c27c0c707009192cc9381131c01d",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "0e43a31fca3e33334ae3660a5a1601285177ce865660d39f6bfd50f5cc348d90",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Advanced the official Vision-Exp snapshot to Hugging Face 6821d6ad.",
+          "details": "The 84-file snapshot is refreshed from e46e16bf to 6821d6ad. All model payloads and configuration files are byte-identical; only the upstream README changed, increasing the exact inventory by 1,506 bytes. The pinned MiaAI-Lab de230b45 runtime patch, topology, and Candidate acceptance state remain unchanged; installed containers must be recreated.",
+          "references": [
+            "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp/commit/6821d6ad3681a4b137b066b76094fa82ebd0a380",
+            "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/de230b45bc49e88ea92af898650b6bbb92f0e266"
+          ]
         }
       ]
     },
