@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "kind": "runtime-distribution",
+  "identity": {"publisher": "tonyd2wild", "slug": "vllm-glm53-dflash2-tonyd2wild-3eef4663-arm64"},
+  "metadata": {
+    "title": "tonyd2wild GLM 5.3 Flash DFlash2 TP2 runtime 3eef4663",
+    "description": "Digest-pinned ARM64 vLLM image plus the exact upstream SM121 sparse-indexer replacement and a Controller-native two-phase mp wrapper for the publisher's compressed-tensors GLM 5.3 Flash DFlash2 K7 profile on two DGX Sparks. The Controller rank profiles deliberately translate the pinned launcher's single-rail f0 names to the fleet's current discovered dual-rail f1 fabric.",
+    "tags": ["candidate", "compressed-tensors", "dflash2", "distributed", "glm-5.3", "native-mp", "spark", "vllm"]
+  },
+  "implements_harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"},
+  "platform": "linux/arm64",
+  "source": {
+    "repository": "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark",
+    "revision": "3eef46632c45ffb6c397de0716c23b3d2d594798",
+    "archive_sha256": "1b9d7ce8f6546a47d6a4479e837953551852ac4dd6ec33af602e2ec7c5ccc1c2",
+    "license": "MIT"
+  },
+  "image": "ghcr.io/tonyd2wild/vllm-glm53-flash@sha256:4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6",
+  "image_manifest": {
+    "digest": "4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6",
+    "size": 10372,
+    "config_digest": "35c6f70ffcba62fd67d7b9d4b4e8300ad177201792ce9cdb1ea18fd449bc23b6",
+    "compressed_layers_bytes": 14204524092
+  },
+  "dependencies": [
+    {"name": "tonyd2wild GLM 5.3 SM121 DFlash2 runtime", "version": "sm121-v11-dflash2", "source": "ghcr.io/tonyd2wild/vllm-glm53-flash@sha256:4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6", "license": "MIT AND Apache-2.0"},
+    {"name": "GLM 5.3 DFlash2 two-Spark launcher", "version": "3eef46632c45ffb6c397de0716c23b3d2d594798", "source": "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark/tree/3eef46632c45ffb6c397de0716c23b3d2d594798", "license": "MIT"},
+    {"name": "DFlash2", "version": "sm121-v11", "source": "https://github.com/z-lab/dflash", "license": "MIT"}
+  ],
+  "build": {"network_hosts": [], "offline_after_installation": true},
+  "capabilities": {
+    "runtime_environment": {"allowed_names": ["DO_NOT_TRACK", "NCCL_NET_PLUGIN", "TORCH_NCCL_ASYNC_ERROR_HANDLING", "VLLM_ENGINE_READY_TIMEOUT_S"]},
+    "distributed_vllm": {
+      "verified": true,
+      "mechanism": "vllm-mp",
+      "topology_mode": "distributed",
+      "node_count": 2,
+      "world_size": 2,
+      "tensor_parallel_size": 2,
+      "pipeline_parallel_size": 1,
+      "data_parallel_size": 1,
+      "fabric": "nccl-roce",
+      "endpoint_role": "entrypoint",
+      "worker_role": "worker",
+      "rank_loss_withdraws_endpoint": true,
+      "launch": {
+        "rendezvous": {
+          "local_address_environment": "VONK_LOCAL_ADDR",
+          "master_address_environment": "VONK_MASTER_ADDR",
+          "master_port_environment": "VONK_MASTER_PORT",
+          "master_role": "entrypoint"
+        },
+        "rank_profiles": [
+          {"rank": 0, "role": "entrypoint", "environment": {"GLOO_SOCKET_IFNAME": "enp1s0f1np1,enP2p1s0f1np1", "NCCL_IB_GID_INDEX": "3", "NCCL_IB_HCA": "=rocep1s0f1:1,roceP2p1s0f1:1", "NCCL_SOCKET_IFNAME": "=enp1s0f1np1,enP2p1s0f1np1", "TP_SOCKET_IFNAME": "enp1s0f1np1,enP2p1s0f1np1"}},
+          {"rank": 1, "role": "worker", "environment": {"GLOO_SOCKET_IFNAME": "enp1s0f1np1,enP2p1s0f1np1", "NCCL_IB_GID_INDEX": "3", "NCCL_IB_HCA": "=rocep1s0f1:1,roceP2p1s0f1:1", "NCCL_SOCKET_IFNAME": "=enp1s0f1np1,enP2p1s0f1np1", "TP_SOCKET_IFNAME": "enp1s0f1np1,enP2p1s0f1np1"}}
+        ]
+      }
+    }
+  },
+  "security": {"network_mode": "none", "user": "10001:10001", "no_new_privileges": true, "capabilities": []}
+}
