@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "hunyuan-video-15-t2v-diffusers-single"
   },
-  "version": "1.4.0",
-  "released_at": "2026-08-30",
+  "version": "1.4.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.4.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "a8fcc0949df4b2051042def6422fa52f96f5a7896888472d05e9b9702dd7e893",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.4.0",
       "released_at": "2026-08-30",

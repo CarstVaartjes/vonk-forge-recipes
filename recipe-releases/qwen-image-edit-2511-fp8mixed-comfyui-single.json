@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-fp8mixed-comfyui-single"
   },
-  "version": "1.0.3",
+  "version": "1.0.4",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "b493c52929c1bc1d23069706ef42914125e17b1b38fc72e9a9818ab372864bd6",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.3",
       "released_at": "2026-09-01",

@@ -2,6 +2,7 @@
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "pixal3d-pytorch-single"},
   "metadata": {
+    "alignment": "unspecified",
     "title": "Pixal3D native single Spark",
     "description": "Installable single-DGX Spark image-to-3D Candidate using the pinned official Pixal3D source, local DINOv3 and NAF feature stack, bounded manual camera calibration, ARM64-native extensions, and deterministic GLB adapter. Its pinned nvdiffrast runtime dependency is limited to non-commercial research or evaluation; operator acceptance and physical Spark quality, memory, and latency evidence are still required.",
     "tags": ["candidate", "three-d", "image-to-3d", "glb", "pytorch-pipeline", "single", "spark", "executable", "offline", "source-bundled", "non-commercial-runtime"]

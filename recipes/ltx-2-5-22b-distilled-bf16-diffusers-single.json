@@ -5,6 +5,7 @@
     "slug": "ltx-2-5-22b-distilled-bf16-diffusers-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "LTX-2.5 distilled BF16 Diffusers single Spark",
     "description": "Installable single-Spark Candidate using the exact official gated LTX-2.5 Diffusers closure, a 505-byte license/token access probe before the 70 GB model artifact, convolutional VAE, deterministic eight-sigma generation, BF16 offload baseline, and optional FP8 layerwise-cast profiles. Exact-license acknowledgement, same-account Hugging Face access, physical authenticated installation, and GB10 audiovisual qualification remain required.",
     "tags": [

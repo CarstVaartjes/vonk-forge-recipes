@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "wan-dancer-14b-pytorch-single"
   },
-  "version": "1.0.5",
-  "released_at": "2026-08-31",
+  "version": "1.0.6",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.6",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "b0aef0263da8e4565f550d7bd23b01c363da017b478e9bdbde1c3aa0a47697d6",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.5",
       "released_at": "2026-08-31",

@@ -2,31 +2,33 @@
   "schema_version": 1,
   "identity": {
     "publisher": "vonk-forge",
-    "slug": "qwen3-5-9b-vllm-single"
+    "slug": "ornith-1-5-35b-a3b-nvfp4-vllm-single"
   },
   "metadata": {
-    "alignment": "unspecified",
-    "title": "Qwen3.5 9B vLLM single Spark",
-    "description": "Candidate single-Spark vLLM binding for the exact multimodal Qwen3.5-9B checkpoint. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
-    "tags": ["executable",
+    "title": "Ornith 1.5 35B-A3B NVFP4 vLLM single Spark",
+    "description": "Executable Candidate single-Spark vLLM profile for Ornith 1.5 35B-A3B NVFP4. It binds the exact quantized checkpoint, official vLLM 0.27.1 ARM64 runtime, ModelOpt mixed NVFP4/FP8 execution, MTP-3 speculative decoding, 262K context, and OpenAI reasoning/tool parsing; physical Spark acceptance remains pending.",
+    "tags": [
+      "executable",
       "candidate",
-      "qwen",
-      "qwen3-5",
+      "ornith",
+      "ornith-1.5",
+      "nvfp4",
+      "modelopt",
       "vllm",
-      "multimodal",
-      "vision",
-      "text-qualified",
-      "vision-unproven",
+      "mtp",
+      "reasoning",
+      "agentic",
       "openai",
       "single",
       "spark"
-    ]
+    ],
+    "alignment": "unspecified"
   },
   "model": {
     "kind": "model-version",
-    "publisher": "qwen",
-    "slug": "qwen3-5-9b-c2022362",
-    "content_sha256": "0d0f3748a152c2e3a83408af11485d3a930f0a66ad78bc2d12815f837f2b08dc"
+    "publisher": "ornith-ai",
+    "slug": "ornith-1-5-35b-a3b-nvfp4-9660379a",
+    "content_sha256": "539e888b120dc0869e41142a175f7235df5310dfd9d80d5de1edca9b2f4cbd2d"
   },
   "execution": {
     "harness": {
@@ -39,8 +41,8 @@
   },
   "build": {
     "context": {
-      "path": "adapters/llm/qwen35-vllm",
-      "sha256": "61463d7b208011a297a3e5093009822e408d35015009d1215e52546807886470",
+      "path": "adapters/llm/vllm-openai",
+      "sha256": "071b799afd9a3dbc74360a323faea7283b1f7ca1bef6eff0aaa8fe2cf3cca98f",
       "expected_bytes": 10240,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
@@ -52,8 +54,8 @@
       "hosts": []
     },
     "resources": {
-      "download_bytes": 29030889384,
-      "temporary_bytes": 32000000000,
+      "download_bytes": 33953553153,
+      "temporary_bytes": 46840835064,
       "memory_bytes": 8000000000,
       "timeout_seconds": 7200
     }
@@ -63,10 +65,10 @@
     {
       "id": "weights",
       "kind": "huggingface.snapshot",
-      "repository": "Qwen/Qwen3.5-9B",
-      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
-      "download_bytes": 19329393661,
-      "installed_bytes": 19329393661,
+      "repository": "ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
+      "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+      "download_bytes": 23420417532,
+      "installed_bytes": 23420417532,
       "mount": {
         "target": "/models",
         "read_only": true
@@ -80,8 +82,8 @@
     "distribution": {
       "kind": "runtime-distribution",
       "publisher": "vllm",
-      "slug": "vllm-0-28-0-nvidia-arm64",
-      "content_sha256": "15c98035c9bbba7ec61d25acd93c3c34b0516754c299813e5f51344e858abd2d"
+      "slug": "vllm-0-27-1-nvidia-arm64",
+      "content_sha256": "95b0467cb73eeabfe8fd0c4f5f5e4f19a935b6bca3d56ed4bb6fc888470eca4a"
     },
     "entrypoint": [
       "/opt/vonk/bin/vllm",
@@ -91,39 +93,63 @@
     "arguments": [
       {
         "name": "served-model-name",
-        "value": "qwen3.5-9b"
+        "value": "ornith-1-5-35b-a3b"
       },
       {
         "name": "max-model-len",
-        "value": 131072
+        "value": 262144
       },
       {
         "name": "max-num-seqs",
-        "value": 2
-      },
-      {
-        "name": "max-num-batched-tokens",
-        "value": 8192
-      },
-      {
-        "name": "max-cudagraph-capture-size",
         "value": 4
       },
       {
         "name": "gpu-memory-utilization",
-        "value": "0.80"
+        "value": "0.40"
       },
       {
         "name": "reasoning-parser",
         "value": "qwen3"
       },
       {
+        "name": "tool-call-parser",
+        "value": "qwen3_xml"
+      },
+      {
+        "name": "trust-remote-code",
+        "value": true
+      },
+      {
         "name": "enable-auto-tool-choice",
         "value": true
       },
       {
-        "name": "tool-call-parser",
-        "value": "qwen3_coder"
+        "name": "kv-cache-dtype",
+        "value": "fp8"
+      },
+      {
+        "name": "moe-backend",
+        "value": "marlin"
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "value": 8192
+      },
+      {
+        "name": "enable-chunked-prefill",
+        "value": true
+      },
+      {
+        "name": "async-scheduling",
+        "value": true
+      },
+      {
+        "name": "enable-prefix-caching",
+        "value": true
+      },
+      {
+        "name": "speculative-config",
+        "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3,\"moe_backend\":\"triton\"}"
       }
     ],
     "environment": [
@@ -191,16 +217,16 @@
         "resources": {
           "disk": {
             "image_bytes": 12000000000,
-            "artifact_bytes": 19329393661,
-            "staging_bytes": 32000000000,
+            "artifact_bytes": 23420417532,
+            "staging_bytes": 46840835064,
             "cache_bytes": 4000000000,
             "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000
           },
           "memory": {
             "kind": "unified",
-            "startup_peak_bytes": 70000000000,
-            "steady_state_bytes": 60000000000,
+            "startup_peak_bytes": 65000000000,
+            "steady_state_bytes": 59000000000,
             "runtime_growth_bytes": 4000000000,
             "system_reserve_bytes": 8000000000
           }
@@ -230,7 +256,7 @@
       "adapter": "openai",
       "port": 8000,
       "model_aliases": [
-        "qwen3.5-9b"
+        "ornith-1-5-35b-a3b"
       ],
       "health_path": "/v1/models"
     }
@@ -260,9 +286,9 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/Qwen/Qwen3.5-9B/tree/c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "source_reference": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4/tree/9660379a2f2c429c465eeed2f3a0f2433fc4381e",
     "attribution": [
-      "Qwen"
+      "ornith-ai"
     ]
   }
 }

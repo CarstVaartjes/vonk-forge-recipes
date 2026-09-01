@@ -5,6 +5,7 @@
     "slug": "mova-720p-diffusers-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "MOVA 720p native synchronized media single Spark (tight)",
     "description": "Higher-resolution, memory-tight MOVA profile for one Spark, using the exact official 720p checkpoint and native pipeline. It produces one fail-closed MP4 containing synchronized 24 fps video and 48 kHz audio; use the 360p recipe as the default until this profile completes its physical Spark memory canary.",
     "tags": [

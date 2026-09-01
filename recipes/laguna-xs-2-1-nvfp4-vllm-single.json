@@ -5,6 +5,7 @@
     "slug": "laguna-xs-2-1-nvfp4-vllm-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Laguna XS 2.1 NVFP4 vLLM single Spark",
     "description": "Candidate single-Spark vLLM binding for the exact Poolside Laguna XS NVFP4 checkpoint.",
     "tags": ["executable",

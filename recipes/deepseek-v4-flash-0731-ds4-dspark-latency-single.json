@@ -2,6 +2,7 @@
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-0731-ds4-dspark-latency-single"},
   "metadata": {
+    "alignment": "unspecified",
     "title": "DeepSeek V4 Flash 0731 DS4 + DSpark latency single Spark",
     "description": "Candidate one-DGX Spark non-batched latency profile using DS4's experimental DSpark support model; bounded validation remains greedy at temperature zero, and physical Spark acceptance is still required.",
     "tags": ["candidate", "executable", "deepseek", "ds4", "dspark", "openai", "chat", "reasoning", "latency", "speculative-decoding", "single", "spark"]

@@ -5,6 +5,7 @@
     "slug": "hunyuan3d-omni-pytorch-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Hunyuan3D-Omni pytorch-pipeline single Spark",
     "description": "Candidate native Hunyuan3D-Omni single-Spark controllable 3D pipeline with exact upstream source, offline multimodal job input, and GLB output; physical GB10 acceptance remains pending.",
     "tags": ["executable",

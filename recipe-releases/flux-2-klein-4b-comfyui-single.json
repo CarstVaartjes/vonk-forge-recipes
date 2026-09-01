@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "flux-2-klein-4b-comfyui-single"
   },
-  "version": "1.0.5",
+  "version": "1.0.6",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.6",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "c5d344ec85816eb3699ea4e62f845d44dc283445ff66eb9fc44ca1ffccffa430",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.5",
       "released_at": "2026-09-01",

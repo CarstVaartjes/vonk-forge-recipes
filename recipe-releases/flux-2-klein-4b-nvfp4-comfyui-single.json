@@ -1,9 +1,24 @@
 {
   "schema_version": 1,
-  "recipe": {"publisher": "vonk-forge", "slug": "flux-2-klein-4b-nvfp4-comfyui-single"},
-  "version": "1.0.2",
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "flux-2-klein-4b-nvfp4-comfyui-single"
+  },
+  "version": "1.0.3",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.3",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "c9e09c4a06b9c5f0683b53a4c86034b9f94f8291202d8a6bcd90c5b1e8dc00c1",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.2",
       "released_at": "2026-09-01",

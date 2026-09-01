@@ -1,9 +1,36 @@
 {
   "schema_version": 1,
-  "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual"},
-  "version": "1.0.0",
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual"
+  },
+  "version": "1.0.2",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "ff75e0b301083fa2f0f7b95769fa1c1152766a648fb0f3652d02e19fc66b4809",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Use the Vonk GLM multimodal chat template supplied by the vLLM harness."
+        }
+      ]
+    },
+    {
+      "version": "1.0.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "7cf3db0b81e6eea8757d2b588e8d0155a42be305f5ba6cfa20825e73e1214a1e",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-09-01",

@@ -168,8 +168,8 @@ class Vllm028ModelVariantTests(unittest.TestCase):
 
     def test_releases_bind_the_exact_candidate_recipes(self) -> None:
         for slug, recipe, version, released_at in (
-            ("gemma-4-26b-a4b-vllm028-single", self.gemma, "1.0.0", "2026-08-29"),
-            ("lfm2-5-vl-3b-vllm028-single", self.lfm, "1.1.0", "2026-09-01"),
+            ("gemma-4-26b-a4b-vllm028-single", self.gemma, "1.0.1", "2026-09-01"),
+            ("lfm2-5-vl-3b-vllm028-single", self.lfm, "1.1.1", "2026-09-01"),
         ):
             with self.subTest(recipe=slug):
                 release = load(f"recipe-releases/{slug}.json")

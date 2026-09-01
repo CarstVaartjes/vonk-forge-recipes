@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-dev-fp4-pytorch-single"
   },
-  "version": "2.3.2",
+  "version": "2.3.3",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.3.3",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "3c4b2151e8514c4970feb7c6fa06715e4735b2f7617af5fd400aa358284042c8",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "2.3.2",
       "released_at": "2026-09-01",
@@ -131,12 +143,16 @@
         {
           "kind": "fix",
           "summary": "Replaced unavailable ARM64 CUDA 13.2 Torch and TorchAudio pins with the current upstream-tested 2.13.0 and 2.11.0 wheels.",
-          "references": ["https://github.com/Lightricks/LTX-2/blob/400fd31054597515f47125691032c04b1c3ee24e/packages/ltx-core/pyproject.toml"]
+          "references": [
+            "https://github.com/Lightricks/LTX-2/blob/400fd31054597515f47125691032c04b1c3ee24e/packages/ltx-core/pyproject.toml"
+          ]
         },
         {
           "kind": "fix",
           "summary": "Corrected the recipe's whole-snapshot artifact and dependent disk resource sizes.",
-          "references": ["https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"]
+          "references": [
+            "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
+          ]
         },
         {
           "kind": "compatibility",

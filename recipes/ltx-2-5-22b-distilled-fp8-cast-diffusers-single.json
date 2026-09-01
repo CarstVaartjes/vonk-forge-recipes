@@ -5,6 +5,7 @@
     "slug": "ltx-2-5-22b-distilled-fp8-cast-diffusers-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "LTX-2.5 distilled FP8-cast Diffusers single Spark canary",
     "description": "Directly deployable single-Spark canary using the exact official gated LTX-2.5 BF16 Diffusers closure with a fixed FP8 E4M3FN layerwise-storage and sequential-offload execution path. The pinned transformer closure contains 37,976,221,088 bytes of BF16 shards; the 110 GB startup and 96 GB steady declarations claim only 8 GB of the resulting storage reduction, retain 6 GB growth and 10 GB system reserve, and admit at 120 GB. A 505-byte license/token probe runs before the 70 GB model transfer. Exact-license acknowledgement, same-account Hugging Face access, physical authenticated installation, memory measurement, and GB10 audiovisual qualification remain required.",
     "tags": [

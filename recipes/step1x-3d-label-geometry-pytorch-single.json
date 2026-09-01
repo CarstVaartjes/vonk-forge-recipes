@@ -5,6 +5,7 @@
     "slug": "step1x-3d-label-geometry-pytorch-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Step1X-3D label-geometry pytorch-pipeline single Spark",
     "description": "Installable single-DGX Spark controlled image-to-geometry Candidate using the exact Step1X label pipeline, an SM121-native CUDA 13 runtime, deterministic offline input handling, and GLB output. For generated GLBs up to 240 MiB, the linked next step is vonk-forge/step1x-3d-texture-pytorch-single with the same reference image. Physical Spark quality, memory, and latency acceptance is still required.",
     "tags": [

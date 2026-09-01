@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-3-22b-distilled-1-1-diffusers-single"
   },
-  "version": "3.2.2",
+  "version": "3.2.3",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "3.2.3",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "2a2844c48122ead2e0a6bcc2e8a1badd179d8aa0a2a6d83355aba7c0121abcf3",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "3.2.2",
       "released_at": "2026-09-01",

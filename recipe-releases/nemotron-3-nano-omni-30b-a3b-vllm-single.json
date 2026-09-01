@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-nano-omni-30b-a3b-vllm-single"
   },
-  "version": "2.0.4",
-  "released_at": "2026-08-30",
+  "version": "2.0.5",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.0.5",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "e3d8e1809acadcb0194e54add409e967e09945bc0aeac80f4bd0db92325bcd75",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "2.0.4",
       "released_at": "2026-08-30",

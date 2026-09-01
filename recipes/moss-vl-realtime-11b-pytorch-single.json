@@ -5,6 +5,7 @@
     "slug": "moss-vl-realtime-11b-pytorch-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "MOSS-VL-Realtime 11B BF16 native single Spark",
     "description": "Executable Pending single-DGX-Spark session-replay job for OpenMOSS MOSS-VL-Realtime. An ordered session.json drives the checkpoint's native realtime session while it remains active, including bounded timestamped frames, aligned or interrupting prompts, raw proactive-silence control tokens, and later correction chunks. The result contains a replay MP4 plus the authoritative JSONL transcript sidecar; this recipe does not expose the upstream interactive WebSocket, camera, or screen-capture service.",
     "tags": ["executable",

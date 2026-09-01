@@ -5,6 +5,7 @@
     "slug": "lfm2-5-vl-3b-vllm-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "LFM2.5-VL-3B BF16 vLLM single Spark",
     "description": "Executable one-Spark OpenAI vision-language recipe for Liquid AI LFM2.5-VL-3B with text, image, screen, scanned-document OCR/layout, normalized-coordinate grounding, multi-image, and parsed tool-call support.",
     "tags": ["executable",

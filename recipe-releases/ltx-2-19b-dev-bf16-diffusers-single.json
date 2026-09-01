@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-dev-bf16-diffusers-single"
   },
-  "version": "3.2.2",
+  "version": "3.2.3",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "3.2.3",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "0de7440d1bc1bfe00205cbbb1bd4cdac55fd2fd0c8785c6c63935a27ad2f8c21",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "3.2.2",
       "released_at": "2026-09-01",

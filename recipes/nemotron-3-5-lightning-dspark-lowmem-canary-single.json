@@ -5,6 +5,7 @@
     "slug": "nemotron-3-5-lightning-dspark-lowmem-canary-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Nemotron 3.5 Lightning 30B-A3B vLLM DSpark 256K low-memory canary single Spark",
     "description": "Physical-OOM-gated single-Spark canary pairing NVIDIA's exact Nemotron 3.5 Lightning NVFP4 target with its official DSpark companion. It preserves speculative decoding and the OpenAI reasoning/tool surface while reducing the specialized profile from 1M to 256K context, bounding the FP8 KV cache to 4 GB, serving one sequence with 4K chunked prefills, using the supported FP16 Mamba state cache, and enforcing eager execution. Its 126 GB admission envelope is an unaccepted canary hypothesis; retain the original 1M latency profile and use the preferred target-only recipe until physical startup, memory, acceptance-rate, latency, and output-equivalence checks pass.",
     "tags": [

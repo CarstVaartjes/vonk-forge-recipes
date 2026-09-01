@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "minimax-h3-diffusers-single"
   },
-  "version": "3.0.2",
+  "version": "3.0.3",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "3.0.3",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "5585fed9d7c6d7f6eecdd4947074359a47ff6759cbb028a5f6820c77e8e64ab5",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "3.0.2",
       "released_at": "2026-09-01",

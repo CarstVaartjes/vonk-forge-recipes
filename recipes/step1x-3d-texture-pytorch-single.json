@@ -5,6 +5,7 @@
     "slug": "step1x-3d-texture-pytorch-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Step1X-3D texture pytorch-pipeline single Spark",
     "description": "Installable single-DGX Spark image-and-mesh texturing Candidate using exact Step1X, SDXL, and fixed-VAE snapshots plus SM121-native rasterizer dependencies. It consumes a GLB up to 240 MiB from vonk-forge/step1x-3d-geometry-pytorch-single or vonk-forge/step1x-3d-label-geometry-pytorch-single together with the same reference image, runs offline, and emits a textured GLB. Physical Spark quality, memory, and latency acceptance is still required.",
     "tags": [

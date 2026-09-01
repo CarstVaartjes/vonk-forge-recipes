@@ -2,6 +2,7 @@
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "trellis-2-4b-pytorch-single"},
   "metadata": {
+    "alignment": "unspecified",
     "title": "TRELLIS.2 4B native single Spark",
     "description": "Installable single-DGX Spark image-to-3D Candidate using the pinned official TRELLIS.2 source, exact companion sparse decoder, local DINOv3 encoder, ARM64-native extensions, and deterministic GLB adapter. Its pinned nvdiffrast runtime dependency is limited to non-commercial research or evaluation; operator acceptance and physical Spark quality, memory, and latency evidence are still required.",
     "tags": ["candidate", "three-d", "image-to-3d", "glb", "pytorch-pipeline", "single", "spark", "executable", "offline", "source-bundled", "non-commercial-runtime"]

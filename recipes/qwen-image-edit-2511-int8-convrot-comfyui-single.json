@@ -5,6 +5,7 @@
     "slug": "qwen-image-edit-2511-int8-convrot-comfyui-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Qwen Image Edit 2511 INT8 ConvRot ComfyUI single Spark",
     "description": "Memory-efficient executable single-Spark Candidate for one-or-two-reference Qwen Image Edit 2511 jobs, using Comfy-Org's official stock-ComfyUI INT8 tensorwise ConvRot transformer, scaled-FP8 Qwen-VL encoder, and Qwen Image VAE. It pins the official non-turbo 40-step workflow and declares a conservative 108.00 GB unified-memory admission envelope including reserve and 95.14 GB peak installation disk; physical Spark quality, latency, and peak-memory acceptance remain pending.",
     "tags": [

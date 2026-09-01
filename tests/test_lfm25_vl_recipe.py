@@ -82,8 +82,13 @@ class Lfm25VlRecipeTests(unittest.TestCase):
             release = json.loads(
                 (ROOT / f"recipe-releases/{slug}.json").read_text()
             )
-            self.assertEqual(release["history"][0]["upgrade_effect"], "reinstall")
-            details = release["history"][0]["changes"][0]["details"]
+            self.assertEqual(release["history"][0]["upgrade_effect"], "metadata-only")
+            details = next(
+                change["details"]
+                for entry in release["history"]
+                for change in entry.get("changes", [])
+                if "details" in change and "min_tiles to 2" in change["details"]
+            )
             self.assertIn("min_tiles to 2", details)
             self.assertIn("max_position_embeddings to 32768", details)
 

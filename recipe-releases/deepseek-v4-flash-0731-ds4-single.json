@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-ds4-single"
   },
-  "version": "2.0.2",
-  "released_at": "2026-08-28",
+  "version": "2.0.3",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.0.3",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "44786a2e21803da1ec229fe2f0f28314cae96c47f38f6f9fe197699addfb6727",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "2.0.2",
       "released_at": "2026-08-28",

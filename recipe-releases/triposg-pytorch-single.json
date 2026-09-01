@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "triposg-pytorch-single"
   },
-  "version": "2.0.5",
+  "version": "2.0.6",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.0.6",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "179c2cfbe38959a23e6330c986b1aae0ae183a95fe0ea3270f81f77028e1fa9a",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "2.0.5",
       "released_at": "2026-09-01",
@@ -25,7 +37,13 @@
       "released_at": "2026-08-30",
       "recipe_content_sha256": "63e052fa5a49575c1f39b2131294e1031f4a1b3d0dc74677d6f87571d59cf547",
       "upgrade_effect": "metadata-only",
-      "changes": [{"kind": "metadata", "summary": "Published TripoSG native-build and physical acceptance gates.", "details": "The installable Candidate is explicitly not accepted until its ARM64 container build and a physical GB10 image-to-GLB canary both pass."}]
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Published TripoSG native-build and physical acceptance gates.",
+          "details": "The installable Candidate is explicitly not accepted until its ARM64 container build and a physical GB10 image-to-GLB canary both pass."
+        }
+      ]
     },
     {
       "version": "2.0.3",
@@ -77,7 +95,9 @@
         {
           "kind": "compatibility",
           "summary": "Replaced the metadata placeholder with the exact upstream TripoSG image-to-GLB inference path.",
-          "references": ["https://github.com/VAST-AI-Research/TripoSG/tree/fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c"]
+          "references": [
+            "https://github.com/VAST-AI-Research/TripoSG/tree/fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c"
+          ]
         },
         {
           "kind": "model",

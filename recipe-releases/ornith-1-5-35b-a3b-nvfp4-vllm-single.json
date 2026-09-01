@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "ornith-1-5-35b-a3b-nvfp4-vllm-single"
+  },
+  "version": "1.0.0",
+  "released_at": "2026-09-01",
+  "history": [
+    {
+      "version": "1.0.0",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "0a630168ee322bfffa4533f96788020f21ea39cb5f66037f4a85fad5e7442226",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Initial executable Candidate recipe for sfxnz's measured Ornith 1.5 35B-A3B NVFP4 single-Spark profile."
+        }
+      ]
+    }
+  ]
+}

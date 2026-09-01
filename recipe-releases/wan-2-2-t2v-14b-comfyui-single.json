@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "wan-2-2-t2v-14b-comfyui-single"
   },
-  "version": "1.0.6",
+  "version": "1.0.7",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.7",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "28cb8e8b9f0b0e4c289bfa088930f29a46c3c0db5e9c6b7f0b05d62e6884db9f",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.6",
       "released_at": "2026-09-01",
@@ -42,7 +54,13 @@
       "released_at": "2026-08-30",
       "recipe_content_sha256": "b6eafcbbda35afa687317fb9f14cb6d1015c1a472380bd71389178fdddc0288e",
       "upgrade_effect": "metadata-only",
-      "changes": [{"kind": "metadata", "summary": "Marked the 14B T2V profile memory-tight and physical-OOM-gated.", "details": "The catalog now exposes the declared 126 GB startup-plus-reserve envelope and makes clear this Candidate is not the default before a physical OOM canary passes."}]
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Marked the 14B T2V profile memory-tight and physical-OOM-gated.",
+          "details": "The catalog now exposes the declared 126 GB startup-plus-reserve envelope and makes clear this Candidate is not the default before a physical OOM canary passes."
+        }
+      ]
     },
     {
       "version": "1.0.3",

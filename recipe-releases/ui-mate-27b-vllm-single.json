@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "ui-mate-27b-vllm-single"
   },
-  "version": "1.1.1",
-  "released_at": "2026-08-30",
+  "version": "1.1.2",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.1.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "77fbd58a776063f9d9f9f2829d52ca0e39233bca407d54c2dc69352562b5b59e",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.1.1",
       "released_at": "2026-08-30",

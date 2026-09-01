@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "glm-5-2-quanttrio-vllm-four"
   },
-  "version": "2.0.3",
-  "released_at": "2026-08-30",
+  "version": "2.0.4",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "2.0.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "a967d25dda1da4ff1e94c4783235083e16bd3b36eac9341f7a8d37c325456a47",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "2.0.3",
       "released_at": "2026-08-30",

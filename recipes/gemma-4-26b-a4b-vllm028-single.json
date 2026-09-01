@@ -5,6 +5,7 @@
     "slug": "gemma-4-26b-a4b-vllm028-single"
   },
   "metadata": {
+    "alignment": "unspecified",
     "title": "Gemma 4 26B-A4B IT vLLM 0.28 single Spark",
     "description": "Executable single-Spark Candidate for Google's exact instruction-tuned Gemma 4 26B-A4B checkpoint on the pinned vLLM 0.28 ARM64 runtime, with bounded local-image chat and reasoning. The vLLM 0.27.1 recipe remains available as the fallback until physical Spark canary acceptance.",
     "tags": [

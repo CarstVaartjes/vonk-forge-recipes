@@ -2,6 +2,7 @@
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual"},
   "metadata": {
+    "alignment": "abliterated",
     "title": "GLM 5.3 Flash Abliterated compressed-tensors DFlash2 vLLM two Sparks",
     "description": "Executable gated Candidate for Drowzeys' complete Red Hat compressed-tensors L15-43/MTP-L45 checkpoint with the bf582e4e DFlash2 K7 drafter. It binds tonyd2wild's worker-first native-mp TP2 profile and exact required SM121 sparse-indexer replacement: 262K context, block size 2304, Marlin MoE, FP8 E4M3 KV, 0.85 unified-memory utilization, 8K batched tokens, eager execution, and the checkpoint's exact thinking-off template. Installation requires prior acceptance of both Drowzeys' responsible-use gate and the drafter's separate CC-BY-NC-ND-4.0 terms, plus a read-only Hugging Face token supplied through the Controller; Vonk physical two-Spark acceptance remains pending.",
     "tags": ["abliterated", "candidate", "compressed-tensors", "dflash2", "executable", "gated", "glm-5.3", "multimodal", "native-mp", "nvfp4", "pending", "spark", "thinking-off", "tool-use", "vllm"]
@@ -44,7 +45,7 @@
       {"name": "enforce-eager", "value": true},
       {"name": "allowed-local-media-path", "value": "/inputs"},
       {"name": "limit-mm-per-prompt", "value": "{\"image\":4,\"video\":1}"},
-      {"name": "chat-template", "value": "/models/target/chat_template.thinking-off.jinja"},
+      {"name": "chat-template", "value": "/opt/vonk/templates/glm53-chat-template-mm.jinja"},
       {"name": "default-chat-template-kwargs", "value": "{\"enable_thinking\":false}"},
       {"name": "tool-call-parser", "value": "glm47"},
       {"name": "enable-auto-tool-choice", "value": true},

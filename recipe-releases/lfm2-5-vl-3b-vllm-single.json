@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "lfm2-5-vl-3b-vllm-single"
   },
-  "version": "1.1.0",
+  "version": "1.1.1",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.1.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "40920fb0a1f9e8a0a235e56ae07d2ceb26aa3cf7f1c2827155f93eef451881da",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-09-01",

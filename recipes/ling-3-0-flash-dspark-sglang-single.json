@@ -2,6 +2,7 @@
   "schema_version": 1,
   "identity": {"publisher": "vonk-forge", "slug": "ling-3-0-flash-dspark-sglang-single"},
   "metadata": {
+    "alignment": "unspecified",
     "title": "Ling 3.0 Flash INT4 SGLang DSpark single Spark",
     "description": "Executable Candidate adaptation of MiaAI-Lab's public one-DGX-Spark Ling 3.0 Flash SGLang profile, with the target and external DSpark draft fully hydrated before an offline launch. The pinned upstream full-context profile measures mem-fraction-static 0.80 at 262144 context with a 328898-token KV pool, about 12.5 GB of KV memory, 22.0 GB free GPU-side memory after graphs, and about 20 GB host MemAvailable. Vonk conservatively budgets 119 GB startup, 114 GB steady state, 5 GB runtime growth, and 7 GB system reserve for an exact 126 GB admission envelope; physical Vonk acceptance remains pending.",
     "tags": ["executable", "candidate", "ling", "inclusionai", "int4", "dspark", "sglang", "reasoning", "tool-use", "single", "spark", "speculative-decoding"]

@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "qwen3-6-35b-a3b-nvfp4-vllm-single"
   },
-  "version": "1.0.2",
+  "version": "1.0.3",
   "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.3",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "28227468b63736ddd4b495cf6787d68be1322c37432b7a5ba63f54bd80dbd1cb",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.2",
       "released_at": "2026-09-01",

@@ -4,9 +4,21 @@
     "publisher": "vonk-forge",
     "slug": "wan-dancer-14b-disk-offload-pytorch-single"
   },
-  "version": "1.0.0",
-  "released_at": "2026-08-31",
+  "version": "1.0.1",
+  "released_at": "2026-09-01",
   "history": [
+    {
+      "version": "1.0.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "37b53a96bf2c61c5994903368989d65b47d67850589cad319cfed5cd6eb291a2",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "released_at": "2026-08-31",
