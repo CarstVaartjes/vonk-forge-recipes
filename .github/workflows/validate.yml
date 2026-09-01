@@ -13,7 +13,11 @@ jobs:
   validate:
     uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@bb75f09063c4580cfb139c8c1defeef09c7c03ed
     with:
-      platform_ref: e1ca2d778f90c10929c34ac9c11293dc1e1dd63d
+      # Validate against the published Forge main authority.  Keeping this
+      # independent from a recipe PR's historical base prevents new runtime
+      # contracts (such as verified vLLM-Ray) from being judged by an older
+      # harness implementation.
+      platform_ref: f7d57d678baa9a58723571e565ec76949c5e5e55
 
   catalog-index:
     name: Verify catalog index

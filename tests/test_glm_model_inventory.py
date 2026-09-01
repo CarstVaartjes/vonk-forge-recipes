@@ -64,7 +64,7 @@ class GlmModelInventoryTests(unittest.TestCase):
         self.assertEqual(recipe["artifacts"][0]["revision"], current["source"]["revision"])
         self.assertEqual(arguments["tool-call-parser"], "glm47")
         self.assertEqual(arguments["reasoning-parser"], "deepseek_r1")
-        self.assertEqual(recipe["topology"]["parallelism"]["backend"], "mp")
+        self.assertEqual(recipe["topology"]["parallelism"]["backend"], "ray")
         self.assertEqual(
             runtime["source"]["revision"],
             "aed98a13ca75140d2691cc5c651ea5817d9a3e44",
@@ -93,7 +93,7 @@ class GlmModelInventoryTests(unittest.TestCase):
         self.assertEqual(recipe["artifacts"][0]["download_bytes"], 292_599_148_533)
         self.assertEqual(len({item["id"] for item in artifacts}), len(artifacts))
         self.assertEqual(recipe["model"]["content_sha256"], canonical_digest(model))
-        self.assertEqual(recipe["topology"]["parallelism"]["backend"], "mp")
+        self.assertEqual(recipe["topology"]["parallelism"]["backend"], "ray")
         self.assertEqual(
             runtime["capabilities"]["distributed_vllm"]["mechanism"],
             "vllm-ray",
