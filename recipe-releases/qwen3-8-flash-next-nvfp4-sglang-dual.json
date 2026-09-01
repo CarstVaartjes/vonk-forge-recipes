@@ -1,18 +1,34 @@
 {
   "schema_version": 1,
-  "recipe": {"publisher": "vonk-forge", "slug": "qwen3-8-flash-next-nvfp4-sglang-dual"},
-  "version": "1.3.1",
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-nvfp4-sglang-dual"
+  },
+  "version": "1.3.2",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.3.1",
+      "version": "1.3.2",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "72c90f0a2e80bb9ac1520bd8c8a44930af9e8327b5a9bd178dd908911f0f5087",
+      "recipe_content_sha256": "b216d50efe555de5c05c0c63602110dbfae5290e2aa9f091be9f6c3a4e02578e",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "1.3.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "b7463dc64dcabb93f16810e3396c0a507b809c1bc93a9cafd7165ef702ba1e76",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted the dual-Spark Qwen build to its exact wheel download host.",
+          "details": "Retained files.pythonhosted.org for the pinned NCCL wheel and removed docker.io because the base image is transferred separately."
         }
       ]
     },

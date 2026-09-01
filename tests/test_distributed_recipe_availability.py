@@ -10,9 +10,9 @@ ROOT = Path(__file__).resolve().parents[1]
 RECIPES = {
     "glm-5-2-aqlm-vllm-triple": {
         "nodes": 3,
-        "version": "2.0.4",
-        "released_at": "2026-08-30",
-        "effect": "metadata-only",
+        "version": "2.0.5",
+        "released_at": "2026-09-01",
+        "effect": "reinstall",
         "alternative": "glm-5-3-flash-exl3-dflash2-vllm-dual",
         "tp2_weight_floor": 146_299_574_266,
     },
@@ -26,7 +26,7 @@ RECIPES = {
     },
     "glm-5-3-flash-nvfp4-vllm-four": {
         "nodes": 4,
-        "version": "1.1.0",
+        "version": "1.2.0",
         "released_at": "2026-08-31",
         "effect": "reinstall",
         "alternative": "glm-5-3-flash-exl3-dflash2-vllm-dual",
@@ -120,7 +120,7 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
         )
         self.assertEqual(
             four["artifacts"][0]["revision"],
-            "92d8bfb91c19ceb6fb530dfb538a3a24eceb6ef7",
+            "caca4e6a4ebbd66f159d3d2fc256683fd6e27177",
         )
         self.assertIn(
             "unsupported on Vonk's current one- or two-Spark configuration",

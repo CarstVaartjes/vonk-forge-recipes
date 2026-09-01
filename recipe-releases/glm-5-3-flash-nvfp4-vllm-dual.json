@@ -1,18 +1,79 @@
 {
   "schema_version": 1,
-  "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-dual"},
-  "version": "1.2.1",
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-nvfp4-vllm-dual"
+  },
+  "version": "1.2.5",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.2.1",
+      "version": "1.2.5",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "13ee41fe6128dec7bf1afc045bb99faf9577c53300a6bd25bc79d7b1de018ca7",
+      "recipe_content_sha256": "5c9efa42628cbd9c7949b377f24c17582f558a23018e99451d6b48b124ce8a7c",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Restored the recipe topology backend marker required by the verified vLLM compiler contract."
+        }
+      ]
+    },
+    {
+      "version": "1.2.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "b9e9f3afa3148dfd5711cfdc82ec8a038181f24c54c09381b916acb6525a6019",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "1.2.3",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "db03d00e1436fcb2bc09e7189b9a9fc8f6ef8e45a90982e3f9722b5441cdc410",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Advanced the LibertAI NVFP4 snapshot to caca4e6a.",
+          "details": "The complete 131-file inventory is refreshed from 92d8bfb9 to caca4e6a. All 120 weight shards and runtime configuration files are byte-identical; only the upstream README changed, increasing the exact inventory by 1,690 bytes. The Ray TP2 runtime, admission envelope, and Candidate acceptance state remain unchanged; installed containers must be recreated.",
+          "references": [
+            "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/commit/caca4e6a4ebbd66f159d3d2fc256683fd6e27177",
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-NVFP4-Dual-DGX-Spark/tree/aed98a13ca75140d2691cc5c651ea5817d9a3e44"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.2.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "713ef2a7f87998e2a99447e6dabc3838114c41c2ee2977dc47c79d5bd298b059",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Corrected the dual-Spark execution backend to Ray.",
+          "details": "MiaAI-Lab's authoritative start.sh launches a Ray head and worker before vLLM; the existing runtime wrapper implements that exercised Ray TP2 topology. No runtime distribution, image, model, or launch-profile pin changed.",
+          "references": [
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-NVFP4-Dual-DGX-Spark/tree/aed98a13ca75140d2691cc5c651ea5817d9a3e44"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.2.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "44678c6c6a86bca5a70dd10144278d98e1e9e9f8dd56bfcec3dc16df52bd2351",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Corrected the dual-Spark GLM public build host allowlist.",
+          "details": "Added pypi.org for ordinary pip resolution and removed docker.io because the digest-pinned base image is transferred separately."
         }
       ]
     },

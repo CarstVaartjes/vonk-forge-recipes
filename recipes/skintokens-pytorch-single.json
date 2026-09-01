@@ -49,7 +49,6 @@
     "network": {
       "mode": "public",
       "hosts": [
-        "nvcr.io",
         "github.com",
         "huggingface.co",
         "download.pytorch.org",

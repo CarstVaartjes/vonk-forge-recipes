@@ -4,13 +4,13 @@
     "publisher": "vonk-forge",
     "slug": "step1x-3d-geometry-pytorch-single"
   },
-  "version": "1.2.4",
+  "version": "1.2.5",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.2.4",
+      "version": "1.2.5",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "a93cfd6af054872fed74126d56bf84e5b897ff8ee80496b343433fe006f107a8",
+      "recipe_content_sha256": "76301ec1f088d2569b9b1c8b14297b936aa338bf1eb3dc874fb31d5297d0dbbc",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
@@ -20,11 +20,30 @@
       ]
     },
     {
+      "version": "1.2.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "adb5968933e13f826e81da1ad928146fa96edfb6f23a01b5478c9cb6cad4392b",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Added the Ubuntu security mirror required by the shared Step1X package-install build.",
+          "details": "The host allowlist now matches the pinned Step1X runtime distribution while preserving offline execution after installation."
+        }
+      ]
+    },
+    {
       "version": "1.2.3",
       "released_at": "2026-08-30",
       "recipe_content_sha256": "034e0c4aad9a43e02160f833fbff0962e8bdd184b2bb86c4cbe1341fd84572d0",
       "upgrade_effect": "metadata-only",
-      "changes": [{"kind": "metadata", "summary": "Linked bounded geometry output to the Step1X texture stage.", "details": "Operator guidance names the exact next recipe and the existing 240 MiB downstream input limit without claiming unsupported composite orchestration."}]
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Linked bounded geometry output to the Step1X texture stage.",
+          "details": "Operator guidance names the exact next recipe and the existing 240 MiB downstream input limit without claiming unsupported composite orchestration."
+        }
+      ]
     },
     {
       "version": "1.2.2",

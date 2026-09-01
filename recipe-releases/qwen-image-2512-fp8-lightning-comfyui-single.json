@@ -1,18 +1,34 @@
 {
   "schema_version": 1,
-  "recipe": {"publisher": "vonk-forge", "slug": "qwen-image-2512-fp8-lightning-comfyui-single"},
-  "version": "1.0.2",
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-2512-fp8-lightning-comfyui-single"
+  },
+  "version": "1.0.3",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.0.2",
+      "version": "1.0.3",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "aca12557ad7ef1fcae48f401778ab0dfeb286ed7491239eb5a7d6fda44371c6c",
+      "recipe_content_sha256": "72d95fd9534b89415bab5faa7e6cb12b373669c6149599d3a3b0bce05f128a4f",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "b7ffa44be4ae99feb10716ee5b46ba68a48632c47072579311f0bcc0b7ee2eab",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
         }
       ]
     },

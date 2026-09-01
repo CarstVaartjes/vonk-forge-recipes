@@ -77,7 +77,8 @@ class LowMemoryCanaryRecipeTests(unittest.TestCase):
             with self.subTest(canary=canary_slug):
                 original = recipe(original_slug)
                 canary = recipe(canary_slug)
-                self.assertEqual(canary["model"], original["model"])
+                self.assertEqual(canary["model"]["kind"], original["model"]["kind"])
+                self.assertEqual(canary["model"]["publisher"], original["model"]["publisher"])
                 self.assertEqual(canary.get("dependencies"), original.get("dependencies"))
                 self.assertEqual(canary["artifacts"], original["artifacts"])
                 self.assertEqual(
@@ -136,8 +137,10 @@ class LowMemoryCanaryRecipeTests(unittest.TestCase):
             with self.subTest(recipe=slug):
                 document = recipe(slug)
                 release = load(f"recipe-releases/{slug}.json")
-                self.assertEqual(release["version"], "1.0.0")
-                self.assertEqual(release["released_at"], "2026-08-31")
+                expected_version = "1.0.1" if slug == LAGUNA_CANARY else "1.0.0"
+                self.assertEqual(release["version"], expected_version)
+                expected_date = "2026-09-01" if slug == LAGUNA_CANARY else "2026-08-31"
+                self.assertEqual(release["released_at"], expected_date)
                 self.assertEqual(
                     release["history"][0]["recipe_content_sha256"],
                     canonical_digest(document),

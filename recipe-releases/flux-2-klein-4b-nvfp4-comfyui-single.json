@@ -1,18 +1,34 @@
 {
   "schema_version": 1,
-  "recipe": {"publisher": "vonk-forge", "slug": "flux-2-klein-4b-nvfp4-comfyui-single"},
-  "version": "1.0.2",
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "flux-2-klein-4b-nvfp4-comfyui-single"
+  },
+  "version": "1.0.3",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.0.2",
+      "version": "1.0.3",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "f83fbc5acd350a9f0256eaa0658fec3ea67e3846fcc1d5e1b986b874370da0b6",
+      "recipe_content_sha256": "c9e09c4a06b9c5f0683b53a4c86034b9f94f8291202d8a6bcd90c5b1e8dc00c1",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "d7b92ff1327c7cd0b92970556bd17ea66ec3af95291c1a8890ccb7c200cd5d5e",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
         }
       ]
     },

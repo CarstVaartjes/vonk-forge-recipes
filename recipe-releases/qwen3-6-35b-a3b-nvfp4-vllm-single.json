@@ -1,12 +1,16 @@
 {
   "schema_version": 1,
-  "recipe": {"publisher": "vonk-forge", "slug": "qwen3-6-35b-a3b-nvfp4-vllm-single"},
-  "version": "1.0.2",
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-6-35b-a3b-nvfp4-vllm-single"
+  },
+  "version": "1.0.3",
   "released_at": "2026-09-01",
-  "history": [{
-      "version": "1.0.2",
+  "history": [
+    {
+      "version": "1.0.3",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "939a9f7cbd8b6065d6ad00edc9279b75a3e451e95700405ebbb2500a01d12ffc",
+      "recipe_content_sha256": "28227468b63736ddd4b495cf6787d68be1322c37432b7a5ba63f54bd80dbd1cb",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
@@ -16,29 +20,53 @@
       ]
     },
     {
-    "version": "1.0.1",
-    "released_at": "2026-08-30",
-    "recipe_content_sha256": "fcec4077f3a01e6f68bb8bf55deb43d3114c7ac20b44da12674ce70c6f140c29",
-    "upgrade_effect": "metadata-only",
-    "changes": [{
-      "kind": "metadata",
-      "summary": "Separated the checkpoint's multimodal capability from the recipe's currently text-only qualification evidence.",
-      "details": "The sparse NVFP4 runtime contract is unchanged. The catalog now states that bounded text chat is qualified and Spark vision serving is still unproven.",
-      "references": ["https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4/tree/491c2f1ea524c639598bf8fa787a93fed5a6fbce"]
-    }]
-  }, {
-    "version": "1.0.0",
-    "released_at": "2026-08-28",
-    "recipe_content_sha256": "ca6fef70c4fa321c435c161e8ffbf2da769471cc04dadc1e550436922f3608ac",
-    "upgrade_effect": "reinstall",
-    "changes": [{
-      "kind": "initial",
-      "summary": "Added NVIDIA's official agent-ready Qwen3.6 35B-A3B NVFP4 profile for one DGX Spark.",
-      "details": "Pins the exact NVIDIA checkpoint and stable vLLM 0.28 ARM64 image, with NVIDIA's Spark memory, FlashInfer, Marlin, fastsafetensors, MTP, reasoning, and structured tool-call profile.",
-      "references": [
-        "https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4/tree/491c2f1ea524c639598bf8fa787a93fed5a6fbce",
-        "https://build.nvidia.com/spark/vllm/agent-ready-models"
+      "version": "1.0.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "0ed99cee02a86cfa78aef2e601fefdf52c515bcc2f0f7a2e55d946949377c56a",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Pinned the current immutable NVIDIA Qwen3.6 35B-A3B NVFP4 snapshot at 1355db6a.",
+          "details": "The upstream revision changes README metadata only; model weights, configuration, tokenizer, runtime image, and serving arguments remain byte-identical. Existing runtime containers do not require a rebuild, while the catalog now points at the current immutable source revision.",
+          "references": [
+            "https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4/commit/1355db6a052410cfd62085d94b58866fd0f2c3c5"
+          ]
+        }
       ]
-    }]
-  }]
+    },
+    {
+      "version": "1.0.1",
+      "released_at": "2026-08-30",
+      "recipe_content_sha256": "fcec4077f3a01e6f68bb8bf55deb43d3114c7ac20b44da12674ce70c6f140c29",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Separated the checkpoint's multimodal capability from the recipe's currently text-only qualification evidence.",
+          "details": "The sparse NVFP4 runtime contract is unchanged. The catalog now states that bounded text chat is qualified and Spark vision serving is still unproven.",
+          "references": [
+            "https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4/tree/491c2f1ea524c639598bf8fa787a93fed5a6fbce"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "released_at": "2026-08-28",
+      "recipe_content_sha256": "ca6fef70c4fa321c435c161e8ffbf2da769471cc04dadc1e550436922f3608ac",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "initial",
+          "summary": "Added NVIDIA's official agent-ready Qwen3.6 35B-A3B NVFP4 profile for one DGX Spark.",
+          "details": "Pins the exact NVIDIA checkpoint and stable vLLM 0.28 ARM64 image, with NVIDIA's Spark memory, FlashInfer, Marlin, fastsafetensors, MTP, reasoning, and structured tool-call profile.",
+          "references": [
+            "https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4/tree/491c2f1ea524c639598bf8fa787a93fed5a6fbce",
+            "https://build.nvidia.com/spark/vllm/agent-ready-models"
+          ]
+        }
+      ]
+    }
+  ]
 }

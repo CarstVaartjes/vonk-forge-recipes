@@ -64,7 +64,7 @@ class OriginAlignedProfileTests(unittest.TestCase):
             "ghcr.io/drowzeys/keys-vllm-glm53-flash-nvfp4-ablit@sha256:"
             "f722ec19d8260833e948d5bf46949d9ac574841860060caa24213cf550d1a41b",
         )
-        self.assertEqual(runtime["build"]["network_hosts"], ["ghcr.io"])
+        self.assertEqual(runtime["build"]["network_hosts"], [])
         self.assertEqual(recipe["runtime"]["distribution"]["content_sha256"], _canonical_digest(runtime_path))
         self.assertEqual(patch["applies_to"]["content_sha256"], _canonical_digest(runtime_path))
         self.assertEqual(recipe["execution"]["patch_bundle"]["content_sha256"], _canonical_digest(patch_path))

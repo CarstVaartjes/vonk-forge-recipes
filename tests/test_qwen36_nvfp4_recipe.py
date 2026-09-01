@@ -30,16 +30,16 @@ def catalog_index_module():
 
 class Qwen36Nvfp4RecipeTests(unittest.TestCase):
     def test_exact_model_runtime_and_spark_profile(self) -> None:
-        version = load("model-versions/qwen3-6-35b-a3b-nvfp4-491c2f1e.json")
+        version = load("model-versions/qwen3-6-35b-a3b-nvfp4-1355db6a.json")
         runtime = load("runtime-distributions/vllm-0-28-0-nvidia-arm64.json")
         recipe = load("recipes/qwen3-6-35b-a3b-nvfp4-vllm-single.json")
 
         self.assertEqual(
             version["source"]["revision"],
-            "491c2f1ea524c639598bf8fa787a93fed5a6fbce",
+            "1355db6a052410cfd62085d94b58866fd0f2c3c5",
         )
         self.assertEqual(version["parameters"], {"total": 35_000_000_000, "active": 3_000_000_000})
-        self.assertEqual(version["sizes"]["download_bytes"], 23_462_477_790)
+        self.assertEqual(version["sizes"]["download_bytes"], 23_462_477_857)
         self.assertEqual(
             version["metadata"]["tags"],
             [
@@ -56,7 +56,7 @@ class Qwen36Nvfp4RecipeTests(unittest.TestCase):
         )
         self.assertEqual(
             sum(item["download_bytes"] for item in version["artifacts"]),
-            23_462_477_790,
+            23_462_477_857,
         )
         self.assertEqual(
             runtime["image"],

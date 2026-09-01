@@ -20,6 +20,15 @@
     "runtime-distribution/drowzeys/vllm-glm53-drowzeys-1m-ee0dabad-arm64": {
       "policy": "manual"
     },
+    "model-version/drowzeys/glm-5-3-flash-nvfp4-ablit-l15-43-mtp-l45-80b6d18d": {
+      "policy": "manual"
+    },
+    "runtime-distribution/tonyd2wild/vllm-glm53-dflash2-tonyd2wild-3eef4663-arm64": {
+      "policy": "manual"
+    },
+    "recipe/vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual": {
+      "policy": "manual"
+    },
     "runtime-distribution/tech2wild/glm-5-3-flash-nvfp4-mp-four": {
       "policy": "manual"
     },

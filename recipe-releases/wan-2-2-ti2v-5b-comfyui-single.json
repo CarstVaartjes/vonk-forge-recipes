@@ -4,18 +4,31 @@
     "publisher": "vonk-forge",
     "slug": "wan-2-2-ti2v-5b-comfyui-single"
   },
-  "version": "1.0.6",
+  "version": "1.0.7",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.0.6",
+      "version": "1.0.7",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "e1822f9d403b8a1f3227afc5557b0b5405fd0a5c4d8554c72ede284b946a46f9",
+      "recipe_content_sha256": "e424b4de358dde24bfe749d585905eba94fa5c3368bdee58f719fa56210de242",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "1.0.6",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "4c12f075c0afccabbc0fa6b21b0bbabc6fdb14596ec46c4c50358cab32073d5d",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
         }
       ]
     },
@@ -41,7 +54,13 @@
       "released_at": "2026-08-30",
       "recipe_content_sha256": "03c3a56415791d17b059e7df7055c771f31dfc51a57e1de2a806971dee5a6e13",
       "upgrade_effect": "metadata-only",
-      "changes": [{"kind": "metadata", "summary": "Made TI2V 5B the recommended default single-Spark Wan profile.", "details": "Recommendation metadata now distinguishes its declared 86 GB startup-plus-reserve envelope from the OOM-gated 14B Candidates while retaining the physical acceptance gate."}]
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Made TI2V 5B the recommended default single-Spark Wan profile.",
+          "details": "Recommendation metadata now distinguishes its declared 86 GB startup-plus-reserve envelope from the OOM-gated 14B Candidates while retaining the physical acceptance gate."
+        }
+      ]
     },
     {
       "version": "1.0.3",

@@ -4,18 +4,31 @@
     "publisher": "vonk-forge",
     "slug": "flux-2-klein-4b-comfyui-single"
   },
-  "version": "1.0.5",
+  "version": "1.0.6",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.0.5",
+      "version": "1.0.6",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "4b748aae762408fa6e11a8dd094e000c72ce47a51fc9609d08329dd7b8c09ac3",
+      "recipe_content_sha256": "c5d344ec85816eb3699ea4e62f845d44dc283445ff66eb9fc44ca1ffccffa430",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "1.0.5",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "2169cae98b93ef16b8ea63c508b0319a32736fb309191a0e4b0e3c73743898f6",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
         }
       ]
     },

@@ -30,7 +30,7 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.release_path = ROOT / "recipe-releases/glm-5-3-flash-exl3-dflash2-vllm-dual.json"
         self.runtime_path = ROOT / "runtime-distributions/vllm-glm53-exl3-dflash2-mia-493cb88f-arm64.json"
         self.patch_path = ROOT / "patch-bundles/glm-5-3-flash-exl3-dflash2-mia-dual-profile.json"
-        self.target_path = ROOT / "model-versions/glm-5-3-flash-exl3-tr3-4bpw-dflash2-25a44fdb.json"
+        self.target_path = ROOT / "model-versions/glm-5-3-flash-exl3-tr3-4bpw-dflash2-024db9f7.json"
         self.drafter_path = ROOT / "model-versions/glm-5-3-flash-dflash2-bf582e4e.json"
         self.adapter = ROOT / "adapters/glm/mia-exl3-dflash2-dual"
 
@@ -45,9 +45,9 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
     def test_target_and_drafter_inventories_and_licenses_are_closed(self) -> None:
         target = _document(self.target_path)
         drafter = _document(self.drafter_path)
-        self.assertEqual(target["source"]["revision"], "25a44fdbf16862a46b7cc9921142c6c81350af2f")
+        self.assertEqual(target["source"]["revision"], "024db9f7e9871e8efdf21538ba55af7442be3cd5")
         self.assertEqual(len(target["artifacts"]), 144)
-        self.assertEqual(sum(item["download_bytes"] for item in target["artifacts"]), 175_715_854_754)
+        self.assertEqual(sum(item["download_bytes"] for item in target["artifacts"]), 175_715_854_761)
         self.assertEqual(target["license"]["spdx"], "LicenseRef-ShapleyMCG-1.0")
         self.assertTrue(target["license"]["operator_acceptance_required"])
         self.assertEqual(target["dependencies"][0]["content_sha256"], _digest(self.drafter_path))
@@ -196,7 +196,7 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
 
     def test_release_tracks_exact_recipe_digest(self) -> None:
         release = _document(self.release_path)
-        self.assertEqual(release["version"], "1.2.0")
+        self.assertEqual(release["version"], "1.3.0")
         self.assertEqual(release["history"][0]["recipe_content_sha256"], _digest(self.recipe_path))
 
 

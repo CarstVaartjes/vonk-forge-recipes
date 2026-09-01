@@ -4,18 +4,31 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-2512-lightning-diffusers-single"
   },
-  "version": "1.2.4",
+  "version": "1.2.5",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.2.4",
+      "version": "1.2.5",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "2e5c859dc4ac979ae22b780c9f59cf1e68e5ab6d407f0caa9b6ed05cf498d466",
+      "recipe_content_sha256": "c185dd776ac337c4fc04886c5487326f726e9d7dda0b0ffe40c089a7f1dde04b",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "1.2.4",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "1d6f9477651ecda6d99d39d6397e363d11dfc43f3ad556f46f0a1db48694e6ff",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
         }
       ]
     },

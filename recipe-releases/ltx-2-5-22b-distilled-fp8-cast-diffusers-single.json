@@ -4,18 +4,31 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-5-22b-distilled-fp8-cast-diffusers-single"
   },
-  "version": "1.0.1",
+  "version": "1.0.2",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.0.1",
+      "version": "1.0.2",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "c9ee766c50560c2b8f9d6655c5365566a7d88e4a42d4dd2ed8233caa3637192f",
+      "recipe_content_sha256": "dc15da0ef60bb604c322ee9692664bf7110559f07314e66c158e7cfd06ad1843",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "1.0.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "0b26a789538751b9c7cd899e1ef4d60dec4f1bf215b75cc83b705abf88c77c7c",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
         }
       ]
     },

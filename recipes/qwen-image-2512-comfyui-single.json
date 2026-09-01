@@ -7,7 +7,7 @@
   "build": {
     "context": {"path": "adapters/media/comfyui-qwen-image-2512-bf16", "sha256": "91acde657f0bfe3d4a95f888bb0eccba68afa8f49be31500f829d62ef9549ae4", "expected_bytes": 30720, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
-    "network": {"mode": "public", "hosts": ["nvcr.io", "codeload.github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]},
+    "network": {"mode": "public", "hosts": ["codeload.github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]},
     "resources": {"download_bytes": 50499508414, "temporary_bytes": 60000000000, "memory_bytes": 8000000000, "timeout_seconds": 14400}
   },
   "parameters": [],

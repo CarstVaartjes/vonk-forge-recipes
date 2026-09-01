@@ -4,18 +4,31 @@
     "publisher": "vonk-forge",
     "slug": "mova-360p-diffusers-single"
   },
-  "version": "2.0.5",
+  "version": "2.0.6",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "2.0.5",
+      "version": "2.0.6",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "f5bb5fba3645c8c711ad0dffbc9e21e5564ebd1fb79a2ac138b2e0c52145ee17",
+      "recipe_content_sha256": "a5ab6cc559e11a1f94524e0e305f13b2f2946c0fcd4dd89a42f5eed83ef55435",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "2.0.5",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "e41a11631e0d26b32a10cfd5682c41ac66b8a68642382da7d4bbc1b9b5fbac43",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
         }
       ]
     },

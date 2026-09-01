@@ -4,13 +4,13 @@
     "publisher": "vonk-forge",
     "slug": "skintokens-pytorch-single"
   },
-  "version": "2.0.5",
+  "version": "2.0.6",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "2.0.5",
+      "version": "2.0.6",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "c749897ac2dd210caa5e23ad41a41adf1cd9945818d3da52506b88dad57ce8ca",
+      "recipe_content_sha256": "203cc376ca857537ec67c28a3b339934e6bf4adf24b5ad3b0c77734302303622",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
@@ -20,11 +20,30 @@
       ]
     },
     {
+      "version": "2.0.5",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "1078fec55c9d6b58ecdb2c94ed0e515912e0a2bac08379fb7d7f21c98ab6283a",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
+        }
+      ]
+    },
+    {
       "version": "2.0.4",
       "released_at": "2026-08-30",
       "recipe_content_sha256": "c9195fb2bfd95242491df225153750b2d1aa5a00198ddd5dadaaabf6c47ef704",
       "upgrade_effect": "metadata-only",
-      "changes": [{"kind": "metadata", "summary": "Published SkinTokens native-build and physical acceptance gates.", "details": "The installable Candidate is explicitly not accepted until its ARM64 container build and a physical GB10 rigged-GLB canary both pass."}]
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Published SkinTokens native-build and physical acceptance gates.",
+          "details": "The installable Candidate is explicitly not accepted until its ARM64 container build and a physical GB10 rigged-GLB canary both pass."
+        }
+      ]
     },
     {
       "version": "2.0.3",
@@ -72,7 +91,9 @@
         {
           "kind": "compatibility",
           "summary": "Replaced the metadata placeholder with the exact upstream TokenRig inference path and an offline GLB mesh input workflow.",
-          "references": ["https://github.com/VAST-AI-Research/SkinTokens/tree/273b691d35989d71cd17ff2895fdc735097b92d1"]
+          "references": [
+            "https://github.com/VAST-AI-Research/SkinTokens/tree/273b691d35989d71cd17ff2895fdc735097b92d1"
+          ]
         },
         {
           "kind": "runtime",

@@ -4,18 +4,48 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-distilled-fp8-diffusers-single"
   },
-  "version": "3.1.1",
+  "version": "3.1.3",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "3.1.1",
+      "version": "3.1.3",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "a3f9f8a78cb8eb732131e0774eb3a07a4ecd0e54ddc48fdc16f1aa6c0f7663a1",
+      "recipe_content_sha256": "13254ce49e156e688a43f0fd1130414d18126cb1ce266fe13ad6ab0b8d426ba8",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "3.1.2",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "110bc132308331799923cf3f00f44e49c8cba4ce910031c4cb602b62ffa81984",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Marked the historical LTX-2 profile superseded while retaining its directly deployable immutable execution contract.",
+          "details": "LTX-2.5 BF16 is the current fidelity baseline and its fixed FP8-cast sequential-offload variant is the current lower-memory canary. Runtime, artifacts, build context, topology, interfaces, validation, and provenance are unchanged.",
+          "references": [
+            "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
+            "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "3.1.1",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "3838c0f398c42785137619fa4d3b8e18cef6f66bc8811e554647a1e150e42c8f",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
         }
       ]
     },

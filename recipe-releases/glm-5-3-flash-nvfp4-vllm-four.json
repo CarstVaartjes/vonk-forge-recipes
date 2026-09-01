@@ -1,18 +1,37 @@
 {
   "schema_version": 1,
-  "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-vllm-four"},
-  "version": "1.1.1",
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-nvfp4-vllm-four"
+  },
+  "version": "1.2.1",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "1.1.1",
+      "version": "1.2.1",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "2ba8be0c1233e6f72829da69dce50dcfda3a5620aef36c4f84b70f8e7732dfe9",
+      "recipe_content_sha256": "c706ef5cfc1ea7607c55bd4aab28457194b4cc52d235a30f8b36816581964e28",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "released_at": "2026-08-31",
+      "recipe_content_sha256": "8b2d5b54662dfb5664124c0334d91cdc34098b7783666112f8984a8bdbf609f7",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "model",
+          "summary": "Advanced the future TP4 contract to LibertAI's current caca4e6a snapshot.",
+          "details": "The complete 131-file inventory is refreshed from 92d8bfb9 to caca4e6a. All 120 weight shards and runtime configuration files are byte-identical; only the upstream README changed, increasing the exact inventory by 1,690 bytes. The exact four-rank topology remains unsupported on Vonk's current one- or two-Spark fleet and has no physical acceptance claim.",
+          "references": [
+            "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/commit/caca4e6a4ebbd66f159d3d2fc256683fd6e27177"
+          ]
         }
       ]
     },

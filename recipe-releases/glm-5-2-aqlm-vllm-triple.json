@@ -4,18 +4,46 @@
     "publisher": "vonk-forge",
     "slug": "glm-5-2-aqlm-vllm-triple"
   },
-  "version": "2.0.5",
+  "version": "2.0.7",
   "released_at": "2026-09-01",
   "history": [
     {
-      "version": "2.0.5",
+      "version": "2.0.7",
       "released_at": "2026-09-01",
       "recipe_content_sha256": "bea4e4465cd20a9365b3e45a502684baff9fee9804a093765634757ba4cfd70d",
       "upgrade_effect": "metadata-only",
       "changes": [
         {
+          "kind": "compatibility",
+          "summary": "Restored the recipe topology backend marker required by the verified vLLM compiler contract."
+        }
+      ]
+    },
+    {
+      "version": "2.0.6",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "0c950739c3c764110878de5882e1f35e87dc13eb9ab6c2f6591638b563668b60",
+      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+        }
+      ]
+    },
+    {
+      "version": "2.0.5",
+      "released_at": "2026-09-01",
+      "recipe_content_sha256": "ac6a4a19cda607243dce9e9b6647c704a3b59c05d1996a9e01e7a04a2ded5fd0",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Aligned the distributed backend with the verified Ray runtime.",
+          "details": "The pinned MiaAI-Lab runtime declares and implements vllm-ray for its three-node topology. The recipe remains installable but outside the current one- and two-Spark fleet envelope.",
+          "references": [
+            "https://github.com/MiaAI-Lab/GLM-5.2-NVFP4-AQLM-Triple-DGX-Sparks/tree/5c85163ccb8d98d395880e71e2dbd03976a3f4ad"
+          ]
         }
       ]
     },

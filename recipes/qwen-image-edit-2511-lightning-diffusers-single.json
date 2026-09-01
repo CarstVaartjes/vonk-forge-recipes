@@ -45,7 +45,7 @@
     "arguments": [],
     "network": {
       "mode": "public",
-      "hosts": ["nvcr.io", "github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]
+      "hosts": ["github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]
     },
     "resources": {
       "download_bytes": 60570071749,
