@@ -71,41 +71,41 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
             self.patch["source"],
             {
                 "repository": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark",
-                "revision": "de230b45bc49e88ea92af898650b6bbb92f0e266",
-                "archive_sha256": "3bcd0b4c70677bf7e2d1f2a790315624edf0a8cba1920f33bd8daa944804fced",
+                "revision": "c444d7032957f5a5437261d5366fd06b27a01760",
+                "archive_sha256": "576f8b616c59e254abea1252a9becb2985216edc0d26b98198a21ff48c7085ee",
             },
         )
         self.assertEqual(
             self.patch["pre_patch_tree_sha256"],
-            "4a1ee8ac6eaefb8dfc9e3d15792daf9154dbaee0acab6295f1e4b95c8397c432",
+            "e600de8bf5d9ed4c4016d4bf51c2e20f8a4795dbd5bce146953c9032105f094a",
         )
         self.assertEqual(
             self.patch["post_patch_tree_sha256"],
-            "8be1b911a35d798a8cda5c548ed071ef6605d63c2bb40951a6e9c81e65d7872c",
+            "f6a04bf3e9856d1ea3d339d15635e16f32b833ca8ace46366e999a8999cf878f",
         )
         patch_hashes = {item["path"]: item["sha256"] for item in self.patch["patches"]}
         self.assertEqual(
             patch_hashes["patches/hotfix-dsv4-vision-exp.py"],
-            "ee4176ce9b0c50cf5624e85c21046c406a47d92baf60a52174cecd027f7e26fe",
+            "0f9ae3c8d07f29fff6c5bb27c3ced4e7cd3d7b87724a1300e9b6386469ed9362",
         )
         self.assertEqual(
             patch_hashes["patches/vision_exp/vision.py"],
             "e29feb76d7b7abfc5ae15fd152ded145d3c7c370030dfd35a0d96565112b3891",
         )
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
-        self.assertIn("de230b45bc49e88ea92af898650b6bbb92f0e266", dockerfile)
-        self.assertIn("8be1b911a35d798a8cda5c548ed071ef6605d63c2bb40951a6e9c81e65d7872c", dockerfile)
+        self.assertIn("c444d7032957f5a5437261d5366fd06b27a01760", dockerfile)
+        self.assertIn("f6a04bf3e9856d1ea3d339d15635e16f32b833ca8ace46366e999a8999cf878f", dockerfile)
         hotfix = (ADAPTER / "patches/hotfix-dsv4-vision-exp.py").read_text(
             encoding="utf-8"
         )
-        self.assertIn('needle, close = "<image>", "</image>"', hotfix)
+        self.assertIn("quoted paired tags are prose (issue 181)", hotfix)
         self.assertIn('scan_text = role not in ("tool", "function")', hotfix)
 
     def test_adapter_bundle_recipe_and_patch_bundle_match(self) -> None:
         source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["source_bundle"]
         archive, _files, digest = source_bundle(ADAPTER)
-        self.assertEqual(len(archive), 337_920)
-        self.assertEqual(digest, "4d74d4297591c30cb8f5086859d919604a9231e80a361b42d843350ae92e30e9")
+        self.assertEqual(len(archive), 368_640)
+        self.assertEqual(digest, "685b7340ef0c999b0ebc63008f4910018a7790839a8015a9c6d392a310d574bc")
         self.assertEqual(self.recipe["build"]["context"]["sha256"], digest)
         self.assertEqual(self.patch["source_bundle"]["sha256"], digest)
         self.assertEqual(self.recipe["model"]["content_sha256"], canonical_digest(MODEL))
@@ -128,7 +128,11 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
         self.assertEqual(arguments["gpu-memory-utilization"], "0.835")
         self.assertEqual(arguments["kv-cache-dtype"], "nvfp4_ds_mla")
         self.assertEqual(arguments["block-size"], 256)
-        self.assertEqual(arguments["max-cudagraph-capture-size"], 42)
+        self.assertEqual(arguments["max-cudagraph-capture-size"], 48)
+        environment = {
+            item["name"]: item["value"] for item in self.recipe["runtime"]["environment"]
+        }
+        self.assertEqual(environment["DSPARK_MAX_INFLIGHT_PREFILLS"], "2")
         self.assertEqual(json.loads(arguments["limit-mm-per-prompt"]), {"image": 8})
         self.assertEqual(
             json.loads(arguments["speculative-config"])["num_speculative_tokens"], 6
