@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-2512-comfyui-single"
   },
-  "version": "1.0.7",
-  "released_at": "2026-09-01",
+  "version": "1.0.8",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.0.8",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "16d243dddd39160568ddae2013d1229ca40635e6fbf0242ed696df086f9d2559",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "1.0.7",
       "released_at": "2026-09-01",

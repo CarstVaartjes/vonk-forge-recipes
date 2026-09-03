@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-diffusers-single"
   },
-  "version": "1.1.4",
-  "released_at": "2026-09-01",
+  "version": "1.1.5",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.1.5",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "7bffdddc23d6eb8c0dcd9d2e0303c435614bb306edea633dbd65df026ad91c1a",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "1.1.4",
       "released_at": "2026-09-01",

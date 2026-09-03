@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "flux-2-klein-4b-nvfp4-comfyui-single"
   },
-  "version": "1.0.3",
-  "released_at": "2026-09-01",
+  "version": "1.0.4",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.0.4",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "26f967ed6f8ca737cdef3c7dce2b039fadde9386f44ca2447c57a61b384f6846",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "1.0.3",
       "released_at": "2026-09-01",

@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-dev-fp4-pytorch-single"
   },
-  "version": "2.3.3",
-  "released_at": "2026-09-01",
+  "version": "2.3.4",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "2.3.4",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "336f207e156bc629437b8bd60c9d29d11389f4b26f815ae36bf2590fde20eeab",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "2.3.3",
       "released_at": "2026-09-01",

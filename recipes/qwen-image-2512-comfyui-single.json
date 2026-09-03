@@ -8,8 +8,35 @@
     "context": {"path": "adapters/media/comfyui-qwen-image-2512-bf16", "sha256": "91acde657f0bfe3d4a95f888bb0eccba68afa8f49be31500f829d62ef9549ae4", "expected_bytes": 30720, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
     "network": {"mode": "public", "hosts": ["codeload.github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]},
-    "resources": {"download_bytes": 50499508414, "temporary_bytes": 60000000000, "memory_bytes": 8000000000, "timeout_seconds": 14400}
-  },
+    "resources": {"download_bytes": 50499508414, "temporary_bytes": 60000000000, "memory_bytes": 8000000000, "timeout_seconds": 14400, "cpu_cores": 8, "processes": 4096}
+  ,
+    "options": {
+      "additional_contexts": [],
+      "annotations": [],
+      "environment": [],
+      "format": "oci",
+      "identity_label": true,
+      "ignorefile": null,
+      "jobs": 1,
+      "labels": [],
+      "layer_compression": "disabled",
+      "layer_labels": [],
+      "layers": true,
+      "no_hostname": false,
+      "no_hosts": false,
+      "omit_history": false,
+      "os_features": [],
+      "os_version": null,
+      "shm_bytes": 67108864,
+      "skip_unused_stages": true,
+      "squash": "none",
+      "timestamp": null,
+      "unset_environment": [],
+      "unset_labels": []
+    },
+    "security": {
+      "capabilities": []
+    }},
   "parameters": [],
   "provenance": {"source_kind": "global", "source_reference": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/tree/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f", "attribution": ["Qwen", "Comfy-Org"]},
   "artifacts": [

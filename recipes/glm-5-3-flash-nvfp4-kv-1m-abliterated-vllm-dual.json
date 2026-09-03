@@ -16,8 +16,35 @@
     "context": {"path": "adapters/glm/drowzeys-glm53-1m", "sha256": "8c2d848776b4b0f67f0bcd216a796d14daf3d1fc55f5117f3e0e542c09fabfb3", "expected_bytes": 788480, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
     "network": {"mode": "none", "hosts": []},
-    "resources": {"download_bytes": 10083828030, "temporary_bytes": 25000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
-  },
+    "resources": {"download_bytes": 10083828030, "temporary_bytes": 25000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200, "cpu_cores": 8, "processes": 4096}
+  ,
+    "options": {
+      "additional_contexts": [],
+      "annotations": [],
+      "environment": [],
+      "format": "oci",
+      "identity_label": true,
+      "ignorefile": null,
+      "jobs": 1,
+      "labels": [],
+      "layer_compression": "disabled",
+      "layer_labels": [],
+      "layers": true,
+      "no_hostname": false,
+      "no_hosts": false,
+      "omit_history": false,
+      "os_features": [],
+      "os_version": null,
+      "shm_bytes": 67108864,
+      "skip_unused_stages": true,
+      "squash": "none",
+      "timestamp": null,
+      "unset_environment": [],
+      "unset_labels": []
+    },
+    "security": {
+      "capabilities": []
+    }},
   "parameters": [],
   "artifacts": [
     {"id": "weights", "kind": "huggingface.snapshot", "repository": "drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock", "revision": "d7f8afa81e62c156446fda43304d704563622590", "download_bytes": 194692761489, "installed_bytes": 194692761489, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}

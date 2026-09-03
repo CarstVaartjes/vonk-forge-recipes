@@ -18,8 +18,35 @@
     "platform": "linux/arm64",
     "arguments": [],
     "network": {"mode": "public", "hosts": ["files.pythonhosted.org"]},
-    "resources": {"download_bytes": 14194270832, "temporary_bytes": 22000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
-  },
+    "resources": {"download_bytes": 14194270832, "temporary_bytes": 22000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200, "cpu_cores": 8, "processes": 4096}
+  ,
+    "options": {
+      "additional_contexts": [],
+      "annotations": [],
+      "environment": [],
+      "format": "oci",
+      "identity_label": true,
+      "ignorefile": null,
+      "jobs": 1,
+      "labels": [],
+      "layer_compression": "disabled",
+      "layer_labels": [],
+      "layers": true,
+      "no_hostname": false,
+      "no_hosts": false,
+      "omit_history": false,
+      "os_features": [],
+      "os_version": null,
+      "shm_bytes": 67108864,
+      "skip_unused_stages": true,
+      "squash": "none",
+      "timestamp": null,
+      "unset_environment": [],
+      "unset_labels": []
+    },
+    "security": {
+      "capabilities": []
+    }},
   "parameters": [],
   "artifacts": [
     {"id": "weights", "kind": "huggingface.snapshot", "repository": "RadixArk/Qwen3.8-Flash-Next-NVFP4", "revision": "7b719225242aacd3dbd3f9407468c2ee9a9d2594", "download_bytes": 135253622894, "installed_bytes": 135253622894, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}
