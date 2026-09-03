@@ -65,6 +65,7 @@ targets have no installable recipe.
 | `model-groups/`, `models/`, `model-versions/` | Exact model identity, artifacts, and provenance |
 | `runtime-distributions/`, `patch-bundles/` | Exact runtime and patch identity selected by recipes |
 | `adapters/` | Deterministic public build contexts for model-specific behavior |
+| `qualification/` | Recipe-owned smoke cases, input assets, reviewed campaign authorities, and generated digest bindings |
 | `model-targets/` | Research ledger of candidate, accepted, and blocked upstreams |
 | `catalog-index.json` | Generated digest-bound closure used for efficient verified import |
 
@@ -110,17 +111,21 @@ scripts/import-recipe-library \
 2. Select a built-in harness and pin the runtime distribution plus any patch bundle.
 3. Declare one recipe for one exact topology; replicas and distributed ranks are
    not interchangeable.
-4. Add or update `recipe-releases/<recipe-slug>.json`, binding the semantic
+4. Add or update the recipe's entry in `qualification/definitions.json`; source
+   definitions never contain copied recipe digests.
+5. Add or update `recipe-releases/<recipe-slug>.json`, binding the semantic
    version to the canonical recipe digest.
-5. Reference companion weights as explicit dependencies. Do not hide mutable
+6. Reference companion weights as explicit dependencies. Do not hide mutable
    downloads or a second model family inside an adapter.
-6. Keep source contexts deterministic and free of secrets. Input-dependent jobs
+7. Keep source contexts deterministic and free of secrets. Input-dependent jobs
    must declare the matching read-only input contract.
-7. Run validation and the required container/Spark evidence before advancing
+8. Run validation and the required container/Spark evidence before advancing
    qualification.
 
-Generate and verify the catalog closure after changing recipes, releases,
-entities, or adapters:
+Generate and verify the catalog and qualification closures after changing
+recipes, releases, qualification definitions, entities, or adapters. The same
+tool computes each recipe digest and writes it into the generated
+`qualification/qualification-index.json`:
 
 ```bash
 tools/build-catalog-index
