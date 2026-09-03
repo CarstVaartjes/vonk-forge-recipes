@@ -96,7 +96,8 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
         self.assertIn("c444d7032957f5a5437261d5366fd06b27a01760", dockerfile)
         self.assertIn("f6a04bf3e9856d1ea3d339d15635e16f32b833ca8ace46366e999a8999cf878f", dockerfile)
         self.assertIn('ai.vonkforge.runtime-interface="v1"', dockerfile)
-        self.assertIn("install --directory --mode 0777 /state /outputs", dockerfile)
+        self.assertIn("COPY --chmod=0777 state /state", dockerfile)
+        self.assertIn("COPY --chmod=0777 outputs /outputs", dockerfile)
         self.assertNotIn("install --directory --owner", dockerfile)
         hotfix = (ADAPTER / "patches/hotfix-dsv4-vision-exp.py").read_text(
             encoding="utf-8"
@@ -108,7 +109,7 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
         source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["source_bundle"]
         archive, _files, digest = source_bundle(ADAPTER)
         self.assertEqual(len(archive), 368_640)
-        self.assertEqual(digest, "a5d1299a47aaa0bb95be89f4447c89fa7c71567d691da75c460a422688a56142")
+        self.assertEqual(digest, "0a9a32e9b83caf9d6d9e4995422cf3ded30e2f570bb391017ae81c25196abc13")
         self.assertEqual(self.recipe["build"]["context"]["sha256"], digest)
         self.assertEqual(self.patch["source_bundle"]["sha256"], digest)
         self.assertEqual(self.recipe["model"]["content_sha256"], canonical_digest(MODEL))
@@ -121,6 +122,7 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
         arguments = {
             item["name"]: item["value"] for item in self.recipe["runtime"]["arguments"]
         }
+        self.assertFalse(self.recipe["build"]["options"]["layers"])
         self.assertEqual(self.recipe["topology"]["node_count"], 2)
         self.assertEqual(self.recipe["topology"]["parallelism"]["tensor"], 2)
         self.assertEqual(self.recipe["topology"]["parallelism"]["backend"], "mp")

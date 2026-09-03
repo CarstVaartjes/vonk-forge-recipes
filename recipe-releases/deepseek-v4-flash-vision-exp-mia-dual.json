@@ -4,9 +4,27 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-vision-exp-mia-dual"
   },
-  "version": "1.1.3",
+  "version": "1.1.4",
   "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.1.4",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "08138fd1d1cef9d702975800cb655fd812728d728acc0b6d0ce7d765d132efb5",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Disabled disposable intermediate Podman layers for the physical rootless Spark build.",
+          "details": "Physical Spark evidence showed the fully verified image was emitted but layered rootless fuse-overlayfs cleanup returned a nonzero build status. The same pinned Dockerfile, Mia patch tree, inclusive safe Podman arguments, no-subuid identity, storage options, and 8 GB limit passed in OrbStack. Building without disposable intermediate layers preserves the final runtime filesystem and security boundary while avoiding that host-specific cleanup path."
+        },
+        {
+          "kind": "fix",
+          "summary": "Rebound the patch-bundle record to the current deterministic source archive.",
+          "details": "The recipe already referenced source bundle 0a9a32e9, but the companion patch-bundle document and its focused test retained the superseded pre-directory-fix digest. Both records now bind the same 368,640-byte archive used by the executable build."
+        }
+      ]
+    },
     {
       "version": "1.1.3",
       "released_at": "2026-09-03",
