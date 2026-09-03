@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-distilled-diffusers-single"
   },
-  "version": "3.1.3",
-  "released_at": "2026-09-01",
+  "version": "3.1.4",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "3.1.4",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "69c66e0de324118a5bcfcd032cba84d53f2b30a87563c3219c9ac399722a07e0",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "3.1.3",
       "released_at": "2026-09-01",

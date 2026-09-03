@@ -15,10 +15,12 @@ COPY encoding /opt/vonk-build/encoding
 COPY patches /opt/vonk-build/patches
 COPY patches/vision_exp /opt/dspark-patches/vision_exp
 COPY licenses /opt/vonk/licenses
+COPY --chmod=0777 state /state
+COPY --chmod=0777 outputs /outputs
 COPY --chmod=0755 apply-build-patches.py verify-dspark-runtime.py verify-patched-tree.py /opt/vonk-build/
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 
-RUN install --directory --mode 0777 /state /outputs \
+RUN rm -f /state/.keep /outputs/.keep \
     && python3 /opt/vonk-build/verify-dspark-runtime.py \
     && python3 /opt/vonk-build/verify-patched-tree.py \
         /usr/local/lib/python3.12/dist-packages/vllm e600de8bf5d9ed4c4016d4bf51c2e20f8a4795dbd5bce146953c9032105f094a \

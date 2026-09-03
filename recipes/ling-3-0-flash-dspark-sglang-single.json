@@ -14,8 +14,35 @@
     "context": {"path": "adapters/ling/flash-dspark-single", "sha256": "1f1e8299a420b7b3ecfadfdd56ecd8056ce4283c4500b1e947d8f6274d74ee58", "expected_bytes": 10240, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
     "network": {"mode": "none", "hosts": []},
-    "resources": {"download_bytes": 14433247771, "temporary_bytes": 20000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
-  },
+    "resources": {"download_bytes": 14433247771, "temporary_bytes": 20000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200, "cpu_cores": 8, "processes": 4096}
+  ,
+    "options": {
+      "additional_contexts": [],
+      "annotations": [],
+      "environment": [],
+      "format": "oci",
+      "identity_label": true,
+      "ignorefile": null,
+      "jobs": 1,
+      "labels": [],
+      "layer_compression": "disabled",
+      "layer_labels": [],
+      "layers": true,
+      "no_hostname": false,
+      "no_hosts": false,
+      "omit_history": false,
+      "os_features": [],
+      "os_version": null,
+      "shm_bytes": 67108864,
+      "skip_unused_stages": true,
+      "squash": "none",
+      "timestamp": null,
+      "unset_environment": [],
+      "unset_labels": []
+    },
+    "security": {
+      "capabilities": []
+    }},
   "parameters": [],
   "artifacts": [
     {"id": "target", "kind": "huggingface.snapshot", "repository": "inclusionAI/Ling-3.0-flash-int4", "revision": "7a27e9eb8179b2c2eb71eb214f0dab14ec6a63f2", "download_bytes": 77043096486, "installed_bytes": 77043096486, "mount": {"target": "/models/target", "read_only": true}, "roles": ["entrypoint"]},

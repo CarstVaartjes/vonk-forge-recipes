@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "lfm2-5-vl-3b-vllm028-single"
   },
-  "version": "1.1.1",
-  "released_at": "2026-09-01",
+  "version": "1.1.2",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.1.2",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "2fb362f427a70e4c36c63cd4f606ee75bdfa5800f74e8b1c4cc3f251dce992cc",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "1.1.1",
       "released_at": "2026-09-01",

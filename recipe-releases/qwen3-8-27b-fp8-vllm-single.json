@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "qwen3-8-27b-fp8-vllm-single"
   },
-  "version": "1.1.2",
-  "released_at": "2026-09-01",
+  "version": "1.1.3",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.1.3",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "9dad9a4379685cf081d80fa3afc6f268e2017a4786676f864d480e7a9b295e83",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "1.1.2",
       "released_at": "2026-09-01",

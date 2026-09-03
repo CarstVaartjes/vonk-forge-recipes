@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "glm-5-3-flash-exl3-dflash2-vllm-dual"
   },
-  "version": "1.3.1",
-  "released_at": "2026-09-01",
+  "version": "1.3.2",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.3.2",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "8018d49a710f7c28ce45e4157a136d8d8dd3f8d719b08a9ef6a6eaa2f14ab074",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "1.3.1",
       "released_at": "2026-09-01",

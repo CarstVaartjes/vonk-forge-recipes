@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "wan-2-2-ti2v-5b-comfyui-single"
   },
-  "version": "1.0.7",
-  "released_at": "2026-09-01",
+  "version": "1.0.8",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.0.8",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "c37abbe5aed54bf546c4c8a76228fcf940f8217e69558489291cf48f22240a3e",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "1.0.7",
       "released_at": "2026-09-01",

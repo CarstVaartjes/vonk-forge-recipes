@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-ds4-single"
   },
-  "version": "2.0.3",
-  "released_at": "2026-09-01",
+  "version": "2.0.4",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "2.0.4",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "93fa8ba3ae2104e0a4461e80c1c4b10ea91797d4c16040fab7d34f8326b4158e",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "2.0.3",
       "released_at": "2026-09-01",
