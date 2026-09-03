@@ -41,13 +41,13 @@
       "kind": "patch-bundle",
       "publisher": "miaai-lab",
       "slug": "mia-deepseek-v4-flash-vision-exp",
-      "content_sha256": "a698bbaf3f662e5559a69f89297273ea50b9686fb672d45a352f37ecb035c12f"
+      "content_sha256": "39a0dc8fcf506d5bc9822507ed2b59e83d2d221c3ab2a1cf3ac0bb396357d326"
     }
   },
   "build": {
     "context": {
       "path": "adapters/deepseek/mia-vllm-vision",
-      "sha256": "685b7340ef0c999b0ebc63008f4910018a7790839a8015a9c6d392a310d574bc",
+      "sha256": "a5d1299a47aaa0bb95be89f4447c89fa7c71567d691da75c460a422688a56142",
       "expected_bytes": 368640,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },

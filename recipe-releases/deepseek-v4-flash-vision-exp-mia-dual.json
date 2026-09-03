@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-vision-exp-mia-dual"
   },
-  "version": "1.1.1",
+  "version": "1.1.2",
   "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.1.2",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "ed8269962314219726d3e469429170b4dfbeb108f5d9148f25e0d43f573600fd",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Made the image build compatible with the rootless capability-dropped builder.",
+          "details": "Physical Spark evidence showed that the Docker-compatible adapter failed under the agent's rootless Podman boundary. Directory creation no longer requests chown capability during RUN, and the final image now declares the required ai.vonkforge.runtime-interface=v1 label. Runtime sources, model, topology, and serving parameters are unchanged."
+        }
+      ]
+    },
     {
       "version": "1.1.1",
       "released_at": "2026-09-03",
