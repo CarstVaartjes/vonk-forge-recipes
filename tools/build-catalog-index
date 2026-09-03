@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import datetime as dt
 import hashlib
 import io
@@ -16,6 +17,9 @@ from urllib.parse import urlsplit
 REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "catalog-index.json"
+QUALIFICATION_ROOT = ROOT / "qualification"
+QUALIFICATION_DEFINITIONS = QUALIFICATION_ROOT / "definitions.json"
+QUALIFICATION_OUTPUT = QUALIFICATION_ROOT / "qualification-index.json"
 # Control planes fetch oversized Contents API entries by immutable Git blob SHA.
 # Keep the generated index within the same bounded raw-blob envelope as source files.
 MAX_INDEX_BYTES = 12 * 1024 * 1024
@@ -81,7 +85,9 @@ def _release_date(value: object, *, path: Path, field: str) -> str:
     try:
         parsed = dt.date.fromisoformat(text)
     except ValueError as error:
-        raise _release_error(path, f"{field} must be an ISO 8601 calendar date") from error
+        raise _release_error(
+            path, f"{field} must be an ISO 8601 calendar date"
+        ) from error
     if parsed.isoformat() != text:
         raise _release_error(path, f"{field} must use YYYY-MM-DD form")
     return text
@@ -125,7 +131,9 @@ def recipe_release(
 ) -> dict[str, object]:
     raw = path.read_bytes()
     if not raw or len(raw) > MAX_RELEASE_BYTES:
-        raise _release_error(path, f"document must contain 1..{MAX_RELEASE_BYTES} bytes")
+        raise _release_error(
+            path, f"document must contain 1..{MAX_RELEASE_BYTES} bytes"
+        )
     try:
         document = json.loads(raw)
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
@@ -142,9 +150,13 @@ def recipe_release(
         raise _release_error(path, "schema_version must be 1")
     identity = document["recipe"]
     if not isinstance(identity, dict) or set(identity) != {"publisher", "slug"}:
-        raise _release_error(path, "recipe identity must contain exactly publisher and slug")
+        raise _release_error(
+            path, "recipe identity must contain exactly publisher and slug"
+        )
     if identity != {"publisher": publisher, "slug": slug}:
-        raise _release_error(path, "recipe identity does not match the executable recipe")
+        raise _release_error(
+            path, "recipe identity does not match the executable recipe"
+        )
     version = _bounded_string(
         document["version"], path=path, field="version", maximum=64
     )
@@ -153,7 +165,9 @@ def recipe_release(
     released_at = _release_date(document["released_at"], path=path, field="released_at")
     history = document["history"]
     if not isinstance(history, list) or not 1 <= len(history) <= MAX_RELEASE_HISTORY:
-        raise _release_error(path, f"history must contain 1..{MAX_RELEASE_HISTORY} releases")
+        raise _release_error(
+            path, f"history must contain 1..{MAX_RELEASE_HISTORY} releases"
+        )
     clean_history: list[dict[str, object]] = []
     versions: set[str] = set()
     digests: set[str] = set()
@@ -173,11 +187,15 @@ def recipe_release(
             item["version"], path=path, field=f"{prefix}.version", maximum=64
         )
         if SEMVER.fullmatch(item_version) is None or item_version in versions:
-            raise _release_error(path, f"{prefix}.version must be a unique semantic version")
+            raise _release_error(
+                path, f"{prefix}.version must be a unique semantic version"
+            )
         if previous_version is not None and not _semver_is_older(
             item_version, previous_version
         ):
-            raise _release_error(path, "history must be newest-first by semantic version")
+            raise _release_error(
+                path, "history must be newest-first by semantic version"
+            )
         versions.add(item_version)
         previous_version = item_version
         item_date = _release_date(
@@ -187,14 +205,23 @@ def recipe_release(
             raise _release_error(path, "history must be newest-first by released_at")
         previous_date = item_date
         digest = item["recipe_content_sha256"]
-        if not isinstance(digest, str) or SHA256.fullmatch(digest) is None or digest in digests:
-            raise _release_error(path, f"{prefix}.recipe_content_sha256 must be a unique digest")
+        if (
+            not isinstance(digest, str)
+            or SHA256.fullmatch(digest) is None
+            or digest in digests
+        ):
+            raise _release_error(
+                path, f"{prefix}.recipe_content_sha256 must be a unique digest"
+            )
         digests.add(digest)
         effect = item["upgrade_effect"]
         if effect not in UPGRADE_EFFECTS:
             raise _release_error(path, f"{prefix}.upgrade_effect is unsupported")
         changes = item["changes"]
-        if not isinstance(changes, list) or not 1 <= len(changes) <= MAX_RELEASE_CHANGES:
+        if (
+            not isinstance(changes, list)
+            or not 1 <= len(changes) <= MAX_RELEASE_CHANGES
+        ):
             raise _release_error(
                 path, f"{prefix}.changes must contain 1..{MAX_RELEASE_CHANGES} entries"
             )
@@ -204,8 +231,7 @@ def recipe_release(
             if (
                 not isinstance(change, dict)
                 or not {"kind", "summary"} <= set(change)
-                or not set(change)
-                <= {"kind", "summary", "details", "references"}
+                or not set(change) <= {"kind", "summary", "details", "references"}
             ):
                 raise _release_error(path, f"{change_prefix} has an invalid shape")
             kind = change["kind"]
@@ -256,7 +282,8 @@ def recipe_release(
                         or parsed.password
                     ):
                         raise _release_error(
-                            path, f"{change_prefix}.references must use public HTTPS URLs"
+                            path,
+                            f"{change_prefix}.references must use public HTTPS URLs",
                         )
                     clean_references.append(reference)
                 clean_change["references"] = clean_references
@@ -277,7 +304,8 @@ def recipe_release(
         or latest["recipe_content_sha256"] != recipe_digest
     ):
         raise _release_error(
-            path, "version, released_at, and current recipe digest must match history[0]"
+            path,
+            "version, released_at, and current recipe digest must match history[0]",
         )
     return {
         "version": version,
@@ -289,19 +317,20 @@ def recipe_release(
 def source_bundle(context: Path) -> tuple[bytes, list[dict[str, object]], str]:
     files: list[tuple[str, bytes]] = []
     for path in sorted(
-        context.rglob("*"), key=lambda item: item.relative_to(context).as_posix().encode()
+        context.rglob("*"),
+        key=lambda item: item.relative_to(context).as_posix().encode(),
     ):
         relative = path.relative_to(context).as_posix()
         if path.is_symlink():
-            raise SystemExit(f"unsafe source bundle entry: {context.relative_to(ROOT)}/{relative}")
+            raise SystemExit(
+                f"unsafe source bundle entry: {context.relative_to(ROOT)}/{relative}"
+            )
         if path.is_dir():
             continue
-        if (
-            not path.is_file()
-            or "__pycache__" in path.parts
-            or path.suffix == ".pyc"
-        ):
-            raise SystemExit(f"unsafe source bundle entry: {context.relative_to(ROOT)}/{relative}")
+        if not path.is_file() or "__pycache__" in path.parts or path.suffix == ".pyc":
+            raise SystemExit(
+                f"unsafe source bundle entry: {context.relative_to(ROOT)}/{relative}"
+            )
         content = path.read_bytes()
         if len(content) > MAX_SOURCE_FILE_BYTES:
             raise SystemExit(
@@ -356,10 +385,14 @@ def catalog_entities() -> list[dict[str, object]]:
             document = json.loads(path.read_text(encoding="utf-8"))
             identity = document.get("identity")
             if document.get("kind") != expected_kind or not isinstance(identity, dict):
-                raise SystemExit(f"catalog entity identity is invalid: {path.relative_to(ROOT)}")
+                raise SystemExit(
+                    f"catalog entity identity is invalid: {path.relative_to(ROOT)}"
+                )
             key = (expected_kind, identity.get("publisher"), identity.get("slug"))
             if not all(isinstance(value, str) for value in key):
-                raise SystemExit(f"catalog entity identity is invalid: {path.relative_to(ROOT)}")
+                raise SystemExit(
+                    f"catalog entity identity is invalid: {path.relative_to(ROOT)}"
+                )
             if key in identities:
                 raise SystemExit(f"duplicate catalog entity identity: {'/'.join(key)}")
             identities.add(key)
@@ -394,7 +427,9 @@ def build() -> dict[str, object]:
         recipe_digest = hashlib.sha256(canonical(document)).hexdigest()
         release_path = ROOT / "recipe-releases" / f"{key[1]}.json"
         if not release_path.is_file():
-            raise SystemExit(f"recipe release is missing: {release_path.relative_to(ROOT)}")
+            raise SystemExit(
+                f"recipe release is missing: {release_path.relative_to(ROOT)}"
+            )
         recipes.append(
             {
                 "source_path": source_path,
@@ -412,7 +447,9 @@ def build() -> dict[str, object]:
         context = build.get("context") if isinstance(build, dict) else None
         context_path = context.get("path") if isinstance(context, dict) else None
         expected_digest = context.get("sha256") if isinstance(context, dict) else None
-        expected_bytes = context.get("expected_bytes") if isinstance(context, dict) else None
+        expected_bytes = (
+            context.get("expected_bytes") if isinstance(context, dict) else None
+        )
         if (
             not isinstance(context_path, str)
             or not isinstance(expected_digest, str)
@@ -421,7 +458,9 @@ def build() -> dict[str, object]:
             raise SystemExit(f"recipe source bundle identity is invalid: {source_path}")
         archive, files, actual_digest = source_bundle(ROOT / context_path)
         if actual_digest != expected_digest or len(archive) != expected_bytes:
-            raise SystemExit(f"recipe source bundle does not match its contract: {source_path}")
+            raise SystemExit(
+                f"recipe source bundle does not match its contract: {source_path}"
+            )
         previous = contexts.get(expected_digest)
         entry = {
             "context_path": context_path,
@@ -451,17 +490,124 @@ def build() -> dict[str, object]:
     }
 
 
+def qualification_index(catalog: dict[str, object]) -> dict[str, object]:
+    try:
+        definitions = json.loads(QUALIFICATION_DEFINITIONS.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise SystemExit("qualification definitions are unreadable") from error
+    if not isinstance(definitions, dict) or definitions.get("schema_version") != 2:
+        raise SystemExit("qualification definitions must use schema_version 2")
+    recipes = catalog.get("recipes")
+    if not isinstance(recipes, list):
+        raise SystemExit("catalog recipes are unavailable for qualification generation")
+    bindings: dict[str, tuple[str, int]] = {}
+    for entry in recipes:
+        if not isinstance(entry, dict):
+            raise SystemExit("catalog recipe entry is invalid")
+        document = entry.get("document")
+        identity = document.get("identity") if isinstance(document, dict) else None
+        topology = document.get("topology") if isinstance(document, dict) else None
+        publisher = identity.get("publisher") if isinstance(identity, dict) else None
+        slug = identity.get("slug") if isinstance(identity, dict) else None
+        node_count = topology.get("node_count") if isinstance(topology, dict) else None
+        digest = entry.get("content_sha256")
+        if (
+            not isinstance(publisher, str)
+            or not isinstance(slug, str)
+            or not isinstance(node_count, int)
+            or isinstance(node_count, bool)
+            or not isinstance(digest, str)
+            or SHA256.fullmatch(digest) is None
+        ):
+            raise SystemExit("catalog recipe identity is invalid for qualification")
+        bindings[f"{publisher}/{slug}"] = (digest, node_count)
+
+    binding_fields = ("recipes", "service_recipes", "special_fixtures")
+    actual: set[str] = set()
+    for field in binding_fields:
+        values = definitions.get(field, {})
+        if not isinstance(values, dict):
+            raise SystemExit(f"qualification definitions {field} must be an object")
+        overlap = actual & set(values)
+        if overlap:
+            raise SystemExit(
+                f"qualification recipe is defined more than once: {min(overlap)}"
+            )
+        actual.update(values)
+        for key, value in values.items():
+            if not isinstance(value, dict):
+                raise SystemExit(f"qualification definition is invalid: {key}")
+            if "content_sha256" in value:
+                raise SystemExit(
+                    f"qualification source must not contain a recipe digest: {key}"
+                )
+
+    expected = {key for key, (_digest, nodes) in bindings.items() if nodes <= 2}
+    missing = sorted(expected - actual)
+    unexpected = sorted(actual - expected)
+    if missing:
+        raise SystemExit(f"qualification definition is missing for recipe {missing[0]}")
+    if unexpected:
+        raise SystemExit(
+            f"qualification definition references unavailable recipe {unexpected[0]}"
+        )
+
+    fixture_rows = definitions.get("fixtures")
+    if not isinstance(fixture_rows, dict):
+        raise SystemExit("qualification definitions fixtures must be an object")
+    for fixture_id, value in fixture_rows.items():
+        if not isinstance(value, dict):
+            raise SystemExit(f"qualification fixture is invalid: {fixture_id}")
+        relative = value.get("path")
+        size = value.get("size_bytes")
+        digest = value.get("sha256")
+        if (
+            not isinstance(relative, str)
+            or not isinstance(size, int)
+            or isinstance(size, bool)
+            or not isinstance(digest, str)
+            or SHA256.fullmatch(digest) is None
+        ):
+            raise SystemExit(f"qualification fixture identity is invalid: {fixture_id}")
+        path = (QUALIFICATION_ROOT / relative).resolve()
+        try:
+            path.relative_to(QUALIFICATION_ROOT.resolve())
+            content = path.read_bytes()
+        except (OSError, ValueError) as error:
+            raise SystemExit(
+                f"qualification fixture is unavailable: {fixture_id}"
+            ) from error
+        if value.get("encoding") == "base64":
+            try:
+                content = base64.b64decode(b"".join(content.split()), validate=True)
+            except ValueError as error:
+                raise SystemExit(
+                    f"qualification fixture base64 is invalid: {fixture_id}"
+                ) from error
+        if len(content) != size or hashlib.sha256(content).hexdigest() != digest:
+            raise SystemExit(f"qualification fixture digest is stale: {fixture_id}")
+
+    generated = json.loads(json.dumps(definitions))
+    for field in binding_fields:
+        for key, value in generated.get(field, {}).items():
+            value["content_sha256"] = bindings[key][0]
+    return generated
+
+
 def rendered(document: dict[str, object]) -> str:
     # The GitHub Contents API rejects large payloads. Keep the generated index
     # deterministic but compact so full artifact inventories remain available
     # for very large, heavily sharded checkpoints.
-    return json.dumps(
-        document,
-        ensure_ascii=False,
-        allow_nan=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ) + "\n"
+    return (
+        json.dumps(
+            document,
+            ensure_ascii=False,
+            allow_nan=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\n"
+    )
 
 
 def main() -> int:
@@ -473,7 +619,9 @@ def main() -> int:
     )
     arguments = parser.parse_args()
     document = build()
+    qualification = qualification_index(document)
     expected = rendered(document)
+    expected_qualification = rendered(qualification)
     if len(expected.encode("utf-8")) > MAX_INDEX_BYTES:
         print("catalog-index.json exceeds the Git blob safety limit")
         return 1
@@ -482,10 +630,24 @@ def main() -> int:
         if not OUTPUT.is_file() or OUTPUT.read_text(encoding="utf-8") != expected:
             print("catalog-index.json is stale; run tools/build-catalog-index")
             return 1
-        print(f"catalog index is current ({recipe_count} recipes)")
+        if (
+            not QUALIFICATION_OUTPUT.is_file()
+            or QUALIFICATION_OUTPUT.read_text(encoding="utf-8")
+            != expected_qualification
+        ):
+            print(
+                "qualification/qualification-index.json is stale; "
+                "run tools/build-catalog-index"
+            )
+            return 1
+        print(f"catalog and qualification indexes are current ({recipe_count} recipes)")
         return 0
     OUTPUT.write_text(expected, encoding="utf-8")
-    print(f"wrote {OUTPUT.relative_to(ROOT)} ({recipe_count} recipes)")
+    QUALIFICATION_OUTPUT.write_text(expected_qualification, encoding="utf-8")
+    print(
+        f"wrote {OUTPUT.relative_to(ROOT)} and "
+        f"{QUALIFICATION_OUTPUT.relative_to(ROOT)} ({recipe_count} recipes)"
+    )
     return 0
 
 
