@@ -13,8 +13,35 @@
     "context": {"path": "adapters/qwen/qwen38-27b-dspark-single", "sha256": "e51c36e5bfd91bb625818ac4c009ac2bfd816c8b8b88380891674450fedd1a68", "expected_bytes": 10240, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
     "network": {"mode": "none", "hosts": []},
-    "resources": {"download_bytes": 17793228389, "temporary_bytes": 24000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
-  },
+    "resources": {"download_bytes": 17793228389, "temporary_bytes": 24000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200, "cpu_cores": 8, "processes": 4096}
+  ,
+    "options": {
+      "additional_contexts": [],
+      "annotations": [],
+      "environment": [],
+      "format": "oci",
+      "identity_label": true,
+      "ignorefile": null,
+      "jobs": 1,
+      "labels": [],
+      "layer_compression": "disabled",
+      "layer_labels": [],
+      "layers": true,
+      "no_hostname": false,
+      "no_hosts": false,
+      "omit_history": false,
+      "os_features": [],
+      "os_version": null,
+      "shm_bytes": 67108864,
+      "skip_unused_stages": true,
+      "squash": "none",
+      "timestamp": null,
+      "unset_environment": [],
+      "unset_labels": []
+    },
+    "security": {
+      "capabilities": []
+    }},
   "parameters": [],
   "dependencies": [
     {"kind": "model-version", "publisher": "radixark", "slug": "qwen3-8-27b-dspark-b3c99101", "content_sha256": "03d09c5dd8d95d901da360644010ad546521625eef37a26df26cc3624a1f8937"}

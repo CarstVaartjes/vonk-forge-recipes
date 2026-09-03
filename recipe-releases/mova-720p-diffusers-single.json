@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "mova-720p-diffusers-single"
   },
-  "version": "2.0.6",
-  "released_at": "2026-09-01",
+  "version": "2.0.7",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "2.0.7",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "be2bbdb3249c0c7c1da56d85a7250b94104101f1c67b6f53cfb931f4f30993f8",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "2.0.6",
       "released_at": "2026-09-01",

@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "qwen3-8-flash-next-nvfp4-sglang-dual"
   },
-  "version": "1.3.2",
-  "released_at": "2026-09-01",
+  "version": "1.3.3",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.3.3",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "3107dc6d4c69824845cf5379eff5ef6015cfa2f5343388a2e906b37b741d2b27",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "1.3.2",
       "released_at": "2026-09-01",

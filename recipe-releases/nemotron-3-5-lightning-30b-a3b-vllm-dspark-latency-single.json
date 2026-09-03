@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single"
   },
-  "version": "1.1.4",
-  "released_at": "2026-09-01",
+  "version": "1.1.5",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.1.5",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "19a66b40d9b758041087d690720be23fdb2491b896e8cebe2d11d129b5487209",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "1.1.4",
       "released_at": "2026-09-01",

@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "wan-dancer-14b-pytorch-single"
   },
-  "version": "1.0.6",
-  "released_at": "2026-09-01",
+  "version": "1.0.7",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.0.7",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "8705c32c75c7a1fc172fc411448967e4a8360e9db760589702b440a5f5f5f48c",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "1.0.6",
       "released_at": "2026-09-01",

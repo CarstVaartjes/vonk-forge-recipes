@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "mova-360p-diffusers-single"
   },
-  "version": "2.0.6",
-  "released_at": "2026-09-01",
+  "version": "2.0.7",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "2.0.7",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "6ab0e3efa9e91c9235af5866f0142cb0a896fbcd6056ae02baefb44c7bcc3524",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "2.0.6",
       "released_at": "2026-09-01",

@@ -16,8 +16,35 @@
     "context": {"path": "adapters/glm/glm53-sm121", "sha256": "d2fd5f500f6fad30f41e10ea8db680cf130166fc2721b03bbcb6d81a555ab8b3", "expected_bytes": 40960, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
     "network": {"mode": "public", "hosts": ["files.pythonhosted.org", "flashinfer.ai", "pypi.org"]},
-    "resources": {"download_bytes": 9710629881, "temporary_bytes": 25000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
-  },
+    "resources": {"download_bytes": 9710629881, "temporary_bytes": 25000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200, "cpu_cores": 8, "processes": 4096}
+  ,
+    "options": {
+      "additional_contexts": [],
+      "annotations": [],
+      "environment": [],
+      "format": "oci",
+      "identity_label": true,
+      "ignorefile": null,
+      "jobs": 1,
+      "labels": [],
+      "layer_compression": "disabled",
+      "layer_labels": [],
+      "layers": true,
+      "no_hostname": false,
+      "no_hosts": false,
+      "omit_history": false,
+      "os_features": [],
+      "os_version": null,
+      "shm_bytes": 67108864,
+      "skip_unused_stages": true,
+      "squash": "none",
+      "timestamp": null,
+      "unset_environment": [],
+      "unset_labels": []
+    },
+    "security": {
+      "capabilities": []
+    }},
   "parameters": [],
   "artifacts": [
     {"id": "weights", "kind": "huggingface.snapshot", "repository": "LibertAIDAI/GLM-5.3-Flash-NVFP4", "revision": "caca4e6a4ebbd66f159d3d2fc256683fd6e27177", "download_bytes": 194701812547, "installed_bytes": 194701812547, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}

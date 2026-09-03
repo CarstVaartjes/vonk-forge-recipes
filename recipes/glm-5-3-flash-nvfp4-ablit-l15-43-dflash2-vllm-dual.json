@@ -18,8 +18,35 @@
     "platform": "linux/arm64",
     "arguments": [],
     "network": {"mode": "none", "hosts": []},
-    "resources": {"download_bytes": 14204524092, "temporary_bytes": 18000000000, "memory_bytes": 4000000000, "timeout_seconds": 3600}
-  },
+    "resources": {"download_bytes": 14204524092, "temporary_bytes": 18000000000, "memory_bytes": 4000000000, "timeout_seconds": 3600, "cpu_cores": 8, "processes": 4096}
+  ,
+    "options": {
+      "additional_contexts": [],
+      "annotations": [],
+      "environment": [],
+      "format": "oci",
+      "identity_label": true,
+      "ignorefile": null,
+      "jobs": 1,
+      "labels": [],
+      "layer_compression": "disabled",
+      "layer_labels": [],
+      "layers": true,
+      "no_hostname": false,
+      "no_hosts": false,
+      "omit_history": false,
+      "os_features": [],
+      "os_version": null,
+      "shm_bytes": 67108864,
+      "skip_unused_stages": true,
+      "squash": "none",
+      "timestamp": null,
+      "unset_environment": [],
+      "unset_labels": []
+    },
+    "security": {
+      "capabilities": []
+    }},
   "parameters": [],
   "artifacts": [
     {"id": "target", "kind": "huggingface.snapshot", "repository": "drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45", "revision": "80b6d18d77e3020f2384597081d405f19893f101", "download_bytes": 197881253306, "installed_bytes": 197881253306, "mount": {"target": "/models/target", "read_only": true}, "roles": ["entrypoint", "worker"]},

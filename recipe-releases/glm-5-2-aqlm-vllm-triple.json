@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "glm-5-2-aqlm-vllm-triple"
   },
-  "version": "2.0.6",
-  "released_at": "2026-09-01",
+  "version": "2.0.7",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "2.0.7",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "d9225a19ac46fc9515ee010610a954acc62c271099f59562c7b03e74e12f880d",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "2.0.6",
       "released_at": "2026-09-01",
