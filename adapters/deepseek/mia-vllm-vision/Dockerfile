@@ -3,6 +3,7 @@ FROM ghcr.io/anemll/dspark-vllm-gx10@sha256:a83948492cf13df455170fb42885f5ef4db5
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark" \
       org.opencontainers.image.revision="c444d7032957f5a5437261d5366fd06b27a01760" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0" \
+      ai.vonkforge.runtime-interface="v1" \
       io.vonk.mia-source-archive-sha256="576f8b616c59e254abea1252a9becb2985216edc0d26b98198a21ff48c7085ee" \
       io.vonk.anemll-source-revision="47503f8e38dadd4dededca798150db2619594fce" \
       io.vonk.pre-patch-tree-sha256="e600de8bf5d9ed4c4016d4bf51c2e20f8a4795dbd5bce146953c9032105f094a" \
@@ -17,7 +18,7 @@ COPY licenses /opt/vonk/licenses
 COPY --chmod=0755 apply-build-patches.py verify-dspark-runtime.py verify-patched-tree.py /opt/vonk-build/
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 
-RUN install --directory --owner 10001 --group 10001 /state /outputs \
+RUN install --directory --mode 0777 /state /outputs \
     && python3 /opt/vonk-build/verify-dspark-runtime.py \
     && python3 /opt/vonk-build/verify-patched-tree.py \
         /usr/local/lib/python3.12/dist-packages/vllm e600de8bf5d9ed4c4016d4bf51c2e20f8a4795dbd5bce146953c9032105f094a \
