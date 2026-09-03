@@ -25,19 +25,20 @@ EXPECTED = {
     "hotfix-dsv4-flashmla-workspace-50298.sh": "213fd93fb6c4dd70f38eefbd331f0ce08b64331feb2ff03643394857acd96078",
     "hotfix-dsv4-grammar-advance.sh": "6318c0959816156ba0015fba9d3d56e4e128acdfb778aee373d9bf227c6faaa5",
     "hotfix-vllm-empty-encoder-output.py": "e417bcdcb6d62f4790885fe5c64bef3a3015a17cea00e3901eb3e2f4b7cf35a6",
+    "hotfix-vllm-issue117-shm-ring-buffer.py": "749c7992ac26da2922277259874f1926477bed7d30a48a291edec29784918689",
     "hotfix-dsv4-issue27-partial-prefill-concurrency.py": "1b99e7e220d027bca313ae024785a222e790e1cc62513e4c17fc0d33bda89956",
     "hotfix-dsv4-issue43-decode-fairness-and-diag.py": "84b331feb2a0c3e2f4785c94c5d99246c79bc4280e49f19c3c9783468cf7057b",
     "hotfix-dsv4-issue26-hybrid-swa-min.py": "8c76a65207d5f30b898cf5f60e39b8a59e4febb3217c34fe57f6a7fb225a3c3f",
     "hotfix-dsv4-issue133-triton-specialization.py": "64d23c25fdd40bf1d6418c217c76d90b6eed8991a26f66c92d002b4b45523b3f",
     "hotfix-vllm-issue136-xgrammar-termination.py": "f6c4690d3de7d7325d21c708a5c6b46aa7249665b8206785b5c4cd5c4e108ccb",
     "hotfix-dsv4-suppress-stops-in-reasoning.py": "618a66c58fc422ae65d0f08018fac69370657e4ead1285c8104a56f507f6279f",
-    "hotfix-dsv4-vision-exp.py": "ee4176ce9b0c50cf5624e85c21046c406a47d92baf60a52174cecd027f7e26fe",
+    "hotfix-dsv4-vision-exp.py": "0f9ae3c8d07f29fff6c5bb27c3ced4e7cd3d7b87724a1300e9b6386469ed9362",
 }
 OVERLAY_EXPECTED = {
     "__init__.py": "ab22bd0f2d77a29c7e9253c65104f07578c007debdadf09513e9998e0c22b81f",
-    "apply.py": "1042d54609cc2741807166429bce78c7860932836596a1adb310f5cce3dfc0ef",
-    "image_processor.py": "7424cbe1db0319371844dc6dfcd7640eb405d1c722f394eebc1ec6ff8c4687fe",
-    "processor.py": "ac9b01871286bf088f4df75547e7b6384e1990209c3c472ce0e63ce8c20ae142",
+    "apply.py": "6d5e6d50208850e361f4447834f1c062f6a8fcf8183e3ed27372c7587a74d9c7",
+    "image_processor.py": "a71004ab217a72200569e1bd49ab3c3ad56a7ab40631db71d8b68cc46712ba72",
+    "processor.py": "165ee5a1fe128e1ebf0cbdc6d08d4145d39a11289c68f3c0eff548ff81ca6fed",
     "vision.py": "e29feb76d7b7abfc5ae15fd152ded145d3c7c370030dfd35a0d96565112b3891",
 }
 
@@ -88,6 +89,7 @@ for patch in (
     run(patch, environment=shell_environment)
 
 run("hotfix-vllm-empty-encoder-output.py")
+run("hotfix-vllm-issue117-shm-ring-buffer.py")
 run("hotfix-dsv4-issue27-partial-prefill-concurrency.py")
 run("hotfix-dsv4-issue43-decode-fairness-and-diag.py")
 run("hotfix-dsv4-issue26-hybrid-swa-min.py")

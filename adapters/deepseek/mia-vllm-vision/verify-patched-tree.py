@@ -9,6 +9,7 @@ from pathlib import Path
 
 TARGETS = (
     "config/vllm.py",
+    "distributed/device_communicators/shm_broadcast.py",
     "entrypoints/openai/chat_completion/serving.py",
     "model_executor/layers/sparse_attn_indexer.py",
     "models/deepseek_v32/nvidia/attention.py",

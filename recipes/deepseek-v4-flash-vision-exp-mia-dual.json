@@ -7,7 +7,7 @@
   "metadata": {
     "alignment": "unspecified",
     "title": "DeepSeek V4 Flash Vision Experimental Mia dual Spark",
-    "description": "Installable Candidate two-Spark native-vision profile for the official DeepSeek V4 Flash Vision Experimental checkpoint. It reproduces MiaAI-Lab de230b45 on the immutable Anemll ARM64 runtime, with OpenAI image_url input, the 32-layer ViT and aligner, FP4/FP8 weights, NVFP4 DS-MLA KV, DSpark K6, 1M context, and a measured 17.04 GiB / 2,331,430-token KV pool at 0.835 utilization; Vonk physical image and dual-Spark acceptance remain pending.",
+    "description": "Installable Candidate two-Spark native-vision profile for the official DeepSeek V4 Flash Vision Experimental checkpoint. It reproduces MiaAI-Lab c444d703 on the immutable Anemll ARM64 runtime, including current image routing, cache-layout, narrow-image, role-validation, and shared-memory recovery fixes, with OpenAI image_url input, the 32-layer ViT and aligner, FP4/FP8 weights, NVFP4 DS-MLA KV, DSpark K6, 1M context, and a measured 17.04 GiB / 2,331,430-token KV pool at 0.835 utilization; Vonk physical image and dual-Spark acceptance remain pending.",
     "tags": [
       "executable",
       "candidate",
@@ -41,14 +41,14 @@
       "kind": "patch-bundle",
       "publisher": "miaai-lab",
       "slug": "mia-deepseek-v4-flash-vision-exp",
-      "content_sha256": "0dea614a695886768cc3dd1616bf281dd261d408157f56ac7f5b2573bc2c0382"
+      "content_sha256": "a698bbaf3f662e5559a69f89297273ea50b9686fb672d45a352f37ecb035c12f"
     }
   },
   "build": {
     "context": {
       "path": "adapters/deepseek/mia-vllm-vision",
-      "sha256": "4d74d4297591c30cb8f5086859d919604a9231e80a361b42d843350ae92e30e9",
-      "expected_bytes": 337920,
+      "sha256": "685b7340ef0c999b0ebc63008f4910018a7790839a8015a9c6d392a310d574bc",
+      "expected_bytes": 368640,
       "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
     },
     "dockerfile": "Dockerfile",
@@ -131,7 +131,7 @@
       },
       {
         "name": "max-cudagraph-capture-size",
-        "value": 42
+        "value": 48
       },
       {
         "name": "gpu-memory-utilization",
@@ -253,7 +253,7 @@
       },
       {
         "name": "DSPARK_MAX_INFLIGHT_PREFILLS",
-        "value": "1"
+        "value": "2"
       },
       {
         "name": "TORCH_CUDA_ARCH_LIST",
@@ -523,7 +523,7 @@
   },
   "provenance": {
     "source_kind": "global",
-    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/de230b45bc49e88ea92af898650b6bbb92f0e266",
+    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/c444d7032957f5a5437261d5366fd06b27a01760",
     "attribution": [
       "DeepSeek AI",
       "MiaAI-Lab",

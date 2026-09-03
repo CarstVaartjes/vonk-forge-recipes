@@ -4,9 +4,26 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-vision-exp-mia-dual"
   },
-  "version": "1.0.3",
-  "released_at": "2026-09-01",
+  "version": "1.1.0",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.1.0",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "6fb0aeb3c29b51fe3f33b063364186d1497e9744598975b74eecdfc1970d5df7",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Advanced the Mia native-Vision runtime contract to c444d703.",
+          "details": "Vendors the current Vision-Exp routing, image-layout cache, narrow RGB CHW, and quoted-tag role fixes plus the issue-117 shared-memory ring recovery backport. The measured TP2 defaults now use cudagraph capture size 48 and two in-flight prefills. The official model snapshot remains byte-pinned at Hugging Face 6821d6ad; Candidate status remains until this exact image passes physical two-Spark image acceptance.",
+          "references": [
+            "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/c444d7032957f5a5437261d5366fd06b27a01760",
+            "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp/commit/6821d6ad3681a4b137b066b76094fa82ebd0a380"
+          ]
+        }
+      ]
+    },
     {
       "version": "1.0.3",
       "released_at": "2026-09-01",
