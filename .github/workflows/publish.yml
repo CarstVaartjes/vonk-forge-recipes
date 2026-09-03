@@ -17,7 +17,7 @@ jobs:
     with:
       # Keep release validation on the same published Forge authority as PR
       # validation; recipe publication is independent of Forge release CI.
-      platform_ref: f7d57d678baa9a58723571e565ec76949c5e5e55
+      platform_ref: e37c3cbe85547a657768daab8b7725396248c6bf
 
   catalog-index:
     name: Verify catalog index

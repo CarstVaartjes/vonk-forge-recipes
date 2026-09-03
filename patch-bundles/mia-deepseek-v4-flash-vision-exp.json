@@ -7,7 +7,7 @@
   },
   "metadata": {
     "title": "Mia DeepSeek V4 Flash Vision Experimental build patches",
-    "description": "Fail-closed MiaAI-Lab de230b45 compatibility, correctness, scheduler, GB10 performance, and native Vision-Exp image-processing patch set. It incorporates the paired-image-tag and opaque tool-result fixes from issues 165 and 167 and is applied and verified while constructing the runtime image.",
+    "description": "Fail-closed MiaAI-Lab c444d703 compatibility, correctness, scheduler, GB10 performance, shared-memory recovery, and native Vision-Exp image-processing patch set. It includes the current image routing, cache-key, narrow-image, and role-validation fixes and is applied and verified while constructing the runtime image.",
     "tags": [
       "candidate",
       "deepseek",
@@ -27,8 +27,8 @@
   },
   "source": {
     "repository": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark",
-    "revision": "de230b45bc49e88ea92af898650b6bbb92f0e266",
-    "archive_sha256": "3bcd0b4c70677bf7e2d1f2a790315624edf0a8cba1920f33bd8daa944804fced"
+    "revision": "c444d7032957f5a5437261d5366fd06b27a01760",
+    "archive_sha256": "576f8b616c59e254abea1252a9becb2985216edc0d26b98198a21ff48c7085ee"
   },
   "base_source": {
     "repository": "https://github.com/vllm-project/vllm",
@@ -133,6 +133,14 @@
     },
     {
       "order": 13,
+      "path": "patches/hotfix-vllm-issue117-shm-ring-buffer.py",
+      "sha256": "749c7992ac26da2922277259874f1926477bed7d30a48a291edec29784918689",
+      "purpose": "Recover from missed shared-memory dispatch notifications and always release a consumed ring-buffer slot.",
+      "upstream_reference": "Mia issue 117 and vLLM merge 10c75477b07c2f1a361f54b7357af1019bba5fd8 at c444d7032957f5a5437261d5366fd06b27a01760",
+      "license": "Apache-2.0"
+    },
+    {
+      "order": 14,
       "path": "patches/hotfix-dsv4-issue27-partial-prefill-concurrency.py",
       "sha256": "1b99e7e220d027bca313ae024785a222e790e1cc62513e4c17fc0d33bda89956",
       "purpose": "Correct scheduler accounting for bounded partial-prefill concurrency.",
@@ -140,7 +148,7 @@
       "license": "MIT"
     },
     {
-      "order": 14,
+      "order": 15,
       "path": "patches/hotfix-dsv4-issue43-decode-fairness-and-diag.py",
       "sha256": "84b331feb2a0c3e2f4785c94c5d99246c79bc4280e49f19c3c9783468cf7057b",
       "purpose": "Add bounded decode service during mixed prefills plus opt-in scheduler diagnostics.",
@@ -148,7 +156,7 @@
       "license": "MIT"
     },
     {
-      "order": 15,
+      "order": 16,
       "path": "patches/hotfix-dsv4-issue26-hybrid-swa-min.py",
       "sha256": "8c76a65207d5f30b898cf5f60e39b8a59e4febb3217c34fe57f6a7fb225a3c3f",
       "purpose": "Keep hybrid SWA common-hit calculation from shrinking valid cache hits.",
@@ -156,7 +164,7 @@
       "license": "MIT"
     },
     {
-      "order": 16,
+      "order": 17,
       "path": "patches/hotfix-dsv4-suppress-stops-in-reasoning.py",
       "sha256": "618a66c58fc422ae65d0f08018fac69370657e4ead1285c8104a56f507f6279f",
       "purpose": "Keep client stop strings dormant while the model is inside reasoning output.",
@@ -164,7 +172,7 @@
       "license": "MIT"
     },
     {
-      "order": 17,
+      "order": 18,
       "path": "patches/hotfix-dsv4-issue133-triton-specialization.py",
       "sha256": "64d23c25fdd40bf1d6418c217c76d90b6eed8991a26f66c92d002b4b45523b3f",
       "purpose": "Bound global top-k Triton compilation to the two stable block-size variants instead of traffic-dependent pointer-alignment variants.",
@@ -172,7 +180,7 @@
       "license": "MIT"
     },
     {
-      "order": 18,
+      "order": 19,
       "path": "patches/hotfix-vllm-issue136-xgrammar-termination.py",
       "sha256": "f6c4690d3de7d7325d21c708a5c6b46aa7249665b8206785b5c4cd5c4e108ccb",
       "purpose": "Stop XGrammar at a terminating speculative token and reset its cached termination state correctly.",
@@ -180,62 +188,62 @@
       "license": "MIT"
     },
     {
-      "order": 19,
-      "path": "patches/hotfix-dsv4-vision-exp.py",
-      "sha256": "ee4176ce9b0c50cf5624e85c21046c406a47d92baf60a52174cecd027f7e26fe",
-      "purpose": "Fail closed while installing native Vision-Exp model, prompt-encoding, and DSpark weight-loader support into the pinned Anemll vLLM runtime, without false-positive image detection in bare tag mentions or tool-result text.",
-      "upstream_reference": "MiaAI-Lab Vision-Exp commit de230b45bc49e88ea92af898650b6bbb92f0e266 (issues 165 and 167)",
-      "license": "MIT"
-    },
-    {
       "order": 20,
-      "path": "patches/vision_exp/__init__.py",
-      "sha256": "ab22bd0f2d77a29c7e9253c65104f07578c007debdadf09513e9998e0c22b81f",
-      "purpose": "Declare the immutable Vision-Exp overlay package consumed by the patched runtime.",
-      "upstream_reference": "MiaAI-Lab Vision-Exp commit de230b45bc49e88ea92af898650b6bbb92f0e266",
+      "path": "patches/hotfix-dsv4-vision-exp.py",
+      "sha256": "0f9ae3c8d07f29fff6c5bb27c3ced4e7cd3d7b87724a1300e9b6386469ed9362",
+      "purpose": "Fail closed while installing current native Vision-Exp model, prompt-encoding, image routing, and DSpark weight-loader support into the pinned Anemll vLLM runtime.",
+      "upstream_reference": "MiaAI-Lab Vision-Exp commit c444d7032957f5a5437261d5366fd06b27a01760 (issues 165, 167, 172, 175, and 181)",
       "license": "MIT"
     },
     {
       "order": 21,
-      "path": "patches/vision_exp/apply.py",
-      "sha256": "1042d54609cc2741807166429bce78c7860932836596a1adb310f5cce3dfc0ef",
-      "purpose": "Attach the native multimodal processor, ViT and aligner to DeepSeek V4 while preserving DSpark auxiliary hidden-state behavior.",
-      "upstream_reference": "MiaAI-Lab Vision-Exp commit de230b45bc49e88ea92af898650b6bbb92f0e266",
+      "path": "patches/vision_exp/__init__.py",
+      "sha256": "ab22bd0f2d77a29c7e9253c65104f07578c007debdadf09513e9998e0c22b81f",
+      "purpose": "Declare the immutable Vision-Exp overlay package consumed by the patched runtime.",
+      "upstream_reference": "MiaAI-Lab Vision-Exp commit c444d7032957f5a5437261d5366fd06b27a01760",
       "license": "MIT"
     },
     {
       "order": 22,
-      "path": "patches/vision_exp/image_processor.py",
-      "sha256": "7424cbe1db0319371844dc6dfcd7640eb405d1c722f394eebc1ec6ff8c4687fe",
-      "purpose": "Normalize supported image inputs and reproduce the official bounded 384-token image-patch layout.",
-      "upstream_reference": "MiaAI-Lab Vision-Exp commit de230b45bc49e88ea92af898650b6bbb92f0e266",
+      "path": "patches/vision_exp/apply.py",
+      "sha256": "6d5e6d50208850e361f4447834f1c062f6a8fcf8183e3ed27372c7587a74d9c7",
+      "purpose": "Attach the native multimodal processor, ViT and aligner to DeepSeek V4, route image tokens with the vision bias, and preserve DSpark auxiliary hidden-state behavior.",
+      "upstream_reference": "MiaAI-Lab Vision-Exp commit c444d7032957f5a5437261d5366fd06b27a01760 (issue 175)",
       "license": "MIT"
     },
     {
       "order": 23,
-      "path": "patches/vision_exp/processor.py",
-      "sha256": "ac9b01871286bf088f4df75547e7b6384e1990209c3c472ce0e63ce8c20ae142",
-      "purpose": "Integrate OpenAI image_url payloads and official image placeholders into vLLM multimodal processing.",
-      "upstream_reference": "MiaAI-Lab Vision-Exp commit de230b45bc49e88ea92af898650b6bbb92f0e266",
+      "path": "patches/vision_exp/image_processor.py",
+      "sha256": "a71004ab217a72200569e1bd49ab3c3ad56a7ab40631db71d8b68cc46712ba72",
+      "purpose": "Normalize supported image inputs, including narrow RGB CHW arrays, and reproduce the official bounded 384-token image-patch layout.",
+      "upstream_reference": "MiaAI-Lab Vision-Exp commit c444d7032957f5a5437261d5366fd06b27a01760",
       "license": "MIT"
     },
     {
       "order": 24,
+      "path": "patches/vision_exp/processor.py",
+      "sha256": "165ee5a1fe128e1ebf0cbdc6d08d4145d39a11289c68f3c0eff548ff81ca6fed",
+      "purpose": "Integrate OpenAI image_url payloads and official image placeholders into vLLM multimodal processing with layout-sensitive encoder cache keys.",
+      "upstream_reference": "MiaAI-Lab Vision-Exp commit c444d7032957f5a5437261d5366fd06b27a01760 (issue 172)",
+      "license": "MIT"
+    },
+    {
+      "order": 25,
       "path": "patches/vision_exp/vision.py",
       "sha256": "e29feb76d7b7abfc5ae15fd152ded145d3c7c370030dfd35a0d96565112b3891",
       "purpose": "Implement the official 32-layer Vision-Exp ViT and aligner modules for the pinned vLLM model wrapper.",
-      "upstream_reference": "MiaAI-Lab Vision-Exp commit de230b45bc49e88ea92af898650b6bbb92f0e266",
+      "upstream_reference": "MiaAI-Lab Vision-Exp commit c444d7032957f5a5437261d5366fd06b27a01760",
       "license": "MIT"
     }
   ],
-  "pre_patch_tree_sha256": "4a1ee8ac6eaefb8dfc9e3d15792daf9154dbaee0acab6295f1e4b95c8397c432",
-  "post_patch_tree_sha256": "8be1b911a35d798a8cda5c548ed071ef6605d63c2bb40951a6e9c81e65d7872c",
+  "pre_patch_tree_sha256": "e600de8bf5d9ed4c4016d4bf51c2e20f8a4795dbd5bce146953c9032105f094a",
+  "post_patch_tree_sha256": "f6a04bf3e9856d1ea3d339d15635e16f32b833ca8ace46366e999a8999cf878f",
   "compatible_model_versions": [
     {
       "kind": "model-version",
       "publisher": "deepseek-ai",
-      "slug": "deepseek-v4-flash-vision-exp-e46e16bf",
-      "content_sha256": "8211ebe5c07f0f3183d6ad2b7905f131181d781180771dfa9b535324e54607e7"
+      "slug": "deepseek-v4-flash-vision-exp-6821d6ad",
+      "content_sha256": "5402da1591849d2db291159ad59cc21e31b2a89f721b50eb48d742c3a48ce8f7"
     }
   ],
   "capability_changes": [
@@ -247,6 +255,7 @@
     "multimodal-image-input",
     "native-vision-exp",
     "openai-image-url",
+    "shared-memory-ring-recovery",
     "scheduler-fairness",
     "triton-specialization-stability",
     "xgrammar-termination-correctness",
@@ -263,8 +272,8 @@
     ]
   },
   "source_bundle": {
-    "sha256": "4d74d4297591c30cb8f5086859d919604a9231e80a361b42d843350ae92e30e9",
-    "expected_bytes": 337920,
+    "sha256": "685b7340ef0c999b0ebc63008f4910018a7790839a8015a9c6d392a310d574bc",
+    "expected_bytes": 368640,
     "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
   },
   "sha256": "8271a66c269bcb0659b0336140a666e1ca7d2714907d844ff58d32d0c89dbfc0"
