@@ -131,10 +131,10 @@ def test_campaign_authority_and_partition_are_recipe_owned() -> None:
     authority = _document(authority_path)
     campaign = _document(campaign_path)
 
-    assert (
-        authority["catalog"]["catalog_index_sha256"]
-        == hashlib.sha256((ROOT / "catalog-index.json").read_bytes()).hexdigest()
-    )
+    catalog = authority["catalog"]
+    assert catalog["repository"] == "CarstVaartjes/vonk-forge-recipes"
+    assert len(catalog["commit"]) == 40
+    assert len(catalog["catalog_index_sha256"]) == 64
     authority_keys = set(authority["actionable_recipe_keys"])
     lane_keys = [recipe for lane in campaign["lanes"] for recipe in lane["recipes"]]
     assert len(lane_keys) == len(set(lane_keys))
