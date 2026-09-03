@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "qwen-image-layered-diffusers-single"
   },
-  "version": "1.1.6",
-  "released_at": "2026-09-01",
+  "version": "1.1.7",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.1.7",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "b49f7cace89eb804335a7f55808fd8ead5cf32063a3fe48649f9e8a67f70448e",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "1.1.6",
       "released_at": "2026-09-01",

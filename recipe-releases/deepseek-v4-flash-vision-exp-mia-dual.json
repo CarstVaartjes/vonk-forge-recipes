@@ -4,9 +4,27 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-vision-exp-mia-dual"
   },
-  "version": "1.1.2",
+  "version": "1.1.3",
   "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.1.3",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "bfea529dde11890cc2c1b476fbc8e55208d927da1ff10fc5af60de7ce2b008e3",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        },
+        {
+          "kind": "fix",
+          "summary": "Materialized writable state and output directories without build-time Linux capabilities.",
+          "details": "The Dockerfile now creates /state and /outputs through deterministic COPY layers, so its rootless, capability-free RUN step works with the read-only root directory in the pinned Anemll base image."
+        }
+      ]
+    },
     {
       "version": "1.1.2",
       "released_at": "2026-09-03",

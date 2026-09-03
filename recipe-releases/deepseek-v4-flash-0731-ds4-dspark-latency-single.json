@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-ds4-dspark-latency-single"
   },
-  "version": "1.2.1",
-  "released_at": "2026-09-01",
+  "version": "1.2.2",
+  "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.2.2",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "03e9ac06dba3e67af3f1219a5dec9a061f9971d99a240f8f64ee25c16fbb637e",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+        }
+      ]
+    },
     {
       "version": "1.2.1",
       "released_at": "2026-09-01",

@@ -18,8 +18,35 @@
     "platform": "linux/arm64",
     "arguments": [],
     "network": {"mode": "none", "hosts": []},
-    "resources": {"download_bytes": 9788994117, "temporary_bytes": 12000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200}
-  },
+    "resources": {"download_bytes": 9788994117, "temporary_bytes": 12000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200, "cpu_cores": 8, "processes": 4096}
+  ,
+    "options": {
+      "additional_contexts": [],
+      "annotations": [],
+      "environment": [],
+      "format": "oci",
+      "identity_label": true,
+      "ignorefile": null,
+      "jobs": 1,
+      "labels": [],
+      "layer_compression": "disabled",
+      "layer_labels": [],
+      "layers": true,
+      "no_hostname": false,
+      "no_hosts": false,
+      "omit_history": false,
+      "os_features": [],
+      "os_version": null,
+      "shm_bytes": 67108864,
+      "skip_unused_stages": true,
+      "squash": "none",
+      "timestamp": null,
+      "unset_environment": [],
+      "unset_labels": []
+    },
+    "security": {
+      "capabilities": []
+    }},
   "parameters": [],
   "artifacts": [
     {"id": "target", "kind": "huggingface.snapshot", "repository": "Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw", "revision": "024db9f7e9871e8efdf21538ba55af7442be3cd5", "download_bytes": 175715854761, "installed_bytes": 175715854761, "mount": {"target": "/models/target", "read_only": true}, "roles": ["entrypoint", "worker"]},

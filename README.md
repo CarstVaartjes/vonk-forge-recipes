@@ -122,6 +122,75 @@ scripts/import-recipe-library \
 8. Run validation and the required container/Spark evidence before advancing
    qualification.
 
+### Build contract and Podman boundary
+
+Recipes declare every Podman build input that authors may vary. The Controller
+signs these values into the build request and the Spark agent translates them to
+the corresponding Podman options:
+
+| Recipe field | Build behavior |
+| --- | --- |
+| `build.context` | Exact source bundle used as the build context |
+| `build.dockerfile` | Dockerfile selected with `--file` |
+| `build.target` | Optional multi-stage target selected with `--target` |
+| `build.platform` | Target platform selected with `--platform` |
+| `build.arguments` | Typed, bounded `--build-arg` values |
+| `build.network` | No network, or hostname-allowlisted public egress |
+| `build.options.additional_contexts` | Named `--build-context` directories inside the signed source bundle |
+| `build.options.annotations` | Bounded image `--annotation` metadata |
+| `build.options.environment` | Typed final-image `--env` values |
+| `build.options.format` | `--format=oci` or `--format=docker` |
+| `build.options.identity_label` | Explicit `--identity-label` behavior |
+| `build.options.ignorefile` | Optional `--ignorefile` inside the signed source bundle |
+| `build.options.jobs` | Bounded multi-stage `--jobs` concurrency |
+| `build.options.labels` / `layer_labels` | Bounded `--label` and `--layer-label` metadata |
+| `build.options.layer_compression` | Typed `--disable-compression` behavior |
+| `build.options.layers` | Explicit `--layers` behavior |
+| `build.options.no_hostname` / `no_hosts` | Explicit generated hostname/hosts-file behavior |
+| `build.options.omit_history` | Explicit `--omit-history` behavior |
+| `build.options.os_features` / `os_version` | Bounded target image metadata |
+| `build.options.shm_bytes` | Bounded build-container `--shm-size` |
+| `build.options.skip_unused_stages` | Explicit `--skip-unused-stages` behavior |
+| `build.options.squash` | No squash, `--squash`, or `--squash-all` |
+| `build.options.timestamp` | Optional bounded deterministic `--timestamp` |
+| `build.options.unset_environment` / `unset_labels` | Bounded `--unsetenv` and `--unsetlabel` names |
+| `build.resources.cpu_cores` | Maximum logical CPU cores |
+| `build.resources.memory_bytes` | Maximum build memory |
+| `build.resources.processes` | Maximum concurrent processes and threads |
+| `build.resources.temporary_bytes` | Temporary build-storage envelope |
+| `build.resources.download_bytes` | Declared base/download storage envelope |
+| `build.resources.timeout_seconds` | Maximum build duration |
+| `build.security.capabilities` | Bounded rootless `--cap-add` entries after `--cap-drop=all` |
+
+This is an inclusive list: `build`, `build.options`, and `build.security` reject
+unknown properties. There is deliberately no raw `podman_args` escape hatch.
+The agent starts with `--cap-drop=all` and adds only `CHOWN`, `DAC_OVERRIDE`,
+`FOWNER`, `FSETID`, `KILL`, `MKNOD`, `NET_BIND_SERVICE`, `SETFCAP`, `SETGID`,
+`SETPCAP`, `SETUID`, or `SYS_CHROOT` when the recipe explicitly requests them.
+Those capabilities apply only inside Podman's rootless user namespace.
+
+The remaining Podman 4.9 build flags are deliberately platform-owned or absent:
+
+- Fixed platform policy: `--arch`, `--os`, `--variant`, `--all-platforms`,
+  `--authfile`, `--cert-dir`, `--cgroup-parent`, `--cgroupns`, CPU/cpuset/memory
+  flags, `--force-rm`, `--http-proxy`, `--iidfile`, `--ipc`, `--isolation`,
+  `--logfile`, `--logsplit`, `--memory-swap`, `--no-cache`, `--output`, `--pid`,
+  `--pull=never`, `--quiet`, retry settings, `--rm`, `--security-opt`, `--stdin`,
+  generated `--tag`, `--tls-verify`, process `--ulimit`, `--userns` and UID/GID
+  maps, and `--uts`.
+- Rejected because they expose host authority, credentials, uncontrolled egress,
+  mutable remote state, or bypass immutable base inputs: `--add-host`,
+  `--build-arg-file`, `--cache-from`, `--cache-to`, `--cache-ttl`, `--cpp-flag`,
+  `--creds`, `--cw`, `--decryption-key`, `--device`, DNS overrides, `--from`,
+  `--group-add`, `--hooks-dir`, `--manifest`, `--runtime-flag`, `--secret`,
+  `--sign-by`, `--ssh`, and `--volume`.
+- Podman compatibility no-ops such as `--compress` and
+  `--disable-content-trust` are not represented.
+
+A new Podman release or new recipe-selectable behavior must update this closed
+schema, signed Controller-to-agent contract, agent translation, and tests before
+a recipe can use it. An unknown option fails recipe validation.
+
 Generate and verify the catalog and qualification closures after changing
 recipes, releases, qualification definitions, entities, or adapters. The same
 tool computes each recipe digest and writes it into the generated

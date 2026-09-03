@@ -12,8 +12,35 @@
   "build": {
     "context": {"path": "adapters/deepseek/mia-sparkinfer-single", "sha256": "2e9634ed3fed2f72431269a330197905cd67ff9a72ba8d7d9b7814e0c7495c3f", "expected_bytes": 706560, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
     "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [], "network": {"mode": "none", "hosts": []},
-    "resources": {"download_bytes": 12000000000, "temporary_bytes": 16000000000, "memory_bytes": 4000000000, "timeout_seconds": 3600}
-  },
+    "resources": {"download_bytes": 12000000000, "temporary_bytes": 16000000000, "memory_bytes": 4000000000, "timeout_seconds": 3600, "cpu_cores": 8, "processes": 4096}
+  ,
+    "options": {
+      "additional_contexts": [],
+      "annotations": [],
+      "environment": [],
+      "format": "oci",
+      "identity_label": true,
+      "ignorefile": null,
+      "jobs": 1,
+      "labels": [],
+      "layer_compression": "disabled",
+      "layer_labels": [],
+      "layers": true,
+      "no_hostname": false,
+      "no_hosts": false,
+      "omit_history": false,
+      "os_features": [],
+      "os_version": null,
+      "shm_bytes": 67108864,
+      "skip_unused_stages": true,
+      "squash": "none",
+      "timestamp": null,
+      "unset_environment": [],
+      "unset_labels": []
+    },
+    "security": {
+      "capabilities": []
+    }},
   "parameters": [],
   "artifacts": [{"id": "weights", "kind": "huggingface.snapshot", "repository": "0xSero/deepseek-v4-flash-0731-spark", "revision": "ce5ff0f1efb2e184aafc759d281bfae47d3a359c", "download_bytes": 106862974754, "installed_bytes": 106862974754, "mount": {"target": "/models/weights", "read_only": true}, "roles": ["entrypoint"]}],
   "runtime": {
