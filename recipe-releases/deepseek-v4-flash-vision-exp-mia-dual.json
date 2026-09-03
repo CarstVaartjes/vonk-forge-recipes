@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-vision-exp-mia-dual"
   },
-  "version": "1.1.0",
+  "version": "1.1.1",
   "released_at": "2026-09-03",
   "history": [
+    {
+      "version": "1.1.1",
+      "released_at": "2026-09-03",
+      "recipe_content_sha256": "a90881aebea832c0d277a91647c0b4a49619b6fdd0384a0a9c88b54ac8e80ff5",
+      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Raised the bounded build staging envelope for the pinned Anemll base image.",
+          "details": "A physical Spark build proved that the previous 16 GB temporary allowance could not hold the verified 9.79 GB compressed base-image archive and its expanded rootless Podman graph at the same time. The recipe now reserves 64 GB of temporary build storage; model, runtime, image source, topology, and serving behavior are unchanged."
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "released_at": "2026-09-03",
