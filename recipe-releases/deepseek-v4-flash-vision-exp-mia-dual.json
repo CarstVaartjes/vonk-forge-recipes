@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-vision-exp-mia-dual"
   },
-  "version": "1.1.4",
-  "released_at": "2026-09-03",
+  "version": "1.1.5",
+  "released_at": "2026-09-05",
   "history": [
+    {
+      "version": "1.1.5",
+      "released_at": "2026-09-05",
+      "recipe_content_sha256": "a7d0b5e0a76d03f659149d713aa921d28e3a2c0f7cccd442df0df1b0cfba5996",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "fix",
+          "summary": "Made the non-root runtime UID resolvable inside the image.",
+          "details": "Physical dual-Spark launch evidence showed vLLM exited while importing PyTorch because numeric UID 10001 had no passwd entry and getpass.getuser() raised KeyError. The image now creates a non-login 10001:10001 account and verifies UID and getpass resolution while still running with no capabilities, no new privileges, and the existing non-root runtime identity. Model, topology, and serving parameters are unchanged."
+        }
+      ]
+    },
     {
       "version": "1.1.4",
       "released_at": "2026-09-03",
