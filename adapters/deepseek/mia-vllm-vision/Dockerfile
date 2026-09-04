@@ -29,7 +29,9 @@ RUN rm -f /state/.keep /outputs/.keep \
     && python3 /opt/vonk-build/verify-patched-tree.py \
         /usr/local/lib/python3.12/dist-packages/vllm f6a04bf3e9856d1ea3d339d15635e16f32b833ca8ace46366e999a8999cf878f \
     && rm -rf /opt/vonk-build \
-    && test -x /opt/vonk/bin/vllm
+    && test -x /opt/vonk/bin/vllm \
+    && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
+    && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi
 
 ENV HF_HUB_OFFLINE=1 \
     TRANSFORMERS_OFFLINE=1 \
@@ -37,4 +39,5 @@ ENV HF_HUB_OFFLINE=1 \
     HOME=/state
 WORKDIR /state
 USER 10001:10001
+RUN python3 -c 'import getpass, os, pwd; assert os.getuid() == 10001; assert pwd.getpwuid(10001).pw_uid == 10001; assert getpass.getuser()'
 ENTRYPOINT []
