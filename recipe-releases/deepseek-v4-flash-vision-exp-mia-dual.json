@@ -4,9 +4,22 @@
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-vision-exp-mia-dual"
   },
-  "version": "1.1.4",
-  "released_at": "2026-09-03",
+  "version": "1.1.5",
+  "released_at": "2026-09-04",
   "history": [
+    {
+      "version": "1.1.5",
+      "released_at": "2026-09-04",
+      "recipe_content_sha256": "7e6419eb7f06dd683d48e3c80d7251cd20fb6d9c47eac91711252facb28e44a8",
+      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "kind": "compatibility",
+          "summary": "Added generous headroom for the physical rootless Spark image build.",
+          "details": "Physical Spark evidence measured an 18.81 GB Podman graph and a successful 18.90 GB Docker archive. The immutable base archive is 9.79 GB. The contract now reserves 16 GB for the verified base transfer and 256 GB for temporary build storage so harmless overlay expansion and filesystem variance cannot turn estimates into brittle quotas. The Controller still admits against current free disk and the agent retains a finite operation bound. Model, runtime, patches, topology, serving behavior, and zero-capability security policy are unchanged."
+        }
+      ]
+    },
     {
       "version": "1.1.4",
       "released_at": "2026-09-03",
