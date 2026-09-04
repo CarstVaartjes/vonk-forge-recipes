@@ -99,6 +99,10 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
         self.assertIn("COPY --chmod=0777 state /state", dockerfile)
         self.assertIn("COPY --chmod=0777 outputs /outputs", dockerfile)
         self.assertNotIn("install --directory --owner", dockerfile)
+        self.assertIn("getent passwd 10001", dockerfile)
+        self.assertIn("useradd --uid 10001 --gid 10001", dockerfile)
+        self.assertIn("pwd.getpwuid(10001)", dockerfile)
+        self.assertIn("getpass.getuser()", dockerfile)
         hotfix = (ADAPTER / "patches/hotfix-dsv4-vision-exp.py").read_text(
             encoding="utf-8"
         )
@@ -109,7 +113,10 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
         source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["source_bundle"]
         archive, _files, digest = source_bundle(ADAPTER)
         self.assertEqual(len(archive), 368_640)
-        self.assertEqual(digest, "0a9a32e9b83caf9d6d9e4995422cf3ded30e2f570bb391017ae81c25196abc13")
+        self.assertEqual(
+            digest,
+            "31d49cca43512459f6a201759c5f95f7138c8de8bf0713d7c86bf90ce4a04345",
+        )
         self.assertEqual(self.recipe["build"]["context"]["sha256"], digest)
         self.assertEqual(self.patch["source_bundle"]["sha256"], digest)
         self.assertEqual(self.recipe["model"]["content_sha256"], canonical_digest(MODEL))
