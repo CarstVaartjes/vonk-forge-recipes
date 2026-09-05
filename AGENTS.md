@@ -28,6 +28,10 @@ one recipe and for a catalog-wide refresh.
 - Write concise, source-backed version notes. Missing upstream notes are not a
   release blocker; invented improvements and fabricated test evidence are not
   acceptable substitutes.
+- Preserve license terms and territorial restrictions as information for the
+  user. Do not require location configuration or deny download, installation,
+  or execution based on territory. Provider-required access credentials remain
+  technical requirements; license decisions belong to the user.
 - Run the current producer checks and inspect `git diff --check` before
   committing. Source pins, canonical documents, package contents, digests, and
   generated indexes must agree. Do not omit failing recipes to get a green run.
