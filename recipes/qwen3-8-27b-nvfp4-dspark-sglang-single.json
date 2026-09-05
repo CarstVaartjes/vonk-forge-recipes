@@ -399,10 +399,26 @@
       "SGLang contributors"
     ],
     "source_kind": "global",
-    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark/tree/751e29eb6a3057ccfd8f992f87dfc260787e05a1"
+    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark/tree/9d21dcd331232792e7d39f4f84db7dd46635905d"
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "Rebased the specialized source bundle from 751e29eb6a3057ccfd8f992f87dfc260787e05a1 to 9d21dcd331232792e7d39f4f84db7dd46635905d. The DSpark launcher and .env.sample are byte-for-byte unchanged (start-dspark.sh Git blob 6d7cf28884235cc1d05bd16772ad1715eec25c06; .env.sample 9266fde52ab1949007ce3b7dc5b2f43059a4d903); the shared start.sh adds --sleep-on-idle, which the bundled DSpark adapter now carries. The upstream DFlash2 target/image changes remain outside this recipe path.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark/tree/9d21dcd331232792e7d39f4f84db7dd46635905d"
+            ],
+            "summary": "Refresh the Qwen3.8 DSpark source pin and carry the shared idle-sleep flag."
+          }
+        ],
+        "prior_recipe_content_sha256": "fa221c186c4229c91da8f05d9d5c2121fda1b345988e9a13e0c275a94dfc99ac",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.4"
+      },
       {
         "changes": [
           {
@@ -496,8 +512,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "1.1.3"
+    "released_at": "2026-09-05",
+    "version": "1.1.4"
   },
   "runtime": {
     "arguments": [
