@@ -22,8 +22,10 @@ from vonk_forge_contracts import (
     recipe_json_schema,
 )
 from vonk_forge_contracts.recipe import (
+    MAX_RUNTIME_ARGV_TOKEN_BYTES,
     RecipeJobServingRequest,
     RecipeLifecycle,
+    RecipeRuntime,
     RecipeRuntimeArgument,
 )
 from vonk_forge_contracts.resolver import (
@@ -172,8 +174,41 @@ def test_runtime_arguments_reject_nul_nonfinite_and_unbounded_values() -> None:
         RecipeRuntimeArgument.model_validate({"name": "--bad", "value": float("inf")})
     with pytest.raises(ValidationError, match="maximum nesting"):
         RecipeRuntimeArgument.model_validate({"name": "--bad", "value": [[[[[[[[["deep"]]]]]]]]]})
-    with pytest.raises(ValidationError, match="maximum size"):
+    with pytest.raises(ValidationError, match="maximum UTF-8 size"):
         RecipeRuntimeArgument.model_validate({"name": "--bad", "value": ["x" * 4096] * 20})
+
+
+def test_runtime_argument_utf8_and_rendered_argv_boundaries() -> None:
+    exact = "é" * (MAX_RUNTIME_ARGV_TOKEN_BYTES // len("é".encode()))
+    assert len(exact.encode("utf-8")) == MAX_RUNTIME_ARGV_TOKEN_BYTES
+    assert RecipeRuntimeArgument.model_validate({"name": "utf8", "value": exact}).value == exact
+    with pytest.raises(ValidationError, match="maximum UTF-8 size"):
+        RecipeRuntimeArgument.model_validate({"name": "utf8", "value": exact + "é"})
+
+    arguments = [
+        {"name": f"option-{index}", "value": "x" * MAX_RUNTIME_ARGV_TOKEN_BYTES}
+        for index in range(15)
+    ]
+    runtime = RecipeRuntime.model_validate(
+        {
+            "engine": "engine",
+            "entrypoint": ["launcher"],
+            "arguments": arguments,
+            "environment": [],
+            "lifecycle": {"pre_start": [], "post_stop": [], "stop_timeout_seconds": 1},
+        }
+    )
+    assert len(runtime.arguments) == 15
+    with pytest.raises(ValidationError, match="maximum rendered size"):
+        RecipeRuntime.model_validate(
+            {
+                "engine": "engine",
+                "entrypoint": ["launcher"],
+                "arguments": [*arguments, {"name": "last", "value": "x" * MAX_RUNTIME_ARGV_TOKEN_BYTES}],
+                "environment": [],
+                "lifecycle": {"pre_start": [], "post_stop": [], "stop_timeout_seconds": 1},
+            }
+        )
 
 
 def test_runtime_argv_allows_shell_punctuation_and_rejects_nul() -> None:
