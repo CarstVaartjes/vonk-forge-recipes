@@ -1,0 +1,959 @@
+{
+  "schema_version": 1,
+  "scope": "media_image",
+  "checked_at": "2026-09-05T20:43:51Z",
+  "coverage_count": 23,
+  "review_inputs": {
+    "coverage_groups": "/private/tmp/vonk-all-recipe-upstream-review-20260905/coverage-groups.json",
+    "inventory": "/private/tmp/vonk-all-recipe-upstream-review-20260905/inventory.json",
+    "review": "/private/tmp/vonk-all-recipe-upstream-review-20260905/REVIEW.md",
+    "baseline_publication_commit": "77b832aa4ee4d59412eddb4d9b450ed0a946c50f",
+    "source_refresh_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0"
+  },
+  "upstream_heads": {
+    "comfyui": "250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+    "comfyui_archive_sha256": "40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee",
+    "diffusers": "c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+    "hunyuan_retained": "a3608b512ed7248499a44c61d954965ed9bdae4d",
+    "minimax_retained": "efabd60d61c2b7aabf9f182bee6b5b6058980304"
+  },
+  "rows": [
+    {
+      "recipe_id": "vonk-forge/flux-2-klein-4b-comfyui-single",
+      "source_path": "recipes/flux-2-klein-4b-comfyui-single.json",
+      "recipe_version": "1.0.9",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "ComfyUI",
+        "context": "adapters/media/comfyui-core",
+        "dockerfile": "adapters/media/comfyui-core/Dockerfile",
+        "pinned_revision": "250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "archive_sha256": "40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+          "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "Comfy-Org/vae-text-encorder-for-flux-klein-4b",
+          "revision": "5f526678002e43af5551dadb73ce2e8c91b43afe",
+          "observed_current_head": "5f526678002e43af5551dadb73ce2e8c91b43afe",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b/tree/5f526678002e43af5551dadb73ce2e8c91b43afe",
+          "current_head_url": "https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b/tree/5f526678002e43af5551dadb73ce2e8c91b43afe"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable runtime to the checked upstream ComfyUI commit while preserving the recipe workflow, adapter interface, model closure, and Spark resource declarations.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b/tree/5f526678002e43af5551dadb73ce2e8c91b43afe",
+        "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/flux-2-klein-4b-nvfp4-comfyui-single",
+      "source_path": "recipes/flux-2-klein-4b-nvfp4-comfyui-single.json",
+      "recipe_version": "1.0.6",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "ComfyUI",
+        "context": "adapters/media/comfyui-core",
+        "dockerfile": "adapters/media/comfyui-core/Dockerfile",
+        "pinned_revision": "250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "archive_sha256": "40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+          "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "black-forest-labs/FLUX.2-klein-4b-nvfp4",
+          "revision": "1db2b2f776c24b76f1122e5f69ab1949fc620068",
+          "observed_current_head": "1db2b2f776c24b76f1122e5f69ab1949fc620068",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4/tree/1db2b2f776c24b76f1122e5f69ab1949fc620068",
+          "current_head_url": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4/tree/1db2b2f776c24b76f1122e5f69ab1949fc620068"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable runtime to the checked upstream ComfyUI commit while preserving the recipe workflow, adapter interface, model closure, and Spark resource declarations.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4/tree/1db2b2f776c24b76f1122e5f69ab1949fc620068",
+        "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/hunyuan-video-15-distilled-diffusers-single",
+      "source_path": "recipes/hunyuan-video-15-distilled-diffusers-single.json",
+      "recipe_version": "1.4.4",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "retained_intentional_variant",
+      "runtime": {
+        "family": "Diffusers/HunyuanVideo native adapter",
+        "context": "adapters/video/hunyuan-video-15-native",
+        "dockerfile": "adapters/video/hunyuan-video-15-native/Dockerfile",
+        "pinned_revision": "a3608b512ed7248499a44c61d954965ed9bdae4d",
+        "locked_runtime": "diffusers==0.39.0",
+        "status": "retained_intentional_variant",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/tree/a3608b512ed7248499a44c61d954965ed9bdae4d"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_t2v_distilled",
+          "revision": "1abb14f06518f37448dcf3a6917dd086dd7045c7",
+          "observed_current_head": "1abb14f06518f37448dcf3a6917dd086dd7045c7",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_t2v_distilled/tree/1abb14f06518f37448dcf3a6917dd086dd7045c7",
+          "current_head_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_t2v_distilled/tree/1abb14f06518f37448dcf3a6917dd086dd7045c7"
+        }
+      ],
+      "reason": "The adapter installs a hash-locked diffusers==0.39.0 wheel and labels the source at a3608b512; moving only the source revision would misdescribe the executable image. The exact runtime and lock pair must move together after focused adapter validation.",
+      "named_blocker": "diffusers==0.39.0 lockfile/source pair requires a coordinated dependency refresh before replacing a3608b512.",
+      "source_evidence": [
+        "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
+        "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "https://github.com/huggingface/diffusers/tree/a3608b512ed7248499a44c61d954965ed9bdae4d"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/hunyuan-video-15-i2v-step-distilled-diffusers-single",
+      "source_path": "recipes/hunyuan-video-15-i2v-step-distilled-diffusers-single.json",
+      "recipe_version": "1.4.4",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "retained_intentional_variant",
+      "runtime": {
+        "family": "Diffusers/HunyuanVideo native adapter",
+        "context": "adapters/video/hunyuan-video-15-native",
+        "dockerfile": "adapters/video/hunyuan-video-15-native/Dockerfile",
+        "pinned_revision": "a3608b512ed7248499a44c61d954965ed9bdae4d",
+        "locked_runtime": "diffusers==0.39.0",
+        "status": "retained_intentional_variant",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/tree/a3608b512ed7248499a44c61d954965ed9bdae4d"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled",
+          "revision": "854c04a4c8a53d990b418c7478f0802c0fc8c726",
+          "observed_current_head": "854c04a4c8a53d990b418c7478f0802c0fc8c726",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled/tree/854c04a4c8a53d990b418c7478f0802c0fc8c726",
+          "current_head_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled/tree/854c04a4c8a53d990b418c7478f0802c0fc8c726"
+        }
+      ],
+      "reason": "The adapter installs a hash-locked diffusers==0.39.0 wheel and labels the source at a3608b512; moving only the source revision would misdescribe the executable image. The exact runtime and lock pair must move together after focused adapter validation.",
+      "named_blocker": "diffusers==0.39.0 lockfile/source pair requires a coordinated dependency refresh before replacing a3608b512.",
+      "source_evidence": [
+        "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
+        "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "https://github.com/huggingface/diffusers/tree/a3608b512ed7248499a44c61d954965ed9bdae4d"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/hunyuan-video-15-t2v-diffusers-single",
+      "source_path": "recipes/hunyuan-video-15-t2v-diffusers-single.json",
+      "recipe_version": "1.4.4",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "retained_intentional_variant",
+      "runtime": {
+        "family": "Diffusers/HunyuanVideo native adapter",
+        "context": "adapters/video/hunyuan-video-15-native",
+        "dockerfile": "adapters/video/hunyuan-video-15-native/Dockerfile",
+        "pinned_revision": "a3608b512ed7248499a44c61d954965ed9bdae4d",
+        "locked_runtime": "diffusers==0.39.0",
+        "status": "retained_intentional_variant",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/tree/a3608b512ed7248499a44c61d954965ed9bdae4d"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v",
+          "revision": "f4dbc4a1efa4ac8ea56680cdf79d9f455105e814",
+          "observed_current_head": "f4dbc4a1efa4ac8ea56680cdf79d9f455105e814",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v/tree/f4dbc4a1efa4ac8ea56680cdf79d9f455105e814",
+          "current_head_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v/tree/f4dbc4a1efa4ac8ea56680cdf79d9f455105e814"
+        }
+      ],
+      "reason": "The adapter installs a hash-locked diffusers==0.39.0 wheel and labels the source at a3608b512; moving only the source revision would misdescribe the executable image. The exact runtime and lock pair must move together after focused adapter validation.",
+      "named_blocker": "diffusers==0.39.0 lockfile/source pair requires a coordinated dependency refresh before replacing a3608b512.",
+      "source_evidence": [
+        "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
+        "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "https://github.com/huggingface/diffusers/tree/a3608b512ed7248499a44c61d954965ed9bdae4d"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/ltx-2-5-22b-distilled-bf16-diffusers-single",
+      "source_path": "recipes/ltx-2-5-22b-distilled-bf16-diffusers-single.json",
+      "recipe_version": "1.1.5",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "Diffusers",
+        "context": "adapters/video/ltx25-diffusers",
+        "dockerfile": "adapters/video/ltx25-diffusers/Dockerfile",
+        "pinned_revision": "c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "Lightricks/LTX-2.5-Diffusers",
+          "revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
+          "observed_current_head": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc",
+          "current_head_url": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable Diffusers runtime to the checked upstream commit while preserving the adapter interface, model closure, and recipe-specific settings.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc",
+        "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/ltx-2-5-22b-distilled-fp8-cast-diffusers-single",
+      "source_path": "recipes/ltx-2-5-22b-distilled-fp8-cast-diffusers-single.json",
+      "recipe_version": "1.0.5",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "Diffusers",
+        "context": "adapters/video/ltx25-diffusers-fp8-canary",
+        "dockerfile": "adapters/video/ltx25-diffusers-fp8-canary/Dockerfile",
+        "pinned_revision": "c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "Lightricks/LTX-2.5-Diffusers",
+          "revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
+          "observed_current_head": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc",
+          "current_head_url": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable Diffusers runtime to the checked upstream commit while preserving the adapter interface, model closure, and recipe-specific settings.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc",
+        "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/minimax-h3-diffusers-single",
+      "source_path": "recipes/minimax-h3-diffusers-single.json",
+      "recipe_version": "3.0.5",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "retained_intentional_variant",
+      "runtime": {
+        "family": "Diffusers/MiniMax H3 modular fork",
+        "context": "adapters/video/minimax-h3-modular-diffusers",
+        "dockerfile": "adapters/video/minimax-h3-modular-diffusers/Dockerfile",
+        "pinned_revision": "efabd60d61c2b7aabf9f182bee6b5b6058980304",
+        "status": "retained_intentional_variant",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/efabd60d61c2b7aabf9f182bee6b5b6058980304...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/tree/efabd60d61c2b7aabf9f182bee6b5b6058980304"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "MiniMaxAI/MiniMax-H3",
+          "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+          "observed_current_head": "42ed227ee7df40d41602854ae760620d6eb651fe",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe",
+          "current_head_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe"
+        }
+      ],
+      "reason": "The MiniMax modular adapter is a specialized fork; the MiniMax H3 model, autoencoder, modular pipeline, and scheduler source blobs at the checked c5469b7 revision are identical to the pinned efabd60 revision, so changing the image pin would add no executable change.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe",
+        "https://github.com/huggingface/diffusers/compare/efabd60d61c2b7aabf9f182bee6b5b6058980304...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "https://github.com/huggingface/diffusers/tree/efabd60d61c2b7aabf9f182bee6b5b6058980304"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/minimax-h3-fl2va-diffusers-single",
+      "source_path": "recipes/minimax-h3-fl2va-diffusers-single.json",
+      "recipe_version": "1.0.6",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "retained_intentional_variant",
+      "runtime": {
+        "family": "Diffusers/MiniMax H3 modular fork",
+        "context": "adapters/video/minimax-h3-fl2va-modular-diffusers",
+        "dockerfile": "adapters/video/minimax-h3-fl2va-modular-diffusers/Dockerfile",
+        "pinned_revision": "efabd60d61c2b7aabf9f182bee6b5b6058980304",
+        "status": "retained_intentional_variant",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/efabd60d61c2b7aabf9f182bee6b5b6058980304...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/tree/efabd60d61c2b7aabf9f182bee6b5b6058980304"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "MiniMaxAI/MiniMax-H3",
+          "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+          "observed_current_head": "42ed227ee7df40d41602854ae760620d6eb651fe",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe",
+          "current_head_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe"
+        }
+      ],
+      "reason": "The MiniMax modular adapter is a specialized fork; the MiniMax H3 model, autoencoder, modular pipeline, and scheduler source blobs at the checked c5469b7 revision are identical to the pinned efabd60 revision, so changing the image pin would add no executable change.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe",
+        "https://github.com/huggingface/diffusers/compare/efabd60d61c2b7aabf9f182bee6b5b6058980304...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "https://github.com/huggingface/diffusers/tree/efabd60d61c2b7aabf9f182bee6b5b6058980304"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/nvidia-qwen-image-flash-diffusers-single",
+      "source_path": "recipes/nvidia-qwen-image-flash-diffusers-single.json",
+      "recipe_version": "1.2.6",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "Diffusers",
+        "context": "adapters/image/nvidia-qwen-image-flash-diffusers",
+        "dockerfile": "adapters/image/nvidia-qwen-image-flash-diffusers/Dockerfile",
+        "pinned_revision": "c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "nvidia/Qwen-Image-Flash",
+          "revision": "eafac15f6140e6dd9c6031217d658ac10bfb604b",
+          "observed_current_head": "eafac15f6140e6dd9c6031217d658ac10bfb604b",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/nvidia/Qwen-Image-Flash/tree/eafac15f6140e6dd9c6031217d658ac10bfb604b",
+          "current_head_url": "https://huggingface.co/nvidia/Qwen-Image-Flash/tree/eafac15f6140e6dd9c6031217d658ac10bfb604b"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable Diffusers runtime to the checked upstream commit while preserving the adapter interface, model closure, and recipe-specific settings.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/nvidia/Qwen-Image-Flash/tree/eafac15f6140e6dd9c6031217d658ac10bfb604b",
+        "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/qwen-image-2512-comfyui-single",
+      "source_path": "recipes/qwen-image-2512-comfyui-single.json",
+      "recipe_version": "1.0.10",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "ComfyUI",
+        "context": "adapters/media/comfyui-qwen-image-2512-bf16",
+        "dockerfile": "adapters/media/comfyui-qwen-image-2512-bf16/Dockerfile",
+        "pinned_revision": "250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "archive_sha256": "40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+          "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "Comfy-Org/Qwen-Image_ComfyUI",
+          "revision": "7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f",
+          "observed_current_head": "7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/tree/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f",
+          "current_head_url": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/tree/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable runtime to the checked upstream ComfyUI commit while preserving the recipe workflow, adapter interface, model closure, and Spark resource declarations.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/tree/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f",
+        "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/qwen-image-2512-diffusers-single",
+      "source_path": "recipes/qwen-image-2512-diffusers-single.json",
+      "recipe_version": "1.2.6",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "Diffusers",
+        "context": "adapters/image/qwen-image-2512-diffusers",
+        "dockerfile": "adapters/image/qwen-image-2512-diffusers/Dockerfile",
+        "pinned_revision": "c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "Qwen/Qwen-Image-2512",
+          "revision": "25468b98e3276ca6700de15c6628e51b7de54a26",
+          "observed_current_head": "25468b98e3276ca6700de15c6628e51b7de54a26",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/Qwen/Qwen-Image-2512/tree/25468b98e3276ca6700de15c6628e51b7de54a26",
+          "current_head_url": "https://huggingface.co/Qwen/Qwen-Image-2512/tree/25468b98e3276ca6700de15c6628e51b7de54a26"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable Diffusers runtime to the checked upstream commit while preserving the adapter interface, model closure, and recipe-specific settings.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/Qwen/Qwen-Image-2512/tree/25468b98e3276ca6700de15c6628e51b7de54a26",
+        "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/qwen-image-2512-fp8-lightning-comfyui-single",
+      "source_path": "recipes/qwen-image-2512-fp8-lightning-comfyui-single.json",
+      "recipe_version": "1.0.6",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "ComfyUI",
+        "context": "adapters/media/comfyui-qwen-image-2512-fp8-lightning",
+        "dockerfile": "adapters/media/comfyui-qwen-image-2512-fp8-lightning/Dockerfile",
+        "pinned_revision": "250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "archive_sha256": "40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+          "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "lightx2v/Qwen-Image-2512-Lightning",
+          "revision": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
+          "observed_current_head": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
+          "current_head_url": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52"
+        },
+        {
+          "selection_id": "dependency-qwen-image-2512-comfyui-fp8-7beb7b64",
+          "repository": "Comfy-Org/Qwen-Image_ComfyUI",
+          "revision": "7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f",
+          "observed_current_head": "7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/tree/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f",
+          "current_head_url": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/tree/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable runtime to the checked upstream ComfyUI commit while preserving the recipe workflow, adapter interface, model closure, and Spark resource declarations.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
+        "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/qwen-image-2512-lightning-diffusers-single",
+      "source_path": "recipes/qwen-image-2512-lightning-diffusers-single.json",
+      "recipe_version": "1.2.8",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "Diffusers",
+        "context": "adapters/image/qwen-image-lightning-diffusers",
+        "dockerfile": "adapters/image/qwen-image-lightning-diffusers/Dockerfile",
+        "pinned_revision": "c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "lightx2v/Qwen-Image-2512-Lightning",
+          "revision": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
+          "observed_current_head": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
+          "current_head_url": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52"
+        },
+        {
+          "selection_id": "dependency-qwen-image-2512-25468b98",
+          "repository": "Qwen/Qwen-Image-2512",
+          "revision": "25468b98e3276ca6700de15c6628e51b7de54a26",
+          "observed_current_head": "25468b98e3276ca6700de15c6628e51b7de54a26",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/Qwen/Qwen-Image-2512/tree/25468b98e3276ca6700de15c6628e51b7de54a26",
+          "current_head_url": "https://huggingface.co/Qwen/Qwen-Image-2512/tree/25468b98e3276ca6700de15c6628e51b7de54a26"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable Diffusers runtime to the checked upstream commit while preserving the adapter interface, model closure, and recipe-specific settings.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
+        "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/qwen-image-edit-2511-comfyui-single",
+      "source_path": "recipes/qwen-image-edit-2511-comfyui-single.json",
+      "recipe_version": "1.0.10",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "ComfyUI",
+        "context": "adapters/media/comfyui-core",
+        "dockerfile": "adapters/media/comfyui-core/Dockerfile",
+        "pinned_revision": "250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "archive_sha256": "40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+          "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "Comfy-Org/Qwen-Image-Edit_ComfyUI",
+          "revision": "b6a0794717d3f5600f85c5edcdcd0c0eb93d7446",
+          "observed_current_head": "984166f60a9b1fcede5e9b9287b7a7aebc050010",
+          "status": "retained_exact_variant",
+          "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/b6a0794717d3f5600f85c5edcdcd0c0eb93d7446",
+          "current_head_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/984166f60a9b1fcede5e9b9287b7a7aebc050010"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable runtime to the checked upstream ComfyUI commit while preserving the recipe workflow, adapter interface, model closure, and Spark resource declarations. The exact artifact variant is retained because the current Comfy-Org repository head is a composite upload; changing the revision would change the model artifact closure rather than only refresh the runtime.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/b6a0794717d3f5600f85c5edcdcd0c0eb93d7446",
+        "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/qwen-image-edit-2511-diffusers-single",
+      "source_path": "recipes/qwen-image-edit-2511-diffusers-single.json",
+      "recipe_version": "1.1.7",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "Diffusers",
+        "context": "adapters/image/qwen-image-edit-2511-diffusers",
+        "dockerfile": "adapters/image/qwen-image-edit-2511-diffusers/Dockerfile",
+        "pinned_revision": "c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "Qwen/Qwen-Image-Edit-2511",
+          "revision": "6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
+          "observed_current_head": "6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/tree/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
+          "current_head_url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/tree/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable Diffusers runtime to the checked upstream commit while preserving the adapter interface, model closure, and recipe-specific settings.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/tree/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
+        "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/qwen-image-edit-2511-fp8mixed-comfyui-single",
+      "source_path": "recipes/qwen-image-edit-2511-fp8mixed-comfyui-single.json",
+      "recipe_version": "1.0.7",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "ComfyUI",
+        "context": "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed",
+        "dockerfile": "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed/Dockerfile",
+        "pinned_revision": "250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "archive_sha256": "40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+          "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "Comfy-Org/Qwen-Image-Edit_ComfyUI",
+          "revision": "4c7c4ea236326cbae56d403d22a03c6cd86ad9a0",
+          "observed_current_head": "984166f60a9b1fcede5e9b9287b7a7aebc050010",
+          "status": "retained_exact_variant",
+          "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/4c7c4ea236326cbae56d403d22a03c6cd86ad9a0",
+          "current_head_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/984166f60a9b1fcede5e9b9287b7a7aebc050010"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable runtime to the checked upstream ComfyUI commit while preserving the recipe workflow, adapter interface, model closure, and Spark resource declarations. The exact artifact variant is retained because the current Comfy-Org repository head is a composite upload; changing the revision would change the model artifact closure rather than only refresh the runtime.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/4c7c4ea236326cbae56d403d22a03c6cd86ad9a0",
+        "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/qwen-image-edit-2511-int8-convrot-comfyui-single",
+      "source_path": "recipes/qwen-image-edit-2511-int8-convrot-comfyui-single.json",
+      "recipe_version": "1.0.6",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "ComfyUI",
+        "context": "adapters/media/comfyui-qwen-image-edit-2511-int8-convrot",
+        "dockerfile": "adapters/media/comfyui-qwen-image-edit-2511-int8-convrot/Dockerfile",
+        "pinned_revision": "250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "archive_sha256": "40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+          "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "Comfy-Org/Qwen-Image-Edit_ComfyUI",
+          "revision": "e9e85de74a8f48c1e3e2656617626348675a2f21",
+          "observed_current_head": "984166f60a9b1fcede5e9b9287b7a7aebc050010",
+          "status": "retained_exact_variant",
+          "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/e9e85de74a8f48c1e3e2656617626348675a2f21",
+          "current_head_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/984166f60a9b1fcede5e9b9287b7a7aebc050010"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable runtime to the checked upstream ComfyUI commit while preserving the recipe workflow, adapter interface, model closure, and Spark resource declarations. The exact artifact variant is retained because the current Comfy-Org repository head is a composite upload; changing the revision would change the model artifact closure rather than only refresh the runtime.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/e9e85de74a8f48c1e3e2656617626348675a2f21",
+        "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/qwen-image-edit-2511-lightning-diffusers-single",
+      "source_path": "recipes/qwen-image-edit-2511-lightning-diffusers-single.json",
+      "recipe_version": "1.2.8",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "Diffusers",
+        "context": "adapters/image/qwen-image-lightning-diffusers",
+        "dockerfile": "adapters/image/qwen-image-lightning-diffusers/Dockerfile",
+        "pinned_revision": "c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "lightx2v/Qwen-Image-Edit-2511-Lightning",
+          "revision": "d74eba145674fd7e31b949324e148e21e7118abd",
+          "observed_current_head": "d74eba145674fd7e31b949324e148e21e7118abd",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning/tree/d74eba145674fd7e31b949324e148e21e7118abd",
+          "current_head_url": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning/tree/d74eba145674fd7e31b949324e148e21e7118abd"
+        },
+        {
+          "selection_id": "dependency-qwen-image-edit-2511-6f3ccc0b",
+          "repository": "Qwen/Qwen-Image-Edit-2511",
+          "revision": "6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
+          "observed_current_head": "6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/tree/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
+          "current_head_url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/tree/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable Diffusers runtime to the checked upstream commit while preserving the adapter interface, model closure, and recipe-specific settings.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning/tree/d74eba145674fd7e31b949324e148e21e7118abd",
+        "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/qwen-image-layered-diffusers-single",
+      "source_path": "recipes/qwen-image-layered-diffusers-single.json",
+      "recipe_version": "1.1.9",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "Diffusers",
+        "context": "adapters/image/qwen-image-layered-diffusers",
+        "dockerfile": "adapters/image/qwen-image-layered-diffusers/Dockerfile",
+        "pinned_revision": "c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "Qwen/Qwen-Image-Layered",
+          "revision": "8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf",
+          "observed_current_head": "8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/Qwen/Qwen-Image-Layered/tree/8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf",
+          "current_head_url": "https://huggingface.co/Qwen/Qwen-Image-Layered/tree/8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable Diffusers runtime to the checked upstream commit while preserving the adapter interface, model closure, and recipe-specific settings.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/Qwen/Qwen-Image-Layered/tree/8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf",
+        "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "https://github.com/huggingface/diffusers/commit/c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/wan-2-2-i2v-14b-comfyui-single",
+      "source_path": "recipes/wan-2-2-i2v-14b-comfyui-single.json",
+      "recipe_version": "1.0.10",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "ComfyUI",
+        "context": "adapters/media/comfyui-core",
+        "dockerfile": "adapters/media/comfyui-core/Dockerfile",
+        "pinned_revision": "250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "archive_sha256": "40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+          "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "Comfy-Org/Wan_2.2_ComfyUI_Repackaged",
+          "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+          "observed_current_head": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77",
+          "current_head_url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable runtime to the checked upstream ComfyUI commit while preserving the recipe workflow, adapter interface, model closure, and Spark resource declarations.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77",
+        "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/wan-2-2-t2v-14b-comfyui-single",
+      "source_path": "recipes/wan-2-2-t2v-14b-comfyui-single.json",
+      "recipe_version": "1.0.10",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "ComfyUI",
+        "context": "adapters/media/comfyui-core",
+        "dockerfile": "adapters/media/comfyui-core/Dockerfile",
+        "pinned_revision": "250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "archive_sha256": "40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+          "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "Comfy-Org/Wan_2.2_ComfyUI_Repackaged",
+          "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+          "observed_current_head": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77",
+          "current_head_url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable runtime to the checked upstream ComfyUI commit while preserving the recipe workflow, adapter interface, model closure, and Spark resource declarations.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77",
+        "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    },
+    {
+      "recipe_id": "vonk-forge/wan-2-2-ti2v-5b-comfyui-single",
+      "source_path": "recipes/wan-2-2-ti2v-5b-comfyui-single.json",
+      "recipe_version": "1.0.10",
+      "checked_at": "2026-09-05T20:43:51Z",
+      "source_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "implementation_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+      "decision": "applied_executable_update",
+      "runtime": {
+        "family": "ComfyUI",
+        "context": "adapters/media/comfyui-core",
+        "dockerfile": "adapters/media/comfyui-core/Dockerfile",
+        "pinned_revision": "250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "archive_sha256": "40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee",
+        "status": "applied_executable_update",
+        "evidence": [
+          "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+          "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+        ]
+      },
+      "models": [
+        {
+          "selection_id": "primary",
+          "repository": "Comfy-Org/Wan_2.2_ComfyUI_Repackaged",
+          "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+          "observed_current_head": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+          "status": "already_current",
+          "source_url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77",
+          "current_head_url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77"
+        }
+      ],
+      "reason": "The source-only refresh changed the executable runtime to the checked upstream ComfyUI commit while preserving the recipe workflow, adapter interface, model closure, and Spark resource declarations.",
+      "named_blocker": null,
+      "source_evidence": [
+        "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77",
+        "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+        "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+      ],
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+    }
+  ]
+}
