@@ -60,7 +60,12 @@ def source_bundle(context: Path) -> tuple[bytes, list[dict[str, object]], str]:
             )
         if path.is_dir():
             continue
-        if not path.is_file() or "__pycache__" in path.parts or path.suffix == ".pyc":
+        # Test runs may leave ordinary interpreter caches in a source context.
+        # They are generated noise and must never enter an immutable package.
+        # Check regular-file status first so special members remain rejected.
+        if path.is_file() and ("__pycache__" in path.parts or path.suffix == ".pyc"):
+            continue
+        if not path.is_file():
             raise SystemExit(
                 f"unsafe source bundle entry: {context.relative_to(ROOT)}/{relative}"
             )
