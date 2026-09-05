@@ -37,7 +37,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Dual-DGX-Spark vLLM TP2+EP+MTP3 profile for RadixArk's 135 GB NVFP4 checkpoint. The adapter bakes MiaAI-Lab's PLE, MXFP8 fallback, QSA FP8-KV, and MTP configuration fixes into the pinned arm64 CUDA 13.0 image, translates placement and cache preparation into the Controller topology, and force-disables YaRN at or below the native 262144-token context.",
+    "description": "Dual-DGX-Spark vLLM TP2+EP+MTP3 profile for RadixArk's 135 GB NVFP4 checkpoint. The adapter bakes MiaAI-Lab's PLE, MXFP8 fallback, QSA FP8-KV, and MTP configuration fixes into the pinned arm64 CUDA 13.0 image, translates placement and cache preparation into the Controller topology, defaults to no YaRN override at the native 262144-token context, adds YaRN only for larger contexts, and preserves explicit hf-overrides.",
     "tags": [
       "candidate",
       "multimodal",
@@ -5118,14 +5118,14 @@
             "summary": "Add the Controller-compatible vLLM dual-Spark port with immutable arm64 image and baked compatibility patches."
           },
           {
-            "details": "Retains the exact RadixArk/Qwen3.8-Flash-Next-NVFP4 model revision 7b719225242aacd3dbd3f9407468c2ee9a9d2594 and its embedded file inventory; no model bytes or model digest changed. The wrapper adds rope_parameters YaRN only above native 262144 tokens.",
+            "details": "Retains the exact RadixArk/Qwen3.8-Flash-Next-NVFP4 model revision 7b719225242aacd3dbd3f9407468c2ee9a9d2594 and its embedded file inventory; no model bytes or model digest changed. The wrapper defaults to no rope_parameters override at native 262144 tokens, adds YaRN only above that context, and preserves explicit hf-overrides.",
             "kind": "model",
             "references": [
               "https://huggingface.co/RadixArk/Qwen3.8-Flash-Next-NVFP4/tree/7b719225242aacd3dbd3f9407468c2ee9a9d2594",
               "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/commit/b421c2551c7fca065184b3c6f19f652720ca968c",
               "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/commit/4014cc6f35faf2d68ca08e672d8d09cab853a30c"
             ],
-            "summary": "Bind the port to the immutable NVFP4 pin and upstream native-context YaRN guard."
+            "summary": "Bind the port to the immutable NVFP4 pin with native-context defaults and explicit override preservation."
           },
           {
             "details": "The upstream repository is AGPL-3.0-or-later at c2325b22602b51a5faf55fc2bebccc34f3f80b9f; the official vLLM image remains separately licensed and the model terms remain declared by the Model JSON.",
