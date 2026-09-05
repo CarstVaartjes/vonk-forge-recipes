@@ -37,11 +37,13 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         text = "\n".join(path.read_text(errors="ignore") for path in ADAPTER.iterdir() if path.is_file())
         self.assertNotIn("ssh -", text.lower())
 
-    def test_release_tracks_exact_recipe_digest(self) -> None:
-        recipe = load(RECIPE); release = load(ROOT / "recipe-releases" / f"{RECIPE.stem}.json")
+    def test_catalog_package_tracks_exact_recipe_digest(self) -> None:
+        recipe = load(RECIPE)
         import hashlib
         digest = hashlib.sha256(json.dumps(recipe, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
-        self.assertEqual(release["history"][0]["recipe_content_sha256"], digest)
+        index = load(ROOT / "catalog-index.json")
+        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{RECIPE.name}")
+        self.assertEqual(entry["package"]["recipe_content_sha256"], digest)
 
 
 if __name__ == "__main__": unittest.main()

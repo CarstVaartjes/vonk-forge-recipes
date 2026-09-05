@@ -36,15 +36,16 @@ class LagunaVllmAdapterRuntimeTests(unittest.TestCase):
             self.assertTrue(recipe["models"][0]["model"]["content_sha256"])
             self.assertEqual(recipe["topology"]["node_count"], 1)
 
-    def test_recipe_and_release_bind_the_source_bundle(self) -> None:
+    def test_recipe_package_binds_the_source_bundle(self) -> None:
         tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         for path in (RECIPE, S_RECIPE):
             recipe = load(path)
             context = recipe["execution"]["build"]["context"]
             archive, _, bundle_digest = tool["source_bundle"](ROOT / context["path"])
             self.assertTrue(bundle_digest and archive)
-            release = load(ROOT / "recipe-releases" / path.name)
-            self.assertEqual(release["history"][0]["recipe_content_sha256"], digest(recipe))
+            index = load(ROOT / "catalog-index.json")
+            entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{path.name}")
+            self.assertEqual(entry["package"]["recipe_content_sha256"], digest(recipe))
 
     def test_runtime_is_offline_and_non_root(self) -> None:
         for path in (RECIPE, S_RECIPE):

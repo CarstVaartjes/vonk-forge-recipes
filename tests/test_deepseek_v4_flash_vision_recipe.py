@@ -9,7 +9,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = ROOT / "models/deepseek-v4-flash-vision-exp-6821d6ad.json"
 RECIPE = ROOT / "recipes/deepseek-v4-flash-vision-exp-mia-dual.json"
-RELEASE = ROOT / "recipe-releases/deepseek-v4-flash-vision-exp-mia-dual.json"
 ADAPTER = ROOT / "adapters/deepseek/mia-vllm-vision"
 
 
@@ -20,6 +19,12 @@ def load(path: Path) -> dict:
 def digest(path: Path) -> str:
     body = json.dumps(load(path), sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(body.encode()).hexdigest()
+
+
+def digest_dict(document: dict) -> str:
+    return hashlib.sha256(
+        json.dumps(document, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+    ).hexdigest()
 
 
 class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
@@ -40,7 +45,9 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
 
     def test_recipe_resolves_model_patch_and_dual_vision_profile(self) -> None:
         selected = self.recipe["models"][0]["model"]
-        self.assertEqual(selected["content_sha256"], digest(MODEL))
+        from vonk_forge_contracts import ModelDefinition
+        canonical = ModelDefinition.model_validate(self.model).model_dump(mode="json")
+        self.assertEqual(selected["content_sha256"], digest_dict(canonical))
         self.assertEqual(self.recipe["execution"]["mode"], "build")
         self.assertEqual(self.recipe["topology"]["node_count"], 2)
         self.assertEqual(self.recipe["topology"]["parallelism"]["tensor"], 2)
@@ -52,8 +59,9 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
         self.assertEqual(self.recipe["interfaces"][0]["adapter"], "openai")
 
     def test_release_binds_the_current_recipe_digest(self) -> None:
-        release = load(RELEASE)
-        self.assertEqual(release["history"][0]["recipe_content_sha256"], digest(RECIPE))
+        index = load(ROOT / "catalog-index.json")
+        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{RECIPE.name}")
+        self.assertEqual(entry["package"]["recipe_content_sha256"], digest(RECIPE))
         self.assertIn("candidate", self.recipe["metadata"]["tags"])
 
 

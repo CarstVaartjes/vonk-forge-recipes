@@ -17,7 +17,6 @@ ADAPTER_PATH = ADAPTER_ROOT / "run.py"
 PREFLIGHT_PATH = ADAPTER_ROOT / "preflight.py"
 MODEL_VERSION = ROOT / "models/ltx-2-5-22b-distilled-bf16-diffusers.json"
 RECIPE = ROOT / "recipes/ltx-2-5-22b-distilled-bf16-diffusers-single.json"
-RELEASE = ROOT / "recipe-releases/ltx-2-5-22b-distilled-bf16-diffusers-single.json"
 MODEL_REVISION = "426936f8b22dc28e4def61e515478b0b7e4a53cc"
 DIFFUSERS_REVISION = "d035dcd7cc7c88e0a154609b62887d50bba9fdc2"
 
@@ -62,7 +61,6 @@ class Ltx25CatalogTests(unittest.TestCase):
     def test_authorities_and_catalog_bindings_are_exact(self) -> None:
         model = _document(MODEL_VERSION)
         recipe = _document(RECIPE)
-        release = _document(RELEASE)
 
         self.assertEqual(model["source"]["revision"], MODEL_REVISION)
         selection = recipe["models"][0]
@@ -72,9 +70,9 @@ class Ltx25CatalogTests(unittest.TestCase):
         from vonk_forge_contracts import ModelDefinition
         model_digest = hashlib.sha256(json.dumps(ModelDefinition.model_validate(model).model_dump(mode="json"), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
         self.assertEqual(selection["model"]["content_sha256"], model_digest)
-        self.assertEqual(
-            release["history"][0]["recipe_content_sha256"], _digest(RECIPE)
-        )
+        index = _document(ROOT / "catalog-index.json")
+        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{RECIPE.name}")
+        self.assertEqual(entry["package"]["recipe_content_sha256"], _digest(RECIPE))
         self.assertEqual(model["files"][0]["size_bytes"], 70_090_051_372)
         role = recipe["topology"]["roles"][0]
         disk = role["resources"]["disk"]

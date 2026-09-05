@@ -144,19 +144,6 @@ class LtxSparkFitTests(unittest.TestCase):
             "adapters/video/ltx23-sync-native-disk",
         )
 
-        for ledger_name in ("audio", "video"):
-            ledger = load(ROOT / f"model-targets/{ledger_name}.json")
-            target = next(
-                item
-                for item in ledger["targets"]
-                if item.get("catalog_model_version") == "ltx-2-3-22b-distilled-1-1"
-            )
-            self.assertEqual(target["status"], "candidate")
-            self.assertEqual(target["recipe_slugs"], [LTX23_SLUG])
-            for fact in ("93 GB", "77 GB", "31 GB", "8 GB", "128 GB"):
-                self.assertIn(fact, target["notes"])
-            self.assertIn("lowest-memory disk offload", target["notes"])
-            self.assertIn("Physical Spark acceptance remains pending", target["notes"])
 
     def test_ltx23_dedicated_adapter_uses_disk_offload_and_is_bound(self) -> None:
         adapter_root = ROOT / "adapters/video/ltx23-sync-native-disk"

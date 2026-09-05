@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import hashlib
 import json
-import runpy
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 RECIPE = ROOT / "recipes/deepseek-v4-flash-0731-ds4-single.json"
-RELEASE = ROOT / "recipe-releases/deepseek-v4-flash-0731-ds4-single.json"
 
 
 def load(path: Path) -> dict:
@@ -29,10 +27,10 @@ class DeepseekDs4RecipeTests(unittest.TestCase):
         self.assertEqual(recipe["topology"]["node_count"], 1)
 
     def test_release_binds_the_current_recipe_digest(self) -> None:
-        tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         recipe = load(RECIPE)
-        release = tool["recipe_release"](RELEASE, publisher=recipe["identity"]["publisher"], slug=recipe["identity"]["slug"], recipe_digest=digest(RECIPE))
-        self.assertEqual(release["history"][0]["recipe_content_sha256"], digest(RECIPE))
+        index = load(ROOT / "catalog-index.json")
+        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{RECIPE.name}")
+        self.assertEqual(entry["package"]["recipe_content_sha256"], digest(RECIPE))
 
 
 if __name__ == "__main__":

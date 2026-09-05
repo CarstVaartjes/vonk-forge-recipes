@@ -99,20 +99,28 @@ class DiscoveryTests(unittest.TestCase):
             root = Path(temporary)
             (root / "models").mkdir()
             (root / "recipes").mkdir()
-            model = {
-                "kind": "model",
-                "identity": {"publisher": "example", "slug": "model"},
-                "source": {
-                    "repository": "https://huggingface.co/example/model",
-                    "revision": PINNED,
-                },
-            }
-            recipe = {
-                "kind": "recipe",
-                "identity": {"publisher": "example", "slug": "recipe"},
-                "provenance": {
-                    "source_reference": f"https://github.com/example/recipe/tree/{PINNED}"
-                },
+            model = json.loads(
+                (ROOT / "contracts/src/vonk_forge_contracts/examples/model-definition.json").read_text()
+            )
+            model["identity"]["publisher"] = "example"
+            model["identity"]["slug"] = "model"
+            model["identity"]["family"]["publisher"] = "example"
+            model["identity"]["family"]["slug"] = "model-family"
+            model["identity"]["model"]["publisher"] = "example"
+            model["identity"]["model"]["slug"] = "model"
+            model["source"] = {"repository": "https://huggingface.co/example/model", "revision": PINNED}
+            model["lineage"]["source_model"]["publisher"] = "example"
+            model["lineage"]["source_model"]["slug"] = "source-model"
+            model["provenance"]["source_revision"] = PINNED
+            model["capabilities"]["provenance"]["source_revision"] = PINNED
+            recipe = json.loads(
+                (ROOT / "contracts/src/vonk_forge_contracts/examples/recipe-source-build.json").read_text()
+            )
+            recipe["identity"] = {"publisher": "example", "slug": "recipe"}
+            recipe["provenance"] = {
+                "attribution": ["Example"],
+                "source_kind": "local",
+                "source_reference": f"https://github.com/example/recipe/tree/{PINNED}",
             }
             (root / "models/model.json").write_text(json.dumps(model))
             (root / "recipes/recipe.json").write_text(json.dumps(recipe))
