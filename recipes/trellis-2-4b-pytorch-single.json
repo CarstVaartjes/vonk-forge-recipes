@@ -150,17 +150,17 @@
       {
         "changes": [
           {
-            "details": "Upstream main remains at 75fbf0183001ed9876c8dbb35de6b68552ee08bd; the exact TRELLIS.2 adapter source and model snapshot therefore remain unchanged.",
-            "kind": "metadata",
+            "details": "The shared TRELLIS.2 source build now refreshes its pinned Pixal3D dependency from cdbb2bbffbf4e6f298b5f2af3d1d76a8d823d2af to f7cf38429b0bd264f1995f0f8743a88b1c728b94. The TRELLIS.2 engine pin remains 75fbf0183001ed9876c8dbb35de6b68552ee08bd, so the model snapshot is unchanged while the shared build context requires a rebuild.",
+            "kind": "compatibility",
             "references": [
               "https://github.com/microsoft/TRELLIS.2/commit/75fbf0183001ed9876c8dbb35de6b68552ee08bd"
             ],
-            "summary": "Revalidated the TRELLIS.2 source pin against upstream main."
+            "summary": "Rebuild TRELLIS.2 with the refreshed shared Pixal3D source context."
           }
         ],
         "prior_recipe_content_sha256": "82ffe076ef67e447a0011e952b20eeb4954e83be9728b2033ac9c1451ad4cd99",
         "released_at": "2026-09-05",
-        "upgrade_effect": "none",
+        "upgrade_effect": "rebuild",
         "version": "2.0.7"
       },
       {
