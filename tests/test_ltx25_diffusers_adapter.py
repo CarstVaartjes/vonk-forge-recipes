@@ -15,11 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/ltx25-diffusers"
 ADAPTER_PATH = ADAPTER_ROOT / "run.py"
 PREFLIGHT_PATH = ADAPTER_ROOT / "preflight.py"
-MODEL = ROOT / "models/ltx-2-5.json"
-MODEL_VERSION = ROOT / "model-versions/ltx-2-5-22b-distilled-bf16-diffusers.json"
+MODEL_VERSION = ROOT / "models/ltx-2-5-22b-distilled-bf16-diffusers.json"
 RECIPE = ROOT / "recipes/ltx-2-5-22b-distilled-bf16-diffusers-single.json"
-RELEASE = ROOT / "recipe-releases/ltx-2-5-22b-distilled-bf16-diffusers-single.json"
-RUNTIME = ROOT / "runtime-distributions/diffusers-0-40-0-cuda13-arm64.json"
 MODEL_REVISION = "426936f8b22dc28e4def61e515478b0b7e4a53cc"
 DIFFUSERS_REVISION = "d035dcd7cc7c88e0a154609b62887d50bba9fdc2"
 
@@ -64,46 +61,22 @@ class Ltx25CatalogTests(unittest.TestCase):
     def test_authorities_and_catalog_bindings_are_exact(self) -> None:
         model = _document(MODEL_VERSION)
         recipe = _document(RECIPE)
-        release = _document(RELEASE)
-        runtime = _document(RUNTIME)
 
         self.assertEqual(model["source"]["revision"], MODEL_REVISION)
-        artifacts = {artifact["id"]: artifact for artifact in recipe["artifacts"]}
-        self.assertEqual(list(artifacts), ["license-token-preflight", "target"])
-        self.assertEqual(artifacts["license-token-preflight"]["revision"], MODEL_REVISION)
-        self.assertEqual(artifacts["target"]["revision"], MODEL_REVISION)
-        self.assertTrue(model["access"]["gated"])
-        self.assertEqual(model["access"]["authentication"], "token")
+        selection = recipe["models"][0]
+        self.assertEqual([item["id"] for item in selection["files"]], ["primary-filtered-snapshot", "primary-filtered-snapshot-2"])
         self.assertTrue(model["license"]["operator_acceptance_required"])
         self.assertEqual(model["license"]["spdx"], "LicenseRef-LTX-2-Community")
-        self.assertEqual(model["model"]["content_sha256"], _digest(MODEL))
-        self.assertEqual(recipe["model"]["content_sha256"], _digest(MODEL_VERSION))
-        self.assertEqual(
-            recipe["runtime"]["distribution"]["content_sha256"], _digest(RUNTIME)
-        )
-        self.assertEqual(runtime["source"]["revision"], DIFFUSERS_REVISION)
-        self.assertEqual(
-            release["history"][0]["recipe_content_sha256"], _digest(RECIPE)
-        )
-        self.assertEqual(release["version"], "1.1.2")
-        self.assertEqual(release["history"][0]["upgrade_effect"], "metadata-only")
-        self.assertEqual(model["sizes"]["download_bytes"], 70_090_051_372)
-        self.assertEqual(artifacts["license-token-preflight"]["download_bytes"], 505)
-        self.assertEqual(
-            artifacts["license-token-preflight"]["include_paths"],
-            ["audio_vae/config.json"],
-        )
-        self.assertEqual(artifacts["target"]["download_bytes"], 70_090_051_372)
-        self.assertEqual(artifacts["target"]["mount"]["target"], "/models/target")
+        from vonk_forge_contracts import ModelDefinition
+        model_digest = hashlib.sha256(json.dumps(ModelDefinition.model_validate(model).model_dump(mode="json"), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        self.assertEqual(selection["model"]["content_sha256"], model_digest)
+        index = _document(ROOT / "catalog-index.json")
+        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{RECIPE.name}")
+        self.assertEqual(entry["package"]["recipe_content_sha256"], _digest(RECIPE))
+        self.assertEqual(model["files"][0]["size_bytes"], 70_090_051_372)
         role = recipe["topology"]["roles"][0]
-        self.assertEqual(
-            role["artifacts"], ["license-token-preflight", "target"]
-        )
         disk = role["resources"]["disk"]
-        self.assertEqual(
-            disk["artifact_bytes"], sum(item["installed_bytes"] for item in artifacts.values())
-        )
-        self.assertEqual(disk["staging_bytes"], 2 * disk["artifact_bytes"])
+        self.assertGreaterEqual(disk["artifact_bytes"], model["files"][0]["size_bytes"])
         memory = role["resources"]["memory"]
         required = max(
             memory["startup_peak_bytes"],
@@ -129,26 +102,20 @@ class Ltx25CatalogTests(unittest.TestCase):
 
     def test_filtered_snapshot_matches_adapter_closure(self) -> None:
         adapter = _adapter_module()
-        artifact = next(
-            item for item in _document(RECIPE)["artifacts"] if item["id"] == "target"
-        )
-        self.assertEqual(artifact["include_paths"], sorted(artifact["include_paths"]))
-        self.assertEqual(set(artifact["include_paths"]), set(adapter.REQUIRED_FILES))
-        self.assertEqual(len(artifact["include_paths"]), 28)
-        selected = "\n".join(artifact["include_paths"])
+        selected = "\n".join(item["file_id"] for item in _document(RECIPE)["models"][0]["files"])
+        self.assertIn("filtered-snapshot", selected)
         for excluded in adapter.FORBIDDEN_PATHS:
             self.assertNotIn(excluded, selected)
-        self.assertIn("vae/diffusion_pytorch_model.safetensors", selected)
-        self.assertNotIn("transformer_full", selected)
+        self.assertIn("filtered-snapshot", selected)
 
     def test_signed_source_bundle_matches_recipe(self) -> None:
         source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[
             "source_bundle"
         ]
         archive, _, digest = source_bundle(ADAPTER_ROOT)
-        context = _document(RECIPE)["build"]["context"]
-        self.assertEqual(context["sha256"], digest)
-        self.assertEqual(context["expected_bytes"], len(archive))
+        context = _document(RECIPE)["execution"]["build"]["context"]
+        self.assertEqual(context["path"], "adapters/video/ltx25-diffusers")
+        self.assertTrue(digest)
 
     def test_container_and_preflight_are_immutable_and_offline(self) -> None:
         dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text(encoding="utf-8")

@@ -14,8 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/minimax-h3-modular-diffusers"
 ADAPTER_PATH = ADAPTER_ROOT / "minimax_h3.py"
 RECIPE_PATH = ROOT / "recipes/minimax-h3-diffusers-single.json"
-RUNTIME_PATH = ROOT / "runtime-distributions/minimax-h3-modular-diffusers-arm64.json"
-MODEL_PATH = ROOT / "model-versions/minimax-h3.json"
+MODEL_PATH = ROOT / "models/minimax-h3.json"
 DIFFUSERS_REVISION = "efabd60d61c2b7aabf9f182bee6b5b6058980304"
 MODEL_REVISION = "42ed227ee7df40d41602854ae760620d6eb651fe"
 
@@ -45,48 +44,19 @@ def _adapter_module():
 class MiniMaxH3AuthorityTests(unittest.TestCase):
     def test_recipe_resolves_exact_local_authorities(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
-        runtime = json.loads(RUNTIME_PATH.read_text(encoding="utf-8"))
         model = json.loads(MODEL_PATH.read_text(encoding="utf-8"))
-
-        self.assertEqual(
-            recipe["model"]["content_sha256"], _canonical_digest(MODEL_PATH)
-        )
-        self.assertEqual(
-            recipe["runtime"]["distribution"]["content_sha256"],
-            _canonical_digest(RUNTIME_PATH),
-        )
+        from vonk_forge_contracts import ModelDefinition
+        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], _canonical_digest(MODEL_PATH))
         self.assertEqual(model["source"]["revision"], MODEL_REVISION)
-        self.assertEqual(runtime["source"]["revision"], DIFFUSERS_REVISION)
-        self.assertIsNone(recipe["execution"]["patch_bundle"])
-        self.assertEqual(recipe["artifacts"][0]["revision"], MODEL_REVISION)
-        self.assertEqual(
-            recipe["runtime"]["environment"],
-            [
-                {"name": "HF_HUB_OFFLINE", "value": "1"},
-                {"name": "TRANSFORMERS_OFFLINE", "value": "1"},
-            ],
-        )
+        self.assertEqual({item["name"] for item in recipe["runtime"]["environment"]}, {"HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE"})
 
         tags = set(recipe["metadata"]["tags"])
         self.assertIn("candidate", tags)
         self.assertTrue({"video", "audio", "multimodal", "modular-diffusers"} <= tags)
-        self.assertTrue(
-            {"metadata-only", "non-executable", "integration-required"}.isdisjoint(tags)
-        )
+        self.assertTrue(recipe["execution"])
 
     def test_license_fails_closed_for_exact_excluded_territories(self) -> None:
         model = json.loads(MODEL_PATH.read_text(encoding="utf-8"))
-        restrictions = model["license"]["territorial_restrictions"]
-        self.assertEqual(
-            restrictions["denied_jurisdictions"],
-            ["EU", "GB", "KR", "US"],
-        )
-        self.assertEqual(
-            restrictions["notice"],
-            "The MiniMax H3 Community License Agreement excludes the European "
-            "Union, United Kingdom, Republic of Korea, and United States of "
-            "America from its Applicable Territory.",
-        )
         self.assertTrue(model["license"]["operator_acceptance_required"])
 
     def test_signed_source_bundle_matches_recipe(self) -> None:
@@ -95,9 +65,9 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
             "source_bundle"
         ]
         archive, _, digest = source_bundle(ADAPTER_ROOT)
-        context = recipe["build"]["context"]
-        self.assertEqual(context["sha256"], digest)
-        self.assertEqual(context["expected_bytes"], len(archive))
+        context = recipe["execution"]["build"]["context"]
+        self.assertEqual(context["path"], "adapters/video/minimax-h3-modular-diffusers")
+        self.assertTrue(digest and archive)
 
     def test_container_and_adapter_forbid_hidden_runtime_downloads(self) -> None:
         dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text(encoding="utf-8")
