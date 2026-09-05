@@ -44,7 +44,7 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
         self.assertEqual(arguments["max-num-seqs"], 64)
         self.assertEqual(arguments["max-num-batched-tokens"], 16384)
         self.assertEqual(arguments["kv-cache-memory"], 25769803776)
-        self.assertEqual(arguments["speculative-config"], '{"method":"dflash","model":"/models/dflash2-draft","num_speculative_tokens":7}')
+        self.assertEqual(arguments["speculative-config"], '{"method":"dflash","model":"/models/drafter","num_speculative_tokens":7}')
         self.assertFalse(arguments["enforce-eager"])
         self.assertEqual(arguments["compilation-config"], '{"cudagraph_mode":"FULL_AND_PIECEWISE"}')
         drafter = next(
@@ -64,7 +64,7 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
         )
         self.assertEqual(
             {file["mount"]["target"] for file in drafter["files"]},
-            {"/models/dflash2-draft"},
+            {"/models/drafter"},
         )
         self.assertIn('ai.vonkforge.runtime-interface="v1"', dockerfile)
         self.assertIn("COPY overlay-dflash2/qwen3_dflash2.py", dockerfile)
