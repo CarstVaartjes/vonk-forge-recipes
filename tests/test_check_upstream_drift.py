@@ -88,45 +88,41 @@ class SourceParsingTests(unittest.TestCase):
 class DiscoveryTests(unittest.TestCase):
     def test_catalog_sources_are_all_discoverable(self) -> None:
         defaults, overrides = drift.load_manifest(ROOT / "upstream-watch.json")
-
-        watches = drift.discover_watches(ROOT, defaults, overrides)
-
-        self.assertGreater(len(watches), 100)
-        self.assertTrue(
-            any(
-                watch.entity
-                == "recipe/vonk-forge/inkling-small-nvfp4-sglang-dual"
-                and watch.pinned_revision
-                == "a74222ef6e690f851e2e4ff1c0be7dc1357be313"
-                and watch.policy == "manual"
-                for watch in watches
-            )
-        )
+        # The checked-in pre-conversion manifest intentionally contains stale
+        # entity kinds; discovery must fail closed instead of silently dropping
+        # those policies.
+        with self.assertRaisesRegex(drift.DriftInputError, "unknown entity"):
+            drift.discover_watches(ROOT, defaults, overrides)
 
     def test_discovers_entity_and_recipe_sources_with_manifest_policies(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            (root / "model-versions").mkdir()
-            (root / "runtime-distributions").mkdir()
-            (root / "patch-bundles").mkdir()
+            (root / "models").mkdir()
             (root / "recipes").mkdir()
-            model = {
-                "kind": "model-version",
-                "identity": {"publisher": "example", "slug": "model"},
-                "version": "1.0",
-                "source": {
-                    "repository": "https://huggingface.co/example/model",
-                    "revision": PINNED,
-                },
+            model = json.loads(
+                (ROOT / "contracts/src/vonk_forge_contracts/examples/model-definition.json").read_text()
+            )
+            model["identity"]["publisher"] = "example"
+            model["identity"]["slug"] = "model"
+            model["identity"]["family"]["publisher"] = "example"
+            model["identity"]["family"]["slug"] = "model-family"
+            model["identity"]["model"]["publisher"] = "example"
+            model["identity"]["model"]["slug"] = "model"
+            model["source"] = {"repository": "https://huggingface.co/example/model", "revision": PINNED}
+            model["lineage"]["source_model"]["publisher"] = "example"
+            model["lineage"]["source_model"]["slug"] = "source-model"
+            model["provenance"]["source_revision"] = PINNED
+            model["capabilities"]["provenance"]["source_revision"] = PINNED
+            recipe = json.loads(
+                (ROOT / "contracts/src/vonk_forge_contracts/examples/recipe-source-build.json").read_text()
+            )
+            recipe["identity"] = {"publisher": "example", "slug": "recipe"}
+            recipe["provenance"] = {
+                "attribution": ["Example"],
+                "source_kind": "local",
+                "source_reference": f"https://github.com/example/recipe/tree/{PINNED}",
             }
-            recipe = {
-                "kind": "recipe",
-                "identity": {"publisher": "example", "slug": "recipe"},
-                "provenance": {
-                    "source_reference": f"https://github.com/example/recipe/tree/{PINNED}"
-                },
-            }
-            (root / "model-versions/model.json").write_text(json.dumps(model))
+            (root / "models/model.json").write_text(json.dumps(model))
             (root / "recipes/recipe.json").write_text(json.dumps(recipe))
             defaults = {"github": "default-branch", "huggingface": "default-branch"}
             overrides = {
@@ -138,11 +134,11 @@ class DiscoveryTests(unittest.TestCase):
             self.assertEqual(
                 [watch.entity for watch in watches],
                 [
-                    "model-version/example/model",
+                    "model/example/model",
                     "recipe/example/recipe",
                 ],
             )
-            self.assertEqual(watches[0].pinned_version, "1.0")
+            self.assertIsNone(watches[0].pinned_version)
             self.assertEqual(watches[1].ref, "stable")
 
     def test_rejects_mismatched_embedded_revision(self) -> None:
@@ -151,14 +147,14 @@ class DiscoveryTests(unittest.TestCase):
             for directory in (*drift.ENTITY_DIRECTORIES, "recipes"):
                 (root / directory).mkdir()
             document = {
-                "kind": "model-version",
+                "kind": "model",
                 "identity": {"publisher": "example", "slug": "model"},
                 "source": {
                     "repository": f"https://huggingface.co/example/model/tree/{OBSERVED}",
                     "revision": PINNED,
                 },
             }
-            (root / "model-versions/model.json").write_text(json.dumps(document))
+            (root / "models/model.json").write_text(json.dumps(document))
             with self.assertRaises(drift.DriftInputError):
                 drift.discover_watches(root, {"huggingface": "default-branch"}, {})
 

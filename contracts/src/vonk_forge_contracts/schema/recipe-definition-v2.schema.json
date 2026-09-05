@@ -126,18 +126,18 @@
       "properties": {
         "kind": {
           "const": "model",
+          "default": "model",
           "title": "Kind",
           "type": "string"
         },
         "publisher": {
-          "maxLength": 64,
-          "minLength": 2,
-          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "maxLength": 128,
+          "minLength": 1,
           "title": "Publisher",
           "type": "string"
         },
         "slug": {
-          "maxLength": 64,
+          "maxLength": 63,
           "minLength": 2,
           "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
           "title": "Slug",
@@ -150,7 +150,6 @@
         }
       },
       "required": [
-        "kind",
         "publisher",
         "slug",
         "content_sha256"
@@ -452,7 +451,15 @@
           "$ref": "#/$defs/RecipeIntegerSetting"
         },
         "concurrency": {
-          "$ref": "#/$defs/RecipeIntegerSetting"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecipeIntegerSetting"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "max_batch_tokens": {
           "anyOf": [
@@ -468,8 +475,7 @@
       },
       "required": [
         "kind",
-        "context_tokens",
-        "concurrency"
+        "context_tokens"
       ],
       "title": "RecipeGenerationSettings",
       "type": "object"
@@ -1139,7 +1145,7 @@
           "items": {
             "$ref": "#/$defs/RecipeModelFile"
           },
-          "maxItems": 256,
+          "maxItems": 4096,
           "minItems": 1,
           "title": "Files",
           "type": "array"
@@ -1373,6 +1379,152 @@
         "attribution"
       ],
       "title": "RecipeProvenance",
+      "type": "object"
+    },
+    "RecipeRelease": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "maxLength": 64,
+          "minLength": 5,
+          "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$",
+          "title": "Version",
+          "type": "string"
+        },
+        "released_at": {
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "title": "Released At",
+          "type": "string"
+        },
+        "history": {
+          "items": {
+            "$ref": "#/$defs/RecipeReleaseHistoryEntry"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "History",
+          "type": "array"
+        }
+      },
+      "required": [
+        "version",
+        "released_at",
+        "history"
+      ],
+      "title": "RecipeRelease",
+      "type": "object"
+    },
+    "RecipeReleaseChange": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "initial",
+            "model",
+            "runtime",
+            "performance",
+            "fix",
+            "security",
+            "compatibility",
+            "breaking",
+            "metadata"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "summary": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        },
+        "details": {
+          "anyOf": [
+            {
+              "maxLength": 1000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Details"
+        },
+        "references": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "^https://[^\\s]+$",
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "References",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "summary"
+      ],
+      "title": "RecipeReleaseChange",
+      "type": "object"
+    },
+    "RecipeReleaseHistoryEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "maxLength": 64,
+          "minLength": 5,
+          "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$",
+          "title": "Version",
+          "type": "string"
+        },
+        "released_at": {
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "title": "Released At",
+          "type": "string"
+        },
+        "prior_recipe_content_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Prior Recipe Content Sha256"
+        },
+        "upgrade_effect": {
+          "enum": [
+            "none",
+            "restart",
+            "reprepare",
+            "rebuild"
+          ],
+          "title": "Upgrade Effect",
+          "type": "string"
+        },
+        "changes": {
+          "items": {
+            "$ref": "#/$defs/RecipeReleaseChange"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Changes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "version",
+        "released_at",
+        "upgrade_effect",
+        "changes"
+      ],
+      "title": "RecipeReleaseHistoryEntry",
       "type": "object"
     },
     "RecipeRoleResources": {
@@ -1917,6 +2069,9 @@
         }
       ],
       "title": "Settings"
+    },
+    "release": {
+      "$ref": "#/$defs/RecipeRelease"
     }
   },
   "required": [
@@ -1929,7 +2084,8 @@
     "interfaces",
     "validation",
     "provenance",
-    "settings"
+    "settings",
+    "release"
   ],
   "title": "RecipeDefinition",
   "type": "object"

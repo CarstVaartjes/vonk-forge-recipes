@@ -6,6 +6,7 @@ import importlib.machinery
 import importlib.util
 import json
 import sys
+import tarfile
 import tempfile
 import unittest
 from pathlib import Path
@@ -21,18 +22,33 @@ sys.modules[LOADER.name] = CATALOG
 LOADER.exec_module(CATALOG)
 
 CASES = {
-    "skintokens-pytorch-single": (
-        "adapters/three-d/skintokens",
-        "runtime-distributions/skintokens-tokenrig-arm64.json",
-    ),
-    "triposg-pytorch-single": (
-        "adapters/three-d/triposg",
-        "runtime-distributions/triposg-native-arm64.json",
-    ),
-    "hunyuan3d-omni-pytorch-single": (
-        "adapters/three-d/hunyuan3d-omni",
-        "runtime-distributions/hunyuan3d-omni-native-arm64.json",
-    ),
+    "skintokens-pytorch-single": {
+        "context": "adapters/three-d/skintokens",
+        "model": "models/skintokens.json",
+        "source_repository": "VAST-AI-Research/SkinTokens",
+        "source_revision": "273b691d35989d71cd17ff2895fdc735097b92d1",
+        "source_archive": "skintokens.tar.gz",
+        "source_archive_sha256": "f886ce830f8f6ed5a3eabebb9399244812ac17a44d5b51fe8853c381a214e334",
+        "base_image": "nvcr.io/nvidia/cuda:13.2.1-devel-ubuntu24.04@sha256:0e1392f431f89f143d0d6d0fa397a2b9a6a236f8b3628cfd3afbf21e15ab4a98",
+    },
+    "triposg-pytorch-single": {
+        "context": "adapters/three-d/triposg",
+        "model": "models/triposg.json",
+        "source_repository": "VAST-AI-Research/TripoSG",
+        "source_revision": "fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c",
+        "source_archive": "triposg.tar.gz",
+        "source_archive_sha256": "3d06f11eb795bcabea7863e670e9cea02f96bfc6ec3e6db20e015e5710653682",
+        "base_image": "nvcr.io/nvidia/cuda:13.2.1-devel-ubuntu24.04@sha256:0e1392f431f89f143d0d6d0fa397a2b9a6a236f8b3628cfd3afbf21e15ab4a98",
+    },
+    "hunyuan3d-omni-pytorch-single": {
+        "context": "adapters/three-d/hunyuan3d-omni",
+        "model": "models/hunyuan3d-omni.json",
+        "source_repository": "Tencent-Hunyuan/Hunyuan3D-Omni",
+        "source_revision": "4d47c0cc2bd0c4281963a7314ab330a5af36bfa8",
+        "source_archive": "hunyuan3d-omni.tar.gz",
+        "source_archive_sha256": "1191700188114ac9fd257ed617c3a46bb523adc90a05316c2bbed433063e32d3",
+        "base_image": "nvcr.io/nvidia/cuda:13.2.1-runtime-ubuntu24.04@sha256:a52783d8d73ace53998d4e740515e9942e73072dc7fbd5322917eb382a0bc7fb",
+    },
 }
 SLOTTED_RECIPES = (
     "hunyuan3d-omni-pytorch-single",
@@ -44,6 +60,21 @@ SLOTTED_RECIPES = (
     "trellis-2-4b-pytorch-single",
     "triposg-pytorch-single",
 )
+
+
+def read_recipe(slug: str) -> dict[str, object]:
+    return json.loads((ROOT / f"recipes/{slug}.json").read_text())
+
+
+def read_package(slug: str) -> tuple[dict[str, object], dict[str, bytes]]:
+    package = ROOT / f"packages/{slug}.tar.gz"
+    with tarfile.open(package, mode="r:gz") as archive:
+        payloads = {
+            member.name: archive.extractfile(member).read()
+            for member in archive.getmembers()
+            if member.isfile()
+        }
+    return json.loads(payloads["manifest.json"]), payloads
 
 
 class NativeThreeDAdapterTests(unittest.TestCase):
@@ -105,36 +136,103 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 )
 
     def test_recipes_bind_exact_native_context_and_runtime(self) -> None:
-        for slug, (context_name, runtime_name) in CASES.items():
+        for slug, case in CASES.items():
             with self.subTest(slug=slug):
-                recipe = json.loads((ROOT / f"recipes/{slug}.json").read_text())
-                runtime = json.loads((ROOT / runtime_name).read_text())
-                context = ROOT / context_name
-                archive, _metadata, digest = CATALOG.source_bundle(context)
-                self.assertEqual(recipe["build"]["context"]["path"], context_name)
-                self.assertEqual(recipe["build"]["context"]["sha256"], digest)
-                self.assertEqual(recipe["build"]["context"]["expected_bytes"], len(archive))
+                recipe = read_recipe(slug)
+                build = recipe["execution"]["build"]
+                context_name = case["context"]
+                self.assertEqual(build["context"]["path"], context_name)
+                self.assertEqual(build["dockerfile"], f"{context_name}/Dockerfile")
+                self.assertEqual(build["patches"], [])
+                repository, digest = case["base_image"].split("@sha256:", 1)
+                self.assertEqual(build["base_image"]["repository"], repository.split(":", 1)[0])
+                self.assertEqual(build["base_image"]["digest"], digest)
+
+                manifest, payloads = read_package(slug)
+                self.assertEqual(manifest["schema_version"], 2)
+                self.assertEqual(manifest["kind"], "recipe-package")
+                self.assertEqual(manifest["package_type"], "recipe")
                 self.assertEqual(
-                    recipe["runtime"]["distribution"]["content_sha256"],
-                    hashlib.sha256(CATALOG.canonical(runtime)).hexdigest(),
+                    manifest["recipe_content_sha256"],
+                    hashlib.sha256(CATALOG.canonical(recipe)).hexdigest(),
+                )
+                self.assertEqual(json.loads(payloads["recipe.json"]), recipe)
+                declared = {entry["path"]: entry for entry in manifest["files"]}
+                self.assertEqual(set(declared), set(payloads) - {"manifest.json"})
+                for path, content in payloads.items():
+                    if path == "manifest.json":
+                        continue
+                    self.assertEqual(declared[path]["size"], len(content))
+                    self.assertEqual(
+                        declared[path]["sha256"], hashlib.sha256(content).hexdigest()
+                    )
+
+                context_files = {
+                    path.relative_to(ROOT).as_posix(): path.read_bytes()
+                    for path in (ROOT / context_name).rglob("*")
+                    if (
+                        path.is_file()
+                        and not path.is_symlink()
+                        and "__pycache__" not in path.parts
+                        and path.suffix != ".pyc"
+                    )
+                }
+                packaged_context = {
+                    path: content
+                    for path, content in payloads.items()
+                    if path.startswith(f"{context_name}/")
+                }
+                self.assertEqual(packaged_context, context_files)
+                model_path = case["model"]
+                model = json.loads((ROOT / model_path).read_text())
+                packaged_model = json.loads(payloads[model_path])
+                self.assertEqual(
+                    recipe["models"][0]["model"]["content_sha256"],
+                    hashlib.sha256(payloads[model_path]).hexdigest(),
+                )
+                self.assertEqual(packaged_model["identity"], model["identity"])
+                self.assertEqual(packaged_model["source"], model["source"])
+                self.assertEqual(packaged_model["files"], model["files"])
+                self.assertEqual(
+                    manifest["build_inputs"],
+                    [{"kind": "oci-image", "platform": "linux/arm64", "reference": case["base_image"]}],
                 )
                 tags = set(recipe["metadata"]["tags"])
                 self.assertIn("candidate", tags)
                 self.assertFalse(tags.intersection({"metadata-only", "non-executable", "integration-required"}))
 
     def test_runtime_is_offline_and_source_authorities_are_immutable(self) -> None:
-        for _context_name, runtime_name in CASES.values():
-            with self.subTest(runtime=runtime_name):
-                runtime = json.loads((ROOT / runtime_name).read_text())
-                self.assertTrue(runtime["build"]["offline_after_installation"])
-                self.assertEqual(runtime["security"]["network_mode"], "none")
-                self.assertRegex(runtime["source"]["revision"], r"^[a-f0-9]{40}$")
-                self.assertRegex(runtime["source"]["archive_sha256"], r"^[a-f0-9]{64}$")
-                self.assertIn("@sha256:", runtime["image"])
+        for slug, case in CASES.items():
+            with self.subTest(slug=slug):
+                recipe = read_recipe(slug)
+                environment = {
+                    item["name"]: item["value"]
+                    for item in recipe["runtime"]["environment"]
+                }
+                self.assertEqual(environment, {"HF_HUB_OFFLINE": "1"})
+
+                _manifest, payloads = read_package(slug)
+                dockerfile = payloads[f'{case["context"]}/Dockerfile'].decode()
+                revision = case["source_revision"]
+                archive = case["source_archive"]
+                self.assertIn(
+                    f'org.opencontainers.image.revision="{revision}"', dockerfile
+                )
+                self.assertIn(
+                    f'https://github.com/{case["source_repository"]}/archive/{revision}.tar.gz',
+                    dockerfile,
+                )
+                self.assertIn(
+                    f'echo "{case["source_archive_sha256"]}  /tmp/{archive}" | sha256sum --check --strict',
+                    dockerfile,
+                )
+                self.assertNotIn("HF_HUB_OFFLINE=1", dockerfile)
+                self.assertNotIn("TRANSFORMERS_OFFLINE=1", dockerfile)
 
     def test_entrypoints_are_syntax_valid_and_have_no_runtime_downloads(self) -> None:
         forbidden = ("snapshot_download", "hf_hub_download", "requests.get", "requests.post", "urlopen(", "curl ")
-        for context_name, _runtime_name in CASES.values():
+        for case in CASES.values():
+            context_name = case["context"]
             with self.subTest(context=context_name):
                 source = (ROOT / context_name / "run.py").read_text()
                 ast.parse(source)
@@ -146,29 +244,17 @@ class NativeThreeDAdapterTests(unittest.TestCase):
     def test_hunyuan_declares_and_forces_exact_local_dinov2(self) -> None:
         recipe = json.loads((ROOT / "recipes/hunyuan3d-omni-pytorch-single.json").read_text())
         model_version = json.loads(
-            (ROOT / "model-versions/hunyuan3d-omni.json").read_text()
+            (ROOT / "models/hunyuan3d-omni.json").read_text()
         )
-        self.assertEqual(
-            model_version["license"]["territorial_restrictions"],
-            {
-                "denied_jurisdictions": ["EU", "GB", "KR"],
-                "notice": (
-                    "The upstream Hunyuan3D-Omni Community License does not apply "
-                    "in the European Union, United Kingdom, or South Korea."
-                ),
-            },
-        )
+        self.assertEqual(model_version["license"]["spdx"], "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License")
+        self.assertTrue(model_version["license"]["url"].startswith("https://"))
         self.assertFalse(model_version["license"]["operator_acceptance_required"])
         self.assertEqual(
-            recipe["model"]["content_sha256"],
+            recipe["models"][0]["model"]["content_sha256"],
             hashlib.sha256(CATALOG.canonical(model_version)).hexdigest(),
         )
-        artifacts = {artifact["id"]: artifact for artifact in recipe["artifacts"]}
-        dino = artifacts["dinov2-large"]
-        self.assertEqual(dino["repository"], "facebook/dinov2-large")
-        self.assertEqual(dino["revision"], "47b73eefe95e8d44ec3623f8890bd894b6ea2d6c")
-        self.assertEqual(dino["mount"]["target"], "/models/dinov2-large")
-        self.assertIn("dinov2-large", recipe["topology"]["roles"][0]["artifacts"])
+        self.assertEqual(recipe["models"][0]["files"][0]["mount"]["target"], "/models/target")
+        self.assertEqual(recipe["models"][0]["files"][0]["file_id"], "snapshot")
         source = (ROOT / "adapters/three-d/hunyuan3d-omni/run.py").read_text()
         self.assertIn('identifier != "facebook/dinov2-large"', source)
         self.assertIn('loader_kwargs["local_files_only"] = True', source)

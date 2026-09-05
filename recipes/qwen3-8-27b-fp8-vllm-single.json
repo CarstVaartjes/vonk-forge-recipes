@@ -1,14 +1,45 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4",
+        "platform": "linux/arm64",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/llm/vllm-openai-028"
+      },
+      "dockerfile": "adapters/llm/vllm-openai-028/Dockerfile",
+      "network": {
+        "hosts": [],
+        "mode": "none"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "qwen3-8-27b-fp8-vllm-single"
   },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "qwen3-8-27b-fp8"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "title": "Qwen3.8 27B FP8 vLLM single Spark",
     "description": "Preferred dense/default Candidate for one Spark, binding the exact official Qwen3.8 27B FP8 multimodal checkpoint. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
-    "tags": ["executable",
+    "tags": [
+      "executable",
       "candidate",
       "qwen",
       "qwen3-8",
@@ -25,233 +56,1170 @@
       "openai",
       "single",
       "spark"
-    ]
+    ],
+    "title": "Qwen3.8 27B FP8 vLLM single Spark"
   },
-  "model": {
-    "kind": "model-version",
-    "publisher": "qwen",
-    "slug": "qwen3-8-27b-fp8-017b9c7a",
-    "content_sha256": "5b0e052e251d6a38e028d755c7c8ea7380d594ce70fa453b9a80db56521ab15f"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "vllm",
-      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"
-    },
-    "patch_bundle": null
-  },
-  "build": {
-    "context": {
-      "path": "adapters/llm/vllm-openai-028",
-      "sha256": "1c04ac63234fc02ded9a3ce23cee001d342729a0b65f58282104a5c14ebbd355",
-      "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {
-      "mode": "none",
-      "hosts": []
-    },
-    "resources": {
-      "download_bytes": 40591545320,
-      "temporary_bytes": 61780099194,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 7200
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+  "models": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "Qwen/Qwen3.8-27B-FP8",
-      "revision": "017b9c7af6b5689d5dd426a76e0bc077eb5ca20a",
-      "download_bytes": 30890049597,
-      "installed_bytes": 30890049597,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d",
+          "id": "primary-metadata-34448b82c17d",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-bbedc3fda330",
+          "id": "primary-license-bbedc3fda330",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-a247d876f539",
+          "id": "primary-readme-a247d876f539",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-c3cf9e34abf4",
+          "id": "primary-chat-template-c3cf9e34abf4",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-74227dd615bf",
+          "id": "primary-config-74227dd615bf",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "crc32-5ccb0f7436ae",
+          "id": "primary-crc32-5ccb0f7436ae",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-e70c136c1b78",
+          "id": "primary-generation-config-e70c136c1b78",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-0-07f700e293ba",
+          "id": "primary-layers-0-07f700e293ba",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-1-35840b5d452c",
+          "id": "primary-layers-1-35840b5d452c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-10-ab5fbc076ccd",
+          "id": "primary-layers-10-ab5fbc076ccd",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-11-076b4ba44e93",
+          "id": "primary-layers-11-076b4ba44e93",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-12-86d8ec0b8fc8",
+          "id": "primary-layers-12-86d8ec0b8fc8",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-13-71dd986134f4",
+          "id": "primary-layers-13-71dd986134f4",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-14-95b285915cba",
+          "id": "primary-layers-14-95b285915cba",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-15-1e87d61e77d2",
+          "id": "primary-layers-15-1e87d61e77d2",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-16-8bcdbf4e2c7a",
+          "id": "primary-layers-16-8bcdbf4e2c7a",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-17-571cea447178",
+          "id": "primary-layers-17-571cea447178",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-18-d8700627ca22",
+          "id": "primary-layers-18-d8700627ca22",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-19-2b24cfb752bb",
+          "id": "primary-layers-19-2b24cfb752bb",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-2-32e63c6455eb",
+          "id": "primary-layers-2-32e63c6455eb",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-20-52fd00c68d4f",
+          "id": "primary-layers-20-52fd00c68d4f",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-21-e3c29dd94980",
+          "id": "primary-layers-21-e3c29dd94980",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-22-63446546e3e0",
+          "id": "primary-layers-22-63446546e3e0",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-23-4166ed11d032",
+          "id": "primary-layers-23-4166ed11d032",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-24-720bdcfe12b6",
+          "id": "primary-layers-24-720bdcfe12b6",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-25-1b188e7e4e8a",
+          "id": "primary-layers-25-1b188e7e4e8a",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-26-ad8c3e3d4b79",
+          "id": "primary-layers-26-ad8c3e3d4b79",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-27-8d63f4614300",
+          "id": "primary-layers-27-8d63f4614300",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-28-f78557cda661",
+          "id": "primary-layers-28-f78557cda661",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-29-09f264d6fddd",
+          "id": "primary-layers-29-09f264d6fddd",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-3-302f9af90bb6",
+          "id": "primary-layers-3-302f9af90bb6",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-30-54afe4fc7262",
+          "id": "primary-layers-30-54afe4fc7262",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-31-2779338203d0",
+          "id": "primary-layers-31-2779338203d0",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-32-f4af88935944",
+          "id": "primary-layers-32-f4af88935944",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-33-8f038505b9fc",
+          "id": "primary-layers-33-8f038505b9fc",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-34-0b28f43cc4d3",
+          "id": "primary-layers-34-0b28f43cc4d3",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-35-535b61b9eabb",
+          "id": "primary-layers-35-535b61b9eabb",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-36-2babd209cafb",
+          "id": "primary-layers-36-2babd209cafb",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-37-651cae579808",
+          "id": "primary-layers-37-651cae579808",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-38-1c60932dec65",
+          "id": "primary-layers-38-1c60932dec65",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-39-b0c7df4d51b9",
+          "id": "primary-layers-39-b0c7df4d51b9",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-4-b7f367125cdb",
+          "id": "primary-layers-4-b7f367125cdb",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-40-6908f1ab1a3d",
+          "id": "primary-layers-40-6908f1ab1a3d",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-41-21ee5d984207",
+          "id": "primary-layers-41-21ee5d984207",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-42-565379d4291c",
+          "id": "primary-layers-42-565379d4291c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-43-4bb8c0a4fadd",
+          "id": "primary-layers-43-4bb8c0a4fadd",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-44-14339304cd52",
+          "id": "primary-layers-44-14339304cd52",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-45-7a076aca542f",
+          "id": "primary-layers-45-7a076aca542f",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-46-d82d472cfc47",
+          "id": "primary-layers-46-d82d472cfc47",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-47-a83fc757fb11",
+          "id": "primary-layers-47-a83fc757fb11",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-48-f6aa126d006c",
+          "id": "primary-layers-48-f6aa126d006c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-49-7ed54c375407",
+          "id": "primary-layers-49-7ed54c375407",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-5-ebbc2c4bd2b9",
+          "id": "primary-layers-5-ebbc2c4bd2b9",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-50-73825e1f056c",
+          "id": "primary-layers-50-73825e1f056c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-51-b6abd8b62b5c",
+          "id": "primary-layers-51-b6abd8b62b5c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-52-6251d51e6fbe",
+          "id": "primary-layers-52-6251d51e6fbe",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-53-a9f2f43b4978",
+          "id": "primary-layers-53-a9f2f43b4978",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-54-f0246c9974a4",
+          "id": "primary-layers-54-f0246c9974a4",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-55-649c40049561",
+          "id": "primary-layers-55-649c40049561",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-56-eb0a8139a361",
+          "id": "primary-layers-56-eb0a8139a361",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-57-d7616ad33f92",
+          "id": "primary-layers-57-d7616ad33f92",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-58-a8dff0e37d0e",
+          "id": "primary-layers-58-a8dff0e37d0e",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-59-573ed65fd455",
+          "id": "primary-layers-59-573ed65fd455",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-6-2fea2aaa61d5",
+          "id": "primary-layers-6-2fea2aaa61d5",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-60-9a19c30b190b",
+          "id": "primary-layers-60-9a19c30b190b",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-61-ff744debd4dd",
+          "id": "primary-layers-61-ff744debd4dd",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-62-d9b3b9e472f7",
+          "id": "primary-layers-62-d9b3b9e472f7",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-63-59ba4a3af5e6",
+          "id": "primary-layers-63-59ba4a3af5e6",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-7-f2e0137e8780",
+          "id": "primary-layers-7-f2e0137e8780",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-8-1721b7bcd730",
+          "id": "primary-layers-8-1721b7bcd730",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layers-9-0a21e07065b5",
+          "id": "primary-layers-9-0a21e07065b5",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-a9d356d7bdf1",
+          "id": "primary-merges-a9d356d7bdf1",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-f0838c766951",
+          "id": "primary-model-safetensors-index-f0838c766951",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mtp-e5e4464a3793",
+          "id": "primary-mtp-e5e4464a3793",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "outside-ddff1d6665a2",
+          "id": "primary-outside-ddff1d6665a2",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c",
+          "id": "primary-preprocessor-config-27225450ac9c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-0997f410c57a",
+          "id": "primary-tokenizer-0997f410c57a",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-b11349aafa7c",
+          "id": "primary-tokenizer-config-b11349aafa7c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa",
+          "id": "primary-video-preprocessor-config-7768af27c1fa",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ce99b4cb2983",
+          "id": "primary-vocab-ce99b4cb2983",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "40229ea3ca056ff024a38782a3ca201a7404e0ad2f869709798795a646449532",
+        "kind": "model",
+        "publisher": "qwen",
+        "slug": "qwen3-8-27b-fp8-017b9c7a"
+      }
     }
   ],
+  "provenance": {
+    "attribution": [
+      "qwen"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/Qwen/Qwen3.8-27B-FP8/tree/017b9c7af6b5689d5dd426a76e0bc077eb5ca20a"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.1.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "9dad9a4379685cf081d80fa3afc6f268e2017a4786676f864d480e7a9b295e83",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.3"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "23cccb8b821e5ca16b17e98e4848b4f3c049a9ba59334820b42261b561fda63c",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.1.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The immutable official checkpoint and runtime contract are unchanged. Bounded text chat is qualified; Spark vision serving remains unproven.",
+            "kind": "metadata",
+            "references": [
+              "https://huggingface.co/Qwen/Qwen3.8-27B-FP8/tree/017b9c7af6b5689d5dd426a76e0bc077eb5ca20a"
+            ],
+            "summary": "Promoted FP8 as the preferred dense/default profile and made its text-only qualification boundary explicit."
+          }
+        ],
+        "prior_recipe_content_sha256": "d3faf826541b1f604a285a4c8e8147bc229ae24cd0ba5372f25b62560cf3b4a6",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "none",
+        "version": "1.1.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "runtime",
+            "references": [],
+            "summary": "Migrated to the official vLLM 0.28.0 ARM64 release image and pinned the changed batch and CUDA-graph defaults."
+          }
+        ],
+        "prior_recipe_content_sha256": "4ba4bdee446d9b1bbcf1004d36ff1a2e357fead4871ad60d37846b0ff68ed65a",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "reprepare",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "model",
+            "references": [],
+            "summary": "Regenerated the complete paginated FP8 artifact manifest and corrected resource accounting."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Routed non-root vLLM caches to the writable outputs mount."
+          },
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the model's native multimodal, vision, reasoning, and agentic capabilities."
+          }
+        ],
+        "prior_recipe_content_sha256": "98d7d134788487163334b804ddc99cb80acdb20eaa466683645305eefeec7fbb",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "3759c2239a1cf76e729a93b7bcab054fae65a25c639a0cced28332c1d17de11f",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of Qwen3.8 27B FP8 vLLM single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "f7e1364a05c6da5e4e862687e900273c4dfcd3b52b687a70fad0a0c6923bdb6a",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.1.4"
+  },
   "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "vllm",
-      "slug": "vllm-0-28-0-nvidia-arm64",
-      "content_sha256": "15c98035c9bbba7ec61d25acd93c3c34b0516754c299813e5f51344e858abd2d"
-    },
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "qwen3-8-27b-fp8"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 8192
+      },
+      {
+        "name": "max-cudagraph-capture-size",
+        "setting": null,
+        "value": 8
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.80"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "qwen3"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "qwen3_coder"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "vllm",
     "entrypoint": [
       "/opt/vonk/bin/vllm",
       "serve",
       "/models"
     ],
-    "arguments": [
-      {
-        "name": "served-model-name",
-        "value": "qwen3-8-27b-fp8"
-      },
-      {
-        "name": "max-model-len",
-        "value": 262144
-      },
-      {
-        "name": "max-num-seqs",
-        "value": 4
-      },
-      {
-        "name": "max-num-batched-tokens",
-        "value": 8192
-      },
-      {
-        "name": "max-cudagraph-capture-size",
-        "value": 8
-      },
-      {
-        "name": "gpu-memory-utilization",
-        "value": "0.80"
-      },
-      {
-        "name": "reasoning-parser",
-        "value": "qwen3"
-      },
-      {
-        "name": "tool-call-parser",
-        "value": "qwen3_coder"
-      },
-      {
-        "name": "enable-auto-tool-choice",
-        "value": true
-      }
-    ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "VLLM_NO_USAGE_STATS",
+        "secret": null,
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/v1/models",
-        "timeout_seconds": 1800
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "stop_timeout_seconds": 120
     }
   },
+  "schema_version": 2,
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": [
-          "weights"
-        ],
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 12000000000,
             "artifact_bytes": 30890049597,
-            "staging_bytes": 61780099194,
             "cache_bytes": 4000000000,
+            "image_bytes": 12000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 61780099194
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 4000000000,
             "startup_peak_bytes": 76000000000,
             "steady_state_bytes": 64000000000,
-            "runtime_growth_bytes": 4000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -259,44 +1227,58 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "openai",
-      "port": 8000,
-      "model_aliases": [
-        "qwen3-8-27b-fp8"
-      ],
-      "health_path": "/v1/models"
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "openai",
-        "checks": [
-          "endpoint.healthy",
-          "chat.nonempty",
-          "chat.max-output-64"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bounded-chat",
-        "framework": "openai",
         "configuration": {
           "max_output_tokens": 64,
           "requests": 1,
           "timeout_seconds": 600
-        }
+        },
+        "framework": "openai",
+        "name": "bounded-chat"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/Qwen/Qwen3.8-27B-FP8/tree/017b9c7af6b5689d5dd426a76e0bc077eb5ca20a",
-    "attribution": [
-      "qwen"
-    ]
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "qwen3-8-27b-fp8"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
   }
 }

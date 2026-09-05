@@ -19,13 +19,13 @@ from urllib.parse import quote, urlsplit
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 DEFAULT_MANIFEST = ROOT / "upstream-watch.json"
 SHA = re.compile(r"^[0-9a-f]{40}$")
 REPOSITORY_PART = re.compile(r"^[A-Za-z0-9_.-]+$")
 ENTITY_DIRECTORIES = {
-    "model-versions": "model-version",
-    "runtime-distributions": "runtime-distribution",
-    "patch-bundles": "patch-bundle",
+    "models": "model",
 }
 POLICIES = {"default-branch", "latest-release", "manual"}
 MAX_RESPONSE_BYTES = 4 * 1024 * 1024
@@ -159,9 +159,7 @@ def _identity(document: object, path: Path, expected_kind: str) -> tuple[str, st
     if not isinstance(document, dict):
         raise DriftInputError(f"catalog kind is invalid: {path}")
     actual_kind = document.get("kind")
-    if expected_kind == "recipe" and actual_kind not in {None, "recipe"}:
-        raise DriftInputError(f"catalog kind is invalid: {path}")
-    if expected_kind != "recipe" and actual_kind != expected_kind:
+    if actual_kind != expected_kind:
         raise DriftInputError(f"catalog kind is invalid: {path}")
     identity = document.get("identity")
     if not isinstance(identity, dict):
@@ -170,30 +168,6 @@ def _identity(document: object, path: Path, expected_kind: str) -> tuple[str, st
     if not isinstance(publisher, str) or not isinstance(slug, str):
         raise DriftInputError(f"catalog identity is invalid: {path}")
     return publisher, slug
-
-
-def _runtime_version(
-    document: dict[str, object], location: SourceLocation
-) -> str | None:
-    dependencies = document.get("dependencies")
-    if not isinstance(dependencies, list):
-        return None
-    for dependency in dependencies:
-        if not isinstance(dependency, dict):
-            continue
-        source, version = dependency.get("source"), dependency.get("version")
-        if not isinstance(source, str) or not isinstance(version, str):
-            continue
-        try:
-            dependency_location = parse_source(source)
-        except DriftInputError:
-            continue
-        if (
-            dependency_location.provider == location.provider
-            and dependency_location.repository == location.repository
-        ):
-            return version
-    return None
 
 
 def load_manifest(path: Path) -> tuple[dict[str, str], dict[str, dict[str, str]]]:
@@ -291,6 +265,13 @@ def discover_watches(
     for directory, expected_kind in ENTITY_DIRECTORIES.items():
         for path in sorted((root / directory).glob("*.json")):
             document = json.loads(path.read_text(encoding="utf-8"))
+            try:
+                if expected_kind == "model":
+                    document = ModelDefinition.model_validate(document).model_dump(mode="json")
+                else:
+                    document = RecipeDefinition.model_validate(document).model_dump(mode="json")
+            except Exception as error:
+                raise DriftInputError(f"catalog contract is invalid: {path}: {error}") from error
             publisher, slug = _identity(document, path, expected_kind)
             entity = f"{expected_kind}/{publisher}/{slug}"
             discovered_entities.add(entity)
@@ -301,18 +282,13 @@ def discover_watches(
             if not isinstance(repository, str) or not isinstance(revision, str):
                 raise DriftInputError(f"catalog source is incomplete: {path}")
             location = parse_source(repository)
-            version = (
-                document.get("version") if expected_kind == "model-version" else None
-            )
-            if expected_kind == "runtime-distribution":
-                version = _runtime_version(document, location)
             watches.append(
                 _watch(
                     entity=entity,
                     source_path=path,
                     source_value=repository,
                     revision=revision,
-                    version=version if isinstance(version, str) else None,
+                    version=None,
                     root=root,
                     defaults=defaults,
                     overrides=overrides,
@@ -320,6 +296,10 @@ def discover_watches(
             )
     for path in sorted((root / "recipes").glob("*.json")):
         document = json.loads(path.read_text(encoding="utf-8"))
+        try:
+            document = RecipeDefinition.model_validate(document).model_dump(mode="json")
+        except Exception as error:
+            raise DriftInputError(f"catalog contract is invalid: {path}: {error}") from error
         publisher, slug = _identity(document, path, "recipe")
         entity = f"recipe/{publisher}/{slug}"
         discovered_entities.add(entity)

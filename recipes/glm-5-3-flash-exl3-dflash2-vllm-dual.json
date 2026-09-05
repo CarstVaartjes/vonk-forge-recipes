@@ -1,156 +1,2368 @@
 {
-  "schema_version": 1,
-  "identity": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-exl3-dflash2-vllm-dual"},
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "9bb1557a4234fce63d59599e44d10747eabd742beb337eebf9e7070be8a0fd58",
+        "platform": "linux/arm64",
+        "repository": "ghcr.io/miaai-lab/glm-5.3-flash-2x-dgx-sparks"
+      },
+      "context": {
+        "path": "adapters/glm/mia-exl3-dflash2-dual"
+      },
+      "dockerfile": "adapters/glm/mia-exl3-dflash2-dual/Dockerfile",
+      "network": {
+        "hosts": [],
+        "mode": "none"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-exl3-dflash2-vllm-dual"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "glm-5.3-flash-exl3"
+      ],
+      "port": 8888
+    }
+  ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "title": "GLM 5.3 Flash EXL3 DFlash2 vLLM two Sparks",
     "description": "Directly installable Candidate reproducing MiaAI-Lab's current 2x DGX Spark EXL3/TR3 4 bpw target with the bf582e4e DFlash2 K7 checkpoint, native-mp TP2, 1M context, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. Exact source, image, target, drafter, licenses, and measured resource envelope are pinned; Vonk physical acceptance and checkpoint requalification remain pending.",
-    "tags": ["candidate", "dflash2", "executable", "exl3", "glm-5.3", "multimodal", "native-mp", "pending", "reasoning", "spark", "tool-use", "vllm"]
+    "tags": [
+      "candidate",
+      "dflash2",
+      "executable",
+      "exl3",
+      "glm-5.3",
+      "multimodal",
+      "native-mp",
+      "pending",
+      "reasoning",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "GLM 5.3 Flash EXL3 DFlash2 vLLM two Sparks"
   },
-  "model": {"kind": "model-version", "publisher": "mia-ai-lab", "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-024db9f7", "content_sha256": "158c894be21cc8bcd7c4e76e6367f02d9c1c389a3720f995e343d6db4f93ba3f"},
-  "execution": {
-    "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"},
-    "patch_bundle": {"kind": "patch-bundle", "publisher": "miaai-lab", "slug": "glm-5-3-flash-exl3-dflash2-mia-dual-profile", "content_sha256": "fefff65249681f5295f8720286e35aa42f46d81f98dc047473ccdac1549670ae"}
-  },
-  "build": {
-    "context": {"path": "adapters/glm/mia-exl3-dflash2-dual", "sha256": "7f2796adb97fa3a55e3ff698dca03f35dbe530b2ba540498ae0ef7857580270b", "expected_bytes": 30720, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {"mode": "none", "hosts": []},
-    "resources": {"download_bytes": 9788994117, "temporary_bytes": 12000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200, "cpu_cores": 8, "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
-    {"id": "target", "kind": "huggingface.snapshot", "repository": "Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw", "revision": "024db9f7e9871e8efdf21538ba55af7442be3cd5", "download_bytes": 175715854761, "installed_bytes": 175715854761, "mount": {"target": "/models/target", "read_only": true}, "roles": ["entrypoint", "worker"]},
-    {"id": "drafter", "kind": "huggingface.snapshot", "repository": "incoai/GLM-5.3-Flash-DFlash2", "revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a", "download_bytes": 2342460697, "installed_bytes": 2342460697, "mount": {"target": "/models/drafter", "read_only": true}, "roles": ["entrypoint", "worker"]}
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-d3b10d515fb2-618cd5b83d",
+          "id": "primary-metadata-d3b10d515fb2-618cd5b83d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "license-9a354667162e-c693279643",
+          "id": "primary-license-9a354667162e-c693279643",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "manifest-45d35f1f3aa0-ac1a57d943",
+          "id": "primary-manifest-45d35f1f3aa0-ac1a57d943",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "mirror-2a30e3b7fde5-683682b54b",
+          "id": "primary-mirror-2a30e3b7fde5-683682b54b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "original-model-card-f7adf502e7ac-58beb10032",
+          "id": "primary-original-model-card-f7adf502e7ac-58beb10032",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "provenance-749cd28826a4-4c0d27425c",
+          "id": "primary-provenance-749cd28826a4-4c0d27425c",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-ae6b1e1a8eac-b335630551",
+          "id": "primary-readme-ae6b1e1a8eac-b335630551",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "sha256sums-cb0da1f97a53-e6351d3766",
+          "id": "primary-sha256sums-cb0da1f97a53-e6351d3766",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "b12x-apache-2-0-c71d239df917-cb29b566a3",
+          "id": "primary-b12x-apache-2-0-c71d239df917-cb29b566a3",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "third-party-notices-ccfbcf5e6725-d448b8e7fe",
+          "id": "primary-third-party-notices-ccfbcf5e6725-d448b8e7fe",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "chat-template-41cff9af7b3a-00824420d1",
+          "id": "primary-chat-template-41cff9af7b3a-00824420d1",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "config-4f5341e04898-587cb980af",
+          "id": "primary-config-4f5341e04898-587cb980af",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "exl3-mcg-storage-abi-c51ff4803f8d-c892c2a43f",
+          "id": "primary-exl3-mcg-storage-abi-c51ff4803f8d-c892c2a43f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "generation-config-230c30609ecb-97dd3d578b",
+          "id": "primary-generation-config-230c30609ecb-97dd3d578b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "materialization-receipt-afe588284702-3a0ab5fd20",
+          "id": "primary-materialization-receipt-afe588284702-3a0ab5fd20",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00120-46cc9e998975-12435431a4",
+          "id": "primary-model-00001-of-00120-46cc9e998975-12435431a4",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00120-b78eebdbee13-6e0fdf1ed7",
+          "id": "primary-model-00002-of-00120-b78eebdbee13-6e0fdf1ed7",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00120-d377c4b645e7-65e4a549ff",
+          "id": "primary-model-00003-of-00120-d377c4b645e7-65e4a549ff",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00120-65f841ba0f34-bc903b840f",
+          "id": "primary-model-00004-of-00120-65f841ba0f34-bc903b840f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00120-d0425becf2a4-f881474d38",
+          "id": "primary-model-00005-of-00120-d0425becf2a4-f881474d38",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00120-3f6ded63fe3f-267cd49bdd",
+          "id": "primary-model-00006-of-00120-3f6ded63fe3f-267cd49bdd",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00120-a8e2cf2d869a-83d3802361",
+          "id": "primary-model-00007-of-00120-a8e2cf2d869a-83d3802361",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00120-eaaf3e209d6b-7450bccdde",
+          "id": "primary-model-00008-of-00120-eaaf3e209d6b-7450bccdde",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00120-ad30bcac854c-fccc730405",
+          "id": "primary-model-00009-of-00120-ad30bcac854c-fccc730405",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00120-35530edfbce7-e805fb3830",
+          "id": "primary-model-00010-of-00120-35530edfbce7-e805fb3830",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00120-686f13c81516-80b44e5aed",
+          "id": "primary-model-00011-of-00120-686f13c81516-80b44e5aed",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00120-79a19881d8a3-459b46eb61",
+          "id": "primary-model-00012-of-00120-79a19881d8a3-459b46eb61",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00120-d07940d68fc7-566b83c847",
+          "id": "primary-model-00013-of-00120-d07940d68fc7-566b83c847",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00120-ca3290268d13-0614f5f141",
+          "id": "primary-model-00014-of-00120-ca3290268d13-0614f5f141",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00120-2172d6d1c76e-16baedfbbf",
+          "id": "primary-model-00015-of-00120-2172d6d1c76e-16baedfbbf",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00120-b33392a8b5f6-4b1f2761e8",
+          "id": "primary-model-00016-of-00120-b33392a8b5f6-4b1f2761e8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00120-b198f9d06069-5707f9098c",
+          "id": "primary-model-00017-of-00120-b198f9d06069-5707f9098c",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00018-of-00120-b98e6fa60d19-e9e19650df",
+          "id": "primary-model-00018-of-00120-b98e6fa60d19-e9e19650df",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00019-of-00120-1ac4f98e4a16-6f6796f688",
+          "id": "primary-model-00019-of-00120-1ac4f98e4a16-6f6796f688",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00020-of-00120-db5f5e4bfe97-f6aa6660e2",
+          "id": "primary-model-00020-of-00120-db5f5e4bfe97-f6aa6660e2",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00021-of-00120-94abdb9997af-0d2dd07b36",
+          "id": "primary-model-00021-of-00120-94abdb9997af-0d2dd07b36",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00022-of-00120-d1c09ce5b40b-c45d9c4641",
+          "id": "primary-model-00022-of-00120-d1c09ce5b40b-c45d9c4641",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00023-of-00120-e75296748bb0-ccfadcc7f3",
+          "id": "primary-model-00023-of-00120-e75296748bb0-ccfadcc7f3",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00024-of-00120-f9fa4d4312b7-7442c3427d",
+          "id": "primary-model-00024-of-00120-f9fa4d4312b7-7442c3427d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00025-of-00120-6f94c10adb85-8ed483bed0",
+          "id": "primary-model-00025-of-00120-6f94c10adb85-8ed483bed0",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00026-of-00120-0c65f0517b61-5d97013772",
+          "id": "primary-model-00026-of-00120-0c65f0517b61-5d97013772",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00027-of-00120-af324d263111-02b1d50bd1",
+          "id": "primary-model-00027-of-00120-af324d263111-02b1d50bd1",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00028-of-00120-5e031de67c3c-a8cf91ef44",
+          "id": "primary-model-00028-of-00120-5e031de67c3c-a8cf91ef44",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00029-of-00120-bae837ec87ec-559d0bdebf",
+          "id": "primary-model-00029-of-00120-bae837ec87ec-559d0bdebf",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00030-of-00120-bbe67349b260-8f79d9498d",
+          "id": "primary-model-00030-of-00120-bbe67349b260-8f79d9498d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00031-of-00120-3aebbcb6ef80-e39e3b7f41",
+          "id": "primary-model-00031-of-00120-3aebbcb6ef80-e39e3b7f41",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00032-of-00120-cb9063b4790a-da4be29488",
+          "id": "primary-model-00032-of-00120-cb9063b4790a-da4be29488",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00033-of-00120-598e794cb00f-778b1be96b",
+          "id": "primary-model-00033-of-00120-598e794cb00f-778b1be96b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00034-of-00120-fe68ce83f4b3-4afb689532",
+          "id": "primary-model-00034-of-00120-fe68ce83f4b3-4afb689532",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00035-of-00120-5c439c150741-3f5f6d5470",
+          "id": "primary-model-00035-of-00120-5c439c150741-3f5f6d5470",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00036-of-00120-bba2d7a1df63-ab57214a17",
+          "id": "primary-model-00036-of-00120-bba2d7a1df63-ab57214a17",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00037-of-00120-39ac664b9906-ba8c769702",
+          "id": "primary-model-00037-of-00120-39ac664b9906-ba8c769702",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00038-of-00120-26b70b8b6194-a1229f7aa6",
+          "id": "primary-model-00038-of-00120-26b70b8b6194-a1229f7aa6",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00039-of-00120-c2599dd1cdc0-465f1fc086",
+          "id": "primary-model-00039-of-00120-c2599dd1cdc0-465f1fc086",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00040-of-00120-e109dbf65aba-35b9241c1d",
+          "id": "primary-model-00040-of-00120-e109dbf65aba-35b9241c1d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00041-of-00120-bb85b9089116-83db938c1b",
+          "id": "primary-model-00041-of-00120-bb85b9089116-83db938c1b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00042-of-00120-a017885e3006-ddde0f96a9",
+          "id": "primary-model-00042-of-00120-a017885e3006-ddde0f96a9",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00043-of-00120-04f3aeccb23c-a0911e015c",
+          "id": "primary-model-00043-of-00120-04f3aeccb23c-a0911e015c",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00044-of-00120-fa5a385f7a82-eacbd9bde9",
+          "id": "primary-model-00044-of-00120-fa5a385f7a82-eacbd9bde9",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00045-of-00120-b0b508dbd621-9e2ccf9390",
+          "id": "primary-model-00045-of-00120-b0b508dbd621-9e2ccf9390",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00046-of-00120-c0e27a8d0a9e-39452e9f1d",
+          "id": "primary-model-00046-of-00120-c0e27a8d0a9e-39452e9f1d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00047-of-00120-5c471e072659-9dbed1f52d",
+          "id": "primary-model-00047-of-00120-5c471e072659-9dbed1f52d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00048-of-00120-1d957114322b-6ba4e39a5f",
+          "id": "primary-model-00048-of-00120-1d957114322b-6ba4e39a5f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00049-of-00120-895d22c61a55-9b2445d3f8",
+          "id": "primary-model-00049-of-00120-895d22c61a55-9b2445d3f8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00050-of-00120-c2bd099b71e3-8113571b37",
+          "id": "primary-model-00050-of-00120-c2bd099b71e3-8113571b37",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00051-of-00120-1c30583b2edd-ccadd3fbd6",
+          "id": "primary-model-00051-of-00120-1c30583b2edd-ccadd3fbd6",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00052-of-00120-7c800f2f476c-a50b27ab98",
+          "id": "primary-model-00052-of-00120-7c800f2f476c-a50b27ab98",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00053-of-00120-43acf4bbb16d-2a720032ef",
+          "id": "primary-model-00053-of-00120-43acf4bbb16d-2a720032ef",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00054-of-00120-98bb70809af0-81acda5e32",
+          "id": "primary-model-00054-of-00120-98bb70809af0-81acda5e32",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00055-of-00120-285c605b3391-8545c387ba",
+          "id": "primary-model-00055-of-00120-285c605b3391-8545c387ba",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00056-of-00120-6f825c25cd07-e79a0dea97",
+          "id": "primary-model-00056-of-00120-6f825c25cd07-e79a0dea97",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00057-of-00120-9c7e6d5fd6d4-1e00c90a13",
+          "id": "primary-model-00057-of-00120-9c7e6d5fd6d4-1e00c90a13",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00058-of-00120-0b73d4dc1f37-e1274be091",
+          "id": "primary-model-00058-of-00120-0b73d4dc1f37-e1274be091",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00059-of-00120-c5e83b54c3f1-0cd8b27563",
+          "id": "primary-model-00059-of-00120-c5e83b54c3f1-0cd8b27563",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00060-of-00120-c37b7e82d16a-8e37dd27e8",
+          "id": "primary-model-00060-of-00120-c37b7e82d16a-8e37dd27e8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00061-of-00120-ec26e65bf26f-1edadcbc6d",
+          "id": "primary-model-00061-of-00120-ec26e65bf26f-1edadcbc6d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00062-of-00120-98c6427e9b22-af5b3b5a00",
+          "id": "primary-model-00062-of-00120-98c6427e9b22-af5b3b5a00",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00063-of-00120-dacdd78b8a4f-b274f2500a",
+          "id": "primary-model-00063-of-00120-dacdd78b8a4f-b274f2500a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00064-of-00120-7f134d623d5f-45e5d1381b",
+          "id": "primary-model-00064-of-00120-7f134d623d5f-45e5d1381b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00065-of-00120-16661291a3d2-0853f85c3d",
+          "id": "primary-model-00065-of-00120-16661291a3d2-0853f85c3d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00066-of-00120-e8c5392e733b-db56e63edc",
+          "id": "primary-model-00066-of-00120-e8c5392e733b-db56e63edc",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00067-of-00120-f2fb7876faca-c67af1c565",
+          "id": "primary-model-00067-of-00120-f2fb7876faca-c67af1c565",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00068-of-00120-abc3009f1052-b7b1187949",
+          "id": "primary-model-00068-of-00120-abc3009f1052-b7b1187949",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00069-of-00120-ee4f3cb631ca-87f0277a07",
+          "id": "primary-model-00069-of-00120-ee4f3cb631ca-87f0277a07",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00070-of-00120-8b60971fe302-34719a0903",
+          "id": "primary-model-00070-of-00120-8b60971fe302-34719a0903",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00071-of-00120-9fb9f3581b0a-18d38f84b3",
+          "id": "primary-model-00071-of-00120-9fb9f3581b0a-18d38f84b3",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00072-of-00120-caec81374ed6-4256eae072",
+          "id": "primary-model-00072-of-00120-caec81374ed6-4256eae072",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00073-of-00120-313e11a85717-b71881032c",
+          "id": "primary-model-00073-of-00120-313e11a85717-b71881032c",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00074-of-00120-3c22a6012bb3-f7ab128788",
+          "id": "primary-model-00074-of-00120-3c22a6012bb3-f7ab128788",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00075-of-00120-55992a5b643d-79ed5c6d99",
+          "id": "primary-model-00075-of-00120-55992a5b643d-79ed5c6d99",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00076-of-00120-3dea15fd98ef-f975c5d2a8",
+          "id": "primary-model-00076-of-00120-3dea15fd98ef-f975c5d2a8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00077-of-00120-fb6efae4033a-d5415f7104",
+          "id": "primary-model-00077-of-00120-fb6efae4033a-d5415f7104",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00078-of-00120-1f231a1c8149-1002291158",
+          "id": "primary-model-00078-of-00120-1f231a1c8149-1002291158",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00079-of-00120-84eb7df2440c-8a356bb7e9",
+          "id": "primary-model-00079-of-00120-84eb7df2440c-8a356bb7e9",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00080-of-00120-1008d2f310da-650a4f1960",
+          "id": "primary-model-00080-of-00120-1008d2f310da-650a4f1960",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00081-of-00120-30bb97e87009-f479bc5b9a",
+          "id": "primary-model-00081-of-00120-30bb97e87009-f479bc5b9a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00082-of-00120-6314d366c0a9-317eacdbe4",
+          "id": "primary-model-00082-of-00120-6314d366c0a9-317eacdbe4",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00083-of-00120-424127fa0a70-90673ca661",
+          "id": "primary-model-00083-of-00120-424127fa0a70-90673ca661",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00084-of-00120-8f5be1a45eea-3b618208d5",
+          "id": "primary-model-00084-of-00120-8f5be1a45eea-3b618208d5",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00085-of-00120-22722c615db2-0853d5e2c5",
+          "id": "primary-model-00085-of-00120-22722c615db2-0853d5e2c5",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00086-of-00120-dcd025dc9e48-1912454f20",
+          "id": "primary-model-00086-of-00120-dcd025dc9e48-1912454f20",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00087-of-00120-c00bdc2031dd-dff6b21639",
+          "id": "primary-model-00087-of-00120-c00bdc2031dd-dff6b21639",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00088-of-00120-147abc2a72e6-33ad7c9c7b",
+          "id": "primary-model-00088-of-00120-147abc2a72e6-33ad7c9c7b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00089-of-00120-5d2ec3fd271c-642aae040e",
+          "id": "primary-model-00089-of-00120-5d2ec3fd271c-642aae040e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00090-of-00120-2bb2e9ab7859-02a4fd20ee",
+          "id": "primary-model-00090-of-00120-2bb2e9ab7859-02a4fd20ee",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00091-of-00120-8ccbc08c9dbc-35b959e7cc",
+          "id": "primary-model-00091-of-00120-8ccbc08c9dbc-35b959e7cc",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00092-of-00120-20422d9ea7e0-4b66476b42",
+          "id": "primary-model-00092-of-00120-20422d9ea7e0-4b66476b42",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00093-of-00120-753329dbb8d2-3d8663285c",
+          "id": "primary-model-00093-of-00120-753329dbb8d2-3d8663285c",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00094-of-00120-f08e09cb29e5-e8e5e16a67",
+          "id": "primary-model-00094-of-00120-f08e09cb29e5-e8e5e16a67",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00095-of-00120-c08536722ef0-f65795c4dc",
+          "id": "primary-model-00095-of-00120-c08536722ef0-f65795c4dc",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00096-of-00120-fafe3a925e79-98d23f1599",
+          "id": "primary-model-00096-of-00120-fafe3a925e79-98d23f1599",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00097-of-00120-e616de880c95-69cdd7375e",
+          "id": "primary-model-00097-of-00120-e616de880c95-69cdd7375e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00098-of-00120-7c34ac45ffba-7f7b33ad93",
+          "id": "primary-model-00098-of-00120-7c34ac45ffba-7f7b33ad93",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00099-of-00120-9693db794a79-d3c07d5408",
+          "id": "primary-model-00099-of-00120-9693db794a79-d3c07d5408",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00100-of-00120-a19fb303a981-837f48f967",
+          "id": "primary-model-00100-of-00120-a19fb303a981-837f48f967",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00101-of-00120-c24ca6ae7ce0-161f149d02",
+          "id": "primary-model-00101-of-00120-c24ca6ae7ce0-161f149d02",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00102-of-00120-b5c8396800ac-b678e0095f",
+          "id": "primary-model-00102-of-00120-b5c8396800ac-b678e0095f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00103-of-00120-09139292ba5a-2745b60dfe",
+          "id": "primary-model-00103-of-00120-09139292ba5a-2745b60dfe",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00104-of-00120-b0af3c5b38f0-48ccc4ff2a",
+          "id": "primary-model-00104-of-00120-b0af3c5b38f0-48ccc4ff2a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00105-of-00120-f475efcce530-903301ab4f",
+          "id": "primary-model-00105-of-00120-f475efcce530-903301ab4f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00106-of-00120-1059fe4a53c2-0166354ffc",
+          "id": "primary-model-00106-of-00120-1059fe4a53c2-0166354ffc",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00107-of-00120-57e1f9904438-1b8280fd52",
+          "id": "primary-model-00107-of-00120-57e1f9904438-1b8280fd52",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00108-of-00120-286de5d27896-973e69f3df",
+          "id": "primary-model-00108-of-00120-286de5d27896-973e69f3df",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00109-of-00120-b41955ae5e68-49a0a4a8cc",
+          "id": "primary-model-00109-of-00120-b41955ae5e68-49a0a4a8cc",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00110-of-00120-b2bd23f9b6d1-fec51613af",
+          "id": "primary-model-00110-of-00120-b2bd23f9b6d1-fec51613af",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00111-of-00120-091e1d588b89-43ea98efe2",
+          "id": "primary-model-00111-of-00120-091e1d588b89-43ea98efe2",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00112-of-00120-8a7c2486aa93-ec0c9f3e6f",
+          "id": "primary-model-00112-of-00120-8a7c2486aa93-ec0c9f3e6f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00113-of-00120-8f3205a5dd7e-58771aaa44",
+          "id": "primary-model-00113-of-00120-8f3205a5dd7e-58771aaa44",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00114-of-00120-e3cf6f9ea4e0-6567bafe78",
+          "id": "primary-model-00114-of-00120-e3cf6f9ea4e0-6567bafe78",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00115-of-00120-347b2e08fca7-c4d9887778",
+          "id": "primary-model-00115-of-00120-347b2e08fca7-c4d9887778",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00116-of-00120-3d9c0120686a-298b0030ef",
+          "id": "primary-model-00116-of-00120-3d9c0120686a-298b0030ef",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00117-of-00120-48eca9375a20-f549a4dbfa",
+          "id": "primary-model-00117-of-00120-48eca9375a20-f549a4dbfa",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00118-of-00120-f7df8825ffec-7535a97079",
+          "id": "primary-model-00118-of-00120-f7df8825ffec-7535a97079",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00119-of-00120-8e393cfce320-16500d7d3f",
+          "id": "primary-model-00119-of-00120-8e393cfce320-16500d7d3f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00120-of-00120-15ffa59ac9a3-0ba76d8e7c",
+          "id": "primary-model-00120-of-00120-15ffa59ac9a3-0ba76d8e7c",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-2f64d21c67c9-0a05be8238",
+          "id": "primary-model-safetensors-index-2f64d21c67c9-0a05be8238",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "processor-config-aae38374c94b-27f0cb76af",
+          "id": "primary-processor-config-aae38374c94b-27f0cb76af",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "source-model-revision-5d9aadd98432-e197d5450a",
+          "id": "primary-source-model-revision-5d9aadd98432-e197d5450a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "recipe-22bcfacf0f7e-7b84b405cf",
+          "id": "primary-recipe-22bcfacf0f7e-7b84b405cf",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "quantization-config-1e5cdf56da19-6f24389fb3",
+          "id": "primary-quantization-config-1e5cdf56da19-6f24389fb3",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "checkpoint-efeaed9daed8-44814fd7c0",
+          "id": "primary-checkpoint-efeaed9daed8-44814fd7c0",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "runtime-results-v44-f47b8aad703c-49b1a1120b",
+          "id": "primary-runtime-results-v44-f47b8aad703c-49b1a1120b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-19e773648cb4-224931eb13",
+          "id": "primary-tokenizer-19e773648cb4-224931eb13",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-98b1271574f4-94d5c6ba8f",
+          "id": "primary-tokenizer-config-98b1271574f4-94d5c6ba8f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "bc37e7f6a352e3a665436d548f3c1f992ec04c96841f0f49ff8c8031604e8c56",
+        "kind": "model",
+        "publisher": "mia-ai-lab",
+        "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-024db9f7"
+      }
+    }
   ],
+  "provenance": {
+    "attribution": [
+      "Z.AI",
+      "Brandon M. Music",
+      "MiaAI-Lab",
+      "IncoAI",
+      "Turboderp",
+      "vLLM contributors"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/493cb88fc69f8ba73ac87404f429d763e2739d89"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.3.2"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "bb7951702200d5a95b86a5c80f6b70fc15cd63ea8b1dd3264c40d741291ac86e",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.3.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "The complete 144-file target inventory is refreshed from 25a44fdb to 024db9f7. All model payload files are byte-identical; only the upstream README changed, increasing the exact inventory by 7 bytes. The pinned 493cb88f runtime image, tested 2,048-token prefill setting, and 126 GB admission contract remain unchanged; the newer upstream 7,168-token launcher default is deliberately not adopted until its newer runtime image is vendored and tested.",
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/commit/024db9f7e9871e8efdf21538ba55af7442be3cd5",
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/493cb88fc69f8ba73ac87404f429d763e2739d89"
+            ],
+            "summary": "Advanced the EXL3 target snapshot while retaining the tested prefill batching."
+          }
+        ],
+        "prior_recipe_content_sha256": "8b26e0c70aa6f2d78a5db0c4e8050db27bba423ed629dfb6aa20b17574986b02",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "reprepare",
+        "version": "1.3.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "The Dockerfile performs only local patching and verification after the digest-pinned base image is transferred separately.",
+            "kind": "security",
+            "references": [],
+            "summary": "Removed unnecessary public network access from the deterministic dual-Spark image build."
+          }
+        ],
+        "prior_recipe_content_sha256": "a068d343ca6c2962f1df66146280a245dd136c6c6cd28556e7b5f0da08853a04",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "The complete five-file snapshot is pinned at 2,342,460,697 bytes, including the changed b038e1d9 model payload. The target checkpoint and strict 126 GB Controller memory envelope are unchanged; acceptance rate, output equivalence, latency, and memory require a fresh physical two-Spark canary.",
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/commit/bf582e4eacc1810f76656d1811693ff6c6737d2a"
+            ],
+            "summary": "Advanced the DFlash2 companion to checkpoint bf582e4e."
+          },
+          {
+            "details": "The consumed Dockerfile and overlays are byte-identical to the prior pin. The newer source adds launcher numeric validation and a cold-prefill harness; the Controller wrapper already fixes and validates the exact numeric serving profile, and the recipe now declares the 8K through 300K cold-prefill ladder.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/493cb88fc69f8ba73ac87404f429d763e2739d89"
+            ],
+            "summary": "Aligned the runtime authority with MiaAI-Lab 493cb88f."
+          }
+        ],
+        "prior_recipe_content_sha256": "cff8d29ca0ec6cd3b233c424b5f7c2155d1701a7ac5e1819fb8a3538bf5496c3",
+        "released_at": "2026-08-31",
+        "upgrade_effect": "reprepare",
+        "version": "1.2.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "The image build applies and executes the exact fail-closed circular slot-map regression, updates DFlash2 to draft TP2, and preserves Controller-native rank-local GID injection with no SSH. The exact 25a44fdb target checkpoint and strict admission envelope remain unchanged.",
+            "kind": "fix",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/b5ab8091dec88e324c943deb96c2dfd957db9f36",
+              "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/tree/25a44fdbf16862a46b7cc9921142c6c81350af2f"
+            ],
+            "summary": "Advanced to MiaAI-Lab b5ab8091 with the K-pool tail slot-map correction."
+          }
+        ],
+        "prior_recipe_content_sha256": "43d54e87682fb898beddd4fcca8b8da7829ad9130e82409f9d6a8600dff44357",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "reprepare",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "Pins runtime source 79f10b91, the resolved ARM64 GHCR digest, MiaAI-Lab's exact 25a44fdb EXL3/TR3 target pin and the complete dc77ff1c DFlash2 inventory, separate ShapleyMCG and CC BY-NC-ND operator acceptance, Controller-native mp deployment without SSH, and a conservative 126 GB per-node unified-memory admission envelope derived from MiaAI-Lab's measured 105.9 GiB post-init requirement and 18.67 GiB KV pool. Physical Vonk acceptance remains pending.",
+            "kind": "initial",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/79f10b91f84779b2b1ff2c9327b1a5847cd97f70",
+              "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/tree/25a44fdbf16862a46b7cc9921142c6c81350af2f",
+              "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/tree/dc77ff1c99eeb2df044ee3d4f0094eb033fee410"
+            ],
+            "summary": "Added the directly installable MiaAI-Lab GLM 5.3 Flash EXL3 DFlash2 two-Spark Candidate."
+          }
+        ],
+        "prior_recipe_content_sha256": "915fa81e1b2424ec396d3073be066d92084d13633ad3bd724f54d6b11fba599a",
+        "released_at": "2026-08-29",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-03",
+    "version": "1.3.2"
+  },
   "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "vllm-glm53-exl3-dflash2-mia-493cb88f-arm64", "content_sha256": "a6a153838bf4b2f09917468aafac752d70ada48123ce64bfe031a0f453f3c02a"},
-    "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models/target"],
     "arguments": [
-      {"name": "served-model-name", "value": "glm-5.3-flash-exl3"},
-      {"name": "trust-remote-code", "value": true},
-      {"name": "tensor-parallel-size", "value": 2},
-      {"name": "pipeline-parallel-size", "value": 1},
-      {"name": "gpu-memory-utilization", "value": "0.87"},
-      {"name": "max-model-len", "value": 1000000},
-      {"name": "max-num-seqs", "value": 4},
-      {"name": "max-num-batched-tokens", "value": 2048},
-      {"name": "kv-cache-dtype", "value": "fp8"},
-      {"name": "speculative-config", "value": "{\"method\":\"dflash\",\"model\":\"/models/drafter\",\"num_speculative_tokens\":7,\"kv_cache_dtype\":\"auto\",\"draft_tensor_parallel_size\":2,\"draft_sample_method\":\"probabilistic\",\"rejection_sample_method\":\"standard\"}"},
-      {"name": "enable-prefix-caching", "value": true},
-      {"name": "disable-flashinfer-autotune", "value": true},
-      {"name": "skip-mm-profiling", "value": true},
-      {"name": "allowed-local-media-path", "value": "/inputs"},
-      {"name": "limit-mm-per-prompt", "value": "{\"image\":4,\"video\":1}"},
-      {"name": "tool-call-parser", "value": "glm47"},
-      {"name": "enable-auto-tool-choice", "value": true},
-      {"name": "reasoning-parser", "value": "glm45"}
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "glm-5.3-flash-exl3"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 2
+      },
+      {
+        "name": "pipeline-parallel-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.87"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 2048
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"dflash\",\"model\":\"/models/drafter\",\"num_speculative_tokens\":7,\"kv_cache_dtype\":\"auto\",\"draft_tensor_parallel_size\":2,\"draft_sample_method\":\"probabilistic\",\"rejection_sample_method\":\"standard\"}"
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "disable-flashinfer-autotune",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "skip-mm-profiling",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "allowed-local-media-path",
+        "setting": null,
+        "value": "/inputs"
+      },
+      {
+        "name": "limit-mm-per-prompt",
+        "setting": null,
+        "value": "{\"image\":4,\"video\":1}"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "glm47"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "glm45"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models/target"
     ],
     "environment": [
-      {"name": "HF_HUB_OFFLINE", "value": "1"},
-      {"name": "TRANSFORMERS_OFFLINE", "value": "1"},
-      {"name": "VLLM_NO_USAGE_STATS", "value": "1"},
-      {"name": "DO_NOT_TRACK", "value": "1"},
-      {"name": "VLLM_ENGINE_READY_TIMEOUT_S", "value": "3600"},
-      {"name": "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS", "value": "1800"},
-      {"name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS", "value": "1"},
-      {"name": "GLM53_SUPPRESS_STOPS_IN_REASONING", "value": "1"},
-      {"name": "GLM53_MIXED_PREFILL_CHUNK", "value": "skip"},
-      {"name": "EXL3_FUSED_MOE", "value": "1"},
-      {"name": "EXL3_MOE_ROW_TILE", "value": "0"},
-      {"name": "EXL3_TEMP_ROWS_FUSED", "value": "128"},
-      {"name": "TORCH_CUDA_ARCH_LIST", "value": "12.1a"},
-      {"name": "FLASHINFER_CUDA_ARCH_LIST", "value": "12.1a"},
-      {"name": "FLASHINFER_DISABLE_VERSION_CHECK", "value": "1"},
-      {"name": "PYTORCH_CUDA_ALLOC_CONF", "value": "expandable_segments:True"},
-      {"name": "NCCL_IB_DISABLE", "value": "0"},
-      {"name": "NCCL_IB_ROCE_VERSION_NUM", "value": "2"},
-      {"name": "NCCL_NET", "value": "IB"},
-      {"name": "NCCL_NET_PLUGIN", "value": "none"},
-      {"name": "NCCL_NVLS_ENABLE", "value": "0"},
-      {"name": "NCCL_CUMEM_ENABLE", "value": "0"},
-      {"name": "NCCL_IB_MERGE_NICS", "value": "0"},
-      {"name": "NCCL_CROSS_NIC", "value": "0"},
-      {"name": "NCCL_IGNORE_CPU_AFFINITY", "value": "1"},
-      {"name": "NCCL_DEBUG", "value": "WARN"}
+      {
+        "name": "HF_HUB_OFFLINE",
+        "secret": null,
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "secret": null,
+        "value": "1"
+      },
+      {
+        "name": "DO_NOT_TRACK",
+        "secret": null,
+        "value": "1"
+      },
+      {
+        "name": "VLLM_ENGINE_READY_TIMEOUT_S",
+        "secret": null,
+        "value": "3600"
+      },
+      {
+        "name": "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS",
+        "secret": null,
+        "value": "1800"
+      },
+      {
+        "name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS",
+        "secret": null,
+        "value": "1"
+      },
+      {
+        "name": "GLM53_SUPPRESS_STOPS_IN_REASONING",
+        "secret": null,
+        "value": "1"
+      },
+      {
+        "name": "GLM53_MIXED_PREFILL_CHUNK",
+        "secret": null,
+        "value": "skip"
+      },
+      {
+        "name": "EXL3_FUSED_MOE",
+        "secret": null,
+        "value": "1"
+      },
+      {
+        "name": "EXL3_MOE_ROW_TILE",
+        "secret": null,
+        "value": "0"
+      },
+      {
+        "name": "EXL3_TEMP_ROWS_FUSED",
+        "secret": null,
+        "value": "128"
+      },
+      {
+        "name": "TORCH_CUDA_ARCH_LIST",
+        "secret": null,
+        "value": "12.1a"
+      },
+      {
+        "name": "FLASHINFER_CUDA_ARCH_LIST",
+        "secret": null,
+        "value": "12.1a"
+      },
+      {
+        "name": "FLASHINFER_DISABLE_VERSION_CHECK",
+        "secret": null,
+        "value": "1"
+      },
+      {
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "secret": null,
+        "value": "expandable_segments:True"
+      },
+      {
+        "name": "NCCL_IB_DISABLE",
+        "secret": null,
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IB_ROCE_VERSION_NUM",
+        "secret": null,
+        "value": "2"
+      },
+      {
+        "name": "NCCL_NET",
+        "secret": null,
+        "value": "IB"
+      },
+      {
+        "name": "NCCL_NET_PLUGIN",
+        "secret": null,
+        "value": "none"
+      },
+      {
+        "name": "NCCL_NVLS_ENABLE",
+        "secret": null,
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CUMEM_ENABLE",
+        "secret": null,
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IB_MERGE_NICS",
+        "secret": null,
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CROSS_NIC",
+        "secret": null,
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IGNORE_CPU_AFFINITY",
+        "secret": null,
+        "value": "1"
+      },
+      {
+        "name": "NCCL_DEBUG",
+        "secret": null,
+        "value": "WARN"
+      }
     ],
-    "security": {
-      "devices": ["nvidia.com/gpu=all"],
-      "capabilities": [],
-      "host_network": true,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {"source": "model", "target": "/models", "read_only": true},
-        {"source": "inputs", "target": "/inputs", "read_only": true},
-        {"source": "outputs", "target": "/outputs", "read_only": false}
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
+      "failure": {
+        "rank_loss": "withdraw-endpoint",
+        "recovery": "restart-worker-then-entrypoint"
+      },
       "post_stop": [],
-      "stop_timeout_seconds": 180,
-      "readiness": {"strategy": "endpoint-owner-after-all-ranks", "path": "/v1/models", "timeout_seconds": 3600},
-      "failure": {"rank_loss": "withdraw-endpoint", "recovery": "restart-worker-then-entrypoint"}
+      "pre_start": [],
+      "stop_timeout_seconds": 180
     }
   },
-  "topology": {
-    "name": "dual",
-    "mode": "distributed",
-    "node_count": 2,
-    "roles": [
-      {"name": "entrypoint", "count": 1, "endpoint_owner": true, "artifacts": ["target", "drafter"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 178058315451, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 124000000000, "steady_state_bytes": 121500000000, "runtime_growth_bytes": 2500000000, "system_reserve_bytes": 2000000000}}},
-      {"name": "worker", "count": 1, "endpoint_owner": false, "artifacts": ["target", "drafter"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 178058315451, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 124000000000, "steady_state_bytes": 121500000000, "runtime_growth_bytes": 2500000000, "system_reserve_bytes": 2000000000}}}
-    ],
-    "parallelism": {"world_size": 2, "tensor": 2, "pipeline": 1, "data": 1, "backend": "mp"},
-    "fabric": {"connectivity": "connected", "minimum_bandwidth_mbps": 200000},
-    "start_order": ["worker", "entrypoint"],
-    "stop_order": ["entrypoint", "worker"]
+  "schema_version": 2,
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 1000000
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
   },
-  "interfaces": [{"adapter": "openai", "port": 8888, "model_aliases": ["glm-5.3-flash-exl3"], "health_path": "/v1/models"}],
-  "validation": {
-    "validators": [{"interface": "openai", "checks": ["endpoint.healthy", "collective.two-ranks", "chat.nonempty", "chat.max-output-64", "rank-loss.withdrawal", "rank-recovery.healthy"]}],
-    "benchmarks": [
-      {"name": "bounded-chat", "framework": "openai", "configuration": {"max_output_tokens": 64, "requests": 1, "timeout_seconds": 600}},
-      {"name": "cold-prefill-8k", "framework": "openai", "configuration": {"prompt_tokens": 8000, "max_output_tokens": 8, "requests": 1, "temperature": 0, "thinking": false, "timeout_seconds": 180}},
-      {"name": "cold-prefill-16k", "framework": "openai", "configuration": {"prompt_tokens": 16000, "max_output_tokens": 8, "requests": 1, "temperature": 0, "thinking": false, "timeout_seconds": 180}},
-      {"name": "cold-prefill-100k", "framework": "openai", "configuration": {"prompt_tokens": 100000, "max_output_tokens": 8, "requests": 1, "temperature": 0, "thinking": false, "timeout_seconds": 600}},
-      {"name": "cold-prefill-256k", "framework": "openai", "configuration": {"prompt_tokens": 256000, "max_output_tokens": 8, "requests": 1, "temperature": 0, "thinking": false, "timeout_seconds": 1200}},
-      {"name": "cold-prefill-300k", "framework": "openai", "configuration": {"prompt_tokens": 300000, "max_output_tokens": 8, "requests": 1, "temperature": 0, "thinking": false, "timeout_seconds": 1200}}
+  "topology": {
+    "fabric": {
+      "connectivity": "connected",
+      "minimum_bandwidth_mbps": 200000
+    },
+    "mode": "distributed",
+    "name": "dual",
+    "node_count": 2,
+    "parallelism": {
+      "backend": "mp",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 2,
+      "world_size": 2
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 178058315451,
+            "cache_bytes": 40000000000,
+            "image_bytes": 30000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 24000000000,
+            "staging_bytes": 25000000000
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 2500000000,
+            "startup_peak_bytes": 124000000000,
+            "steady_state_bytes": 121500000000,
+            "system_reserve_bytes": 2000000000
+          }
+        }
+      },
+      {
+        "count": 1,
+        "endpoint_owner": false,
+        "name": "worker",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 178058315451,
+            "cache_bytes": 40000000000,
+            "image_bytes": 30000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 24000000000,
+            "staging_bytes": 25000000000
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 2500000000,
+            "startup_peak_bytes": 124000000000,
+            "steady_state_bytes": 121500000000,
+            "system_reserve_bytes": 2000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "worker",
+      "entrypoint"
+    ],
+    "stop_order": [
+      "entrypoint",
+      "worker"
     ]
   },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/493cb88fc69f8ba73ac87404f429d763e2739d89",
-    "attribution": ["Z.AI", "Brandon M. Music", "MiaAI-Lab", "IncoAI", "Turboderp", "vLLM contributors"]
+  "validation": {
+    "benchmarks": [
+      {
+        "configuration": {
+          "max_output_tokens": 64,
+          "requests": 1,
+          "timeout_seconds": 600
+        },
+        "framework": "openai",
+        "name": "bounded-chat"
+      },
+      {
+        "configuration": {
+          "max_output_tokens": 8,
+          "prompt_tokens": 8000,
+          "requests": 1,
+          "temperature": 0,
+          "thinking": false,
+          "timeout_seconds": 180
+        },
+        "framework": "openai",
+        "name": "cold-prefill-8k"
+      },
+      {
+        "configuration": {
+          "max_output_tokens": 8,
+          "prompt_tokens": 16000,
+          "requests": 1,
+          "temperature": 0,
+          "thinking": false,
+          "timeout_seconds": 180
+        },
+        "framework": "openai",
+        "name": "cold-prefill-16k"
+      },
+      {
+        "configuration": {
+          "max_output_tokens": 8,
+          "prompt_tokens": 100000,
+          "requests": 1,
+          "temperature": 0,
+          "thinking": false,
+          "timeout_seconds": 600
+        },
+        "framework": "openai",
+        "name": "cold-prefill-100k"
+      },
+      {
+        "configuration": {
+          "max_output_tokens": 8,
+          "prompt_tokens": 256000,
+          "requests": 1,
+          "temperature": 0,
+          "thinking": false,
+          "timeout_seconds": 1200
+        },
+        "framework": "openai",
+        "name": "cold-prefill-256k"
+      },
+      {
+        "configuration": {
+          "max_output_tokens": 8,
+          "prompt_tokens": 300000,
+          "requests": 1,
+          "temperature": 0,
+          "thinking": false,
+          "timeout_seconds": 1200
+        },
+        "framework": "openai",
+        "name": "cold-prefill-300k"
+      }
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "glm-5.3-flash-exl3"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
   }
 }

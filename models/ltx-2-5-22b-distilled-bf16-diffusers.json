@@ -1,0 +1,128 @@
+{
+  "access": {
+    "authentication": "token",
+    "gated": true,
+    "visibility": "restricted"
+  },
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "audio-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "video-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
+      "source_url": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "filtered-snapshot",
+      "path": "filtered-snapshot",
+      "roles": [
+        "weights",
+        "text-encoder",
+        "tokenizer",
+        "video-vae",
+        "audio-vae",
+        "vocoder"
+      ],
+      "sha256": "6ad49fdbc4b6d35644a45ecd0310d95e25d178bc942d909ced168e498754b0ef",
+      "size_bytes": 70090051372
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "lightricks",
+      "slug": "ltx",
+      "title": "LTX"
+    },
+    "model": {
+      "architecture": "22B-class synchronized audio-video diffusion transformer with convolutional video VAE and BWE vocoder",
+      "publisher": "lightricks",
+      "slug": "ltx-2-5",
+      "title": "LTX-2.5"
+    },
+    "publisher": "lightricks",
+    "slug": "ltx-2-5-22b-distilled-bf16-diffusers",
+    "variant": "LTX-2.5 distilled BF16 Diffusers",
+    "version": "22b-distilled-bf16-diffusers-426936f8"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Lightricks"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "LicenseRef-LTX-2-Community",
+    "url": "https://github.com/Lightricks/LTX-2/blob/a95ab856bf29407b6b066ede0abe1846050db56c/LICENSE-2_x"
+  },
+  "limits": {
+    "context_tokens": 1024,
+    "frames": 65,
+    "resolution_pixels": 393216,
+    "sample_rate_hz": 48000
+  },
+  "lineage": {
+    "derivation": "Official gated Diffusers repository filtered to the distilled split components. The four-shard transformer closure is inferred from the identical pinned index used by transformer_full, which contains exactly those four shards, and is rejected at runtime if the authenticated index differs.",
+    "publisher": "Lightricks",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "lightricks",
+      "slug": "ltx-2-5"
+    }
+  },
+  "metadata": {
+    "description": "Filtered official gated Diffusers closure at 426936f8: distilled split transformer, convolutional video VAE, audio VAE, BWE vocoder, connectors, and text stack.",
+    "tags": [
+      "lightricks",
+      "ltx",
+      "video",
+      "audio",
+      "diffusers",
+      "bf16",
+      "gated",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "audio",
+    "video"
+  ],
+  "parameters": {
+    "active": null,
+    "total": 22000000000
+  },
+  "provenance": {
+    "attribution": [
+      "Lightricks"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
+    "source_url": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers",
+    "revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc"
+  },
+  "supersedes": null
+}

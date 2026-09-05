@@ -1,24 +1,111 @@
 {
-  "schema_version": 1,
-  "kind": "model",
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "3d-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "79736cad0fd84de384d5eede659b4ebd24effe33",
+      "source_url": "https://huggingface.co/VAST-AI/SkinTokens"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "roles": [
+        "entrypoint"
+      ],
+      "sha256": "5938bd8f9efc78e163de867cc56a2c4f22140e0b145b8f5abbf12b9560d93fb7",
+      "size_bytes": 1618924643
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
   "identity": {
+    "family": {
+      "publisher": "vast-ai",
+      "slug": "skintokens",
+      "title": "SkinTokens"
+    },
+    "model": {
+      "architecture": "upstream-native generation pipeline",
+      "publisher": "vast-ai",
+      "slug": "skintokens",
+      "title": "SkinTokens /"
+    },
     "publisher": "vast-ai",
-    "slug": "skintokens"
+    "slug": "skintokens",
+    "variant": "SkinTokens / TokenRig",
+    "version": "SkinTokens / TokenRig"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "vast-ai"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "MIT",
+    "url": "https://github.com/VAST-AI-Research/SkinTokens/blob/273b691d35989d71cd17ff2895fdc735097b92d1/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Immutable public upstream snapshot at the pinned revision.",
+    "publisher": "vast-ai",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "vast-ai",
+      "slug": "skintokens"
+    }
   },
   "metadata": {
-    "title": "SkinTokens /",
-    "description": "SkinTokens / TokenRig model family.",
+    "description": "Immutable public snapshot at 79736cad.",
     "tags": [
       "vast-ai",
       "three-d",
-      "generation"
+      "candidate"
     ]
   },
-  "model_group": {
-    "kind": "model-group",
-    "publisher": "vast-ai",
-    "slug": "skintokens",
-    "content_sha256": "8f9636faac77d8970016efebc7dfe810dc9d4b04e9b7f0de6f56932b1d1ce67a"
+  "modalities": [
+    "3d"
+  ],
+  "parameters": {
+    "active": null,
+    "total": null
   },
-  "architecture": "upstream-native generation pipeline"
+  "provenance": {
+    "attribution": [
+      "vast-ai"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "79736cad0fd84de384d5eede659b4ebd24effe33",
+    "source_url": "https://huggingface.co/VAST-AI/SkinTokens"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/VAST-AI/SkinTokens",
+    "revision": "79736cad0fd84de384d5eede659b4ebd24effe33"
+  },
+  "supersedes": null
 }

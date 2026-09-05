@@ -1,14 +1,117 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/video/hunyuan-video-15-native"
+      },
+      "dockerfile": "adapters/video/hunyuan-video-15-native/Dockerfile",
+      "network": {
+        "hosts": [
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "hunyuan-video-15-i2v-step-distilled-diffusers-single"
   },
+  "interfaces": [
+    {
+      "adapter": "video-job",
+      "input": {
+        "max_bytes": 16842752,
+        "media_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "text/plain"
+        ],
+        "path": "/inputs",
+        "required": true,
+        "slots": [
+          {
+            "description": "UTF-8 text prompt for video generation.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "prompt",
+            "label": "Prompt",
+            "max_file_bytes": 65536,
+            "max_files": 1,
+            "max_total_bytes": 65536,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          },
+          {
+            "description": "One source image for image-to-video generation.",
+            "extensions": [
+              ".jpeg",
+              ".jpg",
+              ".png",
+              ".webp"
+            ],
+            "id": "image",
+            "label": "Source image",
+            "max_file_bytes": 16777216,
+            "max_files": 1,
+            "max_total_bytes": 16777216,
+            "media_types": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 1073741824,
+        "path": "/outputs",
+        "slots": [
+          {
+            "description": "Generated MP4 video.",
+            "extensions": [
+              ".mp4"
+            ],
+            "id": "video",
+            "label": "Video",
+            "max_file_bytes": 1073741824,
+            "max_files": 1,
+            "max_total_bytes": 1073741824,
+            "media_types": [
+              "video/mp4"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "path": "/outputs"
+    }
+  ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "title": "HunyuanVideo 1.5 I2V 480p step-distilled diffusers single Spark",
     "description": "Installable Candidate for 480p eight-step image-to-video with a complete immutable step-distilled Diffusers snapshot, isolated image input, and offline ARM64 runtime; physical Spark acceptance remains pending.",
-    "tags": ["executable",
+    "tags": [
+      "executable",
       "candidate",
       "video",
       "image-to-video",
@@ -16,227 +119,333 @@
       "diffusers",
       "single",
       "spark"
-    ]
+    ],
+    "title": "HunyuanVideo 1.5 I2V 480p step-distilled diffusers single Spark"
   },
-  "model": {
-    "kind": "model-version",
-    "publisher": "tencent",
-    "slug": "hunyuan-video-15-i2v-step-distilled",
-    "content_sha256": "4d1cbcc77c3301a860a5fd5bdd26895caca0ebfd3db03b2e5e5c6770bde07207"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "diffusers",
-      "content_sha256": "9776b37f1bf4596bf4a0c75c3e9fd6da8b25050aa2cefded2ffd5e35baa583b2"
-    },
-    "patch_bundle": null
-  },
-  "build": {
-    "context": {
-      "path": "adapters/video/hunyuan-video-15-native",
-      "sha256": "455543f964628442497909e7d282941661ba7c572ca769d69b8c58834fe492b1",
-      "expected_bytes": 102400,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {
-      "mode": "public",
-      "hosts": [
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ]
-    },
-    "resources": {
-      "download_bytes": 36636998160,
-      "temporary_bytes": 69273996320,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 14400
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+  "models": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled",
-      "revision": "854c04a4c8a53d990b418c7478f0802c0fc8c726",
-      "download_bytes": 34636998160,
-      "installed_bytes": 34636998160,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+      "files": [
+        {
+          "file_id": "snapshot",
+          "id": "primary-snapshot",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "16834875b23181681c9410f40c5da3bc6ded2167a260ac1ff931aa85a78c0dfa",
+        "kind": "model",
+        "publisher": "tencent",
+        "slug": "hunyuan-video-15-i2v-step-distilled"
+      }
     }
   ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "huggingface",
-      "slug": "diffusers-0-39-0-cuda13-arm64",
-      "content_sha256": "018f23f02a2d93e5d4396f283b6862fc01aaf1364334db1d556d4484c2640afb"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/diffusers-job"
+  "provenance": {
+    "attribution": [
+      "tencent"
     ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.4.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "5fed3741a3589c5fa3593d0cc353b7427b9aaacd711c842c3d4f5f23a3e2be05",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.4.2"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "d444ddd50878e4de0d190ffb2dade2ef37e18c770f1b935fed95ffd10c266a5d",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.4.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Fail closed in the EU, UK, and South Korea as required by the exact Tencent Hunyuan Community License Agreement."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Correct the offloaded single-Spark memory envelope to require 112 GB plus the existing 8 GB system reserve, allowing admission on a healthy 128 GB Spark."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Validate the exact 121-frame MP4 stream before atomically publishing output.mp4 and reject oversized or unsupported image inputs before model loading."
+          }
+        ],
+        "prior_recipe_content_sha256": "a62a299bc9ca84b9cf74a96c784460e6e802562db2de8cb9e0fde41122db37ef",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "rebuild",
+        "version": "1.4.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Declared separate required prompt and source-image slots plus the exact MP4 output contract."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Made the adapter consume the controller-authenticated slot manifest before model loading."
+          }
+        ],
+        "prior_recipe_content_sha256": "2b07298c861ea716c2caed0d9a58ded4fbab64f66fa07b0f949ac73b02b64db8",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "1.3.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "559787f5625634a36214539a87ead6913583d4b43b197c31d237f919ac45f9de",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.2.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [
+              "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled/tree/854c04a4c8a53d990b418c7478f0802c0fc8c726",
+              "https://github.com/huggingface/diffusers/commit/a3608b512ed7248499a44c61d954965ed9bdae4d"
+            ],
+            "summary": "Replaced the incomplete native snapshot with the complete 480p I2V step-distilled Diffusers conversion, hash-locked runtime, and isolated image input."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Bound 480p I2V to its self-contained step-distilled pipeline, recommended eight-step path, local-only loading, and exact image-to-video contract."
+          },
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Corrected the model authority from Apache-2.0 to the territorial Tencent Hunyuan Community License."
+          }
+        ],
+        "prior_recipe_content_sha256": "a1bc312d61e59ca26497b7389a1b5cf9efbc3c56008e331490f724ae348407d1",
+        "released_at": "2026-08-24",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038"
+            ],
+            "summary": "Corrected the immutable HunyuanVideo 1.5 snapshot and dependent disk resource sizes from the complete upstream inventory."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Marked the candidate as requiring a model-specific image-conditioned adapter and input contract before acceptance."
+          }
+        ],
+        "prior_recipe_content_sha256": "272054659678ca76792ea24e2bd3fec5a9933ea1b2a927f7f570fdbea14b51ae",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of HunyuanVideo 1.5 I2V 480p step-distilled diffusers single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "9e6196be30d8b75c997dec9a2bf6567fa9cf9e5f747c9ad977094f5f4fa735a3",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+            ],
+            "summary": "Recovered the first public legacy revision from before semantic release tracking."
+          }
+        ],
+        "prior_recipe_content_sha256": "240d34c117d5147ddfe74b013946c46131d5ff916dec4f32654c6e5131abed18",
+        "released_at": "2026-08-17",
+        "upgrade_effect": "reprepare",
+        "version": "0.1.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.4.3"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "output-mime",
+        "setting": null,
         "value": "video/mp4"
       },
       {
         "name": "pipeline",
+        "setting": null,
         "value": "image-to-image"
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 0
       },
       {
         "name": "num-inference-steps",
+        "setting": null,
         "value": 8
       },
       {
         "name": "guidance-scale",
+        "setting": null,
         "value": "1"
       },
       {
         "name": "resolution",
+        "setting": null,
         "value": 480
       }
+    ],
+    "engine": "diffusers",
+    "entrypoint": [
+      "/opt/vonk/bin/diffusers-job"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/outputs",
-        "timeout_seconds": 3600
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "stop_timeout_seconds": 120
     }
   },
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": [
-          "weights"
-        ],
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 2000000000,
             "artifact_bytes": 34636998160,
-            "staging_bytes": 69273996320,
             "cache_bytes": 8000000000,
+            "image_bytes": 2000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 69273996320
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
             "startup_peak_bytes": 112000000000,
             "steady_state_bytes": 104000000000,
-            "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -244,59 +453,42 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "video-job",
-      "path": "/outputs",
-      "input": {
-        "path": "/inputs",
-        "required": true,
-        "media_types": [
-          "image/jpeg",
-          "image/png",
-          "image/webp",
-          "text/plain"
-        ],
-        "max_bytes": 16842752,
-        "slots": [
-          {"id": "prompt", "label": "Prompt", "description": "UTF-8 text prompt for video generation.", "media_types": ["text/plain"], "extensions": [".txt"], "min_files": 1, "max_files": 1, "max_file_bytes": 65536, "max_total_bytes": 65536},
-          {"id": "image", "label": "Source image", "description": "One source image for image-to-video generation.", "media_types": ["image/jpeg", "image/png", "image/webp"], "extensions": [".jpeg", ".jpg", ".png", ".webp"], "min_files": 1, "max_files": 1, "max_file_bytes": 16777216, "max_total_bytes": 16777216}
-        ]
-      },
-      "output": {
-        "path": "/outputs",
-        "max_total_bytes": 1073741824,
-        "slots": [{"id": "video", "label": "Video", "description": "Generated MP4 video.", "media_types": ["video/mp4"], "extensions": [".mp4"], "min_files": 1, "max_files": 1, "max_file_bytes": 1073741824, "max_total_bytes": 1073741824}]
-      }
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "video-job",
-        "checks": [
-          "artifact.mime.video-mp4"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bounded-480p-i2v-step-distilled",
-        "framework": "diffusers",
         "configuration": {
-          "resolution": 480,
           "frames": 121,
           "num_inference_steps": 8,
+          "resolution": 480,
           "timeout_seconds": 14400
-        }
+        },
+        "framework": "diffusers",
+        "name": "bounded-480p-i2v-step-distilled"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
-    "attribution": [
-      "tencent"
-    ]
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "video-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.png",
+            "input_path": "/inputs",
+            "input_slots": {
+              "image": "qualification/fixtures/tiny.png",
+              "prompt": "qualification/fixtures/prompt.txt"
+            },
+            "output_path": "/outputs",
+            "output_slot": "video",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "video-job"
+    }
   }
 }

@@ -1,12 +1,123 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/video/ltx25-diffusers"
+      },
+      "dockerfile": "adapters/video/ltx25-diffusers/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "ltx-2-5-22b-distilled-bf16-diffusers-single"
   },
+  "interfaces": [
+    {
+      "adapter": "video-job",
+      "input": {
+        "max_bytes": 81920,
+        "media_types": [
+          "application/json",
+          "text/plain"
+        ],
+        "path": "/inputs",
+        "required": true,
+        "slots": [
+          {
+            "description": "Required UTF-8 text describing the shot, motion, camera, lighting, dialogue, and synchronized sound.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "prompt",
+            "label": "Generation prompt",
+            "max_file_bytes": 16384,
+            "max_files": 1,
+            "max_total_bytes": 16384,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          },
+          {
+            "description": "Optional request.json overriding the deterministic seed and named unified-memory profile.",
+            "extensions": [
+              ".json"
+            ],
+            "id": "request",
+            "label": "Advanced options",
+            "max_file_bytes": 65536,
+            "max_files": 1,
+            "max_total_bytes": 65536,
+            "media_types": [
+              "application/json"
+            ],
+            "min_files": 0
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 1074790400,
+        "path": "/outputs",
+        "slots": [
+          {
+            "description": "Generated 768x512 H.264/AAC MP4 with exactly 65 frames at 24 fps and one synchronized 48 kHz stereo audio stream.",
+            "extensions": [
+              ".mp4"
+            ],
+            "id": "video",
+            "label": "Synchronized video",
+            "max_file_bytes": 1073741824,
+            "max_files": 1,
+            "max_total_bytes": 1073741824,
+            "media_types": [
+              "video/mp4"
+            ],
+            "min_files": 1
+          },
+          {
+            "description": "JSON receipt containing seed, profile, runtime pins, raw tensor hashes, media facts, and MP4 SHA-256.",
+            "extensions": [
+              ".json"
+            ],
+            "id": "receipt",
+            "label": "Determinism receipt",
+            "max_file_bytes": 1048576,
+            "max_files": 1,
+            "max_total_bytes": 1048576,
+            "media_types": [
+              "application/json"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "path": "/outputs"
+    }
+  ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "title": "LTX-2.5 distilled BF16 Diffusers single Spark",
     "description": "Installable single-Spark Candidate using the exact official gated LTX-2.5 Diffusers closure, a 505-byte license/token access probe before the 70 GB model artifact, convolutional VAE, deterministic eight-sigma generation, BF16 offload baseline, and optional FP8 layerwise-cast profiles. Exact-license acknowledgement, same-account Hugging Face access, physical authenticated installation, and GB10 audiovisual qualification remain required.",
     "tags": [
       "executable",
@@ -24,277 +135,270 @@
       "fp8-cast",
       "single",
       "spark"
-    ]
+    ],
+    "title": "LTX-2.5 distilled BF16 Diffusers single Spark"
   },
-  "model": {
-    "kind": "model-version",
-    "publisher": "lightricks",
-    "slug": "ltx-2-5-22b-distilled-bf16-diffusers",
-    "content_sha256": "6c97a002770183c2e02e8370760c4bab339dd7b58edf75a961e212ecc7fbae75"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "diffusers",
-      "content_sha256": "9776b37f1bf4596bf4a0c75c3e9fd6da8b25050aa2cefded2ffd5e35baa583b2"
-    },
-    "patch_bundle": null
-  },
-  "build": {
-    "context": {
-      "path": "adapters/video/ltx25-diffusers",
-      "sha256": "3949acf62ba89cde7a241bf4eff0fa10cd727d869fd86c6ad1165ecee10fc7b0",
-      "expected_bytes": 40960,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {
-      "mode": "public",
-      "hosts": [
-        "github.com",
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ]
-    },
-    "resources": {
-      "download_bytes": 10000000000,
-      "temporary_bytes": 20000000000,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 14400
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+  "models": [
     {
-      "id": "license-token-preflight",
-      "kind": "huggingface.snapshot",
-      "repository": "Lightricks/LTX-2.5-Diffusers",
-      "revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
-      "include_paths": [
-        "audio_vae/config.json"
+      "files": [
+        {
+          "file_id": "filtered-snapshot",
+          "id": "primary-filtered-snapshot",
+          "mount": {
+            "read_only": true,
+            "target": "/models/license-token-preflight"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "filtered-snapshot",
+          "id": "primary-filtered-snapshot-2",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
       ],
-      "download_bytes": 505,
-      "installed_bytes": 505,
-      "mount": {
-        "target": "/models/license-token-preflight",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "id": "target",
-      "kind": "huggingface.snapshot",
-      "repository": "Lightricks/LTX-2.5-Diffusers",
-      "revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
-      "include_paths": [
-        "audio_vae/config.json",
-        "audio_vae/diffusion_pytorch_model.safetensors",
-        "connectors/config.json",
-        "connectors/diffusion_pytorch_model-00001-of-00002.safetensors",
-        "connectors/diffusion_pytorch_model-00002-of-00002.safetensors",
-        "connectors/diffusion_pytorch_model.safetensors.index.json",
-        "scheduler/scheduler_config.json",
-        "text_encoder/config.json",
-        "text_encoder/generation_config.json",
-        "text_encoder/model-00001-of-00005.safetensors",
-        "text_encoder/model-00002-of-00005.safetensors",
-        "text_encoder/model-00003-of-00005.safetensors",
-        "text_encoder/model-00004-of-00005.safetensors",
-        "text_encoder/model-00005-of-00005.safetensors",
-        "text_encoder/model.safetensors.index.json",
-        "tokenizer/chat_template.jinja",
-        "tokenizer/tokenizer.json",
-        "tokenizer/tokenizer_config.json",
-        "transformer/config.json",
-        "transformer/diffusion_pytorch_model-00001-of-00004.safetensors",
-        "transformer/diffusion_pytorch_model-00002-of-00004.safetensors",
-        "transformer/diffusion_pytorch_model-00003-of-00004.safetensors",
-        "transformer/diffusion_pytorch_model-00004-of-00004.safetensors",
-        "transformer/diffusion_pytorch_model.safetensors.index.json",
-        "vae/config.json",
-        "vae/diffusion_pytorch_model.safetensors",
-        "vocoder/config.json",
-        "vocoder/diffusion_pytorch_model.safetensors"
-      ],
-      "download_bytes": 70090051372,
-      "installed_bytes": 70090051372,
-      "mount": {
-        "target": "/models/target",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+      "id": "primary",
+      "model": {
+        "content_sha256": "758426bfab8f18020222df86fb395d9cb8cbacfeb7b0e7105c990fd75a21812a",
+        "kind": "model",
+        "publisher": "lightricks",
+        "slug": "ltx-2-5-22b-distilled-bf16-diffusers"
+      }
     }
   ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "huggingface",
-      "slug": "diffusers-0-40-0-cuda13-arm64",
-      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/diffusers-job"
+  "provenance": {
+    "attribution": [
+      "Lightricks",
+      "Hugging Face"
     ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.1.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "5549d9947f3e3d141625a22a256d690a5fc64f188be0b65216fea2889ee49945",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.3"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "761a10a5144402644e114ee0bc13da49ca900b01c86f06754dc365b10809d3d9",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.1.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+            "kind": "security",
+            "references": [],
+            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+          }
+        ],
+        "prior_recipe_content_sha256": "889ca27825623bac876490e6bd83492437ae64dbd64327d69757c92e1bc1f470",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [
+              "https://github.com/Lightricks/LTX-2/blob/a95ab856bf29407b6b066ede0abe1846050db56c/LICENSE-2_x",
+              "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc"
+            ],
+            "summary": "Require an exact pinned-license acknowledgement and verify the approved account token with a bounded 505-byte gated object before build or large model transfer."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Make the 505-byte gated config the first installed artifact, so unavailable Spark credentials fail before the 70 GB runtime closure."
+          },
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Document secure token handling, clear gate failures, the generic agent-error boundary, exact disk arithmetic, and the physical canary gate."
+          }
+        ],
+        "prior_recipe_content_sha256": "feaf3dfc1cd57dc58ebaa63cfb76dadf8bb18bf6901dd4abdc1fb9bbc69afac2",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc",
+              "https://github.com/huggingface/diffusers/tree/d035dcd7cc7c88e0a154609b62887d50bba9fdc2"
+            ],
+            "summary": "Added gated LTX-2.5 distilled Diffusers with a simple prompt, optional advanced options, deterministic AV, and exact video/receipt outputs."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Verify H.264 video, AAC stereo audio, exact geometry, timing, and synchronization and record those facts in the deterministic receipt before publication."
+          }
+        ],
+        "prior_recipe_content_sha256": "e81e2140225faa481db9cb03749cfe4aeeb3837b44f78cb72c691afe19729623",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.1.4"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "output-mime",
+        "setting": null,
         "value": "video/mp4"
       },
       {
         "name": "pipeline",
+        "setting": null,
         "value": "text-to-video"
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 42
       },
       {
         "name": "num-inference-steps",
+        "setting": null,
         "value": 8
       },
       {
         "name": "width",
+        "setting": null,
         "value": 768
       },
       {
         "name": "height",
+        "setting": null,
         "value": 512
       }
+    ],
+    "engine": "diffusers",
+    "entrypoint": [
+      "/opt/vonk/bin/diffusers-job"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/outputs",
-        "timeout_seconds": 3600
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "stop_timeout_seconds": 120
     }
   },
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": [
-          "license-token-preflight",
-          "target"
-        ],
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 8000000000,
             "artifact_bytes": 70090051877,
-            "staging_bytes": 140180103754,
             "cache_bytes": 8000000000,
+            "image_bytes": 8000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 16000000000
+            "safety_margin_bytes": 16000000000,
+            "staging_bytes": 140180103754
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 6000000000,
             "startup_peak_bytes": 118000000000,
             "steady_state_bytes": 104000000000,
-            "runtime_growth_bytes": 6000000000,
             "system_reserve_bytes": 10000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -302,137 +406,61 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "video-job",
-      "path": "/outputs",
-      "input": {
-        "path": "/inputs",
-        "required": true,
-        "media_types": [
-          "application/json",
-          "text/plain"
-        ],
-        "max_bytes": 81920,
-        "slots": [
-          {
-            "id": "prompt",
-            "label": "Generation prompt",
-            "description": "Required UTF-8 text describing the shot, motion, camera, lighting, dialogue, and synchronized sound.",
-            "media_types": [
-              "text/plain"
-            ],
-            "extensions": [
-              ".txt"
-            ],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 16384,
-            "max_total_bytes": 16384
-          },
-          {
-            "id": "request",
-            "label": "Advanced options",
-            "description": "Optional request.json overriding the deterministic seed and named unified-memory profile.",
-            "media_types": [
-              "application/json"
-            ],
-            "extensions": [
-              ".json"
-            ],
-            "min_files": 0,
-            "max_files": 1,
-            "max_file_bytes": 65536,
-            "max_total_bytes": 65536
-          }
-        ]
-      },
-      "output": {
-        "path": "/outputs",
-        "max_total_bytes": 1074790400,
-        "slots": [
-          {
-            "id": "video",
-            "label": "Synchronized video",
-            "description": "Generated 768x512 H.264/AAC MP4 with exactly 65 frames at 24 fps and one synchronized 48 kHz stereo audio stream.",
-            "media_types": [
-              "video/mp4"
-            ],
-            "extensions": [
-              ".mp4"
-            ],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 1073741824,
-            "max_total_bytes": 1073741824
-          },
-          {
-            "id": "receipt",
-            "label": "Determinism receipt",
-            "description": "JSON receipt containing seed, profile, runtime pins, raw tensor hashes, media facts, and MP4 SHA-256.",
-            "media_types": [
-              "application/json"
-            ],
-            "extensions": [
-              ".json"
-            ],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 1048576,
-            "max_total_bytes": 1048576
-          }
-        ]
-      }
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "video-job",
-        "checks": [
-          "artifact.mime.video-mp4"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bf16-distilled-reference",
-        "framework": "diffusers",
         "configuration": {
+          "fps": 24,
+          "frames": 65,
+          "height": 512,
           "profile": "bf16-model-offload",
           "prompt": "A cinematic tracking shot follows a red fox walking through a snowy pine forest at dawn, warm light filtering between the trees as powder falls from the branches; its paws crunch clearly in the snow while a quiet wind and distant winter birds create natural synchronized ambience.",
           "seed": 42,
-          "width": 768,
-          "height": 512,
-          "frames": 65,
-          "fps": 24,
           "steps": 8,
-          "timeout_seconds": 43200
-        }
+          "timeout_seconds": 43200,
+          "width": 768
+        },
+        "framework": "diffusers",
+        "name": "bf16-distilled-reference"
       },
       {
-        "name": "fp8-cast-unified-memory-fallback",
-        "framework": "diffusers",
         "configuration": {
+          "fps": 24,
+          "frames": 65,
+          "height": 512,
           "profile": "fp8-cast-sequential-offload",
           "prompt": "A cinematic tracking shot follows a red fox walking through a snowy pine forest at dawn, warm light filtering between the trees as powder falls from the branches; its paws crunch clearly in the snow while a quiet wind and distant winter birds create natural synchronized ambience.",
           "seed": 42,
-          "width": 768,
-          "height": 512,
-          "frames": 65,
-          "fps": 24,
           "steps": 8,
-          "timeout_seconds": 43200
-        }
+          "timeout_seconds": 43200,
+          "width": 768
+        },
+        "framework": "diffusers",
+        "name": "fp8-cast-unified-memory-fallback"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc",
-    "attribution": [
-      "Lightricks",
-      "Hugging Face"
-    ]
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "video-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/prompt.txt",
+            "input_path": "/inputs",
+            "input_slots": {
+              "prompt": "qualification/fixtures/prompt.txt"
+            },
+            "output_path": "/outputs",
+            "output_slot": "video",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "video-job"
+    }
   }
 }

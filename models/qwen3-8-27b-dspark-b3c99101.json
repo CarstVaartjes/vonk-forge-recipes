@@ -1,0 +1,152 @@
+{
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "8da79f23859810bbb806e7a25eaf70489a9441c5",
+      "source_url": "https://github.com/CarstVaartjes/vonk-forge-recipes"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-11ad7efa2497",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "readme-d45e903f8ce2",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d45e903f8ce27e6e607321098bc1b98ebe2d91a2e883bb13e0467e695c12d39a",
+      "size_bytes": 8543
+    },
+    {
+      "id": "config-dd65fb1b01c2",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "dd65fb1b01c2adea69512ff2990a79d58eb7fe2c7ea97375aa66f657a29a5bfd",
+      "size_bytes": 2448
+    },
+    {
+      "id": "dflash-9825996703de",
+      "path": "dflash.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "9825996703de73bd436a6aaf57ae203ef92d599249d9cf49078576d52f4e56a4",
+      "size_bytes": 20651
+    },
+    {
+      "id": "dspark-75bba7c46916",
+      "path": "dspark.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "75bba7c469166bd2d6a6877b9964d035b0cec9a83190ab9f3de8c6175883a114",
+      "size_bytes": 7016
+    },
+    {
+      "id": "model-2aff025f4582",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2aff025f45823b40ebe726b9dfa40302f3512bd9a11c3a7347de32a567acd9a7",
+      "size_bytes": 3714723322
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "radixark",
+      "slug": "qwen3-8-radixark",
+      "title": "RadixArk Qwen3.8 deployments"
+    },
+    "model": {
+      "architecture": "Five-layer DSpark full-attention speculative decoder with confidence head",
+      "publisher": "radixark",
+      "slug": "qwen3-8-27b-dspark",
+      "title": "Qwen3.8 27B DSpark companion"
+    },
+    "publisher": "radixark",
+    "slug": "qwen3-8-27b-dspark-b3c99101",
+    "variant": "Qwen3.8 27B DSpark v2 b3c99101",
+    "version": "Qwen3.8 27B DSpark v2 b3c99101"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "RadixArk"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "LicenseRef-Qwen3.8-DSpark",
+    "url": "https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark/blob/b3c9910194dc7ae53fea3d95a1959b654f495416/README.md"
+  },
+  "limits": {
+    "context_tokens": 262144,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Official upstream DSpark v2 Stage 2 step-5500 checkpoint at the pinned revision.",
+    "publisher": "radixark",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "radixark",
+      "slug": "qwen3-8-27b-dspark"
+    }
+  },
+  "metadata": {
+    "description": "Exact public Qwen3.8 27B DSpark v2 Stage 2 checkpoint at b3c99101.",
+    "tags": [
+      "radixark",
+      "qwen3-8-radixark",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "parameters": {
+    "active": 1857358337,
+    "total": 1857358337
+  },
+  "provenance": {
+    "attribution": [
+      "Qwen",
+      "RadixArk"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "b3c9910194dc7ae53fea3d95a1959b654f495416",
+    "source_url": "https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark",
+    "revision": "b3c9910194dc7ae53fea3d95a1959b654f495416"
+  },
+  "supersedes": null
+}

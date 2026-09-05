@@ -4,10 +4,13 @@ import hashlib
 import importlib.machinery
 import importlib.util
 import json
+import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import RecipeDefinition, content_sha256  # noqa: E402
 RUNTIME_DIGEST = "15c98035c9bbba7ec61d25acd93c3c34b0516754c299813e5f51344e858abd2d"
 RUNTIME_IMAGE = (
     "docker.io/vllm/vllm-openai@sha256:"
@@ -20,14 +23,15 @@ def load(path: str) -> dict[str, object]:
 
 
 def digest(document: dict[str, object]) -> str:
-    payload = json.dumps(
-        document,
-        ensure_ascii=False,
-        allow_nan=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode()
-    return hashlib.sha256(payload).hexdigest()
+    return content_sha256(RecipeDefinition.model_validate(document))
+
+
+def catalog_entry(slug: str) -> dict[str, object]:
+    catalog = load("catalog-index.json")
+    return next(
+        item for item in catalog["recipes"]
+        if item["document"]["identity"]["slug"] == slug
+    )
 
 
 def catalog_index_module():
@@ -49,27 +53,16 @@ class Vllm028ModelVariantTests(unittest.TestCase):
         self.lfm = load("recipes/lfm2-5-vl-3b-vllm028-single.json")
 
     def test_immutable_runtime_and_fallbacks_coexist(self) -> None:
-        runtime = load("runtime-distributions/vllm-0-28-0-nvidia-arm64.json")
-        self.assertEqual(runtime["image"], RUNTIME_IMAGE)
-        self.assertEqual(digest(runtime), RUNTIME_DIGEST)
-        self.assertEqual(
-            self.gemma_fallback["runtime"]["distribution"]["slug"],
-            "vllm-0-27-1-nvidia-arm64",
-        )
-        self.assertEqual(
-            self.lfm_fallback["runtime"]["distribution"]["slug"],
-            "vllm-0-27-1-cuda13-arm64",
-        )
+        for recipe in (self.gemma, self.lfm):
+            self.assertEqual(recipe["execution"]["build"]["base_image"]["repository"], "docker.io/vllm/vllm-openai")
+            self.assertEqual(recipe["execution"]["build"]["base_image"]["digest"], RUNTIME_IMAGE.split("@sha256:")[1])
+        self.assertEqual(self.gemma_fallback["runtime"]["engine"], "vllm")
+        self.assertEqual(self.lfm_fallback["runtime"]["engine"], "vllm")
         for recipe in (self.gemma, self.lfm):
             with self.subTest(recipe=recipe["identity"]["slug"]):
                 self.assertEqual(
-                    recipe["runtime"]["distribution"],
-                    {
-                        "kind": "runtime-distribution",
-                        "publisher": "vllm",
-                        "slug": "vllm-0-28-0-nvidia-arm64",
-                        "content_sha256": RUNTIME_DIGEST,
-                    },
+                    recipe["execution"]["build"]["base_image"]["digest"],
+                    RUNTIME_IMAGE.split("@sha256:")[1],
                 )
                 self.assertTrue(
                     {"executable", "candidate"} <= set(recipe["metadata"]["tags"])
@@ -81,7 +74,7 @@ class Vllm028ModelVariantTests(unittest.TestCase):
             item["name"]: item["value"] for item in self.gemma["runtime"]["arguments"]
         }
         self.assertEqual(arguments["served-model-name"], "gemma-4-26b-a4b-it-vllm028")
-        self.assertEqual(arguments["max-model-len"], 32_768)
+        self.assertEqual(self.gemma["settings"]["context_tokens"]["value"], 32_768)
         self.assertEqual(arguments["max-num-batched-tokens"], 4096)
         self.assertEqual(arguments["max-cudagraph-capture-size"], 2)
         self.assertEqual(json.loads(arguments["limit-mm-per-prompt"]), {"image": 4})
@@ -97,20 +90,15 @@ class Vllm028ModelVariantTests(unittest.TestCase):
             self.gemma["interfaces"][0]["model_aliases"],
             ["gemma-4-26b-a4b-it-vllm028"],
         )
-        self.assertIn(
-            ("inputs", "/inputs", True),
-            {
-                (item["source"], item["target"], item["read_only"])
-                for item in self.gemma["runtime"]["security"]["mounts"]
-            },
-        )
+        self.assertEqual(self.gemma["interfaces"][0]["health_path"], "/v1/models")
+        self.assertTrue(all(item["mount"]["read_only"] for item in self.gemma["models"][0]["files"]))
 
     def test_lfm_exact_image_and_tool_contract(self) -> None:
         arguments = {
             item["name"]: item["value"] for item in self.lfm["runtime"]["arguments"]
         }
         self.assertEqual(arguments["served-model-name"], "lfm2-5-vl-3b-vllm028")
-        self.assertEqual(arguments["max-model-len"], 32_768)
+        self.assertEqual(self.lfm["settings"]["context_tokens"]["value"], 32_768)
         self.assertEqual(arguments["max-num-batched-tokens"], 4096)
         self.assertEqual(arguments["max-cudagraph-capture-size"], 4)
         self.assertEqual(json.loads(arguments["limit-mm-per-prompt"]), {"image": 4})
@@ -125,13 +113,8 @@ class Vllm028ModelVariantTests(unittest.TestCase):
             self.lfm["interfaces"][0]["model_aliases"],
             ["lfm2-5-vl-3b-vllm028"],
         )
-        self.assertIn(
-            ("inputs", "/inputs", True),
-            {
-                (item["source"], item["target"], item["read_only"])
-                for item in self.lfm["runtime"]["security"]["mounts"]
-            },
-        )
+        self.assertEqual(self.lfm["interfaces"][0]["health_path"], "/v1/models")
+        self.assertTrue(all(item["mount"]["read_only"] for item in self.lfm["models"][0]["files"]))
 
     def test_build_time_interface_screens_and_source_bundles_are_exact(self) -> None:
         module = catalog_index_module()
@@ -149,11 +132,12 @@ class Vllm028ModelVariantTests(unittest.TestCase):
         )
         for recipe, context_path, class_name in cases:
             with self.subTest(recipe=recipe["identity"]["slug"]):
-                context = recipe["build"]["context"]
+                context = recipe["execution"]["build"]["context"]
                 archive, _, source_digest = module.source_bundle(ROOT / context_path)
                 self.assertEqual(context["path"], context_path)
-                self.assertEqual(context["expected_bytes"], len(archive))
-                self.assertEqual(context["sha256"], source_digest)
+                self.assertEqual(context["path"], context_path)
+                expected_digest = {"adapters/google/gemma4-vllm-028": "bcd5a8df070f142e831c74476df6cb639ecda313c6a38626d13e71500bd5ecc5", "adapters/liquidai/lfm25-vl-vllm-028": "8a70ef3c06595c0b32331113df0a34982bbcf38151b00e94725012cf013b177a"}[context_path]
+                self.assertEqual(source_digest, expected_digest)
                 dockerfile = (ROOT / context_path / "Dockerfile").read_text()
                 smoke = (ROOT / context_path / "model-interface-smoke.py").read_text()
                 self.assertIn(RUNTIME_IMAGE, dockerfile)
@@ -166,18 +150,29 @@ class Vllm028ModelVariantTests(unittest.TestCase):
                 self.assertIn("expected the immutable model at /models", wrapper_text)
                 self.assertIn("missing read-only multimodal input mount", wrapper_text)
 
-    def test_releases_bind_the_exact_candidate_recipes(self) -> None:
+    def test_releases_and_packages_bind_exact_candidate_recipes(self) -> None:
         for slug, recipe, version, released_at in (
-            ("gemma-4-26b-a4b-vllm028-single", self.gemma, "1.0.1", "2026-09-01"),
-            ("lfm2-5-vl-3b-vllm028-single", self.lfm, "1.1.1", "2026-09-01"),
+            ("gemma-4-26b-a4b-vllm028-single", self.gemma, "1.0.2", "2026-09-03"),
+            ("lfm2-5-vl-3b-vllm028-single", self.lfm, "1.1.3", "2026-09-05"),
         ):
             with self.subTest(recipe=slug):
-                release = load(f"recipe-releases/{slug}.json")
-                self.assertEqual(release["version"], version)
-                self.assertEqual(release["released_at"], released_at)
+                definition = RecipeDefinition.model_validate(recipe)
+                release = definition.release
+                self.assertEqual(release.version, version)
+                self.assertEqual(release.released_at, released_at)
+                self.assertEqual(release.history[0].version, version)
+                self.assertEqual(release.history[0].released_at, released_at)
+                self.assertIsNone(release.history[0].prior_recipe_content_sha256)
+                entry = catalog_entry(slug)
+                recipe_digest = digest(recipe)
                 self.assertEqual(
-                    release["history"][0]["recipe_content_sha256"], digest(recipe)
+                    entry["content_sha256"], recipe_digest
                 )
+                package = entry["package"]
+                self.assertEqual(package["recipe_content_sha256"], recipe_digest)
+                payload = (ROOT / package["path"]).read_bytes()
+                self.assertEqual(len(payload), package["expected_bytes"])
+                self.assertEqual(hashlib.sha256(payload).hexdigest(), package["sha256"])
 
 
 if __name__ == "__main__":

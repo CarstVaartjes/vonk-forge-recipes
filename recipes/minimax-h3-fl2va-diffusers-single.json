@@ -1,12 +1,131 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/video/minimax-h3-fl2va-modular-diffusers"
+      },
+      "dockerfile": "adapters/video/minimax-h3-fl2va-modular-diffusers/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "minimax-h3-fl2va-diffusers-single"
   },
+  "interfaces": [
+    {
+      "adapter": "video-job",
+      "input": {
+        "max_bytes": 1073741824,
+        "media_types": [
+          "application/json",
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "text/plain"
+        ],
+        "path": "/inputs",
+        "required": true,
+        "slots": [
+          {
+            "description": "Required UTF-8 text describing the desired video motion, camera, scene, and synchronized sound.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "prompt",
+            "label": "Generation prompt",
+            "max_file_bytes": 16384,
+            "max_files": 1,
+            "max_total_bytes": 16384,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          },
+          {
+            "description": "Optional request.json selecting a named profile, geometry, frame count, and relative first_image and/or last_image keyframe paths. Ordered Ref2VA references are not supported by this variant.",
+            "extensions": [
+              ".json"
+            ],
+            "id": "request",
+            "label": "FL2VA options",
+            "max_file_bytes": 65536,
+            "max_files": 1,
+            "max_total_bytes": 65536,
+            "media_types": [
+              "application/json"
+            ],
+            "min_files": 0
+          },
+          {
+            "description": "Optional first and/or last image named by request.json; at most two images. Omit both for text-to-video-and-audio.",
+            "extensions": [
+              ".jpeg",
+              ".jpg",
+              ".png",
+              ".webp"
+            ],
+            "id": "keyframes",
+            "label": "First and last keyframes",
+            "max_file_bytes": 536870912,
+            "max_files": 2,
+            "max_total_bytes": 1073741824,
+            "media_types": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "min_files": 0
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 1073741824,
+        "path": "/outputs",
+        "slots": [
+          {
+            "description": "Generated H.264/AAC MP4 with requested 32-multiple geometry and 120..345 frames at 24 fps, plus synchronized 32 kHz stereo audio.",
+            "extensions": [
+              ".mp4"
+            ],
+            "id": "video",
+            "label": "Synchronized video",
+            "max_file_bytes": 1073741824,
+            "max_files": 1,
+            "max_total_bytes": 1073741824,
+            "media_types": [
+              "video/mp4"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "path": "/outputs"
+    }
+  ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "title": "MiniMax H3 FL2VA local Modular Diffusers single Spark",
     "description": "Artifact-slim single-Spark Candidate for the official MiniMax H3 FL2VA partition: text-to-video-and-audio plus optional first and/or last keyframes. It preserves the pinned Modular Diffusers int8 streamed-offload and verified 24-fps video plus 32-kHz stereo audio contract while excluding Ref2VA and duplicate checkpoint layouts; physical Spark qualification is pending.",
     "tags": [
       "executable",
@@ -26,292 +145,919 @@
       "int8-runtime",
       "single",
       "spark"
-    ]
+    ],
+    "title": "MiniMax H3 FL2VA local Modular Diffusers single Spark"
   },
-  "model": {
-    "kind": "model-version",
-    "publisher": "minimax",
-    "slug": "minimax-h3-fl2va-42ed227e",
-    "content_sha256": "052d8ffacfa346ba1fe0a82d41f30b7d19a8000df62b12cabb04216fc04ccf6d"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "diffusers",
-      "content_sha256": "9776b37f1bf4596bf4a0c75c3e9fd6da8b25050aa2cefded2ffd5e35baa583b2"
-    },
-    "patch_bundle": null
-  },
-  "build": {
-    "context": {
-      "path": "adapters/video/minimax-h3-fl2va-modular-diffusers",
-      "sha256": "dc31f9d0ca46884758597800aa2d50fa9cbf29d41288fc5cdb0c6202e4c1c36a",
-      "expected_bytes": 20480,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {
-      "mode": "public",
-      "hosts": [
-        "github.com",
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ]
-    },
-    "resources": {
-      "download_bytes": 150051160615,
-      "temporary_bytes": 288102321230,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 14400
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+  "models": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "MiniMaxAI/MiniMax-H3",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "include_paths": [
-        "LICENSE",
-        "audio_scheduler/scheduler_config.json",
-        "audio_vae/config.json",
-        "audio_vae/diffusion_pytorch_model.safetensors",
-        "model_index.json",
-        "modular_model_index.json",
-        "processor/chat_template.json",
-        "processor/merges.txt",
-        "processor/preprocessor_config.json",
-        "processor/tokenizer.json",
-        "processor/tokenizer_config.json",
-        "processor/video_preprocessor_config.json",
-        "processor/vocab.json",
-        "scheduler/scheduler_config.json",
-        "text_encoder/chat_template.json",
-        "text_encoder/config.json",
-        "text_encoder/merges.txt",
-        "text_encoder/model-00001-of-00014.safetensors",
-        "text_encoder/model-00002-of-00014.safetensors",
-        "text_encoder/model-00003-of-00014.safetensors",
-        "text_encoder/model-00004-of-00014.safetensors",
-        "text_encoder/model-00005-of-00014.safetensors",
-        "text_encoder/model-00006-of-00014.safetensors",
-        "text_encoder/model-00007-of-00014.safetensors",
-        "text_encoder/model-00008-of-00014.safetensors",
-        "text_encoder/model-00009-of-00014.safetensors",
-        "text_encoder/model-00010-of-00014.safetensors",
-        "text_encoder/model-00011-of-00014.safetensors",
-        "text_encoder/model-00012-of-00014.safetensors",
-        "text_encoder/model-00013-of-00014.safetensors",
-        "text_encoder/model-00014-of-00014.safetensors",
-        "text_encoder/model.safetensors.index.json",
-        "text_encoder/preprocessor_config.json",
-        "text_encoder/tokenizer.json",
-        "text_encoder/tokenizer_config.json",
-        "text_encoder/video_preprocessor_config.json",
-        "text_encoder/vocab.json",
-        "tokenizer/merges.txt",
-        "tokenizer/tokenizer.json",
-        "tokenizer/tokenizer_config.json",
-        "tokenizer/vocab.json",
-        "transformer/config.json",
-        "transformer/diffusion_pytorch_model-00001-of-00014.safetensors",
-        "transformer/diffusion_pytorch_model-00002-of-00014.safetensors",
-        "transformer/diffusion_pytorch_model-00003-of-00014.safetensors",
-        "transformer/diffusion_pytorch_model-00004-of-00014.safetensors",
-        "transformer/diffusion_pytorch_model-00005-of-00014.safetensors",
-        "transformer/diffusion_pytorch_model-00006-of-00014.safetensors",
-        "transformer/diffusion_pytorch_model-00007-of-00014.safetensors",
-        "transformer/diffusion_pytorch_model-00008-of-00014.safetensors",
-        "transformer/diffusion_pytorch_model-00009-of-00014.safetensors",
-        "transformer/diffusion_pytorch_model-00010-of-00014.safetensors",
-        "transformer/diffusion_pytorch_model-00011-of-00014.safetensors",
-        "transformer/diffusion_pytorch_model-00012-of-00014.safetensors",
-        "transformer/diffusion_pytorch_model-00013-of-00014.safetensors",
-        "transformer/diffusion_pytorch_model-00014-of-00014.safetensors",
-        "transformer/diffusion_pytorch_model.safetensors.index.json",
-        "vae/config.json",
-        "vae/diffusion_pytorch_model-00001-of-00003.safetensors",
-        "vae/diffusion_pytorch_model-00002-of-00003.safetensors",
-        "vae/diffusion_pytorch_model-00003-of-00003.safetensors",
-        "vae/diffusion_pytorch_model.safetensors.index.json"
+      "files": [
+        {
+          "file_id": "artifact-01",
+          "id": "primary-artifact-01",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-02",
+          "id": "primary-artifact-02",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-03",
+          "id": "primary-artifact-03",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-04",
+          "id": "primary-artifact-04",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-05",
+          "id": "primary-artifact-05",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-06",
+          "id": "primary-artifact-06",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-07",
+          "id": "primary-artifact-07",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-08",
+          "id": "primary-artifact-08",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-09",
+          "id": "primary-artifact-09",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-10",
+          "id": "primary-artifact-10",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-11",
+          "id": "primary-artifact-11",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-12",
+          "id": "primary-artifact-12",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-13",
+          "id": "primary-artifact-13",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-14",
+          "id": "primary-artifact-14",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-15",
+          "id": "primary-artifact-15",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-16",
+          "id": "primary-artifact-16",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-17",
+          "id": "primary-artifact-17",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-18",
+          "id": "primary-artifact-18",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-19",
+          "id": "primary-artifact-19",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-20",
+          "id": "primary-artifact-20",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-21",
+          "id": "primary-artifact-21",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-22",
+          "id": "primary-artifact-22",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-23",
+          "id": "primary-artifact-23",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-24",
+          "id": "primary-artifact-24",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-25",
+          "id": "primary-artifact-25",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-26",
+          "id": "primary-artifact-26",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-27",
+          "id": "primary-artifact-27",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-28",
+          "id": "primary-artifact-28",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-29",
+          "id": "primary-artifact-29",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-30",
+          "id": "primary-artifact-30",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-31",
+          "id": "primary-artifact-31",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-32",
+          "id": "primary-artifact-32",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-33",
+          "id": "primary-artifact-33",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-34",
+          "id": "primary-artifact-34",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-35",
+          "id": "primary-artifact-35",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-36",
+          "id": "primary-artifact-36",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-37",
+          "id": "primary-artifact-37",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-38",
+          "id": "primary-artifact-38",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-39",
+          "id": "primary-artifact-39",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-40",
+          "id": "primary-artifact-40",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-41",
+          "id": "primary-artifact-41",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-42",
+          "id": "primary-artifact-42",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-43",
+          "id": "primary-artifact-43",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-44",
+          "id": "primary-artifact-44",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-45",
+          "id": "primary-artifact-45",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-46",
+          "id": "primary-artifact-46",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-47",
+          "id": "primary-artifact-47",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-48",
+          "id": "primary-artifact-48",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-49",
+          "id": "primary-artifact-49",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-50",
+          "id": "primary-artifact-50",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-51",
+          "id": "primary-artifact-51",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-52",
+          "id": "primary-artifact-52",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-53",
+          "id": "primary-artifact-53",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-54",
+          "id": "primary-artifact-54",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-55",
+          "id": "primary-artifact-55",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-56",
+          "id": "primary-artifact-56",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-57",
+          "id": "primary-artifact-57",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-58",
+          "id": "primary-artifact-58",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-59",
+          "id": "primary-artifact-59",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-60",
+          "id": "primary-artifact-60",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-61",
+          "id": "primary-artifact-61",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-62",
+          "id": "primary-artifact-62",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
       ],
-      "download_bytes": 144051160615,
-      "installed_bytes": 144051160615,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+      "id": "primary",
+      "model": {
+        "content_sha256": "42f04e51e8f362b1d1aae962f57dca74c5bb907395cad999020fc1765d3039d2",
+        "kind": "model",
+        "publisher": "minimax",
+        "slug": "minimax-h3-fl2va-42ed227e"
+      }
     }
   ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "huggingface",
-      "slug": "minimax-h3-fl2va-modular-diffusers-arm64",
-      "content_sha256": "a08fbebbbd7ce2997038de5d24333f1e47dea79cc087b317cfb4baed5a81c538"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/diffusers-job"
+  "provenance": {
+    "attribution": [
+      "MiniMaxAI",
+      "Hugging Face"
     ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.5"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "be2f7d33ed88ed89a5fbc7a4fbeeeb8362e865ce12f04ccf1e872b45042282db",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.4"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "6777aec751e1d43f716c30430a905afc9e46ad2bf7d11d9c4cbcc9d17d2e81a4",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.0.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+            "kind": "security",
+            "references": [],
+            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+          }
+        ],
+        "prior_recipe_content_sha256": "3d0cc380ae32b9c19e9b0cf2da5a8dd5522dd63690d166c65f41604ca106f1e6",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The pinned license excludes the European Union, United Kingdom, Republic of Korea, and United States of America; no selected artifacts or runtime behavior changed.",
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE"
+            ],
+            "summary": "Enforced the exact MiniMax H3 Community License territorial exclusions during install and run admission."
+          }
+        ],
+        "prior_recipe_content_sha256": "405bfbcf878ee3eb8f6c8e627652541074901be2433306ace7d73fd63fbc0f55",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "Pins the exact root Modular Diffusers loader closure at 42ed227e: shared conditioning, schedulers, audio/video VAEs, and the FL2VA transformer only. It supports text generation and optional first/last keyframes, excludes ordered Ref2VA inputs and duplicate checkpoint layouts, and remains physically unaccepted.",
+            "kind": "initial",
+            "references": [
+              "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe",
+              "https://github.com/huggingface/diffusers/blob/efabd60d61c2b7aabf9f182bee6b5b6058980304/docs/source/en/api/pipelines/minimax_h3.md"
+            ],
+            "summary": "Added a separate official FL2VA-only Candidate without changing the full Ref2VA-capable recipe."
+          },
+          {
+            "details": null,
+            "kind": "performance",
+            "references": [
+              "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/model_index.json"
+            ],
+            "summary": "Reduced retained model artifacts from 498.475 GB to 144.051 GB and peak declared disk from 1.517 TB to 454.153 GB by excluding unused layouts."
+          }
+        ],
+        "prior_recipe_content_sha256": "e2f60df2dfc868f087e4416eff951679d03e55167385a15b9403950804d706e2",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.0.5"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "output-mime",
+        "setting": null,
         "value": "video/mp4"
       },
       {
         "name": "pipeline",
+        "setting": null,
         "value": "text-to-video"
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 0
       },
       {
         "name": "num-inference-steps",
+        "setting": null,
         "value": 31
       },
       {
         "name": "width",
+        "setting": null,
         "value": 960
       },
       {
         "name": "height",
+        "setting": null,
         "value": 544
       }
+    ],
+    "engine": "diffusers",
+    "entrypoint": [
+      "/opt/vonk/bin/diffusers-job"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/outputs",
-        "timeout_seconds": 3600
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "stop_timeout_seconds": 120
     }
   },
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": [
-          "weights"
-        ],
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 2000000000,
             "artifact_bytes": 144051160615,
-            "staging_bytes": 288102321230,
             "cache_bytes": 8000000000,
+            "image_bytes": 2000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 288102321230
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
             "startup_peak_bytes": 112000000000,
             "steady_state_bytes": 96000000000,
-            "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -319,146 +1065,62 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "video-job",
-      "path": "/outputs",
-      "input": {
-        "path": "/inputs",
-        "required": true,
-        "media_types": [
-          "application/json",
-          "image/jpeg",
-          "image/png",
-          "image/webp",
-          "text/plain"
-        ],
-        "max_bytes": 1073741824,
-        "slots": [
-          {
-            "id": "prompt",
-            "label": "Generation prompt",
-            "description": "Required UTF-8 text describing the desired video motion, camera, scene, and synchronized sound.",
-            "media_types": [
-              "text/plain"
-            ],
-            "extensions": [
-              ".txt"
-            ],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 16384,
-            "max_total_bytes": 16384
-          },
-          {
-            "id": "request",
-            "label": "FL2VA options",
-            "description": "Optional request.json selecting a named profile, geometry, frame count, and relative first_image and/or last_image keyframe paths. Ordered Ref2VA references are not supported by this variant.",
-            "media_types": [
-              "application/json"
-            ],
-            "extensions": [
-              ".json"
-            ],
-            "min_files": 0,
-            "max_files": 1,
-            "max_file_bytes": 65536,
-            "max_total_bytes": 65536
-          },
-          {
-            "id": "keyframes",
-            "label": "First and last keyframes",
-            "description": "Optional first and/or last image named by request.json; at most two images. Omit both for text-to-video-and-audio.",
-            "media_types": [
-              "image/jpeg",
-              "image/png",
-              "image/webp"
-            ],
-            "extensions": [
-              ".jpeg",
-              ".jpg",
-              ".png",
-              ".webp"
-            ],
-            "min_files": 0,
-            "max_files": 2,
-            "max_file_bytes": 536870912,
-            "max_total_bytes": 1073741824
-          }
-        ]
-      },
-      "output": {
-        "path": "/outputs",
-        "max_total_bytes": 1073741824,
-        "slots": [
-          {
-            "id": "video",
-            "label": "Synchronized video",
-            "description": "Generated H.264/AAC MP4 with requested 32-multiple geometry and 120..345 frames at 24 fps, plus synchronized 32 kHz stereo audio.",
-            "media_types": [
-              "video/mp4"
-            ],
-            "extensions": [
-              ".mp4"
-            ],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 1073741824,
-            "max_total_bytes": 1073741824
-          }
-        ]
-      }
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "video-job",
-        "checks": [
-          "artifact.mime.video-mp4"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "smoke-only-startup",
-        "framework": "diffusers",
         "configuration": {
+          "model_evaluations": 3,
           "profile": "smoke-only",
           "sigma_grid_points": 4,
-          "model_evaluations": 3,
           "smoke_only": true,
           "timeout_seconds": 14400
-        }
+        },
+        "framework": "diffusers",
+        "name": "smoke-only-startup"
       },
       {
-        "name": "balanced-generation",
-        "framework": "diffusers",
         "configuration": {
+          "model_evaluations": 30,
           "profile": "balanced",
           "sigma_grid_points": 31,
-          "model_evaluations": 30,
           "timeout_seconds": 28800
-        }
+        },
+        "framework": "diffusers",
+        "name": "balanced-generation"
       },
       {
-        "name": "qualification-reference",
-        "framework": "diffusers",
         "configuration": {
+          "model_evaluations": 50,
           "profile": "qualification-reference",
           "sigma_grid_points": 51,
-          "model_evaluations": 50,
           "timeout_seconds": 43200
-        }
+        },
+        "framework": "diffusers",
+        "name": "qualification-reference"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe",
-    "attribution": [
-      "MiniMaxAI",
-      "Hugging Face"
-    ]
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "video-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/prompt.txt",
+            "input_path": "/inputs",
+            "input_slots": {
+              "prompt": "qualification/fixtures/prompt.txt"
+            },
+            "output_path": "/outputs",
+            "output_slot": "video",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "video-job"
+    }
   }
 }

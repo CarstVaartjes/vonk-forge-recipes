@@ -1,14 +1,102 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "0e1392f431f89f143d0d6d0fa397a2b9a6a236f8b3628cfd3afbf21e15ab4a98",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/three-d/triposg"
+      },
+      "dockerfile": "adapters/three-d/triposg/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "triposg-pytorch-single"
   },
+  "interfaces": [
+    {
+      "adapter": "mesh-job",
+      "input": {
+        "max_bytes": 16777216,
+        "media_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "path": "/inputs",
+        "required": true,
+        "slots": [
+          {
+            "description": "One object image used to generate the mesh.",
+            "extensions": [
+              ".jpeg",
+              ".jpg",
+              ".png",
+              ".webp"
+            ],
+            "id": "image",
+            "label": "Source image",
+            "max_file_bytes": 16777216,
+            "max_files": 1,
+            "max_total_bytes": 16777216,
+            "media_types": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 536870912,
+        "path": "/outputs",
+        "slots": [
+          {
+            "description": "The generated TripoSG binary glTF mesh.",
+            "extensions": [
+              ".glb"
+            ],
+            "id": "mesh",
+            "label": "Generated mesh",
+            "max_file_bytes": 536870912,
+            "max_files": 1,
+            "max_total_bytes": 536870912,
+            "media_types": [
+              "model/gltf-binary"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "path": "/outputs"
+    }
+  ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "title": "TripoSG base pytorch-pipeline single Spark",
     "description": "Installable but not accepted TripoSG single-Spark Candidate with exact upstream source, frozen RMBG companion, offline inference, and deterministic GLB output. The native ARM64 container build is unvalidated and both that build and a physical GB10 image-to-GLB canary must pass before acceptance.",
-    "tags": ["executable",
+    "tags": [
+      "executable",
       "candidate",
       "three-d",
       "pytorch-pipeline",
@@ -19,232 +107,337 @@
       "build-unvalidated",
       "native-build-required",
       "physical-acceptance-required"
-    ]
+    ],
+    "title": "TripoSG base pytorch-pipeline single Spark"
   },
-  "model": {
-    "kind": "model-version",
-    "publisher": "vast-ai",
-    "slug": "triposg",
-    "content_sha256": "5ea8d9775d2fd936b73d8a425f35377aa894a173e1d89878441f6aabd1df628e"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "pytorch-pipeline",
-      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c"
-    },
-    "patch_bundle": null
-  },
-  "build": {
-    "context": {
-      "path": "adapters/three-d/triposg",
-      "sha256": "5710927e467944ef1a9419fc87b33f896241c415900d62fcf16f9b90f0b030e3",
-      "expected_bytes": 61440,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {
-      "mode": "public",
-      "hosts": [
-        "github.com",
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ]
-    },
-    "resources": {
-      "download_bytes": 18000000000,
-      "temporary_bytes": 36000000000,
-      "memory_bytes": 16000000000,
-      "timeout_seconds": 14400
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+  "models": [
     {
-      "id": "target",
-      "kind": "huggingface.snapshot",
-      "repository": "VAST-AI/TripoSG",
-      "revision": "2c1c516d22d58db486a058d98d31bb6177344e06",
-      "download_bytes": 7946494238,
-      "installed_bytes": 7946494238,
-      "mount": {
-        "target": "/models/target",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "id": "rmbg",
-      "kind": "huggingface.snapshot",
-      "repository": "briaai/RMBG-1.4",
-      "revision": "2ceba5a5efaec153162aedea169f76caf9b46cf8",
-      "download_bytes": 842215095,
-      "installed_bytes": 842215095,
-      "mount": {
-        "target": "/models/rmbg",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+      "files": [
+        {
+          "file_id": "snapshot",
+          "id": "primary-snapshot",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "a7511281440cef509b906378fc7f6a50b36ef470348b119098ed951ff642b676",
+        "kind": "model",
+        "publisher": "vast-ai",
+        "slug": "triposg"
+      }
     }
   ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "vast-ai",
-      "slug": "triposg-native-arm64",
-      "content_sha256": "dacf695d6450432dd1c78e5e3f7c93e2a895790bf4439d260be310fbbf50ca29"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/pytorch-pipeline"
+  "provenance": {
+    "attribution": [
+      "vast-ai"
     ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/VAST-AI/TripoSG/tree/2c1c516d22d58db486a058d98d31bb6177344e06"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "2.0.8"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "c72b5dfea2f9243647823bb3372facbc909d0b60ecbae208c6aed4581d447c73",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.7"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "179c2cfbe38959a23e6330c986b1aae0ae183a95fe0ea3270f81f77028e1fa9a",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "2.0.6"
+      },
+      {
+        "changes": [
+          {
+            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+            "kind": "security",
+            "references": [],
+            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+          }
+        ],
+        "prior_recipe_content_sha256": "2b4335af5197968c34ba6182e78aa8d5d663fa35fadb7e13db7708f58f74b297",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.5"
+      },
+      {
+        "changes": [
+          {
+            "details": "The installable Candidate is explicitly not accepted until its ARM64 container build and a physical GB10 image-to-GLB canary both pass.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Published TripoSG native-build and physical acceptance gates."
+          }
+        ],
+        "prior_recipe_content_sha256": "63e052fa5a49575c1f39b2131294e1031f4a1b3d0dc74677d6f87571d59cf547",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "none",
+        "version": "2.0.4"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Replaced header-only output checks with bounded semantic triangle-mesh validation before atomic GLB publication."
+          }
+        ],
+        "prior_recipe_content_sha256": "9d5706094292adb20aa0cfb35d2413be6a24046abc86edb1e3d00ccd7e87b01e",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.3"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Corrected the pinned diso 0.1.4 DiffDMC dependency license from Apache-2.0 to its published CC-BY-NC-4.0 license."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared exact one-image input and single-GLB output slots with bounded bytes."
+          }
+        ],
+        "prior_recipe_content_sha256": "18f8339c0559d25efe2b48aee18a0e9dabe253d92f758b21e8308a49a3e5d137",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "none",
+        "version": "2.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "07e172c2ed4d30c03853b3400b402be48d9364a7d1f4f5f74d86ffa8078e6bb3",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "2.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/VAST-AI-Research/TripoSG/tree/fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c"
+            ],
+            "summary": "Replaced the metadata placeholder with the exact upstream TripoSG image-to-GLB inference path."
+          },
+          {
+            "details": null,
+            "kind": "model",
+            "references": [],
+            "summary": "Added the immutable RMBG-1.4 companion snapshot required for offline background removal."
+          },
+          {
+            "details": null,
+            "kind": "runtime",
+            "references": [],
+            "summary": "Added a CUDA 13.2 ARM64 native runtime with a pinned DiffDMC build and no runtime downloads."
+          }
+        ],
+        "prior_recipe_content_sha256": "b18ba2fd41189d6ba8edd5e154f01afa11fb8ca1ba3d198845e85f306e062957",
+        "released_at": "2026-08-24",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "model",
+            "references": [],
+            "summary": "Corrected the catalog label from Scribble to the base TripoSG variant actually pinned by the immutable snapshot."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Marked the binding non-executable pending source, background removal, native dependencies, and a GLB adapter."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Added the authoritative isolated image input contract and corrected the license to MIT."
+          }
+        ],
+        "prior_recipe_content_sha256": "6b2a8272905068a6330f69adebd9e7c0cfaab7529192c273c7a5dbe3daeb752b",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of TripoSG Scribble base pytorch-pipeline single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "283fd0de6b29b774230d3f388db72710834ee0ddeb262307323a98b6d8aa37bc",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+            ],
+            "summary": "Recovered the first public legacy revision from before semantic release tracking."
+          }
+        ],
+        "prior_recipe_content_sha256": "99249be2e80f6f186fcdba44ebfcaf40b8ee738dda5173e9d4ece5e079b6499e",
+        "released_at": "2026-08-17",
+        "upgrade_effect": "reprepare",
+        "version": "0.1.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "2.0.8"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "entrypoint",
+        "setting": null,
         "value": "/opt/vonk/source/run.py"
       },
       {
         "name": "output-mime",
+        "setting": null,
         "value": "model/gltf-binary"
       },
       {
         "name": "timeout-seconds",
+        "setting": null,
         "value": 3600
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 0
       }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/outputs",
-        "timeout_seconds": 3600
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "stop_timeout_seconds": 120
     }
   },
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": [
-          "target",
-          "rmbg"
-        ],
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 16000000000,
             "artifact_bytes": 8788709333,
-            "staging_bytes": 24000000000,
             "cache_bytes": 8000000000,
+            "image_bytes": 16000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 24000000000
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
             "startup_peak_bytes": 48000000000,
             "steady_state_bytes": 36000000000,
-            "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -252,64 +445,38 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "mesh-job",
-      "path": "/outputs",
-      "input": {
-        "path": "/inputs",
-        "required": true,
-        "media_types": [
-          "image/jpeg",
-          "image/png",
-          "image/webp"
-        ],
-        "max_bytes": 16777216,
-        "slots": [
-          {
-            "id": "image",
-            "label": "Source image",
-            "description": "One object image used to generate the mesh.",
-            "media_types": ["image/jpeg", "image/png", "image/webp"],
-            "extensions": [".jpeg", ".jpg", ".png", ".webp"],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 16777216,
-            "max_total_bytes": 16777216
-          }
-        ]
-      },
-      "output": {
-        "path": "/outputs",
-        "max_total_bytes": 536870912,
-        "slots": [{"id": "mesh", "label": "Generated mesh", "description": "The generated TripoSG binary glTF mesh.", "media_types": ["model/gltf-binary"], "extensions": [".glb"], "min_files": 1, "max_files": 1, "max_file_bytes": 536870912, "max_total_bytes": 536870912}]
-      }
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "mesh-job",
-        "checks": [
-          "artifact.mime.model-gltf-binary"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bounded-startup",
-        "framework": "pytorch-pipeline",
         "configuration": {
           "timeout_seconds": 14400
-        }
+        },
+        "framework": "pytorch-pipeline",
+        "name": "bounded-startup"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/VAST-AI/TripoSG/tree/2c1c516d22d58db486a058d98d31bb6177344e06",
-    "attribution": [
-      "vast-ai"
-    ]
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "mesh-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.png",
+            "input_path": "/inputs",
+            "input_slots": {
+              "image": "qualification/fixtures/tiny.png"
+            },
+            "output_path": "/outputs",
+            "output_slot": "mesh",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "mesh-job"
+    }
   }
 }

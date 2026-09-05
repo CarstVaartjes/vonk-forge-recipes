@@ -1,0 +1,136 @@
+{
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "chat",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "code-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "text-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "86bb38ce2ba7a98ab0e550359fec5f48859dc723",
+      "source_url": "https://huggingface.co/antirez/deepseek-v4-gguf"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "target",
+      "path": "DeepSeek-V4-Flash-IQ2XXS-w2Q2K-AProjQ8-SExpQ8-OutQ8-chat-v2-imatrix-0731.gguf",
+      "roles": [
+        "target"
+      ],
+      "sha256": "ca22ae2f838e14077c22bc1c1417b71b45b5e5a3687bd96c2ac6e17fdb6261c0",
+      "size_bytes": 86720111488
+    },
+    {
+      "id": "drafter",
+      "path": "DeepSeek-V4-Flash-DSpark-support-0731.gguf",
+      "roles": [
+        "drafter"
+      ],
+      "sha256": "7e319924541db3f7a163ed7e11d7532a70d48228ab59d36cb81e1d4511885360",
+      "size_bytes": 5989114272
+    }
+  ],
+  "format": {
+    "container": "gguf",
+    "precision": "mixed",
+    "quantization": "iq2_xxs-q2_k-mixed"
+  },
+  "identity": {
+    "family": {
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-flash",
+      "title": "DeepSeek Flash"
+    },
+    "model": {
+      "architecture": "DeepSeek V4 sparse mixture-of-experts transformer with DSpark speculative module",
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-v4-flash-0731",
+      "title": "DeepSeek V4 Flash 0731"
+    },
+    "publisher": "antirez",
+    "slug": "deepseek-v4-flash-0731-ds4",
+    "variant": "DeepSeek V4 Flash 0731 DS4 IQ2/Q2 mixed",
+    "version": "0731-ds4-86bb38ce"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "DeepSeek AI",
+      "Salvatore Sanfilippo (antirez)"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "MIT",
+    "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-DSpark/blob/62af8fffb2f7030cac4de2f0169f5b8d1101b646/LICENSE"
+  },
+  "limits": {
+    "context_tokens": 1048576,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "imatrix mixed quantization with routed-expert gate/up tensors at IQ2_XXS, routed-expert down tensors at Q2_K, attention projections at Q8_0, shared experts at Q8_0, and output at Q8_0",
+    "publisher": "antirez",
+    "relation": "quantized",
+    "source_model": {
+      "kind": "model",
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-v4-flash-0731"
+    }
+  },
+  "metadata": {
+    "description": "Exact DS4 96/128-GB imatrix target GGUF and matching DSpark support GGUF.",
+    "tags": [
+      "deepseek",
+      "ds4",
+      "gguf",
+      "iq2",
+      "spark"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "parameters": {
+    "active": 13000000000,
+    "total": 284000000000
+  },
+  "provenance": {
+    "attribution": [
+      "DeepSeek AI",
+      "Salvatore Sanfilippo (antirez)"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "86bb38ce2ba7a98ab0e550359fec5f48859dc723",
+    "source_url": "https://huggingface.co/antirez/deepseek-v4-gguf"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/antirez/deepseek-v4-gguf",
+    "revision": "86bb38ce2ba7a98ab0e550359fec5f48859dc723"
+  },
+  "supersedes": null
+}

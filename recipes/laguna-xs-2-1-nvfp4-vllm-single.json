@@ -1,14 +1,45 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+        "platform": "linux/arm64",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/llm/laguna-vllm"
+      },
+      "dockerfile": "adapters/llm/laguna-vllm/Dockerfile",
+      "network": {
+        "hosts": [],
+        "mode": "none"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "laguna-xs-2-1-nvfp4-vllm-single"
   },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "laguna"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "title": "Laguna XS 2.1 NVFP4 vLLM single Spark",
     "description": "Candidate single-Spark vLLM binding for the exact Poolside Laguna XS NVFP4 checkpoint.",
-    "tags": ["executable",
+    "tags": [
+      "executable",
       "candidate",
       "poolside",
       "laguna",
@@ -19,229 +50,463 @@
       "openai",
       "single",
       "spark"
-    ]
+    ],
+    "title": "Laguna XS 2.1 NVFP4 vLLM single Spark"
   },
-  "model": {
-    "kind": "model-version",
-    "publisher": "poolside",
-    "slug": "laguna-xs-2-1-nvfp4-d32afde8",
-    "content_sha256": "2aca23c0af0d6df45af8f0fca07785c5fa09ab7b61abf9081a19a6b211587552"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "vllm",
-      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"
-    },
-    "patch_bundle": null
-  },
-  "build": {
-    "context": {
-      "path": "adapters/llm/laguna-vllm",
-      "sha256": "7ab889fd171d8c0c4f40a71a9f0a2e74c2fe2e325c54757be56559cf3d24e3f5",
-      "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {
-      "mode": "none",
-      "hosts": []
-    },
-    "resources": {
-      "download_bytes": 32129211141,
-      "temporary_bytes": 32000000000,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 7200
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+  "models": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "poolside/Laguna-XS-2.1-NVFP4",
-      "revision": "d32afde8b09af1539b49ff96ff5551c674485f8e",
-      "download_bytes": 21596075520,
-      "installed_bytes": 21596075520,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+      "files": [
+        {
+          "file_id": "metadata-gitattributes",
+          "id": "primary-metadata-gitattributes",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-license",
+          "id": "primary-metadata-license",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-readme",
+          "id": "primary-metadata-readme",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-chat-template",
+          "id": "primary-tokenizer-chat-template",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration",
+          "id": "primary-configuration",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-laguna",
+          "id": "primary-configuration-laguna",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config",
+          "id": "primary-generation-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-index",
+          "id": "primary-weights-index",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modeling-laguna",
+          "id": "primary-modeling-laguna",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-01",
+          "id": "primary-weights-01",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-02",
+          "id": "primary-weights-02",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-03",
+          "id": "primary-weights-03",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-04",
+          "id": "primary-weights-04",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-05",
+          "id": "primary-weights-05",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens",
+          "id": "primary-special-tokens",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer",
+          "id": "primary-tokenizer",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config",
+          "id": "primary-tokenizer-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "f2c44f5a4edfc1c59948b8a41eb4650c3f35f1c6c049b4025b538ba752c2b613",
+        "kind": "model",
+        "publisher": "poolside",
+        "slug": "laguna-xs-2-1-nvfp4-d32afde8"
+      }
     }
   ],
+  "provenance": {
+    "attribution": [
+      "Poolside"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4/tree/d32afde8b09af1539b49ff96ff5551c674485f8e"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.6"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "e7bd353e6ba98fdcb54b368efbb467308718b621171767830e1e74bc6974663a",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.5"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "d007c441421f075aa632ba4a4daea6233b53f0919977c3629d84e24f7375a897",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.0.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "Laguna XS weights are externally mounted and retain exact Poolside provenance in the model and recipe contracts. The adapter image now labels its Apache-2.0 vLLM source and revision instead of claiming the mounted model as image source code.",
+            "kind": "runtime",
+            "references": [
+              "https://github.com/vllm-project/vllm/tree/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
+              "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4/tree/d32afde8b09af1539b49ff96ff5551c674485f8e"
+            ],
+            "summary": "Corrected OCI labels to identify the vLLM runtime actually baked into the image."
+          }
+        ],
+        "prior_recipe_content_sha256": "a55d133e00b9263dd887a6d8514f1e5bb13df2817b055978a763d3b4df1a2419",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "The adapter now creates UID 10001 explicitly, routes HOME, Hugging Face, vLLM, FlashInfer workspace and autotune, Triton, PyTorch, CUDA, and uv cache state beneath the declared writable /outputs mount, and uses the bounded writable /tmp tmpfs as its working directory.",
+            "kind": "runtime",
+            "references": [],
+            "summary": "Made non-root runtime caches compatible with the controller-enforced read-only root filesystem."
+          }
+        ],
+        "prior_recipe_content_sha256": "2fcb3d117cf1436d347416d3249f7a1ea848cad299f4a92af06f935d2c811b7b",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "818dff1b4de34c277c01e08670cd408f8f07c855084f97eb485a808b4cf97387",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of Laguna XS 2.1 NVFP4 vLLM single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "fb8042d037c39e53a84e03bfa56b606ada1afb5310436a88a628d7c5b655912f",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/92bc339589fdffbcb8d20f758bb1f8cae5423598"
+            ],
+            "summary": "Recovered the first public legacy revision from before semantic release tracking."
+          }
+        ],
+        "prior_recipe_content_sha256": "5aa44eed976f53675e1aee224baea9c5631f3e59276fc45eb16cb3c595e12f24",
+        "released_at": "2026-08-16",
+        "upgrade_effect": "reprepare",
+        "version": "0.1.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.0.6"
+  },
   "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "vllm",
-      "slug": "vllm-0-27-1-nvidia-arm64",
-      "content_sha256": "95b0467cb73eeabfe8fd0c4f5f5e4f19a935b6bca3d56ed4bb6fc888470eca4a"
-    },
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "laguna"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.80"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "poolside_v1"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "poolside_v1"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "default-chat-template-kwargs",
+        "setting": null,
+        "value": "{\"enable_thinking\":true}"
+      }
+    ],
+    "engine": "vllm",
     "entrypoint": [
       "/opt/vonk/bin/vllm",
       "serve",
       "/models"
     ],
-    "arguments": [
-      {
-        "name": "served-model-name",
-        "value": "laguna"
-      },
-      {
-        "name": "max-model-len",
-        "value": 131072
-      },
-      {
-        "name": "max-num-seqs",
-        "value": 2
-      },
-      {
-        "name": "gpu-memory-utilization",
-        "value": "0.80"
-      },
-      {
-        "name": "reasoning-parser",
-        "value": "poolside_v1"
-      },
-      {
-        "name": "tool-call-parser",
-        "value": "poolside_v1"
-      },
-      {
-        "name": "enable-auto-tool-choice",
-        "value": true
-      },
-      {
-        "name": "default-chat-template-kwargs",
-        "value": "{\"enable_thinking\":true}"
-      }
-    ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "VLLM_NO_USAGE_STATS",
+        "secret": null,
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/v1/models",
-        "timeout_seconds": 1800
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "stop_timeout_seconds": 120
     }
   },
+  "schema_version": 2,
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 2
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 131072
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": [
-          "weights"
-        ],
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 12000000000,
             "artifact_bytes": 21596075520,
-            "staging_bytes": 32000000000,
             "cache_bytes": 4000000000,
+            "image_bytes": 12000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 32000000000
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 4000000000,
             "startup_peak_bytes": 78000000000,
             "steady_state_bytes": 68000000000,
-            "runtime_growth_bytes": 4000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -249,44 +514,58 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "openai",
-      "port": 8000,
-      "model_aliases": [
-        "laguna"
-      ],
-      "health_path": "/v1/models"
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "openai",
-        "checks": [
-          "endpoint.healthy",
-          "chat.nonempty",
-          "chat.max-output-64"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bounded-chat",
-        "framework": "openai",
         "configuration": {
           "max_output_tokens": 64,
           "requests": 1,
           "timeout_seconds": 600
-        }
+        },
+        "framework": "openai",
+        "name": "bounded-chat"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4/tree/d32afde8b09af1539b49ff96ff5551c674485f8e",
-    "attribution": [
-      "Poolside"
-    ]
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "laguna"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
   }
 }

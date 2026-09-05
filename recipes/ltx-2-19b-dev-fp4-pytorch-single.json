@@ -1,14 +1,97 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "a52783d8d73ace53998d4e740515e9942e73072dc7fbd5322917eb382a0bc7fb",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/video/ltx2-pytorch"
+      },
+      "dockerfile": "adapters/video/ltx2-pytorch/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "codeload.github.com",
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-dev-fp4-pytorch-single"
   },
+  "interfaces": [
+    {
+      "adapter": "video-job",
+      "input": {
+        "max_bytes": 16384,
+        "media_types": [
+          "text/plain"
+        ],
+        "path": "/inputs",
+        "required": true,
+        "slots": [
+          {
+            "description": "Required UTF-8 prompt.txt describing the video, motion, camera, and synchronized sound.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "prompt",
+            "label": "Generation prompt",
+            "max_file_bytes": 16384,
+            "max_files": 1,
+            "max_total_bytes": 16384,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 1073741824,
+        "path": "/outputs",
+        "slots": [
+          {
+            "description": "Generated 768x512 H.264/AAC MP4 with exactly 97 frames at 24 fps and one synchronized 24 kHz stereo audio stream.",
+            "extensions": [
+              ".mp4"
+            ],
+            "id": "video",
+            "label": "Synchronized video",
+            "max_file_bytes": 1073741824,
+            "max_files": 1,
+            "max_total_bytes": 1073741824,
+            "media_types": [
+              "video/mp4"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "path": "/outputs"
+    }
+  ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "title": "LTX-2 19B dev FP4 native pipeline single Spark (superseded)",
     "description": "Still-deployable historical disk-offload Candidate using the exact official native LTX 1.3.0 two-stage pipeline, FP4 checkpoint, distilled refinement LoRA, spatial upscaler, Gemma 3 companion closure, and ARM64 CUDA 13.2 wheels. The 89 GB startup and 75 GB steady declarations conservatively apply only the pinned upstream's documented 31 GB disk-versus-CPU offload reduction, with 8 GB growth and 8 GB system reserve for a 97 GB admission total; container build and physical Spark acceptance remain required. LTX-2.5 BF16 is the current fidelity baseline and LTX-2.5 FP8-cast is the current lower-memory canary; this immutable execution contract remains available for reproducibility.",
-    "tags": ["executable",
+    "tags": [
+      "executable",
       "candidate",
       "build-unvalidated",
       "historical",
@@ -22,252 +105,642 @@
       "pytorch",
       "single",
       "spark"
-    ]
+    ],
+    "title": "LTX-2 19B dev FP4 native pipeline single Spark (superseded)"
   },
-  "model": {
-    "kind": "model-version",
-    "publisher": "lightricks",
-    "slug": "ltx-2-19b-dev-fp4-dfcc2108",
-    "content_sha256": "5b29e92a627c30c4a139a3210abd61aee1a469f89fe812d843c90f8e47208eef"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "pytorch-pipeline",
-      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c"
-    },
-    "patch_bundle": null
-  },
-  "build": {
-    "context": {
-      "path": "adapters/video/ltx2-pytorch",
-      "sha256": "e685600740bcb97fa1d001fd593729ae2f2bd863ec9ad8019224d0c3b06cb80a",
-      "expected_bytes": 20480,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {
-      "mode": "public",
-      "hosts": [
-        "github.com",
-        "codeload.github.com",
-        "download.pytorch.org",
-        "download-r2.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ]
-    },
-    "resources": {
-      "download_bytes": 85447526016,
-      "temporary_bytes": 154895052032,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 14400
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
-    "attribution": [
-      "Lightricks"
-    ]
-  },
-  "artifacts": [
+  "models": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "Lightricks/LTX-2",
-      "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
-      "include_paths": [
-        "ltx-2-19b-dev-fp4.safetensors",
-        "ltx-2-19b-distilled-lora-384.safetensors",
-        "ltx-2-spatial-upscaler-x2-1.0.safetensors",
-        "text_encoder/config.json",
-        "text_encoder/generation_config.json",
-        "text_encoder/model-00001-of-00011.safetensors",
-        "text_encoder/model-00002-of-00011.safetensors",
-        "text_encoder/model-00003-of-00011.safetensors",
-        "text_encoder/model-00004-of-00011.safetensors",
-        "text_encoder/model-00005-of-00011.safetensors",
-        "text_encoder/model-00006-of-00011.safetensors",
-        "text_encoder/model-00007-of-00011.safetensors",
-        "text_encoder/model-00008-of-00011.safetensors",
-        "text_encoder/model-00009-of-00011.safetensors",
-        "text_encoder/model-00010-of-00011.safetensors",
-        "text_encoder/model-00011-of-00011.safetensors",
-        "text_encoder/model.safetensors.index.json",
-        "tokenizer/added_tokens.json",
-        "tokenizer/chat_template.jinja",
-        "tokenizer/preprocessor_config.json",
-        "tokenizer/processor_config.json",
-        "tokenizer/special_tokens_map.json",
-        "tokenizer/tokenizer.json",
-        "tokenizer/tokenizer.model",
-        "tokenizer/tokenizer_config.json"
+      "files": [
+        {
+          "file_id": "artifact-01",
+          "id": "primary-artifact-01",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-02",
+          "id": "primary-artifact-02",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-03",
+          "id": "primary-artifact-03",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-04",
+          "id": "primary-artifact-04",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-05",
+          "id": "primary-artifact-05",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-06",
+          "id": "primary-artifact-06",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-07",
+          "id": "primary-artifact-07",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-08",
+          "id": "primary-artifact-08",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-09",
+          "id": "primary-artifact-09",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-10",
+          "id": "primary-artifact-10",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-11",
+          "id": "primary-artifact-11",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-12",
+          "id": "primary-artifact-12",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-13",
+          "id": "primary-artifact-13",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-14",
+          "id": "primary-artifact-14",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-15",
+          "id": "primary-artifact-15",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-16",
+          "id": "primary-artifact-16",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-17",
+          "id": "primary-artifact-17",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-18",
+          "id": "primary-artifact-18",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-19",
+          "id": "primary-artifact-19",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-20",
+          "id": "primary-artifact-20",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-21",
+          "id": "primary-artifact-21",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-22",
+          "id": "primary-artifact-22",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-23",
+          "id": "primary-artifact-23",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-24",
+          "id": "primary-artifact-24",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-25",
+          "id": "primary-artifact-25",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-26",
+          "id": "primary-artifact-26",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-27",
+          "id": "primary-artifact-27",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-28",
+          "id": "primary-artifact-28",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
       ],
-      "download_bytes": 77447526016,
-      "installed_bytes": 77447526016,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+      "id": "primary",
+      "model": {
+        "content_sha256": "4cfe5ec7abdd335f78b32ac8b033e7355847e7d2d9f24214e89228938b8938ec",
+        "kind": "model",
+        "publisher": "lightricks",
+        "slug": "ltx-2-19b-dev-fp4-dfcc2108"
+      }
     }
   ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "lightricks",
-      "slug": "ltx2-pipelines-1-3-arm64",
-      "content_sha256": "ca55b66b31169753e7226f6e1cf35239dfc3ce33d74fdc1767ffbfd96991e184"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/pytorch-pipeline"
+  "provenance": {
+    "attribution": [
+      "Lightricks"
     ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "2.3.5"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "336f207e156bc629437b8bd60c9d29d11389f4b26f815ae36bf2590fde20eeab",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "2.3.4"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "3c4b2151e8514c4970feb7c6fa06715e4735b2f7617af5fd400aa358284042c8",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "2.3.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "LTX-2.5 BF16 is the current fidelity baseline and its fixed FP8-cast sequential-offload variant is the current lower-memory canary. Runtime, artifacts, build context, topology, interfaces, validation, and provenance are unchanged.",
+            "kind": "metadata",
+            "references": [
+              "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
+              "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc"
+            ],
+            "summary": "Marked the historical LTX-2 profile superseded while retaining its directly deployable immutable execution contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "baff135e07ea79ae4eb19729ee543edd77805a26c9b3922839ab58a63188b2e1",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "2.3.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "Added codeload.github.com and download-r2.pytorch.org, and removed nvcr.io because verified base images are transferred separately from Dockerfile build egress.",
+            "kind": "fix",
+            "references": [],
+            "summary": "Corrected public build egress for the pinned LTX source archive and PyTorch wheel redirects."
+          }
+        ],
+        "prior_recipe_content_sha256": "32f866c8eb41e0de62f3c18ce9d9ba6107c9c2ca8846402ac45c4cd5e62999a4",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "2.3.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "The FP4-only adapter now requests disk rather than CPU offload and remains bound exclusively to this recipe. Pinned upstream quantifies disk offload at about 5 GB host RAM plus 5 GB accelerator memory versus about 36 GB host RAM plus 5 GB accelerator memory for CPU offload. The conservative Candidate envelope subtracts only that documented 31 GB host-memory delta: startup 120 to 89 GB and steady 106 to 75 GB, with growth and system reserve unchanged at 8 GB each. Admission therefore requires 97 GB including reserve; physical acceptance remains pending.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/Lightricks/LTX-2/blob/a95ab856bf29407b6b066ede0abe1846050db56c/packages/ltx-pipelines/src/ltx_pipelines/utils/types.py",
+              "https://github.com/Lightricks/LTX-2/blob/a95ab856bf29407b6b066ede0abe1846050db56c/packages/ltx-pipelines/src/ltx_pipelines/utils/args.py"
+            ],
+            "summary": "Selected the pinned upstream's explicit disk-streaming offload mode for the LTX-2 19B dev FP4 single-Spark Candidate."
+          }
+        ],
+        "prior_recipe_content_sha256": "06b3a57766d29b92544870a51879b9fc7f22a09784b0402d7f31a9182ce99c03",
+        "released_at": "2026-08-31",
+        "upgrade_effect": "rebuild",
+        "version": "2.3.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "The adapter fails closed unless ltx-pipelines is version 1.3.0 and PipelineOutput exposes video, audio, num_frames, tiling_config, keyframes, and video_latent.",
+            "kind": "runtime",
+            "references": [
+              "https://github.com/Lightricks/LTX-2/tree/a95ab856bf29407b6b066ede0abe1846050db56c"
+            ],
+            "summary": "Refreshed the native pipeline from LTX 1.2 to exact 1.3.0 source and its named six-field PipelineOutput contract."
+          },
+          {
+            "details": "The FP4 build now uses the same deterministic archive and dependency-lock path as the other native LTX adapters.",
+            "kind": "fix",
+            "references": [],
+            "summary": "Replaced live Git package resolution with a checksummed source archive and added the required TorchVision and cuDNN 9.24 pins."
+          },
+          {
+            "details": "LTX 1.3 contains DFR and keyframe-aware decode support, but this recipe does not claim those artifact-dependent paths and remains a physical-acceptance Candidate.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Kept the declared two-stage interface and conservative memory envelope while inheriting upstream decode-tiling OOM fixes."
+          }
+        ],
+        "prior_recipe_content_sha256": "b458ed9412c5c8036ba79f2210dead04f0843dae56fcf1e6bd1bd4baef6576a5",
+        "released_at": "2026-08-31",
+        "upgrade_effect": "rebuild",
+        "version": "2.2.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "The checkpoint, distilled LoRA, spatial upscaler, Gemma shards and indexes, and tokenizer closure remain byte-identical. Repository metadata and unrelated checkpoints are no longer downloaded. Gemma now receives the common root containing both text_encoder and tokenizer. The image/build allowance matches the conservative 8 GB envelope used by the same pinned LTX 1.2 runtime family.",
+            "kind": "fix",
+            "references": [],
+            "summary": "Filtered the pinned Hugging Face snapshot to the 25 immutable files required by the native FP4 runtime."
+          }
+        ],
+        "prior_recipe_content_sha256": "bfed18fb1fe5e0768c5c765448038e017c0fe8c1bf5b33a94824c46955cb7868",
+        "released_at": "2026-08-29",
+        "upgrade_effect": "rebuild",
+        "version": "2.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "breaking",
+            "references": [],
+            "summary": "Replaced the hidden default prompt with one required bounded UTF-8 prompt file and declared exact synchronized-MP4 output bounds."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Removed automatic duration for the legacy checkpoint by fixing 97 frames at 768x512/24 fps and validating synchronized H.264/AAC before publication."
+          }
+        ],
+        "prior_recipe_content_sha256": "4688f67ce0605752479a6bbe93337d7d2364c3787b87e4c4abebe73ef155f0ea",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "8a46c10fc4a865e0a218ce3e8d2091513d16c7494d37deffced6679d5de83290",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.1.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [
+              "https://github.com/Lightricks/LTX-2/blob/400fd31054597515f47125691032c04b1c3ee24e/packages/ltx-core/pyproject.toml"
+            ],
+            "summary": "Replaced unavailable ARM64 CUDA 13.2 Torch and TorchAudio pins with the current upstream-tested 2.13.0 and 2.11.0 wheels."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
+            ],
+            "summary": "Corrected the recipe's whole-snapshot artifact and dependent disk resource sizes."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "The candidate still requires an ARM64 container build and physical Spark canary before acceptance."
+          }
+        ],
+        "prior_recipe_content_sha256": "3b323df19e414b5ee7fcf96927fca74ad654389cf4bb6ff834a35325b0a1d6da",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of LTX-2 19B dev FP4 native pipeline single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "ef300f5792389eed64b03db4fb92f43043080731d61eecfe1b0d2383699dc588",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "2.3.5"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "entrypoint",
+        "setting": null,
         "value": "/opt/vonk/source/pipelines/run.py"
       },
       {
         "name": "output-mime",
+        "setting": null,
         "value": "video/mp4"
       },
       {
         "name": "timeout-seconds",
+        "setting": null,
         "value": 3600
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 0
       }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/outputs",
-        "timeout_seconds": 3600
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "stop_timeout_seconds": 120
     }
   },
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": [
-          "weights"
-        ],
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 8000000000,
             "artifact_bytes": 77447526016,
-            "staging_bytes": 154895052032,
             "cache_bytes": 8000000000,
+            "image_bytes": 8000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 154895052032
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
             "startup_peak_bytes": 89000000000,
             "steady_state_bytes": 75000000000,
-            "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -275,76 +748,39 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "video-job",
-      "path": "/outputs",
-      "input": {
-        "path": "/inputs",
-        "required": true,
-        "media_types": [
-          "text/plain"
-        ],
-        "max_bytes": 16384,
-        "slots": [
-          {
-            "id": "prompt",
-            "label": "Generation prompt",
-            "description": "Required UTF-8 prompt.txt describing the video, motion, camera, and synchronized sound.",
-            "media_types": [
-              "text/plain"
-            ],
-            "extensions": [
-              ".txt"
-            ],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 16384,
-            "max_total_bytes": 16384
-          }
-        ]
-      },
-      "output": {
-        "path": "/outputs",
-        "max_total_bytes": 1073741824,
-        "slots": [
-          {
-            "id": "video",
-            "label": "Synchronized video",
-            "description": "Generated 768x512 H.264/AAC MP4 with exactly 97 frames at 24 fps and one synchronized 24 kHz stereo audio stream.",
-            "media_types": [
-              "video/mp4"
-            ],
-            "extensions": [
-              ".mp4"
-            ],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 1073741824,
-            "max_total_bytes": 1073741824
-          }
-        ]
-      }
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "video-job",
-        "checks": [
-          "artifact.mime.video-mp4"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bounded-video",
-        "framework": "ltx-pipelines",
         "configuration": {
           "frames": 97,
           "timeout_seconds": 3600
-        }
+        },
+        "framework": "ltx-pipelines",
+        "name": "bounded-video"
       }
-    ]
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "video-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/prompt.txt",
+            "input_path": "/inputs",
+            "input_slots": {
+              "prompt": "qualification/fixtures/prompt.txt"
+            },
+            "output_path": "/outputs",
+            "output_slot": "video",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "video-job"
+    }
   }
 }

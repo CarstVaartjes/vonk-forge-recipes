@@ -1,262 +1,42 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "a52783d8d73ace53998d4e740515e9942e73072dc7fbd5322917eb382a0bc7fb",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/three-d/hunyuan3d-omni"
+      },
+      "dockerfile": "adapters/three-d/hunyuan3d-omni/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "hunyuan3d-omni-pytorch-single"
   },
-  "metadata": {
-    "alignment": "unspecified",
-    "title": "Hunyuan3D-Omni pytorch-pipeline single Spark",
-    "description": "Candidate native Hunyuan3D-Omni single-Spark controllable 3D pipeline with exact upstream source, offline multimodal job input, and GLB output; physical GB10 acceptance remains pending.",
-    "tags": ["executable",
-      "candidate",
-      "three-d",
-      "pytorch-pipeline",
-      "single",
-      "spark",
-      "multimodal",
-      "native",
-      "build-unvalidated"
-    ]
-  },
-  "model": {
-    "kind": "model-version",
-    "publisher": "tencent",
-    "slug": "hunyuan3d-omni",
-    "content_sha256": "9941c419b61805e392f6d9cb9c901292895bb9f637fb6b8dd0dfd5fad9f5c188"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "pytorch-pipeline",
-      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c"
-    },
-    "patch_bundle": null
-  },
-  "build": {
-    "context": {
-      "path": "adapters/three-d/hunyuan3d-omni",
-      "sha256": "f458c1fe53b940fc943bc49fa00bbaccb7842a009072c2ba290b1bc09ab1dec5",
-      "expected_bytes": 71680,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {
-      "mode": "public",
-      "hosts": [
-        "github.com",
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ]
-    },
-    "resources": {
-      "download_bytes": 36435137457,
-      "temporary_bytes": 63000000000,
-      "memory_bytes": 16000000000,
-      "timeout_seconds": 14400
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
-    {
-      "id": "target",
-      "kind": "huggingface.snapshot",
-      "repository": "tencent/Hunyuan3D-Omni",
-      "revision": "70e803bfb4e127d534049d8ab8c8cb511780d485",
-      "download_bytes": 25729134701,
-      "installed_bytes": 25729134701,
-      "mount": {
-        "target": "/models/target",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "id": "dinov2-large",
-      "kind": "huggingface.snapshot",
-      "repository": "facebook/dinov2-large",
-      "revision": "47b73eefe95e8d44ec3623f8890bd894b6ea2d6c",
-      "download_bytes": 2435137457,
-      "installed_bytes": 2435137457,
-      "mount": {
-        "target": "/models/dinov2-large",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "tencent",
-      "slug": "hunyuan3d-omni-native-arm64",
-      "content_sha256": "fecd543ceb8dbcd365c3650b5db01268262e20fa1ec58cc31b5d76ac7347931e"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/pytorch-pipeline"
-    ],
-    "arguments": [
-      {
-        "name": "entrypoint",
-        "value": "/opt/vonk/source/run.py"
-      },
-      {
-        "name": "output-mime",
-        "value": "model/gltf-binary"
-      },
-      {
-        "name": "timeout-seconds",
-        "value": 3600
-      },
-      {
-        "name": "seed",
-        "value": 0
-      }
-    ],
-    "environment": [
-      {
-        "name": "HF_HUB_OFFLINE",
-        "value": "1"
-      }
-    ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
-    "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/outputs",
-        "timeout_seconds": 3600
-      },
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      }
-    }
-  },
-  "topology": {
-    "name": "solo",
-    "mode": "single",
-    "node_count": 1,
-    "roles": [
-      {
-        "name": "entrypoint",
-        "count": 1,
-        "endpoint_owner": true,
-        "artifacts": [
-          "target",
-          "dinov2-large"
-        ],
-        "resources": {
-          "disk": {
-            "image_bytes": 12000000000,
-            "artifact_bytes": 28164272158,
-            "staging_bytes": 56328544316,
-            "cache_bytes": 8000000000,
-            "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
-          },
-          "memory": {
-            "kind": "unified",
-            "startup_peak_bytes": 64000000000,
-            "steady_state_bytes": 48000000000,
-            "runtime_growth_bytes": 8000000000,
-            "system_reserve_bytes": 8000000000
-          }
-        }
-      }
-    ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "start_order": [
-      "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
-    ]
-  },
   "interfaces": [
     {
       "adapter": "mesh-job",
-      "path": "/outputs",
       "input": {
-        "path": "/inputs",
-        "required": true,
+        "max_bytes": 268435456,
         "media_types": [
           "application/json",
           "image/jpeg",
@@ -267,87 +47,474 @@
           "model/obj",
           "model/ply"
         ],
-        "max_bytes": 268435456,
+        "path": "/inputs",
+        "required": true,
         "slots": [
           {
+            "description": "Optional job.json selecting the image and Omni control mode.",
+            "extensions": [
+              ".json"
+            ],
             "id": "job",
             "label": "Control manifest",
-            "description": "Optional job.json selecting the image and Omni control mode.",
-            "media_types": ["application/json"],
-            "extensions": [".json"],
-            "min_files": 0,
-            "max_files": 1,
             "max_file_bytes": 16384,
-            "max_total_bytes": 16384
+            "max_files": 1,
+            "max_total_bytes": 16384,
+            "media_types": [
+              "application/json"
+            ],
+            "min_files": 0
           },
           {
+            "description": "One object image used to generate the mesh.",
+            "extensions": [
+              ".jpeg",
+              ".jpg",
+              ".png",
+              ".webp"
+            ],
             "id": "image",
             "label": "Source image",
-            "description": "One object image used to generate the mesh.",
-            "media_types": ["image/jpeg", "image/png", "image/webp"],
-            "extensions": [".jpeg", ".jpg", ".png", ".webp"],
-            "min_files": 1,
-            "max_files": 1,
             "max_file_bytes": 16777216,
-            "max_total_bytes": 16777216
+            "max_files": 1,
+            "max_total_bytes": 16777216,
+            "media_types": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "min_files": 1
           },
           {
+            "description": "Optional GLB, glTF, OBJ, or PLY geometry for point-cloud or voxel conditioning.",
+            "extensions": [
+              ".glb",
+              ".gltf",
+              ".obj",
+              ".ply"
+            ],
             "id": "control",
             "label": "Control geometry",
-            "description": "Optional GLB, glTF, OBJ, or PLY geometry for point-cloud or voxel conditioning.",
-            "media_types": ["model/gltf-binary", "model/gltf+json", "model/obj", "model/ply"],
-            "extensions": [".glb", ".gltf", ".obj", ".ply"],
-            "min_files": 0,
-            "max_files": 1,
             "max_file_bytes": 251641856,
-            "max_total_bytes": 251641856
+            "max_files": 1,
+            "max_total_bytes": 251641856,
+            "media_types": [
+              "model/gltf-binary",
+              "model/gltf+json",
+              "model/obj",
+              "model/ply"
+            ],
+            "min_files": 0
           }
         ]
       },
       "output": {
-        "path": "/outputs",
         "max_total_bytes": 536870912,
+        "path": "/outputs",
         "slots": [
           {
+            "description": "The generated Hunyuan binary glTF mesh.",
+            "extensions": [
+              ".glb"
+            ],
             "id": "mesh",
             "label": "Generated mesh",
-            "description": "The generated Hunyuan binary glTF mesh.",
-            "media_types": ["model/gltf-binary"],
-            "extensions": [".glb"],
-            "min_files": 1,
-            "max_files": 1,
             "max_file_bytes": 536870912,
-            "max_total_bytes": 536870912
+            "max_files": 1,
+            "max_total_bytes": 536870912,
+            "media_types": [
+              "model/gltf-binary"
+            ],
+            "min_files": 1
           }
         ]
+      },
+      "path": "/outputs"
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Candidate native Hunyuan3D-Omni single-Spark controllable 3D pipeline with exact upstream source, offline multimodal job input, and GLB output; physical GB10 acceptance remains pending.",
+    "tags": [
+      "executable",
+      "candidate",
+      "three-d",
+      "pytorch-pipeline",
+      "single",
+      "spark",
+      "multimodal",
+      "native",
+      "build-unvalidated"
+    ],
+    "title": "Hunyuan3D-Omni pytorch-pipeline single Spark"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "snapshot",
+          "id": "primary-snapshot",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "72336c134cd48940d8211cbf4ac0b87bd8966bd06258f8add09d284c9c8e3247",
+        "kind": "model",
+        "publisher": "tencent",
+        "slug": "hunyuan3d-omni"
       }
     }
   ],
-  "validation": {
-    "validators": [
-      {
-        "interface": "mesh-job",
-        "checks": [
-          "artifact.mime.model-gltf-binary"
-        ]
-      }
-    ],
-    "benchmarks": [
-      {
-        "name": "bounded-startup",
-        "framework": "pytorch-pipeline",
-        "configuration": {
-          "timeout_seconds": 14400
-        }
-      }
-    ]
-  },
   "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/tencent/Hunyuan3D-Omni/tree/70e803bfb4e127d534049d8ab8c8cb511780d485",
     "attribution": [
       "tencent",
       "Meta DINOv2 contributors"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/tencent/Hunyuan3D-Omni/tree/70e803bfb4e127d534049d8ab8c8cb511780d485"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "2.0.7"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "35a1c8b6fcc8a6687467bd5a3adbc9d617bec8681750529b29ebe8c94dba8d8f",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.6"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "a7506dcf4ca4df0b0a66acf872678ce7b03dd9afd2542198368019f4c1df6d61",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "2.0.5"
+      },
+      {
+        "changes": [
+          {
+            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+            "kind": "security",
+            "references": [],
+            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+          }
+        ],
+        "prior_recipe_content_sha256": "8d7af5d163132b8b2d65c46fea8540176606eeab2e5f8544b2049eb9b0dbdd9d",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.4"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Required a bounded reachable finite nondegenerate indexed triangle mesh before atomic GLB publication."
+          },
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Made the upstream EU, UK, and South Korea territorial restriction authoritative without an unrelated operator-acceptance gate."
+          }
+        ],
+        "prior_recipe_content_sha256": "efca27d07ffeb067256c428242fd281bbd915bbf9ac6b9bb57de71b3d98928df",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.3"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Added the exact official DINOv2-large companion snapshot and forced its offline local loading."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Seeded voxel surface sampling and structurally validated each GLB before atomic publication."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared exact manifest, image, control-geometry, and single-GLB job slots with bounded bytes."
+          },
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Encoded the upstream exclusions for the EU, United Kingdom, and South Korea for fail-closed admission."
+          }
+        ],
+        "prior_recipe_content_sha256": "70805f1d7c423199eb16597b863215d16ef310e38cfdeeec38b05ae7758f7e45",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "0b65145e91d02feacf54e5a773a5f2f9e49e9a9370581f8267f9c49e1c181736",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "2.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/tree/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8"
+            ],
+            "summary": "Replaced the metadata placeholder with the exact upstream Hunyuan3D-Omni controllable mesh pipeline."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Added bounded image, bounding-box, pose, point-cloud, and voxel job inputs with deterministic GLB output."
+          },
+          {
+            "details": null,
+            "kind": "runtime",
+            "references": [],
+            "summary": "Added the pinned CUDA 13.2 ARM64 native runtime and removed runtime model downloads."
+          }
+        ],
+        "prior_recipe_content_sha256": "80647d03505c3bb399b315eaf3f6396deac13e507ca3d65a495984bcbb6e6d01",
+        "released_at": "2026-08-24",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Marked the checkpoint binding non-executable because its custom control pipeline has no qualified ARM64 adapter."
+          },
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Corrected the license to the territory-restricted Tencent Hunyuan 3D Omni Community License."
+          }
+        ],
+        "prior_recipe_content_sha256": "fcbc133935efcb5d500a4f3b8d5c6e021492a0c63c1479adaa6f9703767fd8c6",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of Hunyuan3D-Omni pytorch-pipeline single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "e21c4e0bbb14275f87a7bdb0591ff70fa1aa50fa4bdf99b38fcfa26aac55a77e",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+            ],
+            "summary": "Recovered the first public legacy revision from before semantic release tracking."
+          }
+        ],
+        "prior_recipe_content_sha256": "af3206c722742b8500651e082aed4562a333d25688a6cd823dfdb4a97bb86eff",
+        "released_at": "2026-08-17",
+        "upgrade_effect": "reprepare",
+        "version": "0.1.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "2.0.7"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "entrypoint",
+        "setting": null,
+        "value": "/opt/vonk/source/run.py"
+      },
+      {
+        "name": "output-mime",
+        "setting": null,
+        "value": "model/gltf-binary"
+      },
+      {
+        "name": "timeout-seconds",
+        "setting": null,
+        "value": 3600
+      },
+      {
+        "name": "seed",
+        "setting": null,
+        "value": 0
+      }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "secret": null,
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "failure": {
+        "rank_loss": "not-applicable",
+        "recovery": "restart-entrypoint"
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "stop_timeout_seconds": 120
+    }
+  },
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
+  "topology": {
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
+    "mode": "single",
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 28164272158,
+            "cache_bytes": 8000000000,
+            "image_bytes": 12000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 56328544316
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
+            "startup_peak_bytes": 64000000000,
+            "steady_state_bytes": 48000000000,
+            "system_reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ],
+    "stop_order": [
+      "entrypoint"
     ]
+  },
+  "validation": {
+    "benchmarks": [
+      {
+        "configuration": {
+          "timeout_seconds": 14400
+        },
+        "framework": "pytorch-pipeline",
+        "name": "bounded-startup"
+      }
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "mesh-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.png",
+            "input_path": "/inputs",
+            "input_slots": {
+              "image": "qualification/fixtures/tiny.png"
+            },
+            "output_path": "/outputs",
+            "output_slot": "mesh",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "mesh-job"
+    }
   }
 }
