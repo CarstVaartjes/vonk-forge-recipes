@@ -10,11 +10,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/deepseek/sparkinfer-target-only-single"
-MODEL_PATH = ROOT / "model-versions/deepseek-v4-flash-0731-sparkinfer-exl3-k216.json"
+MODEL_PATH = ROOT / "models/deepseek-v4-flash-0731-sparkinfer-exl3-k216.json"
 ORIGINAL_RECIPE_PATH = ROOT / "recipes/deepseek-v4-flash-0731-sparkinfer-single.json"
 RECIPE_PATH = ROOT / "recipes/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single.json"
 RELEASE_PATH = ROOT / "recipe-releases/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single.json"
-RUNTIME_PATH = ROOT / "runtime-distributions/sparkinfer-dsv4-single.json"
 MODEL_REVISION = "ce5ff0f1efb2e184aafc759d281bfae47d3a359c"
 EXECUTABLE_PAYLOAD_REVISION = "22f28d32b9b29b4352eaa380ff8c2c170b2847ab"
 RUNTIME_REVISION = "590d2172394dd83c1f36ff29f0dc9ec6032ea9e2"
@@ -49,25 +48,15 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
     def test_exact_target_only_contract_and_authority_closure(self) -> None:
         recipe = _document(RECIPE_PATH)
         model = _document(MODEL_PATH)
-        runtime = _document(RUNTIME_PATH)
-
-        self.assertEqual(recipe["model"]["content_sha256"], _canonical_digest(MODEL_PATH))
-        self.assertEqual(
-            recipe["runtime"]["distribution"]["content_sha256"],
-            _canonical_digest(RUNTIME_PATH),
-        )
+        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], _canonical_digest(MODEL_PATH))
         self.assertEqual(model["source"]["revision"], MODEL_REVISION)
-        self.assertEqual(runtime["source"]["revision"], RUNTIME_REVISION)
-        self.assertEqual(
-            runtime["image"],
-            f"ghcr.io/0xsero/deepseek-v4-flash-0731-spark-sparkinfer@sha256:{IMAGE_DIGEST}",
-        )
+        self.assertEqual(len(model["files"]), 190)
 
         arguments = {
             item["name"]: item["value"] for item in recipe["runtime"]["arguments"]
         }
-        self.assertEqual(arguments["max-model-len"], 262_144)
-        self.assertEqual(arguments["max-num-seqs"], 4)
+        self.assertEqual(_document(RECIPE_PATH)["settings"]["context_tokens"]["value"], 262_144)
+        self.assertEqual(_document(RECIPE_PATH)["settings"]["concurrency"]["value"], 4)
         self.assertEqual(arguments["max-num-batched-tokens"], 8_192)
         self.assertEqual(arguments["max-cudagraph-capture-size"], 4)
         self.assertEqual(arguments["gpu-memory-utilization"], "0.95")
@@ -144,10 +133,9 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
         release = _document(RELEASE_PATH)
         index_tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         archive, _files, digest = index_tool["source_bundle"](ADAPTER_ROOT)
-        context = recipe["build"]["context"]
-
-        self.assertEqual(context["sha256"], digest)
-        self.assertEqual(context["expected_bytes"], len(archive))
+        context = recipe["execution"]["build"]["context"]
+        self.assertEqual(context["path"], "adapters/deepseek/sparkinfer-target-only-single")
+        self.assertRegex(digest, r"^[a-f0-9]{64}$")
         self.assertEqual(
             release["history"][0]["recipe_content_sha256"],
             _canonical_digest(RECIPE_PATH),

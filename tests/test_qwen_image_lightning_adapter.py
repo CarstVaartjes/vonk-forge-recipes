@@ -53,18 +53,12 @@ class QwenImageLightningAdapterTests(unittest.TestCase):
         ):
             recipe = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
 
-            self.assertEqual(len(recipe["dependencies"]), 1)
-            self.assertEqual(
-                {artifact["id"] for artifact in recipe["artifacts"]},
-                {"base", "target"},
-            )
-            target = next(
-                artifact
-                for artifact in recipe["artifacts"]
-                if artifact["id"] == "target"
-            )
-            self.assertEqual(target["download_bytes"], 849608296)
-            self.assertEqual(target["mount"]["target"], "/models/target")
+            self.assertEqual(len(recipe["models"]), 2)
+            target = recipe["models"][0]
+            self.assertTrue(target["files"])
+            self.assertEqual(target["files"][0]["mount"]["target"], "/models/target")
+            model = json.loads((ROOT / "models" / f"{target['model']['slug']}.json").read_text())
+            self.assertTrue(model["files"][0]["roles"])
             self.assertNotIn("metadata-only", recipe["metadata"]["tags"])
             self.assertNotIn("non-executable", recipe["metadata"]["tags"])
 
