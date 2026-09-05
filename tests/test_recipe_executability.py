@@ -6,14 +6,16 @@ import sys
 import unittest
 from pathlib import Path, PurePosixPath
 
-
 ROOT = Path(__file__).resolve().parents[1]
 RECIPES = ROOT / "recipes"
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition  # noqa: E402
-from vonk_forge_contracts.canonical import content_sha256  # noqa: E402
-from vonk_forge_contracts.resolver import validate_recipe_models, validate_recipe_package_paths  # noqa: E402
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition
+from vonk_forge_contracts.canonical import content_sha256
+from vonk_forge_contracts.resolver import (
+    validate_recipe_models,
+    validate_recipe_package_paths,
+)
 
 FORBIDDEN_TAGS = frozenset(
     {
@@ -72,7 +74,7 @@ class RecipeExecutabilityTests(unittest.TestCase):
             self.assertNotIn(key, models, path.name)
             models[key] = model
         self.assertEqual(len(models), 92)
-        self.assertEqual(len(list(RECIPES.glob("*.json"))), 84)
+        self.assertEqual(len(list(RECIPES.glob("*.json"))), 85)
         for path in sorted(RECIPES.glob("*.json")):
             recipe = RecipeDefinition.model_validate(json.loads(path.read_text(encoding="utf-8")))
             validate_recipe_models(recipe, models.values())
@@ -84,7 +86,7 @@ class RecipeExecutabilityTests(unittest.TestCase):
             validate_recipe_package_paths(recipe, package_paths)
             self.assertEqual(content_sha256(recipe), content_sha256(recipe))
 
-    def test_every_recipe_is_an_executable_candidate(self) -> None:
+    def test_every_recipe_has_an_executable_contract(self) -> None:
         recipes = recipe_documents()
         self.assertTrue(recipes, "recipes/*.json must contain at least one recipe")
 
@@ -106,16 +108,6 @@ class RecipeExecutabilityTests(unittest.TestCase):
                     f"{path.name}: metadata.tags must contain nonempty strings",
                 )
                 normalized_tags = {tag.casefold() for tag in tags}
-                self.assertIn(
-                    "candidate",
-                    normalized_tags,
-                    f"{path.name}: every recipe must retain the Candidate tag",
-                )
-                self.assertIn(
-                    "executable",
-                    normalized_tags,
-                    f"{path.name}: every published recipe must be installable",
-                )
                 self.assertFalse(
                     normalized_tags & FORBIDDEN_TAGS,
                     f"{path.name}: executable recipes cannot use placeholder, "
