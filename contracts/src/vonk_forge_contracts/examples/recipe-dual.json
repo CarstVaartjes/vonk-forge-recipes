@@ -1,24 +1,24 @@
 {
   "execution": {
+    "mode": "build",
     "build": {
-      "arguments": [],
       "base_image": {
+        "repository": "registry.example/vonk/base",
         "digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        "platform": "linux/arm64",
-        "repository": "registry.example/vonk/base"
+        "platform": "linux/arm64"
       },
       "context": {
         "path": "context.tar"
       },
       "dockerfile": "Dockerfile",
-      "network": {
-        "hosts": [],
-        "mode": "none"
-      },
       "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "target": null,
+      "arguments": [],
+      "network": {
+        "mode": "none",
+        "hosts": []
+      }
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -75,6 +75,23 @@
     "source_kind": "local",
     "source_reference": null
   },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "kind": "initial",
+            "summary": "Initial reviewed recipe contract."
+          }
+        ],
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.0.0"
+  },
   "runtime": {
     "arguments": [],
     "engine": "vllm",
@@ -112,11 +129,11 @@
     "name": "solo",
     "node_count": 2,
     "parallelism": {
-      "backend": "nccl",
-      "data": 1,
-      "pipeline": 1,
+      "world_size": 2,
       "tensor": 2,
-      "world_size": 2
+      "pipeline": 1,
+      "data": 1,
+      "backend": "nccl"
     },
     "roles": [
       {

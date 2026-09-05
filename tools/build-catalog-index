@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import base64
-import datetime as dt
 import gzip
 import hashlib
 import io
@@ -17,7 +16,6 @@ import tempfile
 import tarfile
 from pathlib import Path
 from pathlib import PurePosixPath
-from urllib.parse import urlsplit
 
 REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,27 +28,7 @@ QUALIFICATION_OUTPUT = QUALIFICATION_ROOT / "qualification-index.json"
 # Keep the generated index within the same bounded raw-blob envelope as source files.
 MAX_INDEX_BYTES = 12 * 1024 * 1024
 MAX_SOURCE_FILE_BYTES = 12 * 1024 * 1024
-MAX_RELEASE_BYTES = 64 * 1024
-MAX_RELEASE_HISTORY = 32
-MAX_RELEASE_CHANGES = 16
-MAX_RELEASE_REFERENCES = 8
-SEMVER = re.compile(
-    r"^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)"
-    r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
-)
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
-RELEASE_CHANGE_KINDS = {
-    "initial",
-    "model",
-    "runtime",
-    "performance",
-    "fix",
-    "security",
-    "compatibility",
-    "breaking",
-    "metadata",
-}
-UPGRADE_EFFECTS = {"metadata-only", "restart", "reinstall", "rebuild"}
 ENTITY_DIRECTORIES = {
     "models": "model",
 }
@@ -67,256 +45,6 @@ def canonical(document: object) -> bytes:
         sort_keys=True,
         separators=(",", ":"),
     ).encode("utf-8")
-
-
-def _release_error(path: Path, detail: str) -> SystemExit:
-    return SystemExit(f"recipe release is invalid ({path.relative_to(ROOT)}): {detail}")
-
-
-def _bounded_string(
-    value: object,
-    *,
-    path: Path,
-    field: str,
-    maximum: int,
-) -> str:
-    if not isinstance(value, str) or not value.strip() or len(value) > maximum:
-        raise _release_error(path, f"{field} must contain 1..{maximum} characters")
-    return value
-
-
-def _release_date(value: object, *, path: Path, field: str) -> str:
-    text = _bounded_string(value, path=path, field=field, maximum=10)
-    try:
-        parsed = dt.date.fromisoformat(text)
-    except ValueError as error:
-        raise _release_error(
-            path, f"{field} must be an ISO 8601 calendar date"
-        ) from error
-    if parsed.isoformat() != text:
-        raise _release_error(path, f"{field} must use YYYY-MM-DD form")
-    return text
-
-
-def _semver_is_older(older: str, newer: str) -> bool:
-    def parts(value: str) -> tuple[tuple[int, int, int], tuple[str, ...]]:
-        core, separator, prerelease = value.partition("-")
-        return (
-            tuple(int(item) for item in core.split(".")),  # type: ignore[return-value]
-            tuple(prerelease.split(".")) if separator else (),
-        )
-
-    older_core, older_prerelease = parts(older)
-    newer_core, newer_prerelease = parts(newer)
-    if older_core != newer_core:
-        return older_core < newer_core
-    if not older_prerelease:
-        return False
-    if not newer_prerelease:
-        return True
-    for older_item, newer_item in zip(older_prerelease, newer_prerelease, strict=False):
-        if older_item == newer_item:
-            continue
-        older_numeric = older_item.isdigit()
-        newer_numeric = newer_item.isdigit()
-        if older_numeric and newer_numeric:
-            return int(older_item) < int(newer_item)
-        if older_numeric != newer_numeric:
-            return older_numeric
-        return older_item < newer_item
-    return len(older_prerelease) < len(newer_prerelease)
-
-
-def recipe_release(
-    path: Path,
-    *,
-    publisher: str,
-    slug: str,
-    recipe_digest: str,
-) -> dict[str, object]:
-    raw = path.read_bytes()
-    if not raw or len(raw) > MAX_RELEASE_BYTES:
-        raise _release_error(
-            path, f"document must contain 1..{MAX_RELEASE_BYTES} bytes"
-        )
-    try:
-        document = json.loads(raw)
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise _release_error(path, "document must be UTF-8 JSON") from error
-    if not isinstance(document, dict) or set(document) != {
-        "schema_version",
-        "recipe",
-        "version",
-        "released_at",
-        "history",
-    }:
-        raise _release_error(path, "top-level shape is not recipe-release v1")
-    if document["schema_version"] != 1:
-        raise _release_error(path, "schema_version must be 1")
-    identity = document["recipe"]
-    if not isinstance(identity, dict) or set(identity) != {"publisher", "slug"}:
-        raise _release_error(
-            path, "recipe identity must contain exactly publisher and slug"
-        )
-    if identity != {"publisher": publisher, "slug": slug}:
-        raise _release_error(
-            path, "recipe identity does not match the executable recipe"
-        )
-    version = _bounded_string(
-        document["version"], path=path, field="version", maximum=64
-    )
-    if SEMVER.fullmatch(version) is None:
-        raise _release_error(path, "version must be semantic MAJOR.MINOR.PATCH")
-    released_at = _release_date(document["released_at"], path=path, field="released_at")
-    history = document["history"]
-    if not isinstance(history, list) or not 1 <= len(history) <= MAX_RELEASE_HISTORY:
-        raise _release_error(
-            path, f"history must contain 1..{MAX_RELEASE_HISTORY} releases"
-        )
-    clean_history: list[dict[str, object]] = []
-    versions: set[str] = set()
-    digests: set[str] = set()
-    previous_version: str | None = None
-    previous_date: str | None = None
-    for history_index, item in enumerate(history):
-        prefix = f"history[{history_index}]"
-        if not isinstance(item, dict) or set(item) != {
-            "version",
-            "released_at",
-            "recipe_content_sha256",
-            "upgrade_effect",
-            "changes",
-        }:
-            raise _release_error(path, f"{prefix} has an invalid shape")
-        item_version = _bounded_string(
-            item["version"], path=path, field=f"{prefix}.version", maximum=64
-        )
-        if SEMVER.fullmatch(item_version) is None or item_version in versions:
-            raise _release_error(
-                path, f"{prefix}.version must be a unique semantic version"
-            )
-        if previous_version is not None and not _semver_is_older(
-            item_version, previous_version
-        ):
-            raise _release_error(
-                path, "history must be newest-first by semantic version"
-            )
-        versions.add(item_version)
-        previous_version = item_version
-        item_date = _release_date(
-            item["released_at"], path=path, field=f"{prefix}.released_at"
-        )
-        if previous_date is not None and item_date > previous_date:
-            raise _release_error(path, "history must be newest-first by released_at")
-        previous_date = item_date
-        digest = item["recipe_content_sha256"]
-        if (
-            not isinstance(digest, str)
-            or SHA256.fullmatch(digest) is None
-            or digest in digests
-        ):
-            raise _release_error(
-                path, f"{prefix}.recipe_content_sha256 must be a unique digest"
-            )
-        digests.add(digest)
-        effect = item["upgrade_effect"]
-        if effect not in UPGRADE_EFFECTS:
-            raise _release_error(path, f"{prefix}.upgrade_effect is unsupported")
-        changes = item["changes"]
-        if (
-            not isinstance(changes, list)
-            or not 1 <= len(changes) <= MAX_RELEASE_CHANGES
-        ):
-            raise _release_error(
-                path, f"{prefix}.changes must contain 1..{MAX_RELEASE_CHANGES} entries"
-            )
-        clean_changes: list[dict[str, object]] = []
-        for change_index, change in enumerate(changes):
-            change_prefix = f"{prefix}.changes[{change_index}]"
-            if (
-                not isinstance(change, dict)
-                or not {"kind", "summary"} <= set(change)
-                or not set(change) <= {"kind", "summary", "details", "references"}
-            ):
-                raise _release_error(path, f"{change_prefix} has an invalid shape")
-            kind = change["kind"]
-            if kind not in RELEASE_CHANGE_KINDS:
-                raise _release_error(path, f"{change_prefix}.kind is unsupported")
-            clean_change: dict[str, object] = {
-                "kind": kind,
-                "summary": _bounded_string(
-                    change["summary"],
-                    path=path,
-                    field=f"{change_prefix}.summary",
-                    maximum=160,
-                ),
-            }
-            if "details" in change:
-                clean_change["details"] = _bounded_string(
-                    change["details"],
-                    path=path,
-                    field=f"{change_prefix}.details",
-                    maximum=1000,
-                )
-            if "references" in change:
-                references = change["references"]
-                if (
-                    not isinstance(references, list)
-                    or not 1 <= len(references) <= MAX_RELEASE_REFERENCES
-                    or not all(isinstance(reference, str) for reference in references)
-                    or len(set(references)) != len(references)
-                ):
-                    raise _release_error(
-                        path,
-                        f"{change_prefix}.references must contain "
-                        f"1..{MAX_RELEASE_REFERENCES} unique URLs",
-                    )
-                clean_references: list[str] = []
-                for reference_index, reference in enumerate(references):
-                    reference = _bounded_string(
-                        reference,
-                        path=path,
-                        field=f"{change_prefix}.references[{reference_index}]",
-                        maximum=500,
-                    )
-                    parsed = urlsplit(reference)
-                    if (
-                        parsed.scheme != "https"
-                        or not parsed.hostname
-                        or parsed.username
-                        or parsed.password
-                    ):
-                        raise _release_error(
-                            path,
-                            f"{change_prefix}.references must use public HTTPS URLs",
-                        )
-                    clean_references.append(reference)
-                clean_change["references"] = clean_references
-            clean_changes.append(clean_change)
-        clean_history.append(
-            {
-                "version": item_version,
-                "released_at": item_date,
-                "recipe_content_sha256": digest,
-                "upgrade_effect": effect,
-                "changes": clean_changes,
-            }
-        )
-    latest = clean_history[0]
-    if (
-        latest["version"] != version
-        or latest["released_at"] != released_at
-        or latest["recipe_content_sha256"] != recipe_digest
-    ):
-        raise _release_error(
-            path,
-            "version, released_at, and current recipe digest must match history[0]",
-        )
-    return {
-        "version": version,
-        "released_at": released_at,
-        "history": clean_history,
-    }
 
 
 def source_bundle(context: Path) -> tuple[bytes, list[dict[str, object]], str]:
@@ -380,119 +108,6 @@ def source_bundle(context: Path) -> tuple[bytes, list[dict[str, object]], str]:
         "total_bytes": sum(len(content) for _, content in files),
     }
     return stream.getvalue(), metadata, hashlib.sha256(canonical(manifest)).hexdigest()
-
-
-def catalog_entities() -> list[dict[str, object]]:
-    entries: list[dict[str, object]] = []
-    identities: set[tuple[str, str, str]] = set()
-    for directory, expected_kind in ENTITY_DIRECTORIES.items():
-        for path in sorted((ROOT / directory).glob("*.json")):
-            document = json.loads(path.read_text(encoding="utf-8"))
-            identity = document.get("identity")
-            if document.get("kind") != expected_kind or not isinstance(identity, dict):
-                raise SystemExit(
-                    f"catalog entity identity is invalid: {path.relative_to(ROOT)}"
-                )
-            key = (expected_kind, identity.get("publisher"), identity.get("slug"))
-            if not all(isinstance(value, str) for value in key):
-                raise SystemExit(
-                    f"catalog entity identity is invalid: {path.relative_to(ROOT)}"
-                )
-            if key in identities:
-                raise SystemExit(f"duplicate catalog entity identity: {'/'.join(key)}")
-            identities.add(key)
-            entries.append(
-                {
-                    "source_path": path.relative_to(ROOT).as_posix(),
-                    "content_sha256": hashlib.sha256(canonical(document)).hexdigest(),
-                    "document": document,
-                }
-            )
-    return sorted(entries, key=lambda entry: str(entry["source_path"]))
-
-
-def build() -> dict[str, object]:
-    recipes: list[dict[str, object]] = []
-    contexts: dict[str, dict[str, object]] = {}
-    identities: set[tuple[str, str]] = set()
-    for path in sorted((ROOT / "recipes").glob("*.json")):
-        document = json.loads(path.read_text(encoding="utf-8"))
-        identity = document.get("identity")
-        if not isinstance(identity, dict):
-            raise SystemExit(f"recipe identity is missing: {path.relative_to(ROOT)}")
-        key = (identity.get("publisher"), identity.get("slug"))
-        if not all(isinstance(value, str) for value in key):
-            raise SystemExit(f"recipe identity is invalid: {path.relative_to(ROOT)}")
-        if key in identities:
-            raise SystemExit(f"duplicate recipe identity: {key[0]}/{key[1]}")
-        identities.add(key)
-        source_path = path.relative_to(ROOT).as_posix()
-        if source_path != f"recipes/{key[1]}.json":
-            raise SystemExit(f"recipe path does not match its slug: {source_path}")
-        recipe_digest = hashlib.sha256(canonical(document)).hexdigest()
-        release_path = ROOT / "recipe-releases" / f"{key[1]}.json"
-        if not release_path.is_file():
-            raise SystemExit(
-                f"recipe release is missing: {release_path.relative_to(ROOT)}"
-            )
-        recipes.append(
-            {
-                "source_path": source_path,
-                "content_sha256": recipe_digest,
-                "document": document,
-                "release": recipe_release(
-                    release_path,
-                    publisher=key[0],
-                    slug=key[1],
-                    recipe_digest=recipe_digest,
-                ),
-            }
-        )
-        build = document.get("build")
-        context = build.get("context") if isinstance(build, dict) else None
-        context_path = context.get("path") if isinstance(context, dict) else None
-        expected_digest = context.get("sha256") if isinstance(context, dict) else None
-        expected_bytes = (
-            context.get("expected_bytes") if isinstance(context, dict) else None
-        )
-        if (
-            not isinstance(context_path, str)
-            or not isinstance(expected_digest, str)
-            or not isinstance(expected_bytes, int)
-        ):
-            raise SystemExit(f"recipe source bundle identity is invalid: {source_path}")
-        archive, files, actual_digest = source_bundle(ROOT / context_path)
-        if actual_digest != expected_digest or len(archive) != expected_bytes:
-            raise SystemExit(
-                f"recipe source bundle does not match its contract: {source_path}"
-            )
-        previous = contexts.get(expected_digest)
-        entry = {
-            "context_path": context_path,
-            "content_sha256": actual_digest,
-            "expected_bytes": len(archive),
-            "files": files,
-        }
-        if previous is not None and previous != entry:
-            raise SystemExit(f"source bundle digest collision: {expected_digest}")
-        contexts[expected_digest] = entry
-    release_paths = sorted((ROOT / "recipe-releases").glob("*.json"))
-    expected_release_paths = {
-        ROOT / "recipe-releases" / f"{slug}.json" for _, slug in identities
-    }
-    unexpected_releases = set(release_paths) - expected_release_paths
-    if unexpected_releases:
-        path = min(unexpected_releases)
-        raise SystemExit(f"orphan recipe release: {path.relative_to(ROOT)}")
-    return {
-        "schema_version": 2,
-        "repository": REPOSITORY,
-        "catalog_entities": catalog_entities(),
-        "source_contexts": sorted(
-            contexts.values(), key=lambda entry: str(entry["content_sha256"])
-        ),
-        "recipes": recipes,
-    }
 
 
 def qualification_index(catalog: dict[str, object]) -> dict[str, object]:
@@ -641,9 +256,7 @@ def _recorded_source_commit() -> str:
     return value
 
 
-# v2 package producer.  This deliberately replaces the historical six-entity
-# producer above; it remains in the file only so old release validation helpers
-# can be reused while branches transition.
+# v2 package producer.
 def _catalog_entity_documents() -> dict[str, dict[str, object]]:
     result: dict[str, dict[str, object]] = {}
     from vonk_forge_contracts import ModelDefinition
@@ -894,8 +507,7 @@ def validate_recipe_archive(payload: bytes, recipe: dict[str, object], entities:
                     raise SystemExit(f"recipe package serving closure is missing: {', '.join(missing)}")
 
 
-def recipe_package(document: dict[str, object], release: dict[str, object] | None = None, *, recipe_path: Path | None = None, entity_documents: dict[str, dict[str, object]] | None = None, qualification_definitions: dict[str, object] | None = None) -> tuple[bytes, dict[str, object]]:
-    del release, qualification_definitions
+def recipe_package(document: dict[str, object], *, recipe_path: Path | None = None, entity_documents: dict[str, dict[str, object]] | None = None) -> tuple[bytes, dict[str, object]]:
     from vonk_forge_contracts import RecipeDefinition, content_sha256
     validated = RecipeDefinition.model_validate(document)
     document = validated.model_dump(mode="json", exclude_unset=False, exclude_none=False)
@@ -933,12 +545,8 @@ def build(*, package_dir: Path | None = None, platform_root: Path | None = None,
         payload, metadata = recipe_package(document, recipe_path=path, entity_documents=entities)
         filename = Path(str(metadata["path"])).name
         (package_dir / filename).write_bytes(payload)
-        release_path = ROOT / "recipe-releases" / f"{document['identity']['slug']}.json"
         recipe_digest = content_sha256(validated)
-        if not release_path.is_file():
-            raise SystemExit(f"recipe release is missing: {release_path.relative_to(ROOT)}")
-        release = recipe_release(release_path, publisher=document["identity"]["publisher"], slug=document["identity"]["slug"], recipe_digest=recipe_digest)
-        recipes.append({"source_path": path.relative_to(ROOT).as_posix(), "content_sha256": recipe_digest, "document": document, "package": metadata, "release": release})
+        recipes.append({"source_path": path.relative_to(ROOT).as_posix(), "content_sha256": recipe_digest, "document": document, "package": metadata, "release": document["release"]})
     from vonk_forge_contracts import ModelDefinition, content_sha256
     catalog_entities = []
     for document in sorted(entities.values(), key=lambda item: str(item["identity"]["slug"])):

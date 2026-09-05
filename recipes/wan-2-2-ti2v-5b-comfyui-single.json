@@ -181,6 +181,157 @@
     "source_kind": "global",
     "source_reference": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77"
   },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.9"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "c37abbe5aed54bf546c4c8a76228fcf940f8217e69558489291cf48f22240a3e",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.8"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "e424b4de358dde24bfe749d585905eba94fa5c3368bdee58f719fa56210de242",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.0.7"
+      },
+      {
+        "changes": [
+          {
+            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+            "kind": "security",
+            "references": [],
+            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+          }
+        ],
+        "prior_recipe_content_sha256": "4c12f075c0afccabbc0fa6b21b0bbabc6fdb14596ec46c4c50358cab32073d5d",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.6"
+      },
+      {
+        "changes": [
+          {
+            "details": "The source bundle now hash-locks stable tag v0.34.0 at exact commit 12d52794 and its verified source archive. Model artifacts, core-node workflow parameters, admission envelopes, and Candidate qualification are unchanged.",
+            "kind": "runtime",
+            "references": [
+              "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.34.0",
+              "https://github.com/Comfy-Org/ComfyUI/commit/12d5279438bfefc058a269eae805ceab6047777f"
+            ],
+            "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0."
+          }
+        ],
+        "prior_recipe_content_sha256": "41d7a92f932efa7362bf880cd0b44c37a6e24f3f222677c27b9321bb3cf85bf4",
+        "released_at": "2026-08-31",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.5"
+      },
+      {
+        "changes": [
+          {
+            "details": "Recommendation metadata now distinguishes its declared 86 GB startup-plus-reserve envelope from the OOM-gated 14B Candidates while retaining the physical acceptance gate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Made TI2V 5B the recommended default single-Spark Wan profile."
+          }
+        ],
+        "prior_recipe_content_sha256": "03c3a56415791d17b059e7df7055c771f31dfc51a57e1de2a806971dee5a6e13",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "none",
+        "version": "1.0.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "The adapter now consumes the prompt and reference image from their signed manifest slots, while the recipe declares exact input limits and one bounded MP4 result.",
+            "kind": "fix",
+            "references": [],
+            "summary": "Added signed typed prompt, image, and MP4 result slots."
+          }
+        ],
+        "prior_recipe_content_sha256": "3ef9ac7658a05e202e074fd687d0c11d4618ee5757914a464888d0b56c661fc6",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "The adapter rejects blank prompts before model linking and requires one H.264 1280x704, 121-frame, 24 fps MP4 with a matching duration.",
+            "kind": "fix",
+            "references": [],
+            "summary": "Required a prompt and fail-closed Wan MP4 result validation."
+          }
+        ],
+        "prior_recipe_content_sha256": "44e90a3dc065c5eff01022e0e84ffc8a096883c2458e2bf21ddd36196c40e77b",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "5066a786d18a38aa025587bcfd1e55b8fb4776ee28b72b0de054b226acbc2df9",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77"
+            ],
+            "summary": "Initial candidate core-node ComfyUI image-to-video release for Wan 2.2 TI2V 5B on a single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "f682f606a12b4ba579f10f3bb3f697470e1f92510324e43509203e689dee89ee",
+        "released_at": "2026-08-25",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.0.9"
+  },
   "runtime": {
     "arguments": [
       {

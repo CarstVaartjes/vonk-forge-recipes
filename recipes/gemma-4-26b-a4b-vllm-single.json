@@ -205,6 +205,149 @@
     "source_kind": "global",
     "source_reference": "https://huggingface.co/google/gemma-4-26B-A4B-it/tree/4d7ae4984b7db7de8f8457170b3f1a419ee76d52"
   },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.4"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "7b556402aecc2d0314bd5d4771f7700611fdd0d19fecaad8c52e22cdce7010f8",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "2.0.3"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Routed non-root vLLM caches to the writable outputs mount."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/vllm-project/vllm/issues/53431"
+            ],
+            "summary": "Removed automatic tool calling and its capability claim until vLLM handles Gemma 4's canonical bare function opener."
+          }
+        ],
+        "prior_recipe_content_sha256": "bbff6dca398fd30f1a843be5b6352186eaa439c5de4caedb67c7ca3367f0856a",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "reprepare",
+        "version": "2.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "7803900e9e079c06e3b15af484c539596369c0df6e6782c8548baad02fde2fc2",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "2.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/google/gemma-4-26B-A4B-it/tree/4d7ae4984b7db7de8f8457170b3f1a419ee76d52"
+            ],
+            "summary": "Replaced the base checkpoint with Google's immutable instruction-tuned Gemma 4 26B-A4B checkpoint and verified file inventory."
+          },
+          {
+            "details": null,
+            "kind": "runtime",
+            "references": [
+              "https://github.com/vllm-project/vllm/blob/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/vllm/model_executor/models/gemma4.py",
+              "https://github.com/vllm-project/vllm/blob/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/vllm/parser/gemma4.py",
+              "https://docs.vllm.ai/projects/recipes/en/stable/Google/Gemma4.html"
+            ],
+            "summary": "Enabled native Gemma 4 reasoning and tool parsing, automatic tool choice, the pinned chat template, and a bounded 32K serving context."
+          }
+        ],
+        "prior_recipe_content_sha256": "84dffb844cb01c156929d165803570689e1ffd7f911687f92c30ce4785063d08",
+        "released_at": "2026-08-24",
+        "upgrade_effect": "reprepare",
+        "version": "2.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [
+              "https://huggingface.co/google/gemma-4-26B-A4B/tree/24548b62aa021d562695c04aaf7758a1ea47990b",
+              "https://huggingface.co/google/gemma-4-26B-A4B-it/tree/4d7ae4984b7db7de8f8457170b3f1a419ee76d52"
+            ],
+            "summary": "Clarified that the pinned base checkpoint is not the separate instruction-tuned chat model and remains a qualification candidate."
+          }
+        ],
+        "prior_recipe_content_sha256": "e9c84ffbc696d4b3ed235d7582a11eca180397e1423e66b20a8e30f6f2810e7d",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "none",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of Gemma 4 26B-A4B vLLM single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "8ca28f0f886b5cf9f20948dccf0b70431d5b4372518c71035db781aaf6813f47",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+            ],
+            "summary": "Recovered the first public legacy revision from before semantic release tracking."
+          }
+        ],
+        "prior_recipe_content_sha256": "caadf1f426186b5593bac6e2010c421316534ee8fccf3cb6b911c80d3f46fec4",
+        "released_at": "2026-08-17",
+        "upgrade_effect": "reprepare",
+        "version": "0.1.0"
+      }
+    ],
+    "released_at": "2026-09-03",
+    "version": "2.0.4"
+  },
   "runtime": {
     "arguments": [
       {

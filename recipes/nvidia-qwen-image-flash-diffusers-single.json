@@ -382,6 +382,176 @@
     "source_kind": "global",
     "source_reference": "https://huggingface.co/nvidia/Qwen-Image-Flash/tree/eafac15f6140e6dd9c6031217d658ac10bfb604b"
   },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.5"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "f90397303047422f13e26e85cebcfe755a5fa28957ff39c4169a742bbbad344f",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.2.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+            "kind": "security",
+            "references": [],
+            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+          }
+        ],
+        "prior_recipe_content_sha256": "de66ff6463978fada6d20b367acbbceee202d4628c28fd1eef7c9daaf3e4cbce",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "Replaced the synthetic snapshot pseudo-file with all 24 files in NVIDIA's exact eafac15f revision, including file sizes and SHA-256 digests, and recorded the official full-pipeline parameter count, 1,024-token prompt limit, and tested 1024px resolution. The hydrated recipe artifact, four-step launch, and runtime image are unchanged, so deployments need no rebuild or restart.",
+            "kind": "metadata",
+            "references": [
+              "https://huggingface.co/nvidia/Qwen-Image-Flash/tree/eafac15f6140e6dd9c6031217d658ac10bfb604b"
+            ],
+            "summary": "Closed the immutable Qwen Image Flash source inventory."
+          },
+          {
+            "details": "The bounded image canary now records the model card's tested 1024x1024 resolution and required four inference steps instead of relying on runtime defaults.",
+            "kind": "fix",
+            "references": [],
+            "summary": "Made the physical canary profile explicit."
+          }
+        ],
+        "prior_recipe_content_sha256": "84846b238017fdfcf005bff4b47c2926affb301d84bce1540a78a418c700fa93",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "none",
+        "version": "1.2.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "Declared exact prompt-file and generated-PNG slots for signed artifact jobs.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Added typed artifact input and output slot contracts."
+          }
+        ],
+        "prior_recipe_content_sha256": "8a030dac663e43f10aca54f189d70ebed36ff6bf7ef4f1ef48b104a9fa6fdd89",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "none",
+        "version": "1.2.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Corrected unified-memory admission for the 57.7 GB BF16 artifact instead of admitting it at an impossible 32 GB startup peak."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Standardized generation prompts as one bounded UTF-8 text file in the read-only inputs mount."
+          }
+        ],
+        "prior_recipe_content_sha256": "ea901deedd3a8ee0d31f7d5669a057d90de19d5f0d40d67f2b43907f796faf2b",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "f0476d7f16cb503f2b85f146704ef29d9a5e2ee45e244fd87682371058322571",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.1.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/nvidia/Qwen-Image-Flash/tree/eafac15f6140e6dd9c6031217d658ac10bfb604b"
+            ],
+            "summary": "Added a model-specific four-step adapter using true CFG 1.0 and the tested 1024px profile."
+          },
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Corrected the checkpoint license to the NVIDIA Open Model Agreement."
+          }
+        ],
+        "prior_recipe_content_sha256": "a2060eea697330cb5d5d3cf8c08c2af8c39f5abb5a267d0e580eb98a2305b19a",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of NVIDIA Qwen Image Flash diffusers single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "e73616158543ce334edb2ddf119962f10d1a33cd90da4fa383bec1a97cf237d3",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+            ],
+            "summary": "Recovered the first public legacy revision from before semantic release tracking."
+          }
+        ],
+        "prior_recipe_content_sha256": "130e78c60a207abb0c5cbb134d4cc0644576da03127714685ebcb71826813e31",
+        "released_at": "2026-08-17",
+        "upgrade_effect": "reprepare",
+        "version": "0.1.0"
+      }
+    ],
+    "released_at": "2026-09-03",
+    "version": "1.2.5"
+  },
   "runtime": {
     "arguments": [
       {
