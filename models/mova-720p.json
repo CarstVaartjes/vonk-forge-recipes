@@ -1,24 +1,118 @@
 {
-  "schema_version": 1,
-  "kind": "model",
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "audio-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "video-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "8462bea9a317a3591279faeedfd3ca01b055cb59",
+      "source_url": "https://huggingface.co/OpenMOSS-Team/MOVA-720p"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "roles": [
+        "entrypoint"
+      ],
+      "sha256": "34f46f8ce591e14cb6b77898535c9482969e6275a875926cbacc0becdf02e122",
+      "size_bytes": 77689755302
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
   "identity": {
+    "family": {
+      "publisher": "openmoss",
+      "slug": "mova",
+      "title": "MOVA"
+    },
+    "model": {
+      "architecture": "upstream-native generation pipeline",
+      "publisher": "openmoss",
+      "slug": "mova-720p",
+      "title": "MOVA 720p"
+    },
     "publisher": "openmoss",
-    "slug": "mova-720p"
+    "slug": "mova-720p",
+    "variant": "MOVA 720p",
+    "version": "MOVA 720p"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "openmoss"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/OpenMOSS-Team/MOVA-720p/blob/8462bea9a317a3591279faeedfd3ca01b055cb59/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Immutable public upstream snapshot at the pinned revision.",
+    "publisher": "openmoss",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "openmoss",
+      "slug": "mova-720p"
+    }
   },
   "metadata": {
-    "title": "MOVA 720p",
-    "description": "MOVA 720p model family.",
+    "description": "Immutable public snapshot at 8462bea9.",
     "tags": [
       "openmoss",
       "video",
-      "generation"
+      "candidate"
     ]
   },
-  "model_group": {
-    "kind": "model-group",
-    "publisher": "openmoss",
-    "slug": "mova",
-    "content_sha256": "0d25e621d8a56806b4f0023384829c1a11829c07509808854f8e6a7da738021a"
+  "modalities": [
+    "audio",
+    "video"
+  ],
+  "parameters": {
+    "active": null,
+    "total": null
   },
-  "architecture": "upstream-native generation pipeline"
+  "provenance": {
+    "attribution": [
+      "openmoss"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "8462bea9a317a3591279faeedfd3ca01b055cb59",
+    "source_url": "https://huggingface.co/OpenMOSS-Team/MOVA-720p"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/OpenMOSS-Team/MOVA-720p",
+    "revision": "8462bea9a317a3591279faeedfd3ca01b055cb59"
+  },
+  "supersedes": null
 }

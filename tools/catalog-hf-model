@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Materialize an immutable Hugging Face model and model-version entity."""
+"""Materialize an immutable Hugging Face ModelDefinition."""
 
 from __future__ import annotations
 
@@ -11,6 +11,10 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
+
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
+from vonk_forge_contracts import ModelDefinition, content_sha256
 
 
 MAX_INLINE_ARTIFACT_BYTES = 16 * 1024 * 1024
@@ -57,7 +61,7 @@ def _get_bytes(url: str) -> bytes:
 
 
 def _content_hash(path: Path) -> str:
-    return _sha256(_canonical(json.loads(path.read_text())))
+    return content_sha256(ModelDefinition.model_validate_json(path.read_text(encoding="utf-8")))
 
 
 def _arguments() -> argparse.Namespace:
@@ -85,6 +89,13 @@ def _arguments() -> argparse.Namespace:
     parser.add_argument("--license-url", required=True)
     parser.add_argument("--attribution", action="append", required=True)
     parser.add_argument("--operator-acceptance-required", action="store_true")
+    parser.add_argument("--visibility", choices=("public", "restricted"), default="public")
+    parser.add_argument("--gated", action="store_true")
+    parser.add_argument("--authentication", choices=("none", "token"), default="none")
+    parser.add_argument("--lineage-relation", choices=("official", "derived", "quantized"), default="official")
+    parser.add_argument("--lineage-publisher")
+    parser.add_argument("--source-model-publisher")
+    parser.add_argument("--source-model-slug")
     return parser.parse_args()
 
 
@@ -134,7 +145,7 @@ def main() -> int:
     for entry in file_entries:
         path = entry.get("path")
         size = entry.get("size")
-        if not isinstance(path, str) or not isinstance(size, int) or size < 1:
+        if not isinstance(path, str) or not isinstance(size, int) or size < 0:
             continue
         lfs = entry.get("lfs")
         if isinstance(lfs, dict) and isinstance(lfs.get("oid"), str):
@@ -182,99 +193,41 @@ def main() -> int:
         raise SystemExit("Hugging Face model has no file artifacts")
     total_bytes = sum(int(item["download_bytes"]) for item in artifacts)
 
-    group_path = root / "model-groups" / f"{args.model_group_slug}.json"
-    group_path.parent.mkdir(parents=True, exist_ok=True)
-    if group_path.exists():
-        group = json.loads(group_path.read_text())
-    else:
-        group = {
-            "schema_version": 1,
-            "kind": "model-group",
-            "identity": {"publisher": args.publisher, "slug": args.model_group_slug},
-            "metadata": {
-                "title": args.model_group_title,
-                "description": args.model_group_description,
-            "tags": list(dict.fromkeys([args.publisher, args.model_group_slug, args.modality])),
-            },
-            "family": args.model_group_slug,
-        }
-        group_path.write_text(json.dumps(group, indent=2) + "\n")
-    group_hash = _content_hash(group_path)
-
-    model_path = root / "models" / f"{args.model_slug}.json"
-    model_path.parent.mkdir(parents=True, exist_ok=True)
-    model = {
-        "schema_version": 1,
-        "kind": "model",
-        "identity": {"publisher": args.publisher, "slug": args.model_slug},
-        "metadata": {
-            "title": args.model_title,
-            "description": args.model_description,
-            "tags": list(dict.fromkeys([args.publisher, args.model_group_slug, args.modality])),
+    modality = {"language": "text", "multimodal": "text"}.get(args.modality, args.modality)
+    if modality not in {"text", "image", "audio", "video", "3d", "embeddings"}:
+        raise SystemExit(f"unsupported model modality: {args.modality}")
+    evidence_digest = _sha256(_canonical({"repository": args.repository, "revision": revision, "artifacts": artifacts}))
+    lineage_publisher = args.lineage_publisher or args.publisher
+    source_model_publisher = args.source_model_publisher or args.publisher
+    source_model_slug = args.source_model_slug or args.model_slug
+    document = {
+        "schema_version": 2, "kind": "model",
+        "identity": {
+            "publisher": args.publisher, "slug": args.version_slug,
+            "family": {"publisher": args.publisher, "slug": args.model_group_slug, "title": args.model_group_title},
+            "model": {"publisher": args.publisher, "slug": args.model_slug, "title": args.model_title, "architecture": args.architecture},
+            "version": args.version, "variant": args.version,
         },
-        "model_group": {
-            "kind": "model-group",
-            "publisher": args.publisher,
-            "slug": args.model_group_slug,
-            "content_sha256": group_hash,
-        },
-        "architecture": args.architecture,
-    }
-    model_path.write_text(json.dumps(model, indent=2) + "\n")
-    model_hash = _content_hash(model_path)
-
-    version_path = root / "model-versions" / f"{args.version_slug}.json"
-    version_path.parent.mkdir(parents=True, exist_ok=True)
-    version = {
-        "schema_version": 1,
-        "kind": "model-version",
-        "identity": {"publisher": args.publisher, "slug": args.version_slug},
-        "metadata": {
-            "title": args.version,
-            "description": f"Exact public {args.version} checkpoint.",
-            "tags": list(
-                dict.fromkeys(
-                    [args.publisher, args.model_group_slug, args.modality, "candidate"]
-                )
-            ),
-        },
-        "model": {
-            "kind": "model",
-            "publisher": args.publisher,
-            "slug": args.model_slug,
-            "content_sha256": model_hash,
-        },
-        "version": args.version,
+        "metadata": {"description": args.model_description, "tags": list(dict.fromkeys([args.publisher, args.model_group_slug, args.modality, "candidate"]))},
+        "access": {"visibility": args.visibility, "gated": args.gated, "authentication": args.authentication},
+        "lineage": {"publisher": lineage_publisher, "relation": args.lineage_relation, "source_model": {"kind": "model", "publisher": source_model_publisher, "slug": source_model_slug}, "derivation": "Immutable upstream snapshot at the pinned revision."},
+        "dependencies": [], "supersedes": None,
+        "modalities": [modality],
         "source": {"repository": f"https://huggingface.co/{args.repository}", "revision": revision},
-        "lineage": {
-            "publisher": args.publisher,
-            "relation": "official",
-            "source_model": {
-                "kind": "model",
-                "publisher": args.publisher,
-                "slug": args.model_slug,
-                "content_sha256": model_hash,
-            },
-            "derivation": "Official upstream checkpoint at the pinned revision.",
-        },
         "format": {"container": "safetensors", "precision": args.precision, "quantization": args.quantization},
         "parameters": {"total": args.parameters_total, "active": args.parameters_active},
-        "limits": {"context_tokens": args.context_tokens},
-        "sizes": {"download_bytes": total_bytes, "installed_bytes": total_bytes},
-        "license": {
-            "spdx": args.license_spdx,
-            "url": args.license_url,
-            "attribution": args.attribution,
-            "operator_acceptance_required": args.operator_acceptance_required,
-        },
-        "access": {"visibility": "public", "gated": False, "authentication": "none"},
-        "artifacts": artifacts,
-        "dependencies": [],
-        "availability": "active",
-        "supersedes": None,
+        "limits": {"context_tokens": args.context_tokens, "resolution_pixels": None, "frames": None, "sample_rate_hz": None},
+        "license": {"spdx": args.license_spdx, "url": args.license_url, "attribution": args.attribution, "operator_acceptance_required": args.operator_acceptance_required},
+        "files": [{"id": item["id"], "path": item["path"], "sha256": item["sha256"], "size_bytes": item["installed_bytes"], "roles": item["roles"]} for item in artifacts],
+        "capabilities": {"schema_version": 2, "facts": [], "provenance": {"source_url": f"https://huggingface.co/{args.repository}", "source_revision": revision, "evidence_digest": evidence_digest}},
+        "provenance": {"source_url": f"https://huggingface.co/{args.repository}", "source_revision": revision, "evidence_digest": evidence_digest, "attribution": args.attribution},
     }
-    version_path.write_text(json.dumps(version, indent=2) + "\n")
-    print(json.dumps({"revision": revision, "model_sha256": model_hash, "version_sha256": _content_hash(version_path), "bytes": total_bytes}, sort_keys=True))
+    validated = ModelDefinition.model_validate(document)
+    model_path = root / "models" / f"{args.version_slug}.json"
+    model_path.parent.mkdir(parents=True, exist_ok=True)
+    model_path.write_text(json.dumps(validated.model_dump(mode="json"), ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+    model_hash = _content_hash(model_path)
+    print(json.dumps({"revision": revision, "model_sha256": model_hash, "bytes": total_bytes}, sort_keys=True))
     return 0
 
 

@@ -1,24 +1,120 @@
 {
-  "schema_version": 1,
-  "kind": "model",
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "image-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
+      "source_url": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "qwen-image-2512-lightning-4steps-v1-0-bf16",
+      "path": "Qwen-Image-2512-Lightning-4steps-V1.0-bf16.safetensors",
+      "roles": [
+        "adapter"
+      ],
+      "sha256": "de0d236e54ecf2c43b32447d13478c6eae0d361b1fed48c69675b084fa240d87",
+      "size_bytes": 849608296
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
   "identity": {
+    "family": {
+      "publisher": "qwen",
+      "slug": "qwen-image",
+      "title": "Qwen Image"
+    },
+    "model": {
+      "architecture": "upstream-native generation pipeline",
+      "publisher": "qwen",
+      "slug": "qwen-image-2512-lightning",
+      "title": "Qwen Image 2512 Lightning"
+    },
     "publisher": "qwen",
-    "slug": "qwen-image-2512-lightning"
+    "slug": "qwen-image-2512-lightning",
+    "variant": "Qwen Image 2512 Lightning 4-step BF16 LoRA",
+    "version": "4steps-v1.0-bf16-a52649c9"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "ModelTC",
+      "lightx2v",
+      "Qwen"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/ModelTC/Qwen-Image-Lightning/blob/25d1e9935ba97e1f60503f8c000201e08b1fe8f4/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Four-step distilled LoRA trained for Qwen/Qwen-Image-2512 and selected in BF16 precision for Diffusers inference.",
+    "publisher": "ModelTC/lightx2v",
+    "relation": "derived",
+    "source_model": {
+      "kind": "model",
+      "publisher": "qwen",
+      "slug": "qwen-image-2512"
+    }
   },
   "metadata": {
-    "title": "Qwen Image 2512 Lightning",
-    "description": "Qwen Image 2512 Lightning model family.",
+    "description": "Exact ModelTC/lightx2v four-step BF16 distilled LoRA for the official Qwen Image 2512 base checkpoint.",
     "tags": [
       "qwen",
       "image",
-      "generation"
+      "generation",
+      "text-to-image",
+      "lightning",
+      "lora",
+      "bf16",
+      "candidate"
     ]
   },
-  "model_group": {
-    "kind": "model-group",
-    "publisher": "qwen",
-    "slug": "qwen-image",
-    "content_sha256": "017ca50df0b94708710d42b378cf1f4a7edfc283dda0563c0bfd00d079ad7b69"
+  "modalities": [
+    "image"
+  ],
+  "parameters": {
+    "active": null,
+    "total": null
   },
-  "architecture": "upstream-native generation pipeline"
+  "provenance": {
+    "attribution": [
+      "ModelTC",
+      "lightx2v",
+      "Qwen"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
+    "source_url": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning",
+    "revision": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52"
+  },
+  "supersedes": null
 }

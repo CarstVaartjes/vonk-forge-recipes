@@ -1,0 +1,430 @@
+{
+  "blockers": {},
+  "models_converted": 92,
+  "models_total": 92,
+  "recipe_blocker_count": 0,
+  "recipes_converted": 84,
+  "recipes_total": 84,
+  "settings_provenance": {
+    "deepseek-v4-flash-0731-ds4-dspark-latency-single": {
+      "detail": "single mutable KV session without --batched-session",
+      "source": "pinned DS4 vendor README",
+      "value": 1
+    },
+    "deepseek-v4-flash-0731-ds4-single": {
+      "detail": "pinned DS4 harness maps batch-size=2 to batched-session concurrency",
+      "source": "runtime.arguments.batch-size",
+      "value": 2
+    },
+    "deepseek-v4-flash-0731-mia-dual": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 6
+    },
+    "deepseek-v4-flash-0731-mia-sparkinfer-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 1
+    },
+    "deepseek-v4-flash-0731-sparkinfer-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 4
+    },
+    "deepseek-v4-flash-0731-sparkinfer-target-only-canary-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 4
+    },
+    "deepseek-v4-flash-vision-exp-mia-dual": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 6
+    },
+    "flux-2-klein-4b-comfyui-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "flux-2-klein-4b-nvfp4-comfyui-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "gemma-4-26b-a4b-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 2
+    },
+    "gemma-4-26b-a4b-vllm028-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 2
+    },
+    "glm-5-2-aqlm-vllm-triple": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 1
+    },
+    "glm-5-2-quanttrio-vllm-four": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 4
+    },
+    "glm-5-3-flash-exl3-dflash2-vllm-dual": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 4
+    },
+    "glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 6
+    },
+    "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 2
+    },
+    "glm-5-3-flash-nvfp4-vllm-dual": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 8
+    },
+    "glm-5-3-flash-nvfp4-vllm-four": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 6
+    },
+    "hunyuan-video-15-distilled-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "hunyuan-video-15-i2v-step-distilled-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "hunyuan-video-15-t2v-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "hunyuan-video-foley-xl-pytorch-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "hunyuan-video-foley-xxl-pytorch-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "hunyuan3d-omni-pytorch-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "hunyuanocr-1-5-vllm-dflash-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "inkling-975b-a41b-nvfp4-sglang-eight": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "inkling-small-nvfp4-sglang-dual": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "laguna-s-2-1-nvfp4-vllm-low-memory-canary-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 1
+    },
+    "laguna-s-2-1-nvfp4-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 1
+    },
+    "laguna-xs-2-1-nvfp4-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 2
+    },
+    "lfm2-5-vl-3b-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 4
+    },
+    "lfm2-5-vl-3b-vllm028-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 4
+    },
+    "ling-3-0-flash-dspark-sglang-single": {
+      "detail": "pinned wrapper appends max-running-requests",
+      "source": "adapters/ling/flash-dspark-single/sglang-serve",
+      "value": 6
+    },
+    "ltx-2-19b-dev-bf16-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "ltx-2-19b-dev-fp4-pytorch-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "ltx-2-19b-distilled-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "ltx-2-19b-distilled-fp8-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "ltx-2-3-22b-distilled-1-1-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "ltx-2-5-22b-distilled-bf16-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "ltx-2-5-22b-distilled-fp8-cast-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "minimax-h3-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "minimax-h3-fl2va-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "moss-vl-realtime-11b-pytorch-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "mova-360p-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "mova-720p-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "muse-glimmer-30b-bf16-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 1
+    },
+    "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 1
+    },
+    "nemotron-3-5-lightning-30b-a3b-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 4
+    },
+    "nemotron-3-5-lightning-dspark-lowmem-canary-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 1
+    },
+    "nemotron-3-nano-30b-a3b-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 8
+    },
+    "nemotron-3-nano-omni-30b-a3b-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 2
+    },
+    "nemotron-3-super-120b-a12b-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 4
+    },
+    "nvidia-qwen-image-flash-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "ornith-1-5-35b-a3b-nvfp4-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 4
+    },
+    "pixal3d-pytorch-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "qwen-image-2512-comfyui-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "qwen-image-2512-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "qwen-image-2512-fp8-lightning-comfyui-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "qwen-image-2512-lightning-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "qwen-image-edit-2511-comfyui-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "qwen-image-edit-2511-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "qwen-image-edit-2511-fp8mixed-comfyui-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "qwen-image-edit-2511-int8-convrot-comfyui-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "qwen-image-edit-2511-lightning-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "qwen-image-layered-diffusers-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "qwen3-5-9b-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 2
+    },
+    "qwen3-6-27b-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 2
+    },
+    "qwen3-6-35b-a3b-nvfp4-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 4
+    },
+    "qwen3-8-27b-fp8-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 4
+    },
+    "qwen3-8-27b-nvfp4-dspark-sglang-single": {
+      "detail": "pinned wrapper appends max-running-requests",
+      "source": "adapters/qwen/qwen38-27b-dspark-single/sglang-serve",
+      "value": 10
+    },
+    "qwen3-8-27b-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 2
+    },
+    "qwen3-8-flash-next-nvfp4-sglang-dual": {
+      "argument": "max-running-requests",
+      "source": "runtime.arguments",
+      "value": 28
+    },
+    "skintokens-pytorch-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "step1x-3d-geometry-pytorch-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "step1x-3d-label-geometry-pytorch-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "step1x-3d-texture-pytorch-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "trellis-2-4b-pytorch-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "triposg-pytorch-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "ui-mate-27b-vllm-single": {
+      "argument": "max-num-seqs",
+      "source": "runtime.arguments",
+      "value": 1
+    },
+    "wan-2-2-i2v-14b-comfyui-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "wan-2-2-t2v-14b-comfyui-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "wan-2-2-ti2v-5b-comfyui-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "wan-dancer-14b-disk-offload-pytorch-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    },
+    "wan-dancer-14b-pytorch-single": {
+      "detail": "engine scheduler limit is automatic/unspecified",
+      "source": "runtime default",
+      "value": null
+    }
+  }
+}

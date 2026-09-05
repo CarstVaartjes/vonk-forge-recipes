@@ -1,22 +1,86 @@
 {
-  "schema_version": 2,
-  "kind": "model",
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "image-generation",
+        "evidence_digest": null,
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "text-generation",
+        "evidence_digest": null,
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "source_revision": "fedcba9876543210fedcba9876543210fedcba98",
+      "source_url": "https://example.com/evidence/synthetic-tiny"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "weights",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "size_bytes": 1024
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "fp16",
+    "quantization": "none"
+  },
   "identity": {
-    "publisher": "vonk-forge",
-    "slug": "synthetic-tiny-fp16",
     "family": {
       "publisher": "vonk-forge",
       "slug": "synthetic",
       "title": "Synthetic"
     },
     "model": {
+      "architecture": "synthetic-transformer",
       "publisher": "vonk-forge",
       "slug": "synthetic-tiny",
-      "title": "Synthetic Tiny",
-      "architecture": "synthetic-transformer"
+      "title": "Synthetic Tiny"
     },
-    "version": "1.0.0",
-    "variant": "fp16"
+    "publisher": "vonk-forge",
+    "slug": "synthetic-tiny-fp16",
+    "variant": "fp16",
+    "version": "1.0.0"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Vonk Forge"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "limits": {
+    "context_tokens": 1024
+  },
+  "lineage": {
+    "derivation": "Synthetic contract example.",
+    "publisher": "vonk-forge",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "vonk-forge",
+      "slug": "synthetic-tiny-image"
+    }
   },
   "metadata": {
     "description": "A small model used only for contract examples.",
@@ -29,69 +93,22 @@
     "text",
     "image"
   ],
+  "parameters": {
+    "active": 1024,
+    "total": 1024
+  },
+  "provenance": {
+    "attribution": [
+      "Vonk Forge"
+    ],
+    "evidence_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "source_revision": "0123456789abcdef0123456789abcdef01234567",
+    "source_url": "https://example.com/models/synthetic-tiny"
+  },
+  "schema_version": 2,
   "source": {
     "repository": "https://example.com/models/synthetic-tiny",
     "revision": "0123456789abcdef0123456789abcdef01234567"
   },
-  "format": {
-    "container": "safetensors",
-    "precision": "fp16",
-    "quantization": "none"
-  },
-  "parameters": {
-    "total": 1024,
-    "active": 1024
-  },
-  "limits": {
-    "context_tokens": 1024
-  },
-  "license": {
-    "spdx": "Apache-2.0",
-    "url": "https://www.apache.org/licenses/LICENSE-2.0",
-    "attribution": [
-      "Vonk Forge"
-    ],
-    "operator_acceptance_required": false
-  },
-  "files": [
-    {
-      "id": "weights",
-      "path": "model.safetensors",
-      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-      "size_bytes": 1024,
-      "roles": [
-        "weights"
-      ]
-    }
-  ],
-  "capabilities": {
-    "schema_version": 2,
-    "facts": [
-      {
-        "capability": "image-generation",
-        "support": "supported",
-        "evidence_status": "declared",
-        "evidence_digest": null
-      },
-      {
-        "capability": "text-generation",
-        "support": "supported",
-        "evidence_status": "declared",
-        "evidence_digest": null
-      }
-    ],
-    "provenance": {
-      "source_url": "https://example.com/evidence/synthetic-tiny",
-      "source_revision": "fedcba9876543210fedcba9876543210fedcba98",
-      "evidence_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
-    }
-  },
-  "provenance": {
-    "source_url": "https://example.com/models/synthetic-tiny",
-    "source_revision": "0123456789abcdef0123456789abcdef01234567",
-    "evidence_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-    "attribution": [
-      "Vonk Forge"
-    ]
-  }
+  "supersedes": null
 }

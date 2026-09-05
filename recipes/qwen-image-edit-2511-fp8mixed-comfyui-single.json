@@ -1,12 +1,115 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed"
+      },
+      "dockerfile": "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed/Dockerfile",
+      "network": {
+        "hosts": [
+          "codeload.github.com",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "qwen-image-edit-2511-fp8mixed-comfyui-single"
   },
+  "interfaces": [
+    {
+      "adapter": "image-job",
+      "input": {
+        "max_bytes": 33570816,
+        "media_types": [
+          "text/plain",
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "path": "/inputs",
+        "required": true,
+        "slots": [
+          {
+            "description": "UTF-8 instructions describing the requested image edit.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "prompt",
+            "label": "Prompt",
+            "max_file_bytes": 16384,
+            "max_files": 1,
+            "max_total_bytes": 16384,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          },
+          {
+            "description": "One or two source images to edit or combine.",
+            "extensions": [
+              ".jpg",
+              ".jpeg",
+              ".png",
+              ".webp"
+            ],
+            "id": "image",
+            "label": "Reference images",
+            "max_file_bytes": 16777216,
+            "max_files": 2,
+            "max_total_bytes": 33554432,
+            "media_types": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 16777216,
+        "path": "/outputs",
+        "slots": [
+          {
+            "description": "Single edited PNG image.",
+            "extensions": [
+              ".png"
+            ],
+            "id": "image",
+            "label": "Edited image",
+            "max_file_bytes": 16777216,
+            "max_files": 1,
+            "max_total_bytes": 16777216,
+            "media_types": [
+              "image/png"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "path": "/outputs"
+    }
+  ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "title": "Qwen Image Edit 2511 FP8mixed ComfyUI single Spark",
     "description": "Memory-efficient single-Spark Candidate for one-or-two-reference Qwen Image Edit 2511 jobs, using Comfy-Org's mixed-precision FP8 transformer, scaled-FP8 Qwen-VL encoder, and Qwen Image VAE. It preserves the 40-step quality schedule while reducing the declared admission envelope to 108.00 GB unified memory including reserve and 95.17 GB peak installation disk.",
     "tags": [
       "executable",
@@ -21,260 +124,240 @@
       "mixed-precision",
       "single",
       "spark"
-    ]
+    ],
+    "title": "Qwen Image Edit 2511 FP8mixed ComfyUI single Spark"
   },
-  "model": {
-    "kind": "model-version",
-    "publisher": "qwen",
-    "slug": "qwen-image-edit-2511-comfyui-fp8mixed-4c7c4ea2",
-    "content_sha256": "784a36feeb9e7e3d5ddaa87a30d88c958dbeb93716202b07ce109b9e5f047879"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "comfyui",
-      "content_sha256": "0d97fceaa9a7ab64bf3d826b5d9ca427ea10be79b54a8d4fe9190711c9bf70d6"
-    },
-    "patch_bundle": null
-  },
-  "build": {
-    "context": {
-      "path": "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed",
-      "sha256": "d9322370825f2ff68ff88cf18287667e24a146e29c05488ad6751257cd1ad35a",
-      "expected_bytes": 30720,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {
-      "mode": "public",
-      "hosts": [
-        "codeload.github.com",
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ]
-    },
-    "resources": {
-      "download_bytes": 30172239743,
-      "temporary_bytes": 40000000000,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 14400
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "target",
+          "id": "primary-target",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "342f6989e9cc6b76cbfc609c498f3dd211fb9b40fb77e432db3407aea4f9aee1",
+        "kind": "model",
+        "publisher": "qwen",
+        "slug": "qwen-image-edit-2511-comfyui-fp8mixed-4c7c4ea2"
+      }
+    }
+  ],
   "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/4c7c4ea236326cbae56d403d22a03c6cd86ad9a0",
     "attribution": [
       "Qwen",
       "Comfy-Org"
-    ]
-  },
-  "artifacts": [
-    {
-      "id": "target",
-      "kind": "http.file",
-      "repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/resolve/4c7c4ea236326cbae56d403d22a03c6cd86ad9a0/split_files/diffusion_models/qwen_image_edit_2511_fp8mixed.safetensors",
-      "revision": "sha256:c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e",
-      "download_bytes": 20533762817,
-      "installed_bytes": 20533762817,
-      "mount": {
-        "target": "/models/target",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "id": "text-encoder",
-      "kind": "http.file",
-      "repository": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f/split_files/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors",
-      "revision": "sha256:cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4",
-      "download_bytes": 9384670680,
-      "installed_bytes": 9384670680,
-      "mount": {
-        "target": "/models/text-encoder",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "id": "vae",
-      "kind": "http.file",
-      "repository": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f/split_files/vae/qwen_image_vae.safetensors",
-      "revision": "sha256:a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f",
-      "download_bytes": 253806246,
-      "installed_bytes": 253806246,
-      "mount": {
-        "target": "/models/vae",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "comfy-org",
-      "slug": "comfyui-0-34-0-cuda13-arm64",
-      "content_sha256": "0400a5a7298a57cca1a049ef17baf21ce81c29fa897fbfa157256d4fde931d9c"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/comfyui-job"
     ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/4c7c4ea236326cbae56d403d22a03c6cd86ad9a0"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.6"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "124b79e8fcf3765ef516b291631f958814a786bc6e63b39eead28198ff9dd01e",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.5"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "b493c52929c1bc1d23069706ef42914125e17b1b38fc72e9a9818ab372864bd6",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.0.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+            "kind": "security",
+            "references": [],
+            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+          }
+        ],
+        "prior_recipe_content_sha256": "8f70cbe740ca7cd2a4a40161395530fe1f9d86b5a1aeab5a57d92423a347b309",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "The source bundle now hash-locks stable tag v0.34.0 at exact commit 12d52794 and its verified source archive. Model artifacts, core-node workflow parameters, admission envelopes, and Candidate qualification are unchanged.",
+            "kind": "runtime",
+            "references": [
+              "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.34.0",
+              "https://github.com/Comfy-Org/ComfyUI/commit/12d5279438bfefc058a269eae805ceab6047777f"
+            ],
+            "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0."
+          }
+        ],
+        "prior_recipe_content_sha256": "0469503d348283f45d0cb22013f63749420eaf1cf4f981f38c0103736eb867f4",
+        "released_at": "2026-08-31",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "Published its exact 108.00 GB unified-memory and 95.17 GB peak installation-disk envelopes while preserving Candidate qualification and the 40-step quality schedule.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Identified FP8mixed as the memory-efficient single-Spark edit variant."
+          }
+        ],
+        "prior_recipe_content_sha256": "51ab53220c7a8710a6d420bac595e797b6259b7282163c991a6aaae610eb6fdb",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "The isolated core-node ComfyUI adapter installs the exact FP8mixed transformer, scaled-FP8 encoder, and VAE, accepts one or two signed reference images plus a bounded prompt, and publishes exactly one PNG without changing existing ComfyUI source bundles.",
+            "kind": "initial",
+            "references": [
+              "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/commit/4c7c4ea236326cbae56d403d22a03c6cd86ad9a0",
+              "https://github.com/Comfy-Org/workflow_templates/blob/2ded761bde3af3b4c8e905e162f45551cbec12ea/templates/image_qwen_image_edit_2511.json"
+            ],
+            "summary": "Added the exact mixed-precision FP8 Qwen Image Edit 2511 Candidate for one Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "bec89526ff4f4302dd55464e933d37b42050c23be4ab6dc83da9e15871f52063",
+        "released_at": "2026-08-29",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.0.6"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "workflow",
+        "setting": null,
         "value": "/opt/vonk/source/workflows/qwen-image-edit-2511-fp8mixed.json"
       },
       {
         "name": "workflow-sha256",
+        "setting": null,
         "value": "4007996393e3ae582d60e0c4f4bcbdc94b1b1ae72cdcb284e863f8b2db9900c0"
       },
       {
         "name": "output-mime",
+        "setting": null,
         "value": "image/png"
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 0
       }
+    ],
+    "engine": "comfyui",
+    "entrypoint": [
+      "/opt/vonk/bin/comfyui-job"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "COMFYUI_DISABLE_TELEMETRY",
+        "secret": null,
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/outputs",
-        "timeout_seconds": 3600
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "stop_timeout_seconds": 120
     }
   },
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": [
-          "target",
-          "text-encoder",
-          "vae"
-        ],
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 5000000000,
             "artifact_bytes": 30172239743,
-            "staging_bytes": 40000000000,
             "cache_bytes": 8000000000,
+            "image_bytes": 5000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 40000000000
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
             "startup_peak_bytes": 100000000000,
             "steady_state_bytes": 80000000000,
-            "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -282,100 +365,41 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "image-job",
-      "path": "/outputs",
-      "input": {
-        "path": "/inputs",
-        "required": true,
-        "media_types": [
-          "text/plain",
-          "image/jpeg",
-          "image/png",
-          "image/webp"
-        ],
-        "max_bytes": 33570816,
-        "slots": [
-          {
-            "id": "prompt",
-            "label": "Prompt",
-            "description": "UTF-8 instructions describing the requested image edit.",
-            "media_types": [
-              "text/plain"
-            ],
-            "extensions": [
-              ".txt"
-            ],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 16384,
-            "max_total_bytes": 16384
-          },
-          {
-            "id": "image",
-            "label": "Reference images",
-            "description": "One or two source images to edit or combine.",
-            "media_types": [
-              "image/jpeg",
-              "image/png",
-              "image/webp"
-            ],
-            "extensions": [
-              ".jpg",
-              ".jpeg",
-              ".png",
-              ".webp"
-            ],
-            "min_files": 1,
-            "max_files": 2,
-            "max_file_bytes": 16777216,
-            "max_total_bytes": 33554432
-          }
-        ]
-      },
-      "output": {
-        "path": "/outputs",
-        "max_total_bytes": 16777216,
-        "slots": [
-          {
-            "id": "image",
-            "label": "Edited image",
-            "description": "Single edited PNG image.",
-            "media_types": [
-              "image/png"
-            ],
-            "extensions": [
-              ".png"
-            ],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 16777216,
-            "max_total_bytes": 16777216
-          }
-        ]
-      }
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "image-job",
-        "checks": [
-          "artifact.mime.image-png"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "qwen-image-edit-2511-fp8mixed-two-reference",
-        "framework": "comfyui",
         "configuration": {
           "references": 2,
           "steps": 40,
           "timeout_seconds": 14400
-        }
+        },
+        "framework": "comfyui",
+        "name": "qwen-image-edit-2511-fp8mixed-two-reference"
       }
-    ]
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "image-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.png",
+            "input_path": "/inputs",
+            "input_slots": {
+              "image": "qualification/fixtures/tiny.png",
+              "prompt": "qualification/fixtures/prompt.txt"
+            },
+            "output_path": "/outputs",
+            "output_slot": "image",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "image-job"
+    }
   }
 }

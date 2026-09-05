@@ -171,10 +171,7 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
             )
             self.assertEqual(interface["output"]["slots"][0]["min_files"], 1)
             self.assertEqual(interface["output"]["slots"][0]["max_files"], 1)
-            self.assertIn(
-                {"source": "inputs", "target": "/inputs", "read_only": True},
-                recipe["runtime"]["security"]["mounts"],
-            )
+            self.assertEqual(recipe["interfaces"][0]["input"]["path"], "/inputs")
 
         flash_memory = json.loads(
             (ROOT / "recipes/nvidia-qwen-image-flash-diffusers-single.json").read_text()

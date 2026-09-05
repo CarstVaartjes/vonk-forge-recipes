@@ -1,0 +1,299 @@
+{
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "image-understanding",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "text-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+      "source_url": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-8342fc1e4d71-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8342fc1e4d71351f0ec5d50fe84258e89906c305455776c1d908407eef259ecd",
+      "size_bytes": 1754
+    },
+    {
+      "id": "file--quant-summary-9660f36ad241-e17ab81a0d",
+      "path": ".quant_summary.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "9660f36ad241ffb182bd312aa2a943f1a4dd620d4ef6d10d937e5304b827e422",
+      "size_bytes": 4772897
+    },
+    {
+      "id": "metadata-d790a1d453a7-04dcd99eb1",
+      "path": ".sync_complete",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d790a1d453a7c43bb4168bd58139f64b8cac4ec68bdd2ebd5f578fe239f37fa8",
+      "size_bytes": 295
+    },
+    {
+      "id": "readme-072ccf0efbf7-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "072ccf0efbf7c0f9071641d839362f4b0ee134389c2e7b692f44f59e9f8871fa",
+      "size_bytes": 29747
+    },
+    {
+      "id": "ornith-35b-eval-758a8f72b41a-ab9a132fdf",
+      "path": "assets/ornith_35b_eval.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "758a8f72b41a58e287e5922eaeda3d08f8830e16d77d92438ccce9333e1ab47d",
+      "size_bytes": 709405
+    },
+    {
+      "id": "ornith-logo-458ee0d85bae-76cc6f44ab",
+      "path": "assets/ornith_logo.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "458ee0d85baea4d1fc0b099245f243b21006f696921f896a5b59980a6eadef6a",
+      "size_bytes": 962441
+    },
+    {
+      "id": "chat-template-182e77dd83bd-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "182e77dd83bd8e9ca818b240b82e28f243762cd5dda32e6eef327df7b1cd107e",
+      "size_bytes": 7536
+    },
+    {
+      "id": "config-4b12527ba7cc-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "4b12527ba7cc6d64ce5fd8a2569c77ea2713efca2b5ffc42b4402048ee857c4b",
+      "size_bytes": 69023
+    },
+    {
+      "id": "generation-config-e70c136c1b78-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e",
+      "size_bytes": 202
+    },
+    {
+      "id": "hf-quant-config-c619bbfc5a50-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "c619bbfc5a50768332a15ef34ebb96fd3874c64301e0bc462f412920cefa46eb",
+      "size_bytes": 42244
+    },
+    {
+      "id": "merges-a9d356d7bdf1-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+      "size_bytes": 3353259
+    },
+    {
+      "id": "model-00001-of-00003-3fd2238ccda4-5ad6951325",
+      "path": "model-00001-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3fd2238ccda4af53b44d0c8f1017bccabfa91084ef3bf4fea415a5d14d734bd2",
+      "size_bytes": 10005227452
+    },
+    {
+      "id": "model-00002-of-00003-e66cc8cc37c4-b421ec05d0",
+      "path": "model-00002-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e66cc8cc37c472e2d23c8c5f45b563e997a6e33117317a420c6f5da14eb7b756",
+      "size_bytes": 10001532968
+    },
+    {
+      "id": "model-00003-of-00003-5724de7de4b8-c5bdb3d6ec",
+      "path": "model-00003-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5724de7de4b8c44f68639b57f404e6c662c8ef22a3be3935a2fabf92b2af2c51",
+      "size_bytes": 3413657112
+    },
+    {
+      "id": "model-safetensors-index-c9bfd574cc1d-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "c9bfd574cc1deffe09d8fbc5a7d8c2e105cfdb7764b1ee7b16ca52072e7366f7",
+      "size_bytes": 10380665
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "processor-config-d89ef49ce9cd-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d89ef49ce9cd37fbf510158e13c1ef063d9286411c1ec9049932dbe0487143b1",
+      "size_bytes": 1191
+    },
+    {
+      "id": "tokenizer-5f9e4d4901a9-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+      "size_bytes": 12807982
+    },
+    {
+      "id": "tokenizer-config-5186f0defcd7-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "5186f0defcd7f232382c7f0aebcd2252d073bb921ab240e407b7ae8745d2b29b",
+      "size_bytes": 16718
+    },
+    {
+      "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+      "path": "video_preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "size_bytes": 385
+    },
+    {
+      "id": "vocab-ce99b4cb2983-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+      "size_bytes": 6722759
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "mixed",
+    "quantization": "modelopt-mixed-w4a16-nvfp4-fp8"
+  },
+  "identity": {
+    "family": {
+      "publisher": "ornith-ai",
+      "slug": "ornith-1-5",
+      "title": "Ornith 1.5"
+    },
+    "model": {
+      "architecture": "Qwen3_5MoeForConditionalGeneration",
+      "publisher": "ornith-ai",
+      "slug": "ornith-1-5-35b-a3b",
+      "title": "Ornith 1.5 35B-A3B"
+    },
+    "publisher": "ornith-ai",
+    "slug": "ornith-1-5-35b-a3b-nvfp4-9660379a",
+    "variant": "NVFP4 9660379a",
+    "version": "NVFP4 9660379a"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Ornith AI"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "MIT",
+    "url": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4/blob/9660379a2f2c429c465eeed2f3a0f2433fc4381e/LICENSE"
+  },
+  "limits": {
+    "context_tokens": 262144,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Official upstream checkpoint at the pinned revision.",
+    "publisher": "ornith-ai",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "ornith-ai",
+      "slug": "ornith-1-5-35b-a3b"
+    }
+  },
+  "metadata": {
+    "description": "Exact public NVFP4 9660379a checkpoint.",
+    "tags": [
+      "ornith-ai",
+      "ornith-1-5",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "parameters": {
+    "active": 3000000000,
+    "total": 35000000000
+  },
+  "provenance": {
+    "attribution": [
+      "Ornith AI"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+    "source_url": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
+    "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e"
+  },
+  "supersedes": null
+}

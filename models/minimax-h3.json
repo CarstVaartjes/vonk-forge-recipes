@@ -1,24 +1,129 @@
 {
-  "schema_version": 1,
-  "kind": "model",
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "audio-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "video-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "source_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "roles": [
+        "entrypoint"
+      ],
+      "sha256": "2b2aae1ba949fc547e36eb7addcbc0714032a2743b21d4d2bd0d47762a9b6a52",
+      "size_bytes": 498474749480
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
   "identity": {
+    "family": {
+      "publisher": "minimax",
+      "slug": "minimax-h3",
+      "title": "MiniMax H3"
+    },
+    "model": {
+      "architecture": "upstream-native generation pipeline",
+      "publisher": "minimax",
+      "slug": "minimax-h3",
+      "title": "MiniMax"
+    },
     "publisher": "minimax",
-    "slug": "minimax-h3"
+    "slug": "minimax-h3",
+    "variant": "MiniMax H3",
+    "version": "MiniMax H3 42ed227e"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "minimax"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "LicenseRef-MiniMax-H3-Community-License",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR",
+        "US"
+      ],
+      "notice": "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."
+    },
+    "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": 345,
+    "resolution_pixels": 1032192,
+    "sample_rate_hz": 32000
+  },
+  "lineage": {
+    "derivation": "Immutable public upstream snapshot at the pinned revision.",
+    "publisher": "minimax",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "minimax",
+      "slug": "minimax-h3"
+    }
   },
   "metadata": {
-    "title": "MiniMax",
-    "description": "MiniMax H3 model family.",
+    "description": "Immutable official MiniMax H3 BF16 snapshot with FL2VA and Ref2VA checkpoints plus the Modular Diffusers layout at 42ed227e.",
     "tags": [
       "minimax",
       "video",
-      "generation"
+      "audio",
+      "multimodal",
+      "candidate"
     ]
   },
-  "model_group": {
-    "kind": "model-group",
-    "publisher": "minimax",
-    "slug": "minimax-h3",
-    "content_sha256": "2817807ee837554b9983ef5b347d017974667bfb628e7420c961453348251f28"
+  "modalities": [
+    "audio",
+    "video"
+  ],
+  "parameters": {
+    "active": null,
+    "total": 33000000000
   },
-  "architecture": "upstream-native generation pipeline"
+  "provenance": {
+    "attribution": [
+      "minimax"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+    "source_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
+    "revision": "42ed227ee7df40d41602854ae760620d6eb651fe"
+  },
+  "supersedes": null
 }

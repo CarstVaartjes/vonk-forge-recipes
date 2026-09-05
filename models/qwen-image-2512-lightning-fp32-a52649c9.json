@@ -1,0 +1,122 @@
+{
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "image-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
+      "source_url": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "qwen-image-2512-lightning-4steps-v1-0-fp32",
+      "path": "Qwen-Image-2512-Lightning-4steps-V1.0-fp32.safetensors",
+      "roles": [
+        "adapter"
+      ],
+      "sha256": "ad12117461cb41e2ea637fec8df6392ce8e8550c47fbe2b829ed3deb98262066",
+      "size_bytes": 1698951104
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "mixed_bf16_fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "qwen",
+      "slug": "qwen-image",
+      "title": "Qwen Image"
+    },
+    "model": {
+      "architecture": "upstream-native generation pipeline",
+      "publisher": "qwen",
+      "slug": "qwen-image-2512-lightning",
+      "title": "Qwen Image 2512 Lightning"
+    },
+    "publisher": "qwen",
+    "slug": "qwen-image-2512-lightning-fp32-a52649c9",
+    "variant": "Qwen Image 2512 Lightning 4-step FP32 LoRA",
+    "version": "4steps-v1.0-fp32-a52649c9"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "ModelTC",
+      "lightx2v",
+      "Qwen"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/ModelTC/Qwen-Image-Lightning/blob/25d1e9935ba97e1f60503f8c000201e08b1fe8f4/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Four-step distilled LoRA trained for Qwen Image 2512 and selected in FP32 precision by ComfyUI's official pinned blueprint.",
+    "publisher": "ModelTC/lightx2v",
+    "relation": "derived",
+    "source_model": {
+      "kind": "model",
+      "publisher": "qwen",
+      "slug": "qwen-image-2512"
+    }
+  },
+  "metadata": {
+    "description": "Exact ModelTC/lightx2v four-step FP32 distilled LoRA selected by the pinned official ComfyUI Qwen Image 2512 blueprint.",
+    "tags": [
+      "qwen",
+      "image",
+      "generation",
+      "text-to-image",
+      "comfyui",
+      "lightning",
+      "lora",
+      "fp32",
+      "candidate",
+      "spark"
+    ]
+  },
+  "modalities": [
+    "image"
+  ],
+  "parameters": {
+    "active": null,
+    "total": null
+  },
+  "provenance": {
+    "attribution": [
+      "ModelTC",
+      "lightx2v",
+      "Qwen"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
+    "source_url": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning",
+    "revision": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52"
+  },
+  "supersedes": null
+}

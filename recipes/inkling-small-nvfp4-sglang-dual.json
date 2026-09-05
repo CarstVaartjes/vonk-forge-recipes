@@ -1,14 +1,45 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "bbedab8cbf2d209b00f48f1e96ef4e9b638b98771477fa14e0e70d62679f383b",
+        "platform": "linux/arm64",
+        "repository": "docker.io/lmsysorg/sglang"
+      },
+      "context": {
+        "path": "adapters/inkling/small-dual"
+      },
+      "dockerfile": "adapters/inkling/small-dual/Dockerfile",
+      "network": {
+        "hosts": [],
+        "mode": "none"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "inkling-small-nvfp4-sglang-dual"
   },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "inkling-small"
+      ],
+      "port": 30000
+    }
+  ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "title": "Inkling Small NVFP4 SGLang two Sparks",
     "description": "Executable Candidate thin adaptation of SGLang's verified two-DGX-Spark Inkling Small NVFP4 TP2 profile. It serves text, image, and 16 kHz audio inputs through an offline OpenAI-compatible API with bounded 64K context; Candidate status is retained only for Vonk's physical canary.",
-    "tags": ["executable",
+    "tags": [
+      "executable",
       "candidate",
       "thinkingmachines",
       "inkling",
@@ -22,298 +53,575 @@
       "sglang",
       "distributed",
       "spark"
-    ]
+    ],
+    "title": "Inkling Small NVFP4 SGLang two Sparks"
   },
-  "model": {
-    "kind": "model-version",
-    "publisher": "thinkingmachines",
-    "slug": "inkling-small-nvfp4",
-    "content_sha256": "5397d7a0f8aacdd62d38f68ba449d8268fe71961ac7ececcdbbbfde2d087000f"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "sglang",
-      "content_sha256": "9bd9a41fe12dd4e551fac821623801b6df9af8943d42ddba9f46717636286947"
-    },
-    "patch_bundle": {
-      "kind": "patch-bundle",
-      "publisher": "sglang",
-      "slug": "sglang-inkling-small-dual-spark-profile",
-      "content_sha256": "d5d32f9acb4ce181c175237c1e2dfd26ed81292771d3424755ff39a33c952e5c"
-    }
-  },
-  "build": {
-    "context": {
-      "path": "adapters/inkling/small-dual",
-      "sha256": "c2548e4184935eed0c328b24898d36d0d1d926c018c1919f479ef9910521f480",
-      "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {
-      "mode": "none",
-      "hosts": []
-    },
-    "resources": {
-      "download_bytes": 13603572034,
-      "temporary_bytes": 20000000000,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 7200
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+  "models": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "thinkingmachines/Inkling-Small-NVFP4",
-      "revision": "b6a99534467840620d411e4cd4ad5819b2610d9c",
-      "download_bytes": 170764923366,
-      "installed_bytes": 170764923366,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint",
-        "worker"
-      ]
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d",
+          "id": "primary-metadata-34448b82c17d",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-146664eb4ce2",
+          "id": "primary-readme-146664eb4ce2",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "chat-template-0aa1aa0c729d",
+          "id": "primary-chat-template-0aa1aa0c729d",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "config-dcb5b1d587bc",
+          "id": "primary-config-dcb5b1d587bc",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-70f2ae087bb4",
+          "id": "primary-hf-quant-config-70f2ae087bb4",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00009-0536fc0774c0",
+          "id": "primary-model-00001-of-00009-0536fc0774c0",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00009-94046cd4c60e",
+          "id": "primary-model-00002-of-00009-94046cd4c60e",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00009-5b011d77adab",
+          "id": "primary-model-00003-of-00009-5b011d77adab",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00009-f84efa4eab97",
+          "id": "primary-model-00004-of-00009-f84efa4eab97",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00009-04911920af13",
+          "id": "primary-model-00005-of-00009-04911920af13",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00009-6f2e9eb03063",
+          "id": "primary-model-00006-of-00009-6f2e9eb03063",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00009-728792823d6b",
+          "id": "primary-model-00007-of-00009-728792823d6b",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00009-dc821c24f1af",
+          "id": "primary-model-00008-of-00009-dc821c24f1af",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00009-c91d957b4a0c",
+          "id": "primary-model-00009-of-00009-c91d957b4a0c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-2e3a00b15c54",
+          "id": "primary-model-safetensors-index-2e3a00b15c54",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "mtp-d286dd21cb98",
+          "id": "primary-mtp-d286dd21cb98",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "processor-config-b4a3962ea5f7",
+          "id": "primary-processor-config-b4a3962ea5f7",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-abc97715b4b3",
+          "id": "primary-special-tokens-map-abc97715b4b3",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-bc253fd2b702",
+          "id": "primary-tokenizer-bc253fd2b702",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-9fb6333a7db8",
+          "id": "primary-tokenizer-9fb6333a7db8",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-2e36c9748a20",
+          "id": "primary-tokenizer-config-2e36c9748a20",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "f99f4a83029a7f149236d8d3f95ade96ebf99a600fa930c8fee949a9e8fec87a",
+        "kind": "model",
+        "publisher": "thinkingmachines",
+        "slug": "inkling-small-nvfp4"
+      }
     }
   ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "sglang",
-      "slug": "sglang-inkling-small-dual-spark-a74222ef",
-      "content_sha256": "bb086e4f7bec98714cf4d13c9a5acf2209c085c43f5bdc29160d3a9e88d196ae"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/sglang-serve"
+  "provenance": {
+    "attribution": [
+      "Thinking Machines Lab",
+      "SGLang contributors"
     ],
+    "source_kind": "global",
+    "source_reference": "https://github.com/sgl-project/sglang/blob/a74222ef6e690f851e2e4ff1c0be7dc1357be313/docs_new/src/snippets/configs/thinkingmachines/inkling-small.jsx"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "8fd7a78064349c5fc4ecf98792f3e8ff8c25c3ebde33d6446f680c395cad9598",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.3"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "4cbe5b3699a0579651eae97d850016ca8aa3ae4f9653ab742b3e19aa79d90ec9",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "86b890cad805f8e9bc5764858d82fa5890704522cd698e62c28d2c4092fc8c4e",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "The launch preserves SGLang's DGX Spark choices: CUDA 13 ARM64, Triton attention, Marlin W4A16 FP4 and MoE kernels, page size 128, unified radix cache, bounded cache ratios, disabled prefill CUDA graphs, and native two-node ConnectX-7 rendezvous.",
+            "kind": "initial",
+            "references": [
+              "https://docs.sglang.io/cookbook/autoregressive/ThinkingMachines/Inkling-Small",
+              "https://github.com/sgl-project/sglang/blob/a74222ef6e690f851e2e4ff1c0be7dc1357be313/docs_new/src/snippets/configs/thinkingmachines/inkling-small.jsx"
+            ],
+            "summary": "Added the verified two-DGX-Spark SGLang TP2 profile as a thin, immutable Vonk recipe adaptation."
+          },
+          {
+            "details": "All 170,764,923,366 bytes are enumerated with exact file hashes. The model remains capped to a conservative 64K serving context so the two 128 GB unified-memory nodes retain cache and runtime headroom above the roughly 171 GB snapshot.",
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/tree/b6a99534467840620d411e4cd4ad5819b2610d9c",
+              "https://huggingface.co/blog/thinkingmachines-inkling"
+            ],
+            "summary": "Pinned the complete official Inkling Small NVFP4 snapshot and its built-in MTP weights at b6a99534."
+          },
+          {
+            "details": "Clients send image_url and audio_url parts as base64 data URIs, or OpenAI input_audio with WAV or MP3 bytes, alongside text. External media URLs are intentionally unavailable after installation because runtime networking is disabled; images should be 40-4096 px and WAV audio should be 16 kHz and ideally under two minutes.",
+            "kind": "runtime",
+            "references": [
+              "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/blob/b6a99534467840620d411e4cd4ad5819b2610d9c/README.md",
+              "https://docs.sglang.io/cookbook/autoregressive/ThinkingMachines/Inkling-Small#33-multimodal-input-image--audio"
+            ],
+            "summary": "Exposed offline text, image, and audio reasoning through one OpenAI-compatible multimodal endpoint."
+          }
+        ],
+        "prior_recipe_content_sha256": "a620e75f371e81af13ba56225fd9b835d02514c99b75f66ad5be13e01db91687",
+        "released_at": "2026-08-24",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.0.4"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "model-path",
+        "setting": null,
         "value": "/models"
       },
       {
         "name": "served-model-name",
+        "setting": null,
         "value": "inkling-small"
       },
       {
         "name": "tp",
+        "setting": null,
         "value": 2
       },
       {
         "name": "context-length",
-        "value": 65536
+        "setting": "context_tokens",
+        "value": null
       },
       {
         "name": "quantization",
+        "setting": null,
         "value": "modelopt_fp4"
       },
       {
         "name": "attention-backend",
+        "setting": null,
         "value": "triton"
       },
       {
         "name": "page-size",
+        "setting": null,
         "value": 128
       },
       {
         "name": "fp4-gemm-backend",
+        "setting": null,
         "value": "marlin"
       },
       {
         "name": "moe-runner-backend",
+        "setting": null,
         "value": "marlin"
       },
       {
         "name": "mamba-radix-cache-strategy",
+        "setting": null,
         "value": "extra_buffer"
       },
       {
         "name": "mem-fraction-static",
+        "setting": null,
         "value": "0.85"
       },
       {
         "name": "swa-full-tokens-ratio",
+        "setting": null,
         "value": "0.1"
       },
       {
         "name": "mamba-full-memory-ratio",
+        "setting": null,
         "value": "0.1"
       },
       {
         "name": "enable-multimodal",
+        "setting": null,
         "value": true
       },
       {
         "name": "disable-prefill-cuda-graph",
+        "setting": null,
         "value": true
       },
       {
         "name": "reasoning-parser",
+        "setting": null,
         "value": "inkling"
       },
       {
         "name": "tool-call-parser",
+        "setting": null,
         "value": "inkling"
       },
       {
         "name": "trust-remote-code",
+        "setting": null,
         "value": true
       }
+    ],
+    "engine": "sglang",
+    "entrypoint": [
+      "/opt/vonk/bin/sglang-serve"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "NCCL_DEBUG",
+        "secret": null,
         "value": "WARN"
       },
       {
         "name": "SGLANG_ENABLE_UNIFIED_RADIX_TREE",
+        "secret": null,
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": true,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 180,
-      "readiness": {
-        "strategy": "endpoint-owner-after-all-ranks",
-        "path": "/v1/models",
-        "timeout_seconds": 3600
-      },
       "failure": {
         "rank_loss": "withdraw-endpoint",
         "recovery": "restart-worker-then-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "stop_timeout_seconds": 180
     }
   },
-  "topology": {
-    "name": "dual",
-    "mode": "distributed",
-    "node_count": 2,
-    "roles": [
-      {
-        "name": "entrypoint",
-        "count": 1,
-        "endpoint_owner": true,
-        "artifacts": [
-          "weights"
-        ],
-        "resources": {
-          "disk": {
-            "image_bytes": 30000000000,
-            "artifact_bytes": 170764923366,
-            "staging_bytes": 20000000000,
-            "cache_bytes": 32000000000,
-            "rollback_bytes": 0,
-            "safety_margin_bytes": 24000000000
-          },
-          "memory": {
-            "kind": "unified",
-            "startup_peak_bytes": 120000000000,
-            "steady_state_bytes": 109000000000,
-            "runtime_growth_bytes": 8000000000,
-            "system_reserve_bytes": 8000000000
-          }
-        }
-      },
-      {
-        "name": "worker",
-        "count": 1,
-        "endpoint_owner": false,
-        "artifacts": [
-          "weights"
-        ],
-        "resources": {
-          "disk": {
-            "image_bytes": 30000000000,
-            "artifact_bytes": 170764923366,
-            "staging_bytes": 20000000000,
-            "cache_bytes": 32000000000,
-            "rollback_bytes": 0,
-            "safety_margin_bytes": 24000000000
-          },
-          "memory": {
-            "kind": "unified",
-            "startup_peak_bytes": 120000000000,
-            "steady_state_bytes": 109000000000,
-            "runtime_growth_bytes": 8000000000,
-            "system_reserve_bytes": 8000000000
-          }
-        }
-      }
-    ],
-    "parallelism": {
-      "world_size": 2,
-      "tensor": 2,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "native"
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 65536
     },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
     "fabric": {
       "connectivity": "connected",
       "minimum_bandwidth_mbps": 200000
     },
+    "mode": "distributed",
+    "name": "dual",
+    "node_count": 2,
+    "parallelism": {
+      "backend": "native",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 2,
+      "world_size": 2
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 170764923366,
+            "cache_bytes": 32000000000,
+            "image_bytes": 30000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 24000000000,
+            "staging_bytes": 20000000000
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
+            "startup_peak_bytes": 120000000000,
+            "steady_state_bytes": 109000000000,
+            "system_reserve_bytes": 8000000000
+          }
+        }
+      },
+      {
+        "count": 1,
+        "endpoint_owner": false,
+        "name": "worker",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 170764923366,
+            "cache_bytes": 32000000000,
+            "image_bytes": 30000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 24000000000,
+            "staging_bytes": 20000000000
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
+            "startup_peak_bytes": 120000000000,
+            "steady_state_bytes": 109000000000,
+            "system_reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
     "start_order": [
       "worker",
       "entrypoint"
@@ -323,48 +631,58 @@
       "worker"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "openai",
-      "port": 30000,
-      "model_aliases": [
-        "inkling-small"
-      ],
-      "health_path": "/v1/models"
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "openai",
-        "checks": [
-          "endpoint.healthy",
-          "collective.two-ranks",
-          "chat.nonempty",
-          "chat.max-output-64",
-          "rank-loss.withdrawal",
-          "rank-recovery.healthy"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bounded-chat",
-        "framework": "openai",
         "configuration": {
           "max_output_tokens": 64,
           "requests": 1,
           "timeout_seconds": 600
-        }
+        },
+        "framework": "openai",
+        "name": "bounded-chat"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://github.com/sgl-project/sglang/blob/a74222ef6e690f851e2e4ff1c0be7dc1357be313/docs_new/src/snippets/configs/thinkingmachines/inkling-small.jsx",
-    "attribution": [
-      "Thinking Machines Lab",
-      "SGLang contributors"
-    ]
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "inkling-small"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
   }
 }

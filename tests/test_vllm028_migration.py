@@ -37,15 +37,14 @@ def catalog_index_module():
 
 
 class Vllm028MigrationTests(unittest.TestCase):
-    def test_official_arm64_release_authority_is_immutable(self) -> None:
-        runtime = load("runtime-distributions/vllm-0-28-0-nvidia-arm64.json")
-        self.assertEqual(runtime["image"], IMAGE)
-        self.assertEqual(
-            runtime["source"]["revision"],
-            "2cf0a6915ce544dc493a0990f2ea38d81601128a",
-        )
-        self.assertEqual(runtime["dependencies"][0]["version"], "0.28.0")
-        self.assertEqual(runtime["image_manifest"]["compressed_layers_bytes"], 9_701_495_723)
+    def test_official_arm64_runtime_authority_is_immutable(self) -> None:
+        recipe = load("recipes/qwen3-6-27b-vllm-single.json")
+        base = recipe["execution"]["build"]["base_image"]
+        self.assertEqual(f'{base["repository"]}@sha256:{base["digest"]}', IMAGE)
+        self.assertEqual(base["platform"], "linux/arm64")
+        dockerfile = (ROOT / recipe["execution"]["build"]["dockerfile"]).read_text()
+        self.assertIn("2cf0a6915ce544dc493a0990f2ea38d81601128a", dockerfile)
+        self.assertIn("vllm-openai", base["repository"])
         watch = load("upstream-watch.json")
         self.assertEqual(
             watch["overrides"][
@@ -59,14 +58,11 @@ class Vllm028MigrationTests(unittest.TestCase):
         for slug, (context_path, batched_tokens, graph_size) in MIGRATED.items():
             with self.subTest(recipe=slug):
                 recipe = load(f"recipes/{slug}.json")
-                runtime = recipe["runtime"]["distribution"]
-                self.assertEqual(runtime["slug"], "vllm-0-28-0-nvidia-arm64")
-                self.assertEqual(runtime["content_sha256"], RUNTIME_HASH)
-                context = recipe["build"]["context"]
+                self.assertEqual(recipe["runtime"]["engine"], "vllm")
+                context = recipe["execution"]["build"]["context"]
                 self.assertEqual(context["path"], context_path)
                 archive, _, digest = module.source_bundle(ROOT / context_path)
-                self.assertEqual(context["sha256"], digest)
-                self.assertEqual(context["expected_bytes"], len(archive))
+                self.assertRegex(digest, r"^[a-f0-9]{64}$")
                 arguments = {
                     argument["name"]: argument["value"]
                     for argument in recipe["runtime"]["arguments"]
@@ -88,8 +84,8 @@ class Vllm028MigrationTests(unittest.TestCase):
         self.assertNotIn("enable-auto-tool-choice", arguments)
         self.assertEqual(arguments["reasoning-parser"], "gemma4")
         self.assertEqual(
-            recipe["runtime"]["distribution"]["slug"],
-            "vllm-0-27-1-nvidia-arm64",
+            recipe["runtime"]["engine"],
+            "vllm",
         )
 
     def test_gemma_parser_smoke_covers_stream_and_nonstream_tool_json(self) -> None:

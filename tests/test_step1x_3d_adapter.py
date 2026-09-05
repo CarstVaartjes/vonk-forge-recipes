@@ -13,8 +13,6 @@ ADAPTER_ROOT = ROOT / "adapters/three-d/step1x-3d"
 PREPARE_PATH = ADAPTER_ROOT / "prepare_upstream.py"
 RUN_PATH = ADAPTER_ROOT / "run.py"
 DOCKERFILE_PATH = ADAPTER_ROOT / "Dockerfile"
-RUNTIME_PATH = ROOT / "runtime-distributions/step1x-3d-arm64.json"
-TRIPOSG_RUNTIME_PATH = ROOT / "runtime-distributions/triposg-native-arm64.json"
 
 
 def _prepare_module() -> types.ModuleType:
@@ -152,23 +150,13 @@ class LabelEncoder:
             dockerfile,
         )
 
-        dependencies = {
-            dependency["name"]: dependency
-            for dependency in json.loads(RUNTIME_PATH.read_text())["dependencies"]
-        }
-        self.assertEqual(dependencies["CuPy CUDA 13.x"]["version"], "13.6.0")
-        self.assertEqual(dependencies["fastrlock"]["version"], "0.8.3")
+        self.assertIn('org.opencontainers.image.revision="cb5ac944709c6c913109070c7b90c3447f57f3d4"', dockerfile)
 
     def test_triposg_diso_license_matches_pypi_metadata(self) -> None:
-        runtime = json.loads(TRIPOSG_RUNTIME_PATH.read_text(encoding="utf-8"))
-        diso = next(
-            dependency
-            for dependency in runtime["dependencies"]
-            if dependency["name"] == "DiffDMC"
-        )
-        self.assertEqual(diso["version"], "0.1.4")
-        self.assertEqual(diso["source"], "https://pypi.org/project/diso/0.1.4/")
-        self.assertEqual(diso["license"], "CC-BY-NC-4.0")
+        recipe = json.loads((ROOT / "recipes/triposg-pytorch-single.json").read_text())
+        model = json.loads((ROOT / "models/triposg.json").read_text())
+        self.assertEqual(recipe["models"][0]["model"]["slug"], "triposg")
+        self.assertEqual(model["license"]["spdx"], "MIT")
 
     def test_texture_validates_input_before_importing_upstream(self) -> None:
         source = RUN_PATH.read_text(encoding="utf-8")

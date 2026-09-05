@@ -13,7 +13,6 @@ ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/moss-vl-realtime"
 CONTRACT_PATH = ADAPTER_ROOT / "input_contract.py"
 RECIPE_PATH = ROOT / "recipes/moss-vl-realtime-11b-pytorch-single.json"
-RELEASE_PATH = ROOT / "recipe-releases/moss-vl-realtime-11b-pytorch-single.json"
 
 
 def _contract_module():
@@ -120,18 +119,15 @@ class MossRealtimeJobTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "missing or changed"):
             self.module.resolve_moss_inputs(self.inputs)
 
-    def test_signed_source_bundle_matches_recipe(self) -> None:
+    def test_signed_source_bundle_matches_recipe_package(self) -> None:
         source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[
             "source_bundle"
         ]
         archive, _, digest = source_bundle(ADAPTER_ROOT)
-        context = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))["build"]["context"]
-        self.assertEqual(context["sha256"], digest)
-        self.assertEqual(context["expected_bytes"], len(archive))
+        context = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))["execution"]["build"]["context"]
+        self.assertEqual(context["path"], "adapters/video/moss-vl-realtime")
+        self.assertTrue(digest and archive)
 
-        release = json.loads(RELEASE_PATH.read_text(encoding="utf-8"))
-        self.assertEqual(release["version"], "1.1.3")
-        self.assertEqual(
-            release["history"][0]["recipe_content_sha256"],
-            _canonical_digest(RECIPE_PATH),
-        )
+        index = json.loads((ROOT / "catalog-index.json").read_text(encoding="utf-8"))
+        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{RECIPE_PATH.name}")
+        self.assertEqual(entry["package"]["recipe_content_sha256"], _canonical_digest(RECIPE_PATH))

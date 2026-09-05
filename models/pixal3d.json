@@ -1,24 +1,111 @@
 {
-  "schema_version": 1,
-  "kind": "model",
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "3d-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "0b31f9160aa400719af409098bff7936a932f726",
+      "source_url": "https://huggingface.co/TencentARC/Pixal3D"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "roles": [
+        "entrypoint"
+      ],
+      "sha256": "c2ebcf327e5391a3ed8a8ce2869514f66a84cfe9b379b3b68a3f56496a356917",
+      "size_bytes": 24044888779
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
   "identity": {
+    "family": {
+      "publisher": "tencentarc",
+      "slug": "pixal3d",
+      "title": "Pixal3D"
+    },
+    "model": {
+      "architecture": "upstream-native generation pipeline",
+      "publisher": "tencentarc",
+      "slug": "pixal3d",
+      "title": "Pixal3D"
+    },
     "publisher": "tencentarc",
-    "slug": "pixal3d"
+    "slug": "pixal3d",
+    "variant": "Pixal3D",
+    "version": "Pixal3D"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "tencentarc"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "MIT",
+    "url": "https://huggingface.co/TencentARC/Pixal3D/blob/0b31f9160aa400719af409098bff7936a932f726/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Immutable public upstream snapshot at the pinned revision.",
+    "publisher": "tencentarc",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "tencentarc",
+      "slug": "pixal3d"
+    }
   },
   "metadata": {
-    "title": "Pixal3D",
-    "description": "Pixal3D model family.",
+    "description": "Immutable public snapshot at 0b31f916.",
     "tags": [
       "tencentarc",
       "three-d",
-      "generation"
+      "candidate"
     ]
   },
-  "model_group": {
-    "kind": "model-group",
-    "publisher": "tencentarc",
-    "slug": "pixal3d",
-    "content_sha256": "90baa4bfeb9ae6692ebc4dfbc9f7b556bcab1b320959396dc966edc2a806a7e9"
+  "modalities": [
+    "3d"
+  ],
+  "parameters": {
+    "active": null,
+    "total": null
   },
-  "architecture": "upstream-native generation pipeline"
+  "provenance": {
+    "attribution": [
+      "tencentarc"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "0b31f9160aa400719af409098bff7936a932f726",
+    "source_url": "https://huggingface.co/TencentARC/Pixal3D"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/TencentARC/Pixal3D",
+    "revision": "0b31f9160aa400719af409098bff7936a932f726"
+  },
+  "supersedes": null
 }

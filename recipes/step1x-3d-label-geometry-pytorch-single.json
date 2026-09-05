@@ -1,12 +1,101 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "0e1392f431f89f143d0d6d0fa397a2b9a6a236f8b3628cfd3afbf21e15ab4a98",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/three-d/step1x-3d"
+      },
+      "dockerfile": "adapters/three-d/step1x-3d/Dockerfile",
+      "network": {
+        "hosts": [
+          "download.pytorch.org",
+          "github.com",
+          "codeload.github.com",
+          "objects.githubusercontent.com",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "step1x-3d-label-geometry-pytorch-single"
   },
+  "interfaces": [
+    {
+      "adapter": "mesh-job",
+      "input": {
+        "max_bytes": 16777216,
+        "media_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "path": "/inputs",
+        "required": true,
+        "slots": [
+          {
+            "description": "One object image used to generate label-controlled geometry.",
+            "extensions": [
+              ".jpeg",
+              ".jpg",
+              ".png",
+              ".webp"
+            ],
+            "id": "image",
+            "label": "Source image",
+            "max_file_bytes": 16777216,
+            "max_files": 1,
+            "max_total_bytes": 16777216,
+            "media_types": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 536870912,
+        "path": "/outputs",
+        "slots": [
+          {
+            "description": "The generated label-controlled Step1X binary glTF mesh.",
+            "extensions": [
+              ".glb"
+            ],
+            "id": "mesh",
+            "label": "Generated mesh",
+            "max_file_bytes": 536870912,
+            "max_files": 1,
+            "max_total_bytes": 536870912,
+            "media_types": [
+              "model/gltf-binary"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "path": "/outputs"
+    }
+  ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "title": "Step1X-3D label-geometry pytorch-pipeline single Spark",
     "description": "Installable single-DGX Spark controlled image-to-geometry Candidate using the exact Step1X label pipeline, an SM121-native CUDA 13 runtime, deterministic offline input handling, and GLB output. For generated GLBs up to 240 MiB, the linked next step is vonk-forge/step1x-3d-texture-pytorch-single with the same reference image. Physical Spark quality, memory, and latency acceptance is still required.",
     "tags": [
       "candidate",
@@ -19,250 +108,333 @@
       "source-bundled",
       "stage-geometry",
       "next-step-texture"
-    ]
+    ],
+    "title": "Step1X-3D label-geometry pytorch-pipeline single Spark"
   },
-  "model": {
-    "kind": "model-version",
-    "publisher": "stepfun-ai",
-    "slug": "step1x-3d-label-geometry",
-    "content_sha256": "9fff6336805678bda23ab76ca14945dd544fceb14e202042ef6021c048ced731"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "pytorch-pipeline",
-      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c"
-    },
-    "patch_bundle": null
-  },
-  "build": {
-    "context": {
-      "path": "adapters/three-d/step1x-3d",
-      "sha256": "644001157fdff2bd6852f7633730353b97c5aaee70f03002805102031df06672",
-      "expected_bytes": 81920,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {
-      "mode": "public",
-      "hosts": [
-        "download.pytorch.org",
-        "github.com",
-        "codeload.github.com",
-        "objects.githubusercontent.com",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ]
-    },
-    "resources": {
-      "download_bytes": 42705067823,
-      "temporary_bytes": 65000000000,
-      "memory_bytes": 16000000000,
-      "timeout_seconds": 14400
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+  "models": [
     {
-      "id": "target",
-      "kind": "huggingface.snapshot",
-      "repository": "stepfun-ai/Step1X-3D",
-      "revision": "bf7084495b3a72222f36549b7942948aa4d9daa7",
-      "download_bytes": 19640984131,
-      "installed_bytes": 19640984131,
-      "mount": {
-        "target": "/models/target",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "id": "dinov2-registers",
-      "kind": "huggingface.snapshot",
-      "repository": "facebook/dinov2-with-registers-large",
-      "revision": "e4c89a4e05589de9b3e188688a303d0f3c04d0f3",
-      "download_bytes": 1217545908,
-      "installed_bytes": 1217545908,
-      "mount": {
-        "target": "/models/dinov2-registers",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "id": "clip",
-      "kind": "huggingface.snapshot",
-      "repository": "openai/clip-vit-large-patch14",
-      "revision": "32bd64288804d66eefd0ccbe215aa642df71cc41",
-      "download_bytes": 6846537784,
-      "installed_bytes": 6846537784,
-      "mount": {
-        "target": "/models/clip",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+      "files": [
+        {
+          "file_id": "snapshot",
+          "id": "primary-snapshot",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "35fb58f92e192b0905637e1677c49e27de7aa84b4a91156a58533b3c90ba13b9",
+        "kind": "model",
+        "publisher": "stepfun-ai",
+        "slug": "step1x-3d-label-geometry"
+      }
     }
   ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "stepfun-ai",
-      "slug": "step1x-3d-arm64",
-      "content_sha256": "d3fa8a696abcd00436c0166e9db6b3a4026d4fd96aaf3cf6b1fa42cb4082211a"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/pytorch-pipeline"
+  "provenance": {
+    "attribution": [
+      "stepfun-ai"
     ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/stepfun-ai/Step1X-3D/tree/bf7084495b3a72222f36549b7942948aa4d9daa7"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.2.7"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "2828cb2825f950b65766f5d81afa2b0fe4370b44e3ceaa348888b4d28ebb4414",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.6"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "dc7d0e3fdd03e5e361edb5a87d77325bfa5771833aa4ea0ff77c7e47ce9d65ea",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.2.5"
+      },
+      {
+        "changes": [
+          {
+            "details": "The host allowlist now matches the pinned Step1X runtime distribution while preserving offline execution after installation.",
+            "kind": "fix",
+            "references": [],
+            "summary": "Added the Ubuntu security mirror required by the shared Step1X package-install build."
+          }
+        ],
+        "prior_recipe_content_sha256": "5579e710b65141aaf17c1bd207710dc6e278f914ea5297dcf4ceb71eacfef847",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "Operator guidance names the exact next recipe and the existing 240 MiB downstream input limit without claiming unsupported composite orchestration.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Linked bounded controlled geometry output to the Step1X texture stage."
+          }
+        ],
+        "prior_recipe_content_sha256": "734b2734e64bfde1cac2024e80de53c98495789e0d6a7d4820932ebe46fbca47",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "none",
+        "version": "1.2.3"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Validated reachable finite nondegenerate label-controlled triangle geometry before atomically publishing each GLB."
+          }
+        ],
+        "prior_recipe_content_sha256": "52e4c710fcc13abafc321238e432a08867bd00f18ca08030854024635dc7320f",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.2"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Sent geometry_type to the label encoder and repaired its lookup so sharp control selects a different embedding than normal."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Postponed mesh annotations and made every pymeshlab use lazy so controlled geometry imports without its unavailable ARM64 wheel."
+          },
+          {
+            "details": null,
+            "kind": "runtime",
+            "references": [],
+            "summary": "Pinned exact CUDA 13 CPython 3.12 ARM64 wheels for CuPy and fastrlock and added geometry and texture import smoke tests."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared exact one-image input and single-GLB output slots with bounded bytes."
+          }
+        ],
+        "prior_recipe_content_sha256": "46e071199f85b5edc9b30d973fcbadb6b9f40dd0516dc50af5ed8a6cfebcafe5",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Made the controlled label-geometry Candidate installable with a bounded signed image-to-GLB entrypoint while retaining physical Spark qualification as pending."
+          },
+          {
+            "details": null,
+            "kind": "runtime",
+            "references": [],
+            "summary": "Pinned official Step1X source cb5ac944, PyTorch 2.13, CUDA 13.2, and SM121-native build authority."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Eliminated the implicit BRIA download, bound DINOv2 and CLIP processor authorities, and fixed the official symmetry and edge contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "bbf176928883323bb2362b6bf923009626d650fe2dffb8c4fbc7854bf56e9e9b",
+        "released_at": "2026-08-24",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Marked the label-geometry binding non-executable pending Step1X source, label handling, native dependencies, and a GLB adapter."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Added the authoritative isolated image input contract."
+          },
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Replaced the broken model-card license URL with the exact upstream Apache-2.0 license."
+          }
+        ],
+        "prior_recipe_content_sha256": "a9852811fd336fdf397ba664e0479ae2915a882ec8e9aa0e336efec8fbba8594",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of Step1X-3D label-geometry pytorch-pipeline single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "f8c9e5ab507e0d875f5cc5454b73e9016b4cd2222af9e0cd9601a0686796ec1f",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+            ],
+            "summary": "Recovered the first public legacy revision from before semantic release tracking."
+          }
+        ],
+        "prior_recipe_content_sha256": "df9a56d6c3bfa40a4f638803bf434ebc865877e4feabe4f716b97cf5ce0f58d7",
+        "released_at": "2026-08-17",
+        "upgrade_effect": "reprepare",
+        "version": "0.1.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.2.7"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "entrypoint",
+        "setting": null,
         "value": "/opt/vonk/source/label-geometry.py"
       },
       {
         "name": "output-mime",
+        "setting": null,
         "value": "model/gltf-binary"
       },
       {
         "name": "timeout-seconds",
+        "setting": null,
         "value": 3600
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 0
       }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/outputs",
-        "timeout_seconds": 3600
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "stop_timeout_seconds": 120
     }
   },
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": [
-          "target",
-          "dinov2-registers",
-          "clip"
-        ],
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 18000000000,
             "artifact_bytes": 27705067823,
-            "staging_bytes": 56000000000,
             "cache_bytes": 8000000000,
+            "image_bytes": 18000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 56000000000
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
             "startup_peak_bytes": 32000000000,
             "steady_state_bytes": 24000000000,
-            "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -270,64 +442,38 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "mesh-job",
-      "path": "/outputs",
-      "input": {
-        "path": "/inputs",
-        "required": true,
-        "media_types": [
-          "image/jpeg",
-          "image/png",
-          "image/webp"
-        ],
-        "max_bytes": 16777216,
-        "slots": [
-          {
-            "id": "image",
-            "label": "Source image",
-            "description": "One object image used to generate label-controlled geometry.",
-            "media_types": ["image/jpeg", "image/png", "image/webp"],
-            "extensions": [".jpeg", ".jpg", ".png", ".webp"],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 16777216,
-            "max_total_bytes": 16777216
-          }
-        ]
-      },
-      "output": {
-        "path": "/outputs",
-        "max_total_bytes": 536870912,
-        "slots": [{"id": "mesh", "label": "Generated mesh", "description": "The generated label-controlled Step1X binary glTF mesh.", "media_types": ["model/gltf-binary"], "extensions": [".glb"], "min_files": 1, "max_files": 1, "max_file_bytes": 536870912, "max_total_bytes": 536870912}]
-      }
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "mesh-job",
-        "checks": [
-          "artifact.mime.model-gltf-binary"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bounded-startup",
-        "framework": "pytorch-pipeline",
         "configuration": {
           "timeout_seconds": 14400
-        }
+        },
+        "framework": "pytorch-pipeline",
+        "name": "bounded-startup"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/stepfun-ai/Step1X-3D/tree/bf7084495b3a72222f36549b7942948aa4d9daa7",
-    "attribution": [
-      "stepfun-ai"
-    ]
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "mesh-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.png",
+            "input_path": "/inputs",
+            "input_slots": {
+              "image": "qualification/fixtures/tiny.png"
+            },
+            "output_path": "/outputs",
+            "output_slot": "mesh",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "mesh-job"
+    }
   }
 }

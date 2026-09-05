@@ -1,24 +1,111 @@
 {
-  "schema_version": 1,
-  "kind": "model",
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "3d-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "2c1c516d22d58db486a058d98d31bb6177344e06",
+      "source_url": "https://huggingface.co/VAST-AI/TripoSG"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "roles": [
+        "entrypoint"
+      ],
+      "sha256": "529782f3a04bf520d2eb7f26f913e6c9d5073c9f56c91753865fbff5ff1c5ab1",
+      "size_bytes": 7946494238
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
   "identity": {
+    "family": {
+      "publisher": "vast-ai",
+      "slug": "triposg",
+      "title": "TripoSG"
+    },
+    "model": {
+      "architecture": "upstream-native generation pipeline",
+      "publisher": "vast-ai",
+      "slug": "triposg",
+      "title": "TripoSG"
+    },
     "publisher": "vast-ai",
-    "slug": "triposg"
+    "slug": "triposg",
+    "variant": "TripoSG base",
+    "version": "TripoSG base"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "vast-ai"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "MIT",
+    "url": "https://github.com/VAST-AI-Research/TripoSG/blob/fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Immutable public upstream snapshot at the pinned revision.",
+    "publisher": "vast-ai",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "vast-ai",
+      "slug": "triposg"
+    }
   },
   "metadata": {
-    "title": "TripoSG",
-    "description": "TripoSG single-image 3D generation model family.",
+    "description": "Immutable public snapshot at 2c1c516d.",
     "tags": [
       "vast-ai",
       "three-d",
-      "generation"
+      "candidate"
     ]
   },
-  "model_group": {
-    "kind": "model-group",
-    "publisher": "vast-ai",
-    "slug": "triposg",
-    "content_sha256": "161bac422799adf57ebac36d7184de2e2c1059bad6bbd79f311663d9e8b79376"
+  "modalities": [
+    "3d"
+  ],
+  "parameters": {
+    "active": null,
+    "total": null
   },
-  "architecture": "upstream-native generation pipeline"
+  "provenance": {
+    "attribution": [
+      "vast-ai"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "2c1c516d22d58db486a058d98d31bb6177344e06",
+    "source_url": "https://huggingface.co/VAST-AI/TripoSG"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/VAST-AI/TripoSG",
+    "revision": "2c1c516d22d58db486a058d98d31bb6177344e06"
+  },
+  "supersedes": null
 }

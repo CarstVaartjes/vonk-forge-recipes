@@ -1,196 +1,1042 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+        "platform": "linux/arm64",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/llm/laguna-s-vllm"
+      },
+      "dockerfile": "adapters/llm/laguna-s-vllm/Dockerfile",
+      "network": {
+        "hosts": [],
+        "mode": "none"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "laguna-s-2-1-nvfp4-vllm-low-memory-canary-single"
   },
-  "metadata": {
-    "alignment": "unspecified",
-    "title": "Laguna S 2.1 NVFP4 vLLM 32K low-memory canary single Spark",
-    "description": "Physical-OOM-gated single-Spark canary for the exact Poolside Laguna S 2.1 NVFP4 checkpoint. It preserves the OpenAI reasoning and tool surface while bounding the FP8 KV cache to 3 GB, one sequence, 32K context, 4K chunked prefills, and eager execution. The 126 GB admission envelope is a conservative canary hypothesis, not measured acceptance; retain the original 65K profile and use Laguna XS as the default fleet-fit alternative until this exact variant passes physical startup, memory, and output checks.",
-    "tags": [
-      "executable", "candidate", "canary", "physical-oom-gated", "memory-tight",
-      "low-memory", "not-default", "poolside", "laguna", "nvfp4", "vllm",
-      "reasoning", "agentic", "openai", "single", "spark"
-    ]
-  },
-  "model": {
-    "kind": "model-version",
-    "publisher": "poolside",
-    "slug": "laguna-s-2-1-nvfp4-826aacdf",
-    "content_sha256": "b0093b3734252f5ed4b954ac5f8aa407e8749aa302c6f8405429db025212192e"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "vllm",
-      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"
-    },
-    "patch_bundle": null
-  },
-  "build": {
-    "context": {
-      "path": "adapters/llm/laguna-s-vllm",
-      "sha256": "fff02b4d9e7a5f45a1bba9bd38060d98c1b35b634e1af982cc8f83c1c0c82539",
-      "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {"mode": "none", "hosts": []},
-    "resources": {
-      "download_bytes": 110250415483,
-      "temporary_bytes": 199434559724,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 7200
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+  "interfaces": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "poolside/Laguna-S-2.1-NVFP4",
-      "revision": "826aacdf6d8b2699d4e367def6f17c83b06044c2",
-      "download_bytes": 99717279862,
-      "installed_bytes": 99717279862,
-      "mount": {"target": "/models", "read_only": true},
-      "roles": ["entrypoint"]
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "laguna-s-2-1-low-memory-canary"
+      ],
+      "port": 8000
     }
   ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Physical-OOM-gated single-Spark canary for the exact Poolside Laguna S 2.1 NVFP4 checkpoint. It preserves the OpenAI reasoning and tool surface while bounding the FP8 KV cache to 3 GB, one sequence, 32K context, 4K chunked prefills, and eager execution. The 126 GB admission envelope is a conservative canary hypothesis, not measured acceptance; retain the original 65K profile and use Laguna XS as the default fleet-fit alternative until this exact variant passes physical startup, memory, and output checks.",
+    "tags": [
+      "executable",
+      "candidate",
+      "canary",
+      "physical-oom-gated",
+      "memory-tight",
+      "low-memory",
+      "not-default",
+      "poolside",
+      "laguna",
+      "nvfp4",
+      "vllm",
+      "reasoning",
+      "agentic",
+      "openai",
+      "single",
+      "spark"
+    ],
+    "title": "Laguna S 2.1 NVFP4 vLLM 32K low-memory canary single Spark"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-c96667522371",
+          "id": "primary-metadata-c96667522371",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-8a0c5e232551",
+          "id": "primary-license-8a0c5e232551",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-6fc047880130",
+          "id": "primary-readme-6fc047880130",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-444819b8ad46",
+          "id": "primary-chat-template-444819b8ad46",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-3b3a6e369129",
+          "id": "primary-config-3b3a6e369129",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-laguna-9446b4fca6f8",
+          "id": "primary-configuration-laguna-9446b4fca6f8",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-81ff120c8c67",
+          "id": "primary-generation-config-81ff120c8c67",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00049-bafa5ef7ccfd",
+          "id": "primary-model-00001-of-00049-bafa5ef7ccfd",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00049-d91f55c3c81b",
+          "id": "primary-model-00002-of-00049-d91f55c3c81b",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00049-80e0783d4e23",
+          "id": "primary-model-00003-of-00049-80e0783d4e23",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00049-e3ee5dbe50a7",
+          "id": "primary-model-00004-of-00049-e3ee5dbe50a7",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00049-88bb23dc4e9a",
+          "id": "primary-model-00005-of-00049-88bb23dc4e9a",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00049-44d5cc53e65d",
+          "id": "primary-model-00006-of-00049-44d5cc53e65d",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00049-d1a371ec20ca",
+          "id": "primary-model-00007-of-00049-d1a371ec20ca",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00049-df485c3c09d7",
+          "id": "primary-model-00008-of-00049-df485c3c09d7",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00049-3460f9cd677c",
+          "id": "primary-model-00009-of-00049-3460f9cd677c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00049-5143801097f2",
+          "id": "primary-model-00010-of-00049-5143801097f2",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00049-50ed03d6c8ea",
+          "id": "primary-model-00011-of-00049-50ed03d6c8ea",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00049-e3b0c9afde98",
+          "id": "primary-model-00012-of-00049-e3b0c9afde98",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00049-83f91b41d1bc",
+          "id": "primary-model-00013-of-00049-83f91b41d1bc",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00049-7335bd2c696e",
+          "id": "primary-model-00014-of-00049-7335bd2c696e",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00049-419dbbcd9aba",
+          "id": "primary-model-00015-of-00049-419dbbcd9aba",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00049-2bc0b91dd994",
+          "id": "primary-model-00016-of-00049-2bc0b91dd994",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00049-33295ddcae43",
+          "id": "primary-model-00017-of-00049-33295ddcae43",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00018-of-00049-86262f28e4be",
+          "id": "primary-model-00018-of-00049-86262f28e4be",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00019-of-00049-12d70338ab96",
+          "id": "primary-model-00019-of-00049-12d70338ab96",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00020-of-00049-d6f56b567023",
+          "id": "primary-model-00020-of-00049-d6f56b567023",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00021-of-00049-ec304cbc979e",
+          "id": "primary-model-00021-of-00049-ec304cbc979e",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00022-of-00049-2dc96ac8104c",
+          "id": "primary-model-00022-of-00049-2dc96ac8104c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00023-of-00049-039a3eeedd0a",
+          "id": "primary-model-00023-of-00049-039a3eeedd0a",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00024-of-00049-caf75a44fa15",
+          "id": "primary-model-00024-of-00049-caf75a44fa15",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00025-of-00049-8c4e33932c11",
+          "id": "primary-model-00025-of-00049-8c4e33932c11",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00026-of-00049-1399e19f57ce",
+          "id": "primary-model-00026-of-00049-1399e19f57ce",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00027-of-00049-b4e9fdc20059",
+          "id": "primary-model-00027-of-00049-b4e9fdc20059",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00028-of-00049-ce15771b0aeb",
+          "id": "primary-model-00028-of-00049-ce15771b0aeb",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00029-of-00049-16a2c6315931",
+          "id": "primary-model-00029-of-00049-16a2c6315931",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00030-of-00049-b580ce6dd534",
+          "id": "primary-model-00030-of-00049-b580ce6dd534",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00031-of-00049-38f197c2cdb3",
+          "id": "primary-model-00031-of-00049-38f197c2cdb3",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00032-of-00049-e2e6dbb74fb8",
+          "id": "primary-model-00032-of-00049-e2e6dbb74fb8",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00033-of-00049-05b86a9e41d4",
+          "id": "primary-model-00033-of-00049-05b86a9e41d4",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00034-of-00049-c4b176183375",
+          "id": "primary-model-00034-of-00049-c4b176183375",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00035-of-00049-355e7e0a2649",
+          "id": "primary-model-00035-of-00049-355e7e0a2649",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00036-of-00049-634998dddce9",
+          "id": "primary-model-00036-of-00049-634998dddce9",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00037-of-00049-199d031732ac",
+          "id": "primary-model-00037-of-00049-199d031732ac",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00038-of-00049-0867a16eba3e",
+          "id": "primary-model-00038-of-00049-0867a16eba3e",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00039-of-00049-c4c14bf0eb9f",
+          "id": "primary-model-00039-of-00049-c4c14bf0eb9f",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00040-of-00049-dd4402d17daa",
+          "id": "primary-model-00040-of-00049-dd4402d17daa",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00041-of-00049-36f9ae8d4e3e",
+          "id": "primary-model-00041-of-00049-36f9ae8d4e3e",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00042-of-00049-157eb6284b32",
+          "id": "primary-model-00042-of-00049-157eb6284b32",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00043-of-00049-5745559727a0",
+          "id": "primary-model-00043-of-00049-5745559727a0",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00044-of-00049-55122368f6e8",
+          "id": "primary-model-00044-of-00049-55122368f6e8",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00045-of-00049-e0b857108b6d",
+          "id": "primary-model-00045-of-00049-e0b857108b6d",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00046-of-00049-a6d1ea38de93",
+          "id": "primary-model-00046-of-00049-a6d1ea38de93",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00047-of-00049-795619eb5f02",
+          "id": "primary-model-00047-of-00049-795619eb5f02",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00048-of-00049-05a20b093032",
+          "id": "primary-model-00048-of-00049-05a20b093032",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00049-of-00049-be9beed132e2",
+          "id": "primary-model-00049-of-00049-be9beed132e2",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-index-d21d362ea5b8",
+          "id": "primary-model-index-d21d362ea5b8",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modeling-laguna-765fd328542d",
+          "id": "primary-modeling-laguna-765fd328542d",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-70cd3459fde6",
+          "id": "primary-special-tokens-map-70cd3459fde6",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-809240f7a182",
+          "id": "primary-tokenizer-809240f7a182",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-8103b5dd4baf",
+          "id": "primary-tokenizer-config-8103b5dd4baf",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "ef10af22eca2bb3d93e4d8425d511773310212a0c9916685ac71447553d11e5c",
+        "kind": "model",
+        "publisher": "poolside",
+        "slug": "laguna-s-2-1-nvfp4-826aacdf"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "poolside"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/tree/826aacdf6d8b2699d4e367def6f17c83b06044c2"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "d4f5476032ae815cd840182ed6640d00d3674542c0cf1476e2d92922520bc167",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.3"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "57670a38917d14d1877d40e9bcaa66ab98a67d02095c6f96bc4078ccfe2552a5",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The upstream revision changes README metadata only; model weights, configuration, tokenizer, runtime image, and serving arguments remain byte-identical. Existing runtime containers do not require a rebuild, while the catalog now points at the current immutable source revision.",
+            "kind": "metadata",
+            "references": [
+              "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/commit/826aacdf6d8b2699d4e367def6f17c83b06044c2",
+              "https://github.com/vllm-project/vllm/tree/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
+              "https://docs.vllm.ai/en/v0.27.1/cli/serve/"
+            ],
+            "summary": "Pinned the current immutable Poolside Laguna S 2.1 NVFP4 snapshot at 826aacdf."
+          }
+        ],
+        "prior_recipe_content_sha256": "51d1044c7cea46c57ba0e31ee691b8e78a3a0d30917d225fe01539031feb4c60",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "The canary reuses the exact 64734b3a checkpoint, vLLM 0.27.1 ARM64 runtime, adapter, and OpenAI reasoning/tool contract. It explicitly bounds the FP8 KV cache to 3 GB, one sequence, 4K chunked prefills, and eager execution so physical qualification can test a 126 GB admission hypothesis independently of the original 130 GB profile.",
+            "kind": "initial",
+            "references": [
+              "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/tree/64734b3a449a05c79657451513d97544f2f53436",
+              "https://github.com/vllm-project/vllm/tree/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
+              "https://docs.vllm.ai/en/v0.27.1/cli/serve/"
+            ],
+            "summary": "Added a distinct 32K Laguna S low-memory physical canary without changing the original profile."
+          },
+          {
+            "details": "The declared 118 GB startup peak plus 8 GB system reserve fits the observed 126,946,283,520-byte lower fleet baseline by 946,283,520 bytes. This is a canary estimate derived from stricter supported allocation controls, not a claim that the exact image has already demonstrated the bound. CPU weight offload is intentionally not counted as savings because GB10 CPU and GPU allocations share unified physical memory.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Kept the new envelope fail-closed behind physical startup, memory, and output acceptance."
+          }
+        ],
+        "prior_recipe_content_sha256": "c384397f261aba1328f6e167041f04975cca67f111bcf89afaae41c1a0ffecf0",
+        "released_at": "2026-08-31",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.0.4"
+  },
   "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "vllm",
-      "slug": "vllm-0-27-1-nvidia-arm64",
-      "content_sha256": "95b0467cb73eeabfe8fd0c4f5f5e4f19a935b6bca3d56ed4bb6fc888470eca4a"
-    },
-    "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
     "arguments": [
-      {"name": "served-model-name", "value": "laguna-s-2-1-low-memory-canary"},
-      {"name": "max-model-len", "value": 32768},
-      {"name": "max-num-seqs", "value": 1},
-      {"name": "max-num-batched-tokens", "value": 4096},
-      {"name": "enable-chunked-prefill", "value": true},
-      {"name": "kv-cache-dtype", "value": "fp8"},
-      {"name": "kv-cache-memory-bytes", "value": 3000000000},
-      {"name": "enforce-eager", "value": true},
-      {"name": "reasoning-parser", "value": "poolside_v1"},
-      {"name": "tool-call-parser", "value": "poolside_v1"},
-      {"name": "enable-auto-tool-choice", "value": true}
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "laguna-s-2-1-low-memory-canary"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 4096
+      },
+      {
+        "name": "enable-chunked-prefill",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 3000000000
+      },
+      {
+        "name": "enforce-eager",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "poolside_v1"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "poolside_v1"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
     ],
     "environment": [
-      {"name": "HF_HUB_OFFLINE", "value": "1"},
-      {"name": "TRANSFORMERS_OFFLINE", "value": "1"},
-      {"name": "VLLM_NO_USAGE_STATS", "value": "1"}
+      {
+        "name": "HF_HUB_OFFLINE",
+        "secret": null,
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "secret": null,
+        "value": "1"
+      }
     ],
-    "security": {
-      "devices": ["nvidia.com/gpu=all"],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {"source": "model", "target": "/models", "read_only": true},
-        {"source": "outputs", "target": "/outputs", "read_only": false}
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
+      "failure": {
+        "rank_loss": "not-applicable",
+        "recovery": "restart-entrypoint"
+      },
       "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {"strategy": "endpoint-owner", "path": "/v1/models", "timeout_seconds": 1800},
-      "failure": {"rank_loss": "not-applicable", "recovery": "restart-entrypoint"}
+      "pre_start": [],
+      "stop_timeout_seconds": 120
     }
   },
+  "schema_version": 2,
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 32768
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": ["weights"],
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 12000000000,
             "artifact_bytes": 99717279862,
-            "staging_bytes": 199434559724,
             "cache_bytes": 4000000000,
+            "image_bytes": 12000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 199434559724
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 3000000000,
             "startup_peak_bytes": 118000000000,
             "steady_state_bytes": 105000000000,
-            "runtime_growth_bytes": 3000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {"world_size": 1, "tensor": 1, "pipeline": 1, "data": 1, "backend": "local"},
-    "fabric": {"connectivity": "none", "minimum_bandwidth_mbps": 0},
-    "start_order": ["entrypoint"],
-    "stop_order": ["entrypoint"]
-  },
-  "interfaces": [
-    {
-      "adapter": "openai",
-      "port": 8000,
-      "model_aliases": ["laguna-s-2-1-low-memory-canary"],
-      "health_path": "/v1/models"
-    }
-  ],
-  "validation": {
-    "validators": [
-      {"interface": "openai", "checks": ["endpoint.healthy", "chat.nonempty", "chat.max-output-64"]}
+    "start_order": [
+      "entrypoint"
     ],
-    "benchmarks": [
-      {
-        "name": "bounded-low-memory-chat",
-        "framework": "openai",
-        "configuration": {"max_output_tokens": 64, "requests": 1, "timeout_seconds": 600}
-      }
+    "stop_order": [
+      "entrypoint"
     ]
   },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/tree/826aacdf6d8b2699d4e367def6f17c83b06044c2",
-    "attribution": ["poolside"]
+  "validation": {
+    "benchmarks": [
+      {
+        "configuration": {
+          "max_output_tokens": 64,
+          "requests": 1,
+          "timeout_seconds": 600
+        },
+        "framework": "openai",
+        "name": "bounded-low-memory-chat"
+      }
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "laguna-s-2-1-low-memory-canary"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
   }
 }

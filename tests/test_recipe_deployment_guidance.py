@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import RecipeDefinition, content_sha256  # noqa: E402
 
 
 def load(path: str) -> dict[str, object]:
@@ -13,14 +16,15 @@ def load(path: str) -> dict[str, object]:
 
 
 def canonical_digest(path: str) -> str:
-    payload = json.dumps(
-        load(path),
-        ensure_ascii=False,
-        allow_nan=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()
+    return content_sha256(RecipeDefinition.model_validate(load(path)))
+
+
+def catalog_entry(slug: str) -> dict[str, object]:
+    catalog = load("catalog-index.json")
+    return next(
+        item for item in catalog["recipes"]
+        if item["document"]["identity"]["slug"] == slug
+    )
 
 
 class RecipeDeploymentGuidanceTests(unittest.TestCase):
@@ -45,24 +49,12 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
         arguments = {
             item["name"]: item["value"] for item in latency["runtime"]["arguments"]
         }
-        self.assertEqual(arguments["max-model-len"], 1_048_576)
+        self.assertEqual(latency["settings"]["context_tokens"]["value"], 1_048_576)
 
-        standard_artifact_bytes = sum(
-            item["installed_bytes"] for item in standard["artifacts"]
-        )
-        latency_artifact_bytes = sum(
-            item["installed_bytes"] for item in latency["artifacts"]
-        )
-        self.assertEqual(standard_artifact_bytes, 21_583_785_362)
-        self.assertEqual(latency_artifact_bytes, 22_932_863_023)
-        self.assertEqual(
-            standard["topology"]["roles"][0]["resources"]["disk"]["artifact_bytes"],
-            standard_artifact_bytes,
-        )
-        self.assertEqual(
-            latency["topology"]["roles"][0]["resources"]["disk"]["artifact_bytes"],
-            latency_artifact_bytes,
-        )
+        self.assertEqual(standard["execution"]["mode"], "build")
+        self.assertEqual(latency["execution"]["mode"], "build")
+        self.assertEqual(standard["topology"]["node_count"], 1)
+        self.assertEqual(latency["topology"]["node_count"], 1)
 
         nano_tags = set(nano["metadata"]["tags"])
         self.assertTrue({"executable", "historical", "superseded"} <= nano_tags)
@@ -95,48 +87,47 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
 
     def test_muse_runtime_and_limit_are_truthful_and_bound(self) -> None:
         recipe_path = "recipes/muse-glimmer-30b-bf16-vllm-single.json"
-        runtime_path = (
-            "runtime-distributions/vllm-muse-glimmer-99a10304-cu130-arm64.json"
-        )
         recipe = load(recipe_path)
-        runtime = load(runtime_path)
-        self.assertNotIn("unreleased Muse Glimmer", runtime["metadata"]["description"])
-        self.assertIn("development image", runtime["metadata"]["description"])
-        self.assertTrue(
-            {"development-runtime", "structured-output-limited"}
-            <= set(runtime["metadata"]["tags"])
-        )
+        self.assertEqual(recipe["runtime"]["engine"], "vllm")
         self.assertIn(
             "combining reasoning with JSON-schema structured output is not supported",
             recipe["metadata"]["description"],
         )
-        self.assertEqual(
-            recipe["runtime"]["distribution"]["content_sha256"],
-            canonical_digest(runtime_path),
-        )
+        self.assertEqual(recipe["execution"]["mode"], "build")
 
-    def test_metadata_releases_bind_current_recipe_digests(self) -> None:
+    def test_release_metadata_and_package_bind_current_recipe_digests(self) -> None:
         versions = {
-            "nemotron-3-5-lightning-30b-a3b-vllm-single": ("1.3.5", "2026-09-01", "metadata-only"),
-            "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single": ("1.1.4", "2026-09-01", "metadata-only"),
-            "nemotron-3-nano-30b-a3b-vllm-single": ("2.0.4", "2026-09-01", "metadata-only"),
-            "moss-vl-realtime-11b-pytorch-single": ("1.1.3", "2026-09-01", "metadata-only"),
-            "mova-360p-diffusers-single": ("2.0.6", "2026-09-01", "metadata-only"),
-            "mova-720p-diffusers-single": ("2.0.6", "2026-09-01", "metadata-only"),
-            "muse-glimmer-30b-bf16-vllm-single": ("1.0.3", "2026-09-01", "metadata-only"),
+            "nemotron-3-5-lightning-30b-a3b-vllm-single": ("1.3.6", "2026-09-03"),
+            "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single": ("1.1.5", "2026-09-03"),
+            "nemotron-3-nano-30b-a3b-vllm-single": ("2.0.5", "2026-09-03"),
+            "moss-vl-realtime-11b-pytorch-single": ("1.1.5", "2026-09-05"),
+            "mova-360p-diffusers-single": ("2.0.8", "2026-09-05"),
+            "mova-720p-diffusers-single": ("2.0.8", "2026-09-05"),
+            "muse-glimmer-30b-bf16-vllm-single": ("1.0.5", "2026-09-05"),
         }
-        for slug, (version, released_at, upgrade_effect) in versions.items():
+        for slug, (version, released_at) in versions.items():
             with self.subTest(recipe=slug):
-                release = load(f"recipe-releases/{slug}.json")
-                self.assertEqual(release["version"], version)
-                self.assertEqual(release["released_at"], released_at)
+                recipe_path = f"recipes/{slug}.json"
+                recipe = RecipeDefinition.model_validate(load(recipe_path))
+                release = recipe.release
+                self.assertEqual(release.version, version)
+                self.assertEqual(release.released_at, released_at)
+                self.assertEqual(release.history[0].version, version)
+                self.assertEqual(release.history[0].released_at, released_at)
+                self.assertIsNone(release.history[0].prior_recipe_content_sha256)
+                self.assertIn(release.history[0].upgrade_effect, {"none", "restart", "reprepare", "rebuild"})
+                entry = catalog_entry(slug)
+                digest = canonical_digest(recipe_path)
                 self.assertEqual(
-                    release["history"][0]["upgrade_effect"], upgrade_effect
+                    entry["content_sha256"],
+                    digest,
                 )
-                self.assertEqual(
-                    release["history"][0]["recipe_content_sha256"],
-                    canonical_digest(f"recipes/{slug}.json"),
-                )
+                package = entry["package"]
+                self.assertEqual(package["recipe_content_sha256"], digest)
+                package_path = ROOT / package["path"]
+                payload = package_path.read_bytes()
+                self.assertEqual(len(payload), package["expected_bytes"])
+                self.assertEqual(hashlib.sha256(payload).hexdigest(), package["sha256"])
 
 
 if __name__ == "__main__":
