@@ -144,10 +144,26 @@
       "camenduru DINOv3 mirror"
     ],
     "source_kind": "global",
-    "source_reference": "https://github.com/TencentARC/Pixal3D/tree/cdbb2bbffbf4e6f298b5f2af3d1d76a8d823d2af"
+    "source_reference": "https://github.com/TencentARC/Pixal3D/tree/f7cf38429b0bd264f1995f0f8743a88b1c728b94"
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "Updated the build source from cdbb2bbffbf4e6f298b5f2af3d1d76a8d823d2af to f7cf38429b0bd264f1995f0f8743a88b1c728b94. The upstream delta adds a multi-view pipeline and leaves the existing single-image Pixal3DImageTo3DPipeline adapter path intact; the model snapshot remains pinned to its exact 0b31f916 revision.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/TencentARC/Pixal3D/compare/cdbb2bbffbf4e6f298b5f2af3d1d76a8d823d2af...f7cf38429b0bd264f1995f0f8743a88b1c728b94"
+            ],
+            "summary": "Refresh Pixal3D source to the current compatible upstream main."
+          }
+        ],
+        "prior_recipe_content_sha256": "3c5228217be242fa257988b44f85fcd25439c4fe5dca936b99345cbf50048f12",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.7"
+      },
       {
         "changes": [
           {
@@ -334,7 +350,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "2.0.6"
+    "version": "2.0.7"
   },
   "runtime": {
     "arguments": [

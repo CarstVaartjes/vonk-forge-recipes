@@ -163,6 +163,22 @@
       {
         "changes": [
           {
+            "details": "Upstream main remains at cb5ac944709c6c913109070c7b90c3447f57f3d4; the exact texture adapter source and model snapshot therefore remain unchanged.",
+            "kind": "metadata",
+            "references": [
+              "https://github.com/stepfun-ai/Step1X-3D/commit/cb5ac944709c6c913109070c7b90c3447f57f3d4"
+            ],
+            "summary": "Revalidated the Step1X texture source pin against upstream main."
+          }
+        ],
+        "prior_recipe_content_sha256": "4cbb3434fe236cc768086b34528a9caa3c8aedf8622072ecd725419333e62708",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.2.8"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -354,7 +370,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "1.2.7"
+    "version": "1.2.8"
   },
   "runtime": {
     "arguments": [
