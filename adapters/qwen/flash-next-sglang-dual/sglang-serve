@@ -56,6 +56,16 @@ def add_flag(name: str) -> None:
         arguments.append(name)
 
 
+def numeric_option(name: str) -> int | None:
+    try:
+        value = arguments[arguments.index(name) + 1]
+    except (ValueError, IndexError):
+        return None
+    if not value.isascii() or not value.isdigit():
+        raise SystemExit(f"distributed SGLang requires numeric {name}")
+    return int(value)
+
+
 for name, value in (
     ("--quantization", "modelopt_fp4"),
     ("--attention-backend", "flashinfer"),
@@ -69,10 +79,6 @@ for name, value in (
     ("--context-length", "1048576"),
     ("--mem-fraction-static", "0.82"),
     ("--kv-cache-dtype", "nvfp4"),
-    (
-        "--json-model-override-args",
-        '{"text_config":{"rope_scaling":{"rope_type":"yarn","factor":4.0,"original_max_position_embeddings":262144},"max_position_embeddings":1048576}}',
-    ),
     ("--speculative-algorithm", "NEXTN"),
     ("--speculative-num-steps", "3"),
     ("--speculative-eagle-topk", "1"),
@@ -81,6 +87,18 @@ for name, value in (
     ("--tool-call-parser", "auto"),
 ):
     add_value(name, value)
+
+# Qwen3.8's native context is 262,144 tokens. The upstream vLLM launcher
+# disables YaRN at or below that boundary (b421c25); mirror that invariant in
+# this retained SGLang fork while keeping the reviewed 1M profile unchanged.
+context_length = numeric_option("--context-length")
+if context_length is None:
+    context_length = 1048576
+if context_length > 262144:
+    add_value(
+        "--json-model-override-args",
+        '{"text_config":{"rope_scaling":{"rope_type":"yarn","factor":4.0,"original_max_position_embeddings":262144},"max_position_embeddings":1048576}}',
+    )
 if "--cuda-graph-bs-decode" not in arguments:
     arguments.extend(
         (
