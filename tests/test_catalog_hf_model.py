@@ -77,7 +77,7 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
                 namespace["main"]()
 
     def test_catalog_command_exposes_model_authority_options(self) -> None:
-        result = __import__("subprocess").run(["/opt/vonk-forge/control/.venv/bin/python", str(TOOL), "--help"], text=True, capture_output=True)
+        result = __import__("subprocess").run([sys.executable, str(TOOL), "--help"], text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         for option in ("--publisher", "--version-slug", "--architecture", "--quantization"):
             self.assertIn(option, result.stdout)
