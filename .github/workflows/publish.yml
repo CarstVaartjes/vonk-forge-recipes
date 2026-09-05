@@ -13,25 +13,45 @@ permissions:
 
 jobs:
   validate:
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@b68935d4b5010c3e054d07cabe68ad35f5049d7a
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@0cd25f50d4d9816537b57be7b66b41b98af00156
     with:
       # Keep release validation on the same published Forge authority as PR
       # validation; recipe publication is independent of Forge release CI.
-      platform_ref: 9274e66c522e95b23a1b14bb1add247cefdf4021
+      platform_ref: 0cd25f50d4d9816537b57be7b66b41b98af00156
+
+  producer-contracts:
+    name: Validate producer contracts and packages
+    uses: ./.github/workflows/validate.yml
+    with:
+      producer_only: true
 
   catalog-index:
     name: Verify catalog index
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - name: Check out recipes
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Verify generated catalog index
-        run: python3 tools/build-catalog-index --check
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.1"
+          python-version: "3.12"
+          enable-cache: false
+
+      - name: Verify committed generated catalog index and package set
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_venv="$RUNNER_TEMP/catalog-test-venv"
+          uv venv --python 3.12 "$test_venv"
+          uv pip install --python "$test_venv/bin/python" -e contracts
+          "$test_venv/bin/python" tools/build-catalog-index --check
 
   publish:
     name: Create signed library release
-    needs: [validate, catalog-index]
+    needs: [validate, producer-contracts, catalog-index]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     environment: recipe-release
@@ -40,6 +60,108 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.1"
+          python-version: "3.12"
+          enable-cache: false
+
+      - name: Install producer contract dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_venv="$RUNNER_TEMP/release-test-venv"
+          uv venv --python 3.12 "$test_venv"
+          uv pip install --python "$test_venv/bin/python" -e contracts
+          echo "RELEASE_TEST_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
+
+      - name: Verify checked-in package and index commit, counts, and digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s catalog-index.json
+          test -s qualification/qualification-index.json
+          "$RELEASE_TEST_PYTHON" - <<'PY'
+          import hashlib
+          import json
+          import runpy
+          import subprocess
+          import tempfile
+          from pathlib import Path
+
+          catalog = json.loads(Path("catalog-index.json").read_text(encoding="utf-8"))
+          source_commit = catalog.get("source_commit")
+          if not isinstance(source_commit, str) or len(source_commit) != 40 or any(
+              character not in "0123456789abcdef" for character in source_commit
+          ):
+              raise SystemExit("checked catalog source_commit must be a full SHA-1")
+          if subprocess.run(
+              ["git", "merge-base", "--is-ancestor", source_commit, "${{ github.sha }}"],
+              check=False,
+          ).returncode != 0:
+              raise SystemExit("checked catalog source_commit is not an ancestor of release SHA")
+          recipes = catalog.get("recipes")
+          if not isinstance(recipes, list) or not recipes:
+              raise SystemExit("checked catalog must contain Recipes")
+          models = catalog.get("catalog_entities")
+          if not isinstance(models, list) or not models:
+              raise SystemExit("checked catalog must contain Models")
+          model_keys = {
+              (row["document"]["identity"]["publisher"], row["document"]["identity"]["slug"])
+              for row in models
+          }
+          source_model_keys = {
+              (document["identity"]["publisher"], document["identity"]["slug"])
+              for path in Path("models").glob("*.json")
+              for document in [json.loads(path.read_text(encoding="utf-8"))]
+          }
+          if len(model_keys) != len(models) or model_keys != source_model_keys:
+              raise SystemExit("checked Model identity set does not match source files")
+          recipe_keys = {
+              (row["document"]["identity"]["publisher"], row["document"]["identity"]["slug"])
+              for row in recipes
+          }
+          source_recipe_keys = {
+              (document["identity"]["publisher"], document["identity"]["slug"])
+              for path in Path("recipes").glob("*.json")
+              for document in [json.loads(path.read_text(encoding="utf-8"))]
+          }
+          if len(recipe_keys) != len(recipes) or recipe_keys != source_recipe_keys:
+              raise SystemExit("checked Recipe identity set does not match source files")
+          expected = set()
+          for row in recipes:
+              package = row.get("package")
+              if not isinstance(package, dict):
+                  raise SystemExit("Recipe package metadata is missing")
+              path = package.get("path")
+              if not isinstance(path, str) or not path.startswith("packages/"):
+                  raise SystemExit("Recipe package path is invalid")
+              expected.add(Path(path).name)
+              payload = Path(path).read_bytes()
+              if hashlib.sha256(payload).hexdigest() != package.get("sha256"):
+                  raise SystemExit(f"Recipe package digest is stale: {path}")
+          actual = {path.name for path in Path("packages").glob("*.tar.gz")}
+          if actual != expected:
+              raise SystemExit("checked Recipe package set does not match the catalog")
+          tool = runpy.run_path("tools/build-catalog-index")
+          with tempfile.TemporaryDirectory(prefix="recipe-release-check-") as directory:
+              rebuilt_dir = Path(directory)
+              rebuilt = tool["build"](
+                  package_dir=rebuilt_dir,
+                  source_commit=source_commit,
+              )
+              if tool["rendered"](rebuilt) != Path("catalog-index.json").read_text(encoding="utf-8"):
+                  raise SystemExit("checked catalog does not match a deterministic rebuild")
+              rebuilt_qualification = tool["rendered"](tool["qualification_index"](rebuilt))
+              if rebuilt_qualification != Path("qualification/qualification-index.json").read_text(encoding="utf-8"):
+                  raise SystemExit("checked qualification index does not match a deterministic rebuild")
+              for name in expected:
+                  if (rebuilt_dir / name).read_bytes() != (Path("packages") / name).read_bytes():
+                      raise SystemExit(f"checked Recipe package is not a deterministic rebuild: {name}")
+          print(f"Verified {len(models)} Models, {len(recipes)} Recipes, and {len(actual)} packages.")
+          PY
 
       - name: Validate release input
         env:
