@@ -4,6 +4,9 @@ Use this workflow for a new recipe, an upstream refresh, or a targeted fix.
 The outcome is a runnable recipe with exact inputs, useful version information,
 and a self-contained downloadable package. A repository recipe is expected to
 work; authors do not maintain a separate approval or readiness lifecycle.
+This is a first-release platform with one supported public contract. Remove
+superseded code, formats, settings, fixtures, and instructions; do not preserve
+them as compatibility paths. Git history retains the previous implementations.
 
 ## 1. Establish the change
 
@@ -18,10 +21,9 @@ State which kind of work you are doing:
 - **Refresh:** compare existing immutable inputs with current upstream sources
   and adopt applicable changes.
 - **Repair:** correct a specific execution, packaging, or metadata problem.
-- **Convert:** change document structure while preserving execution intent.
 
-Do not report a conversion or repair as a complete upstream refresh. For a
-catalog-wide request, account for every recipe, including unchanged recipes.
+Do not report a structural edit or repair as a complete upstream refresh. For
+a catalog-wide request, account for every recipe, including unchanged recipes.
 
 ## 2. Check the actual upstreams
 
@@ -184,3 +186,11 @@ Finish with a concise report: recipes added/updated/unchanged, upstream pins
 changed or retained and why, checks executed, PR/commit/publication links, and
 any remaining work. For a catalog refresh, include a per-recipe accounting so
 the user can distinguish current upstreams from unchecked ones.
+
+Before the first release, check that consumers, launch setup, generated types,
+tests, and documentation use the same supported contracts. Remove dead readers
+and obsolete defaults rather than leaving hidden fallback behavior. Fresh
+database initialization must reflect that baseline; cleanup is not permission
+to delete live volumes or data. Current private wire/build/job schemas and API
+route versions are independent contracts, so inspect their meaning instead of
+replacing every occurrence of an older-looking version number.
