@@ -1,0 +1,628 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.vonkforge.ai/contracts/model-definition-v2.schema.json",
+  "$defs": {
+    "ModelCapabilities": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 2,
+          "default": 2,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "facts": {
+          "items": {
+            "$ref": "#/$defs/ModelCapabilityFact"
+          },
+          "maxItems": 64,
+          "title": "Facts",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/ModelCapabilityProvenance"
+        }
+      },
+      "required": [
+        "facts",
+        "provenance"
+      ],
+      "title": "ModelCapabilities",
+      "type": "object"
+    },
+    "ModelCapabilityFact": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "enum": [
+            "chat",
+            "text-generation",
+            "text-understanding",
+            "reasoning",
+            "tool-use",
+            "code-generation",
+            "ocr",
+            "image-generation",
+            "image-understanding",
+            "image-editing",
+            "video-generation",
+            "video-understanding",
+            "audio-generation",
+            "audio-understanding",
+            "embeddings",
+            "3d-generation"
+          ],
+          "title": "Capability",
+          "type": "string"
+        },
+        "support": {
+          "enum": [
+            "supported",
+            "unsupported",
+            "unknown"
+          ],
+          "title": "Support",
+          "type": "string"
+        },
+        "evidence_status": {
+          "enum": [
+            "declared",
+            "tested",
+            "contradicted",
+            "unknown"
+          ],
+          "title": "Evidence Status",
+          "type": "string"
+        },
+        "evidence_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Evidence Digest"
+        }
+      },
+      "required": [
+        "capability",
+        "support",
+        "evidence_status",
+        "evidence_digest"
+      ],
+      "title": "ModelCapabilityFact",
+      "type": "object"
+    },
+    "ModelCapabilityProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "source_url": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Source Url",
+          "type": "string"
+        },
+        "source_revision": {
+          "pattern": "^[a-f0-9]{40,64}$",
+          "title": "Source Revision",
+          "type": "string"
+        },
+        "evidence_digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Evidence Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_url",
+        "source_revision",
+        "evidence_digest"
+      ],
+      "title": "ModelCapabilityProvenance",
+      "type": "object"
+    },
+    "ModelFamily": {
+      "additionalProperties": false,
+      "properties": {
+        "publisher": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "slug",
+        "title"
+      ],
+      "title": "ModelFamily",
+      "type": "object"
+    },
+    "ModelFile": {
+      "additionalProperties": false,
+      "description": "One entry in the complete immutable model file manifest.",
+      "properties": {
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "path": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 1,
+          "title": "Size Bytes",
+          "type": "integer"
+        },
+        "roles": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Roles",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "path",
+        "sha256",
+        "size_bytes",
+        "roles"
+      ],
+      "title": "ModelFile",
+      "type": "object"
+    },
+    "ModelFormat": {
+      "additionalProperties": false,
+      "properties": {
+        "container": {
+          "enum": [
+            "gguf",
+            "safetensors",
+            "onnx",
+            "other"
+          ],
+          "title": "Container",
+          "type": "string"
+        },
+        "precision": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,127}$",
+          "title": "Precision",
+          "type": "string"
+        },
+        "quantization": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,127}$",
+          "title": "Quantization",
+          "type": "string"
+        }
+      },
+      "required": [
+        "container",
+        "precision",
+        "quantization"
+      ],
+      "title": "ModelFormat",
+      "type": "object"
+    },
+    "ModelIdentity": {
+      "additionalProperties": false,
+      "description": "The family, logical model, exact version, and selected variant.",
+      "properties": {
+        "publisher": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        },
+        "family": {
+          "$ref": "#/$defs/ModelFamily"
+        },
+        "model": {
+          "$ref": "#/$defs/ModelRecord"
+        },
+        "version": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        },
+        "variant": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Variant",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "slug",
+        "family",
+        "model",
+        "version",
+        "variant"
+      ],
+      "title": "ModelIdentity",
+      "type": "object"
+    },
+    "ModelLicense": {
+      "additionalProperties": false,
+      "properties": {
+        "spdx": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Spdx",
+          "type": "string"
+        },
+        "url": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        },
+        "attribution": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Attribution",
+          "type": "array"
+        },
+        "operator_acceptance_required": {
+          "title": "Operator Acceptance Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "spdx",
+        "url",
+        "attribution",
+        "operator_acceptance_required"
+      ],
+      "title": "ModelLicense",
+      "type": "object"
+    },
+    "ModelLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "context_tokens": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Context Tokens"
+        },
+        "resolution_pixels": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resolution Pixels"
+        },
+        "frames": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Frames"
+        },
+        "sample_rate_hz": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sample Rate Hz"
+        }
+      },
+      "title": "ModelLimits",
+      "type": "object"
+    },
+    "ModelMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9.-]{0,39}$",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Tags",
+          "type": "array"
+        }
+      },
+      "required": [
+        "description",
+        "tags"
+      ],
+      "title": "ModelMetadata",
+      "type": "object"
+    },
+    "ModelParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "total": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Total"
+        },
+        "active": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Active"
+        }
+      },
+      "title": "ModelParameters",
+      "type": "object"
+    },
+    "ModelProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "source_url": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Source Url",
+          "type": "string"
+        },
+        "source_revision": {
+          "pattern": "^[a-f0-9]{40,64}$",
+          "title": "Source Revision",
+          "type": "string"
+        },
+        "evidence_digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Evidence Digest",
+          "type": "string"
+        },
+        "attribution": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Attribution",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source_url",
+        "source_revision",
+        "evidence_digest",
+        "attribution"
+      ],
+      "title": "ModelProvenance",
+      "type": "object"
+    },
+    "ModelRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "publisher": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "architecture": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Architecture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "slug",
+        "title",
+        "architecture"
+      ],
+      "title": "ModelRecord",
+      "type": "object"
+    },
+    "ModelSource": {
+      "additionalProperties": false,
+      "properties": {
+        "repository": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Repository",
+          "type": "string"
+        },
+        "revision": {
+          "pattern": "^[a-f0-9]{40,64}$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "repository",
+        "revision"
+      ],
+      "title": "ModelSource",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One exact model version and variant, including its complete manifest.",
+  "properties": {
+    "schema_version": {
+      "const": 2,
+      "default": 2,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "model",
+      "default": "model",
+      "title": "Kind",
+      "type": "string"
+    },
+    "identity": {
+      "$ref": "#/$defs/ModelIdentity"
+    },
+    "metadata": {
+      "$ref": "#/$defs/ModelMetadata"
+    },
+    "modalities": {
+      "items": {
+        "enum": [
+          "text",
+          "image",
+          "audio",
+          "video",
+          "3d",
+          "embeddings"
+        ],
+        "type": "string"
+      },
+      "maxItems": 6,
+      "minItems": 1,
+      "title": "Modalities",
+      "type": "array"
+    },
+    "source": {
+      "$ref": "#/$defs/ModelSource"
+    },
+    "format": {
+      "$ref": "#/$defs/ModelFormat"
+    },
+    "parameters": {
+      "$ref": "#/$defs/ModelParameters"
+    },
+    "limits": {
+      "$ref": "#/$defs/ModelLimits"
+    },
+    "license": {
+      "$ref": "#/$defs/ModelLicense"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/ModelFile"
+      },
+      "minItems": 1,
+      "title": "Files",
+      "type": "array"
+    },
+    "capabilities": {
+      "$ref": "#/$defs/ModelCapabilities"
+    },
+    "provenance": {
+      "$ref": "#/$defs/ModelProvenance"
+    }
+  },
+  "required": [
+    "identity",
+    "metadata",
+    "modalities",
+    "source",
+    "format",
+    "parameters",
+    "limits",
+    "license",
+    "files",
+    "capabilities",
+    "provenance"
+  ],
+  "title": "ModelDefinition",
+  "type": "object"
+}

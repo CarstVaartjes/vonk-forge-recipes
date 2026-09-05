@@ -1,0 +1,170 @@
+{
+  "schema_version": 2,
+  "kind": "recipe",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "synthetic-image-job"
+  },
+  "metadata": {
+    "title": "Synthetic Tiny image",
+    "description": "Synthetic image execution example.",
+    "tags": [
+      "synthetic",
+      "text"
+    ]
+  },
+  "models": [
+    {
+      "id": "primary",
+      "model": {
+        "kind": "model",
+        "publisher": "vonk-forge",
+        "slug": "synthetic-tiny-fp16",
+        "content_sha256": "316f50462f9e44fe3f139e914a0d18c072807e389c81db714d633a565a4f4eaf"
+      },
+      "files": [
+        {
+          "id": "weights",
+          "file_id": "weights",
+          "roles": [
+            "entrypoint"
+          ],
+          "mount": {
+            "target": "/models",
+            "read_only": true
+          }
+        }
+      ]
+    }
+  ],
+  "execution": {
+    "mode": "image",
+    "image": {
+      "repository": "registry.example/vonk/vllm",
+      "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "platform": "linux/arm64"
+    }
+  },
+  "runtime": {
+    "engine": "image-job",
+    "entrypoint": [
+      "vllm",
+      "serve",
+      "/models"
+    ],
+    "arguments": [],
+    "environment": [],
+    "lifecycle": {
+      "pre_start": [],
+      "post_stop": [],
+      "stop_timeout_seconds": 30
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "mode": "single",
+    "node_count": 1,
+    "roles": [
+      {
+        "name": "entrypoint",
+        "count": 1,
+        "endpoint_owner": true,
+        "resources": {
+          "memory": {
+            "kind": "unified",
+            "startup_peak_bytes": 80000000,
+            "steady_state_bytes": 70000000,
+            "runtime_growth_bytes": 1000000,
+            "system_reserve_bytes": 1000000
+          },
+          "disk": {
+            "image_bytes": 1000,
+            "artifact_bytes": 1024,
+            "staging_bytes": 2048,
+            "cache_bytes": 1024,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 1024
+          }
+        }
+      }
+    ],
+    "parallelism": {
+      "world_size": 1,
+      "tensor": 1,
+      "pipeline": 1,
+      "data": 1,
+      "backend": "local"
+    },
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
+    "start_order": [
+      "entrypoint"
+    ],
+    "stop_order": [
+      "entrypoint"
+    ]
+  },
+  "interfaces": [
+    {
+      "adapter": "image-job",
+      "path": "/outputs",
+      "input": null,
+      "output": {
+        "path": "/outputs",
+        "max_total_bytes": 1048576,
+        "slots": [
+          {
+            "id": "image",
+            "label": "Image",
+            "description": "PNG output",
+            "media_types": [
+              "image/png"
+            ],
+            "extensions": [
+              ".png"
+            ],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 1048576,
+            "max_total_bytes": 1048576
+          }
+        ]
+      }
+    }
+  ],
+  "validation": {
+    "benchmarks": [],
+    "serving": {
+      "interface": "image-job",
+      "checks": [
+        {
+          "name": "image",
+          "kind": "image-job.output",
+          "request": {
+            "transport": "job",
+            "fixture": "blank",
+            "output_path": "/outputs",
+            "output_slot": "image"
+          },
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ]
+        }
+      ]
+    }
+  },
+  "provenance": {
+    "source_kind": "local",
+    "source_reference": null,
+    "attribution": [
+      "Vonk Forge"
+    ]
+  },
+  "settings": {
+    "kind": "job",
+    "knobs": {}
+  }
+}
