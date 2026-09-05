@@ -196,7 +196,7 @@
     "title": "Step1X-3D label-geometry pytorch-pipeline single Spark"
   },
   "model": {
-    "content_sha256": "438b23b5482136734755ae1b93b8dc4931ceb8ab9984f73cb7e12fdf1c8b6a7c",
+    "content_sha256": "d0266b3a513cbadb9f29b473e9176c1389fb06fd0477c3962498ceafc184fb37",
     "kind": "model-version",
     "publisher": "stepfun-ai",
     "slug": "step1x-3d-label-geometry"

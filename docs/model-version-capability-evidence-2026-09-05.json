@@ -8,7 +8,7 @@
     "declared": 86,
     "unknown": 6
   },
-  "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+  "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
   "counts": {
     "model_groups": 37,
     "model_versions": 92,
@@ -49,7 +49,7 @@
         "code-generation",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -123,7 +123,7 @@
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-flash-0731"
       },
-      "model_version_sha256": "8f4688f0ebe995d897f89b4165f5aceb86081da75338649668941f40491b7bca",
+      "model_version_sha256": "55f1da687a77dfdc1532653eb834069dc9237ff533d6c6f03893fc498683f9ef",
       "parameters": {
         "active": 13000000000,
         "total": 284000000000
@@ -1114,7 +1114,7 @@
         "code-generation",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -1189,7 +1189,7 @@
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-flash-0731"
       },
-      "model_version_sha256": "6b318ccefc40d93462049d3cf982d815f0409e557d14bf56f40fbffc9bbb9cf5",
+      "model_version_sha256": "d8a05d5c55ffca070a24b01ba93c18832796624c95ab52807190b8450c802774",
       "parameters": {
         "active": 13000000000,
         "total": 284000000000
@@ -3688,7 +3688,7 @@
         "code-generation",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -3766,7 +3766,7 @@
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-flash-0731"
       },
-      "model_version_sha256": "440c77737c3d46c7e1e048386802588de74b0bb54d3ac73542216c2d52c2933e",
+      "model_version_sha256": "b8544185008065aa5cf9db526c2b13006653e57fb0fa0b47427c9a7604b4c4d4",
       "parameters": {
         "active": 13000000000,
         "total": 241000000000
@@ -4888,7 +4888,7 @@
         "image-understanding",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -4968,7 +4968,7 @@
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-flash-vision-exp"
       },
-      "model_version_sha256": "a0152a27f14f27e10a73fea6c118848c9b706ff258c5519f93192d81870795b6",
+      "model_version_sha256": "2614dc5e34613652568c3b6da51070ed594a4c19ffa0a055dbf62c76255e2e55",
       "parameters": {
         "active": 13000000000,
         "total": 304646824126
@@ -6090,7 +6090,7 @@
         "image-understanding",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -6170,7 +6170,7 @@
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-flash-vision-exp"
       },
-      "model_version_sha256": "a9d6afc415d10ce71e44967fa8c30748932d8384098cee712e0382217bc8e03c",
+      "model_version_sha256": "46986c33d400a1b95433b5abada8bda3a0624296562006f93ba1aa1a57ed33f3",
       "parameters": {
         "active": 13000000000,
         "total": 304646824126
@@ -6236,7 +6236,7 @@
       "capabilities": [
         "image-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -6311,7 +6311,7 @@
         "publisher": "black-forest-labs",
         "slug": "flux-2-klein-4b"
       },
-      "model_version_sha256": "fa66bc6f289c66a9e3d0704395098f19ecee04c0b3ac8a3f27ec92e5eb960a65",
+      "model_version_sha256": "28309532829893c18291b12dca5e1145514080979d75cd483bd266fa7cf83d11",
       "parameters": {
         "active": 4000000000,
         "total": 4000000000
@@ -6352,7 +6352,7 @@
       "capabilities": [
         "image-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -6428,7 +6428,7 @@
         "publisher": "black-forest-labs",
         "slug": "flux-2-klein-4b"
       },
-      "model_version_sha256": "9b6a014598ceb2dfae42ba390d19e3cd3da49b7ef72e6cac533f6810bff7d7d4",
+      "model_version_sha256": "0e7e2435d32251a4af45cd9782769741270edd16140c14a718c1f4527dec0753",
       "parameters": {
         "active": 4000000000,
         "total": 4000000000
@@ -6589,7 +6589,7 @@
         "text-generation",
         "video-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -6660,7 +6660,7 @@
         "publisher": "google",
         "slug": "gemma-4-26b-a4b"
       },
-      "model_version_sha256": "bb555467a9622b891859e411d781b350b0ea4cb04596130b0ccc4fc5334efa8a",
+      "model_version_sha256": "30cf0e27030f23a978b1ba5cad4bad8d4f402f3c10d68a2a674faf77721c768e",
       "parameters": {
         "active": 4000000000,
         "total": 26000000000
@@ -6847,7 +6847,7 @@
         "text-generation",
         "video-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -6921,7 +6921,7 @@
         "publisher": "google",
         "slug": "gemma-4-26b-a4b"
       },
-      "model_version_sha256": "305ea1395a90110470113c880a8693a0d3cadfd63936302348d5b697b25fbf24",
+      "model_version_sha256": "eba02da00c6ed832bc4a825f28003a00d796af372fecfe3de100bccd164879ef",
       "parameters": {
         "active": 4000000000,
         "total": 25805936206
@@ -8797,7 +8797,7 @@
         "image-understanding",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -8867,7 +8867,7 @@
         "publisher": "quanttrio",
         "slug": "glm-5-2-int4-int8mix"
       },
-      "model_version_sha256": "6e1da21825a183867e9331c8e16cbdbd3b7a0ce97ba8233a03f0f66d2a782cee",
+      "model_version_sha256": "4f3b6394c144fcb0b9dbc4924a42aae227befff1121f6c0248efbff28122cc73",
       "parameters": {
         "active": 40000000000,
         "total": 744000000000
@@ -18660,7 +18660,7 @@
         "image-understanding",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -18730,7 +18730,7 @@
         "publisher": "jarrelscy",
         "slug": "glm-5-2-aqlm-hybrid"
       },
-      "model_version_sha256": "8cd217518f6a2b270b058b6b3ddd40e60d8f9e8edd45189d051b39cc8fc1659d",
+      "model_version_sha256": "3e4b2f82646797cb2b51009ede4df555ac72d1bc9d732997b827bbd48cb9da6c",
       "parameters": {
         "active": 40000000000,
         "total": 744000000000
@@ -18822,7 +18822,7 @@
       "capabilities": [
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -18892,7 +18892,7 @@
         "publisher": "incoai",
         "slug": "glm-5-3-flash-dflash2"
       },
-      "model_version_sha256": "bafc678c4849de74d0a86b52a466b0291fc1e7faa7cc94c3d0737ba33a4599f3",
+      "model_version_sha256": "001cb1e8d1024b498a2e827b7aabdf88696db082db2e9b0eb089bc628042fe6d",
       "parameters": {
         "active": 1000000000,
         "total": 1000000000
@@ -18971,7 +18971,7 @@
       "capabilities": [
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -19041,7 +19041,7 @@
         "publisher": "incoai",
         "slug": "glm-5-3-flash-dflash2"
       },
-      "model_version_sha256": "7b8772daead90f1afb6edeb99e7b809fad600f7ec74a70048b1936b40a52c53f",
+      "model_version_sha256": "7d96bd2e72805a0116bdcc8c7f0090f182caaaea5341d9675778edd8ba5eecc1",
       "parameters": {
         "active": 1000000000,
         "total": 1000000000
@@ -20944,7 +20944,7 @@
         "text-generation",
         "video-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -21016,7 +21016,7 @@
         "publisher": "mia-ai-lab",
         "slug": "glm-5-3-flash-exl3-tr3-dflash2"
       },
-      "model_version_sha256": "9cbbc110d7de762cb8eaf1be591dcfb18731bbf64ab72780398cb7813066b67e",
+      "model_version_sha256": "ec89d219613c8dc0039bc20810b6f461593f5ac9d42beea37c48f48473eaee3b",
       "parameters": {
         "active": 18000000000,
         "total": 321320000000
@@ -22919,7 +22919,7 @@
         "text-generation",
         "video-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -22993,7 +22993,7 @@
         "publisher": "mia-ai-lab",
         "slug": "glm-5-3-flash-exl3-tr3-dflash2"
       },
-      "model_version_sha256": "10728102c1f6afda30cd7f5a98946d62ed5b5c465e2b0a8d464b377227c2d44d",
+      "model_version_sha256": "cd70648765c263c13875982f46ec31edd55929a89c2c9b78095a1e114a975ee9",
       "parameters": {
         "active": 18000000000,
         "total": 321320000000
@@ -24714,7 +24714,7 @@
         "text-generation",
         "video-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -24784,7 +24784,7 @@
         "publisher": "libertaidai",
         "slug": "glm-5-3-flash-nvfp4"
       },
-      "model_version_sha256": "bac41b1aec41d6df8bbdda36ce1afcbda1b0dfee86f05df2aef4b42e389c2837",
+      "model_version_sha256": "a5080d4b6c434fd102461866b64fdf391c4522699675262b074e7ad3af726d59",
       "parameters": {
         "active": 18000000000,
         "total": 321320000000
@@ -26518,7 +26518,7 @@
         "text-generation",
         "video-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -26588,7 +26588,7 @@
         "publisher": "libertaidai",
         "slug": "glm-5-3-flash-nvfp4"
       },
-      "model_version_sha256": "67b354ddc397ee052266212c008238602fc1dd9c1831a6228ab909b878de9764",
+      "model_version_sha256": "61813ce94089902e606e0d0a20a3c9a6acb1cbd5283b47bc144da27fa0f1b221",
       "parameters": {
         "active": 18000000000,
         "total": 321320000000
@@ -28322,7 +28322,7 @@
         "text-generation",
         "video-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -28392,7 +28392,7 @@
         "publisher": "libertaidai",
         "slug": "glm-5-3-flash-nvfp4"
       },
-      "model_version_sha256": "714384327a3ee29de206de4437f1cf94d56a1d6b13ebb4ef627a329ae8489887",
+      "model_version_sha256": "ed9480445128e9359e8d4c1ebb89c471365869f9b3b352dff05dd28ed782a9a8",
       "parameters": {
         "active": 18000000000,
         "total": 321320000000
@@ -28839,7 +28839,7 @@
         "text-generation",
         "video-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -28922,7 +28922,7 @@
         "publisher": "drowzeys",
         "slug": "glm-5-3-flash-nvfp4-ablit-l15-43-mtp-l45"
       },
-      "model_version_sha256": "db660c4b13fe9fb2689ba21cf3798ca761f26f3f5d03bfd87d8034293d05c9d1",
+      "model_version_sha256": "fb8368f5a6d63ff46b1b52b3c39034fe3d006c66b17ef5b8efb8350c9db3350c",
       "parameters": {
         "active": 18000000000,
         "total": 321320000000
@@ -30591,7 +30591,7 @@
         "text-generation",
         "video-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -30669,7 +30669,7 @@
         "publisher": "drowzeys",
         "slug": "glm-5-3-flash-nvfp4-abliterated"
       },
-      "model_version_sha256": "96e047e0329f7c90a59d9e77847ecebc8fb8c7872b06bd841e5c5ff50fbce7d5",
+      "model_version_sha256": "1e7ee47220f317f873c367059692a3fc138f71b242faa6fe837a63b8050d5530",
       "parameters": {
         "active": 18000000000,
         "total": 321320000000
@@ -32403,7 +32403,7 @@
         "text-generation",
         "video-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -32473,7 +32473,7 @@
         "publisher": "libertaidai",
         "slug": "glm-5-3-flash-nvfp4"
       },
-      "model_version_sha256": "b37c001c19c0858fd358b38d6f77bb38afa075eadafef898d4073ed478228750",
+      "model_version_sha256": "89ecaabfaf1ba2248077197c07672c1b9f556c8e6d7225f36e973e4b52e3345f",
       "parameters": {
         "active": 18000000000,
         "total": 321320000000
@@ -32513,7 +32513,7 @@
       "capabilities": [
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -32582,7 +32582,7 @@
         "publisher": "tencent",
         "slug": "hunyuan-video-15"
       },
-      "model_version_sha256": "f910a26cd7b621893b33aba3e528ef89fdb287655471f566d78c3278a7bc28c2",
+      "model_version_sha256": "362823f27b2a10e3b9923b7250bc6b28e7535274559c7139cdaadb3397311995",
       "parameters": {
         "active": null,
         "total": null
@@ -32622,7 +32622,7 @@
       "capabilities": [
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -32691,7 +32691,7 @@
         "publisher": "tencent",
         "slug": "hunyuan-video-15"
       },
-      "model_version_sha256": "1a9c94a483581d38c52f5f09b77d1366fe618ec6d5224e2f4b9cdde48266152c",
+      "model_version_sha256": "c713d965396562d1194df546edbe5adf3fb1f6df22bdc71f96d4f5c601bdb7a9",
       "parameters": {
         "active": null,
         "total": null
@@ -32731,7 +32731,7 @@
       "capabilities": [
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -32800,7 +32800,7 @@
         "publisher": "tencent",
         "slug": "hunyuan-video-15"
       },
-      "model_version_sha256": "be9fb3b893fb89bfc490e8921d101498792fc6d25f5078da3012350a6f3233b9",
+      "model_version_sha256": "cbe080051aec96de118dfca20d4d8be72f3aab907304c7c45fef6d9e9b914368",
       "parameters": {
         "active": null,
         "total": null
@@ -32841,7 +32841,7 @@
         "audio-generation",
         "video-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -32910,7 +32910,7 @@
         "publisher": "tencent",
         "slug": "hunyuan-video-foley"
       },
-      "model_version_sha256": "b9ba080e813247f6ce0f3a484f3ffdc2509424517d1d175a93be7d18bd1d5b18",
+      "model_version_sha256": "ee6ad634df704ec428f90ee946d8a24163412150c577ce16aab27292b3678303",
       "parameters": {
         "active": null,
         "total": null
@@ -32951,7 +32951,7 @@
         "audio-generation",
         "video-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -33020,7 +33020,7 @@
         "publisher": "tencent",
         "slug": "hunyuan-video-foley"
       },
-      "model_version_sha256": "41078ec19b8374f941d0e0c77bcfd21c4c672eaf8193d36738a6b9830acfd4a7",
+      "model_version_sha256": "716391a1c902b99bf9102c2ce91bd9441e70c2d105e9b571f9a0e72bf56e94aa",
       "parameters": {
         "active": null,
         "total": null
@@ -33060,7 +33060,7 @@
       "capabilities": [
         "3d-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -33129,7 +33129,7 @@
         "publisher": "tencent",
         "slug": "hunyuan3d-omni"
       },
-      "model_version_sha256": "3adf5809944b3d050c9b56c10d1530e16680309beb5d99c85d30b9eee3061aea",
+      "model_version_sha256": "662a0b8aaa6b784bdb85f96dffa1f878b36c7486030399170f6796edc332eea7",
       "parameters": {
         "active": null,
         "total": null
@@ -33653,7 +33653,7 @@
         "ocr",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -33731,7 +33731,7 @@
         "publisher": "tencent",
         "slug": "hunyuanocr-1-5"
       },
-      "model_version_sha256": "e76a6cf167a5588d8a8106dc5a23f92ba6254509880535a315643fda8edd462d",
+      "model_version_sha256": "956055f5c3b24317292c5ff78ca1bc2754b6bdb6f5856c389ca244a33e894fd1",
       "parameters": {
         "active": 1000000000,
         "total": 1000000000
@@ -34256,7 +34256,7 @@
         "ocr",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -34334,7 +34334,7 @@
         "publisher": "tencent",
         "slug": "hunyuanocr-1-5"
       },
-      "model_version_sha256": "fd280975c99a991e2ee59e2fe3264b35ead4cd1fb9678f3225a640e191ceee00",
+      "model_version_sha256": "e8da33c03a51f6b59388cf54a963791a69a9e9568cb4a74fa9f64bdde9ddc226",
       "parameters": {
         "active": 1000000000,
         "total": 1000000000
@@ -34949,7 +34949,7 @@
         "image-understanding",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -35024,7 +35024,7 @@
         "publisher": "thinkingmachines",
         "slug": "inkling-975b-a41b"
       },
-      "model_version_sha256": "47cdc3312831a788e7ffb9e5f35a59f970b436ed0b22dfdfa1bdeb61d6aa140a",
+      "model_version_sha256": "e0110da6ed3bfc0b9266f0ae3d31ceb18bfc15caff6e883e81a44a741e94b835",
       "parameters": {
         "active": 41000000000,
         "total": 975000000000
@@ -35326,7 +35326,7 @@
         "image-understanding",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -35411,7 +35411,7 @@
         "publisher": "thinkingmachines",
         "slug": "inkling-small"
       },
-      "model_version_sha256": "ce4623d5b735603bbd5108bbf7d1a62d2b0e78245364c7d642fbbb6fa3887aa4",
+      "model_version_sha256": "3361bccf4c6c5918b93ee31f7e543227840e188a8bc2f161db229396306d9237",
       "parameters": {
         "active": 12000000000,
         "total": 276000000000
@@ -36233,7 +36233,7 @@
         "reasoning",
         "tool-use"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -36304,7 +36304,7 @@
         "publisher": "poolside",
         "slug": "laguna-s-2-1"
       },
-      "model_version_sha256": "d9ecd68b905f3bcb5fec58b7855a380e73254f048fde950a0e87d7831fb94bdf",
+      "model_version_sha256": "655404eb39420cb55f38a792248395f61f098a0f07e2fa05e8cc1cbdf69d4cdb",
       "parameters": {
         "active": 8500000000,
         "total": 117600000000
@@ -37128,7 +37128,7 @@
         "reasoning",
         "tool-use"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -37199,7 +37199,7 @@
         "publisher": "poolside",
         "slug": "laguna-s-2-1"
       },
-      "model_version_sha256": "fa3b2cf3c989fae286e1fd328917cd2d1ed2b85da2bd72ad71e81c38e5a4b1ae",
+      "model_version_sha256": "c88cc949d7077f5bc88164c57185722cbf02209dd22217d471f6a7b43fb5847b",
       "parameters": {
         "active": 8500000000,
         "total": 117600000000
@@ -37449,7 +37449,7 @@
         "reasoning",
         "tool-use"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -37528,7 +37528,7 @@
         "publisher": "poolside",
         "slug": "laguna-xs-2-1"
       },
-      "model_version_sha256": "f15f71bb03e472767f6686eda9a2b64266ba5981c6112605a89fff3512d2895c",
+      "model_version_sha256": "afcaacb093b1566663ed02b42e259de79ffbbd84f2644ff2c747cef412d48d01",
       "parameters": {
         "active": 3000000000,
         "total": 33000000000
@@ -37688,7 +37688,7 @@
         "text-generation",
         "tool-use"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -37758,7 +37758,7 @@
         "publisher": "liquidai",
         "slug": "lfm2-5-vl-3b"
       },
-      "model_version_sha256": "d12dffb4b3ef9dd66b9918fb7dbce6d0c96acce9f1f1d6d3e1e1245a8266dfff",
+      "model_version_sha256": "6db4ea6ce9568d6fbdb6383fea9c2b6235c4a970ceffaeb537da72f6966d14b3",
       "parameters": {
         "active": 3123483888,
         "total": 3123483888
@@ -37918,7 +37918,7 @@
         "text-generation",
         "tool-use"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -37988,7 +37988,7 @@
         "publisher": "liquidai",
         "slug": "lfm2-5-vl-3b"
       },
-      "model_version_sha256": "b70c3a4814036ba5a9ac62381cd481cda0c2ab5b1e8927285383c3733d05f39c",
+      "model_version_sha256": "945ed1a245d536e695b9cff8a3c31e1a17204a5eef62f5dcdd23e5d4acdc1f67",
       "parameters": {
         "active": 3123483888,
         "total": 3123483888
@@ -38622,7 +38622,7 @@
         "reasoning",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -38694,7 +38694,7 @@
         "publisher": "inclusionai",
         "slug": "ling-3-0-flash"
       },
-      "model_version_sha256": "9b6b901af1331da3c1a9447300c280c6b591eff2b00a8cc314fbbf6e78f90091",
+      "model_version_sha256": "5e89f0f2b6462feec2418dc0ce88d77cbd08ca24741d34f536a81f90c27deff4",
       "parameters": {
         "active": 5100000000,
         "total": 124000000000
@@ -38761,7 +38761,7 @@
         "audio-generation",
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -38837,7 +38837,7 @@
         "publisher": "lightricks",
         "slug": "ltx-2"
       },
-      "model_version_sha256": "21763626b11a7e2e9266e4415666d5dba326012c26991f4836e5fa3660bbbb63",
+      "model_version_sha256": "70decb8231765046f967c476e42c832dc9eb329da450057ece68594d9097336f",
       "parameters": {
         "active": null,
         "total": 19000000000
@@ -39232,7 +39232,7 @@
         "audio-generation",
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -39310,7 +39310,7 @@
         "publisher": "lightricks",
         "slug": "ltx-2"
       },
-      "model_version_sha256": "d889a2e05f04c6c9b68d07f6d9ad2652789152a8b18304b14e05cbde42113352",
+      "model_version_sha256": "2cd80cc0736a6df68e4a83bc0f3f2d86a1ab8a95fd21ac18c65159199edd2d92",
       "parameters": {
         "active": null,
         "total": 19000000000
@@ -39367,7 +39367,7 @@
         "audio-generation",
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -39443,7 +39443,7 @@
         "publisher": "lightricks",
         "slug": "ltx-2"
       },
-      "model_version_sha256": "3502af718369d23cdb1785801b4bdfd075490663b2dd407b0e70c1cfab7608ca",
+      "model_version_sha256": "b6b26e87af4cd6a34ebd5a294f292c46c05ffdad4afa1fc175ca7aa36ec56ee2",
       "parameters": {
         "active": null,
         "total": 19000000000
@@ -39500,7 +39500,7 @@
         "audio-generation",
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -39576,7 +39576,7 @@
         "publisher": "lightricks",
         "slug": "ltx-2"
       },
-      "model_version_sha256": "f4ac946cc7e0827f5132b7c6eb0f9059837a17c5ceb9ec8126ddd626f890d4d0",
+      "model_version_sha256": "d6acae86187f5649f7616d4494625342951d14c784e303f4a8332800996f117a",
       "parameters": {
         "active": null,
         "total": 19000000000
@@ -39633,7 +39633,7 @@
         "audio-generation",
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -39706,7 +39706,7 @@
         "publisher": "lightricks",
         "slug": "ltx-2-3"
       },
-      "model_version_sha256": "bdf06a4a07ecb2483251b9616e15423f27c7e3869e9d480ed36085613fc09f4a",
+      "model_version_sha256": "57a7e234e464fdc380cf17414aa2f0c7aaa3ff654c05a774efab60c7386a69a8",
       "parameters": {
         "active": null,
         "total": 22000000000
@@ -39755,7 +39755,7 @@
         "audio-generation",
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -39834,7 +39834,7 @@
         "publisher": "lightricks",
         "slug": "ltx-2-5"
       },
-      "model_version_sha256": "ce2acd1c2d17a988df7daa4064f089d416285fb44ab773a5ddae858ae74b5605",
+      "model_version_sha256": "e852478a5e9abc60efe87a3bd9238f1b15a24dc1710c98d0bbc03023eb10262c",
       "parameters": {
         "active": null,
         "total": 22000000000
@@ -41061,7 +41061,7 @@
         "audio-generation",
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -41136,7 +41136,7 @@
         "publisher": "minimax",
         "slug": "minimax-h3"
       },
-      "model_version_sha256": "b76f112e342556a7dcd46ef324c7a2c9b67afa8c25fab085a52d296d0ff060fb",
+      "model_version_sha256": "7a6d8c413dd1d37c6bf1a27cb4f91a6ae0d821197401b62f889855c6d69499d2",
       "parameters": {
         "active": null,
         "total": 33000000000
@@ -41180,7 +41180,7 @@
         "audio-generation",
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -41251,7 +41251,7 @@
         "publisher": "minimax",
         "slug": "minimax-h3"
       },
-      "model_version_sha256": "3f23f3bd6cbf09c6d52156a1472cf52549cc2c8c92735a797abed73306d1e92d",
+      "model_version_sha256": "ac0744aecd0c00739f26d38850090d7239e86bbde771d924501326f0383c82a3",
       "parameters": {
         "active": null,
         "total": 33000000000
@@ -41582,7 +41582,7 @@
         "text-generation",
         "video-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -41652,7 +41652,7 @@
         "publisher": "openmoss",
         "slug": "moss-vl-realtime-11b"
       },
-      "model_version_sha256": "4e6abac644bbd87e1870eb67aeaac1db8871395349921b02cc89e2f5e9e34266",
+      "model_version_sha256": "7c313732fafde08eabfacd94d73338b1c80caa58149abf078b4224b4a498bb06",
       "parameters": {
         "active": 11000000000,
         "total": 11000000000
@@ -41693,7 +41693,7 @@
         "audio-generation",
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -41762,7 +41762,7 @@
         "publisher": "openmoss",
         "slug": "mova-360p"
       },
-      "model_version_sha256": "6d109969a25a407107928e4f20de04525a32239e9cf6aa5a3ffbae3b37614b61",
+      "model_version_sha256": "9b269922df0508f80e2606ecb4f11fc326845f56f46be9f20524ad32bb286133",
       "parameters": {
         "active": null,
         "total": null
@@ -41803,7 +41803,7 @@
         "audio-generation",
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -41872,7 +41872,7 @@
         "publisher": "openmoss",
         "slug": "mova-720p"
       },
-      "model_version_sha256": "fd1cd0e39f0d8c5de542c076aa63482ae9945f6a2f7435c0d5e9a00212e28183",
+      "model_version_sha256": "4f6d62fa4c1ea577cdfa214bf3fcaf66cfee94e3b33483cb22ba12bf2abfcaee",
       "parameters": {
         "active": null,
         "total": null
@@ -42071,7 +42071,7 @@
         "text-generation",
         "tool-use"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -42141,7 +42141,7 @@
         "publisher": "meta",
         "slug": "muse-glimmer-30b"
       },
-      "model_version_sha256": "282de87a453417c3d604c9d1b4f9d2a23a6c3f264915c11838d6162e0626a8a5",
+      "model_version_sha256": "8b90607d53537aaf400c922cd5f91e2e970346d872e733d81036e16d177dcb0e",
       "parameters": {
         "active": 29776626688,
         "total": 29776626688
@@ -43262,7 +43262,7 @@
         "reasoning",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -43340,7 +43340,7 @@
         "publisher": "nvidia",
         "slug": "nemotron-3-5-lightning-30b-a3b"
       },
-      "model_version_sha256": "30eeae26ad3b2ad5eaa0608e9f0ee65021033bba1bb607f306ae37435d71335b",
+      "model_version_sha256": "536e7960466ebea9473c0f687cc84b34afc2ca99a48784a4789afe27b762ac2e",
       "parameters": {
         "active": 3000000000,
         "total": 30000000000
@@ -43602,7 +43602,7 @@
         "reasoning",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -43678,7 +43678,7 @@
         "publisher": "nvidia",
         "slug": "nemotron-3-nano-30b-a3b"
       },
-      "model_version_sha256": "23f7e9423241daf2ab52dc78411973ec004bbdaa2f1a599af03c71d4dbef59a5",
+      "model_version_sha256": "afb650c3c8d4e1d2283dac1f71ffb55c382a69d56982577376eb4fe0023b4d2b",
       "parameters": {
         "active": 3500000000,
         "total": 30000000000
@@ -44044,7 +44044,7 @@
         "reasoning",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -44117,7 +44117,7 @@
         "publisher": "nvidia",
         "slug": "nemotron-3-nano-omni-30b-a3b"
       },
-      "model_version_sha256": "67994a003c598d652bc7cc37622cf0ac1af4998fee5d9236e8462a822e59952d",
+      "model_version_sha256": "15611535f1db84b8fc27771f5442d4a274da0f74fda17f950718e33debf37028",
       "parameters": {
         "active": 3500000000,
         "total": 30000000000
@@ -44806,7 +44806,7 @@
         "reasoning",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -44879,7 +44879,7 @@
         "publisher": "nvidia",
         "slug": "nemotron-3-super-120b-a12b"
       },
-      "model_version_sha256": "1f6f121d5e2b05796a269d56043a0a14971bec2d8884d62db4a90497cb0fb23f",
+      "model_version_sha256": "6b0ea38751209d8ff15fd2deec42ce6c94c6594bd009bfbe3ec72af8edc03847",
       "parameters": {
         "active": 12000000000,
         "total": 120000000000
@@ -45218,7 +45218,7 @@
       "capabilities": [
         "image-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -45288,7 +45288,7 @@
         "publisher": "nvidia",
         "slug": "qwen-image-flash"
       },
-      "model_version_sha256": "f0a6fc17159595c72a7e5539b4bfd091242ccbf9eadf3cb8572d06bac7099f92",
+      "model_version_sha256": "dff1dd45877a851a42a41f6235e207a28864232f91372d2aca9e9de0380a2cb0",
       "parameters": {
         "active": null,
         "total": 28850000000
@@ -45590,7 +45590,7 @@
         "image-understanding",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -45660,7 +45660,7 @@
         "publisher": "ornith-ai",
         "slug": "ornith-1-5-35b-a3b"
       },
-      "model_version_sha256": "0d0d478f5bbf647817fd284adf86462a4117a514d1f4125c238ec0d2e6069713",
+      "model_version_sha256": "aeb4bd6a62419094272b25d91e786f93e3e9dc9a6f80cd36781ac79dcac03dc2",
       "parameters": {
         "active": 3000000000,
         "total": 35000000000
@@ -45700,7 +45700,7 @@
       "capabilities": [
         "3d-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -45769,7 +45769,7 @@
         "publisher": "tencentarc",
         "slug": "pixal3d"
       },
-      "model_version_sha256": "dcafa9a17881e78292606362d46ad43b695a3b2c88965c57537cda4f7d15a1fa",
+      "model_version_sha256": "9d42a062a998febe6c39d9e04a4ffe34d2315d4d2b8285fa26750813835c9c4c",
       "parameters": {
         "active": null,
         "total": null
@@ -46186,7 +46186,7 @@
       "capabilities": [
         "image-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -46261,7 +46261,7 @@
         "publisher": "qwen",
         "slug": "qwen-image-2512"
       },
-      "model_version_sha256": "5d71be8a7f8945c25225cffa0284a610c81a1eb1bf2ae2b0ee5383be65260f39",
+      "model_version_sha256": "5427e9972e789c218f2555fcc82881915c480458a2b4d473c50d8709bf66fd6d",
       "parameters": {
         "active": null,
         "total": 20000000000
@@ -46328,7 +46328,7 @@
       "capabilities": [
         "image-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -46403,7 +46403,7 @@
         "publisher": "qwen",
         "slug": "qwen-image-2512"
       },
-      "model_version_sha256": "47ca656704f72d0c510d94674a001290109f51c0b714c372694be8559a0cbf6c",
+      "model_version_sha256": "7757ac52dfd80ea7013ee21fd9630514b3bf27e539c66a84d939dd9decd51a72",
       "parameters": {
         "active": null,
         "total": 20000000000
@@ -46444,7 +46444,7 @@
       "capabilities": [
         "image-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -46521,7 +46521,7 @@
         "publisher": "qwen",
         "slug": "qwen-image-2512"
       },
-      "model_version_sha256": "7a43b399a82b06ca8f287dfbb9f2c9b43e110f6666eb96edb432b3163155c656",
+      "model_version_sha256": "65dc9dc4844cf5f780bc595c6d2304859cbb4ba00515b8daadabe507a6bb76c6",
       "parameters": {
         "active": null,
         "total": 20000000000
@@ -46562,7 +46562,7 @@
       "capabilities": [
         "image-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -46639,7 +46639,7 @@
         "publisher": "qwen",
         "slug": "qwen-image-2512-lightning"
       },
-      "model_version_sha256": "c0cc69ca99d1d95fb235188e256714e652d742ee0c355a796c9f9d0d601a44dd",
+      "model_version_sha256": "927ac236a6b6f4ec9bac7f004106dd442622d90681c8b9d9af3c410f53b9d52a",
       "parameters": {
         "active": null,
         "total": null
@@ -46679,7 +46679,7 @@
       "capabilities": [
         "image-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -46754,7 +46754,7 @@
         "publisher": "qwen",
         "slug": "qwen-image-2512-lightning"
       },
-      "model_version_sha256": "5edab4f1ade8e306447ae60a2a11efc143a9097eb8dd29be992d8aba02124675",
+      "model_version_sha256": "8c1a1070b963088e2b17b3bd0a6a7c4bc95c13a085869132f800c1dd38ffdf82",
       "parameters": {
         "active": null,
         "total": null
@@ -47236,7 +47236,7 @@
       "capabilities": [
         "image-editing"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -47310,7 +47310,7 @@
         "publisher": "qwen",
         "slug": "qwen-image-edit"
       },
-      "model_version_sha256": "60482d6413e82f7f319085e0ddc37b97489bf55f836e08a0def53223aab3c3b2",
+      "model_version_sha256": "7fa25bbb20d9a73c4c406406de8c75432fffce413fcad6cd62aba13cbd178412",
       "parameters": {
         "active": null,
         "total": 20000000000
@@ -47351,7 +47351,7 @@
       "capabilities": [
         "image-editing"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -47426,7 +47426,7 @@
         "publisher": "qwen",
         "slug": "qwen-image-edit"
       },
-      "model_version_sha256": "6f25559e9cc5882ee33f09c6b4552c2fbc75a23885ab15875b7210c3900911a8",
+      "model_version_sha256": "327c0ad8dd187dd40b72552f550b3fbab22954089a18ad6f35f0da6cb2958527",
       "parameters": {
         "active": null,
         "total": 20000000000
@@ -47467,7 +47467,7 @@
       "capabilities": [
         "image-editing"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -47544,7 +47544,7 @@
         "publisher": "qwen",
         "slug": "qwen-image-edit"
       },
-      "model_version_sha256": "a445d9cefe3d54f5262fdb3c1e83226a48ecc918993f5249d8f881579587a067",
+      "model_version_sha256": "706613300295fd2cd3f18fe72be975ea961c1bbf7a76978faaa184b0a7cccdc8",
       "parameters": {
         "active": null,
         "total": 20000000000
@@ -47585,7 +47585,7 @@
       "capabilities": [
         "image-editing"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -47662,7 +47662,7 @@
         "publisher": "qwen",
         "slug": "qwen-image-edit"
       },
-      "model_version_sha256": "0f0166a964863f5c449e3e390e3407212bc34eb65ac052fb8506146f20a83b98",
+      "model_version_sha256": "8809ffa3eda0aa6167f4a899cca2770afd36df7e296649bcf8632269d9ba3b62",
       "parameters": {
         "active": null,
         "total": 20000000000
@@ -47703,7 +47703,7 @@
       "capabilities": [
         "image-editing"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -47778,7 +47778,7 @@
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-lightning"
       },
-      "model_version_sha256": "aa661fecd839bff38c5d3ce14aa69e0d160203e8fed4197561a10647c7c25ad1",
+      "model_version_sha256": "81b3740b87d1175cf27cac995d42b89c8a6cc2486508a16104ddb9c6fa31cca2",
       "parameters": {
         "active": null,
         "total": null
@@ -48234,7 +48234,7 @@
       "capabilities": [
         "image-editing"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -48310,7 +48310,7 @@
         "publisher": "qwen",
         "slug": "qwen-image-layered"
       },
-      "model_version_sha256": "51a7b9c3c5372317ca2cc1a13b439c66bdcb2ff711ec1e6bf3cc7ac049886546",
+      "model_version_sha256": "c370d9902a19f1b3167af8a760301629b1bb5571c19747a43401179b8e8cafa2",
       "parameters": {
         "active": null,
         "total": 20000000000
@@ -48547,7 +48547,7 @@
         "image-understanding",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -48624,7 +48624,7 @@
         "publisher": "qwen",
         "slug": "qwen3-5-9b"
       },
-      "model_version_sha256": "b7746fa6690d0e46b148e7dd102e51caef503f64989c46c9df3b059bf1fcef0c",
+      "model_version_sha256": "ffa65e272a482c22a7afc113e331b685bb625adc9a26739fe9dc545074279fc6",
       "parameters": {
         "active": 9000000000,
         "total": 9000000000
@@ -49030,7 +49030,7 @@
         "image-understanding",
         "reasoning"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -49103,7 +49103,7 @@
         "publisher": "qwen",
         "slug": "qwen3-6-27b"
       },
-      "model_version_sha256": "0897d322efbc19cd5cb0c0ea37e1b8510af146d2245cb6568579be74420961c5",
+      "model_version_sha256": "15551d535f0f174e5edf224f088ff57ea94c91661c6c9a6d76fcc3d3dc55ae5b",
       "parameters": {
         "active": 27000000000,
         "total": 27000000000
@@ -49351,7 +49351,7 @@
       "capabilities": [
         "image-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -49431,7 +49431,7 @@
         "publisher": "nvidia",
         "slug": "qwen3-6-35b-a3b-nvfp4"
       },
-      "model_version_sha256": "3ac33a9ca2a3c6d5b888ae4290fcf8522c4d63f734d8e863a69c4766a3368993",
+      "model_version_sha256": "4020f7063b39d47002a724b41def279cb747aff30c004d4ed3c924447a09755a",
       "parameters": {
         "active": 3000000000,
         "total": 35000000000
@@ -49679,7 +49679,7 @@
       "capabilities": [
         "image-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -49759,7 +49759,7 @@
         "publisher": "nvidia",
         "slug": "qwen3-6-35b-a3b-nvfp4"
       },
-      "model_version_sha256": "e826e5379da59dcce4926e55985794e6de7a7a45249029e14b624217751d98f4",
+      "model_version_sha256": "841d946d4ecc861a87b6536b7559f2ae1621eb584729a05a5aa08167ae700ceb",
       "parameters": {
         "active": 3000000000,
         "total": 35000000000
@@ -50204,7 +50204,7 @@
         "image-understanding",
         "reasoning"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -50277,7 +50277,7 @@
         "publisher": "qwen",
         "slug": "qwen3-8-27b"
       },
-      "model_version_sha256": "9adbc8d27cbf085d31cba5591f0eb6cb2c92e1a584c4a7b33b44beaff2f53b49",
+      "model_version_sha256": "0726c0f09d61464f3ac361fa172e7cdefa63848929ca1b0ae5786cb91620fe6b",
       "parameters": {
         "active": 27000000000,
         "total": 27000000000
@@ -51700,7 +51700,7 @@
         "image-understanding",
         "reasoning"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -51773,7 +51773,7 @@
         "publisher": "qwen",
         "slug": "qwen3-8-27b"
       },
-      "model_version_sha256": "250aa11ec9539e0191454bc91d60d888c989f0819f6c8ae052872fda53f091c4",
+      "model_version_sha256": "80c35ec26cf277a09763e4b3ea1f688d68290e32863bf99ceabdf0154112e7d1",
       "parameters": {
         "active": 27000000000,
         "total": 27000000000
@@ -52087,7 +52087,7 @@
         "image-understanding",
         "text-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -52159,7 +52159,7 @@
         "publisher": "radixark",
         "slug": "qwen3-8-27b-nvfp4"
       },
-      "model_version_sha256": "7633a02cec996e3cbc1eb3434c2d31bcc6d1ad6b093bae9cf56abb626f9c3b66",
+      "model_version_sha256": "e1434211378f62d5c46b6ec55528d1d5ef04cb714a1c0a50828df4860cec42b0",
       "parameters": {
         "active": 27000000000,
         "total": 27000000000
@@ -57637,7 +57637,7 @@
         "text-generation",
         "video-understanding"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -57709,7 +57709,7 @@
         "publisher": "radixark",
         "slug": "qwen3-8-flash-next-nvfp4"
       },
-      "model_version_sha256": "61e927d1590ff836eb8a7c29508cd37eaa0ddcfb3e2991a11e6ab20c8083a374",
+      "model_version_sha256": "0abba538a38fedd4a02b8f451534cef8fa15b3ad30625fd03b28d42352aca6b3",
       "parameters": {
         "active": 6000000000,
         "total": 176000000000
@@ -57749,7 +57749,7 @@
       "capabilities": [
         "3d-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -57818,7 +57818,7 @@
         "publisher": "vast-ai",
         "slug": "skintokens"
       },
-      "model_version_sha256": "8b9020c3b40bf400e139f5b8c5192b0b2169aee81fbf948a6f7ef056c741587d",
+      "model_version_sha256": "45363cdb7afbbb7e02c845c9c96897a07625c96954ebb933160f587cddb0dcb7",
       "parameters": {
         "active": null,
         "total": null
@@ -57858,7 +57858,7 @@
       "capabilities": [
         "3d-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -57927,7 +57927,7 @@
         "publisher": "stepfun-ai",
         "slug": "step1x-3d"
       },
-      "model_version_sha256": "76ade3e35a8e50c87cee8f334239ce609dc78ef9b0ad9106a565ebb8cd5a6b1a",
+      "model_version_sha256": "17f75680db119775f5beffb92cc3b0e0e4871cc030bc41155a21dfe7f6d37a9f",
       "parameters": {
         "active": null,
         "total": null
@@ -57967,7 +57967,7 @@
       "capabilities": [
         "3d-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -58036,7 +58036,7 @@
         "publisher": "stepfun-ai",
         "slug": "step1x-3d"
       },
-      "model_version_sha256": "438b23b5482136734755ae1b93b8dc4931ceb8ab9984f73cb7e12fdf1c8b6a7c",
+      "model_version_sha256": "d0266b3a513cbadb9f29b473e9176c1389fb06fd0477c3962498ceafc184fb37",
       "parameters": {
         "active": null,
         "total": null
@@ -58076,7 +58076,7 @@
       "capabilities": [
         "3d-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -58145,7 +58145,7 @@
         "publisher": "stepfun-ai",
         "slug": "step1x-3d"
       },
-      "model_version_sha256": "dddd4cd6633d533d657040fb1de8f89eb69ed1d34bf686ba178c9cf611ab35d6",
+      "model_version_sha256": "6e1ad51bc18dc122249f39a50e2c0106138876afefa2ecb22360e1e288be036d",
       "parameters": {
         "active": null,
         "total": null
@@ -58185,7 +58185,7 @@
       "capabilities": [
         "3d-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -58254,7 +58254,7 @@
         "publisher": "microsoft",
         "slug": "trellis-2-4b"
       },
-      "model_version_sha256": "1b90e67ca178d08d324098c0879286add656215beaf48eeb1303087c0c32da82",
+      "model_version_sha256": "839622fa0b5bf7d9cfc41d4ebdd99c72cf834a98f7ceec0fcf9ea8c85ab0f2c9",
       "parameters": {
         "active": null,
         "total": null
@@ -58294,7 +58294,7 @@
       "capabilities": [
         "3d-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -58363,7 +58363,7 @@
         "publisher": "vast-ai",
         "slug": "triposg"
       },
-      "model_version_sha256": "b8c065610376c15b3de74363a47e974ba25eb6c62d28e8b75c6bb12968555213",
+      "model_version_sha256": "132e5af27a142e83d534efa42274717b552507fb702e723b0db5927986aa0339",
       "parameters": {
         "active": null,
         "total": null
@@ -58677,7 +58677,7 @@
         "image-understanding",
         "tool-use"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -58747,7 +58747,7 @@
         "publisher": "tencent",
         "slug": "ui-mate-27b"
       },
-      "model_version_sha256": "649add2c6af0f29059ac41d85ddf04e3a215fd85b898c0a38e5a32b47d76e54b",
+      "model_version_sha256": "de0de02bf3f399ca542c34094dc5c906a5d82100b105eb0f3ee449441ce80161",
       "parameters": {
         "active": 27356728560,
         "total": 27356728560
@@ -58827,7 +58827,7 @@
         "image-understanding",
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -58902,7 +58902,7 @@
         "publisher": "wan-ai",
         "slug": "wan-2-2-i2v-14b"
       },
-      "model_version_sha256": "c03cebc7d618288459e73dd985e8c187a618472c1fa5141caebaaee922efba62",
+      "model_version_sha256": "abeaadc3cf778afd40c1e9ba55ba37e3a56554180abb0c27adb78b11d3a11a72",
       "parameters": {
         "active": 14000000000,
         "total": 14000000000
@@ -58982,7 +58982,7 @@
       "capabilities": [
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -59057,7 +59057,7 @@
         "publisher": "wan-ai",
         "slug": "wan-2-2-t2v-14b"
       },
-      "model_version_sha256": "16a143e81e8af5c740a5a993d4628f469a0471a6c3eec46ec6cdd1f88b3d2336",
+      "model_version_sha256": "1839f37d74c91fd97586405a310c49548f68c8bfda9404ebb1e34e72e0d4ffbc",
       "parameters": {
         "active": 14000000000,
         "total": 14000000000
@@ -59125,7 +59125,7 @@
         "image-understanding",
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -59200,7 +59200,7 @@
         "publisher": "wan-ai",
         "slug": "wan-2-2-ti2v-5b"
       },
-      "model_version_sha256": "1fc14af4c844f09d92abdf8220d5dbecce2fe80958f34b55b6bc9088222cfaf0",
+      "model_version_sha256": "2078f8a8bc44a46eade26c4557dc267bd0c0b8a23124be49cd90548291d1f648",
       "parameters": {
         "active": 5000000000,
         "total": 5000000000
@@ -59529,7 +59529,7 @@
         "image-understanding",
         "video-generation"
       ],
-      "capability_evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "capability_evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "capability_status": "declared",
       "descriptive_evidence": [
         {
@@ -59599,7 +59599,7 @@
         "publisher": "wan-ai",
         "slug": "wan-dancer-14b"
       },
-      "model_version_sha256": "14ac5b2bc04df4de3de0f24aa07fe28751dd4ccfd18d749fd679bab5f709c3ca",
+      "model_version_sha256": "a88c701c98f0fb847c80ee81fc458312c7f8bd83b48eaacdac46377d51490776",
       "parameters": {
         "active": 14000000000,
         "total": 14000000000

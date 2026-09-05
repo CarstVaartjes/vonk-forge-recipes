@@ -187,7 +187,7 @@
     "title": "FLUX.2 Klein 4B NVFP4 ComfyUI single Spark"
   },
   "model": {
-    "content_sha256": "9b6a014598ceb2dfae42ba390d19e3cd3da49b7ef72e6cac533f6810bff7d7d4",
+    "content_sha256": "0e7e2435d32251a4af45cd9782769741270edd16140c14a718c1f4527dec0753",
     "kind": "model-version",
     "publisher": "black-forest-labs",
     "slug": "flux-2-klein-4b-nvfp4-1db2b2f7"

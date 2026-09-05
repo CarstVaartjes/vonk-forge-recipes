@@ -114,7 +114,7 @@
       "slug": "pytorch-pipeline"
     },
     "patch_bundle": {
-      "content_sha256": "640fa5a465e8e16a449c8433d032651b360fcaa5e12e162e3e6d260f8e30c6f3",
+      "content_sha256": "2959d49fe69e308a3d3b13c890049634a3052d3dc2c801747cf54e9b86f44f85",
       "kind": "patch-bundle",
       "publisher": "vonk-forge",
       "slug": "trellis2-pixal3d-sdpa-arm64"
@@ -202,7 +202,7 @@
     "title": "Pixal3D native single Spark"
   },
   "model": {
-    "content_sha256": "dcafa9a17881e78292606362d46ad43b695a3b2c88965c57537cda4f7d15a1fa",
+    "content_sha256": "9d42a062a998febe6c39d9e04a4ffe34d2315d4d2b8285fa26750813835c9c4c",
     "kind": "model-version",
     "publisher": "tencentarc",
     "slug": "pixal3d"

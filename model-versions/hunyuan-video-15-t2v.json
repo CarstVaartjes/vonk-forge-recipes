@@ -24,13 +24,13 @@
     "facts": [
       {
         "capability": "video-generation",
-        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "f4dbc4a1efa4ac8ea56680cdf79d9f455105e814",
       "source_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v"
     },

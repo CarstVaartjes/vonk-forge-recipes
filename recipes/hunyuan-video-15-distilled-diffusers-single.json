@@ -154,7 +154,7 @@
     "title": "HunyuanVideo 1.5 distilled diffusers single Spark"
   },
   "model": {
-    "content_sha256": "f910a26cd7b621893b33aba3e528ef89fdb287655471f566d78c3278a7bc28c2",
+    "content_sha256": "362823f27b2a10e3b9923b7250bc6b28e7535274559c7139cdaadb3397311995",
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "hunyuan-video-15-distilled"

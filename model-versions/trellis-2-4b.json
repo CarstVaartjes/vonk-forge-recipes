@@ -24,13 +24,13 @@
     "facts": [
       {
         "capability": "3d-generation",
-        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "af44b45f2e35a493886929c6d786e563ec68364d",
       "source_url": "https://huggingface.co/microsoft/TRELLIS.2-4B"
     },

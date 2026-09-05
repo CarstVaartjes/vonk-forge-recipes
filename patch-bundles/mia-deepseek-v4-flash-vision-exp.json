@@ -28,7 +28,7 @@
   ],
   "compatible_model_versions": [
     {
-      "content_sha256": "a0152a27f14f27e10a73fea6c118848c9b706ff258c5519f93192d81870795b6",
+      "content_sha256": "2614dc5e34613652568c3b6da51070ed594a4c19ffa0a055dbf62c76255e2e55",
       "kind": "model-version",
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-flash-vision-exp-6821d6ad"

@@ -213,7 +213,7 @@
     "title": "Qwen Image Edit 2511 INT8 ConvRot ComfyUI single Spark"
   },
   "model": {
-    "content_sha256": "0f0166a964863f5c449e3e390e3407212bc34eb65ac052fb8506146f20a83b98",
+    "content_sha256": "8809ffa3eda0aa6167f4a899cca2770afd36df7e296649bcf8632269d9ba3b62",
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen-image-edit-2511-comfyui-int8-convrot-e9e85de7"

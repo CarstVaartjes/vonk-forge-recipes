@@ -159,7 +159,7 @@
     "title": "SkinTokens / TokenRig pytorch-pipeline single Spark"
   },
   "model": {
-    "content_sha256": "8b9020c3b40bf400e139f5b8c5192b0b2169aee81fbf948a6f7ef056c741587d",
+    "content_sha256": "45363cdb7afbbb7e02c845c9c96897a07625c96954ebb933160f587cddb0dcb7",
     "kind": "model-version",
     "publisher": "vast-ai",
     "slug": "skintokens"

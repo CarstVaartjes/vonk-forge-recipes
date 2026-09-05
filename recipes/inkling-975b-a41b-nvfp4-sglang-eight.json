@@ -117,7 +117,7 @@
     "title": "Inkling 975B-A41B NVFP4 SGLang eight Sparks"
   },
   "model": {
-    "content_sha256": "47cdc3312831a788e7ffb9e5f35a59f970b436ed0b22dfdfa1bdeb61d6aa140a",
+    "content_sha256": "e0110da6ed3bfc0b9266f0ae3d31ceb18bfc15caff6e883e81a44a741e94b835",
     "kind": "model-version",
     "publisher": "thinkingmachines",
     "slug": "inkling-975b-a41b-nvfp4"

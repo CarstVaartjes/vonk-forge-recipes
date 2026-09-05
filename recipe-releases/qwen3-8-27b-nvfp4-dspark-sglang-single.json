@@ -8,7 +8,7 @@
           "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
         }
       ],
-      "recipe_content_sha256": "ee802628f6b0da5fb4474f1eca16ab534d962d87a0b7e069669a11a8bb7c8fc8",
+      "recipe_content_sha256": "2b949a4d18b96caee23ce67352c5e0abadac0e23dc3f1cafaf41f1217904696e",
       "released_at": "2026-09-03",
       "upgrade_effect": "rebuild",
       "version": "1.1.3"

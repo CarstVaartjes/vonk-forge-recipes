@@ -198,7 +198,7 @@
     "title": "HunyuanOCR 1.5 vLLM DFlash single Spark"
   },
   "model": {
-    "content_sha256": "fd280975c99a991e2ee59e2fe3264b35ead4cd1fb9678f3225a640e191ceee00",
+    "content_sha256": "e8da33c03a51f6b59388cf54a963791a69a9e9568cb4a74fa9f64bdde9ddc226",
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "hunyuanocr-1-5-47644ecc"

@@ -177,7 +177,7 @@
     "title": "HunyuanVideo 1.5 I2V 480p step-distilled diffusers single Spark"
   },
   "model": {
-    "content_sha256": "1a9c94a483581d38c52f5f09b77d1366fe618ec6d5224e2f4b9cdde48266152c",
+    "content_sha256": "c713d965396562d1194df546edbe5adf3fb1f6df22bdc71f96d4f5c601bdb7a9",
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "hunyuan-video-15-i2v-step-distilled"

@@ -113,7 +113,7 @@
     "title": "LFM2.5-VL-3B BF16 vLLM 0.28 single Spark"
   },
   "model": {
-    "content_sha256": "b70c3a4814036ba5a9ac62381cd481cda0c2ab5b1e8927285383c3733d05f39c",
+    "content_sha256": "945ed1a245d536e695b9cff8a3c31e1a17204a5eef62f5dcdd23e5d4acdc1f67",
     "kind": "model-version",
     "publisher": "liquidai",
     "slug": "lfm2-5-vl-3b-bf16-a3af5799"

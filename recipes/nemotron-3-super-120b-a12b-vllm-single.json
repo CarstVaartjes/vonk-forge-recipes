@@ -128,7 +128,7 @@
     "title": "Nemotron 3 Super 120B-A12B NVFP4 vLLM single Spark"
   },
   "model": {
-    "content_sha256": "1f6f121d5e2b05796a269d56043a0a14971bec2d8884d62db4a90497cb0fb23f",
+    "content_sha256": "6b0ea38751209d8ff15fd2deec42ce6c94c6594bd009bfbe3ec72af8edc03847",
     "kind": "model-version",
     "publisher": "nvidia",
     "slug": "nemotron-3-super-120b-a12b-nvfp4"

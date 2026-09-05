@@ -17,13 +17,13 @@
   ],
   "compatible_model_versions": [
     {
-      "content_sha256": "1b90e67ca178d08d324098c0879286add656215beaf48eeb1303087c0c32da82",
+      "content_sha256": "839622fa0b5bf7d9cfc41d4ebdd99c72cf834a98f7ceec0fcf9ea8c85ab0f2c9",
       "kind": "model-version",
       "publisher": "microsoft",
       "slug": "trellis-2-4b"
     },
     {
-      "content_sha256": "dcafa9a17881e78292606362d46ad43b695a3b2c88965c57537cda4f7d15a1fa",
+      "content_sha256": "9d42a062a998febe6c39d9e04a4ffe34d2315d4d2b8285fa26750813835c9c4c",
       "kind": "model-version",
       "publisher": "tencentarc",
       "slug": "pixal3d"

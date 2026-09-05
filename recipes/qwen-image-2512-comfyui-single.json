@@ -186,7 +186,7 @@
     "title": "Qwen Image 2512 ComfyUI single Spark"
   },
   "model": {
-    "content_sha256": "47ca656704f72d0c510d94674a001290109f51c0b714c372694be8559a0cbf6c",
+    "content_sha256": "7757ac52dfd80ea7013ee21fd9630514b3bf27e539c66a84d939dd9decd51a72",
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen-image-2512-comfyui-7beb7b64"

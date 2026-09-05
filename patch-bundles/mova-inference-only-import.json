@@ -11,13 +11,13 @@
   ],
   "compatible_model_versions": [
     {
-      "content_sha256": "6d109969a25a407107928e4f20de04525a32239e9cf6aa5a3ffbae3b37614b61",
+      "content_sha256": "9b269922df0508f80e2606ecb4f11fc326845f56f46be9f20524ad32bb286133",
       "kind": "model-version",
       "publisher": "openmoss",
       "slug": "mova-360p"
     },
     {
-      "content_sha256": "fd1cd0e39f0d8c5de542c076aa63482ae9945f6a2f7435c0d5e9a00212e28183",
+      "content_sha256": "4f6d62fa4c1ea577cdfa214bf3fcaf66cfee94e3b33483cb22ba12bf2abfcaee",
       "kind": "model-version",
       "publisher": "openmoss",
       "slug": "mova-720p"

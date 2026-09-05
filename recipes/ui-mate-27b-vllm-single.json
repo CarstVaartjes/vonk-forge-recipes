@@ -111,7 +111,7 @@
     "title": "UI-Mate 27B BF16 vLLM single Spark"
   },
   "model": {
-    "content_sha256": "649add2c6af0f29059ac41d85ddf04e3a215fd85b898c0a38e5a32b47d76e54b",
+    "content_sha256": "de0de02bf3f399ca542c34094dc5c906a5d82100b105eb0f3ee449441ce80161",
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "ui-mate-27b-3ade2378"

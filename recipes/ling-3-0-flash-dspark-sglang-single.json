@@ -132,7 +132,7 @@
     "title": "Ling 3.0 Flash INT4 SGLang DSpark single Spark"
   },
   "model": {
-    "content_sha256": "9b6b901af1331da3c1a9447300c280c6b591eff2b00a8cc314fbbf6e78f90091",
+    "content_sha256": "5e89f0f2b6462feec2418dc0ce88d77cbd08ca24741d34f536a81f90c27deff4",
     "kind": "model-version",
     "publisher": "inclusionai",
     "slug": "ling-3-0-flash-int4-7a27e9eb"

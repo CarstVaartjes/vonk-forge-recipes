@@ -134,7 +134,7 @@
     "title": "GLM 5.3 Flash Abliterated compressed-tensors DFlash2 vLLM two Sparks"
   },
   "model": {
-    "content_sha256": "db660c4b13fe9fb2689ba21cf3798ca761f26f3f5d03bfd87d8034293d05c9d1",
+    "content_sha256": "fb8368f5a6d63ff46b1b52b3c39034fe3d006c66b17ef5b8efb8350c9db3350c",
     "kind": "model-version",
     "publisher": "drowzeys",
     "slug": "glm-5-3-flash-nvfp4-ablit-l15-43-mtp-l45-80b6d18d"

@@ -107,7 +107,7 @@
     "title": "Nemotron 3 Nano 30B-A3B NVFP4 vLLM single Spark (superseded)"
   },
   "model": {
-    "content_sha256": "23f7e9423241daf2ab52dc78411973ec004bbdaa2f1a599af03c71d4dbef59a5",
+    "content_sha256": "afb650c3c8d4e1d2283dac1f71ffb55c382a69d56982577376eb4fe0023b4d2b",
     "kind": "model-version",
     "publisher": "nvidia",
     "slug": "nemotron-3-nano-30b-a3b-nvfp4"

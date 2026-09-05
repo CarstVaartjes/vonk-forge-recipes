@@ -242,7 +242,7 @@
     "title": "MiniMax H3 Modular Diffusers single Spark"
   },
   "model": {
-    "content_sha256": "3f23f3bd6cbf09c6d52156a1472cf52549cc2c8c92735a797abed73306d1e92d",
+    "content_sha256": "ac0744aecd0c00739f26d38850090d7239e86bbde771d924501326f0383c82a3",
     "kind": "model-version",
     "publisher": "minimax",
     "slug": "minimax-h3"

@@ -267,7 +267,7 @@
     "title": "MiniMax H3 FL2VA local Modular Diffusers single Spark"
   },
   "model": {
-    "content_sha256": "b76f112e342556a7dcd46ef324c7a2c9b67afa8c25fab085a52d296d0ff060fb",
+    "content_sha256": "7a6d8c413dd1d37c6bf1a27cb4f91a6ae0d821197401b62f889855c6d69499d2",
     "kind": "model-version",
     "publisher": "minimax",
     "slug": "minimax-h3-fl2va-42ed227e"

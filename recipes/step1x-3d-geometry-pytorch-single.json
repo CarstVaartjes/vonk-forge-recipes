@@ -181,7 +181,7 @@
     "title": "Step1X-3D geometry pytorch-pipeline single Spark"
   },
   "model": {
-    "content_sha256": "76ade3e35a8e50c87cee8f334239ce609dc78ef9b0ad9106a565ebb8cd5a6b1a",
+    "content_sha256": "17f75680db119775f5beffb92cc3b0e0e4871cc030bc41155a21dfe7f6d37a9f",
     "kind": "model-version",
     "publisher": "stepfun-ai",
     "slug": "step1x-3d-geometry"

@@ -241,7 +241,7 @@
     "title": "LTX-2.5 distilled BF16 Diffusers single Spark"
   },
   "model": {
-    "content_sha256": "ce2acd1c2d17a988df7daa4064f089d416285fb44ab773a5ddae858ae74b5605",
+    "content_sha256": "e852478a5e9abc60efe87a3bd9238f1b15a24dc1710c98d0bbc03023eb10262c",
     "kind": "model-version",
     "publisher": "lightricks",
     "slug": "ltx-2-5-22b-distilled-bf16-diffusers"

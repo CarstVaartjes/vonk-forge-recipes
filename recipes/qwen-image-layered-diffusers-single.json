@@ -165,7 +165,7 @@
     "title": "Qwen Image Layered Diffusers single Spark"
   },
   "model": {
-    "content_sha256": "51a7b9c3c5372317ca2cc1a13b439c66bdcb2ff711ec1e6bf3cc7ac049886546",
+    "content_sha256": "c370d9902a19f1b3167af8a760301629b1bb5571c19747a43401179b8e8cafa2",
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen-image-layered-8f0ca708"

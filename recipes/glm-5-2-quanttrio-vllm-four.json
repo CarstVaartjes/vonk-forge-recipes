@@ -116,7 +116,7 @@
     "title": "GLM 5.2 QuantTrio four Sparks (superseded)"
   },
   "model": {
-    "content_sha256": "6e1da21825a183867e9331c8e16cbdbd3b7a0ce97ba8233a03f0f66d2a782cee",
+    "content_sha256": "4f3b6394c144fcb0b9dbc4924a42aae227befff1121f6c0248efbff28122cc73",
     "kind": "model-version",
     "publisher": "quanttrio",
     "slug": "glm-5-2-int4-int8mix"

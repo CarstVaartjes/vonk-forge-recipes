@@ -212,7 +212,7 @@
     "title": "Qwen Image Edit 2511 FP8mixed ComfyUI single Spark"
   },
   "model": {
-    "content_sha256": "a445d9cefe3d54f5262fdb3c1e83226a48ecc918993f5249d8f881579587a067",
+    "content_sha256": "706613300295fd2cd3f18fe72be975ea961c1bbf7a76978faaa184b0a7cccdc8",
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen-image-edit-2511-comfyui-fp8mixed-4c7c4ea2"

@@ -75,7 +75,7 @@
       "slug": "vllm"
     },
     "patch_bundle": {
-      "content_sha256": "5298f53c58cc7971b1fec81020ba038daff6fbde849b9858c23315d119532bb6",
+      "content_sha256": "9543d57e035d4d0e070b39a639568ea0ec12793983cd1d137e241ee6e6276294",
       "kind": "patch-bundle",
       "publisher": "miaai-lab",
       "slug": "mia-deepseek-v4-flash-0731"
@@ -110,7 +110,7 @@
     "title": "DeepSeek V4 Flash 0731 Mia dual Spark"
   },
   "model": {
-    "content_sha256": "6b318ccefc40d93462049d3cf982d815f0409e557d14bf56f40fbffc9bbb9cf5",
+    "content_sha256": "d8a05d5c55ffca070a24b01ba93c18832796624c95ab52807190b8450c802774",
     "kind": "model-version",
     "publisher": "deepseek-ai",
     "slug": "deepseek-v4-flash-0731-official"
