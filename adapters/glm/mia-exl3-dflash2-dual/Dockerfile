@@ -491,6 +491,7 @@ RUN EXL3_SELFCHECK_GPU=0 python3 /opt/glm53/test_exl3_overlay.py \
 # misses this label and rebuilds once. Keep last so stamp-only rebuilds are cheap.
 ARG GLM53_RECIPE_STAMP=unknown
 LABEL glm53.recipe.stamp=${GLM53_RECIPE_STAMP}
+LABEL ai.vonkforge.runtime-interface="v1"
 
 # Vonk Controller entrypoint: retain MiaAI-Lab's current source-built runtime
 # while binding placement, cache paths, and the unprivileged service account to

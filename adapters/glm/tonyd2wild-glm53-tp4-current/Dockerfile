@@ -1,5 +1,7 @@
 FROM docker.io/vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce
 
+LABEL ai.vonkforge.runtime-interface="v1"
+
 # GLM-5.3-Flash (glm5_next, NoPE MLA: qk_rope_head_dim=0) on DGX Spark SM121.
 # The day-0 image's only capability-12 sparse-MLA backend is
 # FLASHINFER_MLA_SPARSE_SM120, whose packed fp8_ds_mla cache layout hard-requires
