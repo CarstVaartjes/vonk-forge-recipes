@@ -136,7 +136,7 @@
     "title": "Nemotron 3.5 Lightning 30B-A3B vLLM DSpark 1M latency single Spark (tight)"
   },
   "model": {
-    "content_sha256": "30eeae26ad3b2ad5eaa0608e9f0ee65021033bba1bb607f306ae37435d71335b",
+    "content_sha256": "536e7960466ebea9473c0f687cc84b34afc2ca99a48784a4789afe27b762ac2e",
     "kind": "model-version",
     "publisher": "nvidia",
     "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4"

@@ -121,7 +121,7 @@
   },
   "dependencies": [
     {
-      "content_sha256": "7a43b399a82b06ca8f287dfbb9f2c9b43e110f6666eb96edb432b3163155c656",
+      "content_sha256": "65dc9dc4844cf5f780bc595c6d2304859cbb4ba00515b8daadabe507a6bb76c6",
       "kind": "model-version",
       "publisher": "qwen",
       "slug": "qwen-image-2512-comfyui-fp8-7beb7b64"
@@ -211,7 +211,7 @@
     "title": "Qwen Image 2512 FP8 Lightning ComfyUI single Spark"
   },
   "model": {
-    "content_sha256": "c0cc69ca99d1d95fb235188e256714e652d742ee0c355a796c9f9d0d601a44dd",
+    "content_sha256": "927ac236a6b6f4ec9bac7f004106dd442622d90681c8b9d9af3c410f53b9d52a",
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen-image-2512-lightning-fp32-a52649c9"

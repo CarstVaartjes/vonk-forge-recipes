@@ -211,7 +211,7 @@
     "title": "Qwen Image Edit 2511 ComfyUI single Spark"
   },
   "model": {
-    "content_sha256": "6f25559e9cc5882ee33f09c6b4552c2fbc75a23885ab15875b7210c3900911a8",
+    "content_sha256": "327c0ad8dd187dd40b72552f550b3fbab22954089a18ad6f35f0da6cb2958527",
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen-image-edit-2511-comfyui-b6a07947"

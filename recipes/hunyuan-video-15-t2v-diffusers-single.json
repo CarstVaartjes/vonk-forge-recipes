@@ -153,7 +153,7 @@
     "title": "HunyuanVideo 1.5 T2V diffusers single Spark"
   },
   "model": {
-    "content_sha256": "be9fb3b893fb89bfc490e8921d101498792fc6d25f5078da3012350a6f3233b9",
+    "content_sha256": "cbe080051aec96de118dfca20d4d8be72f3aab907304c7c45fef6d9e9b914368",
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "hunyuan-video-15-t2v"

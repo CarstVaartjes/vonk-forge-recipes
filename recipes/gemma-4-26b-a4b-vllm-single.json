@@ -108,7 +108,7 @@
     "title": "Gemma 4 26B-A4B IT vLLM single Spark"
   },
   "model": {
-    "content_sha256": "305ea1395a90110470113c880a8693a0d3cadfd63936302348d5b697b25fbf24",
+    "content_sha256": "eba02da00c6ed832bc4a825f28003a00d796af372fecfe3de100bccd164879ef",
     "kind": "model-version",
     "publisher": "google",
     "slug": "gemma-4-26b-a4b-it-4d7ae498"

@@ -117,7 +117,7 @@
     "title": "Inkling Small NVFP4 SGLang two Sparks"
   },
   "model": {
-    "content_sha256": "ce4623d5b735603bbd5108bbf7d1a62d2b0e78245364c7d642fbbb6fa3887aa4",
+    "content_sha256": "3361bccf4c6c5918b93ee31f7e543227840e188a8bc2f161db229396306d9237",
     "kind": "model-version",
     "publisher": "thinkingmachines",
     "slug": "inkling-small-nvfp4"

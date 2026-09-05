@@ -112,7 +112,7 @@
     "title": "Qwen3.6 27B vLLM single Spark"
   },
   "model": {
-    "content_sha256": "0897d322efbc19cd5cb0c0ea37e1b8510af146d2245cb6568579be74420961c5",
+    "content_sha256": "15551d535f0f174e5edf224f088ff57ea94c91661c6c9a6d76fcc3d3dc55ae5b",
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen3-6-27b-6a9e13bd"

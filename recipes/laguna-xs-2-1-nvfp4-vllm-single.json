@@ -108,7 +108,7 @@
     "title": "Laguna XS 2.1 NVFP4 vLLM single Spark"
   },
   "model": {
-    "content_sha256": "f15f71bb03e472767f6686eda9a2b64266ba5981c6112605a89fff3512d2895c",
+    "content_sha256": "afcaacb093b1566663ed02b42e259de79ffbbd84f2644ff2c747cef412d48d01",
     "kind": "model-version",
     "publisher": "poolside",
     "slug": "laguna-xs-2-1-nvfp4-d32afde8"

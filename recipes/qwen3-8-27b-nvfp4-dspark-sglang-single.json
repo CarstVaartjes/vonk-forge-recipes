@@ -137,7 +137,7 @@
     "title": "Qwen3.8 27B NVFP4 SGLang DSpark single Spark"
   },
   "model": {
-    "content_sha256": "7633a02cec996e3cbc1eb3434c2d31bcc6d1ad6b093bae9cf56abb626f9c3b66",
+    "content_sha256": "e1434211378f62d5c46b6ec55528d1d5ef04cb714a1c0a50828df4860cec42b0",
     "kind": "model-version",
     "publisher": "radixark",
     "slug": "qwen3-8-27b-nvfp4-009632fe"

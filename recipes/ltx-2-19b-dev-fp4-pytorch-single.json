@@ -190,7 +190,7 @@
     "title": "LTX-2 19B dev FP4 native pipeline single Spark (superseded)"
   },
   "model": {
-    "content_sha256": "d889a2e05f04c6c9b68d07f6d9ad2652789152a8b18304b14e05cbde42113352",
+    "content_sha256": "2cd80cc0736a6df68e4a83bc0f3f2d86a1ab8a95fd21ac18c65159199edd2d92",
     "kind": "model-version",
     "publisher": "lightricks",
     "slug": "ltx-2-19b-dev-fp4-dfcc2108"

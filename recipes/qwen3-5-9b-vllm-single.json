@@ -109,7 +109,7 @@
     "title": "Qwen3.5 9B vLLM single Spark"
   },
   "model": {
-    "content_sha256": "b7746fa6690d0e46b148e7dd102e51caef503f64989c46c9df3b059bf1fcef0c",
+    "content_sha256": "ffa65e272a482c22a7afc113e331b685bb625adc9a26739fe9dc545074279fc6",
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen3-5-9b-c2022362"

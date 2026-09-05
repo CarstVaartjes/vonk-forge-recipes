@@ -115,7 +115,7 @@
     "title": "NVIDIA Qwen3.6 35B-A3B NVFP4 vLLM single Spark"
   },
   "model": {
-    "content_sha256": "3ac33a9ca2a3c6d5b888ae4290fcf8522c4d63f734d8e863a69c4766a3368993",
+    "content_sha256": "4020f7063b39d47002a724b41def279cb747aff30c004d4ed3c924447a09755a",
     "kind": "model-version",
     "publisher": "nvidia",
     "slug": "qwen3-6-35b-a3b-nvfp4-1355db6a"

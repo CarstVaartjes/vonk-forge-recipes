@@ -180,7 +180,7 @@
     "title": "TripoSG base pytorch-pipeline single Spark"
   },
   "model": {
-    "content_sha256": "b8c065610376c15b3de74363a47e974ba25eb6c62d28e8b75c6bb12968555213",
+    "content_sha256": "132e5af27a142e83d534efa42274717b552507fb702e723b0db5927986aa0339",
     "kind": "model-version",
     "publisher": "vast-ai",
     "slug": "triposg"

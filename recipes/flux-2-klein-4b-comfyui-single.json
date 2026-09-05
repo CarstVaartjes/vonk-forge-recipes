@@ -187,7 +187,7 @@
     "title": "FLUX.2 Klein 4B ComfyUI single Spark"
   },
   "model": {
-    "content_sha256": "fa66bc6f289c66a9e3d0704395098f19ecee04c0b3ac8a3f27ec92e5eb960a65",
+    "content_sha256": "28309532829893c18291b12dca5e1145514080979d75cd483bd266fa7cf83d11",
     "kind": "model-version",
     "publisher": "black-forest-labs",
     "slug": "flux-2-klein-4b-comfyui-5f526678"

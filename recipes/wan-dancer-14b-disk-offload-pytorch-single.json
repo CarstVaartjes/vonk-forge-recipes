@@ -229,7 +229,7 @@
     "title": "Wan-Dancer 14B DiffSynth disk-offload single Spark canary"
   },
   "model": {
-    "content_sha256": "14ac5b2bc04df4de3de0f24aa07fe28751dd4ccfd18d749fd679bab5f709c3ca",
+    "content_sha256": "a88c701c98f0fb847c80ee81fc458312c7f8bd83b48eaacdac46377d51490776",
     "kind": "model-version",
     "publisher": "wan-ai",
     "slug": "wan-dancer-14b"

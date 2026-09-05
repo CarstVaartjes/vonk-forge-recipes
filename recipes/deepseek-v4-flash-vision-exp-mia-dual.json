@@ -75,7 +75,7 @@
       "slug": "vllm"
     },
     "patch_bundle": {
-      "content_sha256": "2b4da3c9c5b012ab428e88263973321dba88d9727cf83b8b5f526de842bb95a8",
+      "content_sha256": "d1c424e68fa952df71f99c5df2efbf47d9c4d4ce18e909e0c80706a9b4de68c5",
       "kind": "patch-bundle",
       "publisher": "miaai-lab",
       "slug": "mia-deepseek-v4-flash-vision-exp"
@@ -116,7 +116,7 @@
     "title": "DeepSeek V4 Flash Vision Experimental Mia dual Spark"
   },
   "model": {
-    "content_sha256": "a0152a27f14f27e10a73fea6c118848c9b706ff258c5519f93192d81870795b6",
+    "content_sha256": "2614dc5e34613652568c3b6da51070ed594a4c19ffa0a055dbf62c76255e2e55",
     "kind": "model-version",
     "publisher": "deepseek-ai",
     "slug": "deepseek-v4-flash-vision-exp-6821d6ad"

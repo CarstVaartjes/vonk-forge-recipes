@@ -115,7 +115,7 @@
     "title": "Qwen3.8 Flash Next NVFP4 SGLang two Sparks"
   },
   "model": {
-    "content_sha256": "61e927d1590ff836eb8a7c29508cd37eaa0ddcfb3e2991a11e6ab20c8083a374",
+    "content_sha256": "0abba538a38fedd4a02b8f451534cef8fa15b3ad30625fd03b28d42352aca6b3",
     "kind": "model-version",
     "publisher": "radixark",
     "slug": "qwen3-8-flash-next-nvfp4-7b719225"

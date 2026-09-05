@@ -129,7 +129,7 @@
       "slug": "pytorch-pipeline"
     },
     "patch_bundle": {
-      "content_sha256": "640fa5a465e8e16a449c8433d032651b360fcaa5e12e162e3e6d260f8e30c6f3",
+      "content_sha256": "2959d49fe69e308a3d3b13c890049634a3052d3dc2c801747cf54e9b86f44f85",
       "kind": "patch-bundle",
       "publisher": "vonk-forge",
       "slug": "trellis2-pixal3d-sdpa-arm64"
@@ -217,7 +217,7 @@
     "title": "TRELLIS.2 4B native single Spark"
   },
   "model": {
-    "content_sha256": "1b90e67ca178d08d324098c0879286add656215beaf48eeb1303087c0c32da82",
+    "content_sha256": "839622fa0b5bf7d9cfc41d4ebdd99c72cf834a98f7ceec0fcf9ea8c85ab0f2c9",
     "kind": "model-version",
     "publisher": "microsoft",
     "slug": "trellis-2-4b"

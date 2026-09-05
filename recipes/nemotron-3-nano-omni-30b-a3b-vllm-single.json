@@ -108,7 +108,7 @@
     "title": "Nemotron 3 Nano Omni 30B-A3B NVFP4 text-only vLLM single Spark"
   },
   "model": {
-    "content_sha256": "67994a003c598d652bc7cc37622cf0ac1af4998fee5d9236e8462a822e59952d",
+    "content_sha256": "15611535f1db84b8fc27771f5442d4a274da0f74fda17f950718e33debf37028",
     "kind": "model-version",
     "publisher": "nvidia",
     "slug": "nemotron-3-nano-omni-30b-a3b-reasoning-nvfp4"

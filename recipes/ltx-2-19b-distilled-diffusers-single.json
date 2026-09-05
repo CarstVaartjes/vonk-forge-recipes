@@ -515,7 +515,7 @@
     "title": "LTX-2 19B distilled native synchronized single Spark (superseded)"
   },
   "model": {
-    "content_sha256": "f4ac946cc7e0827f5132b7c6eb0f9059837a17c5ceb9ec8126ddd626f890d4d0",
+    "content_sha256": "d6acae86187f5649f7616d4494625342951d14c784e303f4a8332800996f117a",
     "kind": "model-version",
     "publisher": "lightricks",
     "slug": "ltx-2-19b-distilled"

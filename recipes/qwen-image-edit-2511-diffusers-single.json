@@ -181,7 +181,7 @@
     "title": "Qwen Image Edit 2511 Diffusers single Spark"
   },
   "model": {
-    "content_sha256": "60482d6413e82f7f319085e0ddc37b97489bf55f836e08a0def53223aab3c3b2",
+    "content_sha256": "7fa25bbb20d9a73c4c406406de8c75432fffce413fcad6cd62aba13cbd178412",
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen-image-edit-2511-6f3ccc0b"

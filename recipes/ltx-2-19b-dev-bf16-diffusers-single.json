@@ -531,7 +531,7 @@
     "title": "LTX-2 19B dev BF16 native synchronized single Spark (superseded)"
   },
   "model": {
-    "content_sha256": "21763626b11a7e2e9266e4415666d5dba326012c26991f4836e5fa3660bbbb63",
+    "content_sha256": "70decb8231765046f967c476e42c832dc9eb329da450057ece68594d9097336f",
     "kind": "model-version",
     "publisher": "lightricks",
     "slug": "ltx-2-19b-dev-bf16"

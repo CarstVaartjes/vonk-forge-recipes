@@ -24,7 +24,7 @@
   ],
   "compatible_model_versions": [
     {
-      "content_sha256": "6b318ccefc40d93462049d3cf982d815f0409e557d14bf56f40fbffc9bbb9cf5",
+      "content_sha256": "d8a05d5c55ffca070a24b01ba93c18832796624c95ab52807190b8450c802774",
       "kind": "model-version",
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-flash-0731-official"

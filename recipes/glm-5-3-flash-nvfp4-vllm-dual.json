@@ -118,7 +118,7 @@
     "title": "GLM 5.3 Flash NVFP4 vLLM two Sparks"
   },
   "model": {
-    "content_sha256": "b37c001c19c0858fd358b38d6f77bb38afa075eadafef898d4073ed478228750",
+    "content_sha256": "89ecaabfaf1ba2248077197c07672c1b9f556c8e6d7225f36e973e4b52e3345f",
     "kind": "model-version",
     "publisher": "libertaidai",
     "slug": "glm-5-3-flash-nvfp4-caca4e6a"

@@ -505,31 +505,31 @@
     "facts": [
       {
         "capability": "chat",
-        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "image-understanding",
-        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "ocr",
-        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "text-generation",
-        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "47644ecc4fc854efa4f505155158831f36773ee4",
       "source_url": "https://huggingface.co/tencent/HunyuanOCR"
     },
@@ -610,7 +610,7 @@
     "revision": "47644ecc4fc854efa4f505155158831f36773ee4"
   },
   "supersedes": {
-    "content_sha256": "e76a6cf167a5588d8a8106dc5a23f92ba6254509880535a315643fda8edd462d",
+    "content_sha256": "956055f5c3b24317292c5ff78ca1bc2754b6bdb6f5856c389ca244a33e894fd1",
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "hunyuanocr-1-5-449e7d47"

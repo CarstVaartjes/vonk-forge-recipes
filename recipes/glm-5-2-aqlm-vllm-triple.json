@@ -116,7 +116,7 @@
     "title": "GLM 5.2 AQLM three Sparks"
   },
   "model": {
-    "content_sha256": "8cd217518f6a2b270b058b6b3ddd40e60d8f9e8edd45189d051b39cc8fc1659d",
+    "content_sha256": "3e4b2f82646797cb2b51009ede4df555ac72d1bc9d732997b827bbd48cb9da6c",
     "kind": "model-version",
     "publisher": "jarrelscy",
     "slug": "glm-5-2-nvfp4-aqlm-hybrid-53e0082e"

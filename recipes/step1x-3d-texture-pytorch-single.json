@@ -212,7 +212,7 @@
     "title": "Step1X-3D texture pytorch-pipeline single Spark"
   },
   "model": {
-    "content_sha256": "dddd4cd6633d533d657040fb1de8f89eb69ed1d34bf686ba178c9cf611ab35d6",
+    "content_sha256": "6e1ad51bc18dc122249f39a50e2c0106138876afefa2ecb22360e1e288be036d",
     "kind": "model-version",
     "publisher": "stepfun-ai",
     "slug": "step1x-3d-texture"

@@ -91,7 +91,7 @@
   },
   "dependencies": [
     {
-      "content_sha256": "5d71be8a7f8945c25225cffa0284a610c81a1eb1bf2ae2b0ee5383be65260f39",
+      "content_sha256": "5427e9972e789c218f2555fcc82881915c480458a2b4d473c50d8709bf66fd6d",
       "kind": "model-version",
       "publisher": "qwen",
       "slug": "qwen-image-2512-25468b98"
@@ -182,7 +182,7 @@
     "title": "Qwen Image 2512 Lightning diffusers single Spark"
   },
   "model": {
-    "content_sha256": "5edab4f1ade8e306447ae60a2a11efc143a9097eb8dd29be992d8aba02124675",
+    "content_sha256": "8c1a1070b963088e2b17b3bd0a6a7c4bc95c13a085869132f800c1dd38ffdf82",
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen-image-2512-lightning"

@@ -208,7 +208,7 @@
     "title": "HunyuanVideo Foley XL PyTorch single Spark"
   },
   "model": {
-    "content_sha256": "b9ba080e813247f6ce0f3a484f3ffdc2509424517d1d175a93be7d18bd1d5b18",
+    "content_sha256": "ee6ad634df704ec428f90ee946d8a24163412150c577ce16aab27292b3678303",
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "hunyuan-video-foley-xl"

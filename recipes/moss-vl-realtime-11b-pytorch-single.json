@@ -199,7 +199,7 @@
     "title": "MOSS-VL-Realtime 11B BF16 native single Spark"
   },
   "model": {
-    "content_sha256": "4e6abac644bbd87e1870eb67aeaac1db8871395349921b02cc89e2f5e9e34266",
+    "content_sha256": "7c313732fafde08eabfacd94d73338b1c80caa58149abf078b4224b4a498bb06",
     "kind": "model-version",
     "publisher": "openmoss",
     "slug": "moss-vl-realtime-11b-bf16-06b06761"

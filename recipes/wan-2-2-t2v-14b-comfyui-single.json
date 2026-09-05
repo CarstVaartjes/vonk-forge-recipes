@@ -205,7 +205,7 @@
     "title": "Wan 2.2 T2V 14B ComfyUI single Spark"
   },
   "model": {
-    "content_sha256": "16a143e81e8af5c740a5a993d4628f469a0471a6c3eec46ec6cdd1f88b3d2336",
+    "content_sha256": "1839f37d74c91fd97586405a310c49548f68c8bfda9404ebb1e34e72e0d4ffbc",
     "kind": "model-version",
     "publisher": "wan-ai",
     "slug": "wan-2-2-t2v-14b-comfyui-c4f60d30"

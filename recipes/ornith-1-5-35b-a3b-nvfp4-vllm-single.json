@@ -110,7 +110,7 @@
     "title": "Ornith 1.5 35B-A3B NVFP4 vLLM single Spark"
   },
   "model": {
-    "content_sha256": "0d0d478f5bbf647817fd284adf86462a4117a514d1f4125c238ec0d2e6069713",
+    "content_sha256": "aeb4bd6a62419094272b25d91e786f93e3e9dc9a6f80cd36781ac79dcac03dc2",
     "kind": "model-version",
     "publisher": "ornith-ai",
     "slug": "ornith-1-5-35b-a3b-nvfp4-9660379a"

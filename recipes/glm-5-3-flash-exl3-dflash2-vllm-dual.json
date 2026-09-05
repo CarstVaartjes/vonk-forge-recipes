@@ -131,7 +131,7 @@
     "title": "GLM 5.3 Flash EXL3 DFlash2 vLLM two Sparks"
   },
   "model": {
-    "content_sha256": "9cbbc110d7de762cb8eaf1be591dcfb18731bbf64ab72780398cb7813066b67e",
+    "content_sha256": "ec89d219613c8dc0039bc20810b6f461593f5ac9d42beea37c48f48473eaee3b",
     "kind": "model-version",
     "publisher": "mia-ai-lab",
     "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-024db9f7"

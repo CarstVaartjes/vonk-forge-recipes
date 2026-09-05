@@ -516,7 +516,7 @@
     "title": "LTX-2.3 22B distilled 1.1 native synchronized single Spark (superseded)"
   },
   "model": {
-    "content_sha256": "bdf06a4a07ecb2483251b9616e15423f27c7e3869e9d480ed36085613fc09f4a",
+    "content_sha256": "57a7e234e464fdc380cf17414aa2f0c7aaa3ff654c05a774efab60c7386a69a8",
     "kind": "model-version",
     "publisher": "lightricks",
     "slug": "ltx-2-3-22b-distilled-1-1"

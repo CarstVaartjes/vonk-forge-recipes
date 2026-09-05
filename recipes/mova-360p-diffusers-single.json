@@ -86,7 +86,7 @@
       "slug": "pytorch-pipeline"
     },
     "patch_bundle": {
-      "content_sha256": "12a92b53a79e53cc3ba870715ce98332aaec6ea18024ebe726e188b15d20632d",
+      "content_sha256": "945848661222aa93223f93f2478a938c94ca407d2830a856923539f4a7b4ec43",
       "kind": "patch-bundle",
       "publisher": "openmoss",
       "slug": "mova-inference-only-import"
@@ -190,7 +190,7 @@
     "title": "MOVA 360p native synchronized media single Spark (preferred)"
   },
   "model": {
-    "content_sha256": "6d109969a25a407107928e4f20de04525a32239e9cf6aa5a3ffbae3b37614b61",
+    "content_sha256": "9b269922df0508f80e2606ecb4f11fc326845f56f46be9f20524ad32bb286133",
     "kind": "model-version",
     "publisher": "openmoss",
     "slug": "mova-360p"

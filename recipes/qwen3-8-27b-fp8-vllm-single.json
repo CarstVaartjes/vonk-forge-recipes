@@ -114,7 +114,7 @@
     "title": "Qwen3.8 27B FP8 vLLM single Spark"
   },
   "model": {
-    "content_sha256": "250aa11ec9539e0191454bc91d60d888c989f0819f6c8ae052872fda53f091c4",
+    "content_sha256": "80c35ec26cf277a09763e4b3ea1f688d68290e32863bf99ceabdf0154112e7d1",
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen3-8-27b-fp8-017b9c7a"

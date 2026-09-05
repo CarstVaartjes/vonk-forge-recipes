@@ -515,7 +515,7 @@
     "title": "LTX-2 19B distilled FP8 native synchronized single Spark (superseded)"
   },
   "model": {
-    "content_sha256": "3502af718369d23cdb1785801b4bdfd075490663b2dd407b0e70c1cfab7608ca",
+    "content_sha256": "b6b26e87af4cd6a34ebd5a294f292c46c05ffdad4afa1fc175ca7aa36ec56ee2",
     "kind": "model-version",
     "publisher": "lightricks",
     "slug": "ltx-2-19b-distilled-fp8"

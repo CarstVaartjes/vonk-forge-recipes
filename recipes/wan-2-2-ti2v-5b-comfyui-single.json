@@ -212,7 +212,7 @@
     "title": "Wan 2.2 TI2V 5B ComfyUI single Spark"
   },
   "model": {
-    "content_sha256": "1fc14af4c844f09d92abdf8220d5dbecce2fe80958f34b55b6bc9088222cfaf0",
+    "content_sha256": "2078f8a8bc44a46eade26c4557dc267bd0c0b8a23124be49cd90548291d1f648",
     "kind": "model-version",
     "publisher": "wan-ai",
     "slug": "wan-2-2-ti2v-5b-comfyui-c4f60d30"

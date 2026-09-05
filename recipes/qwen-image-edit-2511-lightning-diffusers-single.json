@@ -91,7 +91,7 @@
   },
   "dependencies": [
     {
-      "content_sha256": "60482d6413e82f7f319085e0ddc37b97489bf55f836e08a0def53223aab3c3b2",
+      "content_sha256": "7fa25bbb20d9a73c4c406406de8c75432fffce413fcad6cd62aba13cbd178412",
       "kind": "model-version",
       "publisher": "qwen",
       "slug": "qwen-image-edit-2511-6f3ccc0b"
@@ -206,7 +206,7 @@
     "title": "Qwen Image Edit 2511 Lightning diffusers single Spark"
   },
   "model": {
-    "content_sha256": "aa661fecd839bff38c5d3ce14aa69e0d160203e8fed4197561a10647c7c25ad1",
+    "content_sha256": "81b3740b87d1175cf27cac995d42b89c8a6cc2486508a16104ddb9c6fa31cca2",
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen-image-edit-2511-lightning"

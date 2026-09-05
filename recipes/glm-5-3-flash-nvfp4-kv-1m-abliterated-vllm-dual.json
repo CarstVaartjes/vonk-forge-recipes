@@ -117,7 +117,7 @@
     "title": "GLM 5.3 Flash Abliterated NVFP4 KV 1M vLLM two Sparks"
   },
   "model": {
-    "content_sha256": "96e047e0329f7c90a59d9e77847ecebc8fb8c7872b06bd841e5c5ff50fbce7d5",
+    "content_sha256": "1e7ee47220f317f873c367059692a3fc138f71b242faa6fe837a63b8050d5530",
     "kind": "model-version",
     "publisher": "drowzeys",
     "slug": "glm-5-3-flash-nvfp4-abliterated-d7f8afa8"

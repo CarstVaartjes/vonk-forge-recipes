@@ -113,7 +113,7 @@
     "title": "Laguna S 2.1 NVFP4 vLLM 32K low-memory canary single Spark"
   },
   "model": {
-    "content_sha256": "d9ecd68b905f3bcb5fec58b7855a380e73254f048fde950a0e87d7831fb94bdf",
+    "content_sha256": "655404eb39420cb55f38a792248395f61f098a0f07e2fa05e8cc1cbdf69d4cdb",
     "kind": "model-version",
     "publisher": "poolside",
     "slug": "laguna-s-2-1-nvfp4-826aacdf"

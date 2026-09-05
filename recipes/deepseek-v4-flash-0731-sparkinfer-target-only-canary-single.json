@@ -110,7 +110,7 @@
     "title": "DeepSeek V4 Flash 0731 REAP-K216 SparkInfer target-only canary single Spark"
   },
   "model": {
-    "content_sha256": "440c77737c3d46c7e1e048386802588de74b0bb54d3ac73542216c2d52c2933e",
+    "content_sha256": "b8544185008065aa5cf9db526c2b13006653e57fb0fa0b47427c9a7604b4c4d4",
     "kind": "model-version",
     "publisher": "0xsero",
     "slug": "deepseek-v4-flash-0731-sparkinfer-exl3-k216"

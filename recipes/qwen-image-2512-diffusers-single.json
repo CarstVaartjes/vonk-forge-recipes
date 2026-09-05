@@ -156,7 +156,7 @@
     "title": "Qwen Image 2512 Diffusers single Spark"
   },
   "model": {
-    "content_sha256": "5d71be8a7f8945c25225cffa0284a610c81a1eb1bf2ae2b0ee5383be65260f39",
+    "content_sha256": "5427e9972e789c218f2555fcc82881915c480458a2b4d473c50d8709bf66fd6d",
     "kind": "model-version",
     "publisher": "qwen",
     "slug": "qwen-image-2512-25468b98"

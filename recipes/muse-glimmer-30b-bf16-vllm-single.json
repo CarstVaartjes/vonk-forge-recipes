@@ -114,7 +114,7 @@
     "title": "Muse Glimmer 30B BF16 vLLM single Spark"
   },
   "model": {
-    "content_sha256": "282de87a453417c3d604c9d1b4f9d2a23a6c3f264915c11838d6162e0626a8a5",
+    "content_sha256": "8b90607d53537aaf400c922cd5f91e2e970346d872e733d81036e16d177dcb0e",
     "kind": "model-version",
     "publisher": "meta",
     "slug": "muse-glimmer-30b-bf16-a4e59da5"

@@ -219,7 +219,7 @@
     "title": "Hunyuan3D-Omni pytorch-pipeline single Spark"
   },
   "model": {
-    "content_sha256": "3adf5809944b3d050c9b56c10d1530e16680309beb5d99c85d30b9eee3061aea",
+    "content_sha256": "662a0b8aaa6b784bdb85f96dffa1f878b36c7486030399170f6796edc332eea7",
     "kind": "model-version",
     "publisher": "tencent",
     "slug": "hunyuan3d-omni"
