@@ -77,3 +77,11 @@ def test_hf_overrides_merges_safe_options_and_enforces_yarn_guard(tmp_path: Path
 
     duplicate = ["--hf-overrides", explicit, "--hf-overrides", '{"other":"$;✓"}']
     assert wrapper._merged_hf_overrides(duplicate) is None
+
+
+def test_oci_runtime_metadata_and_entrypoint_are_declared() -> None:
+    adapter = Path(__file__).parent
+    dockerfile = (adapter / "Dockerfile").read_text()
+    assert 'ai.vonkforge.runtime-interface="v1"' in dockerfile
+    recipe = json.loads((adapter.parents[2] / "recipes/qwen3-8-flash-next-nvfp4-vllm-dual.json").read_text())
+    assert recipe["runtime"]["entrypoint"] == ["/opt/vonk/bin/qwen38-vllm-serve"]

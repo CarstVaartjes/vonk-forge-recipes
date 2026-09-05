@@ -2,7 +2,8 @@ FROM docker.io/vllm/vllm-openai@sha256:3b0e188ffceb3d07e09c3cb5215433a0020eacf02
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks" \
       org.opencontainers.image.revision="c2325b22602b51a5faf55fc2bebccc34f3f80b9f" \
-      org.opencontainers.image.licenses="AGPL-3.0-or-later AND Apache-2.0"
+      org.opencontainers.image.licenses="AGPL-3.0-or-later AND Apache-2.0" \
+      ai.vonkforge.runtime-interface="v1"
 
 COPY patch_ple_layer.py patch_modelopt_mxfp8.py patch_modelopt_fp8_block_moe.py patch_qsa_fp8_kv.py patch_checkpoint_config.py detect_ple_dtype.py apply_patches.py /opt/vonk/build/
 COPY --chmod=0755 qwen38-vllm-wrapper.py /opt/vonk/bin/qwen38-vllm-serve
