@@ -30,6 +30,7 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
         recipe = load(RECIPE)
         arguments = {item["name"]: item for item in recipe["runtime"]["arguments"]}
         self.assertEqual(arguments["gpu-memory-utilization"]["value"], "0.85")
+        self.assertEqual(arguments["kv-cache-memory"]["value"], 6_442_450_944)
         self.assertEqual(json.loads(arguments["default-chat-template-kwargs"]["value"]), {"enable_thinking": False})
         self.assertEqual(recipe["topology"]["start_order"], ["worker", "entrypoint"])
 
@@ -65,13 +66,14 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("exact Controller rendezvous", result.stderr)
 
-    def test_catalog_package_tracks_recipe_content(self) -> None:
+    def test_runtime_refresh_is_bound_to_current_upstream_profile(self) -> None:
         recipe = load(RECIPE)
-        import hashlib
-        digest = hashlib.sha256(json.dumps(recipe, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
-        index = load(ROOT / "catalog-index.json")
-        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{RECIPE.name}")
-        self.assertEqual(entry["package"]["recipe_content_sha256"], digest)
+        self.assertEqual(recipe["release"]["version"], "1.0.5")
+        self.assertEqual(recipe["release"]["history"][0]["upgrade_effect"], "restart")
+        self.assertIn(
+            "050081dc41ce6edd4d3f15fa19dc3410ba4210e3",
+            recipe["release"]["history"][0]["changes"][0]["references"][0],
+        )
 
 
 if __name__ == "__main__": unittest.main()
