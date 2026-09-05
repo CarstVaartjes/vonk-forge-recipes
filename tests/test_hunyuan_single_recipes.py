@@ -68,7 +68,39 @@ class HunyuanMediaAdapterTests(unittest.TestCase):
         module = video_module(); valid = {"streams": [{"codec_type": "video", "width": 848, "height": 480, "nb_read_frames": "121"}], "format": {"format_name": "mov,mp4,m4a,3gp,3g2,mj2", "duration": "5.042"}}
         with patch.object(module.subprocess, "run", return_value=types.SimpleNamespace(stdout=json.dumps(valid))): module._validate_video(Path("output.mp4"), 480)
         valid["streams"][0]["nb_read_frames"] = "120"
-        with patch.object(module.subprocess, "run", return_value=types.SimpleNamespace(stdout=json.dumps(valid))), self.assertRaisesRegex(SystemExit, "invalid 121-frame MP4"): module._validate_video(Path("output.mp4"), 480)
+        with patch.object(module.subprocess, "run", return_value=types.SimpleNamespace(stdout=json.dumps(valid))), self.assertRaisesRegex(SystemExit, "invalid 121-frame MP4"):
+            module._validate_video(Path("output.mp4"), 480)
+
+    def test_video_and_foley_reject_wrong_signed_input_extensions(self) -> None:
+        video = video_module()
+        foley_path = ROOT / "adapters/audio/hunyuan-video-foley-native/pipelines/run.py"
+        foley = load_module(foley_path, "hunyuan_foley_adapter")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "payload.bin").write_bytes(b"not media")
+            (root / "manifest.json").write_text(json.dumps({"files": [{"slot": "image", "name": "payload.bin"}]}))
+            with self.assertRaisesRegex(SystemExit, "one supported file"):
+                video._one_image(root)
+            (root / "manifest.json").write_text(json.dumps({"files": [{"slot": "video", "name": "payload.bin"}]}))
+            with self.assertRaisesRegex(SystemExit, "one supported video"):
+                foley._one_video(root)
+
+    def test_foley_validates_invalid_wav_and_timeout_before_atomic_publish(self) -> None:
+        adapter_path = ROOT / "adapters/audio/hunyuan-video-foley-native/pipelines/run.py"
+        foley = load_module(adapter_path, "hunyuan_foley_wav_adapter")
+        with tempfile.TemporaryDirectory() as directory:
+            valid = Path(directory) / "valid.wav"
+            with wave.open(str(valid), "wb") as audio:
+                audio.setnchannels(1); audio.setsampwidth(2); audio.setframerate(48_000); audio.writeframes(b"\x00\x00" * 480)
+            foley._validate_wav(valid)
+            invalid = Path(directory) / "invalid.wav"
+            invalid.write_bytes(b"not a wav")
+            with self.assertRaisesRegex(SystemExit, "invalid WAV"):
+                foley._validate_wav(invalid)
+        source = adapter_path.read_text(encoding="utf-8")
+        self.assertIn("timeout=args.timeout_seconds", source)
+        self.assertLess(source.index("_validate_wav(outputs[0])"), source.index("os.replace("))
+        self.assertIn('staging = args.output_dir / ".staging"', source)
 
     def test_foley_validates_wav_before_atomic_publish(self) -> None:
         path = ROOT / "adapters/audio/hunyuan-video-foley-native/pipelines/run.py"; module = load_module(path, "hunyuan_foley_adapter")

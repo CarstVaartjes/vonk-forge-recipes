@@ -41,13 +41,14 @@ class Ltx25Fp8CanaryTests(unittest.TestCase):
         source = (CANARY_ADAPTER / "run.py").read_text(encoding="utf-8")
         self.assertIn("storage_dtype=torch.float8_e4m3fn", source)
 
-    def test_source_bundle_path_and_release_bind_current_recipe(self) -> None:
+    def test_source_bundle_path_and_package_bind_current_recipe(self) -> None:
         recipe = load(ROOT / "recipes" / f"{CANARY_SLUG}.json")
         archive, _, bundle_digest = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["source_bundle"](CANARY_ADAPTER)
         self.assertEqual(recipe["execution"]["build"]["context"]["path"], "adapters/video/ltx25-diffusers-fp8-canary")
         self.assertTrue(bundle_digest and len(archive) > 0)
-        release = load(ROOT / "recipe-releases" / f"{CANARY_SLUG}.json")
-        self.assertEqual(release["history"][0]["recipe_content_sha256"], __import__("hashlib").sha256(json.dumps(recipe, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest())
+        index = load(ROOT / "catalog-index.json")
+        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{CANARY_SLUG}.json")
+        self.assertEqual(entry["package"]["recipe_content_sha256"], __import__("hashlib").sha256(json.dumps(recipe, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest())
 
 
 if __name__ == "__main__":

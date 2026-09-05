@@ -35,13 +35,14 @@ class MuseGlimmerRecipeTests(unittest.TestCase):
         self.assertEqual(recipe["interfaces"][0]["adapter"], "openai")
         self.assertEqual(recipe["topology"]["node_count"], 1)
 
-    def test_runtime_and_release_are_immutable(self) -> None:
+    def test_runtime_and_package_are_immutable(self) -> None:
         dockerfile = (ROOT / "adapters/llm/muse-glimmer-vllm/Dockerfile").read_text()
         self.assertIn("@sha256:", dockerfile)
         self.assertNotIn("huggingface.co", dockerfile)
         recipe = load(ROOT / "recipes/muse-glimmer-30b-bf16-vllm-single.json")
-        release = load(ROOT / "recipe-releases/muse-glimmer-30b-bf16-vllm-single.json")
-        self.assertEqual(release["history"][0]["recipe_content_sha256"], digest(recipe))
+        index = load(ROOT / "catalog-index.json")
+        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{recipe['identity']['slug']}.json")
+        self.assertEqual(entry["package"]["recipe_content_sha256"], digest(recipe))
 
 
 if __name__ == "__main__": unittest.main()

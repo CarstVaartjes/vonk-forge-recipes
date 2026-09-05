@@ -14,7 +14,7 @@ def load(path: Path) -> dict:
 
 
 class LtxNative13RefreshTests(unittest.TestCase):
-    def test_all_native_recipes_bind_source_bundle_and_release(self) -> None:
+    def test_all_native_recipes_bind_source_bundle_and_package(self) -> None:
         tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         for slug, adapter in RECIPES.items():
             recipe = load(ROOT / "recipes" / f"{slug}.json")
@@ -22,8 +22,9 @@ class LtxNative13RefreshTests(unittest.TestCase):
             self.assertEqual(context["path"], adapter)
             _, _, bundle_digest = tool["source_bundle"](ROOT / adapter)
             self.assertTrue(bundle_digest)
-            release = load(ROOT / "recipe-releases" / f"{slug}.json")
-            self.assertEqual(len(release["history"][0]["recipe_content_sha256"]), 64)
+            index = load(ROOT / "catalog-index.json")
+            entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{slug}.json")
+            self.assertEqual(len(entry["package"]["recipe_content_sha256"]), 64)
 
     def test_historical_recipes_keep_explicit_candidate_metadata(self) -> None:
         for slug in RECIPES:

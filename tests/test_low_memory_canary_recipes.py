@@ -39,10 +39,12 @@ class LowMemoryCanaryRecipeTests(unittest.TestCase):
             names = {item["name"] for item in recipe["runtime"]["arguments"]}
             self.assertTrue({"kv-cache-dtype", "enforce-eager"} <= names)
 
-    def test_release_history_pins_recipe_evidence(self) -> None:
+    def test_catalog_packages_pin_recipe_evidence(self) -> None:
         for _, slug in PAIRS:
-            recipe, release = load(slug), load(slug, "recipe-releases")
-            self.assertEqual(release["history"][0]["recipe_content_sha256"], digest(recipe))
+            recipe = load(slug)
+            index = json.loads((ROOT / "catalog-index.json").read_text())
+            entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{slug}.json")
+            self.assertEqual(entry["package"]["recipe_content_sha256"], digest(recipe))
 
 
 if __name__ == "__main__": unittest.main()
