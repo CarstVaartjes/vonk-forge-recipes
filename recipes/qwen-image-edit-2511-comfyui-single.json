@@ -163,6 +163,23 @@
       {
         "changes": [
           {
+            "details": "ComfyUI moved from 12d52794 to 250b2e95, and the Comfy-Org Qwen Image Edit snapshot moved from b6a07947 to 984166f6 with changed weight artifacts. The exact workflow and model snapshot are retained until both the runtime range and changed artifact manifest are requalified.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+              "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/984166f60a9b1fcede5e9b9287b7a7aebc050010"
+            ],
+            "summary": "Record ComfyUI upstream drift; retain the qualified source pin."
+          }
+        ],
+        "prior_recipe_content_sha256": "283ac58816f4309d558b198bf2a524eb598ddaa41d0e870dd4341680cea4f444",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.10"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -310,7 +327,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "1.0.9"
+    "version": "1.0.10"
   },
   "runtime": {
     "arguments": [
