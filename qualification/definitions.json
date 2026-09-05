@@ -4011,6 +4011,23 @@
         ]
       }
     },
+    "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual": {
+      "alias": "qwen3.8-flash-next",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
     "vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual": {
       "alias": "glm-5.3-flash-nvfp4",
       "smoke_cases": [

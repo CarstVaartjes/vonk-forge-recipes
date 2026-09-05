@@ -8,19 +8,19 @@
     "facts": [
       {
         "capability": "image-understanding",
-        "evidence_digest": "9c5292c7e4c640b45e06abb7e0243a11b4aa363d2cde73f6fe181caa8bd43d73",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "text-generation",
-        "evidence_digest": "9c5292c7e4c640b45e06abb7e0243a11b4aa363d2cde73f6fe181caa8bd43d73",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "9c5292c7e4c640b45e06abb7e0243a11b4aa363d2cde73f6fe181caa8bd43d73",
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
       "source_url": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4"
     },
