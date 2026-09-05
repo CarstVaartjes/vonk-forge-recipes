@@ -1890,6 +1890,22 @@
       {
         "changes": [
           {
+            "details": "The authored runtime now carries EXL3 quantization, the vendored multimodal chat template, and the source-backed CUDA graph capture sizes. The placement-only wrapper preserves these and all explicit or opaque engine arguments.",
+            "kind": "runtime",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/3021f24c88a0904c768c46ff22a508407e31360a"
+            ],
+            "summary": "Move EXL3 engine defaults into the authored Recipe."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-06",
+        "upgrade_effect": "restart",
+        "version": "1.4.1"
+      },
+      {
+        "changes": [
+          {
             "details": "Rebuilds from MiaAI-Lab's complete public 3021f24 Dockerfile, overlay, test, launcher, and license source on the digest-pinned vLLM CUDA 13 base. The Controller wrapper translates the current two-rank worker-first launch without SSH: 1M context, max-num-seqs 4, 7168 batched tokens, FP8 sparse-MLA KV, CUDA graphs, and DFlash2 K7.",
             "kind": "compatibility",
             "references": [
@@ -2023,7 +2039,7 @@
       }
     ],
     "released_at": "2026-09-06",
-    "version": "1.4.0"
+    "version": "1.4.1"
   },
   "runtime": {
     "arguments": [
@@ -2041,6 +2057,16 @@
         "name": "tensor-parallel-size",
         "setting": null,
         "value": 2
+      },
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "exl3"
+      },
+      {
+        "name": "chat-template",
+        "setting": null,
+        "value": "/opt/glm53/chat_template.jinja"
       },
       {
         "name": "pipeline-parallel-size",
@@ -2071,6 +2097,11 @@
         "name": "kv-cache-dtype",
         "setting": null,
         "value": "fp8"
+      },
+      {
+        "name": "compilation-config",
+        "setting": null,
+        "value": "{\"cudagraph_capture_sizes\":[1,2,4,8,16,24,32]}"
       },
       {
         "name": "speculative-config",

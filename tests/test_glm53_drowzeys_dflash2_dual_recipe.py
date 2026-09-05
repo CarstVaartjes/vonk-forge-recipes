@@ -87,7 +87,7 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
 
     def test_runtime_refresh_is_bound_to_current_upstream_profile(self) -> None:
         recipe = load(RECIPE)
-        self.assertEqual(recipe["release"]["version"], "1.0.5")
+        self.assertEqual(recipe["release"]["version"], "1.0.6")
         self.assertEqual(recipe["release"]["history"][0]["upgrade_effect"], "restart")
         self.assertIn(
             "050081dc41ce6edd4d3f15fa19dc3410ba4210e3",
