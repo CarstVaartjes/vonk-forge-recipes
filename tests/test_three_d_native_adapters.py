@@ -170,7 +170,12 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 context_files = {
                     path.relative_to(ROOT).as_posix(): path.read_bytes()
                     for path in (ROOT / context_name).rglob("*")
-                    if path.is_file() and not path.is_symlink()
+                    if (
+                        path.is_file()
+                        and not path.is_symlink()
+                        and "__pycache__" not in path.parts
+                        and path.suffix != ".pyc"
+                    )
                 }
                 packaged_context = {
                     path: content
