@@ -21,7 +21,11 @@ from vonk_forge_contracts import (
     model_json_schema,
     recipe_json_schema,
 )
-from vonk_forge_contracts.recipe import RecipeJobServingRequest
+from vonk_forge_contracts.recipe import (
+    RecipeJobServingRequest,
+    RecipeLifecycle,
+    RecipeRuntimeArgument,
+)
 from vonk_forge_contracts.resolver import (
     validate_model_references,
     validate_recipe_models,
@@ -141,6 +145,47 @@ def test_runtime_settings_are_checked_against_the_active_settings_variant() -> N
     job["runtime"]["arguments"] = [{"name": "context", "setting": "context_tokens"}]
     with pytest.raises(ValidationError, match="unknown setting"):
         RecipeDefinition.model_validate(job)
+
+
+def test_runtime_arguments_preserve_unfamiliar_names_values_and_order() -> None:
+    arguments = [
+        {"name": "--unknown; $option", "value": "value with spaces; $HOME/Δ and {json}"},
+        {"name": "--structured-option", "value": {"enabled": True, "items": ["a", 3, 0.25]}},
+        {"name": "--another-option", "value": [False, {"nested": "unchanged"}]},
+    ]
+    parsed = [RecipeRuntimeArgument.model_validate(argument) for argument in arguments]
+    assert [argument.name for argument in parsed] == [argument["name"] for argument in arguments]
+    assert [argument.model_dump(mode="json") for argument in parsed] == [
+        {**argument, "setting": None} for argument in arguments
+    ]
+
+
+def test_runtime_arguments_reject_nul_nonfinite_and_unbounded_values() -> None:
+    with pytest.raises(ValidationError, match="NUL"):
+        RecipeRuntimeArgument.model_validate({"name": "--bad\x00name", "value": "ok"})
+    with pytest.raises(ValidationError, match="NUL"):
+        RecipeRuntimeArgument.model_validate({"name": "--bad", "value": {"key": "bad\x00value"}})
+    with pytest.raises(ValidationError, match="finite"):
+        RecipeRuntimeArgument.model_validate({"name": "--bad", "value": float("inf")})
+    with pytest.raises(ValidationError, match="maximum nesting"):
+        RecipeRuntimeArgument.model_validate({"name": "--bad", "value": [[[[[[[[["deep"]]]]]]]]]})
+    with pytest.raises(ValidationError, match="maximum size"):
+        RecipeRuntimeArgument.model_validate({"name": "--bad", "value": ["x" * 4096] * 20})
+
+
+def test_runtime_argv_allows_shell_punctuation_and_rejects_nul() -> None:
+    lifecycle = RecipeLifecycle.model_validate(
+        {
+            "pre_start": [["launcher", "value with spaces; $HOME/Δ", '{"json": true}']],
+            "post_stop": [],
+            "stop_timeout_seconds": 1,
+        }
+    )
+    assert lifecycle.pre_start == [["launcher", "value with spaces; $HOME/Δ", '{"json": true}']]
+    with pytest.raises(ValidationError, match="NUL"):
+        RecipeLifecycle.model_validate(
+            {"pre_start": [["launcher", "bad\x00value"]], "post_stop": [], "stop_timeout_seconds": 1}
+        )
 
 
 def test_output_cap_requires_a_positive_integer() -> None:

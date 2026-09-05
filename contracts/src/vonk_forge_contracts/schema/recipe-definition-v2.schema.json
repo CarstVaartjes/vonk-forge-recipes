@@ -22,6 +22,9 @@
             },
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             }
           ],
           "title": "Value"
@@ -105,6 +108,9 @@
           "type": "boolean"
         },
         {
+          "type": "number"
+        },
+        {
           "items": {
             "$ref": "#/$defs/JsonValue"
           },
@@ -183,6 +189,9 @@
               },
               {
                 "type": "boolean"
+              },
+              {
+                "type": "number"
               }
             ]
           },
@@ -1607,20 +1616,13 @@
         "value": {
           "anyOf": [
             {
-              "type": "string"
-            },
-            {
-              "type": "integer"
-            },
-            {
-              "type": "boolean"
+              "$ref": "#/$defs/JsonValue"
             },
             {
               "type": "null"
             }
           ],
-          "default": null,
-          "title": "Value"
+          "default": null
         },
         "setting": {
           "anyOf": [
@@ -1663,6 +1665,9 @@
             },
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "null"
@@ -1735,6 +1740,9 @@
             },
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             }
           ],
           "title": "Value"
