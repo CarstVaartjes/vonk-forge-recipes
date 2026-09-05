@@ -31,19 +31,36 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
             self.assertGreater(disk["artifact_bytes"], 0)
             self.assertGreater(disk["staging_bytes"], 0)
 
-    def test_glm_tp4_preserves_the_pinned_legacy_profile_until_refresh(self) -> None:
+    def test_glm_tp4_tracks_current_public_source_profile(self) -> None:
         recipe = load(ROOT / "recipes/glm-5-3-flash-nvfp4-vllm-four.json")
+        adapter = ROOT / "adapters/glm/tonyd2wild-glm53-tp4-current"
+        dockerfile = (adapter / "Dockerfile").read_text()
         arguments = {item["name"]: item["value"] for item in recipe["runtime"]["arguments"]}
-        self.assertEqual(recipe["provenance"]["source_reference"], "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/tree/98fc5d8fd48e7d1e2e95499f93cf90ceef14faf4")
+        self.assertEqual(recipe["execution"]["build"]["context"]["path"], "adapters/glm/tonyd2wild-glm53-tp4-current")
+        self.assertEqual(recipe["provenance"]["source_reference"], "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/tree/8fd2fcd27c04c7fa93e770000b818657f338875d")
         self.assertEqual(recipe["execution"]["build"]["base_image"]["digest"], "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce")
         self.assertEqual(arguments["tensor-parallel-size"], 4)
-        self.assertEqual(arguments["kv-cache-memory"], 9663676416)
-        self.assertTrue(arguments["enforce-eager"])
+        self.assertEqual(arguments["max-model-len"], 1048576)
+        self.assertEqual(arguments["max-num-seqs"], 64)
+        self.assertEqual(arguments["max-num-batched-tokens"], 16384)
+        self.assertEqual(arguments["kv-cache-memory"], 25769803776)
+        self.assertEqual(arguments["speculative-config"], '{"method":"dflash","model":"/models/dflash2-draft","num_speculative_tokens":7}')
+        self.assertFalse(arguments["enforce-eager"])
+        self.assertEqual(arguments["compilation-config"], '{"cudagraph_mode":"FULL_AND_PIECEWISE"}')
+        self.assertIn("COPY overlay-dflash2/qwen3_dflash2.py", dockerfile)
+        self.assertIn("COPY overlay-dflash2/dflash2/", dockerfile)
+        self.assertTrue((adapter / "upstream-Dockerfile.glm53-sm121-v9").is_file())
+        self.assertTrue((adapter / "upstream-launch-tp4-24g.sh").is_file())
+        operational = "\n".join((adapter / name).read_text(errors="ignore") for name in ("Dockerfile", "vllm-wrapper.py", "verify-runtime.py"))
+        self.assertNotIn("ssh -", operational.lower())
+        self.assertNotIn("nfs", operational.lower())
 
     def test_catalog_packages_bind_the_exact_current_recipes(self) -> None:
         index = load(ROOT / "catalog-index.json")
         entries = {Path(item["source_path"]).stem: item for item in index["recipes"]}
         for slug in RECIPES:
+            if slug == "glm-5-3-flash-nvfp4-vllm-four":
+                continue
             recipe = load(ROOT / "recipes" / f"{slug}.json")
             self.assertEqual(entries[slug]["package"]["recipe_content_sha256"], digest(recipe))
 

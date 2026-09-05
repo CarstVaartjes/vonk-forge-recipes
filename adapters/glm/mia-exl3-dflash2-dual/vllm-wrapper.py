@@ -84,7 +84,7 @@ _require_value(arguments, "--kv-cache-dtype", "fp8")
 _require_value(arguments, "--max-model-len", "1000000")
 _require_value(arguments, "--gpu-memory-utilization", "0.87")
 _require_value(arguments, "--max-num-seqs", "4")
-_require_value(arguments, "--max-num-batched-tokens", "2048")
+_require_value(arguments, "--max-num-batched-tokens", "7168")
 
 speculative = _value(arguments, "--speculative-config")
 try:
