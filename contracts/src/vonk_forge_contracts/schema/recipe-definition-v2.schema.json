@@ -1617,13 +1617,14 @@
         "value": {
           "anyOf": [
             {
-              "$ref": "#/$defs/JsonValue"
+              "$ref": "#/$defs/RuntimeArgumentValue"
             },
             {
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "description": "A literal process value; null is reserved for the setting-bound placeholder."
         },
         "setting": {
           "anyOf": [
@@ -1968,6 +1969,34 @@
       ],
       "title": "RecipeValidationCheck",
       "type": "object"
+    },
+    "RuntimeArgumentValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        }
+      ]
     }
   },
   "additionalProperties": false,

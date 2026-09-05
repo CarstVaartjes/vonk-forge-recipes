@@ -27,6 +27,7 @@ from vonk_forge_contracts.recipe import (
     RecipeLifecycle,
     RecipeRuntime,
     RecipeRuntimeArgument,
+    _runtime_argument_tokens,
 )
 from vonk_forge_contracts.resolver import (
     validate_model_references,
@@ -152,6 +153,7 @@ def test_runtime_settings_are_checked_against_the_active_settings_variant() -> N
 def test_runtime_arguments_preserve_unfamiliar_names_values_and_order() -> None:
     arguments = [
         {"name": "unknown-option", "value": "value with spaces; $HOME/Δ and {json}"},
+        {"name": "unknown-option", "value": "second occurrence"},
         {"name": "structured_option", "value": {"enabled": True, "items": ["a", 3, 0.25]}},
         {"name": "another-option", "value": [False, {"nested": "unchanged"}]},
     ]
@@ -176,6 +178,21 @@ def test_runtime_arguments_reject_nul_nonfinite_and_unbounded_values() -> None:
         RecipeRuntimeArgument.model_validate({"name": "--bad", "value": [[[[[[[[["deep"]]]]]]]]]})
     with pytest.raises(ValidationError, match="maximum UTF-8 size"):
         RecipeRuntimeArgument.model_validate({"name": "--bad", "value": ["x" * 4096] * 20})
+
+
+def test_runtime_argument_null_placeholder_and_boolean_or_empty_rendering() -> None:
+    with pytest.raises(ValidationError, match="exactly one"):
+        RecipeRuntimeArgument.model_validate({"name": "literal-null", "value": None})
+    setting = RecipeRuntimeArgument.model_validate(
+        {"name": "context", "value": None, "setting": "context_tokens"}
+    )
+    assert _runtime_argument_tokens(setting) == ["--context"]
+    assert _runtime_argument_tokens(RecipeRuntimeArgument.model_validate({"name": "enabled", "value": True})) == ["--enabled"]
+    assert _runtime_argument_tokens(RecipeRuntimeArgument.model_validate({"name": "disabled", "value": False})) == []
+    assert _runtime_argument_tokens(RecipeRuntimeArgument.model_validate({"name": "empty", "value": ""})) == ["--empty", ""]
+    assert _runtime_argument_tokens(
+        RecipeRuntimeArgument.model_validate({"name": "json", "value": {"z": 1, "a": "x"}})
+    ) == ["--json", '{"a":"x","z":1}']
 
 
 def test_runtime_argument_utf8_and_rendered_argv_boundaries() -> None:
