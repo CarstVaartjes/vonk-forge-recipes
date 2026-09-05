@@ -1,67 +1,79 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "ltx-2-5-22b-distilled-fp8-cast-diffusers-single"
-  },
-  "version": "1.0.3",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.0.3",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "e251c8a322f0ea4416fb90a4c0787c5f8cbe575c5a7fabc111f6f7cb3fcfa4ec",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "c6b6f4887667bbdff7e084908f7f54e00886cac5f321465164bcaf059e966308",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.4"
     },
     {
-      "version": "1.0.2",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "dc15da0ef60bb604c322ee9692664bf7110559f07314e66c158e7cfd06ad1843",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "e251c8a322f0ea4416fb90a4c0787c5f8cbe575c5a7fabc111f6f7cb3fcfa4ec",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.3"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
-    },
-    {
-      "version": "1.0.1",
+      ],
+      "recipe_content_sha256": "dc15da0ef60bb604c322ee9692664bf7110559f07314e66c158e7cfd06ad1843",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "0b26a789538751b9c7cd899e1ef4d60dec4f1bf215b75cc83b705abf88c77c7c",
-      "upgrade_effect": "rebuild",
-      "changes": [
-        {
-          "kind": "security",
-          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
-          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
-        }
-      ]
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.2"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-31",
-      "recipe_content_sha256": "412f01ef4bc380b409b73eab9a340a9b37464cd119028111903ed57b39bb1edc",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
-          "kind": "initial",
-          "summary": "Added a distinct LTX-2.5 single-Spark physical canary with immutable FP8 E4M3FN layerwise storage and sequential offload.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+        }
+      ],
+      "recipe_content_sha256": "0b26a789538751b9c7cd899e1ef4d60dec4f1bf215b75cc83b705abf88c77c7c",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.1"
+    },
+    {
+      "changes": [
+        {
           "details": "The original BF16 recipe remains unchanged. The canary uses the same exact gated 70,090,051,372-byte model closure and pinned Diffusers runtime, but request input cannot select a BF16 fallback. The official four-shard transformer closure contains 37,976,221,088 bytes of BF16 weights. Pinned Diffusers stores eligible transformer weights in FP8 and excludes only normalization modules for this model. The Candidate envelope claims only an 8 GB reduction from the original conservative startup and steady declarations, retains 6 GB growth and 10 GB system reserve, and admits at 120 GB. Physical GB10 memory and audiovisual acceptance remain pending.",
+          "kind": "initial",
           "references": [
             "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc/transformer",
             "https://github.com/huggingface/diffusers/blob/d035dcd7cc7c88e0a154609b62887d50bba9fdc2/src/diffusers/models/transformers/transformer_ltx2.py",
             "https://github.com/huggingface/diffusers/blob/d035dcd7cc7c88e0a154609b62887d50bba9fdc2/docs/source/en/optimization/memory.md"
-          ]
+          ],
+          "summary": "Added a distinct LTX-2.5 single-Spark physical canary with immutable FP8 E4M3FN layerwise storage and sequential offload."
         }
-      ]
+      ],
+      "recipe_content_sha256": "412f01ef4bc380b409b73eab9a340a9b37464cd119028111903ed57b39bb1edc",
+      "released_at": "2026-08-31",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "ltx-2-5-22b-distilled-fp8-cast-diffusers-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "1.0.4"
 }

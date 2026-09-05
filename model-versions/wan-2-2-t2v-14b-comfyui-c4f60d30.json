@@ -1,23 +1,146 @@
 {
-  "schema_version": 1,
-  "kind": "model-version",
-  "identity": {"publisher": "wan-ai", "slug": "wan-2-2-t2v-14b-comfyui-c4f60d30"},
-  "metadata": {"title": "Wan 2.2 T2V 14B ComfyUI revision c4f60d30", "description": "Exact Comfy-Org scaled-FP8 high/low-noise T2V experts, encoder, and Wan VAE.", "tags": ["wan", "video", "text-to-video", "comfyui", "fp8", "candidate"]},
-  "model": {"kind": "model", "publisher": "wan-ai", "slug": "wan-2-2-t2v-14b", "content_sha256": "19a71dc5d830a3ce7a1aef389b51b3f221815e0e7c57391158eb32de6d2de87a"},
-  "version": "comfyui-c4f60d30",
-  "source": {"repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged", "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77"},
-  "lineage": {"publisher": "Comfy-Org", "relation": "derived", "source_model": {"kind": "model", "publisher": "wan-ai", "slug": "wan-2-2-t2v-14b", "content_sha256": "19a71dc5d830a3ce7a1aef389b51b3f221815e0e7c57391158eb32de6d2de87a"}, "derivation": "Comfy-Org scaled-FP8 conversion of the official Wan 2.2 T2V A14B experts and required companions."},
-  "format": {"container": "safetensors", "precision": "fp8", "quantization": "fp8"},
-  "parameters": {"total": 14000000000, "active": 14000000000},
-  "limits": {"context_tokens": null, "resolution_pixels": null},
-  "sizes": {"download_bytes": 35577569479, "installed_bytes": 35577569479},
-  "license": {"spdx": "Apache-2.0", "url": "https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B/blob/c8c270b13ee05bfa474194ac9fb07a5868a97cea/LICENSE.txt", "attribution": ["Wan-AI", "Comfy-Org"], "operator_acceptance_required": false},
-  "access": {"visibility": "public", "gated": false, "authentication": "none"},
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "artifacts": [
-    {"id": "high-noise", "path": "split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors", "kind": "huggingface.file", "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/c4f60d30c55a624e35427060fdd217579a6c1d77/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors", "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77", "sha256": "cad711ae211c8b23455ec68cd6a190a33a3d874234a77eb57266d73f8f0e6c9f", "download_bytes": 14293923632, "installed_bytes": 14293923632, "roles": ["weights"]},
-    {"id": "low-noise", "path": "split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors", "kind": "huggingface.file", "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/c4f60d30c55a624e35427060fdd217579a6c1d77/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors", "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77", "sha256": "e71b96d7c82e638694c5e7fb98fac4bfb0e4ddc5fbbb4b1df40da8f0f1278a97", "download_bytes": 14293923632, "installed_bytes": 14293923632, "roles": ["weights"]},
-    {"id": "text-encoder", "path": "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors", "kind": "huggingface.file", "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/c4f60d30c55a624e35427060fdd217579a6c1d77/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors", "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77", "sha256": "c3355d30191f1f066b26d93fba017ae9809dce6c627dda5f6a66eaa651204f68", "download_bytes": 6735906897, "installed_bytes": 6735906897, "roles": ["text-encoder"]},
-    {"id": "vae", "path": "split_files/vae/wan_2.1_vae.safetensors", "kind": "huggingface.file", "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/c4f60d30c55a624e35427060fdd217579a6c1d77/split_files/vae/wan_2.1_vae.safetensors", "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77", "sha256": "2fc39d31359a4b0a64f55876d8ff7fa8d780956ae2cb13463b0223e15148976b", "download_bytes": 253815318, "installed_bytes": 253815318, "roles": ["vae"]}
+    {
+      "download_bytes": 14293923632,
+      "id": "high-noise",
+      "installed_bytes": 14293923632,
+      "kind": "huggingface.file",
+      "path": "split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors",
+      "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/c4f60d30c55a624e35427060fdd217579a6c1d77/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors",
+      "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "cad711ae211c8b23455ec68cd6a190a33a3d874234a77eb57266d73f8f0e6c9f"
+    },
+    {
+      "download_bytes": 14293923632,
+      "id": "low-noise",
+      "installed_bytes": 14293923632,
+      "kind": "huggingface.file",
+      "path": "split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors",
+      "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/c4f60d30c55a624e35427060fdd217579a6c1d77/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors",
+      "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e71b96d7c82e638694c5e7fb98fac4bfb0e4ddc5fbbb4b1df40da8f0f1278a97"
+    },
+    {
+      "download_bytes": 6735906897,
+      "id": "text-encoder",
+      "installed_bytes": 6735906897,
+      "kind": "huggingface.file",
+      "path": "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/c4f60d30c55a624e35427060fdd217579a6c1d77/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "c3355d30191f1f066b26d93fba017ae9809dce6c627dda5f6a66eaa651204f68"
+    },
+    {
+      "download_bytes": 253815318,
+      "id": "vae",
+      "installed_bytes": 253815318,
+      "kind": "huggingface.file",
+      "path": "split_files/vae/wan_2.1_vae.safetensors",
+      "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/c4f60d30c55a624e35427060fdd217579a6c1d77/split_files/vae/wan_2.1_vae.safetensors",
+      "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+      "roles": [
+        "vae"
+      ],
+      "sha256": "2fc39d31359a4b0a64f55876d8ff7fa8d780956ae2cb13463b0223e15148976b"
+    }
   ],
-  "dependencies": [], "availability": "active", "supersedes": null
+  "availability": "active",
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "video-generation",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "source_revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+      "source_url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "format": {
+    "container": "safetensors",
+    "precision": "fp8",
+    "quantization": "fp8"
+  },
+  "identity": {
+    "publisher": "wan-ai",
+    "slug": "wan-2-2-t2v-14b-comfyui-c4f60d30"
+  },
+  "kind": "model-version",
+  "license": {
+    "attribution": [
+      "Wan-AI",
+      "Comfy-Org"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B/blob/c8c270b13ee05bfa474194ac9fb07a5868a97cea/LICENSE.txt"
+  },
+  "limits": {
+    "context_tokens": null,
+    "resolution_pixels": null
+  },
+  "lineage": {
+    "derivation": "Comfy-Org scaled-FP8 conversion of the official Wan 2.2 T2V A14B experts and required companions.",
+    "publisher": "Comfy-Org",
+    "relation": "derived",
+    "source_model": {
+      "content_sha256": "19a71dc5d830a3ce7a1aef389b51b3f221815e0e7c57391158eb32de6d2de87a",
+      "kind": "model",
+      "publisher": "wan-ai",
+      "slug": "wan-2-2-t2v-14b"
+    }
+  },
+  "metadata": {
+    "description": "Exact Comfy-Org scaled-FP8 high/low-noise T2V experts, encoder, and Wan VAE.",
+    "tags": [
+      "wan",
+      "video",
+      "text-to-video",
+      "comfyui",
+      "fp8",
+      "candidate"
+    ],
+    "title": "Wan 2.2 T2V 14B ComfyUI revision c4f60d30"
+  },
+  "model": {
+    "content_sha256": "19a71dc5d830a3ce7a1aef389b51b3f221815e0e7c57391158eb32de6d2de87a",
+    "kind": "model",
+    "publisher": "wan-ai",
+    "slug": "wan-2-2-t2v-14b"
+  },
+  "parameters": {
+    "active": 14000000000,
+    "total": 14000000000
+  },
+  "schema_version": 1,
+  "sizes": {
+    "download_bytes": 35577569479,
+    "installed_bytes": 35577569479
+  },
+  "source": {
+    "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged",
+    "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77"
+  },
+  "supersedes": null,
+  "version": "comfyui-c4f60d30"
 }

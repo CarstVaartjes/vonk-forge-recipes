@@ -1,15 +1,72 @@
 {
-  "schema_version": 1,
-  "identity": {"publisher": "vonk-forge", "slug": "qwen-image-edit-2511-comfyui-single"},
-  "metadata": {"title": "Qwen Image Edit 2511 ComfyUI single Spark", "description": "Quality-reference Candidate for one-or-two-reference Qwen Image Edit 2511 jobs on one Spark, using Comfy-Org's monolithic BF16 transformer, scaled-FP8 Qwen-VL encoder, and Qwen Image VAE. Its declared admission envelope is 126.00 GB unified memory including reserve and 135.50 GB peak installation disk; choose the FP8mixed ComfyUI variant when memory or installation headroom matters.", "tags": ["executable", "candidate", "quality-reference", "qwen", "image", "editing", "comfyui", "bf16", "fp8", "single", "spark"], "alignment": "unspecified"},
-  "model": {"kind": "model-version", "publisher": "qwen", "slug": "qwen-image-edit-2511-comfyui-b6a07947", "content_sha256": "d7dee3da7edabd7ebc5b153166a7b037a3e01c521a66ace0f5f4523b5f39889f"},
-  "execution": {"harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "comfyui", "content_sha256": "0d97fceaa9a7ab64bf3d826b5d9ca427ea10be79b54a8d4fe9190711c9bf70d6"}, "patch_bundle": null},
+  "artifacts": [
+    {
+      "download_bytes": 40861031560,
+      "id": "target",
+      "installed_bytes": 40861031560,
+      "kind": "http.file",
+      "mount": {
+        "read_only": true,
+        "target": "/models/target"
+      },
+      "repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/resolve/b6a0794717d3f5600f85c5edcdcd0c0eb93d7446/split_files/diffusion_models/qwen_image_edit_2511_bf16.safetensors",
+      "revision": "sha256:ae42d927b5fac4f278b9a894554c727e619727a63622976f2d95625be4bce08c",
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "download_bytes": 9384670680,
+      "id": "text-encoder",
+      "installed_bytes": 9384670680,
+      "kind": "http.file",
+      "mount": {
+        "read_only": true,
+        "target": "/models/text-encoder"
+      },
+      "repository": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f/split_files/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors",
+      "revision": "sha256:cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4",
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "download_bytes": 253806246,
+      "id": "vae",
+      "installed_bytes": 253806246,
+      "kind": "http.file",
+      "mount": {
+        "read_only": true,
+        "target": "/models/vae"
+      },
+      "repository": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f/split_files/vae/qwen_image_vae.safetensors",
+      "revision": "sha256:a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f",
+      "roles": [
+        "entrypoint"
+      ]
+    }
+  ],
   "build": {
-    "context": {"path": "adapters/media/comfyui-core", "sha256": "ab8f73d84fa6b14bf00beb4b3bd6188033759f1607549d9a7ca09d2c07c30b38", "expected_bytes": 51200, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
-    "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
-    "network": {"mode": "public", "hosts": ["codeload.github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]},
-    "resources": {"download_bytes": 50499508486, "temporary_bytes": 60000000000, "memory_bytes": 8000000000, "timeout_seconds": 14400, "cpu_cores": 8, "processes": 4096}
-  ,
+    "arguments": [],
+    "context": {
+      "expected_bytes": 51200,
+      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
+      "path": "adapters/media/comfyui-core",
+      "sha256": "ab8f73d84fa6b14bf00beb4b3bd6188033759f1607549d9a7ca09d2c07c30b38"
+    },
+    "dockerfile": "Dockerfile",
+    "network": {
+      "hosts": [
+        "codeload.github.com",
+        "download.pytorch.org",
+        "pypi.org",
+        "files.pythonhosted.org",
+        "archive.ubuntu.com",
+        "security.ubuntu.com",
+        "ports.ubuntu.com"
+      ],
+      "mode": "public"
+    },
     "options": {
       "additional_contexts": [],
       "annotations": [],
@@ -34,25 +91,290 @@
       "unset_environment": [],
       "unset_labels": []
     },
+    "platform": "linux/arm64",
+    "resources": {
+      "cpu_cores": 8,
+      "download_bytes": 50499508486,
+      "memory_bytes": 8000000000,
+      "processes": 4096,
+      "temporary_bytes": 60000000000,
+      "timeout_seconds": 14400
+    },
     "security": {
       "capabilities": []
-    }},
-  "parameters": [],
-  "provenance": {"source_kind": "global", "source_reference": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/b6a0794717d3f5600f85c5edcdcd0c0eb93d7446", "attribution": ["Qwen", "Comfy-Org"]},
-  "artifacts": [
-    {"id": "target", "kind": "http.file", "repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/resolve/b6a0794717d3f5600f85c5edcdcd0c0eb93d7446/split_files/diffusion_models/qwen_image_edit_2511_bf16.safetensors", "revision": "sha256:ae42d927b5fac4f278b9a894554c727e619727a63622976f2d95625be4bce08c", "download_bytes": 40861031560, "installed_bytes": 40861031560, "mount": {"target": "/models/target", "read_only": true}, "roles": ["entrypoint"]},
-    {"id": "text-encoder", "kind": "http.file", "repository": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f/split_files/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors", "revision": "sha256:cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4", "download_bytes": 9384670680, "installed_bytes": 9384670680, "mount": {"target": "/models/text-encoder", "read_only": true}, "roles": ["entrypoint"]},
-    {"id": "vae", "kind": "http.file", "repository": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f/split_files/vae/qwen_image_vae.safetensors", "revision": "sha256:a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f", "download_bytes": 253806246, "installed_bytes": 253806246, "mount": {"target": "/models/vae", "read_only": true}, "roles": ["entrypoint"]}
-  ],
-  "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "comfy-org", "slug": "comfyui-0-34-0-cuda13-arm64", "content_sha256": "0400a5a7298a57cca1a049ef17baf21ce81c29fa897fbfa157256d4fde931d9c"},
-    "entrypoint": ["/opt/vonk/bin/comfyui-job"],
-    "arguments": [{"name": "workflow", "value": "/opt/vonk/source/workflows/qwen-image-edit-2511-bf16.json"}, {"name": "workflow-sha256", "value": "6290d110adcac4a6a934972946bd10936b2814b6b54a3e23ad0f615129a65291"}, {"name": "output-mime", "value": "image/png"}, {"name": "seed", "value": 0}],
-    "environment": [{"name": "HF_HUB_OFFLINE", "value": "1"}, {"name": "COMFYUI_DISABLE_TELEMETRY", "value": "1"}],
-    "security": {"devices": ["nvidia.com/gpu=all"], "capabilities": [], "host_network": false, "privileged": false, "user": "10001:10001", "mounts": [{"source": "model", "target": "/models", "read_only": true}, {"source": "inputs", "target": "/inputs", "read_only": true}, {"source": "outputs", "target": "/outputs", "read_only": false}]},
-    "lifecycle": {"pre_start": [], "post_stop": [], "stop_timeout_seconds": 120, "readiness": {"strategy": "endpoint-owner", "path": "/outputs", "timeout_seconds": 3600}, "failure": {"rank_loss": "not-applicable", "recovery": "restart-entrypoint"}}
+    }
   },
-  "topology": {"name": "solo", "mode": "single", "node_count": 1, "roles": [{"name": "entrypoint", "count": 1, "endpoint_owner": true, "artifacts": ["target", "text-encoder", "vae"], "resources": {"disk": {"image_bytes": 5000000000, "artifact_bytes": 50499508486, "staging_bytes": 60000000000, "cache_bytes": 8000000000, "rollback_bytes": 0, "safety_margin_bytes": 12000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 118000000000, "steady_state_bytes": 98000000000, "runtime_growth_bytes": 8000000000, "system_reserve_bytes": 8000000000}}}], "parallelism": {"world_size": 1, "tensor": 1, "pipeline": 1, "data": 1, "backend": "local"}, "fabric": {"connectivity": "none", "minimum_bandwidth_mbps": 0}, "start_order": ["entrypoint"], "stop_order": ["entrypoint"]},
-  "interfaces": [{"adapter": "image-job", "path": "/outputs", "input": {"path": "/inputs", "required": true, "media_types": ["text/plain", "image/jpeg", "image/png", "image/webp"], "max_bytes": 33570816, "slots": [{"id": "prompt", "label": "Prompt", "description": "UTF-8 instructions describing the requested image edit.", "media_types": ["text/plain"], "extensions": [".txt"], "min_files": 1, "max_files": 1, "max_file_bytes": 16384, "max_total_bytes": 16384}, {"id": "image", "label": "Reference images", "description": "One or two source images to edit or combine.", "media_types": ["image/jpeg", "image/png", "image/webp"], "extensions": [".jpg", ".jpeg", ".png", ".webp"], "min_files": 1, "max_files": 2, "max_file_bytes": 16777216, "max_total_bytes": 33554432}]}, "output": {"path": "/outputs", "max_total_bytes": 16777216, "slots": [{"id": "image", "label": "Edited image", "description": "Single edited PNG image.", "media_types": ["image/png"], "extensions": [".png"], "min_files": 1, "max_files": 1, "max_file_bytes": 16777216, "max_total_bytes": 16777216}]}}],
-  "validation": {"validators": [{"interface": "image-job", "checks": ["artifact.mime.image-png"]}], "benchmarks": [{"name": "qwen-image-edit-2511-two-reference", "framework": "comfyui", "configuration": {"references": 2, "steps": 40, "timeout_seconds": 14400}}]}
+  "execution": {
+    "harness": {
+      "content_sha256": "0d97fceaa9a7ab64bf3d826b5d9ca427ea10be79b54a8d4fe9190711c9bf70d6",
+      "kind": "execution-harness",
+      "publisher": "vonk-forge",
+      "slug": "comfyui"
+    },
+    "patch_bundle": null
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-edit-2511-comfyui-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "image-job",
+      "input": {
+        "max_bytes": 33570816,
+        "media_types": [
+          "text/plain",
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "path": "/inputs",
+        "required": true,
+        "slots": [
+          {
+            "description": "UTF-8 instructions describing the requested image edit.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "prompt",
+            "label": "Prompt",
+            "max_file_bytes": 16384,
+            "max_files": 1,
+            "max_total_bytes": 16384,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          },
+          {
+            "description": "One or two source images to edit or combine.",
+            "extensions": [
+              ".jpg",
+              ".jpeg",
+              ".png",
+              ".webp"
+            ],
+            "id": "image",
+            "label": "Reference images",
+            "max_file_bytes": 16777216,
+            "max_files": 2,
+            "max_total_bytes": 33554432,
+            "media_types": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 16777216,
+        "path": "/outputs",
+        "slots": [
+          {
+            "description": "Single edited PNG image.",
+            "extensions": [
+              ".png"
+            ],
+            "id": "image",
+            "label": "Edited image",
+            "max_file_bytes": 16777216,
+            "max_files": 1,
+            "max_total_bytes": 16777216,
+            "media_types": [
+              "image/png"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "path": "/outputs"
+    }
+  ],
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Quality-reference Candidate for one-or-two-reference Qwen Image Edit 2511 jobs on one Spark, using Comfy-Org's monolithic BF16 transformer, scaled-FP8 Qwen-VL encoder, and Qwen Image VAE. Its declared admission envelope is 126.00 GB unified memory including reserve and 135.50 GB peak installation disk; choose the FP8mixed ComfyUI variant when memory or installation headroom matters.",
+    "tags": [
+      "executable",
+      "candidate",
+      "quality-reference",
+      "qwen",
+      "image",
+      "editing",
+      "comfyui",
+      "bf16",
+      "fp8",
+      "single",
+      "spark"
+    ],
+    "title": "Qwen Image Edit 2511 ComfyUI single Spark"
+  },
+  "model": {
+    "content_sha256": "6f25559e9cc5882ee33f09c6b4552c2fbc75a23885ab15875b7210c3900911a8",
+    "kind": "model-version",
+    "publisher": "qwen",
+    "slug": "qwen-image-edit-2511-comfyui-b6a07947"
+  },
+  "parameters": [],
+  "provenance": {
+    "attribution": [
+      "Qwen",
+      "Comfy-Org"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/b6a0794717d3f5600f85c5edcdcd0c0eb93d7446"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "workflow",
+        "value": "/opt/vonk/source/workflows/qwen-image-edit-2511-bf16.json"
+      },
+      {
+        "name": "workflow-sha256",
+        "value": "6290d110adcac4a6a934972946bd10936b2814b6b54a3e23ad0f615129a65291"
+      },
+      {
+        "name": "output-mime",
+        "value": "image/png"
+      },
+      {
+        "name": "seed",
+        "value": 0
+      }
+    ],
+    "distribution": {
+      "content_sha256": "0400a5a7298a57cca1a049ef17baf21ce81c29fa897fbfa157256d4fde931d9c",
+      "kind": "runtime-distribution",
+      "publisher": "comfy-org",
+      "slug": "comfyui-0-34-0-cuda13-arm64"
+    },
+    "entrypoint": [
+      "/opt/vonk/bin/comfyui-job"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "COMFYUI_DISABLE_TELEMETRY",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "failure": {
+        "rank_loss": "not-applicable",
+        "recovery": "restart-entrypoint"
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "readiness": {
+        "path": "/outputs",
+        "strategy": "endpoint-owner",
+        "timeout_seconds": 3600
+      },
+      "stop_timeout_seconds": 120
+    },
+    "security": {
+      "capabilities": [],
+      "devices": [
+        "nvidia.com/gpu=all"
+      ],
+      "host_network": false,
+      "mounts": [
+        {
+          "read_only": true,
+          "source": "model",
+          "target": "/models"
+        },
+        {
+          "read_only": true,
+          "source": "inputs",
+          "target": "/inputs"
+        },
+        {
+          "read_only": false,
+          "source": "outputs",
+          "target": "/outputs"
+        }
+      ],
+      "privileged": false,
+      "user": "10001:10001"
+    }
+  },
+  "schema_version": 1,
+  "topology": {
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
+    "mode": "single",
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
+    "roles": [
+      {
+        "artifacts": [
+          "target",
+          "text-encoder",
+          "vae"
+        ],
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 50499508486,
+            "cache_bytes": 8000000000,
+            "image_bytes": 5000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 60000000000
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
+            "startup_peak_bytes": 118000000000,
+            "steady_state_bytes": 98000000000,
+            "system_reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ],
+    "stop_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "benchmarks": [
+      {
+        "configuration": {
+          "references": 2,
+          "steps": 40,
+          "timeout_seconds": 14400
+        },
+        "framework": "comfyui",
+        "name": "qwen-image-edit-2511-two-reference"
+      }
+    ],
+    "validators": [
+      {
+        "checks": [
+          "artifact.mime.image-png"
+        ],
+        "interface": "image-job"
+      }
+    ]
+  }
 }

@@ -1,45 +1,38 @@
 {
-  "schema_version": 1,
-  "identity": {"publisher": "vonk-forge", "slug": "glm-5-2-quanttrio-vllm-four"},
-  "metadata": {
-    "alignment": "unspecified",
-    "title": "GLM 5.2 QuantTrio four Sparks (superseded)",
-    "description": "Superseded historical Candidate TP4 recipe for the unpruned GLM 5.2 Int4/Int8 checkpoint. It is unsupported on Vonk's current one- or two-Spark configuration: a two-rank split alone would require at least 202.8 GB of checkpoint bytes per Spark before KV cache or runtime overhead, above the roughly 126.9 GB-per-node inventory. The immutable contract remains installable for reproducibility; its archived upstream directs four-node users to DFlash, while glm-5-3-flash-exl3-dflash2-vllm-dual is the current 126 GB-admission-envelope GLM alternative.",
-    "tags": ["executable", "candidate", "chat", "distributed", "glm-5.2", "historical", "reasoning", "spark", "superseded", "tp4"]
-  },
-  "model": {
-    "kind": "model-version",
-    "publisher": "quanttrio",
-    "slug": "glm-5-2-int4-int8mix",
-    "content_sha256": "2c3fdd5227d9859c8c47c977e968f4543f68a2ff8ed9ca7e3de9e096b8d56cde"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "vllm",
-      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"
-    },
-    "patch_bundle": {
-      "kind": "patch-bundle",
-      "publisher": "drowzeys",
-      "slug": "glm-5-2-quanttrio-four-topology",
-      "content_sha256": "6adf0cbad4ac24d7dab2f38105fe0eb3b756036d487600b043c939ad1ee4d794"
+  "artifacts": [
+    {
+      "download_bytes": 405518511891,
+      "id": "weights",
+      "installed_bytes": 405518511891,
+      "kind": "huggingface.snapshot",
+      "mount": {
+        "read_only": true,
+        "target": "/models"
+      },
+      "repository": "QuantTrio/GLM-5.2-Int4-Int8Mix",
+      "revision": "1d3bcfe5ec549ecd000fd80b37f191183842e983",
+      "roles": [
+        "entrypoint",
+        "worker"
+      ]
     }
-  },
+  ],
   "build": {
+    "arguments": [],
     "context": {
-      "path": "adapters/glm/eugr-four",
-      "sha256": "d79bd5835ee30ae31409a6a2affcaaafdd252f029a6a89ce2baa37f5d59041ce",
       "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
+      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
+      "path": "adapters/glm/eugr-four",
+      "sha256": "d79bd5835ee30ae31409a6a2affcaaafdd252f029a6a89ce2baa37f5d59041ce"
     },
     "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {"mode": "public", "hosts": ["ghcr.io", "files.pythonhosted.org"]},
-    "resources": {"download_bytes": 9913559749, "temporary_bytes": 20000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200, "cpu_cores": 8, "processes": 4096}
-  ,
+    "network": {
+      "hosts": [
+        "ghcr.io",
+        "files.pythonhosted.org"
+      ],
+      "mode": "public"
+    },
     "options": {
       "additional_contexts": [],
       "annotations": [],
@@ -64,130 +57,389 @@
       "unset_environment": [],
       "unset_labels": []
     },
+    "platform": "linux/arm64",
+    "resources": {
+      "cpu_cores": 8,
+      "download_bytes": 9913559749,
+      "memory_bytes": 8000000000,
+      "processes": 4096,
+      "temporary_bytes": 20000000000,
+      "timeout_seconds": 7200
+    },
     "security": {
       "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
-    {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "QuantTrio/GLM-5.2-Int4-Int8Mix",
-      "revision": "1d3bcfe5ec549ecd000fd80b37f191183842e983",
-      "download_bytes": 405518511891,
-      "installed_bytes": 405518511891,
-      "mount": {"target": "/models", "read_only": true},
-      "roles": ["entrypoint", "worker"]
-    }
-  ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "drowzeys",
-      "slug": "glm-5-2-quanttrio-four-spark",
-      "content_sha256": "9bc8f5f2b06af0a686cef3105a6d858bc45f79272111832097866b734356ef59"
-    },
-    "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
-    "arguments": [
-      {"name": "served-model-name", "value": "glm-5.2"},
-      {"name": "trust-remote-code", "value": true},
-      {"name": "tensor-parallel-size", "value": 4},
-      {"name": "pipeline-parallel-size", "value": 1},
-      {"name": "dtype", "value": "bfloat16"},
-      {"name": "kv-cache-dtype", "value": "fp8_ds_mla"},
-      {"name": "kv-cache-memory-bytes", "value": 7008000000},
-      {"name": "gpu-memory-utilization", "value": "0.86"},
-      {"name": "max-model-len", "value": 128000},
-      {"name": "max-num-seqs", "value": 4},
-      {"name": "max-num-batched-tokens", "value": 8192},
-      {"name": "speculative-config", "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":4,\"draft_tensor_parallel_size\":1,\"attention_backend\":\"FLASHMLA_SPARSE\"}"},
-      {"name": "compilation-config", "value": "{\"cudagraph_mode\":\"FULL\",\"pass_config\":{\"fuse_gemm_comms\":true}}"},
-      {"name": "async-scheduling", "value": true},
-      {"name": "enable-prefix-caching", "value": true},
-      {"name": "enable-auto-tool-choice", "value": true},
-      {"name": "tool-call-parser", "value": "glm47"},
-      {"name": "reasoning-parser", "value": "glm45"}
-    ],
-    "environment": [
-      {"name": "HF_HUB_OFFLINE", "value": "1"},
-      {"name": "TRANSFORMERS_OFFLINE", "value": "1"},
-      {"name": "VLLM_ALLOW_LONG_MAX_MODEL_LEN", "value": "1"},
-      {"name": "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS", "value": "1800"},
-      {"name": "VLLM_SPARSE_INDEXER_MAX_LOGITS_MB", "value": "256"},
-      {"name": "GLM52_BIND_HOST_TRITON", "value": "1"},
-      {"name": "GLM52_MQA_LOGITS_TRITON", "value": "1"},
-      {"name": "GLM52_PAGED_MQA_TRITON", "value": "1"},
-      {"name": "GLM52_PAGED_MQA_TOPK_CHUNK_SIZE", "value": "8192"},
-      {"name": "GLM52_B12X_MLA", "value": "1"},
-      {"name": "TORCH_CUDA_ARCH_LIST", "value": "12.1a"},
-      {"name": "VLLM_MARLIN_USE_ATOMIC_ADD", "value": "1"},
-      {"name": "NCCL_IGNORE_CPU_AFFINITY", "value": "1"},
-      {"name": "NCCL_NET", "value": "IB"},
-      {"name": "NCCL_IB_DISABLE", "value": "0"},
-      {"name": "NCCL_CROSS_NIC", "value": "1"},
-      {"name": "NCCL_CUMEM_ENABLE", "value": "0"},
-      {"name": "NCCL_MAX_NCHANNELS", "value": "4"},
-      {"name": "NCCL_MIN_NCHANNELS", "value": "4"},
-      {"name": "NCCL_DEBUG", "value": "WARN"}
-    ],
-    "security": {
-      "devices": ["nvidia.com/gpu=all"],
-      "capabilities": [],
-      "host_network": true,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {"source": "model", "target": "/models", "read_only": true},
-        {"source": "outputs", "target": "/outputs", "read_only": false}
-      ]
-    },
-    "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 180,
-      "readiness": {"strategy": "endpoint-owner-after-all-ranks", "path": "/v1/models", "timeout_seconds": 3600},
-      "failure": {"rank_loss": "withdraw-endpoint", "recovery": "restart-worker-then-entrypoint"}
     }
   },
+  "execution": {
+    "harness": {
+      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d",
+      "kind": "execution-harness",
+      "publisher": "vonk-forge",
+      "slug": "vllm"
+    },
+    "patch_bundle": {
+      "content_sha256": "6adf0cbad4ac24d7dab2f38105fe0eb3b756036d487600b043c939ad1ee4d794",
+      "kind": "patch-bundle",
+      "publisher": "drowzeys",
+      "slug": "glm-5-2-quanttrio-four-topology"
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-2-quanttrio-vllm-four"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "glm-5.2"
+      ],
+      "port": 8888
+    }
+  ],
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Superseded historical Candidate TP4 recipe for the unpruned GLM 5.2 Int4/Int8 checkpoint. It is unsupported on Vonk's current one- or two-Spark configuration: a two-rank split alone would require at least 202.8 GB of checkpoint bytes per Spark before KV cache or runtime overhead, above the roughly 126.9 GB-per-node inventory. The immutable contract remains installable for reproducibility; its archived upstream directs four-node users to DFlash, while glm-5-3-flash-exl3-dflash2-vllm-dual is the current 126 GB-admission-envelope GLM alternative.",
+    "tags": [
+      "executable",
+      "candidate",
+      "chat",
+      "distributed",
+      "glm-5.2",
+      "historical",
+      "reasoning",
+      "spark",
+      "superseded",
+      "tp4"
+    ],
+    "title": "GLM 5.2 QuantTrio four Sparks (superseded)"
+  },
+  "model": {
+    "content_sha256": "6e1da21825a183867e9331c8e16cbdbd3b7a0ce97ba8233a03f0f66d2a782cee",
+    "kind": "model-version",
+    "publisher": "quanttrio",
+    "slug": "glm-5-2-int4-int8mix"
+  },
+  "parameters": [],
+  "provenance": {
+    "attribution": [
+      "Z.ai",
+      "QuantTrio",
+      "drowzeys",
+      "tonyd2wild",
+      "CosmicRaisins",
+      "eugr",
+      "vLLM contributors"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://github.com/drowzeys/keys-GLM5.2-Quantrio-INT4-INT8-Mixed-Abliterated-C1-30toks-4x-DGX-Sparks/tree/296699b44e024de938cb8b3251d49d4b1306a507"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "value": "glm-5.2"
+      },
+      {
+        "name": "trust-remote-code",
+        "value": true
+      },
+      {
+        "name": "tensor-parallel-size",
+        "value": 4
+      },
+      {
+        "name": "pipeline-parallel-size",
+        "value": 1
+      },
+      {
+        "name": "dtype",
+        "value": "bfloat16"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "value": "fp8_ds_mla"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "value": 7008000000
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "value": "0.86"
+      },
+      {
+        "name": "max-model-len",
+        "value": 128000
+      },
+      {
+        "name": "max-num-seqs",
+        "value": 4
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "value": 8192
+      },
+      {
+        "name": "speculative-config",
+        "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":4,\"draft_tensor_parallel_size\":1,\"attention_backend\":\"FLASHMLA_SPARSE\"}"
+      },
+      {
+        "name": "compilation-config",
+        "value": "{\"cudagraph_mode\":\"FULL\",\"pass_config\":{\"fuse_gemm_comms\":true}}"
+      },
+      {
+        "name": "async-scheduling",
+        "value": true
+      },
+      {
+        "name": "enable-prefix-caching",
+        "value": true
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "value": "glm47"
+      },
+      {
+        "name": "reasoning-parser",
+        "value": "glm45"
+      }
+    ],
+    "distribution": {
+      "content_sha256": "9bc8f5f2b06af0a686cef3105a6d858bc45f79272111832097866b734356ef59",
+      "kind": "runtime-distribution",
+      "publisher": "drowzeys",
+      "slug": "glm-5-2-quanttrio-four-spark"
+    },
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_ALLOW_LONG_MAX_MODEL_LEN",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS",
+        "value": "1800"
+      },
+      {
+        "name": "VLLM_SPARSE_INDEXER_MAX_LOGITS_MB",
+        "value": "256"
+      },
+      {
+        "name": "GLM52_BIND_HOST_TRITON",
+        "value": "1"
+      },
+      {
+        "name": "GLM52_MQA_LOGITS_TRITON",
+        "value": "1"
+      },
+      {
+        "name": "GLM52_PAGED_MQA_TRITON",
+        "value": "1"
+      },
+      {
+        "name": "GLM52_PAGED_MQA_TOPK_CHUNK_SIZE",
+        "value": "8192"
+      },
+      {
+        "name": "GLM52_B12X_MLA",
+        "value": "1"
+      },
+      {
+        "name": "TORCH_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "VLLM_MARLIN_USE_ATOMIC_ADD",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_IGNORE_CPU_AFFINITY",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_NET",
+        "value": "IB"
+      },
+      {
+        "name": "NCCL_IB_DISABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CROSS_NIC",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_CUMEM_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_MAX_NCHANNELS",
+        "value": "4"
+      },
+      {
+        "name": "NCCL_MIN_NCHANNELS",
+        "value": "4"
+      },
+      {
+        "name": "NCCL_DEBUG",
+        "value": "WARN"
+      }
+    ],
+    "lifecycle": {
+      "failure": {
+        "rank_loss": "withdraw-endpoint",
+        "recovery": "restart-worker-then-entrypoint"
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "readiness": {
+        "path": "/v1/models",
+        "strategy": "endpoint-owner-after-all-ranks",
+        "timeout_seconds": 3600
+      },
+      "stop_timeout_seconds": 180
+    },
+    "security": {
+      "capabilities": [],
+      "devices": [
+        "nvidia.com/gpu=all"
+      ],
+      "host_network": true,
+      "mounts": [
+        {
+          "read_only": true,
+          "source": "model",
+          "target": "/models"
+        },
+        {
+          "read_only": false,
+          "source": "outputs",
+          "target": "/outputs"
+        }
+      ],
+      "privileged": false,
+      "user": "10001:10001"
+    }
+  },
+  "schema_version": 1,
   "topology": {
-    "name": "four",
+    "fabric": {
+      "connectivity": "connected",
+      "minimum_bandwidth_mbps": 200000
+    },
     "mode": "distributed",
+    "name": "four",
     "node_count": 4,
+    "parallelism": {
+      "backend": "mp",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 4,
+      "world_size": 4
+    },
     "roles": [
       {
-        "name": "entrypoint",
+        "artifacts": [
+          "weights"
+        ],
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": ["weights"],
+        "name": "entrypoint",
         "resources": {
-          "disk": {"image_bytes": 25000000000, "artifact_bytes": 405518511891, "staging_bytes": 20000000000, "cache_bytes": 50000000000, "rollback_bytes": 0, "safety_margin_bytes": 30000000000},
-          "memory": {"kind": "unified", "startup_peak_bytes": 118000000000, "steady_state_bytes": 110000000000, "runtime_growth_bytes": 6000000000, "system_reserve_bytes": 8000000000}
+          "disk": {
+            "artifact_bytes": 405518511891,
+            "cache_bytes": 50000000000,
+            "image_bytes": 25000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 30000000000,
+            "staging_bytes": 20000000000
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 6000000000,
+            "startup_peak_bytes": 118000000000,
+            "steady_state_bytes": 110000000000,
+            "system_reserve_bytes": 8000000000
+          }
         }
       },
       {
-        "name": "worker",
+        "artifacts": [
+          "weights"
+        ],
         "count": 3,
         "endpoint_owner": false,
-        "artifacts": ["weights"],
+        "name": "worker",
         "resources": {
-          "disk": {"image_bytes": 25000000000, "artifact_bytes": 405518511891, "staging_bytes": 20000000000, "cache_bytes": 50000000000, "rollback_bytes": 0, "safety_margin_bytes": 30000000000},
-          "memory": {"kind": "unified", "startup_peak_bytes": 118000000000, "steady_state_bytes": 110000000000, "runtime_growth_bytes": 6000000000, "system_reserve_bytes": 8000000000}
+          "disk": {
+            "artifact_bytes": 405518511891,
+            "cache_bytes": 50000000000,
+            "image_bytes": 25000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 30000000000,
+            "staging_bytes": 20000000000
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 6000000000,
+            "startup_peak_bytes": 118000000000,
+            "steady_state_bytes": 110000000000,
+            "system_reserve_bytes": 8000000000
+          }
         }
       }
     ],
-    "parallelism": {"world_size": 4, "tensor": 4, "pipeline": 1, "data": 1, "backend": "mp"},
-    "fabric": {"connectivity": "connected", "minimum_bandwidth_mbps": 200000},
-    "start_order": ["worker", "entrypoint"],
-    "stop_order": ["entrypoint", "worker"]
+    "start_order": [
+      "worker",
+      "entrypoint"
+    ],
+    "stop_order": [
+      "entrypoint",
+      "worker"
+    ]
   },
-  "interfaces": [{"adapter": "openai", "port": 8888, "model_aliases": ["glm-5.2"], "health_path": "/v1/models"}],
   "validation": {
-    "validators": [{"interface": "openai", "checks": ["endpoint.healthy", "collective.two-ranks", "chat.nonempty", "chat.max-output-64", "rank-loss.withdrawal", "rank-recovery.healthy"]}],
-    "benchmarks": [{"name": "bounded-chat", "framework": "openai", "configuration": {"max_output_tokens": 64, "requests": 1, "timeout_seconds": 300}}]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://github.com/drowzeys/keys-GLM5.2-Quantrio-INT4-INT8-Mixed-Abliterated-C1-30toks-4x-DGX-Sparks/tree/296699b44e024de938cb8b3251d49d4b1306a507",
-    "attribution": ["Z.ai", "QuantTrio", "drowzeys", "tonyd2wild", "CosmicRaisins", "eugr", "vLLM contributors"]
+    "benchmarks": [
+      {
+        "configuration": {
+          "max_output_tokens": 64,
+          "requests": 1,
+          "timeout_seconds": 300
+        },
+        "framework": "openai",
+        "name": "bounded-chat"
+      }
+    ],
+    "validators": [
+      {
+        "checks": [
+          "endpoint.healthy",
+          "collective.two-ranks",
+          "chat.nonempty",
+          "chat.max-output-64",
+          "rank-loss.withdrawal",
+          "rank-recovery.healthy"
+        ],
+        "interface": "openai"
+      }
+    ]
   }
 }

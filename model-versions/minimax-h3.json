@@ -1,69 +1,64 @@
 {
-  "schema_version": 1,
-  "kind": "model-version",
-  "identity": {
-    "publisher": "minimax",
-    "slug": "minimax-h3"
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
   },
-  "metadata": {
-    "title": "MiniMax H3",
-    "description": "Immutable official MiniMax H3 BF16 snapshot with FL2VA and Ref2VA checkpoints plus the Modular Diffusers layout at 42ed227e.",
-    "tags": [
-      "minimax",
-      "video",
-      "audio",
-      "multimodal",
-      "candidate"
-    ]
-  },
-  "model": {
-    "kind": "model",
-    "publisher": "minimax",
-    "slug": "minimax-h3",
-    "content_sha256": "f4c971d25f8b6f46af03821eac888c10306573fe4648e9906e22709cc642d5d7"
-  },
-  "version": "MiniMax H3 42ed227e",
-  "source": {
-    "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
-    "revision": "42ed227ee7df40d41602854ae760620d6eb651fe"
-  },
-  "lineage": {
-    "publisher": "minimax",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "minimax",
-      "slug": "minimax-h3",
-      "content_sha256": "f4c971d25f8b6f46af03821eac888c10306573fe4648e9906e22709cc642d5d7"
+  "artifacts": [
+    {
+      "download_bytes": 498474749480,
+      "id": "snapshot",
+      "installed_bytes": 498474749480,
+      "kind": "huggingface.file",
+      "path": "snapshot",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "entrypoint"
+      ],
+      "sha256": "2b2aae1ba949fc547e36eb7addcbc0714032a2743b21d4d2bd0d47762a9b6a52"
+    }
+  ],
+  "availability": "active",
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "audio-generation",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "video-generation",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "source_revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "source_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3"
     },
-    "derivation": "Immutable public upstream snapshot at the pinned revision."
+    "schema_version": 2
   },
+  "dependencies": [],
   "format": {
     "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
-  "parameters": {
-    "total": 33000000000,
-    "active": null
+  "identity": {
+    "publisher": "minimax",
+    "slug": "minimax-h3"
   },
-  "limits": {
-    "context_tokens": null,
-    "resolution_pixels": 1032192,
-    "frames": 345,
-    "sample_rate_hz": 32000
-  },
-  "sizes": {
-    "download_bytes": 498474749480,
-    "installed_bytes": 498474749480
-  },
+  "kind": "model-version",
   "license": {
-    "spdx": "LicenseRef-MiniMax-H3-Community-License",
-    "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE",
     "attribution": [
       "minimax"
     ],
     "operator_acceptance_required": true,
+    "spdx": "LicenseRef-MiniMax-H3-Community-License",
     "territorial_restrictions": {
       "denied_jurisdictions": [
         "EU",
@@ -72,29 +67,56 @@
         "US"
       ],
       "notice": "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."
+    },
+    "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": 345,
+    "resolution_pixels": 1032192,
+    "sample_rate_hz": 32000
+  },
+  "lineage": {
+    "derivation": "Immutable public upstream snapshot at the pinned revision.",
+    "publisher": "minimax",
+    "relation": "official",
+    "source_model": {
+      "content_sha256": "f4c971d25f8b6f46af03821eac888c10306573fe4648e9906e22709cc642d5d7",
+      "kind": "model",
+      "publisher": "minimax",
+      "slug": "minimax-h3"
     }
   },
-  "access": {
-    "visibility": "public",
-    "gated": false,
-    "authentication": "none"
+  "metadata": {
+    "description": "Immutable official MiniMax H3 BF16 snapshot with FL2VA and Ref2VA checkpoints plus the Modular Diffusers layout at 42ed227e.",
+    "tags": [
+      "minimax",
+      "video",
+      "audio",
+      "multimodal",
+      "candidate"
+    ],
+    "title": "MiniMax H3"
   },
-  "artifacts": [
-    {
-      "id": "snapshot",
-      "path": "snapshot",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "2b2aae1ba949fc547e36eb7addcbc0714032a2743b21d4d2bd0d47762a9b6a52",
-      "download_bytes": 498474749480,
-      "installed_bytes": 498474749480,
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "dependencies": [],
-  "availability": "active",
-  "supersedes": null
+  "model": {
+    "content_sha256": "f4c971d25f8b6f46af03821eac888c10306573fe4648e9906e22709cc642d5d7",
+    "kind": "model",
+    "publisher": "minimax",
+    "slug": "minimax-h3"
+  },
+  "parameters": {
+    "active": null,
+    "total": 33000000000
+  },
+  "schema_version": 1,
+  "sizes": {
+    "download_bytes": 498474749480,
+    "installed_bytes": 498474749480
+  },
+  "source": {
+    "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
+    "revision": "42ed227ee7df40d41602854ae760620d6eb651fe"
+  },
+  "supersedes": null,
+  "version": "MiniMax H3 42ed227e"
 }

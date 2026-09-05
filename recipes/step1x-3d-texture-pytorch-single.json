@@ -1,53 +1,61 @@
 {
-  "schema_version": 1,
-  "identity": {
-    "publisher": "vonk-forge",
-    "slug": "step1x-3d-texture-pytorch-single"
-  },
-  "metadata": {
-    "alignment": "unspecified",
-    "title": "Step1X-3D texture pytorch-pipeline single Spark",
-    "description": "Installable single-DGX Spark image-and-mesh texturing Candidate using exact Step1X, SDXL, and fixed-VAE snapshots plus SM121-native rasterizer dependencies. It consumes a GLB up to 240 MiB from vonk-forge/step1x-3d-geometry-pytorch-single or vonk-forge/step1x-3d-label-geometry-pytorch-single together with the same reference image, runs offline, and emits a textured GLB. Physical Spark quality, memory, and latency acceptance is still required.",
-    "tags": [
-      "candidate",
-      "three-d",
-      "pytorch-pipeline",
-      "single",
-      "spark",
-      "executable",
-      "offline",
-      "source-bundled",
-      "stage-texture",
-      "accepts-step1x-geometry"
-    ]
-  },
-  "model": {
-    "kind": "model-version",
-    "publisher": "stepfun-ai",
-    "slug": "step1x-3d-texture",
-    "content_sha256": "90ab4fe14f5ef74ddbc2511467a393bd34988f101a0b0753379eb0ba7f8c7d91"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "pytorch-pipeline",
-      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c"
+  "artifacts": [
+    {
+      "download_bytes": 19640984131,
+      "id": "target",
+      "installed_bytes": 19640984131,
+      "kind": "huggingface.snapshot",
+      "mount": {
+        "read_only": true,
+        "target": "/models/target"
+      },
+      "repository": "stepfun-ai/Step1X-3D",
+      "revision": "bf7084495b3a72222f36549b7942948aa4d9daa7",
+      "roles": [
+        "entrypoint"
+      ]
     },
-    "patch_bundle": null
-  },
+    {
+      "download_bytes": 76912765291,
+      "id": "sdxl",
+      "installed_bytes": 76912765291,
+      "kind": "huggingface.snapshot",
+      "mount": {
+        "read_only": true,
+        "target": "/models/sdxl"
+      },
+      "repository": "stabilityai/stable-diffusion-xl-base-1.0",
+      "revision": "462165984030d82259a11f4367a4eed129e94a7b",
+      "roles": [
+        "entrypoint"
+      ]
+    },
+    {
+      "download_bytes": 1343646154,
+      "id": "sdxl-vae",
+      "installed_bytes": 1343646154,
+      "kind": "huggingface.snapshot",
+      "mount": {
+        "read_only": true,
+        "target": "/models/sdxl-vae"
+      },
+      "repository": "madebyollin/sdxl-vae-fp16-fix",
+      "revision": "207b116dae70ace3637169f1ddd2434b91b3a8cd",
+      "roles": [
+        "entrypoint"
+      ]
+    }
+  ],
   "build": {
+    "arguments": [],
     "context": {
-      "path": "adapters/three-d/step1x-3d",
-      "sha256": "644001157fdff2bd6852f7633730353b97c5aaee70f03002805102031df06672",
       "expected_bytes": 81920,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
+      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
+      "path": "adapters/three-d/step1x-3d",
+      "sha256": "644001157fdff2bd6852f7633730353b97c5aaee70f03002805102031df06672"
     },
     "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
     "network": {
-      "mode": "public",
       "hosts": [
         "download.pytorch.org",
         "github.com",
@@ -58,17 +66,9 @@
         "archive.ubuntu.com",
         "security.ubuntu.com",
         "ports.ubuntu.com"
-      ]
+      ],
+      "mode": "public"
     },
-    "resources": {
-      "download_bytes": 110897395576,
-      "temporary_bytes": 160000000000,
-      "memory_bytes": 24000000000,
-      "timeout_seconds": 14400
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
     "options": {
       "additional_contexts": [],
       "annotations": [],
@@ -93,67 +93,139 @@
       "unset_environment": [],
       "unset_labels": []
     },
+    "platform": "linux/arm64",
+    "resources": {
+      "cpu_cores": 8,
+      "download_bytes": 110897395576,
+      "memory_bytes": 24000000000,
+      "processes": 4096,
+      "temporary_bytes": 160000000000,
+      "timeout_seconds": 14400
+    },
     "security": {
       "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
-    {
-      "id": "target",
-      "kind": "huggingface.snapshot",
-      "repository": "stepfun-ai/Step1X-3D",
-      "revision": "bf7084495b3a72222f36549b7942948aa4d9daa7",
-      "download_bytes": 19640984131,
-      "installed_bytes": 19640984131,
-      "mount": {
-        "target": "/models/target",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+    }
+  },
+  "execution": {
+    "harness": {
+      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c",
+      "kind": "execution-harness",
+      "publisher": "vonk-forge",
+      "slug": "pytorch-pipeline"
     },
+    "patch_bundle": null
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "step1x-3d-texture-pytorch-single"
+  },
+  "interfaces": [
     {
-      "id": "sdxl",
-      "kind": "huggingface.snapshot",
-      "repository": "stabilityai/stable-diffusion-xl-base-1.0",
-      "revision": "462165984030d82259a11f4367a4eed129e94a7b",
-      "download_bytes": 76912765291,
-      "installed_bytes": 76912765291,
-      "mount": {
-        "target": "/models/sdxl",
-        "read_only": true
+      "adapter": "mesh-job",
+      "input": {
+        "max_bytes": 268435456,
+        "media_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "model/gltf-binary"
+        ],
+        "path": "/inputs",
+        "required": true,
+        "slots": [
+          {
+            "description": "One reference image used to texture the mesh.",
+            "extensions": [
+              ".jpeg",
+              ".jpg",
+              ".png",
+              ".webp"
+            ],
+            "id": "image",
+            "label": "Texture reference",
+            "max_file_bytes": 16777216,
+            "max_files": 1,
+            "max_total_bytes": 16777216,
+            "media_types": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "min_files": 1
+          },
+          {
+            "description": "One GLB mesh to texture.",
+            "extensions": [
+              ".glb"
+            ],
+            "id": "mesh",
+            "label": "Geometry mesh",
+            "max_file_bytes": 251658240,
+            "max_files": 1,
+            "max_total_bytes": 251658240,
+            "media_types": [
+              "model/gltf-binary"
+            ],
+            "min_files": 1
+          }
+        ]
       },
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "id": "sdxl-vae",
-      "kind": "huggingface.snapshot",
-      "repository": "madebyollin/sdxl-vae-fp16-fix",
-      "revision": "207b116dae70ace3637169f1ddd2434b91b3a8cd",
-      "download_bytes": 1343646154,
-      "installed_bytes": 1343646154,
-      "mount": {
-        "target": "/models/sdxl-vae",
-        "read_only": true
+      "output": {
+        "max_total_bytes": 1073741824,
+        "path": "/outputs",
+        "slots": [
+          {
+            "description": "The textured Step1X binary glTF mesh.",
+            "extensions": [
+              ".glb"
+            ],
+            "id": "mesh",
+            "label": "Textured mesh",
+            "max_file_bytes": 1073741824,
+            "max_files": 1,
+            "max_total_bytes": 1073741824,
+            "media_types": [
+              "model/gltf-binary"
+            ],
+            "min_files": 1
+          }
+        ]
       },
-      "roles": [
-        "entrypoint"
-      ]
+      "path": "/outputs"
     }
   ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "stepfun-ai",
-      "slug": "step1x-3d-arm64",
-      "content_sha256": "d3fa8a696abcd00436c0166e9db6b3a4026d4fd96aaf3cf6b1fa42cb4082211a"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/pytorch-pipeline"
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Installable single-DGX Spark image-and-mesh texturing Candidate using exact Step1X, SDXL, and fixed-VAE snapshots plus SM121-native rasterizer dependencies. It consumes a GLB up to 240 MiB from vonk-forge/step1x-3d-geometry-pytorch-single or vonk-forge/step1x-3d-label-geometry-pytorch-single together with the same reference image, runs offline, and emits a textured GLB. Physical Spark quality, memory, and latency acceptance is still required.",
+    "tags": [
+      "candidate",
+      "three-d",
+      "pytorch-pipeline",
+      "single",
+      "spark",
+      "executable",
+      "offline",
+      "source-bundled",
+      "stage-texture",
+      "accepts-step1x-geometry"
     ],
+    "title": "Step1X-3D texture pytorch-pipeline single Spark"
+  },
+  "model": {
+    "content_sha256": "dddd4cd6633d533d657040fb1de8f89eb69ed1d34bf686ba178c9cf611ab35d6",
+    "kind": "model-version",
+    "publisher": "stepfun-ai",
+    "slug": "step1x-3d-texture"
+  },
+  "parameters": [],
+  "provenance": {
+    "attribution": [
+      "stepfun-ai"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/stepfun-ai/Step1X-3D/tree/bf7084495b3a72222f36549b7942948aa4d9daa7"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "entrypoint",
@@ -172,97 +244,107 @@
         "value": 0
       }
     ],
+    "distribution": {
+      "content_sha256": "d3fa8a696abcd00436c0166e9db6b3a4026d4fd96aaf3cf6b1fa42cb4082211a",
+      "kind": "runtime-distribution",
+      "publisher": "stepfun-ai",
+      "slug": "step1x-3d-arm64"
+    },
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/outputs",
-        "timeout_seconds": 3600
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "readiness": {
+        "path": "/outputs",
+        "strategy": "endpoint-owner",
+        "timeout_seconds": 3600
+      },
+      "stop_timeout_seconds": 120
+    },
+    "security": {
+      "capabilities": [],
+      "devices": [
+        "nvidia.com/gpu=all"
+      ],
+      "host_network": false,
+      "mounts": [
+        {
+          "read_only": true,
+          "source": "model",
+          "target": "/models"
+        },
+        {
+          "read_only": true,
+          "source": "inputs",
+          "target": "/inputs"
+        },
+        {
+          "read_only": false,
+          "source": "outputs",
+          "target": "/outputs"
+        }
+      ],
+      "privileged": false,
+      "user": "10001:10001"
     }
   },
+  "schema_version": 1,
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
-        "count": 1,
-        "endpoint_owner": true,
         "artifacts": [
           "target",
           "sdxl",
           "sdxl-vae"
         ],
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 18000000000,
             "artifact_bytes": 97897395576,
-            "staging_bytes": 120000000000,
             "cache_bytes": 12000000000,
+            "image_bytes": 18000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 120000000000
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 16000000000,
             "startup_peak_bytes": 96000000000,
             "steady_state_bytes": 72000000000,
-            "runtime_growth_bytes": 16000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -270,76 +352,23 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "mesh-job",
-      "path": "/outputs",
-      "input": {
-        "path": "/inputs",
-        "required": true,
-        "media_types": [
-          "image/jpeg",
-          "image/png",
-          "image/webp",
-          "model/gltf-binary"
-        ],
-        "max_bytes": 268435456,
-        "slots": [
-          {
-            "id": "image",
-            "label": "Texture reference",
-            "description": "One reference image used to texture the mesh.",
-            "media_types": ["image/jpeg", "image/png", "image/webp"],
-            "extensions": [".jpeg", ".jpg", ".png", ".webp"],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 16777216,
-            "max_total_bytes": 16777216
-          },
-          {
-            "id": "mesh",
-            "label": "Geometry mesh",
-            "description": "One GLB mesh to texture.",
-            "media_types": ["model/gltf-binary"],
-            "extensions": [".glb"],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 251658240,
-            "max_total_bytes": 251658240
-          }
-        ]
-      },
-      "output": {
-        "path": "/outputs",
-        "max_total_bytes": 1073741824,
-        "slots": [{"id": "mesh", "label": "Textured mesh", "description": "The textured Step1X binary glTF mesh.", "media_types": ["model/gltf-binary"], "extensions": [".glb"], "min_files": 1, "max_files": 1, "max_file_bytes": 1073741824, "max_total_bytes": 1073741824}]
-      }
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "mesh-job",
-        "checks": [
-          "artifact.mime.model-gltf-binary"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bounded-startup",
-        "framework": "pytorch-pipeline",
         "configuration": {
           "timeout_seconds": 14400
-        }
+        },
+        "framework": "pytorch-pipeline",
+        "name": "bounded-startup"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/stepfun-ai/Step1X-3D/tree/bf7084495b3a72222f36549b7942948aa4d9daa7",
-    "attribution": [
-      "stepfun-ai"
+    ],
+    "validators": [
+      {
+        "checks": [
+          "artifact.mime.model-gltf-binary"
+        ],
+        "interface": "mesh-job"
+      }
     ]
   }
 }

@@ -1,64 +1,34 @@
 {
-  "schema_version": 1,
-  "identity": {
-    "publisher": "vonk-forge",
-    "slug": "nemotron-3-nano-omni-30b-a3b-vllm-single"
-  },
-  "metadata": {
-    "alignment": "unspecified",
-    "title": "Nemotron 3 Nano Omni 30B-A3B NVFP4 text-only vLLM single Spark",
-    "description": "Executable Candidate text-only recipe for the exact NVIDIA Nemotron 3 Nano Omni NVFP4 checkpoint on one Spark. It intentionally enables vLLM's language-model-only mode, so this identity advertises no audio, image, or video capability or hidden media dependency.",
-    "tags": ["executable",
-      "candidate",
-      "nemotron",
-      "omni",
-      "nvfp4",
-      "vllm",
-      "openai",
-      "single",
-      "spark",
-      "text",
-      "text-only"
-    ]
-  },
-  "model": {
-    "kind": "model-version",
-    "publisher": "nvidia",
-    "slug": "nemotron-3-nano-omni-30b-a3b-reasoning-nvfp4",
-    "content_sha256": "e4a22133985286705052c619560385b2e985f6a469873c4b8043b5a23f364b43"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "vllm",
-      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"
-    },
-    "patch_bundle": null
-  },
+  "artifacts": [
+    {
+      "download_bytes": 22431648055,
+      "id": "weights",
+      "installed_bytes": 22431648055,
+      "kind": "huggingface.snapshot",
+      "mount": {
+        "read_only": true,
+        "target": "/models"
+      },
+      "repository": "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4",
+      "revision": "16993199e436da4ba75ddc410855f87e0d996ee6",
+      "roles": [
+        "entrypoint"
+      ]
+    }
+  ],
   "build": {
+    "arguments": [],
     "context": {
-      "path": "adapters/nvidia/nemotron-vllm-0-20-0",
-      "sha256": "3ecaad26775f53304c698d0c380977d6911ead3d11673ed18396f5375640fc7c",
       "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
+      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
+      "path": "adapters/nvidia/nemotron-vllm-0-20-0",
+      "sha256": "3ecaad26775f53304c698d0c380977d6911ead3d11673ed18396f5375640fc7c"
     },
     "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
     "network": {
-      "mode": "none",
-      "hosts": []
+      "hosts": [],
+      "mode": "none"
     },
-    "resources": {
-      "download_bytes": 31664813385,
-      "temporary_bytes": 44863296110,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 7200
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
     "options": {
       "additional_contexts": [],
       "annotations": [],
@@ -83,39 +53,75 @@
       "unset_environment": [],
       "unset_labels": []
     },
+    "platform": "linux/arm64",
+    "resources": {
+      "cpu_cores": 8,
+      "download_bytes": 31664813385,
+      "memory_bytes": 8000000000,
+      "processes": 4096,
+      "temporary_bytes": 44863296110,
+      "timeout_seconds": 7200
+    },
     "security": {
       "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+    }
+  },
+  "execution": {
+    "harness": {
+      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d",
+      "kind": "execution-harness",
+      "publisher": "vonk-forge",
+      "slug": "vllm"
+    },
+    "patch_bundle": null
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-nano-omni-30b-a3b-vllm-single"
+  },
+  "interfaces": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4",
-      "revision": "16993199e436da4ba75ddc410855f87e0d996ee6",
-      "download_bytes": 22431648055,
-      "installed_bytes": 22431648055,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "nemotron-3-nano-omni"
+      ],
+      "port": 8000
     }
   ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "vllm",
-      "slug": "vllm-0-20-0-nvidia-arm64",
-      "content_sha256": "12ff8c23841e374ceec40b1407fa31f6856188a77e5d3ede9921616b58842ea6"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/vllm",
-      "serve",
-      "/models"
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Executable Candidate text-only recipe for the exact NVIDIA Nemotron 3 Nano Omni NVFP4 checkpoint on one Spark. It intentionally enables vLLM's language-model-only mode, so this identity advertises no audio, image, or video capability or hidden media dependency.",
+    "tags": [
+      "executable",
+      "candidate",
+      "nemotron",
+      "omni",
+      "nvfp4",
+      "vllm",
+      "openai",
+      "single",
+      "spark",
+      "text",
+      "text-only"
     ],
+    "title": "Nemotron 3 Nano Omni 30B-A3B NVFP4 text-only vLLM single Spark"
+  },
+  "model": {
+    "content_sha256": "67994a003c598d652bc7cc37622cf0ac1af4998fee5d9236e8462a822e59952d",
+    "kind": "model-version",
+    "publisher": "nvidia",
+    "slug": "nemotron-3-nano-omni-30b-a3b-reasoning-nvfp4"
+  },
+  "parameters": [],
+  "provenance": {
+    "attribution": [
+      "nvidia"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4/tree/16993199e436da4ba75ddc410855f87e0d996ee6"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "served-model-name",
@@ -166,6 +172,17 @@
         "value": true
       }
     ],
+    "distribution": {
+      "content_sha256": "12ff8c23841e374ceec40b1407fa31f6856188a77e5d3ede9921616b58842ea6",
+      "kind": "runtime-distribution",
+      "publisher": "vllm",
+      "slug": "vllm-0-20-0-nvidia-arm64"
+    },
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
@@ -180,84 +197,85 @@
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/v1/models",
-        "timeout_seconds": 1800
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "readiness": {
+        "path": "/v1/models",
+        "strategy": "endpoint-owner",
+        "timeout_seconds": 1800
+      },
+      "stop_timeout_seconds": 120
+    },
+    "security": {
+      "capabilities": [],
+      "devices": [
+        "nvidia.com/gpu=all"
+      ],
+      "host_network": false,
+      "mounts": [
+        {
+          "read_only": true,
+          "source": "model",
+          "target": "/models"
+        },
+        {
+          "read_only": false,
+          "source": "outputs",
+          "target": "/outputs"
+        }
+      ],
+      "privileged": false,
+      "user": "10001:10001"
     }
   },
+  "schema_version": 1,
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
-        "count": 1,
-        "endpoint_owner": true,
         "artifacts": [
           "weights"
         ],
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 12000000000,
             "artifact_bytes": 22431648055,
-            "staging_bytes": 44863296110,
             "cache_bytes": 4000000000,
+            "image_bytes": 12000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 44863296110
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 4000000000,
             "startup_peak_bytes": 90000000000,
             "steady_state_bytes": 78000000000,
-            "runtime_growth_bytes": 4000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -265,44 +283,27 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "openai",
-      "port": 8000,
-      "model_aliases": [
-        "nemotron-3-nano-omni"
-      ],
-      "health_path": "/v1/models"
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "openai",
-        "checks": [
-          "endpoint.healthy",
-          "chat.nonempty",
-          "chat.max-output-64"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bounded-chat",
-        "framework": "openai",
         "configuration": {
           "max_output_tokens": 64,
           "requests": 1,
           "timeout_seconds": 600
-        }
+        },
+        "framework": "openai",
+        "name": "bounded-chat"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4/tree/16993199e436da4ba75ddc410855f87e0d996ee6",
-    "attribution": [
-      "nvidia"
+    ],
+    "validators": [
+      {
+        "checks": [
+          "endpoint.healthy",
+          "chat.nonempty",
+          "chat.max-output-64"
+        ],
+        "interface": "openai"
+      }
     ]
   }
 }

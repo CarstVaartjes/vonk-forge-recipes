@@ -1,12 +1,886 @@
 {
-  "schema_version": 1,
-  "kind": "model-version",
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "artifacts": [
+    {
+      "download_bytes": 17604,
+      "id": "artifact-01",
+      "installed_bytes": 17604,
+      "kind": "huggingface.file",
+      "path": "LICENSE",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "59b99642b95ea21630e311198ddbfffbfe05aadba0c2f5d884cbdf4efcc90f44"
+    },
+    {
+      "download_bytes": 96,
+      "id": "artifact-02",
+      "installed_bytes": 96,
+      "kind": "huggingface.file",
+      "path": "audio_scheduler/scheduler_config.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/audio_scheduler/scheduler_config.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "scheduler"
+      ],
+      "sha256": "804780f7133477067bd6bbfbc02dc8b3cf9feeb400f97c08f5b1d5f6cbab3840"
+    },
+    {
+      "download_bytes": 2271,
+      "id": "artifact-03",
+      "installed_bytes": 2271,
+      "kind": "huggingface.file",
+      "path": "audio_vae/config.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/audio_vae/config.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "audio-vae"
+      ],
+      "sha256": "9a3c645ff892b376c6f5f4c8685964cd75474731af594ff058492a0000caabb6"
+    },
+    {
+      "download_bytes": 605429340,
+      "id": "artifact-04",
+      "installed_bytes": 605429340,
+      "kind": "huggingface.file",
+      "path": "audio_vae/diffusion_pytorch_model.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/audio_vae/diffusion_pytorch_model.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "audio-vae"
+      ],
+      "sha256": "52c59e67ba8de5477c81bfbced0327aabf500f1bfdeefd5ee754529241cb26cb"
+    },
+    {
+      "download_bytes": 2936,
+      "id": "artifact-05",
+      "installed_bytes": 2936,
+      "kind": "huggingface.file",
+      "path": "model_index.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/model_index.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "5a587fe13b2371427415ac892463142683aefcd8d322e274a3a095eac37ac7d2"
+    },
+    {
+      "download_bytes": 2935,
+      "id": "artifact-06",
+      "installed_bytes": 2935,
+      "kind": "huggingface.file",
+      "path": "modular_model_index.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/modular_model_index.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a2b6a210e482ffb78e613b553f570c44e101afce6741bd4ed91429d0559af031"
+    },
+    {
+      "download_bytes": 5499,
+      "id": "artifact-07",
+      "installed_bytes": 5499,
+      "kind": "huggingface.file",
+      "path": "processor/chat_template.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/processor/chat_template.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "conditioning"
+      ],
+      "sha256": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce"
+    },
+    {
+      "download_bytes": 1671839,
+      "id": "artifact-08",
+      "installed_bytes": 1671839,
+      "kind": "huggingface.file",
+      "path": "processor/merges.txt",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/processor/merges.txt",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "conditioning"
+      ],
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3"
+    },
+    {
+      "download_bytes": 390,
+      "id": "artifact-09",
+      "installed_bytes": 390,
+      "kind": "huggingface.file",
+      "path": "processor/preprocessor_config.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/processor/preprocessor_config.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "conditioning"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516"
+    },
+    {
+      "download_bytes": 7032403,
+      "id": "artifact-10",
+      "installed_bytes": 7032403,
+      "kind": "huggingface.file",
+      "path": "processor/tokenizer.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/processor/tokenizer.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "conditioning"
+      ],
+      "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7"
+    },
+    {
+      "download_bytes": 11003,
+      "id": "artifact-11",
+      "installed_bytes": 11003,
+      "kind": "huggingface.file",
+      "path": "processor/tokenizer_config.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/processor/tokenizer_config.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "conditioning"
+      ],
+      "sha256": "a07e942ac874baa13758de8d1fbdb186683cc03416b5589e1b6671c6b3057c68"
+    },
+    {
+      "download_bytes": 385,
+      "id": "artifact-12",
+      "installed_bytes": 385,
+      "kind": "huggingface.file",
+      "path": "processor/video_preprocessor_config.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/processor/video_preprocessor_config.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "conditioning"
+      ],
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13"
+    },
+    {
+      "download_bytes": 2776833,
+      "id": "artifact-13",
+      "installed_bytes": 2776833,
+      "kind": "huggingface.file",
+      "path": "processor/vocab.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/processor/vocab.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "conditioning"
+      ],
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    },
+    {
+      "download_bytes": 97,
+      "id": "artifact-14",
+      "installed_bytes": 97,
+      "kind": "huggingface.file",
+      "path": "scheduler/scheduler_config.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/scheduler/scheduler_config.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "scheduler"
+      ],
+      "sha256": "8fa6c3aa70dc9e691e1a6df899fd1b6f75f70481a27cee6e18a303817075c304"
+    },
+    {
+      "download_bytes": 5499,
+      "id": "artifact-15",
+      "installed_bytes": 5499,
+      "kind": "huggingface.file",
+      "path": "text_encoder/chat_template.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/chat_template.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce"
+    },
+    {
+      "download_bytes": 1474,
+      "id": "artifact-16",
+      "installed_bytes": 1474,
+      "kind": "huggingface.file",
+      "path": "text_encoder/config.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/config.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "d2dd0c60d01b9e195d9447c52da61c7302d28828524914c044d9c6e1b81d0427"
+    },
+    {
+      "download_bytes": 1671839,
+      "id": "artifact-17",
+      "installed_bytes": 1671839,
+      "kind": "huggingface.file",
+      "path": "text_encoder/merges.txt",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/merges.txt",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3"
+    },
+    {
+      "download_bytes": 4932328944,
+      "id": "artifact-18",
+      "installed_bytes": 4932328944,
+      "kind": "huggingface.file",
+      "path": "text_encoder/model-00001-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00001-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "6b9dfbc930e505402ae9d7e5091a9d7d656cda5f34614f01cfe70bfb0cca27cb"
+    },
+    {
+      "download_bytes": 4875990528,
+      "id": "artifact-19",
+      "installed_bytes": 4875990528,
+      "kind": "huggingface.file",
+      "path": "text_encoder/model-00002-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00002-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "d8bb44b4ff303fe76fe9e894022fb3dc71b15a2e716592790fe0e3c3e60478fa"
+    },
+    {
+      "download_bytes": 4875990552,
+      "id": "artifact-20",
+      "installed_bytes": 4875990552,
+      "kind": "huggingface.file",
+      "path": "text_encoder/model-00003-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00003-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "54f22e8b3168f8dc962fac0d313607ebf52a12b433d4cf3098a0d82d9f042940"
+    },
+    {
+      "download_bytes": 4875990584,
+      "id": "artifact-21",
+      "installed_bytes": 4875990584,
+      "kind": "huggingface.file",
+      "path": "text_encoder/model-00004-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00004-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "ad09c74d3c13ee29b5d0d84548fd8a3424a651564eaccd519946c296e59c557f"
+    },
+    {
+      "download_bytes": 4875990584,
+      "id": "artifact-22",
+      "installed_bytes": 4875990584,
+      "kind": "huggingface.file",
+      "path": "text_encoder/model-00005-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00005-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "fc993c8a0e2a5b0570f383e1a95dc3a1281d1b224b6f3ee908f4827941e1dfc2"
+    },
+    {
+      "download_bytes": 4875990584,
+      "id": "artifact-23",
+      "installed_bytes": 4875990584,
+      "kind": "huggingface.file",
+      "path": "text_encoder/model-00006-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00006-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "82f05620d1f718a90c362b221d6a184ff1a0f53301d706882d3df49695fa1974"
+    },
+    {
+      "download_bytes": 4875990584,
+      "id": "artifact-24",
+      "installed_bytes": 4875990584,
+      "kind": "huggingface.file",
+      "path": "text_encoder/model-00007-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00007-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "fb91da8cb01ff4de3eef0eab1c3e769a734b3a1aafc61734068638a0d6c86934"
+    },
+    {
+      "download_bytes": 4875990584,
+      "id": "artifact-25",
+      "installed_bytes": 4875990584,
+      "kind": "huggingface.file",
+      "path": "text_encoder/model-00008-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00008-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "431ca56535c8781944ce3801f5eb61c45531e853ecc5846d936ebaf4761b764f"
+    },
+    {
+      "download_bytes": 4875990584,
+      "id": "artifact-26",
+      "installed_bytes": 4875990584,
+      "kind": "huggingface.file",
+      "path": "text_encoder/model-00009-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00009-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "3825e3f4302f4d2f7d76aa7430d2ce0864fde6b9e540a5806bf0d8e38e4d9f47"
+    },
+    {
+      "download_bytes": 4875990584,
+      "id": "artifact-27",
+      "installed_bytes": 4875990584,
+      "kind": "huggingface.file",
+      "path": "text_encoder/model-00010-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00010-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "aded5a4d1d5e22dbd8b6f79266b6eb88c840411b09527c53917a1419ace22e2f"
+    },
+    {
+      "download_bytes": 4875990584,
+      "id": "artifact-28",
+      "installed_bytes": 4875990584,
+      "kind": "huggingface.file",
+      "path": "text_encoder/model-00011-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00011-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "3820ffe8d8d6477f6fe8d614ef3c87abb264ee39accebf43a1507b970d80946f"
+    },
+    {
+      "download_bytes": 4875990584,
+      "id": "artifact-29",
+      "installed_bytes": 4875990584,
+      "kind": "huggingface.file",
+      "path": "text_encoder/model-00012-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00012-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "05ad2d08ce71963121c9b03f1d9ec5d7641052f4b23c6c12b80d71065eb8e98e"
+    },
+    {
+      "download_bytes": 4875990584,
+      "id": "artifact-30",
+      "installed_bytes": 4875990584,
+      "kind": "huggingface.file",
+      "path": "text_encoder/model-00013-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00013-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "b64f2289871261fdd1abbd3b78bcd66011b341de3dc8eeb2ed1a473ee7c8d95c"
+    },
+    {
+      "download_bytes": 3270697008,
+      "id": "artifact-31",
+      "installed_bytes": 3270697008,
+      "kind": "huggingface.file",
+      "path": "text_encoder/model-00014-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00014-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "e45b6c9998c77ee5a6577f9f47bc76416c1d4d387169e50c4c9d3134ea51b13b"
+    },
+    {
+      "download_bytes": 97831,
+      "id": "artifact-32",
+      "installed_bytes": 97831,
+      "kind": "huggingface.file",
+      "path": "text_encoder/model.safetensors.index.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model.safetensors.index.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "06c952c569285870b811989b794b9766493e280fb77fbcb957fc4e5fcf25403a"
+    },
+    {
+      "download_bytes": 390,
+      "id": "artifact-33",
+      "installed_bytes": 390,
+      "kind": "huggingface.file",
+      "path": "text_encoder/preprocessor_config.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/preprocessor_config.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516"
+    },
+    {
+      "download_bytes": 7032403,
+      "id": "artifact-34",
+      "installed_bytes": 7032403,
+      "kind": "huggingface.file",
+      "path": "text_encoder/tokenizer.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/tokenizer.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7"
+    },
+    {
+      "download_bytes": 11003,
+      "id": "artifact-35",
+      "installed_bytes": 11003,
+      "kind": "huggingface.file",
+      "path": "text_encoder/tokenizer_config.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/tokenizer_config.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "a07e942ac874baa13758de8d1fbdb186683cc03416b5589e1b6671c6b3057c68"
+    },
+    {
+      "download_bytes": 385,
+      "id": "artifact-36",
+      "installed_bytes": 385,
+      "kind": "huggingface.file",
+      "path": "text_encoder/video_preprocessor_config.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/video_preprocessor_config.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13"
+    },
+    {
+      "download_bytes": 2776833,
+      "id": "artifact-37",
+      "installed_bytes": 2776833,
+      "kind": "huggingface.file",
+      "path": "text_encoder/vocab.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/vocab.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    },
+    {
+      "download_bytes": 1671839,
+      "id": "artifact-38",
+      "installed_bytes": 1671839,
+      "kind": "huggingface.file",
+      "path": "tokenizer/merges.txt",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/tokenizer/merges.txt",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "conditioning"
+      ],
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3"
+    },
+    {
+      "download_bytes": 7032403,
+      "id": "artifact-39",
+      "installed_bytes": 7032403,
+      "kind": "huggingface.file",
+      "path": "tokenizer/tokenizer.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/tokenizer/tokenizer.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "conditioning"
+      ],
+      "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7"
+    },
+    {
+      "download_bytes": 11003,
+      "id": "artifact-40",
+      "installed_bytes": 11003,
+      "kind": "huggingface.file",
+      "path": "tokenizer/tokenizer_config.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/tokenizer/tokenizer_config.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "conditioning"
+      ],
+      "sha256": "a07e942ac874baa13758de8d1fbdb186683cc03416b5589e1b6671c6b3057c68"
+    },
+    {
+      "download_bytes": 2776833,
+      "id": "artifact-41",
+      "installed_bytes": 2776833,
+      "kind": "huggingface.file",
+      "path": "tokenizer/vocab.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/tokenizer/vocab.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "conditioning"
+      ],
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    },
+    {
+      "download_bytes": 546,
+      "id": "artifact-42",
+      "installed_bytes": 546,
+      "kind": "huggingface.file",
+      "path": "transformer/config.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/config.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "74c11bff524336576096993cbfcdcdc2ef4fa2fa4409df693bdcbc6c666282ae"
+    },
+    {
+      "download_bytes": 4825958704,
+      "id": "artifact-43",
+      "installed_bytes": 4825958704,
+      "kind": "huggingface.file",
+      "path": "transformer/diffusion_pytorch_model-00001-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00001-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "2d847200c45c09dd7f973c1b096663068408ef851ee0b3711d059b6dc5dcd028"
+    },
+    {
+      "download_bytes": 4702158032,
+      "id": "artifact-44",
+      "installed_bytes": 4702158032,
+      "kind": "huggingface.file",
+      "path": "transformer/diffusion_pytorch_model-00002-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00002-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "2c4d362eddd2802180ac9c744849eb9ba8d9c8b984bdf9822cb02ed004b29184"
+    },
+    {
+      "download_bytes": 4933368192,
+      "id": "artifact-45",
+      "installed_bytes": 4933368192,
+      "kind": "huggingface.file",
+      "path": "transformer/diffusion_pytorch_model-00003-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00003-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "949c5aafbbfa5654da730a6a7fafd75adb164d0857b095a30e8bb6d390887d69"
+    },
+    {
+      "download_bytes": 4567069608,
+      "id": "artifact-46",
+      "installed_bytes": 4567069608,
+      "kind": "huggingface.file",
+      "path": "transformer/diffusion_pytorch_model-00004-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00004-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "eef7616790105ee839766bb2027203bf2c0d87c6aa038dca84145a8675f5ce28"
+    },
+    {
+      "download_bytes": 4702158080,
+      "id": "artifact-47",
+      "installed_bytes": 4702158080,
+      "kind": "huggingface.file",
+      "path": "transformer/diffusion_pytorch_model-00005-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00005-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "43fdf42d638e8bc6745f713fae80c93bb301807a1a5ae7249344ce28e202a494"
+    },
+    {
+      "download_bytes": 4933368232,
+      "id": "artifact-48",
+      "installed_bytes": 4933368232,
+      "kind": "huggingface.file",
+      "path": "transformer/diffusion_pytorch_model-00006-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00006-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "6442510b34d173653f0cce5c964b935395a8f7accf0b9cc0aa31aec59805239d"
+    },
+    {
+      "download_bytes": 4567069608,
+      "id": "artifact-49",
+      "installed_bytes": 4567069608,
+      "kind": "huggingface.file",
+      "path": "transformer/diffusion_pytorch_model-00007-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00007-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "29f48f535c91dac76496ca821eeb16ca24bc4caf3f0cae8b920a89b1f966da6d"
+    },
+    {
+      "download_bytes": 4702158080,
+      "id": "artifact-50",
+      "installed_bytes": 4702158080,
+      "kind": "huggingface.file",
+      "path": "transformer/diffusion_pytorch_model-00008-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00008-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "c711b096c764bd60f0b8b6ad49518bfab6d614fb788c725add8741c0674a4cd8"
+    },
+    {
+      "download_bytes": 4933368232,
+      "id": "artifact-51",
+      "installed_bytes": 4933368232,
+      "kind": "huggingface.file",
+      "path": "transformer/diffusion_pytorch_model-00009-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00009-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "44428defe3976cbb87635ad200b958199e739986697cd29fdf27aeb7294b5944"
+    },
+    {
+      "download_bytes": 4567069608,
+      "id": "artifact-52",
+      "installed_bytes": 4567069608,
+      "kind": "huggingface.file",
+      "path": "transformer/diffusion_pytorch_model-00010-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00010-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "3d44939c374c9da382e9c6877e1946adf7b84e08c7a881c068f228d6849411c9"
+    },
+    {
+      "download_bytes": 4702158080,
+      "id": "artifact-53",
+      "installed_bytes": 4702158080,
+      "kind": "huggingface.file",
+      "path": "transformer/diffusion_pytorch_model-00011-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00011-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "224d24430b58127a5577721084e0e704a0e74ec96dd7c35bc6fc0994ebd87c33"
+    },
+    {
+      "download_bytes": 4933368232,
+      "id": "artifact-54",
+      "installed_bytes": 4933368232,
+      "kind": "huggingface.file",
+      "path": "transformer/diffusion_pytorch_model-00012-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00012-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "48fa2bd8fe134eef565ab2464f1c2589a6657cba0d14283dfc06b532f8961f3c"
+    },
+    {
+      "download_bytes": 4567069608,
+      "id": "artifact-55",
+      "installed_bytes": 4567069608,
+      "kind": "huggingface.file",
+      "path": "transformer/diffusion_pytorch_model-00013-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00013-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "be5b4b1809f9d546ffd4b3fcf41e5c1e02b819125caa6bc105c109b04c051bd3"
+    },
+    {
+      "download_bytes": 4644161920,
+      "id": "artifact-56",
+      "installed_bytes": 4644161920,
+      "kind": "huggingface.file",
+      "path": "transformer/diffusion_pytorch_model-00014-of-00014.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00014-of-00014.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "8fbd5e6c1fb1df7ce988ca90f3d59e7610e465c7517e4b344eda4a214ba4b97d"
+    },
+    {
+      "download_bytes": 64488,
+      "id": "artifact-57",
+      "installed_bytes": 64488,
+      "kind": "huggingface.file",
+      "path": "transformer/diffusion_pytorch_model.safetensors.index.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model.safetensors.index.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "transformer"
+      ],
+      "sha256": "ac30a3b58963f2e735d493475fbb81853a5735ec947619648b3e045acda6783e"
+    },
+    {
+      "download_bytes": 2011,
+      "id": "artifact-58",
+      "installed_bytes": 2011,
+      "kind": "huggingface.file",
+      "path": "vae/config.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/vae/config.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "video-vae"
+      ],
+      "sha256": "78f67deec3d63aae807f2bfe7154bc1e26f6372cb20b63265fcbae1b62bb5745"
+    },
+    {
+      "download_bytes": 5061033024,
+      "id": "artifact-59",
+      "installed_bytes": 5061033024,
+      "kind": "huggingface.file",
+      "path": "vae/diffusion_pytorch_model-00001-of-00003.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/vae/diffusion_pytorch_model-00001-of-00003.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "video-vae"
+      ],
+      "sha256": "72f4c6be84ac0674f27398cde991dd9d719762f3952c4921aa66b2ce542f6374"
+    },
+    {
+      "download_bytes": 4955986528,
+      "id": "artifact-60",
+      "installed_bytes": 4955986528,
+      "kind": "huggingface.file",
+      "path": "vae/diffusion_pytorch_model-00002-of-00003.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/vae/diffusion_pytorch_model-00002-of-00003.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "video-vae"
+      ],
+      "sha256": "2e05e8bc23fa4071043e17fd242be8acd0685e781a43987432b2eae925be4198"
+    },
+    {
+      "download_bytes": 398539336,
+      "id": "artifact-61",
+      "installed_bytes": 398539336,
+      "kind": "huggingface.file",
+      "path": "vae/diffusion_pytorch_model-00003-of-00003.safetensors",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/vae/diffusion_pytorch_model-00003-of-00003.safetensors",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "video-vae"
+      ],
+      "sha256": "c05d6ac4b1a33de372799d708531da6320f6a3ce6d1ce6d895e770988e004a39"
+    },
+    {
+      "download_bytes": 74228,
+      "id": "artifact-62",
+      "installed_bytes": 74228,
+      "kind": "huggingface.file",
+      "path": "vae/diffusion_pytorch_model.safetensors.index.json",
+      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/vae/diffusion_pytorch_model.safetensors.index.json",
+      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "roles": [
+        "video-vae"
+      ],
+      "sha256": "15f6d44553c3c616b0dc999920aa784f92ecee7e4201f1f99ac405cfbf3061ca"
+    }
+  ],
+  "availability": "active",
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "audio-generation",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "video-generation",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "source_revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "source_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
   "identity": {
     "publisher": "minimax",
     "slug": "minimax-h3-fl2va-42ed227e"
   },
+  "kind": "model-version",
+  "license": {
+    "attribution": [
+      "minimax"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "LicenseRef-MiniMax-H3-Community-License",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR",
+        "US"
+      ],
+      "notice": "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."
+    },
+    "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": 345,
+    "resolution_pixels": 1032192,
+    "sample_rate_hz": 32000
+  },
+  "lineage": {
+    "derivation": "Exact file selection from the official immutable snapshot: the root Modular Diffusers indexes and shared components plus the FL2VA transformer only. No weights are converted, quantized, or rewritten.",
+    "publisher": "minimax",
+    "relation": "official",
+    "source_model": {
+      "content_sha256": "f4c971d25f8b6f46af03821eac888c10306573fe4648e9906e22709cc642d5d7",
+      "kind": "model",
+      "publisher": "minimax",
+      "slug": "minimax-h3"
+    }
+  },
   "metadata": {
-    "title": "MiniMax H3 FL2VA 42ed227e",
     "description": "Exact official MiniMax H3 root Modular Diffusers closure for text-to-video-and-audio and optional first/last-keyframe generation. It excludes the Ref2VA transformer, duplicate original-checkpoint trees, examples, and documentation while retaining every component the pinned FL2VA loader requires.",
     "tags": [
       "minimax",
@@ -18,880 +892,28 @@
       "keyframe",
       "artifact-slim",
       "candidate"
-    ]
+    ],
+    "title": "MiniMax H3 FL2VA 42ed227e"
   },
   "model": {
+    "content_sha256": "f4c971d25f8b6f46af03821eac888c10306573fe4648e9906e22709cc642d5d7",
     "kind": "model",
     "publisher": "minimax",
-    "slug": "minimax-h3",
-    "content_sha256": "f4c971d25f8b6f46af03821eac888c10306573fe4648e9906e22709cc642d5d7"
-  },
-  "version": "MiniMax H3 FL2VA 42ed227e",
-  "source": {
-    "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
-    "revision": "42ed227ee7df40d41602854ae760620d6eb651fe"
-  },
-  "lineage": {
-    "publisher": "minimax",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "minimax",
-      "slug": "minimax-h3",
-      "content_sha256": "f4c971d25f8b6f46af03821eac888c10306573fe4648e9906e22709cc642d5d7"
-    },
-    "derivation": "Exact file selection from the official immutable snapshot: the root Modular Diffusers indexes and shared components plus the FL2VA transformer only. No weights are converted, quantized, or rewritten."
-  },
-  "format": {
-    "container": "safetensors",
-    "precision": "bf16",
-    "quantization": "none"
+    "slug": "minimax-h3"
   },
   "parameters": {
-    "total": 33000000000,
-    "active": null
+    "active": null,
+    "total": 33000000000
   },
-  "limits": {
-    "context_tokens": null,
-    "resolution_pixels": 1032192,
-    "frames": 345,
-    "sample_rate_hz": 32000
-  },
+  "schema_version": 1,
   "sizes": {
     "download_bytes": 144051160615,
     "installed_bytes": 144051160615
   },
-  "license": {
-    "spdx": "LicenseRef-MiniMax-H3-Community-License",
-    "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE",
-    "attribution": [
-      "minimax"
-    ],
-    "operator_acceptance_required": true,
-    "territorial_restrictions": {
-      "denied_jurisdictions": [
-        "EU",
-        "GB",
-        "KR",
-        "US"
-      ],
-      "notice": "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."
-    }
+  "source": {
+    "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
+    "revision": "42ed227ee7df40d41602854ae760620d6eb651fe"
   },
-  "access": {
-    "visibility": "public",
-    "gated": false,
-    "authentication": "none"
-  },
-  "artifacts": [
-    {
-      "id": "artifact-01",
-      "path": "LICENSE",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "59b99642b95ea21630e311198ddbfffbfe05aadba0c2f5d884cbdf4efcc90f44",
-      "download_bytes": 17604,
-      "installed_bytes": 17604,
-      "roles": [
-        "metadata"
-      ]
-    },
-    {
-      "id": "artifact-02",
-      "path": "audio_scheduler/scheduler_config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/audio_scheduler/scheduler_config.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "804780f7133477067bd6bbfbc02dc8b3cf9feeb400f97c08f5b1d5f6cbab3840",
-      "download_bytes": 96,
-      "installed_bytes": 96,
-      "roles": [
-        "scheduler"
-      ]
-    },
-    {
-      "id": "artifact-03",
-      "path": "audio_vae/config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/audio_vae/config.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "9a3c645ff892b376c6f5f4c8685964cd75474731af594ff058492a0000caabb6",
-      "download_bytes": 2271,
-      "installed_bytes": 2271,
-      "roles": [
-        "audio-vae"
-      ]
-    },
-    {
-      "id": "artifact-04",
-      "path": "audio_vae/diffusion_pytorch_model.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/audio_vae/diffusion_pytorch_model.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "52c59e67ba8de5477c81bfbced0327aabf500f1bfdeefd5ee754529241cb26cb",
-      "download_bytes": 605429340,
-      "installed_bytes": 605429340,
-      "roles": [
-        "audio-vae"
-      ]
-    },
-    {
-      "id": "artifact-05",
-      "path": "model_index.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/model_index.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "5a587fe13b2371427415ac892463142683aefcd8d322e274a3a095eac37ac7d2",
-      "download_bytes": 2936,
-      "installed_bytes": 2936,
-      "roles": [
-        "metadata"
-      ]
-    },
-    {
-      "id": "artifact-06",
-      "path": "modular_model_index.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/modular_model_index.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "a2b6a210e482ffb78e613b553f570c44e101afce6741bd4ed91429d0559af031",
-      "download_bytes": 2935,
-      "installed_bytes": 2935,
-      "roles": [
-        "metadata"
-      ]
-    },
-    {
-      "id": "artifact-07",
-      "path": "processor/chat_template.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/processor/chat_template.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce",
-      "download_bytes": 5499,
-      "installed_bytes": 5499,
-      "roles": [
-        "conditioning"
-      ]
-    },
-    {
-      "id": "artifact-08",
-      "path": "processor/merges.txt",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/processor/merges.txt",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
-      "download_bytes": 1671839,
-      "installed_bytes": 1671839,
-      "roles": [
-        "conditioning"
-      ]
-    },
-    {
-      "id": "artifact-09",
-      "path": "processor/preprocessor_config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/processor/preprocessor_config.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
-      "download_bytes": 390,
-      "installed_bytes": 390,
-      "roles": [
-        "conditioning"
-      ]
-    },
-    {
-      "id": "artifact-10",
-      "path": "processor/tokenizer.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/processor/tokenizer.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
-      "download_bytes": 7032403,
-      "installed_bytes": 7032403,
-      "roles": [
-        "conditioning"
-      ]
-    },
-    {
-      "id": "artifact-11",
-      "path": "processor/tokenizer_config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/processor/tokenizer_config.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "a07e942ac874baa13758de8d1fbdb186683cc03416b5589e1b6671c6b3057c68",
-      "download_bytes": 11003,
-      "installed_bytes": 11003,
-      "roles": [
-        "conditioning"
-      ]
-    },
-    {
-      "id": "artifact-12",
-      "path": "processor/video_preprocessor_config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/processor/video_preprocessor_config.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
-      "download_bytes": 385,
-      "installed_bytes": 385,
-      "roles": [
-        "conditioning"
-      ]
-    },
-    {
-      "id": "artifact-13",
-      "path": "processor/vocab.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/processor/vocab.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
-      "download_bytes": 2776833,
-      "installed_bytes": 2776833,
-      "roles": [
-        "conditioning"
-      ]
-    },
-    {
-      "id": "artifact-14",
-      "path": "scheduler/scheduler_config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/scheduler/scheduler_config.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "8fa6c3aa70dc9e691e1a6df899fd1b6f75f70481a27cee6e18a303817075c304",
-      "download_bytes": 97,
-      "installed_bytes": 97,
-      "roles": [
-        "scheduler"
-      ]
-    },
-    {
-      "id": "artifact-15",
-      "path": "text_encoder/chat_template.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/chat_template.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce",
-      "download_bytes": 5499,
-      "installed_bytes": 5499,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-16",
-      "path": "text_encoder/config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/config.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "d2dd0c60d01b9e195d9447c52da61c7302d28828524914c044d9c6e1b81d0427",
-      "download_bytes": 1474,
-      "installed_bytes": 1474,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-17",
-      "path": "text_encoder/merges.txt",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/merges.txt",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
-      "download_bytes": 1671839,
-      "installed_bytes": 1671839,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-18",
-      "path": "text_encoder/model-00001-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00001-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "6b9dfbc930e505402ae9d7e5091a9d7d656cda5f34614f01cfe70bfb0cca27cb",
-      "download_bytes": 4932328944,
-      "installed_bytes": 4932328944,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-19",
-      "path": "text_encoder/model-00002-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00002-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "d8bb44b4ff303fe76fe9e894022fb3dc71b15a2e716592790fe0e3c3e60478fa",
-      "download_bytes": 4875990528,
-      "installed_bytes": 4875990528,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-20",
-      "path": "text_encoder/model-00003-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00003-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "54f22e8b3168f8dc962fac0d313607ebf52a12b433d4cf3098a0d82d9f042940",
-      "download_bytes": 4875990552,
-      "installed_bytes": 4875990552,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-21",
-      "path": "text_encoder/model-00004-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00004-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "ad09c74d3c13ee29b5d0d84548fd8a3424a651564eaccd519946c296e59c557f",
-      "download_bytes": 4875990584,
-      "installed_bytes": 4875990584,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-22",
-      "path": "text_encoder/model-00005-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00005-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "fc993c8a0e2a5b0570f383e1a95dc3a1281d1b224b6f3ee908f4827941e1dfc2",
-      "download_bytes": 4875990584,
-      "installed_bytes": 4875990584,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-23",
-      "path": "text_encoder/model-00006-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00006-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "82f05620d1f718a90c362b221d6a184ff1a0f53301d706882d3df49695fa1974",
-      "download_bytes": 4875990584,
-      "installed_bytes": 4875990584,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-24",
-      "path": "text_encoder/model-00007-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00007-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "fb91da8cb01ff4de3eef0eab1c3e769a734b3a1aafc61734068638a0d6c86934",
-      "download_bytes": 4875990584,
-      "installed_bytes": 4875990584,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-25",
-      "path": "text_encoder/model-00008-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00008-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "431ca56535c8781944ce3801f5eb61c45531e853ecc5846d936ebaf4761b764f",
-      "download_bytes": 4875990584,
-      "installed_bytes": 4875990584,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-26",
-      "path": "text_encoder/model-00009-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00009-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "3825e3f4302f4d2f7d76aa7430d2ce0864fde6b9e540a5806bf0d8e38e4d9f47",
-      "download_bytes": 4875990584,
-      "installed_bytes": 4875990584,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-27",
-      "path": "text_encoder/model-00010-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00010-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "aded5a4d1d5e22dbd8b6f79266b6eb88c840411b09527c53917a1419ace22e2f",
-      "download_bytes": 4875990584,
-      "installed_bytes": 4875990584,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-28",
-      "path": "text_encoder/model-00011-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00011-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "3820ffe8d8d6477f6fe8d614ef3c87abb264ee39accebf43a1507b970d80946f",
-      "download_bytes": 4875990584,
-      "installed_bytes": 4875990584,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-29",
-      "path": "text_encoder/model-00012-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00012-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "05ad2d08ce71963121c9b03f1d9ec5d7641052f4b23c6c12b80d71065eb8e98e",
-      "download_bytes": 4875990584,
-      "installed_bytes": 4875990584,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-30",
-      "path": "text_encoder/model-00013-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00013-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "b64f2289871261fdd1abbd3b78bcd66011b341de3dc8eeb2ed1a473ee7c8d95c",
-      "download_bytes": 4875990584,
-      "installed_bytes": 4875990584,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-31",
-      "path": "text_encoder/model-00014-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model-00014-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "e45b6c9998c77ee5a6577f9f47bc76416c1d4d387169e50c4c9d3134ea51b13b",
-      "download_bytes": 3270697008,
-      "installed_bytes": 3270697008,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-32",
-      "path": "text_encoder/model.safetensors.index.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/model.safetensors.index.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "06c952c569285870b811989b794b9766493e280fb77fbcb957fc4e5fcf25403a",
-      "download_bytes": 97831,
-      "installed_bytes": 97831,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-33",
-      "path": "text_encoder/preprocessor_config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/preprocessor_config.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
-      "download_bytes": 390,
-      "installed_bytes": 390,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-34",
-      "path": "text_encoder/tokenizer.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/tokenizer.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
-      "download_bytes": 7032403,
-      "installed_bytes": 7032403,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-35",
-      "path": "text_encoder/tokenizer_config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/tokenizer_config.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "a07e942ac874baa13758de8d1fbdb186683cc03416b5589e1b6671c6b3057c68",
-      "download_bytes": 11003,
-      "installed_bytes": 11003,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-36",
-      "path": "text_encoder/video_preprocessor_config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/video_preprocessor_config.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
-      "download_bytes": 385,
-      "installed_bytes": 385,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-37",
-      "path": "text_encoder/vocab.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/text_encoder/vocab.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
-      "download_bytes": 2776833,
-      "installed_bytes": 2776833,
-      "roles": [
-        "text-encoder"
-      ]
-    },
-    {
-      "id": "artifact-38",
-      "path": "tokenizer/merges.txt",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/tokenizer/merges.txt",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
-      "download_bytes": 1671839,
-      "installed_bytes": 1671839,
-      "roles": [
-        "conditioning"
-      ]
-    },
-    {
-      "id": "artifact-39",
-      "path": "tokenizer/tokenizer.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/tokenizer/tokenizer.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
-      "download_bytes": 7032403,
-      "installed_bytes": 7032403,
-      "roles": [
-        "conditioning"
-      ]
-    },
-    {
-      "id": "artifact-40",
-      "path": "tokenizer/tokenizer_config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/tokenizer/tokenizer_config.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "a07e942ac874baa13758de8d1fbdb186683cc03416b5589e1b6671c6b3057c68",
-      "download_bytes": 11003,
-      "installed_bytes": 11003,
-      "roles": [
-        "conditioning"
-      ]
-    },
-    {
-      "id": "artifact-41",
-      "path": "tokenizer/vocab.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/tokenizer/vocab.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
-      "download_bytes": 2776833,
-      "installed_bytes": 2776833,
-      "roles": [
-        "conditioning"
-      ]
-    },
-    {
-      "id": "artifact-42",
-      "path": "transformer/config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/config.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "74c11bff524336576096993cbfcdcdc2ef4fa2fa4409df693bdcbc6c666282ae",
-      "download_bytes": 546,
-      "installed_bytes": 546,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-43",
-      "path": "transformer/diffusion_pytorch_model-00001-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00001-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "2d847200c45c09dd7f973c1b096663068408ef851ee0b3711d059b6dc5dcd028",
-      "download_bytes": 4825958704,
-      "installed_bytes": 4825958704,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-44",
-      "path": "transformer/diffusion_pytorch_model-00002-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00002-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "2c4d362eddd2802180ac9c744849eb9ba8d9c8b984bdf9822cb02ed004b29184",
-      "download_bytes": 4702158032,
-      "installed_bytes": 4702158032,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-45",
-      "path": "transformer/diffusion_pytorch_model-00003-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00003-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "949c5aafbbfa5654da730a6a7fafd75adb164d0857b095a30e8bb6d390887d69",
-      "download_bytes": 4933368192,
-      "installed_bytes": 4933368192,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-46",
-      "path": "transformer/diffusion_pytorch_model-00004-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00004-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "eef7616790105ee839766bb2027203bf2c0d87c6aa038dca84145a8675f5ce28",
-      "download_bytes": 4567069608,
-      "installed_bytes": 4567069608,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-47",
-      "path": "transformer/diffusion_pytorch_model-00005-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00005-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "43fdf42d638e8bc6745f713fae80c93bb301807a1a5ae7249344ce28e202a494",
-      "download_bytes": 4702158080,
-      "installed_bytes": 4702158080,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-48",
-      "path": "transformer/diffusion_pytorch_model-00006-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00006-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "6442510b34d173653f0cce5c964b935395a8f7accf0b9cc0aa31aec59805239d",
-      "download_bytes": 4933368232,
-      "installed_bytes": 4933368232,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-49",
-      "path": "transformer/diffusion_pytorch_model-00007-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00007-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "29f48f535c91dac76496ca821eeb16ca24bc4caf3f0cae8b920a89b1f966da6d",
-      "download_bytes": 4567069608,
-      "installed_bytes": 4567069608,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-50",
-      "path": "transformer/diffusion_pytorch_model-00008-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00008-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "c711b096c764bd60f0b8b6ad49518bfab6d614fb788c725add8741c0674a4cd8",
-      "download_bytes": 4702158080,
-      "installed_bytes": 4702158080,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-51",
-      "path": "transformer/diffusion_pytorch_model-00009-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00009-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "44428defe3976cbb87635ad200b958199e739986697cd29fdf27aeb7294b5944",
-      "download_bytes": 4933368232,
-      "installed_bytes": 4933368232,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-52",
-      "path": "transformer/diffusion_pytorch_model-00010-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00010-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "3d44939c374c9da382e9c6877e1946adf7b84e08c7a881c068f228d6849411c9",
-      "download_bytes": 4567069608,
-      "installed_bytes": 4567069608,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-53",
-      "path": "transformer/diffusion_pytorch_model-00011-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00011-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "224d24430b58127a5577721084e0e704a0e74ec96dd7c35bc6fc0994ebd87c33",
-      "download_bytes": 4702158080,
-      "installed_bytes": 4702158080,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-54",
-      "path": "transformer/diffusion_pytorch_model-00012-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00012-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "48fa2bd8fe134eef565ab2464f1c2589a6657cba0d14283dfc06b532f8961f3c",
-      "download_bytes": 4933368232,
-      "installed_bytes": 4933368232,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-55",
-      "path": "transformer/diffusion_pytorch_model-00013-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00013-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "be5b4b1809f9d546ffd4b3fcf41e5c1e02b819125caa6bc105c109b04c051bd3",
-      "download_bytes": 4567069608,
-      "installed_bytes": 4567069608,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-56",
-      "path": "transformer/diffusion_pytorch_model-00014-of-00014.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model-00014-of-00014.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "8fbd5e6c1fb1df7ce988ca90f3d59e7610e465c7517e4b344eda4a214ba4b97d",
-      "download_bytes": 4644161920,
-      "installed_bytes": 4644161920,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-57",
-      "path": "transformer/diffusion_pytorch_model.safetensors.index.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/transformer/diffusion_pytorch_model.safetensors.index.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "ac30a3b58963f2e735d493475fbb81853a5735ec947619648b3e045acda6783e",
-      "download_bytes": 64488,
-      "installed_bytes": 64488,
-      "roles": [
-        "transformer"
-      ]
-    },
-    {
-      "id": "artifact-58",
-      "path": "vae/config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/vae/config.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "78f67deec3d63aae807f2bfe7154bc1e26f6372cb20b63265fcbae1b62bb5745",
-      "download_bytes": 2011,
-      "installed_bytes": 2011,
-      "roles": [
-        "video-vae"
-      ]
-    },
-    {
-      "id": "artifact-59",
-      "path": "vae/diffusion_pytorch_model-00001-of-00003.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/vae/diffusion_pytorch_model-00001-of-00003.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "72f4c6be84ac0674f27398cde991dd9d719762f3952c4921aa66b2ce542f6374",
-      "download_bytes": 5061033024,
-      "installed_bytes": 5061033024,
-      "roles": [
-        "video-vae"
-      ]
-    },
-    {
-      "id": "artifact-60",
-      "path": "vae/diffusion_pytorch_model-00002-of-00003.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/vae/diffusion_pytorch_model-00002-of-00003.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "2e05e8bc23fa4071043e17fd242be8acd0685e781a43987432b2eae925be4198",
-      "download_bytes": 4955986528,
-      "installed_bytes": 4955986528,
-      "roles": [
-        "video-vae"
-      ]
-    },
-    {
-      "id": "artifact-61",
-      "path": "vae/diffusion_pytorch_model-00003-of-00003.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/vae/diffusion_pytorch_model-00003-of-00003.safetensors",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "c05d6ac4b1a33de372799d708531da6320f6a3ce6d1ce6d895e770988e004a39",
-      "download_bytes": 398539336,
-      "installed_bytes": 398539336,
-      "roles": [
-        "video-vae"
-      ]
-    },
-    {
-      "id": "artifact-62",
-      "path": "vae/diffusion_pytorch_model.safetensors.index.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/42ed227ee7df40d41602854ae760620d6eb651fe/vae/diffusion_pytorch_model.safetensors.index.json",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "sha256": "15f6d44553c3c616b0dc999920aa784f92ecee7e4201f1f99ac405cfbf3061ca",
-      "download_bytes": 74228,
-      "installed_bytes": 74228,
-      "roles": [
-        "video-vae"
-      ]
-    }
-  ],
-  "dependencies": [],
-  "availability": "active",
-  "supersedes": null
+  "supersedes": null,
+  "version": "MiniMax H3 FL2VA 42ed227e"
 }

@@ -1,125 +1,125 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "qwen3-8-flash-next-nvfp4-sglang-dual"
-  },
-  "version": "1.3.3",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.3.3",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "3107dc6d4c69824845cf5379eff5ef6015cfa2f5343388a2e906b37b741d2b27",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
           "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
         }
-      ]
+      ],
+      "recipe_content_sha256": "5969900c4721e834bed744037756395fab71a15141677fc53c93df5838d71675",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.3.3"
     },
     {
-      "version": "1.3.2",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "b216d50efe555de5c05c0c63602110dbfae5290e2aa9f091be9f6c3a4e02578e",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
-    },
-    {
-      "version": "1.3.1",
+      ],
+      "recipe_content_sha256": "b216d50efe555de5c05c0c63602110dbfae5290e2aa9f091be9f6c3a4e02578e",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "b7463dc64dcabb93f16810e3396c0a507b809c1bc93a9cafd7165ef702ba1e76",
-      "upgrade_effect": "rebuild",
-      "changes": [
-        {
-          "kind": "security",
-          "summary": "Restricted the dual-Spark Qwen build to its exact wheel download host.",
-          "details": "Retained files.pythonhosted.org for the pinned NCCL wheel and removed docker.io because the base image is transferred separately."
-        }
-      ]
+      "upgrade_effect": "metadata-only",
+      "version": "1.3.2"
     },
     {
-      "version": "1.3.0",
-      "released_at": "2026-08-30",
-      "recipe_content_sha256": "e784fed74099b500700538c0cb31cfee4425315370dc5c3571fd5d7affb2f15e",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "fix",
-          "summary": "Advanced to MiaAI-Lab 0f950012 and hardened long-context QSA failure handling.",
+          "details": "Retained files.pythonhosted.org for the pinned NCCL wheel and removed docker.io because the base image is transferred separately.",
+          "kind": "security",
+          "summary": "Restricted the dual-Spark Qwen build to its exact wheel download host."
+        }
+      ],
+      "recipe_content_sha256": "b7463dc64dcabb93f16810e3396c0a507b809c1bc93a9cafd7165ef702ba1e76",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "rebuild",
+      "version": "1.3.1"
+    },
+    {
+      "changes": [
+        {
           "details": "The immutable adapter now returns zero for empty or non-finite selected-KV attention, aborts sixteen-token token-id-0 loops, excludes poisoned completions from radix insertion, resets prefix cache before the next prefill, and enables SGLang NaN-logit sanitation.",
+          "kind": "fix",
           "references": [
             "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/0f950012c8d8323acac9a08846a32ef7953f5f62"
-          ]
+          ],
+          "summary": "Advanced to MiaAI-Lab 0f950012 and hardened long-context QSA failure handling."
         }
-      ]
+      ],
+      "recipe_content_sha256": "e784fed74099b500700538c0cb31cfee4425315370dc5c3571fd5d7affb2f15e",
+      "released_at": "2026-08-30",
+      "upgrade_effect": "rebuild",
+      "version": "1.3.0"
     },
     {
-      "version": "1.2.0",
-      "released_at": "2026-08-29",
-      "recipe_content_sha256": "2706120ce6876ed561a096a8be46018cb6c8c186d2a92923af93a449693552b7",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "fix",
-          "summary": "Updated to MiaAI-Lab's SM121-safe dual-Spark serving revision.",
           "details": "Binds SGLANG_HOST_IP to each rank's ConnectX address, replaces the unsafe SM121 sparse-decode routes with SGLang's packed Triton fallback, retains CUDA-graph-safe NVFP4 KV, and adds the FP8 GQA upcast variant.",
+          "kind": "fix",
           "references": [
             "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/344f9d0d5e9523d8398fa2804d5a3e123fd3d21a",
             "https://github.com/sgl-project/sglang/pull/36845"
-          ]
+          ],
+          "summary": "Updated to MiaAI-Lab's SM121-safe dual-Spark serving revision."
         },
         {
-          "kind": "performance",
-          "summary": "Adopted the upstream 1M YaRN launch profile.",
           "details": "Raises the advertised context contract from 900,000 to 1,048,576 tokens while retaining 1,024-token chunks, 28 request slots, MTP3, and Candidate status pending Vonk's own physical long-context acceptance.",
+          "kind": "performance",
           "references": [
             "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/blob/344f9d0d5e9523d8398fa2804d5a3e123fd3d21a/CHANGELOG.md"
-          ]
+          ],
+          "summary": "Adopted the upstream 1M YaRN launch profile."
         }
-      ]
+      ],
+      "recipe_content_sha256": "2706120ce6876ed561a096a8be46018cb6c8c186d2a92923af93a449693552b7",
+      "released_at": "2026-08-29",
+      "upgrade_effect": "rebuild",
+      "version": "1.2.0"
     },
     {
-      "version": "1.1.0",
-      "released_at": "2026-08-27",
-      "recipe_content_sha256": "01e99bcc0cfb046e09bdbb831069b5206216f5c401282c85f109b2171a6c40e2",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "performance",
-          "summary": "Aligned the default with MiaAI-Lab's announced and tested 900K two-Spark profile.",
           "details": "Pins the first immutable upstream 900K revision and packages its QSA NVFP4-KV patches, YaRN extension, 28 request slots, automatic PLE placement, 1024-token prefill chunks, and MTP3 settings.",
+          "kind": "performance",
           "references": [
             "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/6d1a51947d2f8aed61780ee17429ea4812ba0579",
             "https://x.com/miaai_lab/status/2092670516964270101"
-          ]
+          ],
+          "summary": "Aligned the default with MiaAI-Lab's announced and tested 900K two-Spark profile."
         }
-      ]
+      ],
+      "recipe_content_sha256": "01e99bcc0cfb046e09bdbb831069b5206216f5c401282c85f109b2171a6c40e2",
+      "released_at": "2026-08-27",
+      "upgrade_effect": "rebuild",
+      "version": "1.1.0"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-27",
-      "recipe_content_sha256": "801d79acae3f97977207dc721c030df65cfef5e1f9425a2ebc385fc640f286ff",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
-          "kind": "initial",
-          "summary": "Added an executable two-Spark Qwen3.8 Flash Next NVFP4 SGLang Candidate.",
           "details": "The recipe pins all 135,253,622,894 model bytes and rebuilds the public MiaAI-Lab QSA fallback on an immutable ARM64 SGLang image with exact NCCL 2.30.7, native TP2 rendezvous, PLE offload, bounded 262K context, and MTP3.",
+          "kind": "initial",
           "references": [
             "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/02cd6d9050b386644c65ebf2396324da9575e5ee",
             "https://github.com/tonyd2wild/Qwen3.8-Flash-Next-NVFP4-DGX-Spark/tree/c96c6a3927c4bda566c6454e51966018ddc69b83",
             "https://recipes.vllm.ai/Qwen/Qwen3.8-Flash-Next"
-          ]
+          ],
+          "summary": "Added an executable two-Spark Qwen3.8 Flash Next NVFP4 SGLang Candidate."
         }
-      ]
+      ],
+      "recipe_content_sha256": "801d79acae3f97977207dc721c030df65cfef5e1f9425a2ebc385fc640f286ff",
+      "released_at": "2026-08-27",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-nvfp4-sglang-dual"
+  },
+  "released_at": "2026-09-03",
+  "schema_version": 1,
+  "version": "1.3.3"
 }

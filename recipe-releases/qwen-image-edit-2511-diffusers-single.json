@@ -1,81 +1,82 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "qwen-image-edit-2511-diffusers-single"
-  },
-  "version": "1.1.5",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.1.5",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "7bffdddc23d6eb8c0dcd9d2e0303c435614bb306edea633dbd65df026ad91c1a",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "e1ac28ff4a8ef5d303f7405d461902facc778d35663b62b5f3a8476837797400",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "1.1.6"
     },
     {
-      "version": "1.1.4",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "13f3d7bcb1a87abe790c55a6b0a6b94f27923fdbff4f53e0d59f54b856155d4e",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "7bffdddc23d6eb8c0dcd9d2e0303c435614bb306edea633dbd65df026ad91c1a",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.1.5"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
-    },
-    {
-      "version": "1.1.3",
+      ],
+      "recipe_content_sha256": "13f3d7bcb1a87abe790c55a6b0a6b94f27923fdbff4f53e0d59f54b856155d4e",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "398f83975b1bd4f48c94ba64b3172b6ad7da8a6e668c24ffca9d147cecf2e164",
-      "upgrade_effect": "rebuild",
+      "upgrade_effect": "metadata-only",
+      "version": "1.1.4"
+    },
+    {
       "changes": [
         {
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
           "kind": "security",
-          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
-          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution."
         }
-      ]
-    },
-    {
-      "version": "1.1.2",
-      "released_at": "2026-08-30",
-      "recipe_content_sha256": "5fead827cba6522bf7ca6ab09aa78085e9693d74dee078bb8b89ae7d4debf4dd",
-      "upgrade_effect": "metadata-only",
-      "changes": [
-        {
-          "kind": "metadata",
-          "summary": "Identified the official BF16 Diffusers path as a quality-reference variant.",
-          "details": "Published its exact single-Spark admission envelopes and directs operators to Lightning for latency or FP8mixed ComfyUI for additional headroom. Candidate qualification is unchanged."
-        }
-      ]
-    },
-    {
-      "version": "1.1.1",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "eec95a8c3a157e95a1924aafeb7e71bae918727f2341243fd43cab87b631f173",
-      "upgrade_effect": "metadata-only",
-      "changes": [
-        {
-          "kind": "metadata",
-          "summary": "Added typed artifact input and output slot contracts.",
-          "details": "Declared separate prompt and one-or-two-reference image slots plus the exact edited-PNG output."
-        }
-      ]
-    },
-    {
-      "version": "1.1.0",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "86a7603136c76ed71c2e63f31301e9d0d21cc2f4c714f611bdd07dcd3c37b6d5",
+      ],
+      "recipe_content_sha256": "398f83975b1bd4f48c94ba64b3172b6ad7da8a6e668c24ffca9d147cecf2e164",
+      "released_at": "2026-09-01",
       "upgrade_effect": "rebuild",
+      "version": "1.1.3"
+    },
+    {
+      "changes": [
+        {
+          "details": "Published its exact single-Spark admission envelopes and directs operators to Lightning for latency or FP8mixed ComfyUI for additional headroom. Candidate qualification is unchanged.",
+          "kind": "metadata",
+          "summary": "Identified the official BF16 Diffusers path as a quality-reference variant."
+        }
+      ],
+      "recipe_content_sha256": "5fead827cba6522bf7ca6ab09aa78085e9693d74dee078bb8b89ae7d4debf4dd",
+      "released_at": "2026-08-30",
+      "upgrade_effect": "metadata-only",
+      "version": "1.1.2"
+    },
+    {
+      "changes": [
+        {
+          "details": "Declared separate prompt and one-or-two-reference image slots plus the exact edited-PNG output.",
+          "kind": "metadata",
+          "summary": "Added typed artifact input and output slot contracts."
+        }
+      ],
+      "recipe_content_sha256": "eec95a8c3a157e95a1924aafeb7e71bae918727f2341243fd43cab87b631f173",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "metadata-only",
+      "version": "1.1.1"
+    },
+    {
       "changes": [
         {
           "kind": "compatibility",
@@ -85,62 +86,73 @@
           "kind": "fix",
           "summary": "Rejects missing, extra, invalid, or oversized prompt and image inputs before model loading."
         }
-      ]
+      ],
+      "recipe_content_sha256": "86a7603136c76ed71c2e63f31301e9d0d21cc2f4c714f611bdd07dcd3c37b6d5",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "rebuild",
+      "version": "1.1.0"
     },
     {
-      "version": "1.0.1",
-      "released_at": "2026-08-26",
-      "recipe_content_sha256": "a9cc26617d2ccf3d38fa1d8b91fe0004d2726e286f230e4bdf5d38f606b18263",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
           "kind": "metadata",
-          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
-          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
         }
-      ]
+      ],
+      "recipe_content_sha256": "a9cc26617d2ccf3d38fa1d8b91fe0004d2726e286f230e4bdf5d38f606b18263",
+      "released_at": "2026-08-26",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.1"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "f3c6d28c74f76fc74240b15ae2a6cbf36c83a63077251c73daf0aaf7808def91",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
           "summary": "Initial reviewed catalog release of Qwen Image Edit 2511 Diffusers single Spark."
         }
-      ]
+      ],
+      "recipe_content_sha256": "f3c6d28c74f76fc74240b15ae2a6cbf36c83a63077251c73daf0aaf7808def91",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     },
     {
-      "version": "0.2.0",
-      "released_at": "2026-08-16",
-      "recipe_content_sha256": "404523292c6aa22fdcf57c4987c573f615427c4d586724dfb5570e1045f91146",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "fix",
-          "summary": "Bound the legacy Qwen Image Edit candidate to the corrected adapter digest.",
           "references": [
             "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/196412520f07d424d8731a9441392a65eed6c881"
-          ]
+          ],
+          "summary": "Bound the legacy Qwen Image Edit candidate to the corrected adapter digest."
         }
-      ]
+      ],
+      "recipe_content_sha256": "404523292c6aa22fdcf57c4987c573f615427c4d586724dfb5570e1045f91146",
+      "released_at": "2026-08-16",
+      "upgrade_effect": "rebuild",
+      "version": "0.2.0"
     },
     {
-      "version": "0.1.0",
-      "released_at": "2026-08-16",
-      "recipe_content_sha256": "beba9f9ca777a4acd82077e0d0dfb0cd930bb007ac4a7ac0d4a2898e6d1e223a",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
-          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
           "references": [
             "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/f8d5a81ee2c0fac20703fbfa79b1ad7e8b5a6203"
-          ]
+          ],
+          "summary": "Recovered the first public legacy revision from before semantic release tracking."
         }
-      ]
+      ],
+      "recipe_content_sha256": "beba9f9ca777a4acd82077e0d0dfb0cd930bb007ac4a7ac0d4a2898e6d1e223a",
+      "released_at": "2026-08-16",
+      "upgrade_effect": "reinstall",
+      "version": "0.1.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-edit-2511-diffusers-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "1.1.6"
 }

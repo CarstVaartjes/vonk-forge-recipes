@@ -1,204 +1,238 @@
 {
-  "schema_version": 1,
-  "kind": "model-version",
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "artifacts": [
+    {
+      "download_bytes": 1570,
+      "id": "metadata-34448b82c17d",
+      "installed_bytes": 1570,
+      "kind": "huggingface.file",
+      "path": ".gitattributes",
+      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
+      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930"
+    },
+    {
+      "download_bytes": 27830,
+      "id": "readme-2d87a2d936e3",
+      "installed_bytes": 27830,
+      "kind": "huggingface.file",
+      "path": "README.md",
+      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
+      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "2d87a2d936e3e03077589114bd1702cf480647fb145a41fe973eba49f934d0ce"
+    },
+    {
+      "download_bytes": 3775,
+      "id": "config-0364256c5de7",
+      "installed_bytes": 3775,
+      "kind": "huggingface.file",
+      "path": "config.json",
+      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
+      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "0364256c5de7863a22b5dd666043d542d42b681c02fd83eb67dc7b483d859e96"
+    },
+    {
+      "download_bytes": 181,
+      "id": "generation-config-de16fa1d7773",
+      "installed_bytes": 181,
+      "kind": "huggingface.file",
+      "path": "generation_config.json",
+      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
+      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "de16fa1d777387d5fe6df54a9565d9c0f1213f7b31f2a2cf44805e27686d9c7c"
+    },
+    {
+      "download_bytes": 49907246508,
+      "id": "model-00001-of-00002-a0e671c5e81c",
+      "installed_bytes": 49907246508,
+      "kind": "huggingface.file",
+      "path": "model-00001-of-00002.safetensors",
+      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
+      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a0e671c5e81ce9a8fd151e60676e7b3a7f2e9ec685a1e8b6b504de2082453f96"
+    },
+    {
+      "download_bytes": 1704763408,
+      "id": "model-00002-of-00002-dda6797de622",
+      "installed_bytes": 1704763408,
+      "kind": "huggingface.file",
+      "path": "model-00002-of-00002.safetensors",
+      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
+      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "dda6797de622b19c46320bb31073323d06a3444a149d4e0e028a3dbd682e0364"
+    },
+    {
+      "download_bytes": 103196,
+      "id": "model-safetensors-index-907826a6e46f",
+      "installed_bytes": 103196,
+      "kind": "huggingface.file",
+      "path": "model.safetensors.index.json",
+      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
+      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "907826a6e46ff454272bd6db1fee629d5531a2303be22986d825a0871d7dc7a7"
+    },
+    {
+      "download_bytes": 1689,
+      "id": "processor-config-32bdf45d2ad4",
+      "installed_bytes": 1689,
+      "kind": "huggingface.file",
+      "path": "processor_config.json",
+      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
+      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "32bdf45d2ad4cc29a0822ddd157a182de76644f0419a6228d151495256e9813c"
+    },
+    {
+      "download_bytes": 32170070,
+      "id": "tokenizer-12bac982b793",
+      "installed_bytes": 32170070,
+      "kind": "huggingface.file",
+      "path": "tokenizer.json",
+      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
+      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "12bac982b793c44b03d52a250a9f0d0b666813da566b910c24a6da0695fd11e6"
+    },
+    {
+      "download_bytes": 881,
+      "id": "tokenizer-config-6a9383197f00",
+      "installed_bytes": 881,
+      "kind": "huggingface.file",
+      "path": "tokenizer_config.json",
+      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
+      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "6a9383197f000d2723684efd2210f5bf217bc29fa2cf360ae1574201b47af060"
+    }
+  ],
+  "availability": "active",
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "code-generation",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "image-understanding",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "text-generation",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "video-understanding",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "source_revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
+      "source_url": "https://huggingface.co/google/gemma-4-26B-A4B"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
   "identity": {
     "publisher": "google",
     "slug": "gemma-4-26b-a4b-24548b62"
   },
+  "kind": "model-version",
+  "license": {
+    "attribution": [
+      "Google DeepMind"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://ai.google.dev/gemma/terms"
+  },
+  "limits": {
+    "context_tokens": 262144
+  },
+  "lineage": {
+    "derivation": "Official upstream checkpoint at the pinned revision.",
+    "publisher": "google",
+    "relation": "official",
+    "source_model": {
+      "content_sha256": "243c0743f4689b03ba96cb258709897ec94c88a4a0633f33b22323ff8d75c436",
+      "kind": "model",
+      "publisher": "google",
+      "slug": "gemma-4-26b-a4b"
+    }
+  },
   "metadata": {
-    "title": "26B-A4B 24548b62",
     "description": "Exact public 26B-A4B 24548b62 checkpoint.",
     "tags": [
       "google",
       "gemma",
       "language",
       "candidate"
-    ]
+    ],
+    "title": "26B-A4B 24548b62"
   },
   "model": {
+    "content_sha256": "243c0743f4689b03ba96cb258709897ec94c88a4a0633f33b22323ff8d75c436",
     "kind": "model",
     "publisher": "google",
-    "slug": "gemma-4-26b-a4b",
-    "content_sha256": "243c0743f4689b03ba96cb258709897ec94c88a4a0633f33b22323ff8d75c436"
-  },
-  "version": "26B-A4B 24548b62",
-  "source": {
-    "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
-    "revision": "24548b62aa021d562695c04aaf7758a1ea47990b"
-  },
-  "lineage": {
-    "publisher": "google",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "google",
-      "slug": "gemma-4-26b-a4b",
-      "content_sha256": "243c0743f4689b03ba96cb258709897ec94c88a4a0633f33b22323ff8d75c436"
-    },
-    "derivation": "Official upstream checkpoint at the pinned revision."
-  },
-  "format": {
-    "container": "safetensors",
-    "precision": "bf16",
-    "quantization": "none"
+    "slug": "gemma-4-26b-a4b"
   },
   "parameters": {
-    "total": 26000000000,
-    "active": 4000000000
+    "active": 4000000000,
+    "total": 26000000000
   },
-  "limits": {
-    "context_tokens": 262144
-  },
+  "schema_version": 1,
   "sizes": {
     "download_bytes": 51644319108,
     "installed_bytes": 51644319108
   },
-  "license": {
-    "spdx": "Apache-2.0",
-    "url": "https://ai.google.dev/gemma/terms",
-    "attribution": [
-      "Google DeepMind"
-    ],
-    "operator_acceptance_required": false
+  "source": {
+    "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
+    "revision": "24548b62aa021d562695c04aaf7758a1ea47990b"
   },
-  "access": {
-    "visibility": "public",
-    "gated": false,
-    "authentication": "none"
-  },
-  "artifacts": [
-    {
-      "id": "metadata-34448b82c17d",
-      "path": ".gitattributes",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
-      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
-      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
-      "download_bytes": 1570,
-      "installed_bytes": 1570,
-      "roles": [
-        "metadata"
-      ]
-    },
-    {
-      "id": "readme-2d87a2d936e3",
-      "path": "README.md",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
-      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
-      "sha256": "2d87a2d936e3e03077589114bd1702cf480647fb145a41fe973eba49f934d0ce",
-      "download_bytes": 27830,
-      "installed_bytes": 27830,
-      "roles": [
-        "metadata"
-      ]
-    },
-    {
-      "id": "config-0364256c5de7",
-      "path": "config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
-      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
-      "sha256": "0364256c5de7863a22b5dd666043d542d42b681c02fd83eb67dc7b483d859e96",
-      "download_bytes": 3775,
-      "installed_bytes": 3775,
-      "roles": [
-        "configuration"
-      ]
-    },
-    {
-      "id": "generation-config-de16fa1d7773",
-      "path": "generation_config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
-      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
-      "sha256": "de16fa1d777387d5fe6df54a9565d9c0f1213f7b31f2a2cf44805e27686d9c7c",
-      "download_bytes": 181,
-      "installed_bytes": 181,
-      "roles": [
-        "configuration"
-      ]
-    },
-    {
-      "id": "model-00001-of-00002-a0e671c5e81c",
-      "path": "model-00001-of-00002.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
-      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
-      "sha256": "a0e671c5e81ce9a8fd151e60676e7b3a7f2e9ec685a1e8b6b504de2082453f96",
-      "download_bytes": 49907246508,
-      "installed_bytes": 49907246508,
-      "roles": [
-        "weights"
-      ]
-    },
-    {
-      "id": "model-00002-of-00002-dda6797de622",
-      "path": "model-00002-of-00002.safetensors",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
-      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
-      "sha256": "dda6797de622b19c46320bb31073323d06a3444a149d4e0e028a3dbd682e0364",
-      "download_bytes": 1704763408,
-      "installed_bytes": 1704763408,
-      "roles": [
-        "weights"
-      ]
-    },
-    {
-      "id": "model-safetensors-index-907826a6e46f",
-      "path": "model.safetensors.index.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
-      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
-      "sha256": "907826a6e46ff454272bd6db1fee629d5531a2303be22986d825a0871d7dc7a7",
-      "download_bytes": 103196,
-      "installed_bytes": 103196,
-      "roles": [
-        "configuration"
-      ]
-    },
-    {
-      "id": "processor-config-32bdf45d2ad4",
-      "path": "processor_config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
-      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
-      "sha256": "32bdf45d2ad4cc29a0822ddd157a182de76644f0419a6228d151495256e9813c",
-      "download_bytes": 1689,
-      "installed_bytes": 1689,
-      "roles": [
-        "configuration"
-      ]
-    },
-    {
-      "id": "tokenizer-12bac982b793",
-      "path": "tokenizer.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
-      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
-      "sha256": "12bac982b793c44b03d52a250a9f0d0b666813da566b910c24a6da0695fd11e6",
-      "download_bytes": 32170070,
-      "installed_bytes": 32170070,
-      "roles": [
-        "tokenizer"
-      ]
-    },
-    {
-      "id": "tokenizer-config-6a9383197f00",
-      "path": "tokenizer_config.json",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
-      "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
-      "sha256": "6a9383197f000d2723684efd2210f5bf217bc29fa2cf360ae1574201b47af060",
-      "download_bytes": 881,
-      "installed_bytes": 881,
-      "roles": [
-        "tokenizer"
-      ]
-    }
-  ],
-  "dependencies": [],
-  "availability": "active",
-  "supersedes": null
+  "supersedes": null,
+  "version": "26B-A4B 24548b62"
 }

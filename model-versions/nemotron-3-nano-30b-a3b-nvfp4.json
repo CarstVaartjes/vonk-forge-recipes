@@ -1,70 +1,332 @@
 {
-  "schema_version": 1,
-  "kind": "model-version",
-  "identity": {"publisher": "nvidia", "slug": "nemotron-3-nano-30b-a3b-nvfp4"},
-  "metadata": {
-    "title": "Nemotron 3 Nano 30B-A3B NVFP4",
-    "description": "Official NVIDIA Nemotron 3 Nano NVFP4 checkpoint with selective BF16 attention/Mamba layers and FP8 KV-cache support.",
-    "tags": ["nvidia", "nemotron", "language", "reasoning", "nvfp4", "spark"]
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
   },
-  "model": {
-    "kind": "model",
-    "publisher": "nvidia",
-    "slug": "nemotron-3-nano-30b-a3b",
-    "content_sha256": "8a7de24582e3f75b9e398159721d0b425219f3ed4e4e1db029289b26fa74d368"
-  },
-  "version": "nvfp4-ce1b118a",
-  "source": {
-    "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
-    "revision": "ce1b118ae66ec705d02c241525192832eb045fd3"
-  },
-  "lineage": {
-    "publisher": "nvidia",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "nvidia",
-      "slug": "nemotron-3-nano-30b-a3b",
-      "content_sha256": "8a7de24582e3f75b9e398159721d0b425219f3ed4e4e1db029289b26fa74d368"
+  "artifacts": [
+    {
+      "download_bytes": 1570,
+      "id": "metadata-gitattributes",
+      "installed_bytes": 1570,
+      "kind": "huggingface.file",
+      "path": ".gitattributes",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930"
     },
-    "derivation": "Official NVIDIA post-training quantization to NVFP4 with selective BF16 retention and FP8 KV cache."
+    {
+      "download_bytes": 73512,
+      "id": "metadata-readme",
+      "installed_bytes": 73512,
+      "kind": "huggingface.file",
+      "path": "README.md",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "af815293f17382e0c64117849b314605375ca4a476557ded95c6e942650202fb"
+    },
+    {
+      "download_bytes": 10504,
+      "id": "tokenizer-chat-template",
+      "installed_bytes": 10504,
+      "kind": "huggingface.file",
+      "path": "chat_template.jinja",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ab7813c3abdd9cb655905a410728b26c7884eca45ddfab8d9f931553485a7862"
+    },
+    {
+      "download_bytes": 1817,
+      "id": "configuration",
+      "installed_bytes": 1817,
+      "kind": "huggingface.file",
+      "path": "config.json",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f4fcbaaaed3ee215f86205a7600636cd930bde069f2b603d7ff908c046a0cd96"
+    },
+    {
+      "download_bytes": 12893,
+      "id": "configuration-nemotron",
+      "installed_bytes": 12893,
+      "kind": "huggingface.file",
+      "path": "configuration_nemotron_h.py",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "09a3179517667d302068c2f8c96c9f059297418a829bf3cb96273040563b955c"
+    },
+    {
+      "download_bytes": 197,
+      "id": "generation-config",
+      "installed_bytes": 197,
+      "kind": "huggingface.file",
+      "path": "generation_config.json",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7a8f2d91a749d7a09b755daceacab14da9d66ebfdaea7e8583e48c0be01ee73d"
+    },
+    {
+      "download_bytes": 3050,
+      "id": "quantization-config",
+      "installed_bytes": 3050,
+      "kind": "huggingface.file",
+      "path": "hf_quant_config.json",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "37ff9e85d04311916a38ff7bc28cae1972dfdc54d39da8439d3f85204b9e8fbf"
+    },
+    {
+      "download_bytes": 3998838864,
+      "id": "weights-01",
+      "installed_bytes": 3998838864,
+      "kind": "huggingface.file",
+      "path": "model-00001-of-00005.safetensors",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2fdac76b3e4906ce0fb0dd33ab51f011372a5473e0d6c5bb479b6f10d3f29fdb"
+    },
+    {
+      "download_bytes": 4000414120,
+      "id": "weights-02",
+      "installed_bytes": 4000414120,
+      "kind": "huggingface.file",
+      "path": "model-00002-of-00005.safetensors",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "559806ee0cb6edcfc01805e24bac9182cb2611bad3993e0da05487d7a79b4f38"
+    },
+    {
+      "download_bytes": 3999641680,
+      "id": "weights-03",
+      "installed_bytes": 3999641680,
+      "kind": "huggingface.file",
+      "path": "model-00003-of-00005.safetensors",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d820849788701123d041501fb8ac88e4ade24a28a63cd663118797cfae910be2"
+    },
+    {
+      "download_bytes": 4000413336,
+      "id": "weights-04",
+      "installed_bytes": 4000413336,
+      "kind": "huggingface.file",
+      "path": "model-00004-of-00005.safetensors",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f5ccb7cfa7870ab2d099134c3f771ad4a158e0421b3bf7b2a0da53311a09cb14"
+    },
+    {
+      "download_bytes": 3343488520,
+      "id": "weights-05",
+      "installed_bytes": 3343488520,
+      "kind": "huggingface.file",
+      "path": "model-00005-of-00005.safetensors",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c9dd9142839367ad274019a7683bc84993217c8a63e70dd8e18656de0c4050eb"
+    },
+    {
+      "download_bytes": 2497886,
+      "id": "weights-index",
+      "installed_bytes": 2497886,
+      "kind": "huggingface.file",
+      "path": "model.safetensors.index.json",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e076394997f518b64a2b81b9648a58063faa611c95a1d5fb5495e77194e5dfb7"
+    },
+    {
+      "download_bytes": 83779,
+      "id": "modeling",
+      "installed_bytes": 83779,
+      "kind": "huggingface.file",
+      "path": "modeling_nemotron_h.py",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "4d353ce6e8f495d043f2d8c5acd13496a84ba2b2d45da8279797a55f680309d9"
+    },
+    {
+      "download_bytes": 798,
+      "id": "reasoning-parser",
+      "installed_bytes": 798,
+      "kind": "huggingface.file",
+      "path": "nano_v3_reasoning_parser.py",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "aafb12208054504f619cbdd01837e1532a482ad937ed987bfe9a13fb812ae2b7"
+    },
+    {
+      "download_bytes": 420,
+      "id": "special-tokens",
+      "installed_bytes": 420,
+      "kind": "huggingface.file",
+      "path": "special_tokens_map.json",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e3a4f63da745f02317a45e00e6476c17fc66ac41faf14bb1b0be1f3211b0ca53"
+    },
+    {
+      "download_bytes": 17077485,
+      "id": "tokenizer",
+      "installed_bytes": 17077485,
+      "kind": "huggingface.file",
+      "path": "tokenizer.json",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c6021eb6847e682f89aa52d5eb6e8c7d902a23acfc8137e25211cf84828f1592"
+    },
+    {
+      "download_bytes": 188049,
+      "id": "tokenizer-config",
+      "installed_bytes": 188049,
+      "kind": "huggingface.file",
+      "path": "tokenizer_config.json",
+      "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "3d568e506d0905285ae90a3fdd1482be7b6d0bf0b8ca9514d75dad4257b0827a"
+    }
+  ],
+  "availability": "active",
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "reasoning",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "text-generation",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "source_revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+      "source_url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4"
+    },
+    "schema_version": 2
   },
+  "dependencies": [],
   "format": {
     "container": "safetensors",
     "precision": "mixed",
     "quantization": "nvfp4-fp8-kv-selective-bf16"
   },
-  "parameters": {"total": 30000000000, "active": 3500000000},
-  "limits": {"context_tokens": 1048576},
-  "sizes": {"download_bytes": 19362748480, "installed_bytes": 19362748480},
-  "license": {
-    "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
-    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/",
-    "attribution": ["NVIDIA Corporation"],
-    "operator_acceptance_required": true
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "nemotron-3-nano-30b-a3b-nvfp4"
   },
-  "access": {"visibility": "public", "gated": false, "authentication": "none"},
-  "artifacts": [
-    {"id":"metadata-gitattributes","path":".gitattributes","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930","download_bytes":1570,"installed_bytes":1570,"roles":["metadata"]},
-    {"id":"metadata-readme","path":"README.md","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"af815293f17382e0c64117849b314605375ca4a476557ded95c6e942650202fb","download_bytes":73512,"installed_bytes":73512,"roles":["metadata"]},
-    {"id":"tokenizer-chat-template","path":"chat_template.jinja","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"ab7813c3abdd9cb655905a410728b26c7884eca45ddfab8d9f931553485a7862","download_bytes":10504,"installed_bytes":10504,"roles":["tokenizer"]},
-    {"id":"configuration","path":"config.json","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"f4fcbaaaed3ee215f86205a7600636cd930bde069f2b603d7ff908c046a0cd96","download_bytes":1817,"installed_bytes":1817,"roles":["configuration"]},
-    {"id":"configuration-nemotron","path":"configuration_nemotron_h.py","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"09a3179517667d302068c2f8c96c9f059297418a829bf3cb96273040563b955c","download_bytes":12893,"installed_bytes":12893,"roles":["runtime"]},
-    {"id":"generation-config","path":"generation_config.json","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"7a8f2d91a749d7a09b755daceacab14da9d66ebfdaea7e8583e48c0be01ee73d","download_bytes":197,"installed_bytes":197,"roles":["configuration"]},
-    {"id":"quantization-config","path":"hf_quant_config.json","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"37ff9e85d04311916a38ff7bc28cae1972dfdc54d39da8439d3f85204b9e8fbf","download_bytes":3050,"installed_bytes":3050,"roles":["configuration"]},
-    {"id":"weights-01","path":"model-00001-of-00005.safetensors","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"2fdac76b3e4906ce0fb0dd33ab51f011372a5473e0d6c5bb479b6f10d3f29fdb","download_bytes":3998838864,"installed_bytes":3998838864,"roles":["weights"]},
-    {"id":"weights-02","path":"model-00002-of-00005.safetensors","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"559806ee0cb6edcfc01805e24bac9182cb2611bad3993e0da05487d7a79b4f38","download_bytes":4000414120,"installed_bytes":4000414120,"roles":["weights"]},
-    {"id":"weights-03","path":"model-00003-of-00005.safetensors","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"d820849788701123d041501fb8ac88e4ade24a28a63cd663118797cfae910be2","download_bytes":3999641680,"installed_bytes":3999641680,"roles":["weights"]},
-    {"id":"weights-04","path":"model-00004-of-00005.safetensors","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"f5ccb7cfa7870ab2d099134c3f771ad4a158e0421b3bf7b2a0da53311a09cb14","download_bytes":4000413336,"installed_bytes":4000413336,"roles":["weights"]},
-    {"id":"weights-05","path":"model-00005-of-00005.safetensors","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"c9dd9142839367ad274019a7683bc84993217c8a63e70dd8e18656de0c4050eb","download_bytes":3343488520,"installed_bytes":3343488520,"roles":["weights"]},
-    {"id":"weights-index","path":"model.safetensors.index.json","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"e076394997f518b64a2b81b9648a58063faa611c95a1d5fb5495e77194e5dfb7","download_bytes":2497886,"installed_bytes":2497886,"roles":["configuration"]},
-    {"id":"modeling","path":"modeling_nemotron_h.py","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"4d353ce6e8f495d043f2d8c5acd13496a84ba2b2d45da8279797a55f680309d9","download_bytes":83779,"installed_bytes":83779,"roles":["runtime"]},
-    {"id":"reasoning-parser","path":"nano_v3_reasoning_parser.py","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"aafb12208054504f619cbdd01837e1532a482ad937ed987bfe9a13fb812ae2b7","download_bytes":798,"installed_bytes":798,"roles":["runtime"]},
-    {"id":"special-tokens","path":"special_tokens_map.json","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"e3a4f63da745f02317a45e00e6476c17fc66ac41faf14bb1b0be1f3211b0ca53","download_bytes":420,"installed_bytes":420,"roles":["tokenizer"]},
-    {"id":"tokenizer","path":"tokenizer.json","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"c6021eb6847e682f89aa52d5eb6e8c7d902a23acfc8137e25211cf84828f1592","download_bytes":17077485,"installed_bytes":17077485,"roles":["tokenizer"]},
-    {"id":"tokenizer-config","path":"tokenizer_config.json","kind":"huggingface.file","repository":"https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4","revision":"ce1b118ae66ec705d02c241525192832eb045fd3","sha256":"3d568e506d0905285ae90a3fdd1482be7b6d0bf0b8ca9514d75dad4257b0827a","download_bytes":188049,"installed_bytes":188049,"roles":["tokenizer"]}
-  ],
-  "dependencies": [],
-  "availability": "active",
-  "supersedes": null
+  "kind": "model-version",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/"
+  },
+  "limits": {
+    "context_tokens": 1048576
+  },
+  "lineage": {
+    "derivation": "Official NVIDIA post-training quantization to NVFP4 with selective BF16 retention and FP8 KV cache.",
+    "publisher": "nvidia",
+    "relation": "official",
+    "source_model": {
+      "content_sha256": "8a7de24582e3f75b9e398159721d0b425219f3ed4e4e1db029289b26fa74d368",
+      "kind": "model",
+      "publisher": "nvidia",
+      "slug": "nemotron-3-nano-30b-a3b"
+    }
+  },
+  "metadata": {
+    "description": "Official NVIDIA Nemotron 3 Nano NVFP4 checkpoint with selective BF16 attention/Mamba layers and FP8 KV-cache support.",
+    "tags": [
+      "nvidia",
+      "nemotron",
+      "language",
+      "reasoning",
+      "nvfp4",
+      "spark"
+    ],
+    "title": "Nemotron 3 Nano 30B-A3B NVFP4"
+  },
+  "model": {
+    "content_sha256": "8a7de24582e3f75b9e398159721d0b425219f3ed4e4e1db029289b26fa74d368",
+    "kind": "model",
+    "publisher": "nvidia",
+    "slug": "nemotron-3-nano-30b-a3b"
+  },
+  "parameters": {
+    "active": 3500000000,
+    "total": 30000000000
+  },
+  "schema_version": 1,
+  "sizes": {
+    "download_bytes": 19362748480,
+    "installed_bytes": 19362748480
+  },
+  "source": {
+    "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+    "revision": "ce1b118ae66ec705d02c241525192832eb045fd3"
+  },
+  "supersedes": null,
+  "version": "nvfp4-ce1b118a"
 }

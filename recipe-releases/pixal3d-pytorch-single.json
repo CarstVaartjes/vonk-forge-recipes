@@ -1,42 +1,43 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "pixal3d-pytorch-single"
-  },
-  "version": "2.0.5",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "2.0.5",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "03ef260eef45609d7f0f49217e497a5dc17093d6fe8db7db0a2fbe1c5518ba46",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "ba188646fd72c3574388a0530566d05bc4de2e649544bc832d6a0e3b46af40cc",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "2.0.6"
     },
     {
-      "version": "2.0.4",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "d2e9d4a765738c052a56fef730e20bd0b99aceb8b49e3d6039a788a77c2939b1",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "03ef260eef45609d7f0f49217e497a5dc17093d6fe8db7db0a2fbe1c5518ba46",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.5"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
+      ],
+      "recipe_content_sha256": "d2e9d4a765738c052a56fef730e20bd0b99aceb8b49e3d6039a788a77c2939b1",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "metadata-only",
+      "version": "2.0.4"
     },
     {
-      "version": "2.0.3",
-      "released_at": "2026-08-30",
-      "recipe_content_sha256": "4f9d810e4b2d2c32b8b0c7d9e93620b333ed1ed74890c192c30824c4250b1990",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "fix",
@@ -46,25 +47,25 @@
           "kind": "metadata",
           "summary": "Exposed the pinned nvdiffrast dependency's non-commercial research and evaluation restriction on the recipe card."
         }
-      ]
+      ],
+      "recipe_content_sha256": "4f9d810e4b2d2c32b8b0c7d9e93620b333ed1ed74890c192c30824c4250b1990",
+      "released_at": "2026-08-30",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.3"
     },
     {
-      "version": "2.0.2",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "489996d2236568c133e679ce162b97e127319e3e09159c7576eb7cfd1bd2a87b",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "fix",
           "summary": "Required embedded UV, base-color, and metallic-roughness PBR data on a valid triangle mesh before atomic GLB publication."
         }
-      ]
+      ],
+      "recipe_content_sha256": "489996d2236568c133e679ce162b97e127319e3e09159c7576eb7cfd1bd2a87b",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.2"
     },
     {
-      "version": "2.0.1",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "3c5990f5121ca1339eec0cfc6b9aa682b782c24efc9829c707641eee206e70c9",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "fix",
@@ -78,13 +79,13 @@
           "kind": "compatibility",
           "summary": "Declared exact one-image input and single-GLB output slots with bounded bytes."
         }
-      ]
+      ],
+      "recipe_content_sha256": "3c5990f5121ca1339eec0cfc6b9aa682b782c24efc9829c707641eee206e70c9",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.1"
     },
     {
-      "version": "2.0.0",
-      "released_at": "2026-08-24",
-      "recipe_content_sha256": "41dca745a9b3bad638f47f9387cfe7a4af881fce57dffb3ff6b9bf03fb6324da",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "breaking",
@@ -98,13 +99,13 @@
           "kind": "compatibility",
           "summary": "Kept Candidate status until the reproducible offline build and workload pass a physical DGX Spark canary."
         }
-      ]
+      ],
+      "recipe_content_sha256": "41dca745a9b3bad638f47f9387cfe7a4af881fce57dffb3ff6b9bf03fb6324da",
+      "released_at": "2026-08-24",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.0"
     },
     {
-      "version": "1.1.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "e31fa7abd9b8fbc7e19782e795677a6be5295b6db1b5cdaeb14664b9f1027cab",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "compatibility",
@@ -118,34 +119,45 @@
           "kind": "metadata",
           "summary": "Corrected the checkpoint license to MIT."
         }
-      ]
+      ],
+      "recipe_content_sha256": "e31fa7abd9b8fbc7e19782e795677a6be5295b6db1b5cdaeb14664b9f1027cab",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.1.0"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "7f2147015e98bfd53e3cac833b727c526287b131b7bda2a22e5273adcdb9742d",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
           "summary": "Initial reviewed catalog release of Pixal3D pytorch-pipeline single Spark."
         }
-      ]
+      ],
+      "recipe_content_sha256": "7f2147015e98bfd53e3cac833b727c526287b131b7bda2a22e5273adcdb9742d",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     },
     {
-      "version": "0.1.0",
-      "released_at": "2026-08-17",
-      "recipe_content_sha256": "6a02d8e08a6e9df730e6e99af46c2c835222e605b4f90b604a1ad2558ca8724d",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
-          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
           "references": [
             "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-          ]
+          ],
+          "summary": "Recovered the first public legacy revision from before semantic release tracking."
         }
-      ]
+      ],
+      "recipe_content_sha256": "6a02d8e08a6e9df730e6e99af46c2c835222e605b4f90b604a1ad2558ca8724d",
+      "released_at": "2026-08-17",
+      "upgrade_effect": "reinstall",
+      "version": "0.1.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "pixal3d-pytorch-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "2.0.6"
 }

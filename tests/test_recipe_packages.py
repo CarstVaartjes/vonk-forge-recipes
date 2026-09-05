@@ -1,0 +1,203 @@
+from __future__ import annotations
+
+import copy
+import hashlib
+import io
+import json
+import os
+import runpy
+import tarfile
+from unittest import SkipTest
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+PLATFORM_ROOT = Path(os.environ.get("VONK_FORGE_PLATFORM_ROOT", "/opt/vonk-forge"))
+PLATFORM_OWNED_ENVIRONMENT = {
+    "FLASHINFER_WORKSPACE_BASE",
+    "TILELANG_CACHE_DIR",
+    "TRITON_CACHE_DIR",
+    "B12X_CUTE_COMPILE_CACHE_DIR",
+    "TORCH_FR_DUMP_TEMP_FILE",
+    "TORCH_NCCL_DEBUG_INFO_PIPE_FILE",
+}
+
+
+def _platform_root() -> Path:
+    if not (PLATFORM_ROOT / "config" / "execution-harnesses").is_dir():
+        raise SkipTest("authoritative Vonk Forge platform checkout is unavailable")
+    return PLATFORM_ROOT
+
+
+def test_full_catalog_packages_are_self_contained_and_deterministic(tmp_path: Path) -> None:
+    first_dir = tmp_path / "first"
+    second_dir = tmp_path / "second"
+    platform_root = _platform_root()
+    first = TOOL["build"](package_dir=first_dir, platform_root=platform_root)
+    second = TOOL["build"](package_dir=second_dir, platform_root=platform_root)
+    assert first["kind"] == second["kind"] == "recipe-library-index"
+    assert first["schema_version"] == second["schema_version"] == 2
+    assert len(first["recipes"]) == len(list((ROOT / "recipes").glob("*.json"))) == 84
+    assert len(first["recipes"]) == len(second["recipes"])
+
+    for first_row, second_row in zip(first["recipes"], second["recipes"], strict=True):
+        first_package = first_row["package"]
+        second_package = second_row["package"]
+        filename = Path(str(first_package["path"])).name
+        first_bytes = (first_dir / filename).read_bytes()
+        second_bytes = (second_dir / filename).read_bytes()
+        assert first_bytes == second_bytes
+        assert hashlib.sha256(first_bytes).hexdigest() == first_package["sha256"]
+        assert first_package == second_package
+        with tarfile.open(fileobj=io.BytesIO(first_bytes), mode="r:gz") as archive:
+            names = archive.getnames()
+            assert len(names) == len(set(names))
+            assert all(not name.startswith("/") and ".." not in name.split("/") for name in names)
+            manifest = json.load(archive.extractfile("manifest.json"))
+            assert manifest["schema_version"] == 2
+            assert manifest["kind"] == "recipe-package"
+            assert manifest["recipe_content_sha256"] == first_row["content_sha256"]
+            assert manifest["package_type"] == "recipe"
+            for entry in manifest["files"]:
+                payload = archive.extractfile(entry["path"]).read()
+                assert len(payload) == entry["size"]
+                assert hashlib.sha256(payload).hexdigest() == entry["sha256"]
+
+
+def test_editing_one_recipe_changes_only_that_package(tmp_path: Path) -> None:
+    platform_root = _platform_root()
+    catalog = TOOL["build"](package_dir=tmp_path, platform_root=platform_root)
+    rows = catalog["recipes"]
+    original = {
+        Path(str(row["package"]["path"])).name: (
+            tmp_path / Path(str(row["package"]["path"])).name
+        ).read_bytes()
+        for row in rows
+    }
+    target = rows[0]
+    edited = copy.deepcopy(target["document"])
+    edited["metadata"]["description"] += " edited"
+    entities = TOOL["_catalog_entity_documents"]()
+    entities.update(TOOL["_platform_harness_documents"](platform_root))
+    definitions = json.loads((ROOT / "qualification" / "definitions.json").read_text())
+    package_bytes, package = TOOL["recipe_package"](
+        edited,
+        target["release"],
+        recipe_path=ROOT / str(target["source_path"]),
+        entity_documents=entities,
+        qualification_definitions=definitions,
+    )
+    assert package_bytes != original[Path(str(target["package"]["path"])).name]
+    assert package["media_type"] == "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
+    for row in rows[1:]:
+        filename = Path(str(row["package"]["path"])).name
+        assert (tmp_path / filename).read_bytes() == original[filename]
+
+
+def test_supplied_source_commit_only_changes_index_metadata(tmp_path: Path) -> None:
+    platform_root = _platform_root()
+    first_dir = tmp_path / "first"
+    second_dir = tmp_path / "second"
+    first = TOOL["build"](
+        package_dir=first_dir,
+        platform_root=platform_root,
+        source_commit="a" * 40,
+    )
+    second = TOOL["build"](
+        package_dir=second_dir,
+        platform_root=platform_root,
+        source_commit="b" * 40,
+    )
+    assert first["source_commit"] == "a" * 40
+    assert second["source_commit"] == "b" * 40
+    assert first["platform_commit"] == second["platform_commit"]
+    for row in first["recipes"]:
+        filename = Path(str(row["package"]["path"])).name
+        assert (first_dir / filename).read_bytes() == (second_dir / filename).read_bytes()
+
+
+def test_platform_owned_cache_variables_are_not_recipe_inputs() -> None:
+    for path in sorted((ROOT / "recipes").glob("*.json")):
+        document = json.loads(path.read_text(encoding="utf-8"))
+        runtime = document.get("runtime")
+        environment = runtime.get("environment", []) if isinstance(runtime, dict) else []
+        names = {
+            item.get("name")
+            for item in environment
+            if isinstance(item, dict) and isinstance(item.get("name"), str)
+        }
+        assert not PLATFORM_OWNED_ENVIRONMENT & names, path.name
+
+
+def test_model_capability_authority_is_external_and_canonical() -> None:
+    evidence = json.loads(
+        (ROOT / "docs/model-capability-evidence-2026-09-05.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert evidence["schema_version"] == 2
+    evidence_digest = evidence["evidence_digest"]
+    entries = {
+        (item["model_version"]["publisher"], item["model_version"]["slug"]): item
+        for item in evidence["entries"]
+    }
+    assert len(entries) == len(evidence["entries"]) == 86
+
+    model_versions = sorted((ROOT / "model-versions").glob("*.json"))
+    assert len(model_versions) == 92
+    unknown = []
+    for path in model_versions:
+        document = json.loads(path.read_text(encoding="utf-8"))
+        capabilities = document.get("capabilities")
+        key = (document["identity"]["publisher"], document["identity"]["slug"])
+        if capabilities is None:
+            assert key not in entries
+            unknown.append(path.name)
+            continue
+        assert key in entries
+        assert capabilities["schema_version"] == 2
+        assert capabilities["provenance"]["evidence_digest"] == evidence_digest
+        assert capabilities["provenance"]["source_url"].startswith("https://")
+        assert len(capabilities["provenance"]["source_revision"]) == 40
+        facts = capabilities["facts"]
+        assert facts == sorted(facts, key=lambda item: item["capability"])
+        assert len({item["capability"] for item in facts}) == len(facts)
+        assert all(item["support"] == "supported" for item in facts)
+        assert all(item["evidence_status"] == "declared" for item in facts)
+        assert all(
+            item["evidence_digest"] in {None, evidence_digest} for item in facts
+        )
+        assert all("vision" != item["capability"] for item in facts)
+    assert len(unknown) == 6
+
+
+def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(
+    tmp_path: Path,
+) -> None:
+    """Model weights and image layers remain separately cached artifacts."""
+
+    catalog = TOOL["build"](
+        package_dir=tmp_path,
+        platform_root=_platform_root(),
+    )
+    payload_suffixes = {
+        ".safetensors",
+        ".safetensors.index.json",
+        ".bin",
+        ".pt",
+        ".pth",
+        ".ckpt",
+        ".onnx",
+    }
+    for row in catalog["recipes"]:
+        package_path = tmp_path / Path(str(row["package"]["path"])).name
+        with tarfile.open(package_path, mode="r:gz") as archive:
+            names = archive.getnames()
+        assert all(
+            not any(name.endswith(suffix) for suffix in payload_suffixes)
+            for name in names
+        )
+        assert all(
+            not name.startswith(("models/", "image/", "oci/")) for name in names
+        )

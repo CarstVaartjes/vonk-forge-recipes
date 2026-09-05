@@ -1,53 +1,31 @@
 {
-  "schema_version": 1,
-  "identity": {
-    "publisher": "vonk-forge",
-    "slug": "qwen-image-layered-diffusers-single"
-  },
-  "metadata": {
-    "alignment": "unspecified",
-    "title": "Qwen Image Layered Diffusers single Spark",
-    "description": "Separate layer-decomposition Candidate, not a general Qwen Image Edit variant: one Spark converts exactly one input image into four deterministic RGBA PNG layers at the pinned 640-pixel, 50-step schedule. Its declared admission envelope is 126.00 GB unified memory including reserve and 149.72 GB peak installation disk.",
-    "tags": ["executable",
-      "candidate",
-      "layer-decomposition",
-      "qwen",
-      "image",
-      "editing",
-      "layered",
-      "diffusers",
-      "bf16",
-      "single",
-      "spark"
-    ]
-  },
-  "model": {
-    "kind": "model-version",
-    "publisher": "qwen",
-    "slug": "qwen-image-layered-8f0ca708",
-    "content_sha256": "d01833016b9f23bb705f18eca551a44b1a96ed3e2dd7273118c292c239561cba"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "diffusers",
-      "content_sha256": "9776b37f1bf4596bf4a0c75c3e9fd6da8b25050aa2cefded2ffd5e35baa583b2"
-    },
-    "patch_bundle": null
-  },
+  "artifacts": [
+    {
+      "download_bytes": 57720484610,
+      "id": "weights",
+      "installed_bytes": 57720484610,
+      "kind": "huggingface.snapshot",
+      "mount": {
+        "read_only": true,
+        "target": "/models"
+      },
+      "repository": "Qwen/Qwen-Image-Layered",
+      "revision": "8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf",
+      "roles": [
+        "entrypoint"
+      ]
+    }
+  ],
   "build": {
+    "arguments": [],
     "context": {
-      "path": "adapters/image/qwen-image-layered-diffusers",
-      "sha256": "8600d75e4c9bc29bf16ce46d8dc817a4d34b12cf03ec4bbcb80e5e8f7eb8a239",
       "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
+      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
+      "path": "adapters/image/qwen-image-layered-diffusers",
+      "sha256": "8600d75e4c9bc29bf16ce46d8dc817a4d34b12cf03ec4bbcb80e5e8f7eb8a239"
     },
     "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
     "network": {
-      "mode": "public",
       "hosts": [
         "github.com",
         "download.pytorch.org",
@@ -56,17 +34,9 @@
         "archive.ubuntu.com",
         "security.ubuntu.com",
         "ports.ubuntu.com"
-      ]
+      ],
+      "mode": "public"
     },
-    "resources": {
-      "download_bytes": 57720484610,
-      "temporary_bytes": 70000000000,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 14400
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
     "options": {
       "additional_contexts": [],
       "annotations": [],
@@ -91,37 +61,124 @@
       "unset_environment": [],
       "unset_labels": []
     },
+    "platform": "linux/arm64",
+    "resources": {
+      "cpu_cores": 8,
+      "download_bytes": 57720484610,
+      "memory_bytes": 8000000000,
+      "processes": 4096,
+      "temporary_bytes": 70000000000,
+      "timeout_seconds": 14400
+    },
     "security": {
       "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+    }
+  },
+  "execution": {
+    "harness": {
+      "content_sha256": "9776b37f1bf4596bf4a0c75c3e9fd6da8b25050aa2cefded2ffd5e35baa583b2",
+      "kind": "execution-harness",
+      "publisher": "vonk-forge",
+      "slug": "diffusers"
+    },
+    "patch_bundle": null
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-layered-diffusers-single"
+  },
+  "interfaces": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "Qwen/Qwen-Image-Layered",
-      "revision": "8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf",
-      "download_bytes": 57720484610,
-      "installed_bytes": 57720484610,
-      "mount": {
-        "target": "/models",
-        "read_only": true
+      "adapter": "artifact-job",
+      "input": {
+        "max_bytes": 8388608,
+        "media_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "path": "/inputs",
+        "required": true,
+        "slots": [
+          {
+            "description": "Single image to decompose into transparent layers.",
+            "extensions": [
+              ".jpg",
+              ".jpeg",
+              ".png",
+              ".webp"
+            ],
+            "id": "image",
+            "label": "Source image",
+            "max_file_bytes": 8388608,
+            "max_files": 1,
+            "max_total_bytes": 8388608,
+            "media_types": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "min_files": 1
+          }
+        ]
       },
-      "roles": [
-        "entrypoint"
-      ]
+      "output": {
+        "max_total_bytes": 33554432,
+        "path": "/outputs",
+        "slots": [
+          {
+            "description": "Exactly four generated transparent PNG layers.",
+            "extensions": [
+              ".png"
+            ],
+            "id": "layers",
+            "label": "Image layers",
+            "max_file_bytes": 8388608,
+            "max_files": 4,
+            "max_total_bytes": 33554432,
+            "media_types": [
+              "image/png"
+            ],
+            "min_files": 4
+          }
+        ]
+      },
+      "path": "/outputs"
     }
   ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "huggingface",
-      "slug": "diffusers-0-40-0-cuda13-arm64",
-      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/diffusers-job"
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Separate layer-decomposition Candidate, not a general Qwen Image Edit variant: one Spark converts exactly one input image into four deterministic RGBA PNG layers at the pinned 640-pixel, 50-step schedule. Its declared admission envelope is 126.00 GB unified memory including reserve and 149.72 GB peak installation disk.",
+    "tags": [
+      "executable",
+      "candidate",
+      "layer-decomposition",
+      "qwen",
+      "image",
+      "editing",
+      "layered",
+      "diffusers",
+      "bf16",
+      "single",
+      "spark"
     ],
+    "title": "Qwen Image Layered Diffusers single Spark"
+  },
+  "model": {
+    "content_sha256": "51a7b9c3c5372317ca2cc1a13b439c66bdcb2ff711ec1e6bf3cc7ac049886546",
+    "kind": "model-version",
+    "publisher": "qwen",
+    "slug": "qwen-image-layered-8f0ca708"
+  },
+  "parameters": [],
+  "provenance": {
+    "attribution": [
+      "Qwen"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/Qwen/Qwen-Image-Layered/tree/8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "pipeline",
@@ -156,6 +213,15 @@
         "value": 777
       }
     ],
+    "distribution": {
+      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7",
+      "kind": "runtime-distribution",
+      "publisher": "huggingface",
+      "slug": "diffusers-0-40-0-cuda13-arm64"
+    },
+    "entrypoint": [
+      "/opt/vonk/bin/diffusers-job"
+    ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
@@ -166,89 +232,90 @@
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/outputs",
-        "timeout_seconds": 3600
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "readiness": {
+        "path": "/outputs",
+        "strategy": "endpoint-owner",
+        "timeout_seconds": 3600
+      },
+      "stop_timeout_seconds": 120
+    },
+    "security": {
+      "capabilities": [],
+      "devices": [
+        "nvidia.com/gpu=all"
+      ],
+      "host_network": false,
+      "mounts": [
+        {
+          "read_only": true,
+          "source": "model",
+          "target": "/models"
+        },
+        {
+          "read_only": true,
+          "source": "inputs",
+          "target": "/inputs"
+        },
+        {
+          "read_only": false,
+          "source": "outputs",
+          "target": "/outputs"
+        }
+      ],
+      "privileged": false,
+      "user": "10001:10001"
     }
   },
+  "schema_version": 1,
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
-        "count": 1,
-        "endpoint_owner": true,
         "artifacts": [
           "weights"
         ],
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 2000000000,
             "artifact_bytes": 57720484610,
-            "staging_bytes": 70000000000,
             "cache_bytes": 8000000000,
+            "image_bytes": 2000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 70000000000
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
             "startup_peak_bytes": 118000000000,
             "steady_state_bytes": 98000000000,
-            "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -256,53 +323,26 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "artifact-job",
-      "path": "/outputs",
-      "input": {
-        "path": "/inputs",
-        "required": true,
-        "media_types": [
-          "image/jpeg",
-          "image/png",
-          "image/webp"
-        ],
-        "max_bytes": 8388608,
-        "slots": [
-          {"id": "image", "label": "Source image", "description": "Single image to decompose into transparent layers.", "media_types": ["image/jpeg", "image/png", "image/webp"], "extensions": [".jpg", ".jpeg", ".png", ".webp"], "min_files": 1, "max_files": 1, "max_file_bytes": 8388608, "max_total_bytes": 8388608}
-        ]
-      },
-      "output": {"path": "/outputs", "max_total_bytes": 33554432, "slots": [{"id": "layers", "label": "Image layers", "description": "Exactly four generated transparent PNG layers.", "media_types": ["image/png"], "extensions": [".png"], "min_files": 4, "max_files": 4, "max_file_bytes": 8388608, "max_total_bytes": 33554432}]}
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "artifact-job",
-        "checks": [
-          "artifact.mime.image-png"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bounded-layer-decomposition",
-        "framework": "diffusers",
         "configuration": {
           "layers": 4,
-          "resolution": 640,
           "num_inference_steps": 50,
+          "resolution": 640,
           "timeout_seconds": 14400
-        }
+        },
+        "framework": "diffusers",
+        "name": "bounded-layer-decomposition"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/Qwen/Qwen-Image-Layered/tree/8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf",
-    "attribution": [
-      "Qwen"
+    ],
+    "validators": [
+      {
+        "checks": [
+          "artifact.mime.image-png"
+        ],
+        "interface": "artifact-job"
+      }
     ]
   }
 }

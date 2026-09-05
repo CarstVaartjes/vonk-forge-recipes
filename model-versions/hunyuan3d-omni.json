@@ -1,90 +1,110 @@
 {
-  "schema_version": 1,
-  "kind": "model-version",
-  "identity": {
-    "publisher": "tencent",
-    "slug": "hunyuan3d-omni"
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
   },
-  "metadata": {
-    "title": "Hunyuan3D-Omni",
-    "description": "Immutable public snapshot at 70e803bf.",
-    "tags": [
-      "tencent",
-      "three-d",
-      "candidate"
-    ]
-  },
-  "model": {
-    "kind": "model",
-    "publisher": "tencent",
-    "slug": "hunyuan3d-omni",
-    "content_sha256": "8c63b5f88b85bc2a993e9195885b8609fd53d397b6175b510817fb6ffb41029b"
-  },
-  "version": "Hunyuan3D-Omni",
-  "source": {
-    "repository": "https://huggingface.co/tencent/Hunyuan3D-Omni",
-    "revision": "70e803bfb4e127d534049d8ab8c8cb511780d485"
-  },
-  "lineage": {
-    "publisher": "tencent",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "tencent",
-      "slug": "hunyuan3d-omni",
-      "content_sha256": "8c63b5f88b85bc2a993e9195885b8609fd53d397b6175b510817fb6ffb41029b"
+  "artifacts": [
+    {
+      "download_bytes": 25729134701,
+      "id": "snapshot",
+      "installed_bytes": 25729134701,
+      "kind": "huggingface.file",
+      "path": "snapshot",
+      "repository": "https://huggingface.co/tencent/Hunyuan3D-Omni",
+      "revision": "70e803bfb4e127d534049d8ab8c8cb511780d485",
+      "roles": [
+        "entrypoint"
+      ],
+      "sha256": "ab0f993eb838a5f4156bcf4b155913bf3b9562fefc7e34e186de3423f180bc09"
+    }
+  ],
+  "availability": "active",
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "3d-generation",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "source_revision": "70e803bfb4e127d534049d8ab8c8cb511780d485",
+      "source_url": "https://huggingface.co/tencent/Hunyuan3D-Omni"
     },
-    "derivation": "Immutable public upstream snapshot at the pinned revision."
+    "schema_version": 2
   },
+  "dependencies": [],
   "format": {
     "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
-  "parameters": {
-    "total": null,
-    "active": null
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hunyuan3d-omni"
   },
-  "limits": {
-    "context_tokens": null
-  },
-  "sizes": {
-    "download_bytes": 25729134701,
-    "installed_bytes": 25729134701
-  },
+  "kind": "model-version",
   "license": {
-    "spdx": "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License",
-    "url": "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/blob/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8/License.txt",
     "attribution": [
       "tencent"
     ],
     "operator_acceptance_required": false,
+    "spdx": "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License",
     "territorial_restrictions": {
-      "denied_jurisdictions": ["EU", "GB", "KR"],
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR"
+      ],
       "notice": "The upstream Hunyuan3D-Omni Community License does not apply in the European Union, United Kingdom, or South Korea."
+    },
+    "url": "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/blob/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8/License.txt"
+  },
+  "limits": {
+    "context_tokens": null
+  },
+  "lineage": {
+    "derivation": "Immutable public upstream snapshot at the pinned revision.",
+    "publisher": "tencent",
+    "relation": "official",
+    "source_model": {
+      "content_sha256": "8c63b5f88b85bc2a993e9195885b8609fd53d397b6175b510817fb6ffb41029b",
+      "kind": "model",
+      "publisher": "tencent",
+      "slug": "hunyuan3d-omni"
     }
   },
-  "access": {
-    "visibility": "public",
-    "gated": false,
-    "authentication": "none"
+  "metadata": {
+    "description": "Immutable public snapshot at 70e803bf.",
+    "tags": [
+      "tencent",
+      "three-d",
+      "candidate"
+    ],
+    "title": "Hunyuan3D-Omni"
   },
-  "artifacts": [
-    {
-      "id": "snapshot",
-      "path": "snapshot",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/tencent/Hunyuan3D-Omni",
-      "revision": "70e803bfb4e127d534049d8ab8c8cb511780d485",
-      "sha256": "ab0f993eb838a5f4156bcf4b155913bf3b9562fefc7e34e186de3423f180bc09",
-      "download_bytes": 25729134701,
-      "installed_bytes": 25729134701,
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "dependencies": [],
-  "availability": "active",
-  "supersedes": null
+  "model": {
+    "content_sha256": "8c63b5f88b85bc2a993e9195885b8609fd53d397b6175b510817fb6ffb41029b",
+    "kind": "model",
+    "publisher": "tencent",
+    "slug": "hunyuan3d-omni"
+  },
+  "parameters": {
+    "active": null,
+    "total": null
+  },
+  "schema_version": 1,
+  "sizes": {
+    "download_bytes": 25729134701,
+    "installed_bytes": 25729134701
+  },
+  "source": {
+    "repository": "https://huggingface.co/tencent/Hunyuan3D-Omni",
+    "revision": "70e803bfb4e127d534049d8ab8c8cb511780d485"
+  },
+  "supersedes": null,
+  "version": "Hunyuan3D-Omni"
 }

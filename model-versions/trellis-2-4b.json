@@ -1,86 +1,102 @@
 {
-  "schema_version": 1,
-  "kind": "model-version",
-  "identity": {
-    "publisher": "microsoft",
-    "slug": "trellis-2-4b"
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
   },
-  "metadata": {
-    "title": "TRELLIS.2 4B",
-    "description": "Immutable public snapshot at af44b45f.",
-    "tags": [
-      "microsoft",
-      "three-d",
-      "candidate"
-    ]
-  },
-  "model": {
-    "kind": "model",
-    "publisher": "microsoft",
-    "slug": "trellis-2-4b",
-    "content_sha256": "122939e514bb0df56d4c3c296bba326fa1042d49207fdf0c27f4f835aba3221a"
-  },
-  "version": "TRELLIS.2 4B",
-  "source": {
-    "repository": "https://huggingface.co/microsoft/TRELLIS.2-4B",
-    "revision": "af44b45f2e35a493886929c6d786e563ec68364d"
-  },
-  "lineage": {
-    "publisher": "microsoft",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "microsoft",
-      "slug": "trellis-2-4b",
-      "content_sha256": "122939e514bb0df56d4c3c296bba326fa1042d49207fdf0c27f4f835aba3221a"
+  "artifacts": [
+    {
+      "download_bytes": 16237485044,
+      "id": "snapshot",
+      "installed_bytes": 16237485044,
+      "kind": "huggingface.file",
+      "path": "snapshot",
+      "repository": "https://huggingface.co/microsoft/TRELLIS.2-4B",
+      "revision": "af44b45f2e35a493886929c6d786e563ec68364d",
+      "roles": [
+        "entrypoint"
+      ],
+      "sha256": "9a72ea34cfb6b05484e9ed7cd4c0b014400bc45710f097008e88d6c6c883dbef"
+    }
+  ],
+  "availability": "active",
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "3d-generation",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "source_revision": "af44b45f2e35a493886929c6d786e563ec68364d",
+      "source_url": "https://huggingface.co/microsoft/TRELLIS.2-4B"
     },
-    "derivation": "Immutable public upstream snapshot at the pinned revision."
+    "schema_version": 2
   },
+  "dependencies": [],
   "format": {
     "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
-  "parameters": {
-    "total": null,
-    "active": null
+  "identity": {
+    "publisher": "microsoft",
+    "slug": "trellis-2-4b"
+  },
+  "kind": "model-version",
+  "license": {
+    "attribution": [
+      "microsoft"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "MIT",
+    "url": "https://github.com/microsoft/TRELLIS.2/blob/75fbf0183001ed9876c8dbb35de6b68552ee08bd/LICENSE"
   },
   "limits": {
     "context_tokens": null
   },
+  "lineage": {
+    "derivation": "Immutable public upstream snapshot at the pinned revision.",
+    "publisher": "microsoft",
+    "relation": "official",
+    "source_model": {
+      "content_sha256": "122939e514bb0df56d4c3c296bba326fa1042d49207fdf0c27f4f835aba3221a",
+      "kind": "model",
+      "publisher": "microsoft",
+      "slug": "trellis-2-4b"
+    }
+  },
+  "metadata": {
+    "description": "Immutable public snapshot at af44b45f.",
+    "tags": [
+      "microsoft",
+      "three-d",
+      "candidate"
+    ],
+    "title": "TRELLIS.2 4B"
+  },
+  "model": {
+    "content_sha256": "122939e514bb0df56d4c3c296bba326fa1042d49207fdf0c27f4f835aba3221a",
+    "kind": "model",
+    "publisher": "microsoft",
+    "slug": "trellis-2-4b"
+  },
+  "parameters": {
+    "active": null,
+    "total": null
+  },
+  "schema_version": 1,
   "sizes": {
     "download_bytes": 16237485044,
     "installed_bytes": 16237485044
   },
-  "license": {
-    "spdx": "MIT",
-    "url": "https://github.com/microsoft/TRELLIS.2/blob/75fbf0183001ed9876c8dbb35de6b68552ee08bd/LICENSE",
-    "attribution": [
-      "microsoft"
-    ],
-    "operator_acceptance_required": true
+  "source": {
+    "repository": "https://huggingface.co/microsoft/TRELLIS.2-4B",
+    "revision": "af44b45f2e35a493886929c6d786e563ec68364d"
   },
-  "access": {
-    "visibility": "public",
-    "gated": false,
-    "authentication": "none"
-  },
-  "artifacts": [
-    {
-      "id": "snapshot",
-      "path": "snapshot",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/microsoft/TRELLIS.2-4B",
-      "revision": "af44b45f2e35a493886929c6d786e563ec68364d",
-      "sha256": "9a72ea34cfb6b05484e9ed7cd4c0b014400bc45710f097008e88d6c6c883dbef",
-      "download_bytes": 16237485044,
-      "installed_bytes": 16237485044,
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "dependencies": [],
-  "availability": "active",
-  "supersedes": null
+  "supersedes": null,
+  "version": "TRELLIS.2 4B"
 }

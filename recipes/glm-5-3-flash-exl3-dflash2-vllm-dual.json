@@ -1,25 +1,51 @@
 {
-  "schema_version": 1,
-  "identity": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-exl3-dflash2-vllm-dual"},
-  "metadata": {
-    "alignment": "unspecified",
-    "title": "GLM 5.3 Flash EXL3 DFlash2 vLLM two Sparks",
-    "description": "Directly installable Candidate reproducing MiaAI-Lab's current 2x DGX Spark EXL3/TR3 4 bpw target with the bf582e4e DFlash2 K7 checkpoint, native-mp TP2, 1M context, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. Exact source, image, target, drafter, licenses, and measured resource envelope are pinned; Vonk physical acceptance and checkpoint requalification remain pending.",
-    "tags": ["candidate", "dflash2", "executable", "exl3", "glm-5.3", "multimodal", "native-mp", "pending", "reasoning", "spark", "tool-use", "vllm"]
-  },
-  "model": {"kind": "model-version", "publisher": "mia-ai-lab", "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-024db9f7", "content_sha256": "158c894be21cc8bcd7c4e76e6367f02d9c1c389a3720f995e343d6db4f93ba3f"},
-  "execution": {
-    "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"},
-    "patch_bundle": {"kind": "patch-bundle", "publisher": "miaai-lab", "slug": "glm-5-3-flash-exl3-dflash2-mia-dual-profile", "content_sha256": "fefff65249681f5295f8720286e35aa42f46d81f98dc047473ccdac1549670ae"}
-  },
+  "artifacts": [
+    {
+      "download_bytes": 175715854761,
+      "id": "target",
+      "installed_bytes": 175715854761,
+      "kind": "huggingface.snapshot",
+      "mount": {
+        "read_only": true,
+        "target": "/models/target"
+      },
+      "repository": "Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw",
+      "revision": "024db9f7e9871e8efdf21538ba55af7442be3cd5",
+      "roles": [
+        "entrypoint",
+        "worker"
+      ]
+    },
+    {
+      "download_bytes": 2342460697,
+      "id": "drafter",
+      "installed_bytes": 2342460697,
+      "kind": "huggingface.snapshot",
+      "mount": {
+        "read_only": true,
+        "target": "/models/drafter"
+      },
+      "repository": "incoai/GLM-5.3-Flash-DFlash2",
+      "revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a",
+      "roles": [
+        "entrypoint",
+        "worker"
+      ]
+    }
+  ],
   "build": {
-    "context": {"path": "adapters/glm/mia-exl3-dflash2-dual", "sha256": "7f2796adb97fa3a55e3ff698dca03f35dbe530b2ba540498ae0ef7857580270b", "expected_bytes": 30720, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
     "arguments": [],
-    "network": {"mode": "none", "hosts": []},
-    "resources": {"download_bytes": 9788994117, "temporary_bytes": 12000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200, "cpu_cores": 8, "processes": 4096}
-  ,
+    "context": {
+      "expected_bytes": 30720,
+      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
+      "path": "adapters/glm/mia-exl3-dflash2-dual",
+      "sha256": "7f2796adb97fa3a55e3ff698dca03f35dbe530b2ba540498ae0ef7857580270b"
+    },
+    "dockerfile": "Dockerfile",
+    "network": {
+      "hosts": [],
+      "mode": "none"
+    },
     "options": {
       "additional_contexts": [],
       "annotations": [],
@@ -44,113 +70,481 @@
       "unset_environment": [],
       "unset_labels": []
     },
+    "platform": "linux/arm64",
+    "resources": {
+      "cpu_cores": 8,
+      "download_bytes": 9788994117,
+      "memory_bytes": 8000000000,
+      "processes": 4096,
+      "temporary_bytes": 12000000000,
+      "timeout_seconds": 7200
+    },
     "security": {
       "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
-    {"id": "target", "kind": "huggingface.snapshot", "repository": "Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw", "revision": "024db9f7e9871e8efdf21538ba55af7442be3cd5", "download_bytes": 175715854761, "installed_bytes": 175715854761, "mount": {"target": "/models/target", "read_only": true}, "roles": ["entrypoint", "worker"]},
-    {"id": "drafter", "kind": "huggingface.snapshot", "repository": "incoai/GLM-5.3-Flash-DFlash2", "revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a", "download_bytes": 2342460697, "installed_bytes": 2342460697, "mount": {"target": "/models/drafter", "read_only": true}, "roles": ["entrypoint", "worker"]}
-  ],
-  "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "miaai-lab", "slug": "vllm-glm53-exl3-dflash2-mia-493cb88f-arm64", "content_sha256": "a6a153838bf4b2f09917468aafac752d70ada48123ce64bfe031a0f453f3c02a"},
-    "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models/target"],
-    "arguments": [
-      {"name": "served-model-name", "value": "glm-5.3-flash-exl3"},
-      {"name": "trust-remote-code", "value": true},
-      {"name": "tensor-parallel-size", "value": 2},
-      {"name": "pipeline-parallel-size", "value": 1},
-      {"name": "gpu-memory-utilization", "value": "0.87"},
-      {"name": "max-model-len", "value": 1000000},
-      {"name": "max-num-seqs", "value": 4},
-      {"name": "max-num-batched-tokens", "value": 2048},
-      {"name": "kv-cache-dtype", "value": "fp8"},
-      {"name": "speculative-config", "value": "{\"method\":\"dflash\",\"model\":\"/models/drafter\",\"num_speculative_tokens\":7,\"kv_cache_dtype\":\"auto\",\"draft_tensor_parallel_size\":2,\"draft_sample_method\":\"probabilistic\",\"rejection_sample_method\":\"standard\"}"},
-      {"name": "enable-prefix-caching", "value": true},
-      {"name": "disable-flashinfer-autotune", "value": true},
-      {"name": "skip-mm-profiling", "value": true},
-      {"name": "allowed-local-media-path", "value": "/inputs"},
-      {"name": "limit-mm-per-prompt", "value": "{\"image\":4,\"video\":1}"},
-      {"name": "tool-call-parser", "value": "glm47"},
-      {"name": "enable-auto-tool-choice", "value": true},
-      {"name": "reasoning-parser", "value": "glm45"}
-    ],
-    "environment": [
-      {"name": "HF_HUB_OFFLINE", "value": "1"},
-      {"name": "TRANSFORMERS_OFFLINE", "value": "1"},
-      {"name": "VLLM_NO_USAGE_STATS", "value": "1"},
-      {"name": "DO_NOT_TRACK", "value": "1"},
-      {"name": "VLLM_ENGINE_READY_TIMEOUT_S", "value": "3600"},
-      {"name": "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS", "value": "1800"},
-      {"name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS", "value": "1"},
-      {"name": "GLM53_SUPPRESS_STOPS_IN_REASONING", "value": "1"},
-      {"name": "GLM53_MIXED_PREFILL_CHUNK", "value": "skip"},
-      {"name": "EXL3_FUSED_MOE", "value": "1"},
-      {"name": "EXL3_MOE_ROW_TILE", "value": "0"},
-      {"name": "EXL3_TEMP_ROWS_FUSED", "value": "128"},
-      {"name": "TORCH_CUDA_ARCH_LIST", "value": "12.1a"},
-      {"name": "FLASHINFER_CUDA_ARCH_LIST", "value": "12.1a"},
-      {"name": "FLASHINFER_DISABLE_VERSION_CHECK", "value": "1"},
-      {"name": "PYTORCH_CUDA_ALLOC_CONF", "value": "expandable_segments:True"},
-      {"name": "NCCL_IB_DISABLE", "value": "0"},
-      {"name": "NCCL_IB_ROCE_VERSION_NUM", "value": "2"},
-      {"name": "NCCL_NET", "value": "IB"},
-      {"name": "NCCL_NET_PLUGIN", "value": "none"},
-      {"name": "NCCL_NVLS_ENABLE", "value": "0"},
-      {"name": "NCCL_CUMEM_ENABLE", "value": "0"},
-      {"name": "NCCL_IB_MERGE_NICS", "value": "0"},
-      {"name": "NCCL_CROSS_NIC", "value": "0"},
-      {"name": "NCCL_IGNORE_CPU_AFFINITY", "value": "1"},
-      {"name": "NCCL_DEBUG", "value": "WARN"}
-    ],
-    "security": {
-      "devices": ["nvidia.com/gpu=all"],
-      "capabilities": [],
-      "host_network": true,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {"source": "model", "target": "/models", "read_only": true},
-        {"source": "inputs", "target": "/inputs", "read_only": true},
-        {"source": "outputs", "target": "/outputs", "read_only": false}
-      ]
-    },
-    "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 180,
-      "readiness": {"strategy": "endpoint-owner-after-all-ranks", "path": "/v1/models", "timeout_seconds": 3600},
-      "failure": {"rank_loss": "withdraw-endpoint", "recovery": "restart-worker-then-entrypoint"}
     }
   },
-  "topology": {
-    "name": "dual",
-    "mode": "distributed",
-    "node_count": 2,
-    "roles": [
-      {"name": "entrypoint", "count": 1, "endpoint_owner": true, "artifacts": ["target", "drafter"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 178058315451, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 124000000000, "steady_state_bytes": 121500000000, "runtime_growth_bytes": 2500000000, "system_reserve_bytes": 2000000000}}},
-      {"name": "worker", "count": 1, "endpoint_owner": false, "artifacts": ["target", "drafter"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 178058315451, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 124000000000, "steady_state_bytes": 121500000000, "runtime_growth_bytes": 2500000000, "system_reserve_bytes": 2000000000}}}
-    ],
-    "parallelism": {"world_size": 2, "tensor": 2, "pipeline": 1, "data": 1, "backend": "mp"},
-    "fabric": {"connectivity": "connected", "minimum_bandwidth_mbps": 200000},
-    "start_order": ["worker", "entrypoint"],
-    "stop_order": ["entrypoint", "worker"]
+  "execution": {
+    "harness": {
+      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d",
+      "kind": "execution-harness",
+      "publisher": "vonk-forge",
+      "slug": "vllm"
+    },
+    "patch_bundle": {
+      "content_sha256": "fefff65249681f5295f8720286e35aa42f46d81f98dc047473ccdac1549670ae",
+      "kind": "patch-bundle",
+      "publisher": "miaai-lab",
+      "slug": "glm-5-3-flash-exl3-dflash2-mia-dual-profile"
+    }
   },
-  "interfaces": [{"adapter": "openai", "port": 8888, "model_aliases": ["glm-5.3-flash-exl3"], "health_path": "/v1/models"}],
-  "validation": {
-    "validators": [{"interface": "openai", "checks": ["endpoint.healthy", "collective.two-ranks", "chat.nonempty", "chat.max-output-64", "rank-loss.withdrawal", "rank-recovery.healthy"]}],
-    "benchmarks": [
-      {"name": "bounded-chat", "framework": "openai", "configuration": {"max_output_tokens": 64, "requests": 1, "timeout_seconds": 600}},
-      {"name": "cold-prefill-8k", "framework": "openai", "configuration": {"prompt_tokens": 8000, "max_output_tokens": 8, "requests": 1, "temperature": 0, "thinking": false, "timeout_seconds": 180}},
-      {"name": "cold-prefill-16k", "framework": "openai", "configuration": {"prompt_tokens": 16000, "max_output_tokens": 8, "requests": 1, "temperature": 0, "thinking": false, "timeout_seconds": 180}},
-      {"name": "cold-prefill-100k", "framework": "openai", "configuration": {"prompt_tokens": 100000, "max_output_tokens": 8, "requests": 1, "temperature": 0, "thinking": false, "timeout_seconds": 600}},
-      {"name": "cold-prefill-256k", "framework": "openai", "configuration": {"prompt_tokens": 256000, "max_output_tokens": 8, "requests": 1, "temperature": 0, "thinking": false, "timeout_seconds": 1200}},
-      {"name": "cold-prefill-300k", "framework": "openai", "configuration": {"prompt_tokens": 300000, "max_output_tokens": 8, "requests": 1, "temperature": 0, "thinking": false, "timeout_seconds": 1200}}
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-exl3-dflash2-vllm-dual"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "glm-5.3-flash-exl3"
+      ],
+      "port": 8888
+    }
+  ],
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Directly installable Candidate reproducing MiaAI-Lab's current 2x DGX Spark EXL3/TR3 4 bpw target with the bf582e4e DFlash2 K7 checkpoint, native-mp TP2, 1M context, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. Exact source, image, target, drafter, licenses, and measured resource envelope are pinned; Vonk physical acceptance and checkpoint requalification remain pending.",
+    "tags": [
+      "candidate",
+      "dflash2",
+      "executable",
+      "exl3",
+      "glm-5.3",
+      "multimodal",
+      "native-mp",
+      "pending",
+      "reasoning",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "GLM 5.3 Flash EXL3 DFlash2 vLLM two Sparks"
+  },
+  "model": {
+    "content_sha256": "9cbbc110d7de762cb8eaf1be591dcfb18731bbf64ab72780398cb7813066b67e",
+    "kind": "model-version",
+    "publisher": "mia-ai-lab",
+    "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-024db9f7"
+  },
+  "parameters": [],
+  "provenance": {
+    "attribution": [
+      "Z.AI",
+      "Brandon M. Music",
+      "MiaAI-Lab",
+      "IncoAI",
+      "Turboderp",
+      "vLLM contributors"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/493cb88fc69f8ba73ac87404f429d763e2739d89"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "value": "glm-5.3-flash-exl3"
+      },
+      {
+        "name": "trust-remote-code",
+        "value": true
+      },
+      {
+        "name": "tensor-parallel-size",
+        "value": 2
+      },
+      {
+        "name": "pipeline-parallel-size",
+        "value": 1
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "value": "0.87"
+      },
+      {
+        "name": "max-model-len",
+        "value": 1000000
+      },
+      {
+        "name": "max-num-seqs",
+        "value": 4
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "value": 2048
+      },
+      {
+        "name": "kv-cache-dtype",
+        "value": "fp8"
+      },
+      {
+        "name": "speculative-config",
+        "value": "{\"method\":\"dflash\",\"model\":\"/models/drafter\",\"num_speculative_tokens\":7,\"kv_cache_dtype\":\"auto\",\"draft_tensor_parallel_size\":2,\"draft_sample_method\":\"probabilistic\",\"rejection_sample_method\":\"standard\"}"
+      },
+      {
+        "name": "enable-prefix-caching",
+        "value": true
+      },
+      {
+        "name": "disable-flashinfer-autotune",
+        "value": true
+      },
+      {
+        "name": "skip-mm-profiling",
+        "value": true
+      },
+      {
+        "name": "allowed-local-media-path",
+        "value": "/inputs"
+      },
+      {
+        "name": "limit-mm-per-prompt",
+        "value": "{\"image\":4,\"video\":1}"
+      },
+      {
+        "name": "tool-call-parser",
+        "value": "glm47"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "value": true
+      },
+      {
+        "name": "reasoning-parser",
+        "value": "glm45"
+      }
+    ],
+    "distribution": {
+      "content_sha256": "a6a153838bf4b2f09917468aafac752d70ada48123ce64bfe031a0f453f3c02a",
+      "kind": "runtime-distribution",
+      "publisher": "miaai-lab",
+      "slug": "vllm-glm53-exl3-dflash2-mia-493cb88f-arm64"
+    },
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models/target"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_NO_USAGE_STATS",
+        "value": "1"
+      },
+      {
+        "name": "DO_NOT_TRACK",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_ENGINE_READY_TIMEOUT_S",
+        "value": "3600"
+      },
+      {
+        "name": "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS",
+        "value": "1800"
+      },
+      {
+        "name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS",
+        "value": "1"
+      },
+      {
+        "name": "GLM53_SUPPRESS_STOPS_IN_REASONING",
+        "value": "1"
+      },
+      {
+        "name": "GLM53_MIXED_PREFILL_CHUNK",
+        "value": "skip"
+      },
+      {
+        "name": "EXL3_FUSED_MOE",
+        "value": "1"
+      },
+      {
+        "name": "EXL3_MOE_ROW_TILE",
+        "value": "0"
+      },
+      {
+        "name": "EXL3_TEMP_ROWS_FUSED",
+        "value": "128"
+      },
+      {
+        "name": "TORCH_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "FLASHINFER_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "FLASHINFER_DISABLE_VERSION_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "value": "expandable_segments:True"
+      },
+      {
+        "name": "NCCL_IB_DISABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IB_ROCE_VERSION_NUM",
+        "value": "2"
+      },
+      {
+        "name": "NCCL_NET",
+        "value": "IB"
+      },
+      {
+        "name": "NCCL_NET_PLUGIN",
+        "value": "none"
+      },
+      {
+        "name": "NCCL_NVLS_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CUMEM_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IB_MERGE_NICS",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CROSS_NIC",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IGNORE_CPU_AFFINITY",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_DEBUG",
+        "value": "WARN"
+      }
+    ],
+    "lifecycle": {
+      "failure": {
+        "rank_loss": "withdraw-endpoint",
+        "recovery": "restart-worker-then-entrypoint"
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "readiness": {
+        "path": "/v1/models",
+        "strategy": "endpoint-owner-after-all-ranks",
+        "timeout_seconds": 3600
+      },
+      "stop_timeout_seconds": 180
+    },
+    "security": {
+      "capabilities": [],
+      "devices": [
+        "nvidia.com/gpu=all"
+      ],
+      "host_network": true,
+      "mounts": [
+        {
+          "read_only": true,
+          "source": "model",
+          "target": "/models"
+        },
+        {
+          "read_only": true,
+          "source": "inputs",
+          "target": "/inputs"
+        },
+        {
+          "read_only": false,
+          "source": "outputs",
+          "target": "/outputs"
+        }
+      ],
+      "privileged": false,
+      "user": "10001:10001"
+    }
+  },
+  "schema_version": 1,
+  "topology": {
+    "fabric": {
+      "connectivity": "connected",
+      "minimum_bandwidth_mbps": 200000
+    },
+    "mode": "distributed",
+    "name": "dual",
+    "node_count": 2,
+    "parallelism": {
+      "backend": "mp",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 2,
+      "world_size": 2
+    },
+    "roles": [
+      {
+        "artifacts": [
+          "target",
+          "drafter"
+        ],
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 178058315451,
+            "cache_bytes": 40000000000,
+            "image_bytes": 30000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 24000000000,
+            "staging_bytes": 25000000000
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 2500000000,
+            "startup_peak_bytes": 124000000000,
+            "steady_state_bytes": 121500000000,
+            "system_reserve_bytes": 2000000000
+          }
+        }
+      },
+      {
+        "artifacts": [
+          "target",
+          "drafter"
+        ],
+        "count": 1,
+        "endpoint_owner": false,
+        "name": "worker",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 178058315451,
+            "cache_bytes": 40000000000,
+            "image_bytes": 30000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 24000000000,
+            "staging_bytes": 25000000000
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 2500000000,
+            "startup_peak_bytes": 124000000000,
+            "steady_state_bytes": 121500000000,
+            "system_reserve_bytes": 2000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "worker",
+      "entrypoint"
+    ],
+    "stop_order": [
+      "entrypoint",
+      "worker"
     ]
   },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/493cb88fc69f8ba73ac87404f429d763e2739d89",
-    "attribution": ["Z.AI", "Brandon M. Music", "MiaAI-Lab", "IncoAI", "Turboderp", "vLLM contributors"]
+  "validation": {
+    "benchmarks": [
+      {
+        "configuration": {
+          "max_output_tokens": 64,
+          "requests": 1,
+          "timeout_seconds": 600
+        },
+        "framework": "openai",
+        "name": "bounded-chat"
+      },
+      {
+        "configuration": {
+          "max_output_tokens": 8,
+          "prompt_tokens": 8000,
+          "requests": 1,
+          "temperature": 0,
+          "thinking": false,
+          "timeout_seconds": 180
+        },
+        "framework": "openai",
+        "name": "cold-prefill-8k"
+      },
+      {
+        "configuration": {
+          "max_output_tokens": 8,
+          "prompt_tokens": 16000,
+          "requests": 1,
+          "temperature": 0,
+          "thinking": false,
+          "timeout_seconds": 180
+        },
+        "framework": "openai",
+        "name": "cold-prefill-16k"
+      },
+      {
+        "configuration": {
+          "max_output_tokens": 8,
+          "prompt_tokens": 100000,
+          "requests": 1,
+          "temperature": 0,
+          "thinking": false,
+          "timeout_seconds": 600
+        },
+        "framework": "openai",
+        "name": "cold-prefill-100k"
+      },
+      {
+        "configuration": {
+          "max_output_tokens": 8,
+          "prompt_tokens": 256000,
+          "requests": 1,
+          "temperature": 0,
+          "thinking": false,
+          "timeout_seconds": 1200
+        },
+        "framework": "openai",
+        "name": "cold-prefill-256k"
+      },
+      {
+        "configuration": {
+          "max_output_tokens": 8,
+          "prompt_tokens": 300000,
+          "requests": 1,
+          "temperature": 0,
+          "thinking": false,
+          "timeout_seconds": 1200
+        },
+        "framework": "openai",
+        "name": "cold-prefill-300k"
+      }
+    ],
+    "validators": [
+      {
+        "checks": [
+          "endpoint.healthy",
+          "collective.two-ranks",
+          "chat.nonempty",
+          "chat.max-output-64",
+          "rank-loss.withdrawal",
+          "rank-recovery.healthy"
+        ],
+        "interface": "openai"
+      }
+    ]
   }
 }

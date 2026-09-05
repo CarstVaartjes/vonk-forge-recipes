@@ -1,65 +1,34 @@
 {
-  "schema_version": 1,
-  "identity": {
-    "publisher": "vonk-forge",
-    "slug": "qwen3-5-9b-vllm-single"
-  },
-  "metadata": {
-    "alignment": "unspecified",
-    "title": "Qwen3.5 9B vLLM single Spark",
-    "description": "Candidate single-Spark vLLM binding for the exact multimodal Qwen3.5-9B checkpoint. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
-    "tags": ["executable",
-      "candidate",
-      "qwen",
-      "qwen3-5",
-      "vllm",
-      "multimodal",
-      "vision",
-      "text-qualified",
-      "vision-unproven",
-      "openai",
-      "single",
-      "spark"
-    ]
-  },
-  "model": {
-    "kind": "model-version",
-    "publisher": "qwen",
-    "slug": "qwen3-5-9b-c2022362",
-    "content_sha256": "0d0f3748a152c2e3a83408af11485d3a930f0a66ad78bc2d12815f837f2b08dc"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "vllm",
-      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"
-    },
-    "patch_bundle": null
-  },
+  "artifacts": [
+    {
+      "download_bytes": 19329393661,
+      "id": "weights",
+      "installed_bytes": 19329393661,
+      "kind": "huggingface.snapshot",
+      "mount": {
+        "read_only": true,
+        "target": "/models"
+      },
+      "repository": "Qwen/Qwen3.5-9B",
+      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "roles": [
+        "entrypoint"
+      ]
+    }
+  ],
   "build": {
+    "arguments": [],
     "context": {
-      "path": "adapters/llm/qwen35-vllm",
-      "sha256": "61463d7b208011a297a3e5093009822e408d35015009d1215e52546807886470",
       "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
+      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
+      "path": "adapters/llm/qwen35-vllm",
+      "sha256": "61463d7b208011a297a3e5093009822e408d35015009d1215e52546807886470"
     },
     "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
     "network": {
-      "mode": "none",
-      "hosts": []
+      "hosts": [],
+      "mode": "none"
     },
-    "resources": {
-      "download_bytes": 29030889384,
-      "temporary_bytes": 32000000000,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 7200
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
     "options": {
       "additional_contexts": [],
       "annotations": [],
@@ -84,39 +53,76 @@
       "unset_environment": [],
       "unset_labels": []
     },
+    "platform": "linux/arm64",
+    "resources": {
+      "cpu_cores": 8,
+      "download_bytes": 29030889384,
+      "memory_bytes": 8000000000,
+      "processes": 4096,
+      "temporary_bytes": 32000000000,
+      "timeout_seconds": 7200
+    },
     "security": {
       "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+    }
+  },
+  "execution": {
+    "harness": {
+      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d",
+      "kind": "execution-harness",
+      "publisher": "vonk-forge",
+      "slug": "vllm"
+    },
+    "patch_bundle": null
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-5-9b-vllm-single"
+  },
+  "interfaces": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "Qwen/Qwen3.5-9B",
-      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
-      "download_bytes": 19329393661,
-      "installed_bytes": 19329393661,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "qwen3.5-9b"
+      ],
+      "port": 8000
     }
   ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "vllm",
-      "slug": "vllm-0-28-0-nvidia-arm64",
-      "content_sha256": "15c98035c9bbba7ec61d25acd93c3c34b0516754c299813e5f51344e858abd2d"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/vllm",
-      "serve",
-      "/models"
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Candidate single-Spark vLLM binding for the exact multimodal Qwen3.5-9B checkpoint. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
+    "tags": [
+      "executable",
+      "candidate",
+      "qwen",
+      "qwen3-5",
+      "vllm",
+      "multimodal",
+      "vision",
+      "text-qualified",
+      "vision-unproven",
+      "openai",
+      "single",
+      "spark"
     ],
+    "title": "Qwen3.5 9B vLLM single Spark"
+  },
+  "model": {
+    "content_sha256": "b7746fa6690d0e46b148e7dd102e51caef503f64989c46c9df3b059bf1fcef0c",
+    "kind": "model-version",
+    "publisher": "qwen",
+    "slug": "qwen3-5-9b-c2022362"
+  },
+  "parameters": [],
+  "provenance": {
+    "attribution": [
+      "Qwen"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/Qwen/Qwen3.5-9B/tree/c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "served-model-name",
@@ -155,6 +161,17 @@
         "value": "qwen3_coder"
       }
     ],
+    "distribution": {
+      "content_sha256": "15c98035c9bbba7ec61d25acd93c3c34b0516754c299813e5f51344e858abd2d",
+      "kind": "runtime-distribution",
+      "publisher": "vllm",
+      "slug": "vllm-0-28-0-nvidia-arm64"
+    },
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
@@ -169,84 +186,85 @@
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/v1/models",
-        "timeout_seconds": 1800
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "readiness": {
+        "path": "/v1/models",
+        "strategy": "endpoint-owner",
+        "timeout_seconds": 1800
+      },
+      "stop_timeout_seconds": 120
+    },
+    "security": {
+      "capabilities": [],
+      "devices": [
+        "nvidia.com/gpu=all"
+      ],
+      "host_network": false,
+      "mounts": [
+        {
+          "read_only": true,
+          "source": "model",
+          "target": "/models"
+        },
+        {
+          "read_only": false,
+          "source": "outputs",
+          "target": "/outputs"
+        }
+      ],
+      "privileged": false,
+      "user": "10001:10001"
     }
   },
+  "schema_version": 1,
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
-        "count": 1,
-        "endpoint_owner": true,
         "artifacts": [
           "weights"
         ],
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 12000000000,
             "artifact_bytes": 19329393661,
-            "staging_bytes": 32000000000,
             "cache_bytes": 4000000000,
+            "image_bytes": 12000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 32000000000
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 4000000000,
             "startup_peak_bytes": 70000000000,
             "steady_state_bytes": 60000000000,
-            "runtime_growth_bytes": 4000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -254,44 +272,27 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "openai",
-      "port": 8000,
-      "model_aliases": [
-        "qwen3.5-9b"
-      ],
-      "health_path": "/v1/models"
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "openai",
-        "checks": [
-          "endpoint.healthy",
-          "chat.nonempty",
-          "chat.max-output-64"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bounded-chat",
-        "framework": "openai",
         "configuration": {
           "max_output_tokens": 64,
           "requests": 1,
           "timeout_seconds": 600
-        }
+        },
+        "framework": "openai",
+        "name": "bounded-chat"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/Qwen/Qwen3.5-9B/tree/c202236235762e1c871ad0ccb60c8ee5ba337b9a",
-    "attribution": [
-      "Qwen"
+    ],
+    "validators": [
+      {
+        "checks": [
+          "endpoint.healthy",
+          "chat.nonempty",
+          "chat.max-output-64"
+        ],
+        "interface": "openai"
+      }
     ]
   }
 }

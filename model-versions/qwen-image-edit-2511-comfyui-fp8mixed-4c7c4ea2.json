@@ -1,36 +1,110 @@
 {
-  "schema_version": 1,
-  "kind": "model-version",
-  "identity": {"publisher": "qwen", "slug": "qwen-image-edit-2511-comfyui-fp8mixed-4c7c4ea2"},
-  "metadata": {
-    "title": "Qwen Image Edit 2511 ComfyUI FP8mixed revision 4c7c4ea2",
-    "description": "Exact Comfy-Org mixed-precision FP8 Qwen Image Edit 2511 transformer for core ComfyUI MixedPrecisionOps, used with the catalog's immutable scaled-FP8 Qwen-VL encoder and Qwen Image VAE companions.",
-    "tags": ["qwen", "image", "editing", "comfyui", "fp8", "fp8mixed", "mixed-precision", "candidate", "spark"]
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
   },
-  "model": {"kind": "model", "publisher": "qwen", "slug": "qwen-image-edit", "content_sha256": "fa73840bee2df1613f101a5950620f85399785be00fe86fad4e512dac9ba9e6a"},
-  "version": "comfyui-fp8mixed-4c7c4ea2",
-  "source": {"repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI", "revision": "4c7c4ea236326cbae56d403d22a03c6cd86ad9a0"},
+  "artifacts": [
+    {
+      "download_bytes": 20533762817,
+      "id": "target",
+      "installed_bytes": 20533762817,
+      "kind": "huggingface.file",
+      "path": "split_files/diffusion_models/qwen_image_edit_2511_fp8mixed.safetensors",
+      "repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/resolve/4c7c4ea236326cbae56d403d22a03c6cd86ad9a0/split_files/diffusion_models/qwen_image_edit_2511_fp8mixed.safetensors",
+      "revision": "4c7c4ea236326cbae56d403d22a03c6cd86ad9a0",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e"
+    }
+  ],
+  "availability": "active",
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "image-editing",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "source_revision": "4c7c4ea236326cbae56d403d22a03c6cd86ad9a0",
+      "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "format": {
+    "container": "safetensors",
+    "precision": "mixed",
+    "quantization": "fp8mixed"
+  },
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen-image-edit-2511-comfyui-fp8mixed-4c7c4ea2"
+  },
+  "kind": "model-version",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "Comfy-Org"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/blob/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "resolution_pixels": null
+  },
   "lineage": {
+    "derivation": "Comfy-Org's upstream-supported mixed-precision FP8 conversion of the official Qwen Image Edit 2511 transformer for native ComfyUI MixedPrecisionOps; no runtime-side shard merging is required.",
     "publisher": "Comfy-Org",
     "relation": "quantized",
-    "source_model": {"kind": "model", "publisher": "qwen", "slug": "qwen-image-edit", "content_sha256": "fa73840bee2df1613f101a5950620f85399785be00fe86fad4e512dac9ba9e6a"},
-    "derivation": "Comfy-Org's upstream-supported mixed-precision FP8 conversion of the official Qwen Image Edit 2511 transformer for native ComfyUI MixedPrecisionOps; no runtime-side shard merging is required."
+    "source_model": {
+      "content_sha256": "fa73840bee2df1613f101a5950620f85399785be00fe86fad4e512dac9ba9e6a",
+      "kind": "model",
+      "publisher": "qwen",
+      "slug": "qwen-image-edit"
+    }
   },
-  "format": {"container": "safetensors", "precision": "mixed", "quantization": "fp8mixed"},
-  "parameters": {"total": 20000000000, "active": null},
-  "limits": {"context_tokens": null, "resolution_pixels": null},
-  "sizes": {"download_bytes": 20533762817, "installed_bytes": 20533762817},
-  "license": {
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/blob/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9/LICENSE",
-    "attribution": ["Qwen", "Comfy-Org"],
-    "operator_acceptance_required": false
+  "metadata": {
+    "description": "Exact Comfy-Org mixed-precision FP8 Qwen Image Edit 2511 transformer for core ComfyUI MixedPrecisionOps, used with the catalog's immutable scaled-FP8 Qwen-VL encoder and Qwen Image VAE companions.",
+    "tags": [
+      "qwen",
+      "image",
+      "editing",
+      "comfyui",
+      "fp8",
+      "fp8mixed",
+      "mixed-precision",
+      "candidate",
+      "spark"
+    ],
+    "title": "Qwen Image Edit 2511 ComfyUI FP8mixed revision 4c7c4ea2"
   },
-  "access": {"visibility": "public", "gated": false, "authentication": "none"},
-  "artifacts": [
-    {"id": "target", "path": "split_files/diffusion_models/qwen_image_edit_2511_fp8mixed.safetensors", "kind": "huggingface.file", "repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/resolve/4c7c4ea236326cbae56d403d22a03c6cd86ad9a0/split_files/diffusion_models/qwen_image_edit_2511_fp8mixed.safetensors", "revision": "4c7c4ea236326cbae56d403d22a03c6cd86ad9a0", "sha256": "c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e", "download_bytes": 20533762817, "installed_bytes": 20533762817, "roles": ["weights"]}
-  ],
-  "dependencies": [],
-  "availability": "active",
-  "supersedes": null
+  "model": {
+    "content_sha256": "fa73840bee2df1613f101a5950620f85399785be00fe86fad4e512dac9ba9e6a",
+    "kind": "model",
+    "publisher": "qwen",
+    "slug": "qwen-image-edit"
+  },
+  "parameters": {
+    "active": null,
+    "total": 20000000000
+  },
+  "schema_version": 1,
+  "sizes": {
+    "download_bytes": 20533762817,
+    "installed_bytes": 20533762817
+  },
+  "source": {
+    "repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI",
+    "revision": "4c7c4ea236326cbae56d403d22a03c6cd86ad9a0"
+  },
+  "supersedes": null,
+  "version": "comfyui-fp8mixed-4c7c4ea2"
 }

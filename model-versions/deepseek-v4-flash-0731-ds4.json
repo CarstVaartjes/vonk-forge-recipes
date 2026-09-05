@@ -1,74 +1,130 @@
 {
-  "schema_version": 1,
-  "kind": "model-version",
-  "identity": {"publisher": "antirez", "slug": "deepseek-v4-flash-0731-ds4"},
-  "metadata": {
-    "title": "DeepSeek V4 Flash 0731 DS4 IQ2/Q2 mixed",
-    "description": "Exact DS4 96/128-GB imatrix target GGUF and matching DSpark support GGUF.",
-    "tags": ["deepseek", "ds4", "gguf", "iq2", "spark"]
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
   },
-  "model": {
-    "kind": "model",
-    "publisher": "deepseek-ai",
-    "slug": "deepseek-v4-flash-0731",
-    "content_sha256": "379c5650925fcf84631a262f3112d1c1f1aa603c3885056192cebb25c614f145"
-  },
-  "version": "0731-ds4-86bb38ce",
-  "source": {
-    "repository": "https://huggingface.co/antirez/deepseek-v4-gguf",
-    "revision": "86bb38ce2ba7a98ab0e550359fec5f48859dc723"
-  },
-  "lineage": {
-    "publisher": "antirez",
-    "relation": "quantized",
-    "source_model": {
-      "kind": "model",
-      "publisher": "deepseek-ai",
-      "slug": "deepseek-v4-flash-0731",
-      "content_sha256": "379c5650925fcf84631a262f3112d1c1f1aa603c3885056192cebb25c614f145"
+  "artifacts": [
+    {
+      "download_bytes": 86720111488,
+      "id": "target",
+      "installed_bytes": 86720111488,
+      "kind": "http.file",
+      "path": "DeepSeek-V4-Flash-IQ2XXS-w2Q2K-AProjQ8-SExpQ8-OutQ8-chat-v2-imatrix-0731.gguf",
+      "repository": "https://huggingface.co/antirez/deepseek-v4-gguf",
+      "revision": "86bb38ce2ba7a98ab0e550359fec5f48859dc723",
+      "roles": [
+        "target"
+      ],
+      "sha256": "ca22ae2f838e14077c22bc1c1417b71b45b5e5a3687bd96c2ac6e17fdb6261c0"
     },
-    "derivation": "imatrix mixed quantization with routed-expert gate/up tensors at IQ2_XXS, routed-expert down tensors at Q2_K, attention projections at Q8_0, shared experts at Q8_0, and output at Q8_0"
+    {
+      "download_bytes": 5989114272,
+      "id": "drafter",
+      "installed_bytes": 5989114272,
+      "kind": "http.file",
+      "path": "DeepSeek-V4-Flash-DSpark-support-0731.gguf",
+      "repository": "https://huggingface.co/antirez/deepseek-v4-gguf",
+      "revision": "86bb38ce2ba7a98ab0e550359fec5f48859dc723",
+      "roles": [
+        "drafter"
+      ],
+      "sha256": "7e319924541db3f7a163ed7e11d7532a70d48228ab59d36cb81e1d4511885360"
+    }
+  ],
+  "availability": "active",
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "chat",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "code-generation",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "text-generation",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "source_revision": "86bb38ce2ba7a98ab0e550359fec5f48859dc723",
+      "source_url": "https://huggingface.co/antirez/deepseek-v4-gguf"
+    },
+    "schema_version": 2
   },
+  "dependencies": [],
   "format": {
     "container": "gguf",
     "precision": "mixed",
     "quantization": "iq2_xxs-q2_k-mixed"
   },
-  "parameters": {"total": 284000000000, "active": 13000000000},
-  "limits": {"context_tokens": 1048576},
-  "sizes": {"download_bytes": 92709225760, "installed_bytes": 92709225760},
-  "license": {
-    "spdx": "MIT",
-    "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-DSpark/blob/62af8fffb2f7030cac4de2f0169f5b8d1101b646/LICENSE",
-    "attribution": ["DeepSeek AI", "Salvatore Sanfilippo (antirez)"],
-    "operator_acceptance_required": false
+  "identity": {
+    "publisher": "antirez",
+    "slug": "deepseek-v4-flash-0731-ds4"
   },
-  "access": {"visibility": "public", "gated": false, "authentication": "none"},
-  "artifacts": [
-    {
-      "id": "target",
-      "path": "DeepSeek-V4-Flash-IQ2XXS-w2Q2K-AProjQ8-SExpQ8-OutQ8-chat-v2-imatrix-0731.gguf",
-      "kind": "http.file",
-      "repository": "https://huggingface.co/antirez/deepseek-v4-gguf",
-      "revision": "86bb38ce2ba7a98ab0e550359fec5f48859dc723",
-      "sha256": "ca22ae2f838e14077c22bc1c1417b71b45b5e5a3687bd96c2ac6e17fdb6261c0",
-      "download_bytes": 86720111488,
-      "installed_bytes": 86720111488,
-      "roles": ["target"]
-    },
-    {
-      "id": "drafter",
-      "path": "DeepSeek-V4-Flash-DSpark-support-0731.gguf",
-      "kind": "http.file",
-      "repository": "https://huggingface.co/antirez/deepseek-v4-gguf",
-      "revision": "86bb38ce2ba7a98ab0e550359fec5f48859dc723",
-      "sha256": "7e319924541db3f7a163ed7e11d7532a70d48228ab59d36cb81e1d4511885360",
-      "download_bytes": 5989114272,
-      "installed_bytes": 5989114272,
-      "roles": ["drafter"]
+  "kind": "model-version",
+  "license": {
+    "attribution": [
+      "DeepSeek AI",
+      "Salvatore Sanfilippo (antirez)"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "MIT",
+    "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-DSpark/blob/62af8fffb2f7030cac4de2f0169f5b8d1101b646/LICENSE"
+  },
+  "limits": {
+    "context_tokens": 1048576
+  },
+  "lineage": {
+    "derivation": "imatrix mixed quantization with routed-expert gate/up tensors at IQ2_XXS, routed-expert down tensors at Q2_K, attention projections at Q8_0, shared experts at Q8_0, and output at Q8_0",
+    "publisher": "antirez",
+    "relation": "quantized",
+    "source_model": {
+      "content_sha256": "379c5650925fcf84631a262f3112d1c1f1aa603c3885056192cebb25c614f145",
+      "kind": "model",
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-v4-flash-0731"
     }
-  ],
-  "dependencies": [],
-  "availability": "active",
-  "supersedes": null
+  },
+  "metadata": {
+    "description": "Exact DS4 96/128-GB imatrix target GGUF and matching DSpark support GGUF.",
+    "tags": [
+      "deepseek",
+      "ds4",
+      "gguf",
+      "iq2",
+      "spark"
+    ],
+    "title": "DeepSeek V4 Flash 0731 DS4 IQ2/Q2 mixed"
+  },
+  "model": {
+    "content_sha256": "379c5650925fcf84631a262f3112d1c1f1aa603c3885056192cebb25c614f145",
+    "kind": "model",
+    "publisher": "deepseek-ai",
+    "slug": "deepseek-v4-flash-0731"
+  },
+  "parameters": {
+    "active": 13000000000,
+    "total": 284000000000
+  },
+  "schema_version": 1,
+  "sizes": {
+    "download_bytes": 92709225760,
+    "installed_bytes": 92709225760
+  },
+  "source": {
+    "repository": "https://huggingface.co/antirez/deepseek-v4-gguf",
+    "revision": "86bb38ce2ba7a98ab0e550359fec5f48859dc723"
+  },
+  "supersedes": null,
+  "version": "0731-ds4-86bb38ce"
 }

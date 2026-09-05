@@ -1,72 +1,35 @@
 {
-  "schema_version": 1,
-  "identity": {
-    "publisher": "vonk-forge",
-    "slug": "inkling-small-nvfp4-sglang-dual"
-  },
-  "metadata": {
-    "alignment": "unspecified",
-    "title": "Inkling Small NVFP4 SGLang two Sparks",
-    "description": "Executable Candidate thin adaptation of SGLang's verified two-DGX-Spark Inkling Small NVFP4 TP2 profile. It serves text, image, and 16 kHz audio inputs through an offline OpenAI-compatible API with bounded 64K context; Candidate status is retained only for Vonk's physical canary.",
-    "tags": ["executable",
-      "candidate",
-      "thinkingmachines",
-      "inkling",
-      "multimodal",
-      "text",
-      "vision",
-      "audio",
-      "reasoning",
-      "tool-use",
-      "nvfp4",
-      "sglang",
-      "distributed",
-      "spark"
-    ]
-  },
-  "model": {
-    "kind": "model-version",
-    "publisher": "thinkingmachines",
-    "slug": "inkling-small-nvfp4",
-    "content_sha256": "5397d7a0f8aacdd62d38f68ba449d8268fe71961ac7ececcdbbbfde2d087000f"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "sglang",
-      "content_sha256": "9bd9a41fe12dd4e551fac821623801b6df9af8943d42ddba9f46717636286947"
-    },
-    "patch_bundle": {
-      "kind": "patch-bundle",
-      "publisher": "sglang",
-      "slug": "sglang-inkling-small-dual-spark-profile",
-      "content_sha256": "d5d32f9acb4ce181c175237c1e2dfd26ed81292771d3424755ff39a33c952e5c"
+  "artifacts": [
+    {
+      "download_bytes": 170764923366,
+      "id": "weights",
+      "installed_bytes": 170764923366,
+      "kind": "huggingface.snapshot",
+      "mount": {
+        "read_only": true,
+        "target": "/models"
+      },
+      "repository": "thinkingmachines/Inkling-Small-NVFP4",
+      "revision": "b6a99534467840620d411e4cd4ad5819b2610d9c",
+      "roles": [
+        "entrypoint",
+        "worker"
+      ]
     }
-  },
+  ],
   "build": {
+    "arguments": [],
     "context": {
-      "path": "adapters/inkling/small-dual",
-      "sha256": "c2548e4184935eed0c328b24898d36d0d1d926c018c1919f479ef9910521f480",
       "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
+      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
+      "path": "adapters/inkling/small-dual",
+      "sha256": "c2548e4184935eed0c328b24898d36d0d1d926c018c1919f479ef9910521f480"
     },
     "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
     "network": {
-      "mode": "none",
-      "hosts": []
+      "hosts": [],
+      "mode": "none"
     },
-    "resources": {
-      "download_bytes": 13603572034,
-      "temporary_bytes": 20000000000,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 7200
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
     "options": {
       "additional_contexts": [],
       "annotations": [],
@@ -91,38 +54,84 @@
       "unset_environment": [],
       "unset_labels": []
     },
+    "platform": "linux/arm64",
+    "resources": {
+      "cpu_cores": 8,
+      "download_bytes": 13603572034,
+      "memory_bytes": 8000000000,
+      "processes": 4096,
+      "temporary_bytes": 20000000000,
+      "timeout_seconds": 7200
+    },
     "security": {
       "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+    }
+  },
+  "execution": {
+    "harness": {
+      "content_sha256": "9bd9a41fe12dd4e551fac821623801b6df9af8943d42ddba9f46717636286947",
+      "kind": "execution-harness",
+      "publisher": "vonk-forge",
+      "slug": "sglang"
+    },
+    "patch_bundle": {
+      "content_sha256": "d5d32f9acb4ce181c175237c1e2dfd26ed81292771d3424755ff39a33c952e5c",
+      "kind": "patch-bundle",
+      "publisher": "sglang",
+      "slug": "sglang-inkling-small-dual-spark-profile"
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-small-nvfp4-sglang-dual"
+  },
+  "interfaces": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "thinkingmachines/Inkling-Small-NVFP4",
-      "revision": "b6a99534467840620d411e4cd4ad5819b2610d9c",
-      "download_bytes": 170764923366,
-      "installed_bytes": 170764923366,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint",
-        "worker"
-      ]
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "inkling-small"
+      ],
+      "port": 30000
     }
   ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "sglang",
-      "slug": "sglang-inkling-small-dual-spark-a74222ef",
-      "content_sha256": "bb086e4f7bec98714cf4d13c9a5acf2209c085c43f5bdc29160d3a9e88d196ae"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/sglang-serve"
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Executable Candidate thin adaptation of SGLang's verified two-DGX-Spark Inkling Small NVFP4 TP2 profile. It serves text, image, and 16 kHz audio inputs through an offline OpenAI-compatible API with bounded 64K context; Candidate status is retained only for Vonk's physical canary.",
+    "tags": [
+      "executable",
+      "candidate",
+      "thinkingmachines",
+      "inkling",
+      "multimodal",
+      "text",
+      "vision",
+      "audio",
+      "reasoning",
+      "tool-use",
+      "nvfp4",
+      "sglang",
+      "distributed",
+      "spark"
     ],
+    "title": "Inkling Small NVFP4 SGLang two Sparks"
+  },
+  "model": {
+    "content_sha256": "ce4623d5b735603bbd5108bbf7d1a62d2b0e78245364c7d642fbbb6fa3887aa4",
+    "kind": "model-version",
+    "publisher": "thinkingmachines",
+    "slug": "inkling-small-nvfp4"
+  },
+  "parameters": [],
+  "provenance": {
+    "attribution": [
+      "Thinking Machines Lab",
+      "SGLang contributors"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://github.com/sgl-project/sglang/blob/a74222ef6e690f851e2e4ff1c0be7dc1357be313/docs_new/src/snippets/configs/thinkingmachines/inkling-small.jsx"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "model-path",
@@ -197,6 +206,15 @@
         "value": true
       }
     ],
+    "distribution": {
+      "content_sha256": "bb086e4f7bec98714cf4d13c9a5acf2209c085c43f5bdc29160d3a9e88d196ae",
+      "kind": "runtime-distribution",
+      "publisher": "sglang",
+      "slug": "sglang-inkling-small-dual-spark-a74222ef"
+    },
+    "entrypoint": [
+      "/opt/vonk/bin/sglang-serve"
+    ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
@@ -211,109 +229,110 @@
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": true,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 180,
-      "readiness": {
-        "strategy": "endpoint-owner-after-all-ranks",
-        "path": "/v1/models",
-        "timeout_seconds": 3600
-      },
       "failure": {
         "rank_loss": "withdraw-endpoint",
         "recovery": "restart-worker-then-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "readiness": {
+        "path": "/v1/models",
+        "strategy": "endpoint-owner-after-all-ranks",
+        "timeout_seconds": 3600
+      },
+      "stop_timeout_seconds": 180
+    },
+    "security": {
+      "capabilities": [],
+      "devices": [
+        "nvidia.com/gpu=all"
+      ],
+      "host_network": true,
+      "mounts": [
+        {
+          "read_only": true,
+          "source": "model",
+          "target": "/models"
+        },
+        {
+          "read_only": false,
+          "source": "outputs",
+          "target": "/outputs"
+        }
+      ],
+      "privileged": false,
+      "user": "10001:10001"
     }
   },
+  "schema_version": 1,
   "topology": {
-    "name": "dual",
+    "fabric": {
+      "connectivity": "connected",
+      "minimum_bandwidth_mbps": 200000
+    },
     "mode": "distributed",
+    "name": "dual",
     "node_count": 2,
+    "parallelism": {
+      "backend": "native",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 2,
+      "world_size": 2
+    },
     "roles": [
       {
-        "name": "entrypoint",
-        "count": 1,
-        "endpoint_owner": true,
         "artifacts": [
           "weights"
         ],
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 30000000000,
             "artifact_bytes": 170764923366,
-            "staging_bytes": 20000000000,
             "cache_bytes": 32000000000,
+            "image_bytes": 30000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 24000000000
+            "safety_margin_bytes": 24000000000,
+            "staging_bytes": 20000000000
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
             "startup_peak_bytes": 120000000000,
             "steady_state_bytes": 109000000000,
-            "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       },
       {
-        "name": "worker",
-        "count": 1,
-        "endpoint_owner": false,
         "artifacts": [
           "weights"
         ],
+        "count": 1,
+        "endpoint_owner": false,
+        "name": "worker",
         "resources": {
           "disk": {
-            "image_bytes": 30000000000,
             "artifact_bytes": 170764923366,
-            "staging_bytes": 20000000000,
             "cache_bytes": 32000000000,
+            "image_bytes": 30000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 24000000000
+            "safety_margin_bytes": 24000000000,
+            "staging_bytes": 20000000000
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
             "startup_peak_bytes": 120000000000,
             "steady_state_bytes": 109000000000,
-            "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 2,
-      "tensor": 2,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "native"
-    },
-    "fabric": {
-      "connectivity": "connected",
-      "minimum_bandwidth_mbps": 200000
-    },
     "start_order": [
       "worker",
       "entrypoint"
@@ -323,20 +342,20 @@
       "worker"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "openai",
-      "port": 30000,
-      "model_aliases": [
-        "inkling-small"
-      ],
-      "health_path": "/v1/models"
-    }
-  ],
   "validation": {
+    "benchmarks": [
+      {
+        "configuration": {
+          "max_output_tokens": 64,
+          "requests": 1,
+          "timeout_seconds": 600
+        },
+        "framework": "openai",
+        "name": "bounded-chat"
+      }
+    ],
     "validators": [
       {
-        "interface": "openai",
         "checks": [
           "endpoint.healthy",
           "collective.two-ranks",
@@ -344,27 +363,9 @@
           "chat.max-output-64",
           "rank-loss.withdrawal",
           "rank-recovery.healthy"
-        ]
+        ],
+        "interface": "openai"
       }
-    ],
-    "benchmarks": [
-      {
-        "name": "bounded-chat",
-        "framework": "openai",
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "timeout_seconds": 600
-        }
-      }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://github.com/sgl-project/sglang/blob/a74222ef6e690f851e2e4ff1c0be7dc1357be313/docs_new/src/snippets/configs/thinkingmachines/inkling-small.jsx",
-    "attribution": [
-      "Thinking Machines Lab",
-      "SGLang contributors"
     ]
   }
 }
