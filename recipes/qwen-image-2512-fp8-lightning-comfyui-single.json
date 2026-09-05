@@ -164,17 +164,18 @@
       {
         "changes": [
           {
-            "details": "ComfyUI moved from 12d52794 to 250b2e95; the upstream range changes core runtime and model nodes. The exact Qwen Image 2512 Lightning workflow and model snapshots remain unchanged, so the specialized pin is retained pending focused build and serving qualification.",
+            "details": "The digest-verified build now fetches ComfyUI at the current checked upstream commit. The pinned compare range changes ComfyUI internals and API nodes, while every node class used by this recipe workflow remains present in the current source tree; workflow JSON, model revisions, and specialized Spark resource declarations are unchanged.",
             "kind": "compatibility",
             "references": [
-              "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+              "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+              "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
             ],
-            "summary": "Record ComfyUI upstream drift; retain the qualified source pin."
+            "summary": "Rebuilt the ComfyUI media adapter at upstream commit 250b2e9551a7."
           }
         ],
-        "prior_recipe_content_sha256": "0e8690fe5a686e7fc2f0761e5d16078ccaa0571ae57a0ca313b753f46a8252a5",
+        "prior_recipe_content_sha256": "6c4ef065fe13aca655e296cbff6a8e8afdee38d30f75a657ff5ce1d115e56ddd",
         "released_at": "2026-09-05",
-        "upgrade_effect": "none",
+        "upgrade_effect": "rebuild",
         "version": "1.0.6"
       },
       {

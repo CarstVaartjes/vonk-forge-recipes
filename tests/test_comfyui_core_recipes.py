@@ -17,8 +17,8 @@ CORE_NODES = {
     "UNETLoader", "VAEDecode", "VAEEncode", "VAELoader", "Wan22ImageToVideoLatent",
     "WanImageToVideo",
 }
-COMFY_REVISION = "12d5279438bfefc058a269eae805ceab6047777f"
-COMFY_ARCHIVE_SHA256 = "6d8ab87ec1250e60101f0caf9e11658834c29d9cd76c9174e2b84ec9436f4886"
+COMFY_REVISION = "250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+COMFY_ARCHIVE_SHA256 = "40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee"
 
 
 def load(path: Path) -> dict:

@@ -166,6 +166,23 @@
       {
         "changes": [
           {
+            "details": "The official MOVA compare range from the pinned 83bcbe8e revision to current d5b7899d changes README.md only; the executable source, build patches, and model closure are unchanged.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/OpenMOSS/MOVA/compare/83bcbe8eab55ded920889239af93c112834ee5b8...d5b7899dd4dd4a92dfca610cafe70b978ead3064",
+              "https://github.com/OpenMOSS/MOVA/commit/d5b7899dd4dd4a92dfca610cafe70b978ead3064"
+            ],
+            "summary": "Retained the MOVA source pin because current upstream changes are documentation-only."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "2.0.9"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -355,7 +372,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "2.0.8"
+    "version": "2.0.9"
   },
   "runtime": {
     "arguments": [
