@@ -8,9 +8,9 @@
         "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
-        "path": "adapters/glm/glm53-sm121"
+        "path": "adapters/glm/tonyd2wild-glm53-tp4-current"
       },
-      "dockerfile": "adapters/glm/glm53-sm121/Dockerfile",
+      "dockerfile": "adapters/glm/tonyd2wild-glm53-tp4-current/Dockerfile",
       "network": {
         "hosts": [
           "docker.io",
@@ -41,7 +41,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate native TP4 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint. Its exact four-rank topology is unsupported on Vonk's current one- or two-Spark configuration and remains installable only for a future scale canary. The pin includes calibrated per-projection input scales that prevent FP8 block-scale underflow and long-context repetition. Upstream proves the same model family at TP2, but glm-5-3-flash-nvfp4-vllm-dual has a conservative 132 GB Controller admission envelope and does not fit the present about-126.9 GB inventory; glm-5-3-flash-exl3-dflash2-vllm-dual is the current 126 GB-envelope fleet Candidate. This contract keeps Tech2Wild's stable v8 profile and excludes experimental v9 InstantTensor.",
+    "description": "Executable Candidate native TP4 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint, built from tonyd2wild's current public 8fd2fcd v1-v8 SM121 and DFlash2 source stack on the digest-pinned vLLM CUDA 13 base. Its exact four-rank topology is unsupported on Vonk's current one- or two-Spark configuration and remains installable only for a future scale canary; the source profile is 1M context, 64 sequences, 16K batched tokens, 24 GiB FP8 E4M3 KV, Marlin, DFlash2 K7, and FULL_AND_PIECEWISE graphs. The LibertAI Model remains distinct from the upstream README's RedHatAI default.",
     "tags": [
       "executable",
       "candidate",
@@ -1651,10 +1651,26 @@
       "vLLM contributors"
     ],
     "source_kind": "global",
-    "source_reference": "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/tree/98fc5d8fd48e7d1e2e95499f93cf90ceef14faf4"
+    "source_reference": "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/tree/8fd2fcd27c04c7fa93e770000b818657f338875d"
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "Rebuilds from tonyd2wild 8fd2fcd's public v1-v8 SM121 source stack and DFlash2 overlay on the digest-pinned vLLM CUDA 13 base. The Controller wrapper translates the current four-rank worker-first launch without SSH or host bind mounts: 1,048,576 context, max-num-seqs 64, 16,384 batched tokens, 24 GiB FP8 E4M3 KV, FULL_AND_PIECEWISE CUDA graphs, Marlin, and DFlash2 K7.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/tree/8fd2fcd27c04c7fa93e770000b818657f338875d"
+            ],
+            "summary": "Ported the current public TP4 v1-v8 plus DFlash2 source build."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-06",
+        "upgrade_effect": "rebuild",
+        "version": "1.3.0"
+      },
       {
         "changes": [
           {
@@ -1765,8 +1781,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "1.2.2"
+    "released_at": "2026-09-06",
+    "version": "1.3.0"
   },
   "runtime": {
     "arguments": [
@@ -1797,13 +1813,18 @@
       },
       {
         "name": "max-model-len",
-        "setting": "context_tokens",
-        "value": null
+        "setting": null,
+        "value": 1048576
       },
       {
         "name": "max-num-seqs",
-        "setting": "concurrency",
-        "value": null
+        "setting": null,
+        "value": 64
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 16384
       },
       {
         "name": "block-size",
@@ -1818,7 +1839,7 @@
       {
         "name": "speculative-config",
         "setting": null,
-        "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":4}"
+        "value": "{\"method\":\"dflash\",\"model\":\"/models/dflash2-draft\",\"num_speculative_tokens\":7}"
       },
       {
         "name": "kv-cache-dtype",
@@ -1828,12 +1849,17 @@
       {
         "name": "kv-cache-memory",
         "setting": null,
-        "value": 9663676416
+        "value": 25769803776
       },
       {
         "name": "enforce-eager",
         "setting": null,
-        "value": true
+        "value": false
+      },
+      {
+        "name": "compilation-config",
+        "setting": null,
+        "value": "{\"cudagraph_mode\":\"FULL_AND_PIECEWISE\"}"
       },
       {
         "name": "skip-mm-profiling",
@@ -1854,6 +1880,11 @@
         "name": "chat-template",
         "setting": null,
         "value": "/opt/vonk/templates/glm53-chat-template-mm.jinja"
+      },
+      {
+        "name": "default-chat-template-kwargs",
+        "setting": null,
+        "value": "{\"enable_thinking\":false}"
       },
       {
         "name": "tool-call-parser",
