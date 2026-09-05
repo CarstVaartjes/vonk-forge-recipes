@@ -128,6 +128,18 @@ def test_release_history_is_typed_recipe_metadata_without_self_digest() -> None:
     assert all(recipe["release"]["history"][0]["version"] == recipe["release"]["version"] for recipe in recipes)
 
 
+def test_source_bundle_ignores_generated_python_cache_files(tmp_path: Path) -> None:
+    context = tmp_path / "context"
+    context.mkdir()
+    (context / "Dockerfile").write_text("FROM scratch\n")
+    cache = context / "__pycache__"
+    cache.mkdir()
+    (cache / "generated.cpython-313.pyc").write_bytes(b"generated")
+    (context / "standalone.pyc").write_bytes(b"generated")
+    _archive, files, _digest = TOOL["source_bundle"](context)
+    assert [entry["path"] for entry in files] == ["Dockerfile"]
+
+
 def test_editing_one_recipe_changes_only_that_package(tmp_path: Path) -> None:
     platform_root = _platform_root()
     catalog = TOOL["build"](package_dir=tmp_path, platform_root=platform_root)
