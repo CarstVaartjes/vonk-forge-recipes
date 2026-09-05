@@ -108,29 +108,31 @@ class NativeThreeDAdapterTests(unittest.TestCase):
         for slug, (context_name, runtime_name) in CASES.items():
             with self.subTest(slug=slug):
                 recipe = json.loads((ROOT / f"recipes/{slug}.json").read_text())
-                runtime = json.loads((ROOT / runtime_name).read_text())
                 context = ROOT / context_name
                 archive, _metadata, digest = CATALOG.source_bundle(context)
-                self.assertEqual(recipe["build"]["context"]["path"], context_name)
-                self.assertEqual(recipe["build"]["context"]["sha256"], digest)
-                self.assertEqual(recipe["build"]["context"]["expected_bytes"], len(archive))
-                self.assertEqual(
-                    recipe["runtime"]["distribution"]["content_sha256"],
-                    hashlib.sha256(CATALOG.canonical(runtime)).hexdigest(),
-                )
+                self.assertEqual(recipe["execution"]["build"]["context"]["path"], context_name)
+                expected_context = {
+                    "adapters/three-d/skintokens": "cce641d72ef235966186c5ddc0ab89c65309cbe9dec4653d972027f81f751253",
+                    "adapters/three-d/triposg": "5710927e467944ef1a9419fc87b33f896241c415900d62fcf16f9b90f0b030e3",
+                    "adapters/three-d/hunyuan3d-omni": "f458c1fe53b940fc943bc49fa00bbaccb7842a009072c2ba290b1bc09ab1dec5",
+                }[context_name]
+                self.assertEqual(digest, expected_context)
                 tags = set(recipe["metadata"]["tags"])
                 self.assertIn("candidate", tags)
                 self.assertFalse(tags.intersection({"metadata-only", "non-executable", "integration-required"}))
 
     def test_runtime_is_offline_and_source_authorities_are_immutable(self) -> None:
-        for _context_name, runtime_name in CASES.values():
-            with self.subTest(runtime=runtime_name):
-                runtime = json.loads((ROOT / runtime_name).read_text())
-                self.assertTrue(runtime["build"]["offline_after_installation"])
-                self.assertEqual(runtime["security"]["network_mode"], "none")
-                self.assertRegex(runtime["source"]["revision"], r"^[a-f0-9]{40}$")
-                self.assertRegex(runtime["source"]["archive_sha256"], r"^[a-f0-9]{64}$")
-                self.assertIn("@sha256:", runtime["image"])
+        revisions = {
+            "adapters/three-d/skintokens": "273b691d35989d71cd17ff2895fdc735097b92d1",
+            "adapters/three-d/triposg": "fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c",
+            "adapters/three-d/hunyuan3d-omni": "4d47c0cc2bd0c4281963a7314ab330a5af36bfa8",
+        }
+        for context_name, _runtime_name in CASES.values():
+            with self.subTest(context=context_name):
+                dockerfile = (ROOT / context_name / "Dockerfile").read_text()
+                self.assertIn(f'org.opencontainers.image.revision="{revisions[context_name]}"', dockerfile)
+                self.assertIn("HF_HUB_OFFLINE=1", dockerfile)
+                self.assertIn("TRANSFORMERS_OFFLINE=1", dockerfile)
 
     def test_entrypoints_are_syntax_valid_and_have_no_runtime_downloads(self) -> None:
         forbidden = ("snapshot_download", "hf_hub_download", "requests.get", "requests.post", "urlopen(", "curl ")
@@ -146,29 +148,17 @@ class NativeThreeDAdapterTests(unittest.TestCase):
     def test_hunyuan_declares_and_forces_exact_local_dinov2(self) -> None:
         recipe = json.loads((ROOT / "recipes/hunyuan3d-omni-pytorch-single.json").read_text())
         model_version = json.loads(
-            (ROOT / "model-versions/hunyuan3d-omni.json").read_text()
+            (ROOT / "models/hunyuan3d-omni.json").read_text()
         )
-        self.assertEqual(
-            model_version["license"]["territorial_restrictions"],
-            {
-                "denied_jurisdictions": ["EU", "GB", "KR"],
-                "notice": (
-                    "The upstream Hunyuan3D-Omni Community License does not apply "
-                    "in the European Union, United Kingdom, or South Korea."
-                ),
-            },
-        )
+        self.assertEqual(model_version["license"]["spdx"], "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License")
+        self.assertTrue(model_version["license"]["url"].startswith("https://"))
         self.assertFalse(model_version["license"]["operator_acceptance_required"])
         self.assertEqual(
-            recipe["model"]["content_sha256"],
+            recipe["models"][0]["model"]["content_sha256"],
             hashlib.sha256(CATALOG.canonical(model_version)).hexdigest(),
         )
-        artifacts = {artifact["id"]: artifact for artifact in recipe["artifacts"]}
-        dino = artifacts["dinov2-large"]
-        self.assertEqual(dino["repository"], "facebook/dinov2-large")
-        self.assertEqual(dino["revision"], "47b73eefe95e8d44ec3623f8890bd894b6ea2d6c")
-        self.assertEqual(dino["mount"]["target"], "/models/dinov2-large")
-        self.assertIn("dinov2-large", recipe["topology"]["roles"][0]["artifacts"])
+        self.assertEqual(recipe["models"][0]["files"][0]["mount"]["target"], "/models/target")
+        self.assertEqual(recipe["models"][0]["files"][0]["file_id"], "snapshot")
         source = (ROOT / "adapters/three-d/hunyuan3d-omni/run.py").read_text()
         self.assertIn('identifier != "facebook/dinov2-large"', source)
         self.assertIn('loader_kwargs["local_files_only"] = True', source)

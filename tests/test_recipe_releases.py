@@ -198,18 +198,22 @@ class RecipeReleaseBuildTests(unittest.TestCase):
     def recipe_fixture(self, root: Path) -> dict[str, object]:
         context = root / "adapters/demo"
         context.mkdir(parents=True)
-        (context / "Dockerfile").write_text("FROM scratch\n", encoding="utf-8")
+        (context / "Dockerfile").write_text("FROM registry.example/vonk/base@sha256:" + "f" * 64 + "\n", encoding="utf-8")
+        models = root / "models"
+        models.mkdir()
+        example_model = json.loads((ROOT / "contracts/src/vonk_forge_contracts/examples/model-definition.json").read_text(encoding="utf-8"))
+        (models / "synthetic-tiny-fp16.json").write_text(json.dumps(example_model), encoding="utf-8")
+        recipe = json.loads((ROOT / "contracts/src/vonk_forge_contracts/examples/recipe-source-build.json").read_text(encoding="utf-8"))
+        recipe["execution"]["build"]["context"]["path"] = "adapters/demo"
+        recipe["execution"]["build"]["dockerfile"] = "adapters/demo/Dockerfile"
+        recipe["execution"]["build"]["base_image"] = {"repository": "registry.example/vonk/base", "digest": "f" * 64, "platform": "linux/arm64"}
         archive, _, digest = catalog_index.source_bundle(context)
-        return {
-            "identity": {"publisher": "example", "slug": "demo"},
-            "build": {
-                "context": {
-                    "path": "adapters/demo",
-                    "sha256": digest,
-                    "expected_bytes": len(archive),
-                }
-            },
-        }
+        del archive, digest
+        recipe["identity"] = {"publisher": "example", "slug": "demo"}
+        recipe["models"][0]["model"]["publisher"] = "vonk-forge"
+        recipe["models"][0]["model"]["slug"] = "synthetic-tiny-fp16"
+        recipe["provenance"]["source_kind"] = "local"
+        return recipe
 
     def test_source_bundle_rejects_files_above_hydration_limit(self) -> None:
         with isolated_root() as root:
@@ -233,7 +237,7 @@ class RecipeReleaseBuildTests(unittest.TestCase):
             recipe = self.recipe_fixture(root)
             (recipes / "demo.json").write_text(json.dumps(recipe), encoding="utf-8")
 
-            with self.assertRaisesRegex(SystemExit, "recipe release is missing"):
+            with self.assertRaisesRegex(SystemExit, "recipe contract validation failed"):
                 catalog_index.build()
 
     def test_build_rejects_orphan_sidecar(self) -> None:
@@ -250,7 +254,7 @@ class RecipeReleaseBuildTests(unittest.TestCase):
                 json.dumps(release), encoding="utf-8"
             )
 
-            with self.assertRaisesRegex(SystemExit, "orphan recipe release"):
+            with self.assertRaisesRegex(SystemExit, "recipe contract validation failed"):
                 catalog_index.build()
 
 

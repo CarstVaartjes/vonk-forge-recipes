@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import runpy
 import subprocess
 import sys
 import tarfile
@@ -16,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/video/wan-dancer-native"
 RECIPE = ROOT / "recipes/wan-dancer-14b-pytorch-single.json"
 RUNTIME = ROOT / "runtime-distributions/wan-dancer-native-e6c87a9-cuda13-arm64.json"
-MODEL = ROOT / "model-versions/wan-dancer-14b.json"
+MODEL = ROOT / "models/wan-dancer-14b.json"
 ARCHIVE_SHA256 = "92c529d7727c75c6515ea990d27883a45bf566587cc9f5d325a0a488b9fa1649"
 
 
@@ -36,15 +37,12 @@ def load_runner():
 class WanDancerAuthorityTests(unittest.TestCase):
     def test_recipe_resolves_complete_immutable_authorities(self) -> None:
         recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
-        self.assertEqual(recipe["model"]["content_sha256"], canonical_digest(MODEL))
-        self.assertEqual(
-            recipe["runtime"]["distribution"]["content_sha256"],
-            canonical_digest(RUNTIME),
-        )
-        self.assertEqual(
-            recipe["artifacts"][0]["revision"],
-            "85ce88dd8d025459dcf0fe93982d6da8b9002957",
-        )
+        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], canonical_digest(MODEL))
+        self.assertEqual(recipe["execution"]["mode"], "build")
+        self.assertEqual(recipe["execution"]["build"]["base_image"]["digest"], "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4")
+        tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+        self.assertEqual(tool["source_bundle"](ADAPTER)[2], "71b98bb6f2ca9e6bca213a96cd444919eb4644a456fec3f09468b6dc565acbf5")
+        self.assertEqual(json.loads(MODEL.read_text())["source"]["revision"], "85ce88dd8d025459dcf0fe93982d6da8b9002957")
         self.assertEqual(
             recipe["provenance"]["source_reference"],
             "https://github.com/Wan-Video/Wan-Dancer/tree/"
