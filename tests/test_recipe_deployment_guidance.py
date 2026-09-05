@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import RecipeDefinition, content_sha256  # noqa: E402
+from vonk_forge_contracts import RecipeDefinition, content_sha256
 
 
 def load(path: str) -> dict[str, object]:
@@ -46,9 +46,6 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
             <= latency_tags
         )
         self.assertNotIn("default", latency_tags)
-        arguments = {
-            item["name"]: item["value"] for item in latency["runtime"]["arguments"]
-        }
         self.assertEqual(latency["settings"]["context_tokens"]["value"], 1_048_576)
 
         self.assertEqual(standard["execution"]["mode"], "build")
