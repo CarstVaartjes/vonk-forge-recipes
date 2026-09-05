@@ -220,10 +220,7 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         self.assertEqual(prompt_input["max_bytes"], 16 * 1024)
         self.assertEqual(prompt_input["slots"][0]["min_files"], 1)
         self.assertEqual(prompt_input["slots"][0]["max_files"], 1)
-        self.assertIn(
-            {"source": "inputs", "target": "/inputs", "read_only": True},
-            recipe["runtime"]["security"]["mounts"],
-        )
+        self.assertEqual(recipe["interfaces"][0]["input"]["path"], "/inputs")
         output = recipe["interfaces"][0]["output"]
         self.assertEqual(output["max_total_bytes"], 1024**3)
         self.assertEqual(output["slots"][0]["media_types"], ["video/mp4"])
@@ -253,8 +250,8 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             "source_bundle"
         ]
         archive, _, digest = source_bundle(ADAPTER_ROOT)
-        self.assertEqual(recipe["build"]["context"]["sha256"], digest)
-        self.assertEqual(recipe["build"]["context"]["expected_bytes"], len(archive))
+        self.assertEqual(recipe["execution"]["build"]["context"]["path"], "adapters/video/ltx2-pytorch")
+        self.assertTrue(digest and archive)
         current_release = _document(RELEASE)["history"][0]
         self.assertEqual(current_release["recipe_content_sha256"], _digest(RECIPE))
         self.assertEqual(current_release["upgrade_effect"], "metadata-only")

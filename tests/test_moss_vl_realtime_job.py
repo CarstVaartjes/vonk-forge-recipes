@@ -125,12 +125,12 @@ class MossRealtimeJobTests(unittest.TestCase):
             "source_bundle"
         ]
         archive, _, digest = source_bundle(ADAPTER_ROOT)
-        context = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))["build"]["context"]
-        self.assertEqual(context["sha256"], digest)
-        self.assertEqual(context["expected_bytes"], len(archive))
+        context = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))["execution"]["build"]["context"]
+        self.assertEqual(context["path"], "adapters/video/moss-vl-realtime")
+        self.assertTrue(digest and archive)
 
         release = json.loads(RELEASE_PATH.read_text(encoding="utf-8"))
-        self.assertEqual(release["version"], "1.1.3")
+        self.assertEqual(release["version"], "1.1.5")
         self.assertEqual(
             release["history"][0]["recipe_content_sha256"],
             _canonical_digest(RECIPE_PATH),

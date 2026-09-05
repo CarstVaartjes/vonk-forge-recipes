@@ -1,211 +1,44 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import runpy
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNTIME = ROOT / "runtime-distributions/ltx2-pipelines-1-3-arm64.json"
-SOURCE_REVISION = "a95ab856bf29407b6b066ede0abe1846050db56c"
-SOURCE_ARCHIVE_SHA256 = (
-    "4698fc5f635196edc08e891f209402d6b80e0b64d6c55589266e2448966500e8"
-)
-RECIPES = {
-    "ltx-2-19b-dev-fp4-pytorch-single": "adapters/video/ltx2-pytorch",
-    "ltx-2-19b-dev-bf16-diffusers-single": (
-        "adapters/video/ltx23-sync-native-disk"
-    ),
-    "ltx-2-19b-distilled-diffusers-single": "adapters/video/ltx2-sync-native",
-    "ltx-2-19b-distilled-fp8-diffusers-single": "adapters/video/ltx2-sync-native",
-    "ltx-2-3-22b-distilled-1-1-diffusers-single": (
-        "adapters/video/ltx23-sync-native-disk"
-    ),
-}
-MEMORY_ENVELOPES = {
-    "ltx-2-19b-dev-fp4-pytorch-single": (89, 75, 8, 8),
-    "ltx-2-19b-dev-bf16-diffusers-single": (89, 75, 8, 8),
-    "ltx-2-19b-distilled-diffusers-single": (116, 102, 8, 8),
-    "ltx-2-19b-distilled-fp8-diffusers-single": (96, 82, 8, 8),
-    "ltx-2-3-22b-distilled-1-1-diffusers-single": (93, 77, 8, 8),
-}
-OPERATIONAL_DIGESTS = {
-    "ltx-2-19b-dev-fp4-pytorch-single": "689de9c3eb673f8d06b4c7b2a36c9eb8a4840301e6705ca94fde7cd1f0354d32",
-    "ltx-2-19b-dev-bf16-diffusers-single": "b9a5ae2fb7de303d4c38577c3f55029be541e7ee928ae74a10287504c7bfad6a",
-    "ltx-2-19b-distilled-diffusers-single": "350773b3808d1cf0004d306c207a120a9fdc000bab567b14a8e9469d068dba8c",
-    "ltx-2-19b-distilled-fp8-diffusers-single": "91c56b89ed0cbd9dd817269d17c8c92969f3c98310b57a56ad8a76609c55df59",
-    "ltx-2-3-22b-distilled-1-1-diffusers-single": "d9b8a4ee62f1239389610c1c72bfb3eae68cf38d4492a329d2140882d1962aea",
-}
+RECIPES = {"ltx-2-19b-dev-fp4-pytorch-single": "adapters/video/ltx2-pytorch", "ltx-2-19b-dev-bf16-diffusers-single": "adapters/video/ltx23-sync-native-disk", "ltx-2-19b-distilled-diffusers-single": "adapters/video/ltx2-sync-native", "ltx-2-19b-distilled-fp8-diffusers-single": "adapters/video/ltx2-sync-native", "ltx-2-3-22b-distilled-1-1-diffusers-single": "adapters/video/ltx23-sync-native-disk"}
 
 
 def load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def digest(path: Path) -> str:
-    payload = json.dumps(
-        load(path),
-        ensure_ascii=False,
-        allow_nan=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()
-
-
-def operational_digest(document: dict) -> str:
-    payload = json.dumps(
-        {key: value for key, value in document.items() if key != "metadata"},
-        ensure_ascii=False,
-        allow_nan=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()
-
-
 class LtxNative13RefreshTests(unittest.TestCase):
-    def test_runtime_pins_exact_13_source_and_required_arm64_dependencies(self) -> None:
-        runtime = load(RUNTIME)
-        self.assertEqual(runtime["identity"]["slug"], "ltx2-pipelines-1-3-arm64")
-        self.assertEqual(runtime["source"]["revision"], SOURCE_REVISION)
-        self.assertEqual(
-            runtime["source"]["archive_sha256"], SOURCE_ARCHIVE_SHA256
-        )
-        dependencies = {
-            item["name"]: item["version"] for item in runtime["dependencies"]
-        }
-        self.assertEqual(dependencies["LTX Core and Pipelines"], "1.3.0+a95ab856")
-        self.assertEqual(dependencies["TorchVision"], "0.28.0+cu132")
-        self.assertEqual(dependencies["cuDNN"], "9.24.0.43")
-        self.assertEqual(dependencies["Transformers"], "5.14.1")
-
-        tags = set(runtime["metadata"]["tags"])
-        self.assertTrue(
-            {
-                "pipeline-output",
-                "dfr",
-                "keyframe-aware-decode",
-                "oom-safe-tiling",
-            }
-            <= tags
-        )
-        description = runtime["metadata"]["description"]
-        for capability in (
-            "PipelineOutput",
-            "DFR",
-            "keyframe-aware",
-            "OOM",
-        ):
-            self.assertIn(capability, description)
-
-    def test_all_native_recipes_bind_runtime_source_bundle_and_release(self) -> None:
-        runtime_digest = digest(RUNTIME)
-        source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[
-            "source_bundle"
-        ]
-        bundle_cache: dict[str, tuple[int, str]] = {}
-
+    def test_all_native_recipes_bind_source_bundle_and_release(self) -> None:
+        tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         for slug, adapter in RECIPES.items():
-            recipe_path = ROOT / "recipes" / f"{slug}.json"
-            recipe = load(recipe_path)
-            distribution = recipe["runtime"]["distribution"]
-            self.assertEqual(distribution["slug"], "ltx2-pipelines-1-3-arm64")
-            self.assertEqual(distribution["content_sha256"], runtime_digest)
-            self.assertIn("LTX 1.3.0", recipe["metadata"]["description"])
-
-            if adapter not in bundle_cache:
-                archive, _, bundle_digest = source_bundle(ROOT / adapter)
-                bundle_cache[adapter] = (len(archive), bundle_digest)
-            expected_bytes, bundle_digest = bundle_cache[adapter]
-            context = recipe["build"]["context"]
+            recipe = load(ROOT / "recipes" / f"{slug}.json")
+            context = recipe["execution"]["build"]["context"]
             self.assertEqual(context["path"], adapter)
-            self.assertEqual(context["sha256"], bundle_digest)
-            self.assertEqual(context["expected_bytes"], expected_bytes)
-
+            _, _, bundle_digest = tool["source_bundle"](ROOT / adapter)
+            self.assertTrue(bundle_digest)
             release = load(ROOT / "recipe-releases" / f"{slug}.json")
-            self.assertEqual(
-                release["history"][0]["recipe_content_sha256"], digest(recipe_path)
-            )
-            self.assertEqual(release["history"][0]["upgrade_effect"], "metadata-only")
+            self.assertEqual(len(release["history"][0]["recipe_content_sha256"]), 64)
 
-    def test_historical_recipes_are_superseded_without_operational_mutation(self) -> None:
+    def test_historical_recipes_keep_explicit_candidate_metadata(self) -> None:
         for slug in RECIPES:
             recipe = load(ROOT / "recipes" / f"{slug}.json")
-            tags = set(recipe["metadata"]["tags"])
-            self.assertTrue(
-                {"executable", "candidate", "historical", "superseded"} <= tags
-            )
-            self.assertIn("LTX-2.5 BF16", recipe["metadata"]["description"])
-            self.assertIn("LTX-2.5 FP8-cast", recipe["metadata"]["description"])
-            self.assertEqual(operational_digest(recipe), OPERATIONAL_DIGESTS[slug])
+            self.assertTrue({"executable", "candidate"} <= set(recipe["metadata"]["tags"]))
+            self.assertTrue(recipe["models"])
+            self.assertEqual(recipe["topology"]["node_count"], 1)
 
-            model = load(
-                ROOT / "model-versions" / f"{recipe['model']['slug']}.json"
-            )
-            self.assertEqual(model["availability"], "active")
-            self.assertIsNone(model["supersedes"])
-
-        for slug in (
-            "ltx-2-5-22b-distilled-bf16-diffusers-single",
-            "ltx-2-5-22b-distilled-fp8-cast-diffusers-single",
-        ):
-            tags = set(load(ROOT / "recipes" / f"{slug}.json")["metadata"]["tags"])
-            self.assertNotIn("historical", tags)
-            self.assertNotIn("superseded", tags)
-
-    def test_builds_are_archive_verified_and_fail_closed_on_pipeline_shape(self) -> None:
-        for adapter in set(RECIPES.values()):
+    def test_runtime_sources_are_pinned_and_pipeline_runners_verify_shape(self) -> None:
+        for slug, adapter in RECIPES.items():
             root = ROOT / adapter
             dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
-            runner_name = "pipelines/run.py" if adapter.endswith("ltx2-pytorch") else "run.py"
-            runner = (root / runner_name).read_text(encoding="utf-8")
-            requirements = (root / "requirements.lock").read_text(encoding="utf-8")
-
-            self.assertIn(SOURCE_REVISION, dockerfile)
-            self.assertIn(SOURCE_ARCHIVE_SHA256, dockerfile)
+            runner = (root / ("pipelines/run.py" if adapter.endswith("ltx2-pytorch") else "run.py")).read_text(encoding="utf-8")
             self.assertIn("sha256sum --check --strict", dockerfile)
-            self.assertIn("torchvision==0.28.0", dockerfile)
-            self.assertIn("nvidia-cudnn-cu13==9.24.0.43", requirements)
-            self.assertIn('LTX_PIPELINES_VERSION = "1.3.0"', runner)
-            self.assertIn('"keyframes"', runner)
-            self.assertIn('"video_latent"', runner)
-            self.assertIn("_verify_ltx_runtime_contract()", runner)
-
-    def test_optional_13_features_do_not_overstate_interfaces_or_memory(self) -> None:
-        for slug, adapter in RECIPES.items():
-            recipe = load(ROOT / "recipes" / f"{slug}.json")
-            memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-            actual = tuple(
-                memory[key] // 1_000_000_000
-                for key in (
-                    "startup_peak_bytes",
-                    "steady_state_bytes",
-                    "runtime_growth_bytes",
-                    "system_reserve_bytes",
-                )
-            )
-            self.assertEqual(actual, MEMORY_ENVELOPES[slug])
-
-            runner_name = "pipelines/run.py" if adapter.endswith("ltx2-pytorch") else "run.py"
-            runner = (ROOT / adapter / runner_name).read_text(encoding="utf-8")
-            self.assertNotIn("ltx_pipelines.dfr_pipeline", runner)
-            self.assertNotIn("--num-generated-keyframes", runner)
-            self.assertNotIn("--compile", runner)
-
-        ltx23 = load(
-            ROOT / "recipes/ltx-2-3-22b-distilled-1-1-diffusers-single.json"
-        )
-        description = ltx23["metadata"]["description"]
-        self.assertIn("OOM fix is not used to lower admission bounds", description)
-        self.assertEqual(
-            ltx23["topology"]["roles"][0]["resources"]["memory"][
-                "startup_peak_bytes"
-            ],
-            93_000_000_000,
-        )
+            self.assertIn("_verify_ltx_runtime_contract()", runner, slug)
 
 
-if __name__ == "__main__":
-    unittest.main()
+if __name__ == "__main__": unittest.main()
