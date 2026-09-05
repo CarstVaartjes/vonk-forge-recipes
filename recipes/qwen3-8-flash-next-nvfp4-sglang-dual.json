@@ -5092,7 +5092,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "3c26dc66476664b3af6650e42659fb89d957c32112feb7f2469278a22ffd3670",
+        "content_sha256": "0f2c8617255df59583d6def4f71cb20ec63709aaf7c801ae8ce71f6a18e5edc4",
         "kind": "model",
         "publisher": "radixark",
         "slug": "qwen3-8-flash-next-nvfp4-7b719225"

@@ -109,12 +109,32 @@ def model_document(version: dict[str, Any], model: dict[str, Any], group: dict[s
             "version": version["version"], "variant": version["metadata"]["title"],
         },
         "metadata": {"description": version["metadata"]["description"], "tags": version["metadata"].get("tags", [])[:20]},
+        "access": version["access"],
+        "lineage": {
+            "publisher": version["lineage"]["publisher"],
+            "relation": version["lineage"]["relation"],
+            "source_model": {
+                "kind": "model",
+                "publisher": version["lineage"]["source_model"]["publisher"],
+                "slug": version["lineage"]["source_model"]["slug"],
+            },
+            "derivation": version["lineage"]["derivation"],
+        },
+        "dependencies": [],
+        "supersedes": None,
         "modalities": modalities(version, model),
         "source": {"repository": source["repository"], "revision": source["revision"]},
         "format": {"container": version["format"]["container"], "precision": version["format"]["precision"], "quantization": version["format"]["quantization"]},
         "parameters": version.get("parameters", {"total": None, "active": None}),
         "limits": {key: version.get("limits", {}).get(key) for key in ("context_tokens", "resolution_pixels", "frames", "sample_rate_hz")},
-        "license": {"spdx": version["license"]["spdx"], "url": version["license"]["url"], "attribution": version["license"].get("attribution", []), "operator_acceptance_required": version["license"].get("operator_acceptance_required", False)}, "files": artifacts,
+        "license": {
+            "spdx": version["license"]["spdx"],
+            "url": version["license"]["url"],
+            "attribution": version["license"].get("attribution", []),
+            "operator_acceptance_required": version["license"].get("operator_acceptance_required", False),
+            **({"territorial_restrictions": version["license"]["territorial_restrictions"]}
+               if version["license"].get("territorial_restrictions") is not None else {}),
+        }, "files": artifacts,
         "capabilities": capabilities,
         "provenance": {
             "source_url": source["repository"], "source_revision": source["revision"],
@@ -385,6 +405,32 @@ def convert(apply: bool = False) -> dict[str, Any]:
             report["models_converted"] += 1
         except Exception as error:
             report["blockers"][f"model:{slug}"] = str(error)
+    model_by_identity = {
+        (document["identity"]["publisher"], document["identity"]["slug"]): document
+        for document in candidate_models.values()
+    }
+    for slug, candidate in candidate_models.items():
+        version = versions[slug]
+        refs = []
+        for dependency in version.get("dependencies", []):
+            target = model_by_identity.get((dependency["publisher"], dependency["slug"]))
+            if target is None:
+                report["blockers"][f"model:{slug}"] = f"dependency model is missing: {dependency['publisher']}/{dependency['slug']}"
+                continue
+            refs.append({"kind": "model", "publisher": target["identity"]["publisher"], "slug": target["identity"]["slug"], "content_sha256": content_sha256(ModelDefinition.model_validate(target))})
+        candidate["dependencies"] = refs
+        supersedes = version.get("supersedes")
+        if supersedes:
+            target = model_by_identity.get((supersedes["publisher"], supersedes["slug"]))
+            if target is None:
+                report["blockers"][f"model:{slug}"] = f"superseded model is missing: {supersedes['publisher']}/{supersedes['slug']}"
+            else:
+                candidate["supersedes"] = {"kind": "model", "publisher": target["identity"]["publisher"], "slug": target["identity"]["slug"], "content_sha256": content_sha256(ModelDefinition.model_validate(target))}
+        try:
+            ModelDefinition.model_validate(candidate)
+        except Exception as error:
+            report["blockers"][f"model:{slug}"] = str(error)
+
     recipes = []
     for path in sorted((ROOT / "recipes").glob("*.json")):
         report["recipes_total"] += 1

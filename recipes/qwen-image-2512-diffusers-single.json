@@ -437,7 +437,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "e7ff22ae282615d8e3a41fce630542cc346989a40da07af87519c30b7dc1ed4d",
+        "content_sha256": "c0b41d0caf302d4f4319a9e2b543e2a8ad5ad48cf533379e576d69d24b4094a1",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-2512-25468b98"

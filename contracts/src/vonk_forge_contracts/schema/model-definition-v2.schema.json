@@ -2,6 +2,38 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://api.vonkforge.ai/contracts/model-definition-v2.schema.json",
   "$defs": {
+    "ModelAccess": {
+      "additionalProperties": false,
+      "properties": {
+        "visibility": {
+          "enum": [
+            "public",
+            "restricted"
+          ],
+          "title": "Visibility",
+          "type": "string"
+        },
+        "gated": {
+          "title": "Gated",
+          "type": "boolean"
+        },
+        "authentication": {
+          "enum": [
+            "none",
+            "token"
+          ],
+          "title": "Authentication",
+          "type": "string"
+        }
+      },
+      "required": [
+        "visibility",
+        "gated",
+        "authentication"
+      ],
+      "title": "ModelAccess",
+      "type": "object"
+    },
     "ModelCapabilities": {
       "additionalProperties": false,
       "properties": {
@@ -314,6 +346,17 @@
         "operator_acceptance_required": {
           "title": "Operator Acceptance Required",
           "type": "boolean"
+        },
+        "territorial_restrictions": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelTerritorialRestrictions"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -382,6 +425,73 @@
         }
       },
       "title": "ModelLimits",
+      "type": "object"
+    },
+    "ModelLineage": {
+      "additionalProperties": false,
+      "properties": {
+        "publisher": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Publisher",
+          "type": "string"
+        },
+        "relation": {
+          "enum": [
+            "official",
+            "derived",
+            "quantized"
+          ],
+          "title": "Relation",
+          "type": "string"
+        },
+        "source_model": {
+          "$ref": "#/$defs/ModelLineageSource"
+        },
+        "derivation": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Derivation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "relation",
+        "source_model",
+        "derivation"
+      ],
+      "title": "ModelLineage",
+      "type": "object"
+    },
+    "ModelLineageSource": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "model",
+          "default": "model",
+          "title": "Kind",
+          "type": "string"
+        },
+        "publisher": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "slug"
+      ],
+      "title": "ModelLineageSource",
       "type": "object"
     },
     "ModelMetadata": {
@@ -519,6 +629,42 @@
       "title": "ModelRecord",
       "type": "object"
     },
+    "ModelReference": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "model",
+          "default": "model",
+          "title": "Kind",
+          "type": "string"
+        },
+        "publisher": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        },
+        "content_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "slug",
+        "content_sha256"
+      ],
+      "title": "ModelReference",
+      "type": "object"
+    },
     "ModelSource": {
       "additionalProperties": false,
       "properties": {
@@ -539,6 +685,33 @@
         "revision"
       ],
       "title": "ModelSource",
+      "type": "object"
+    },
+    "ModelTerritorialRestrictions": {
+      "additionalProperties": false,
+      "properties": {
+        "denied_jurisdictions": {
+          "items": {
+            "pattern": "^[A-Z]{2,3}$",
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Denied Jurisdictions",
+          "type": "array"
+        },
+        "notice": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Notice",
+          "type": "string"
+        }
+      },
+      "required": [
+        "denied_jurisdictions",
+        "notice"
+      ],
+      "title": "ModelTerritorialRestrictions",
       "type": "object"
     }
   },
@@ -562,6 +735,31 @@
     },
     "metadata": {
       "$ref": "#/$defs/ModelMetadata"
+    },
+    "access": {
+      "$ref": "#/$defs/ModelAccess"
+    },
+    "lineage": {
+      "$ref": "#/$defs/ModelLineage"
+    },
+    "dependencies": {
+      "items": {
+        "$ref": "#/$defs/ModelReference"
+      },
+      "maxItems": 32,
+      "title": "Dependencies",
+      "type": "array"
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ModelReference"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "modalities": {
       "items": {
@@ -613,6 +811,9 @@
   "required": [
     "identity",
     "metadata",
+    "access",
+    "lineage",
+    "dependencies",
     "modalities",
     "source",
     "format",

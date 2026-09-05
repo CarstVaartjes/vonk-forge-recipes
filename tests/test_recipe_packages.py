@@ -228,6 +228,54 @@ def test_model_capability_authority_is_external_and_canonical() -> None:
     assert set(unknown) == unknown_keys
 
 
+def test_model_access_lineage_and_related_model_references_are_preserved() -> None:
+    restricted = {}
+    dependency_count = 0
+    supersedes = []
+    for path in ROOT.joinpath("models").glob("*.json"):
+        document = json.loads(path.read_text())
+        access = document["access"]
+        assert set(access) == {"visibility", "gated", "authentication"}
+        if access["visibility"] == "restricted":
+            restricted[document["identity"]["slug"]] = access
+        dependency_count += len(document["dependencies"])
+        if document["supersedes"] is not None:
+            supersedes.append(document["identity"]["slug"])
+        lineage = document["lineage"]
+        assert set(lineage) == {"publisher", "relation", "source_model", "derivation"}
+        assert set(lineage["source_model"]) == {"kind", "publisher", "slug"}
+    assert set(restricted) == {
+        "glm-5-3-flash-nvfp4-ablit-l15-43-mtp-l45-80b6d18d",
+        "glm-5-3-flash-nvfp4-abliterated-d7f8afa8",
+        "ltx-2-5-22b-distilled-bf16-diffusers",
+    }
+    assert all(value == {"visibility": "restricted", "gated": True, "authentication": "token"} for value in restricted.values())
+    assert dependency_count == 7
+    assert supersedes == ["hunyuanocr-1-5-47644ecc"]
+
+
+def test_model_territorial_restrictions_preserve_all_published_records() -> None:
+    expected = {
+        "hunyuan-video-15-distilled": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
+        "hunyuan-video-15-i2v-step-distilled": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
+        "hunyuan-video-15-t2v": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
+        "hunyuan-video-foley-xl": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
+        "hunyuan-video-foley-xxl": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
+        "hunyuan3d-omni": (["EU", "GB", "KR"], "The upstream Hunyuan3D-Omni Community License does not apply in the European Union, United Kingdom, or South Korea."),
+        "hunyuanocr-1-5-449e7d47": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
+        "hunyuanocr-1-5-47644ecc": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
+        "minimax-h3": (["EU", "GB", "KR", "US"], "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."),
+        "minimax-h3-fl2va-42ed227e": (["EU", "GB", "KR", "US"], "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."),
+    }
+    actual = {}
+    for path in ROOT.joinpath("models").glob("*.json"):
+        document = json.loads(path.read_text())
+        restriction = document["license"].get("territorial_restrictions")
+        if restriction is not None:
+            actual[document["identity"]["slug"]] = (restriction["denied_jurisdictions"], restriction["notice"])
+    assert actual == expected
+
+
 def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(
     tmp_path: Path,
 ) -> None:

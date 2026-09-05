@@ -1788,7 +1788,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "dab7714bd134e1d5f713adc0b8240210f988e26b6c1aba741d330314d2c02039",
+        "content_sha256": "bc37e7f6a352e3a665436d548f3c1f992ec04c96841f0f49ff8c8031604e8c56",
         "kind": "model",
         "publisher": "mia-ai-lab",
         "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-024db9f7"

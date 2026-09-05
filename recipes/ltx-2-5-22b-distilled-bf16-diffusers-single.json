@@ -166,7 +166,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "37161c1aa5bf641c02ab2f57cda7f7ad10667bb4c1a7186e392b744075c007d9",
+        "content_sha256": "758426bfab8f18020222df86fb395d9cb8cbacfeb7b0e7105c990fd75a21812a",
         "kind": "model",
         "publisher": "lightricks",
         "slug": "ltx-2-5-22b-distilled-bf16-diffusers"

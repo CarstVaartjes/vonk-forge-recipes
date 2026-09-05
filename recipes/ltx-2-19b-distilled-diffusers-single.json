@@ -135,7 +135,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f5f2f91367a5447c3726ea1ee2da4d93c69cb039ec342acdd2a5b528c270495b",
+        "content_sha256": "439475e4ea1f74d30859af33a3a493047b9c039b34ac8033d5ddbbcaa5162a7c",
         "kind": "model",
         "publisher": "lightricks",
         "slug": "ltx-2-19b-distilled"
@@ -388,7 +388,7 @@
       ],
       "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108",
       "model": {
-        "content_sha256": "6c4e9463edca55a034cba24987d6dbc9dd6510c55d74e4b8ed9dcff72d6c97cc",
+        "content_sha256": "7e2a7f11358c47cfc033a5bac76db52c9d953d2b5de3deb968c65c169af01a99",
         "kind": "model",
         "publisher": "lightricks",
         "slug": "ltx-2-gemma3-text-encoder-dfcc2108"

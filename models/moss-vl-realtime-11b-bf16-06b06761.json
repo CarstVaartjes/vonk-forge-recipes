@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -27,6 +32,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "metadata-0715d5b5b152",
@@ -273,6 +279,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Official upstream checkpoint at the pinned revision.",
+    "publisher": "openmoss",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "openmoss",
+      "slug": "moss-vl-realtime-11b"
+    }
+  },
   "metadata": {
     "description": "Exact public Realtime 0708 BF16 06b06761 checkpoint.",
     "tags": [
@@ -303,5 +319,6 @@
   "source": {
     "repository": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime",
     "revision": "06b067617677661194cf837970fe3a10f1a0e56d"
-  }
+  },
+  "supersedes": null
 }

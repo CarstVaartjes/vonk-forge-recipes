@@ -670,13 +670,21 @@ def _safe_file(path: Path) -> bool:
 
 def _recipe_closure(recipe: dict[str, object], recipe_path: Path, entities: dict[str, dict[str, object]]) -> list[tuple[str, bytes]]:
     files: dict[str, bytes] = {"recipe.json": canonical(recipe)}
-    for selection in recipe["models"]:  # type: ignore[index]
-        reference = selection["model"]  # type: ignore[index]
+    pending = [selection["model"] for selection in recipe["models"]]  # type: ignore[index]
+    seen_models: set[str] = set()
+    while pending:
+        reference = pending.pop(0)
         key = f"{reference['publisher']}/{reference['slug']}"
+        if key in seen_models:
+            continue
         model = entities.get(key)
         if model is None:
             raise SystemExit(f"package model snapshot is missing: {key}")
+        seen_models.add(key)
         files[f"models/{reference['slug']}.json"] = canonical(model)
+        pending.extend(model.get("dependencies", []))
+        if model.get("supersedes") is not None:
+            pending.append(model["supersedes"])
     execution = recipe["execution"]  # type: ignore[index]
     if execution["mode"] == "build":  # type: ignore[index]
         build = execution["build"]  # type: ignore[index]
@@ -764,7 +772,9 @@ def validate_recipe_archive(payload: bytes, recipe: dict[str, object], entities:
     """Validate the physical immutable archive closure, including entrypoints."""
     entities = entities or _catalog_entity_documents()
     from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256
+    from vonk_forge_contracts.resolver import validate_model_references
     expected_recipe = RecipeDefinition.model_validate(recipe)
+    validate_model_references([ModelDefinition.model_validate(document) for document in entities.values()])
     expected_recipe_document = expected_recipe.model_dump(mode="json", exclude_unset=False, exclude_none=False)
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         members = archive.getmembers()
@@ -823,8 +833,14 @@ def validate_recipe_archive(payload: bytes, recipe: dict[str, object], entities:
             raise SystemExit("recipe package recipe does not match the requested Recipe")
         if manifest.get("recipe_content_sha256") != recipe_digest:
             raise SystemExit("recipe package recipe digest is stale")
-        for selection in expected_recipe.models:
-            reference = selection.model
+        pending_models = [selection.model for selection in expected_recipe.models]
+        seen_model_keys: set[tuple[str, str]] = set()
+        while pending_models:
+            reference = pending_models.pop(0)
+            model_key = (reference.publisher, reference.slug)
+            if model_key in seen_model_keys:
+                continue
+            seen_model_keys.add(model_key)
             model_path = f"models/{reference.slug}.json"
             if model_path not in names:
                 raise SystemExit(f"recipe package exact Model snapshot is missing: {model_path}")
@@ -835,6 +851,9 @@ def validate_recipe_archive(payload: bytes, recipe: dict[str, object], entities:
                 raise SystemExit(f"recipe package Model snapshot is invalid: {model_path}") from error
             if model is None or content_sha256(model) != reference.content_sha256:
                 raise SystemExit(f"recipe package Model snapshot digest is stale: {model_path}")
+            pending_models.extend(model.dependencies)
+            if model.supersedes is not None:
+                pending_models.append(model.supersedes)
         paths = set(names)
         execution = expected_recipe_document["execution"]
         if execution["mode"] == "build":  # type: ignore[index]

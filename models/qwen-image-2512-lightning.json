@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -15,6 +20,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "qwen-image-2512-lightning-4steps-v1-0-bf16",
@@ -65,6 +71,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Four-step distilled LoRA trained for Qwen/Qwen-Image-2512 and selected in BF16 precision for Diffusers inference.",
+    "publisher": "ModelTC/lightx2v",
+    "relation": "derived",
+    "source_model": {
+      "kind": "model",
+      "publisher": "qwen",
+      "slug": "qwen-image-2512"
+    }
+  },
   "metadata": {
     "description": "Exact ModelTC/lightx2v four-step BF16 distilled LoRA for the official Qwen Image 2512 base checkpoint.",
     "tags": [
@@ -99,5 +115,6 @@
   "source": {
     "repository": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning",
     "revision": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52"
-  }
+  },
+  "supersedes": null
 }

@@ -128,7 +128,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "6b2d0983fdebaad60e3da517811322f7d91422e75bec5e15dcb72c79703e9dd4",
+        "content_sha256": "84e9ac0ac3e89d62246653b1c7332006f1670f2209de0f4622f00c693612375e",
         "kind": "model",
         "publisher": "stepfun-ai",
         "slug": "step1x-3d-geometry"

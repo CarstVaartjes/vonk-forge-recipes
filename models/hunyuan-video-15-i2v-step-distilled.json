@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -15,6 +20,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "snapshot",
@@ -55,6 +61,14 @@
     ],
     "operator_acceptance_required": true,
     "spdx": "LicenseRef-Tencent-Hunyuan-Community",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR"
+      ],
+      "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
+    },
     "url": "https://huggingface.co/tencent/HunyuanVideo-1.5/blob/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038/LICENSE"
   },
   "limits": {
@@ -62,6 +76,16 @@
     "frames": null,
     "resolution_pixels": null,
     "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Hugging Face Diffusers conversion linked by the official Tencent model card; the snapshot includes every inference component.",
+    "publisher": "huggingface",
+    "relation": "derived",
+    "source_model": {
+      "kind": "model",
+      "publisher": "tencent",
+      "slug": "hunyuan-video-15"
+    }
   },
   "metadata": {
     "description": "Complete immutable 480p I2V step-distilled Diffusers snapshot at 854c04a4.",
@@ -90,5 +114,6 @@
   "source": {
     "repository": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled",
     "revision": "854c04a4c8a53d990b418c7478f0802c0fc8c726"
-  }
+  },
+  "supersedes": null
 }

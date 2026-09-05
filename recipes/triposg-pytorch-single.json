@@ -127,7 +127,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "fcc473d03874cfd6ef13241bbb53ea232b9c1917f8b9d1f53cfad85676a0159f",
+        "content_sha256": "a7511281440cef509b906378fc7f6a50b36ef470348b119098ed951ff642b676",
         "kind": "model",
         "publisher": "vast-ai",
         "slug": "triposg"

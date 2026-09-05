@@ -422,7 +422,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "45b19eebfbd1f67b80c4d375546a806d9859f759c688e4386262d5b2b9d2cb3f",
+        "content_sha256": "4cfe5ec7abdd335f78b32ac8b033e7355847e7d2d9f24214e89228938b8938ec",
         "kind": "model",
         "publisher": "lightricks",
         "slug": "ltx-2-19b-dev-fp4-dfcc2108"
