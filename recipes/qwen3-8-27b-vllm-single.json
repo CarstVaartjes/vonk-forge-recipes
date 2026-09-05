@@ -415,7 +415,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f89d08613c78a2d1ef4192c38ad0fef58bcaf9c97020524bacca20946f9adbf9",
+        "content_sha256": "a06e2046c6f4dc53de2647431ba47e469caa4863c7ffbb7713b44dbfb852caea",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen3-8-27b-1d4bf0f2"
@@ -428,6 +428,132 @@
     ],
     "source_kind": "global",
     "source_reference": "https://huggingface.co/Qwen/Qwen3.8-27B/tree/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.1.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "f4627aef169bf61f27768bafaaf2fbf10c957ae9d1c2774d7378089dc18659de",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.3"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "baa1d9be9eebd089090f55be173a7238beaeedaf06ee20b0793ab06ff2233bc5",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.1.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The immutable official checkpoint and runtime contract are unchanged. Bounded text chat is qualified; Spark vision serving remains unproven.",
+            "kind": "metadata",
+            "references": [
+              "https://huggingface.co/Qwen/Qwen3.8-27B/tree/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
+            ],
+            "summary": "Marked BF16 as an alternative to the FP8 default and made its text-only qualification boundary explicit."
+          }
+        ],
+        "prior_recipe_content_sha256": "ad0c85bc2e50c24d465926f085565b6895ed6a911fa88d100c89c1eb0fa1ee2e",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "none",
+        "version": "1.1.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "runtime",
+            "references": [],
+            "summary": "Migrated to the official vLLM 0.28.0 ARM64 release image and pinned the changed batch and CUDA-graph defaults."
+          }
+        ],
+        "prior_recipe_content_sha256": "8622e6a92603d5a7befd87d68b6009585fa9e7d5c39a5de2c0bb832c581aea62",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "reprepare",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Routed non-root vLLM caches to the writable outputs mount."
+          },
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the model's native multimodal, vision, reasoning, and agentic capabilities."
+          }
+        ],
+        "prior_recipe_content_sha256": "d52374ad1d8b26adcba24c4206dfbe4dee57721c9d969828a1a9082aabedb80f",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "deb462e1a1dc7e380667ebbb45d810236c69b660aad758fad38987c158f13b42",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of Qwen3.8 27B BF16 vLLM single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "81e734db72d5f077a2ece166004c74e9025fa63707f1ffd68f3f4acd1fa04078",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.1.4"
   },
   "runtime": {
     "arguments": [

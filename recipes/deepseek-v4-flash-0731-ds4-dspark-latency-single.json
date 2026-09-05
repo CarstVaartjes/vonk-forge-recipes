@@ -82,7 +82,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "69a347d22bbb4b7bff907b8c7a0e89139f664ce926598dca4fc0cde392371376",
+        "content_sha256": "77397c78c425641fa39d7734af6e2cba71b1a2d7d34b929d77ff5c61700cd8a3",
         "kind": "model",
         "publisher": "antirez",
         "slug": "deepseek-v4-flash-0731-ds4"
@@ -96,6 +96,114 @@
     ],
     "source_kind": "global",
     "source_reference": "https://github.com/antirez/ds4/tree/c1d4597a80e300b803dc642519718f2c999589da"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.2"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "9ba5120371b5c0a0050f75a43b1e9c26a2a5cdf5ec8d99750af3b08fec33d694",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.2.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "runtime",
+            "references": [
+              "https://github.com/antirez/ds4/compare/84cc882352757baf628a1776badf7cc54d584e28...c1d4597a80e300b803dc642519718f2c999589da"
+            ],
+            "summary": "Rebuilt the non-batched profile from immutable DS4 revision c1d4597 with current DSpark sampling and verification code."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/antirez/ds4/blob/c1d4597a80e300b803dc642519718f2c999589da/README.md#dspark-speculative-decoding"
+            ],
+            "summary": "Kept bounded validation at greedy temperature zero; opportunistic and exact sampled decoding remain outside accepted recipe claims."
+          },
+          {
+            "details": null,
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/antirez/deepseek-v4-gguf/commit/86bb38ce2ba7a98ab0e550359fec5f48859dc723"
+            ],
+            "summary": "Advanced the antirez repository revision while retaining the exact unchanged Flash 0731 target and drafter objects."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Kept the recipe Candidate pending physical DGX Spark CUDA, DSpark statistics, memory, latency, and response-quality canaries."
+          }
+        ],
+        "prior_recipe_content_sha256": "8f2bed91f9f95b01d4801d1f5e7039dc0c0832b48c39bba68159cb98f34028e9",
+        "released_at": "2026-08-24",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Mounted the target and DSpark companion at distinct immutable runtime paths so DS4 receives the intended files."
+          }
+        ],
+        "prior_recipe_content_sha256": "662c12a94639a6df83ebb11fbc9e8f3c52ca02220a72512c26edc86c6644edf7",
+        "released_at": "2026-08-24",
+        "upgrade_effect": "reprepare",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://github.com/antirez/ds4/blob/84cc882352757baf628a1776badf7cc54d584e28/README.md#dspark-speculative-decoding"
+            ],
+            "summary": "Added a non-batched single-Spark DSpark latency profile that actually enables the pinned experimental drafter for greedy decoding."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Published as Candidate pending physical GB10 build, DSpark statistics, memory, latency, and response-quality canaries."
+          }
+        ],
+        "prior_recipe_content_sha256": "8d9710a45523b6308dca8d62155015171917a9ed6749d78467fce45b08c594b4",
+        "released_at": "2026-08-24",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-03",
+    "version": "1.2.2"
   },
   "runtime": {
     "arguments": [

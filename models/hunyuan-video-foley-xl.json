@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -21,6 +26,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "snapshot",
@@ -61,6 +67,14 @@
     ],
     "operator_acceptance_required": true,
     "spdx": "LicenseRef-Tencent-Hunyuan-Community",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR"
+      ],
+      "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
+    },
     "url": "https://huggingface.co/tencent/HunyuanVideo-Foley/blob/3abd4e833b95b8db0fc9c687afc52483a48e9a97/LICENSE"
   },
   "limits": {
@@ -68,6 +82,16 @@
     "frames": null,
     "resolution_pixels": null,
     "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Immutable public upstream snapshot at the pinned revision.",
+    "publisher": "tencent",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "tencent",
+      "slug": "hunyuan-video-foley"
+    }
   },
   "metadata": {
     "description": "Immutable public snapshot at 3abd4e83.",
@@ -97,5 +121,6 @@
   "source": {
     "repository": "https://huggingface.co/tencent/HunyuanVideo-Foley",
     "revision": "3abd4e833b95b8db0fc9c687afc52483a48e9a97"
-  }
+  },
+  "supersedes": null
 }

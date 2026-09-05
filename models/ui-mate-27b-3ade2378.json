@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -21,6 +26,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "metadata-34448b82c17d",
@@ -259,6 +265,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Official upstream checkpoint at the pinned revision.",
+    "publisher": "tencent",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "tencent",
+      "slug": "ui-mate-27b"
+    }
+  },
   "metadata": {
     "description": "Exact public UI-Mate 27B BF16 checkpoint.",
     "tags": [
@@ -289,5 +305,6 @@
   "source": {
     "repository": "https://huggingface.co/tencent/UI-Mate-27B",
     "revision": "3ade2378fc84032d5017c1a9c93c4eaa77d65e57"
-  }
+  },
+  "supersedes": null
 }

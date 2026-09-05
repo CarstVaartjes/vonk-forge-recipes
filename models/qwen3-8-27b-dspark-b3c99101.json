@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [],
     "provenance": {
@@ -8,6 +13,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "metadata-11ad7efa2497",
@@ -102,6 +108,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Official upstream DSpark v2 Stage 2 step-5500 checkpoint at the pinned revision.",
+    "publisher": "radixark",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "radixark",
+      "slug": "qwen3-8-27b-dspark"
+    }
+  },
   "metadata": {
     "description": "Exact public Qwen3.8 27B DSpark v2 Stage 2 checkpoint at b3c99101.",
     "tags": [
@@ -131,5 +147,6 @@
   "source": {
     "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark",
     "revision": "b3c9910194dc7ae53fea3d95a1959b654f495416"
-  }
+  },
+  "supersedes": null
 }
