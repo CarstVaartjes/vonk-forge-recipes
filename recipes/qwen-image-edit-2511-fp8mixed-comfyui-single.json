@@ -164,17 +164,18 @@
       {
         "changes": [
           {
-            "details": "The Comfy-Org Qwen Image Edit snapshot moved from 4c7c4ea2 to 984166f6 and adds or changes weight artifacts. The exact fp8mixed snapshot is retained until the changed artifact manifest is rehashed and the workflow is requalified.",
-            "kind": "model",
+            "details": "The digest-verified build now fetches ComfyUI at the current checked upstream commit. The pinned compare range changes ComfyUI internals and API nodes, while every node class used by this recipe workflow remains present in the current source tree; workflow JSON, model revisions, and specialized Spark resource declarations are unchanged.",
+            "kind": "compatibility",
             "references": [
-              "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/984166f60a9b1fcede5e9b9287b7a7aebc050010"
+              "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
+              "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
             ],
-            "summary": "Record Qwen Image Edit artifact drift; retain the exact fp8mixed snapshot."
+            "summary": "Rebuilt the ComfyUI media adapter at upstream commit 250b2e9551a7."
           }
         ],
-        "prior_recipe_content_sha256": "71eb15eec5154bb5aac47acba7d0e9c836df5314e8b5c9d20d0a21d31e120394",
+        "prior_recipe_content_sha256": "1d30272c78488999685b21a765cdfb8700e5f764d644c4308f99da0b885b90e0",
         "released_at": "2026-09-05",
-        "upgrade_effect": "none",
+        "upgrade_effect": "rebuild",
         "version": "1.0.7"
       },
       {

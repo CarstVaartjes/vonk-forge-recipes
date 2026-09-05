@@ -1,8 +1,8 @@
 FROM nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG COMFYUI_REVISION=12d5279438bfefc058a269eae805ceab6047777f
-ARG COMFYUI_ARCHIVE_SHA256=6d8ab87ec1250e60101f0caf9e11658834c29d9cd76c9174e2b84ec9436f4886
+ARG COMFYUI_REVISION=250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a
+ARG COMFYUI_ARCHIVE_SHA256=40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl ffmpeg python3 python3-pip \
