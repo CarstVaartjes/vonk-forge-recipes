@@ -17,6 +17,9 @@ Several recipes can use the same Model—for example, with different engines or 
 | `metadata` | Description and tags. |
 | `modalities` | The kinds of data the model handles: text, images, audio, video, 3D or embeddings. |
 | `source` | Where the files come from, with an exact source revision. |
+| `access` | Whether the source is public or requires access approval and a token. The token itself stays in Controller secrets. |
+| `lineage` | Whether this is an official, derived or quantized model, and which model it comes from. |
+| `dependencies`, `supersedes` | Exact references to companion Models and, when applicable, the Model record this replaces. |
 | `format` | File format, numerical precision and quantization. |
 | `parameters`, `limits` | Model size and applicable limits, such as context length. |
 | `license` | Usage terms and any required acknowledgement. |
@@ -42,9 +45,12 @@ Family, model, version and variant names are **data**, not Python classes. Addin
 | `topology` | Number of Sparks, their roles, how they work together, and memory, disk and network requirements. |
 | `interfaces` | How an application uses the model: an API or a file-based job. |
 | `validation` | Representative requests or job inputs, expected results and benchmark declarations. |
+| `release` | Current version and date, with recent changes, source links and whether an update needs a restart, preparation or rebuild. |
 | `provenance` | Where the recipe came from and who should be credited. |
 
 Both documents declare `schema_version: 2` and their `kind` (`model` or `recipe`). Pydantic checks their structure; the shared resolver checks that a recipe references the right Models and files. Running the declared tests checks actual model behavior.
+
+Each recipe is one JSON file, including its version notes. Its downloadable package adds the exact Model snapshots, build sources and test fixtures it needs; it contains no model weights or container images.
 
 Examples: [ready-made image](contracts/src/vonk_forge_contracts/examples/recipe-image.json) · [build from source](contracts/src/vonk_forge_contracts/examples/recipe-source-build.json) · [two Sparks](contracts/src/vonk_forge_contracts/examples/recipe-dual.json) · [file-based job](contracts/src/vonk_forge_contracts/examples/recipe-job.json). These use synthetic data to show the structure.
 
