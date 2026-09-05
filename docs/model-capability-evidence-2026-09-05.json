@@ -700,10 +700,10 @@
       ],
       "model_version": {
         "publisher": "ornith-ai",
-        "slug": "ornith-1-5-35b-a3b-nvfp4-9660379a"
+        "slug": "ornith-1-5-35b-a3b-nvfp4-94e431d9"
       },
       "source": {
-        "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+        "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
         "url": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4"
       }
     },
