@@ -472,6 +472,23 @@
       {
         "changes": [
           {
+            "details": "The recipe's model pin is the current Drowzeys replacement ID, keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45 at 80b6d18d77e3020f2384597081d405f19893f101. Its lineage is Red Hat compressed-tensors NVFP4 with refusal directions on layers 15 through 43 and MTP layer 45, with layer 44 stock; it is not interchangeable with the withdrawn L15-45 NVFP4-KV B12X 1M artifact. No model digest or specialized DFlash2 runtime setting changed.",
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45/tree/80b6d18d77e3020f2384597081d405f19893f101",
+              "https://github.com/drowzeys/keys-vllm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated/tree/c36b5958412158a69629e7fbed321312e6d0761d"
+            ],
+            "summary": "Record the current Drowzeys replacement weight ID and its distinct model lineage."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.4"
+      },
+      {
+        "changes": [
+          {
             "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
             "kind": "compatibility",
             "references": [],
@@ -530,8 +547,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "1.0.3"
+    "released_at": "2026-09-05",
+    "version": "1.0.4"
   },
   "runtime": {
     "arguments": [

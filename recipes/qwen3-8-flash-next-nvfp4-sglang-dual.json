@@ -5115,6 +5115,24 @@
       {
         "changes": [
           {
+            "details": "MiaAI-Lab's 6e08722d1fadf35fbe76244252288dc43df674dd replaces the SGLang launcher with vLLM TP2, expert parallelism, MTP3, and a 1M YaRN profile. The reviewed SGLang fork remains the executable pin because that upstream launcher requires its own vLLM image and host-side SSH, Docker, rsync, and NFS orchestration; the recipe's controller-managed two-node entrypoint cannot safely consume those assumptions. The adapter now follows upstream b421c25 by omitting the YaRN override at or below the model's native 262144-token context while preserving the existing 1M profile. Physical Spark execution remains unverified.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/commit/6e08722d1fadf35fbe76244252288dc43df674dd",
+              "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/commit/b421c2551c7fca065184b3c6f19f652720ca968c",
+              "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/commit/4014cc6f35faf2d68ca08e672d8d09cab853a30c"
+            ],
+            "summary": "Mirror the upstream native-context YaRN guard while retaining the controller-compatible SGLang fork."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "rebuild",
+        "version": "1.3.4"
+      },
+      {
+        "changes": [
+          {
             "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
             "kind": "compatibility",
             "references": [],
@@ -5231,8 +5249,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "1.3.3"
+    "released_at": "2026-09-05",
+    "version": "1.3.4"
   },
   "runtime": {
     "arguments": [
