@@ -87,7 +87,7 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
         )
         self.assertEqual(arguments["mm-encoder-tp-mode"], "data")
         self.assertEqual(recipe["settings"]["context_tokens"]["value"], 32_768)
-        self.assertEqual(arguments["max-num-seqs"], 1)
+        self.assertEqual(recipe["settings"]["concurrency"]["value"], 1)
         self.assertEqual(arguments["max-num-batched-tokens"], 8192)
         self.assertEqual(arguments["max-cudagraph-capture-size"], 4)
         self.assertEqual(recipe["topology"]["node_count"], 1)
