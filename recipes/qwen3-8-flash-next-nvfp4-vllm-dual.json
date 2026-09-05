@@ -39,6 +39,7 @@
     "alignment": "unspecified",
     "description": "Dual-DGX-Spark vLLM TP2+EP+MTP3 profile for RadixArk's 135 GB NVFP4 checkpoint. The adapter bakes MiaAI-Lab's PLE, MXFP8 fallback, QSA FP8-KV, and MTP configuration fixes into the pinned arm64 CUDA 13.0 image, translates placement and cache preparation into the Controller topology, and force-disables YaRN at or below the native 262144-token context.",
     "tags": [
+      "candidate",
       "multimodal",
       "mtp",
       "nvfp4",
