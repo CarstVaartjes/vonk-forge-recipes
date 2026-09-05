@@ -179,7 +179,7 @@
           "type": "string"
         },
         "size_bytes": {
-          "minimum": 0,
+          "minimum": 1,
           "title": "Size Bytes",
           "type": "integer"
         },

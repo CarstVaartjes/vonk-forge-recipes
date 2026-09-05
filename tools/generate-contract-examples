@@ -4,13 +4,22 @@ from __future__ import annotations
 
 import copy
 import json
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+
+from vonk_forge_contracts import ModelDefinition
+from vonk_forge_contracts.resolver import model_content_sha256
 
 
 def main() -> int:
+    model = ModelDefinition.model_validate_json(
+        (EXAMPLES / "model-definition.json").read_text(encoding="utf-8")
+    )
+    model_digest = model_content_sha256(model)
     image = json.loads((EXAMPLES / "recipe-image.json").read_text(encoding="utf-8"))
     entry = image["models"][0]
     if "files" not in entry or "kind" not in entry.get("model", {}):
@@ -21,6 +30,7 @@ def main() -> int:
         image["models"] = [{"id": "primary", "model": old_model, "files": [selector]}]
     image.pop("model_files", None)
     image["validation"].pop("validators", None)
+    image["models"][0]["model"]["content_sha256"] = model_digest
     build = copy.deepcopy(image)
     build["identity"]["slug"] = "synthetic-tiny-build"
     build["execution"] = {
