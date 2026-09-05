@@ -1788,7 +1788,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "dab7714bd134e1d5f713adc0b8240210f988e26b6c1aba741d330314d2c02039",
+        "content_sha256": "bc37e7f6a352e3a665436d548f3c1f992ec04c96841f0f49ff8c8031604e8c56",
         "kind": "model",
         "publisher": "mia-ai-lab",
         "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-024db9f7"
@@ -1806,6 +1806,130 @@
     ],
     "source_kind": "global",
     "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/493cb88fc69f8ba73ac87404f429d763e2739d89"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.3.2"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "bb7951702200d5a95b86a5c80f6b70fc15cd63ea8b1dd3264c40d741291ac86e",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.3.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "The complete 144-file target inventory is refreshed from 25a44fdb to 024db9f7. All model payload files are byte-identical; only the upstream README changed, increasing the exact inventory by 7 bytes. The pinned 493cb88f runtime image, tested 2,048-token prefill setting, and 126 GB admission contract remain unchanged; the newer upstream 7,168-token launcher default is deliberately not adopted until its newer runtime image is vendored and tested.",
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/commit/024db9f7e9871e8efdf21538ba55af7442be3cd5",
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/493cb88fc69f8ba73ac87404f429d763e2739d89"
+            ],
+            "summary": "Advanced the EXL3 target snapshot while retaining the tested prefill batching."
+          }
+        ],
+        "prior_recipe_content_sha256": "8b26e0c70aa6f2d78a5db0c4e8050db27bba423ed629dfb6aa20b17574986b02",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "reprepare",
+        "version": "1.3.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "The Dockerfile performs only local patching and verification after the digest-pinned base image is transferred separately.",
+            "kind": "security",
+            "references": [],
+            "summary": "Removed unnecessary public network access from the deterministic dual-Spark image build."
+          }
+        ],
+        "prior_recipe_content_sha256": "a068d343ca6c2962f1df66146280a245dd136c6c6cd28556e7b5f0da08853a04",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "The complete five-file snapshot is pinned at 2,342,460,697 bytes, including the changed b038e1d9 model payload. The target checkpoint and strict 126 GB Controller memory envelope are unchanged; acceptance rate, output equivalence, latency, and memory require a fresh physical two-Spark canary.",
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/commit/bf582e4eacc1810f76656d1811693ff6c6737d2a"
+            ],
+            "summary": "Advanced the DFlash2 companion to checkpoint bf582e4e."
+          },
+          {
+            "details": "The consumed Dockerfile and overlays are byte-identical to the prior pin. The newer source adds launcher numeric validation and a cold-prefill harness; the Controller wrapper already fixes and validates the exact numeric serving profile, and the recipe now declares the 8K through 300K cold-prefill ladder.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/493cb88fc69f8ba73ac87404f429d763e2739d89"
+            ],
+            "summary": "Aligned the runtime authority with MiaAI-Lab 493cb88f."
+          }
+        ],
+        "prior_recipe_content_sha256": "cff8d29ca0ec6cd3b233c424b5f7c2155d1701a7ac5e1819fb8a3538bf5496c3",
+        "released_at": "2026-08-31",
+        "upgrade_effect": "reprepare",
+        "version": "1.2.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "The image build applies and executes the exact fail-closed circular slot-map regression, updates DFlash2 to draft TP2, and preserves Controller-native rank-local GID injection with no SSH. The exact 25a44fdb target checkpoint and strict admission envelope remain unchanged.",
+            "kind": "fix",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/b5ab8091dec88e324c943deb96c2dfd957db9f36",
+              "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/tree/25a44fdbf16862a46b7cc9921142c6c81350af2f"
+            ],
+            "summary": "Advanced to MiaAI-Lab b5ab8091 with the K-pool tail slot-map correction."
+          }
+        ],
+        "prior_recipe_content_sha256": "43d54e87682fb898beddd4fcca8b8da7829ad9130e82409f9d6a8600dff44357",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "reprepare",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "Pins runtime source 79f10b91, the resolved ARM64 GHCR digest, MiaAI-Lab's exact 25a44fdb EXL3/TR3 target pin and the complete dc77ff1c DFlash2 inventory, separate ShapleyMCG and CC BY-NC-ND operator acceptance, Controller-native mp deployment without SSH, and a conservative 126 GB per-node unified-memory admission envelope derived from MiaAI-Lab's measured 105.9 GiB post-init requirement and 18.67 GiB KV pool. Physical Vonk acceptance remains pending.",
+            "kind": "initial",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/79f10b91f84779b2b1ff2c9327b1a5847cd97f70",
+              "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/tree/25a44fdbf16862a46b7cc9921142c6c81350af2f",
+              "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/tree/dc77ff1c99eeb2df044ee3d4f0094eb033fee410"
+            ],
+            "summary": "Added the directly installable MiaAI-Lab GLM 5.3 Flash EXL3 DFlash2 two-Spark Candidate."
+          }
+        ],
+        "prior_recipe_content_sha256": "915fa81e1b2424ec396d3073be066d92084d13633ad3bd724f54d6b11fba599a",
+        "released_at": "2026-08-29",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-03",
+    "version": "1.3.2"
   },
   "runtime": {
     "arguments": [

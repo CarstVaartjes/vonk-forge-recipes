@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -15,6 +20,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "snapshot",
@@ -63,6 +69,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Immutable public upstream snapshot at the pinned revision.",
+    "publisher": "tencentarc",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "tencentarc",
+      "slug": "pixal3d"
+    }
+  },
   "metadata": {
     "description": "Immutable public snapshot at 0b31f916.",
     "tags": [
@@ -90,5 +106,6 @@
   "source": {
     "repository": "https://huggingface.co/TencentARC/Pixal3D",
     "revision": "0b31f9160aa400719af409098bff7936a932f726"
-  }
+  },
+  "supersedes": null
 }

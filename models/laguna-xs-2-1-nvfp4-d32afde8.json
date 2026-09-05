@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -27,6 +32,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "metadata-gitattributes",
@@ -219,6 +225,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Official Poolside NVFP4 checkpoint with FP8-quantized KV cache.",
+    "publisher": "poolside",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "poolside",
+      "slug": "laguna-xs-2-1"
+    }
+  },
   "metadata": {
     "description": "Exact Poolside Laguna XS 2.1 NVFP4 checkpoint with an FP8 KV cache for a candidate single-Spark vLLM recipe.",
     "tags": [
@@ -251,5 +267,6 @@
   "source": {
     "repository": "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4",
     "revision": "d32afde8b09af1539b49ff96ff5551c674485f8e"
-  }
+  },
+  "supersedes": null
 }

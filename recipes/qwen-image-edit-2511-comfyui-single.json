@@ -143,7 +143,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "36436c8ebb35813de6c734cfe88b9a39f8e87e07aaddbb26c825e53d88d21738",
+        "content_sha256": "d6276b4923751aae9ce5a07169db935a2360d33d44a6215229db3f2f74baf10e",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-comfyui-b6a07947"
@@ -157,6 +157,160 @@
     ],
     "source_kind": "global",
     "source_reference": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/b6a0794717d3f5600f85c5edcdcd0c0eb93d7446"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.9"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "2b73812a4cc12b1928d8ba4d17fe409755c0d8e17d0570a6b7d16727c2af0b73",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.8"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "8209667165db6623c81376f83935cb019018438aa35623b86712d34466a12c57",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.0.7"
+      },
+      {
+        "changes": [
+          {
+            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+            "kind": "security",
+            "references": [],
+            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+          }
+        ],
+        "prior_recipe_content_sha256": "7c8c441c009ad0d644db586098e08e1aef0da7ac98faaf83564ef30170827136",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.6"
+      },
+      {
+        "changes": [
+          {
+            "details": "The source bundle now hash-locks stable tag v0.34.0 at exact commit 12d52794 and its verified source archive. Model artifacts, core-node workflow parameters, admission envelopes, and Candidate qualification are unchanged.",
+            "kind": "runtime",
+            "references": [
+              "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.34.0",
+              "https://github.com/Comfy-Org/ComfyUI/commit/12d5279438bfefc058a269eae805ceab6047777f"
+            ],
+            "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0."
+          }
+        ],
+        "prior_recipe_content_sha256": "a06709b85f4362f0734a29df913f23c193695e46f76e5f9790474cd553dff364",
+        "released_at": "2026-08-31",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.5"
+      },
+      {
+        "changes": [
+          {
+            "details": "Published its exact single-Spark memory and peak installation-disk envelopes and points operators to FP8mixed when headroom matters. Candidate qualification is unchanged.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Identified the BF16 ComfyUI path as a quality-reference variant."
+          }
+        ],
+        "prior_recipe_content_sha256": "f57efb1c5c650f6dc740616f09751c4c2c8fe8931c9d86a2d50deb18aa6c7f50",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "none",
+        "version": "1.0.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now installs the exact monolithic transformer, scaled-FP8 encoder, and VAE as ordinary core-node files, supports one or two signed reference-image inputs plus a bounded prompt file, and declares one PNG output.",
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/commit/b6a0794717d3f5600f85c5edcdcd0c0eb93d7446",
+              "https://github.com/Comfy-Org/workflow_templates/blob/2ded761bde3af3b4c8e905e162f45551cbec12ea/templates/image_qwen_image_edit_2511.json"
+            ],
+            "summary": "Replaced per-job shard merging with Comfy-Org's upstream-supported monolithic checkpoint."
+          }
+        ],
+        "prior_recipe_content_sha256": "632896560319b21cee3b6f2e4cb013d17185d8bb4293a05cc5c43b8ba9b26b61",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "Jobs now fail closed on missing, empty, multiple, or unexpected media outputs before atomically publishing one declared result.",
+            "kind": "fix",
+            "references": [],
+            "summary": "Hardened shared ComfyUI job result selection."
+          }
+        ],
+        "prior_recipe_content_sha256": "75ae0e5fd49969ee130e0e1d1813819d5a0847e7e794c007b507006c0f0b5f44",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "42bd160ae5dbba11a78285533ca17cce7f266ced5c64512605b6a8d9465ba8d0",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/tree/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9"
+            ],
+            "summary": "Initial candidate two-reference core-node ComfyUI release for Qwen Image Edit 2511 BF16 on a single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "10e3d54d004a41457f68cea1e3eaeb838a837014747348df0e4e548cecc3dd35",
+        "released_at": "2026-08-25",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.0.9"
   },
   "runtime": {
     "arguments": [

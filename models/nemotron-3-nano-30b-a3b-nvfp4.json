@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -21,6 +26,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "metadata-gitattributes",
@@ -222,6 +228,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Official NVIDIA post-training quantization to NVFP4 with selective BF16 retention and FP8 KV cache.",
+    "publisher": "nvidia",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "nvidia",
+      "slug": "nemotron-3-nano-30b-a3b"
+    }
+  },
   "metadata": {
     "description": "Official NVIDIA Nemotron 3 Nano NVFP4 checkpoint with selective BF16 attention/Mamba layers and FP8 KV-cache support.",
     "tags": [
@@ -252,5 +268,6 @@
   "source": {
     "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
     "revision": "ce1b118ae66ec705d02c241525192832eb045fd3"
-  }
+  },
+  "supersedes": null
 }

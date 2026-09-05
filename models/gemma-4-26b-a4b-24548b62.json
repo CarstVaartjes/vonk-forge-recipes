@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -33,6 +38,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "metadata-34448b82c17d",
@@ -162,6 +168,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Official upstream checkpoint at the pinned revision.",
+    "publisher": "google",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "google",
+      "slug": "gemma-4-26b-a4b"
+    }
+  },
   "metadata": {
     "description": "Exact public 26B-A4B 24548b62 checkpoint.",
     "tags": [
@@ -192,5 +208,6 @@
   "source": {
     "repository": "https://huggingface.co/google/gemma-4-26B-A4B",
     "revision": "24548b62aa021d562695c04aaf7758a1ea47990b"
-  }
+  },
+  "supersedes": null
 }

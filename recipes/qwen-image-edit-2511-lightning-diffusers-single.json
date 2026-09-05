@@ -145,7 +145,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c079c053955a827f11499960c53228535da09500f967ad67f468552f6731bbbd",
+        "content_sha256": "8e1d29b03c7cb2a1d8dbedf28aad67c1dc09aab340cbc3e8862d5e606393bea0",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-lightning"
@@ -541,7 +541,7 @@
       ],
       "id": "dependency-qwen-image-edit-2511-6f3ccc0b",
       "model": {
-        "content_sha256": "c1edcd8e0d91ea84afce6b8f6b68fbe0196100d690ce672076300d085bfef032",
+        "content_sha256": "28af40eca8ec322f2f0f4250d1e7c634bef0a133af8345e1bd474cde9ae772ad",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-6f3ccc0b"
@@ -556,6 +556,201 @@
     ],
     "source_kind": "global",
     "source_reference": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning/tree/d74eba145674fd7e31b949324e148e21e7118abd"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.2.7"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "11d321e65aaf2fa1749de1291e462720257370180fd94b4afa934d3d442d7a78",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.6"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "8252a86e810341297ea4d3810a54b3d5c9bee2decb54d5dc71916083b3e86c69",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.2.5"
+      },
+      {
+        "changes": [
+          {
+            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+            "kind": "security",
+            "references": [],
+            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+          }
+        ],
+        "prior_recipe_content_sha256": "264343639a21a240b46d8b46e98832dc545505de16ac05a345f978410f918b40",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "Published its exact admission envelopes and points operators to FP8mixed ComfyUI when memory or installation headroom matters. Candidate qualification is unchanged.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Identified Lightning as the fast four-step single-Spark edit variant."
+          }
+        ],
+        "prior_recipe_content_sha256": "859cfe5d8784590595834a494dcd81cbdee5f2122a8e147789b7a60640ee49c4",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "none",
+        "version": "1.2.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "Declared separate prompt and one-or-two-reference image slots plus the exact edited-PNG output.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Added typed artifact input and output slot contracts."
+          }
+        ],
+        "prior_recipe_content_sha256": "b72bd89a374b358be576960a1bca79adf854e99f777bd19b79fa80a00b8f060a",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "none",
+        "version": "1.2.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "733019d673cefc8eb9a0a55ee176fd590a29fe89d40cfaa9a87f870f62dd95b6",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.2.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [
+              "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/tree/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
+              "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning/tree/d74eba145674fd7e31b949324e148e21e7118abd"
+            ],
+            "summary": "Made the Candidate installable with its exact Qwen Image Edit 2511 base dependency and four-step BF16 Lightning LoRA."
+          },
+          {
+            "details": null,
+            "kind": "performance",
+            "references": [],
+            "summary": "Applied ModelTC's exact four-step shift-3 scheduler with true CFG 1.0."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Download only the selected 849 MB BF16 LoRA instead of the complete 100 GB multi-variant collection."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Added explicit UTF-8 prompt, one-or-two image input, and deterministic PNG output contracts; physical Spark acceptance remains pending."
+          }
+        ],
+        "prior_recipe_content_sha256": "0849de027532d7fc235e4e82511b4cfc6aa6dba654fca2cac0ab910254f2700d",
+        "released_at": "2026-08-24",
+        "upgrade_effect": "reprepare",
+        "version": "1.2.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Marked the Lightning edit collection non-executable pending its base checkpoint and LoRA-aware adapter."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Corrected the declared task to image-to-image and added its required isolated image input contract."
+          },
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Corrected ModelTC, lightx2v, and Qwen attribution and the immutable source license reference."
+          }
+        ],
+        "prior_recipe_content_sha256": "c3ad05e5304c21bbd93c311b4d34ec43e3c38679c309f61e685cd0857b330822",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of Qwen Image Edit 2511 Lightning diffusers single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "6284a9b79ef0b8983a50f5970acf6c6d17668ce6d67c90e2e3839a246974e262",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+            ],
+            "summary": "Recovered the first public legacy revision from before semantic release tracking."
+          }
+        ],
+        "prior_recipe_content_sha256": "bcaffaf0175772f7d92f920de821305b3216a77b05474f6c8672e9ea34530f9c",
+        "released_at": "2026-08-17",
+        "upgrade_effect": "reprepare",
+        "version": "0.1.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.2.7"
   },
   "runtime": {
     "arguments": [

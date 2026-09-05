@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -33,6 +38,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "deep-swe-yaml-5bd7bef84ae1",
@@ -828,6 +834,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Official DeepSeek V4 Flash Vision Experimental checkpoint with native vision encoder and aligner, FP4 MoE experts, FP8 remaining quantized tensors, BF16 vision tensors, and the DSpark speculative module.",
+    "publisher": "deepseek-ai",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-v4-flash-vision-exp"
+    }
+  },
   "metadata": {
     "description": "Complete 84-file official DeepSeek V4 Flash Vision Experimental snapshot at e46e16bf: native interleaved image and text understanding, 48 mixed FP4/FP8/BF16 shards, a 32-layer ViT and aligner, three DSpark prediction layers, tokenizer, prompt encoder, and minimal inference reference.",
     "tags": [
@@ -862,5 +878,6 @@
   "source": {
     "repository": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp",
     "revision": "e46e16bf6035c6f317eb2ac7458eb0362926d402"
-  }
+  },
+  "supersedes": null
 }
