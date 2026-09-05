@@ -187,6 +187,121 @@
     "source_kind": "global",
     "source_reference": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/tree/a3af5799199acdd2a4f56ac4342816abb46c12a9"
   },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.1.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "774b7b0a0fda5af26af68cc597ec092fc61887b172a043c298c3085230dfa6ff",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.2"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "40920fb0a1f9e8a0a235e56ae07d2ceb26aa3cf7f1c2827155f93eef451881da",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.1.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "The official correction sets min_tiles to 2 and text_config.max_position_embeddings to 32768. The model weights are unchanged, but config.json and processor_config.json changed, so the immutable model version and adapter source bundle are refreshed and existing installs require reinstall.",
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/commit/a3af5799199acdd2a4f56ac4342816abb46c12a9",
+              "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/blob/a3af5799199acdd2a4f56ac4342816abb46c12a9/config.json",
+              "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/blob/a3af5799199acdd2a4f56ac4342816abb46c12a9/processor_config.json"
+            ],
+            "summary": "Pinned Liquid AI's corrected a3af5799 LFM2.5-VL snapshot."
+          }
+        ],
+        "prior_recipe_content_sha256": "65a63bb642cb822d7d3a815bdbb8f32df7f795549f6abc87bc3c1b2d87355619",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "reprepare",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "9de420087749ac379cc9ff84adad8d799b41d34055dd62adae075c2ba8c89c54",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/tree/5a414ead75d45db003906d06fb62bd5b6846cec0"
+            ],
+            "summary": "Added the immutable official LFM2.5-VL-3B BF16 checkpoint as a complete one-Spark Pending recipe."
+          },
+          {
+            "details": null,
+            "kind": "runtime",
+            "references": [
+              "https://docs.liquid.ai/deployment/gpu-inference/vllm",
+              "https://docs.vllm.ai/projects/recipes/en/latest/LiquidAI/LFM2.5.html",
+              "https://github.com/vllm-project/vllm/blob/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/vllm/model_executor/models/lfm2_vl.py",
+              "https://github.com/vllm-project/vllm/blob/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/vllm/tool_parsers/lfm2_tool_parser.py"
+            ],
+            "summary": "Added offline CUDA 13 ARM64 vLLM serving with local images, multi-image prompting, and parsed LFM2 tool calls."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [
+              "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/blob/5a414ead75d45db003906d06fb62bd5b6846cec0/README.md"
+            ],
+            "summary": "Declared text, screen, scanned-document, OCR, layout, and normalized-coordinate grounding capabilities."
+          }
+        ],
+        "prior_recipe_content_sha256": "04d1a3aa417ed86590d0f335ef87351e57891fb90d16c8d7e22cfad47d956237",
+        "released_at": "2026-08-24",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.1.3"
+  },
   "runtime": {
     "arguments": [
       {

@@ -134,6 +134,101 @@
     "source_kind": "global",
     "source_reference": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4/tree/1db2b2f776c24b76f1122e5f69ab1949fc620068"
   },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.5"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "26f967ed6f8ca737cdef3c7dce2b039fadde9386f44ca2447c57a61b384f6846",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.4"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "c9e09c4a06b9c5f0683b53a4c86034b9f94f8291202d8a6bcd90c5b1e8dc00c1",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.0.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+            "kind": "security",
+            "references": [],
+            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+          }
+        ],
+        "prior_recipe_content_sha256": "d7b92ff1327c7cd0b92970556bd17ea66ec3af95291c1a8890ccb7c200cd5d5e",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The source bundle now hash-locks stable tag v0.34.0 at exact commit 12d52794 and its verified source archive. Model artifacts, core-node workflow parameters, admission envelopes, and Candidate qualification are unchanged.",
+            "kind": "runtime",
+            "references": [
+              "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.34.0",
+              "https://github.com/Comfy-Org/ComfyUI/commit/12d5279438bfefc058a269eae805ceab6047777f"
+            ],
+            "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0."
+          }
+        ],
+        "prior_recipe_content_sha256": "dc2f424a7b33cbd80e4ef21cc4d44b4be60c98c8cf9e6825d4bd401431ebbe6b",
+        "released_at": "2026-08-31",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4/tree/1db2b2f776c24b76f1122e5f69ab1949fc620068"
+            ],
+            "summary": "Initial core-node ComfyUI Candidate for the official FLUX.2 Klein 4B NVFP4 checkpoint on one Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "1895e4eb8a9a1d9f12d5c036b7b8f70ab3b33ee1176877ee598f9f79f4001490",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.0.5"
+  },
   "runtime": {
     "arguments": [
       {

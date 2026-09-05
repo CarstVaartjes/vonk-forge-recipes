@@ -451,6 +451,156 @@
     "source_kind": "global",
     "source_reference": "https://huggingface.co/Qwen/Qwen-Image-2512/tree/25468b98e3276ca6700de15c6628e51b7de54a26"
   },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.2.5"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "353dc9f336110fcac06dafcaed5342fb64972dc8c5f350220d839026cb3d5ed0",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.4"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "999795d23a4825e28b4890f38f186222f4a323a4c86363d7899aac913dc100e7",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.2.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+            "kind": "security",
+            "references": [],
+            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+          }
+        ],
+        "prior_recipe_content_sha256": "69b791d247068de33f5c16e36ee510ca703e7c35252f422d88b8d64e4a89c730",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "Declared exact prompt-file and generated-PNG slots for signed artifact jobs.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Added typed artifact input and output slot contracts."
+          }
+        ],
+        "prior_recipe_content_sha256": "e974c866fda586348ccef9dc878b61453b97af8be4658238f1bf41427c505792",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "none",
+        "version": "1.2.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Standardized generation prompts as one bounded UTF-8 text file in the read-only inputs mount."
+          }
+        ],
+        "prior_recipe_content_sha256": "ac721d78b137e8a46e01421025bca037392051a621c185746f01913354c54676",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "a4e926e3d8566893cde6f05e10cf19d5d45d4b7b43a63f6975b07667eff9ea05",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.1.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/Qwen/Qwen-Image-2512/tree/25468b98e3276ca6700de15c6628e51b7de54a26"
+            ],
+            "summary": "Enabled upstream true CFG 4.0 with the Qwen Image 2512 negative prompt instead of ignored guidance-distilled CFG."
+          }
+        ],
+        "prior_recipe_content_sha256": "79e4921a6b79bd38aaf103cdb781f1b2b142dd00bf267a663c0f5063cd70e376",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of Qwen Image 2512 Diffusers single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "acd71a8dd5e248912ab1fdf32bb32f01b112a83da1ce8b1d90512b23354db6a3",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/4041604a41ed96d4be18ceb695c4be8d2dc2b3c0"
+            ],
+            "summary": "Recovered the first public legacy revision from before semantic release tracking."
+          }
+        ],
+        "prior_recipe_content_sha256": "253f751fe531b021f2d59f9d7cb84d70634be0386b622b68e86a0ab4269a1f65",
+        "released_at": "2026-08-16",
+        "upgrade_effect": "reprepare",
+        "version": "0.1.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.2.5"
+  },
   "runtime": {
     "arguments": [
       {

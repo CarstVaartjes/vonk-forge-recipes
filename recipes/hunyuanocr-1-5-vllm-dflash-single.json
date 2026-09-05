@@ -555,6 +555,132 @@
     "source_kind": "global",
     "source_reference": "https://huggingface.co/tencent/HunyuanOCR/tree/47644ecc4fc854efa4f505155158831f36773ee4"
   },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.2.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "50d78c20dd1f92646a891afbf12491f16afe8148e907cb4cb13d645ed1570e79",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.2"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "0fe23484acd6aa377aaa55a6ef40254a31bb2340ca10bab7338dbcfe92349d4a",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.2.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Advance to Tencent's current immutable 47644ecc snapshot with its corrected Transformers 5 native configuration."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Fail closed in the EU, UK, and South Korea as required by the Tencent Hunyuan Community License Agreement."
+          },
+          {
+            "details": null,
+            "kind": "performance",
+            "references": [],
+            "summary": "Exclude the archived HunyuanOCR 1.0 payload exactly as Tencent recommends, reducing each install by 1,998,806,533 bytes."
+          }
+        ],
+        "prior_recipe_content_sha256": "d36f6473ed09633b004cf760173ca0ee7061890308461be8a2c00acf9a5793d2",
+        "released_at": "2026-08-29",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Declared separate document and optional OCR-config slots and the exact application/zip output contract."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Made the adapter consume the controller-authenticated slot manifest before model loading."
+          }
+        ],
+        "prior_recipe_content_sha256": "4f12846efdfaf6c32b28556391eba298254c068df99f7fc95acf27954cf914ef",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "ff33476116c0e314de7e535b29e326cf0299a9c82eb0e5197b28267b77b89690",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "Pins Tencent's target and DFlash draft, uses the official 12 task prompts and fixed sampling, preserves repetition cleanup and document Markdown normalization, and emits a ZIP with UTF-8 results plus provenance metadata.",
+            "kind": "initial",
+            "references": [
+              "https://huggingface.co/tencent/HunyuanOCR",
+              "https://github.com/Tencent-Hunyuan/HunyuanOCR",
+              "https://recipes.vllm.ai/tencent/HunyuanOCR"
+            ],
+            "summary": "Add the executable Pending HunyuanOCR 1.5 DFlash document-image job for one DGX Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "4c98fda621dabd1ab0f678c4c3f2e078938c6417276dc4142d770c9752e2dd68",
+        "released_at": "2026-08-24",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.2.3"
+  },
   "runtime": {
     "arguments": [
       {
