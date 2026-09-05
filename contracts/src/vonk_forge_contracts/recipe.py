@@ -39,7 +39,7 @@ class RecipeReference(_RecipeContract):
     content_sha256: Sha256
 
 
-class ModelVersionReference(RecipeReference):
+class ModelReference(RecipeReference):
     kind: Literal["model"]
 
 
@@ -69,7 +69,7 @@ class RecipeModelFile(_RecipeContract):
 
 class RecipeModelSelection(_RecipeContract):
     id: Identifier
-    model: ModelVersionReference
+    model: ModelReference
     files: list[RecipeModelFile] = Field(min_length=1, max_length=256)
 
 
@@ -95,6 +95,18 @@ class BuildArgument(_RecipeContract):
 class BuildNetwork(_RecipeContract):
     mode: Literal["none", "public"]
     hosts: list[StrictStr] = Field(max_length=64)
+
+    @model_validator(mode="after")
+    def allowlist_matches_mode(self) -> BuildNetwork:
+        if len(self.hosts) != len(set(self.hosts)):
+            raise ValueError("build network hosts must be unique")
+        if self.mode == "none" and self.hosts:
+            raise ValueError("network mode none must not declare hosts")
+        if self.mode == "public" and not self.hosts:
+            raise ValueError("public build network requires a nonempty host allowlist")
+        if any(not host for host in self.hosts):
+            raise ValueError("build network hosts must be nonempty")
+        return self
 
 
 class RecipeBuildDefinition(_RecipeContract):
@@ -178,12 +190,6 @@ class RecipeRuntimeEnvironment(_RecipeContract):
         return self
 
 
-class RecipeReadiness(_RecipeContract):
-    strategy: Literal["endpoint-owner", "endpoint-owner-after-all-ranks"]
-    path: AbsolutePath
-    timeout_seconds: StrictInt = Field(ge=1, le=3600)
-
-
 class RecipeFailurePolicy(_RecipeContract):
     rank_loss: Literal["not-applicable", "withdraw-endpoint"]
     recovery: Literal["restart-entrypoint", "restart-worker-then-entrypoint"]
@@ -196,7 +202,6 @@ class RecipeLifecycle(_RecipeContract):
     pre_start: list[Argv] = Field(max_length=16)
     post_stop: list[Argv] = Field(max_length=16)
     stop_timeout_seconds: StrictInt = Field(ge=1, le=600)
-    readiness: RecipeReadiness | None = None
     failure: RecipeFailurePolicy | None = None
 
 
@@ -332,6 +337,20 @@ ServingAssertion = Literal[
     "embedding.nonempty", "inference.completed", "artifact.output",
 ]
 
+_ASSERTIONS_BY_KIND: dict[str, frozenset[str]] = {
+    "openai.health": frozenset({"endpoint.healthy"}),
+    "openai.chat": frozenset({"chat.nonempty", "chat.output-cap"}),
+    "openai.vision": frozenset({"chat.nonempty", "chat.output-cap"}),
+    "openai.tools": frozenset({"chat.nonempty", "chat.output-cap", "tools.called"}),
+    "openai.completion": frozenset({"completion.nonempty", "completion.output-cap"}),
+    "openai.embedding": frozenset({"embedding.nonempty"}),
+    "image-job.output": frozenset({"inference.completed", "artifact.output"}),
+    "audio-job.output": frozenset({"inference.completed", "artifact.output"}),
+    "video-job.output": frozenset({"inference.completed", "artifact.output"}),
+    "mesh-job.output": frozenset({"inference.completed", "artifact.output"}),
+    "artifact-job.output": frozenset({"inference.completed", "artifact.output"}),
+}
+
 
 class RecipeHttpServingRequest(_RecipeContract):
     transport: Literal["http"]
@@ -374,6 +393,8 @@ class RecipeValidationCheck(_RecipeContract):
     def executable(self) -> RecipeValidationCheck:
         if len(self.assertions) != len(set(self.assertions)):
             raise ValueError("serving assertions must be unique")
+        if not set(self.assertions) <= _ASSERTIONS_BY_KIND[self.kind]:
+            raise ValueError("serving assertion is not applicable to its check kind")
         is_job = self.kind.endswith(".output")
         if is_job != isinstance(self.request, RecipeJobServingRequest):
             raise ValueError("serving request transport must match serving kind")
@@ -387,6 +408,20 @@ class RecipeValidationCheck(_RecipeContract):
             if self.kind in {"openai.chat", "openai.vision", "openai.tools"}:
                 if self.request.path != "/v1/chat/completions" or not isinstance(body.get("messages"), list) or not body["messages"]:
                     raise ValueError("chat checks require messages at /v1/chat/completions")
+                if self.kind == "openai.vision" and not any(
+                    isinstance(message, dict)
+                    and isinstance(message.get("content"), list)
+                    and any(
+                        isinstance(part, dict)
+                        and part.get("type") == "image_url"
+                        and isinstance(part.get("image_url"), dict)
+                        and isinstance(part["image_url"].get("url"), str)
+                        and bool(part["image_url"]["url"])
+                        for part in message["content"]
+                    )
+                    for message in body["messages"]
+                ):
+                    raise ValueError("vision checks require image_url content")
                 required = "tools.called" if self.kind == "openai.tools" else "chat.nonempty"
                 if required not in self.assertions or self.kind == "openai.tools" and not body.get("tools"):
                     raise ValueError("OpenAI check does not exercise its declared behavior")
@@ -493,4 +528,23 @@ class RecipeDefinition(_RecipeContract):
                 raise ValueError("job serving check does not match interface")
             if check.kind.startswith("openai.") and self.validation.serving.interface != "openai":
                 raise ValueError("OpenAI serving check does not match interface")
+            if check.kind.endswith(".output"):
+                interface = next(interface for interface in self.interfaces if interface.adapter == self.validation.serving.interface)
+                if not isinstance(interface, RecipeJobInterface):
+                    raise ValueError("job serving requires a job interface")
+                request = check.request
+                if not isinstance(request, RecipeJobServingRequest):
+                    raise ValueError("job serving requires a filesystem request")
+                output_ids = {slot.id for slot in interface.output.slots}
+                if request.output_slot not in output_ids:
+                    raise ValueError("job request output_slot is not declared by the interface")
+                if interface.input is None:
+                    if request.input_path is not None or request.input_slots:
+                        raise ValueError("job request input bindings require an interface input")
+                else:
+                    if interface.input.required and request.input_path is None:
+                        raise ValueError("required job interface input must be bound")
+                    declared_input_ids = {slot.id for slot in interface.input.slots or []}
+                    if not set(request.input_slots) <= declared_input_ids:
+                        raise ValueError("job request input slot is not declared by the interface")
         return self

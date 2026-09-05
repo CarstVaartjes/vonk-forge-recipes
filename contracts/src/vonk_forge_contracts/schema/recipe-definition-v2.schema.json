@@ -121,7 +121,7 @@
         }
       ]
     },
-    "ModelVersionReference": {
+    "ModelReference": {
       "additionalProperties": false,
       "properties": {
         "kind": {
@@ -155,7 +155,7 @@
         "slug",
         "content_sha256"
       ],
-      "title": "ModelVersionReference",
+      "title": "ModelReference",
       "type": "object"
     },
     "RecipeBenchmark": {
@@ -969,17 +969,6 @@
           "title": "Stop Timeout Seconds",
           "type": "integer"
         },
-        "readiness": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/RecipeReadiness"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
         "failure": {
           "anyOf": [
             {
@@ -1144,7 +1133,7 @@
           "type": "string"
         },
         "model": {
-          "$ref": "#/$defs/ModelVersionReference"
+          "$ref": "#/$defs/ModelReference"
         },
         "files": {
           "items": {
@@ -1384,38 +1373,6 @@
         "attribution"
       ],
       "title": "RecipeProvenance",
-      "type": "object"
-    },
-    "RecipeReadiness": {
-      "additionalProperties": false,
-      "properties": {
-        "strategy": {
-          "enum": [
-            "endpoint-owner",
-            "endpoint-owner-after-all-ranks"
-          ],
-          "title": "Strategy",
-          "type": "string"
-        },
-        "path": {
-          "maxLength": 256,
-          "pattern": "^/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*)(?:/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*))*$",
-          "title": "Path",
-          "type": "string"
-        },
-        "timeout_seconds": {
-          "maximum": 3600,
-          "minimum": 1,
-          "title": "Timeout Seconds",
-          "type": "integer"
-        }
-      },
-      "required": [
-        "strategy",
-        "path",
-        "timeout_seconds"
-      ],
-      "title": "RecipeReadiness",
       "type": "object"
     },
     "RecipeRoleResources": {

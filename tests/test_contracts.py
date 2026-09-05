@@ -42,6 +42,8 @@ def test_examples_validate_against_the_two_roots_and_generated_schemas() -> None
     Draft202012Validator(model_json_schema()).validate(model)
     Draft202012Validator(recipe_json_schema()).validate(recipe)
     assert parsed_model.kind == "model"
+    assert parsed_model.modalities == ["image", "text"]
+    assert [fact.capability for fact in parsed_model.capabilities.facts] == ["image-generation", "text-generation"]
     assert parsed_model.download_bytes == parsed_model.installed_bytes == 1024
     assert parsed_recipe.identity.slug == "synthetic-tiny-image"
 
@@ -70,7 +72,7 @@ def test_capability_facts_are_set_semantics_and_normalized() -> None:
     facts.append({"capability": "chat", "support": "unknown", "evidence_status": "unknown", "evidence_digest": None})
     facts.reverse()
     parsed = ModelDefinition.model_validate(document)
-    assert [fact.capability for fact in parsed.capabilities.facts] == ["chat", "text-generation"]
+    assert [fact.capability for fact in parsed.capabilities.facts] == ["chat", "image-generation", "text-generation"]
     document["capabilities"]["facts"].append({"capability": "chat", "support": "supported", "evidence_status": "declared", "evidence_digest": None})
     with pytest.raises(ValidationError, match="duplicate or contradict"):
         ModelDefinition.model_validate(document)
@@ -140,6 +142,68 @@ def test_job_serving_request_is_filesystem_fixture_binding() -> None:
         RecipeJobServingRequest.model_validate(
             {"transport": "job", "fixture": "../secret", "output_path": "/outputs", "output_slot": "image"}
         )
+
+
+def test_job_serving_bindings_match_declared_interface_slots() -> None:
+    job = load("recipe-job.json")
+    request = job["validation"]["serving"]["checks"][0]["request"]
+    request["output_slot"] = "missing"
+    with pytest.raises(ValidationError, match="output_slot"):
+        RecipeDefinition.model_validate(job)
+
+    job = load("recipe-job.json")
+    request = job["validation"]["serving"]["checks"][0]["request"]
+    request.update(input_path="/inputs", input_slots={"prompt": "prompt"})
+    with pytest.raises(ValidationError, match="interface input"):
+        RecipeDefinition.model_validate(job)
+
+    job["interfaces"][0]["input"] = {
+        "path": "/inputs",
+        "required": True,
+        "media_types": ["text/plain"],
+        "max_bytes": 1024,
+        "slots": [
+            {
+                "id": "prompt",
+                "label": "Prompt",
+                "description": "Synthetic prompt",
+                "media_types": ["text/plain"],
+                "extensions": [".txt"],
+                "min_files": 1,
+                "max_files": 1,
+                "max_file_bytes": 1024,
+                "max_total_bytes": 1024,
+            }
+        ],
+    }
+    RecipeDefinition.model_validate(job)
+    request["input_slots"] = {"unknown": "prompt"}
+    with pytest.raises(ValidationError, match="input slot"):
+        RecipeDefinition.model_validate(job)
+
+
+def test_vision_checks_require_image_content_and_applicable_assertions() -> None:
+    recipe = load("recipe-image.json")
+    RecipeDefinition.model_validate(recipe)
+    recipe["validation"]["serving"]["checks"][0]["request"]["body"]["messages"][0]["content"] = "text only"
+    with pytest.raises(ValidationError, match="image_url"):
+        RecipeDefinition.model_validate(recipe)
+
+    recipe = load("recipe-image.json")
+    recipe["validation"]["serving"]["checks"][0]["assertions"].append("completion.nonempty")
+    with pytest.raises(ValidationError, match="applicable"):
+        RecipeDefinition.model_validate(recipe)
+
+
+def test_build_network_hosts_match_network_mode() -> None:
+    image = load("recipe-image.json")
+    image["execution"] = _build_execution()
+    image["execution"]["build"]["network"]["hosts"] = ["registry.example"]
+    with pytest.raises(ValidationError, match="must not declare hosts"):
+        RecipeDefinition.model_validate(image)
+    image["execution"]["build"]["network"] = {"mode": "public", "hosts": []}
+    with pytest.raises(ValidationError, match="nonempty host allowlist"):
+        RecipeDefinition.model_validate(image)
 
 
 def test_job_fixture_is_required_to_be_in_the_self_contained_package() -> None:
