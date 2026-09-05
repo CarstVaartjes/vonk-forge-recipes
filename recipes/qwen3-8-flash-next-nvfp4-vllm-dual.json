@@ -5133,14 +5133,6 @@
               "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/blob/c2325b22602b51a5faf55fc2bebccc34f3f80b9f/LICENSE"
             ],
             "summary": "Record upstream and image license closure for the vLLM adapter."
-          },
-          {
-            "details": "ee33141b031970786d4e92c180861a1a65efabcc also adds optional reduced-vocabulary MTP drafting. This Recipe exposes standard MTP3 only: no draft-vocabulary artifact or deterministic Controller input is pinned, so the optional reduced-vocabulary path is explicitly unsupported here.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/commit/ee33141b031970786d4e92c180861a1a65efabcc"
-            ],
-            "summary": "Declare reduced-vocabulary MTP unsupported without a pinned draft artifact."
           }
         ],
         "prior_recipe_content_sha256": null,
