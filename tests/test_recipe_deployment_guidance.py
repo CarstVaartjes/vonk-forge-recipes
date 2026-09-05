@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import RecipeDefinition, content_sha256  # noqa: E402
 
 
 def load(path: str) -> dict[str, object]:
@@ -13,14 +16,7 @@ def load(path: str) -> dict[str, object]:
 
 
 def canonical_digest(path: str) -> str:
-    payload = json.dumps(
-        load(path),
-        ensure_ascii=False,
-        allow_nan=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()
+    return content_sha256(RecipeDefinition.model_validate(load(path)))
 
 
 class RecipeDeploymentGuidanceTests(unittest.TestCase):

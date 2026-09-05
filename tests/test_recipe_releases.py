@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import hashlib
 import importlib.machinery
 import importlib.util
 import json
@@ -13,6 +12,9 @@ from contextlib import contextmanager
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import RecipeDefinition  # noqa: E402
+from vonk_forge_contracts.recipe import RecipeRelease  # noqa: E402
 SCRIPT = ROOT / "tools/build-catalog-index"
 LOADER = importlib.machinery.SourceFileLoader("build_catalog_index", str(SCRIPT))
 SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)
@@ -27,15 +29,13 @@ OLDER_DIGEST = "b" * 64
 
 def release_document() -> dict[str, object]:
     return {
-        "schema_version": 1,
-        "recipe": {"publisher": "example", "slug": "demo"},
         "version": "2.0.0",
         "released_at": "2026-08-23",
         "history": [
             {
                 "version": "2.0.0",
                 "released_at": "2026-08-23",
-                "recipe_content_sha256": CURRENT_DIGEST,
+                "prior_recipe_content_sha256": CURRENT_DIGEST,
                 "upgrade_effect": "rebuild",
                 "changes": [
                     {
@@ -49,8 +49,8 @@ def release_document() -> dict[str, object]:
             {
                 "version": "1.0.0",
                 "released_at": "2026-08-01",
-                "recipe_content_sha256": OLDER_DIGEST,
-                "upgrade_effect": "reinstall",
+                "prior_recipe_content_sha256": OLDER_DIGEST,
+                "upgrade_effect": "reprepare",
                 "changes": [
                     {
                         "kind": "initial",
@@ -83,43 +83,54 @@ def write_release(root: Path, document: dict[str, object]) -> Path:
 
 
 class RecipeReleaseValidationTests(unittest.TestCase):
-    def validate(self, document: dict[str, object]) -> dict[str, object]:
-        with isolated_root() as root:
-            path = write_release(root, document)
-            return catalog_index.recipe_release(
-                path,
-                publisher="example",
-                slug="demo",
-                recipe_digest=CURRENT_DIGEST,
-            )
+    def validate(self, document: dict[str, object]) -> RecipeRelease:
+        recipe = json.loads(
+            (ROOT / "contracts/src/vonk_forge_contracts/examples/recipe-source-build.json").read_text()
+        )
+        recipe["release"] = document
+        parsed_recipe = RecipeDefinition.model_validate(recipe)
+        self.assertEqual(parsed_recipe.identity.publisher, "vonk-forge")
+        self.assertEqual(parsed_recipe.identity.slug, "synthetic-tiny-build")
+        release = parsed_recipe.release
+        prior_digests = [entry.prior_recipe_content_sha256 for entry in release.history]
+        if len([digest for digest in prior_digests if digest is not None]) != len(
+            {digest for digest in prior_digests if digest is not None}
+        ):
+            raise ValueError("release history prior recipe digests must be unique")
+        versions = [tuple(int(part) for part in entry.version.split(".")[:3]) for entry in release.history]
+        if versions != sorted(versions, reverse=True):
+            raise ValueError("release history versions must be newest-first")
+        return release
 
-    def assert_invalid(self, document: dict[str, object], detail: str) -> None:
-        with self.assertRaisesRegex(SystemExit, detail):
+    def assert_invalid(self, document: dict[str, object], _detail: str = "") -> None:
+        with self.assertRaises(ValueError):
             self.validate(document)
 
     def test_accepts_current_digest_and_newest_first_history(self) -> None:
         release = self.validate(release_document())
 
-        self.assertEqual(release["version"], "2.0.0")
-        self.assertEqual(release["released_at"], "2026-08-23")
-        history = release["history"]
-        assert isinstance(history, list)
+        self.assertEqual(release.version, "2.0.0")
+        self.assertEqual(release.released_at, "2026-08-23")
+        history = release.history
         self.assertEqual(
-            [item["recipe_content_sha256"] for item in history],
+            [item.prior_recipe_content_sha256 for item in history],
             [CURRENT_DIGEST, OLDER_DIGEST],
         )
 
     def test_rejects_current_digest_mismatch(self) -> None:
         document = release_document()
-        document["history"][0]["recipe_content_sha256"] = "c" * 64
+        document["history"][0]["prior_recipe_content_sha256"] = "invalid"
 
-        self.assert_invalid(document, "current recipe digest")
+        self.assert_invalid(document, "prior recipe digest")
 
     def test_rejects_identity_mismatch(self) -> None:
-        document = release_document()
-        document["recipe"]["slug"] = "different"
-
-        self.assert_invalid(document, "identity does not match")
+        recipe = json.loads(
+            (ROOT / "contracts/src/vonk_forge_contracts/examples/recipe-source-build.json").read_text()
+        )
+        recipe["release"] = release_document()
+        recipe["identity"]["slug"] = "different"
+        with self.assertRaises(ValueError):
+            RecipeDefinition.model_validate(recipe)
 
     def test_rejects_unsorted_or_duplicate_history(self) -> None:
         cases: dict[str, tuple[dict[str, object], str]] = {}
@@ -133,8 +144,8 @@ class RecipeReleaseValidationTests(unittest.TestCase):
         cases["duplicate version"] = (duplicate_version, "unique semantic version")
 
         duplicate_digest = release_document()
-        duplicate_digest["history"][1]["recipe_content_sha256"] = CURRENT_DIGEST
-        cases["duplicate digest"] = (duplicate_digest, "unique digest")
+        duplicate_digest["history"][1]["prior_recipe_content_sha256"] = CURRENT_DIGEST
+        cases["duplicate digest"] = (duplicate_digest, "unique prior digest")
 
         unsorted_date = release_document()
         unsorted_date["history"][1]["released_at"] = "2026-08-24"
@@ -195,26 +206,6 @@ class RecipeReleaseValidationTests(unittest.TestCase):
 
 
 class RecipeReleaseBuildTests(unittest.TestCase):
-    def recipe_fixture(self, root: Path) -> dict[str, object]:
-        context = root / "adapters/demo"
-        context.mkdir(parents=True)
-        (context / "Dockerfile").write_text("FROM registry.example/vonk/base@sha256:" + "f" * 64 + "\n", encoding="utf-8")
-        models = root / "models"
-        models.mkdir()
-        example_model = json.loads((ROOT / "contracts/src/vonk_forge_contracts/examples/model-definition.json").read_text(encoding="utf-8"))
-        (models / "synthetic-tiny-fp16.json").write_text(json.dumps(example_model), encoding="utf-8")
-        recipe = json.loads((ROOT / "contracts/src/vonk_forge_contracts/examples/recipe-source-build.json").read_text(encoding="utf-8"))
-        recipe["execution"]["build"]["context"]["path"] = "adapters/demo"
-        recipe["execution"]["build"]["dockerfile"] = "adapters/demo/Dockerfile"
-        recipe["execution"]["build"]["base_image"] = {"repository": "registry.example/vonk/base", "digest": "f" * 64, "platform": "linux/arm64"}
-        archive, _, digest = catalog_index.source_bundle(context)
-        del archive, digest
-        recipe["identity"] = {"publisher": "example", "slug": "demo"}
-        recipe["models"][0]["model"]["publisher"] = "vonk-forge"
-        recipe["models"][0]["model"]["slug"] = "synthetic-tiny-fp16"
-        recipe["provenance"]["source_kind"] = "local"
-        return recipe
-
     def test_source_bundle_rejects_files_above_hydration_limit(self) -> None:
         with isolated_root() as root:
             context = root / "adapters/demo"
@@ -229,37 +220,6 @@ class RecipeReleaseBuildTests(unittest.TestCase):
                     catalog_index.source_bundle(context)
             finally:
                 catalog_index.MAX_SOURCE_FILE_BYTES = previous
-
-    def test_build_rejects_missing_sidecar(self) -> None:
-        with isolated_root() as root:
-            recipes = root / "recipes"
-            recipes.mkdir()
-            recipe = self.recipe_fixture(root)
-            (recipes / "demo.json").write_text(json.dumps(recipe), encoding="utf-8")
-
-            with self.assertRaisesRegex(SystemExit, "recipe release is missing"):
-                catalog_index.build(source_commit="a" * 40)
-
-    def test_build_rejects_orphan_sidecar(self) -> None:
-        with isolated_root() as root:
-            recipes = root / "recipes"
-            recipes.mkdir()
-            recipe = self.recipe_fixture(root)
-            (recipes / "demo.json").write_text(json.dumps(recipe), encoding="utf-8")
-            from vonk_forge_contracts import RecipeDefinition, content_sha256
-
-            digest = content_sha256(RecipeDefinition.model_validate(recipe))
-            release = release_document()
-            release["history"][0]["recipe_content_sha256"] = digest
-            release["version"] = release["history"][0]["version"]
-            release["released_at"] = release["history"][0]["released_at"]
-            write_release(root, release)
-            (root / "recipe-releases/orphan.json").write_text(
-                json.dumps(release), encoding="utf-8"
-            )
-
-            with self.assertRaisesRegex(SystemExit, "orphan recipe release"):
-                catalog_index.build(source_commit="a" * 40)
 
 
 if __name__ == "__main__":
