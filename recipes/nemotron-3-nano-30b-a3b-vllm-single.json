@@ -275,6 +275,23 @@
       {
         "changes": [
           {
+            "details": "NVIDIA's official model repository advanced its main branch from ce1b118a to 6efb4a2 in an Update README.md commit. The catalog retains ce1b118a because the authoritative history identifies this as README-only drift; no executable artifact update is presented, and changing the pinned checkpoint would add no reviewed runtime or build evidence.",
+            "kind": "metadata",
+            "references": [
+              "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4/commits/main/README.md",
+              "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4/tree/main"
+            ],
+            "summary": "Recorded README-only upstream drift while retaining the reviewed executable checkpoint."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "2.0.6"
+      },
+      {
+        "changes": [
+          {
             "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
             "kind": "compatibility",
             "references": [],
@@ -424,8 +441,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "2.0.5"
+    "released_at": "2026-09-05",
+    "version": "2.0.6"
   },
   "runtime": {
     "arguments": [
