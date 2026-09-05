@@ -1653,6 +1653,121 @@
     "source_kind": "global",
     "source_reference": "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/tree/98fc5d8fd48e7d1e2e95499f93cf90ceef14faf4"
   },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.2"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "c706ef5cfc1ea7607c55bd4aab28457194b4cc52d235a30f8b36816581964e28",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.2.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "The complete 131-file inventory is refreshed from 92d8bfb9 to caca4e6a. All 120 weight shards and runtime configuration files are byte-identical; only the upstream README changed, increasing the exact inventory by 1,690 bytes. The exact four-rank topology remains unsupported on Vonk's current one- or two-Spark fleet and has no physical acceptance claim.",
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/commit/caca4e6a4ebbd66f159d3d2fc256683fd6e27177"
+            ],
+            "summary": "Advanced the future TP4 contract to LibertAI's current caca4e6a snapshot."
+          }
+        ],
+        "prior_recipe_content_sha256": "8b2d5b54662dfb5664124c0334d91cdc34098b7783666112f8984a8bdbf609f7",
+        "released_at": "2026-08-31",
+        "upgrade_effect": "reprepare",
+        "version": "1.2.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "The immutable pin now carries calibrated per-projection input scales that prevent FP8 block-scale underflow and long-context repetition. The exact four-rank topology remains unsupported on Vonk's current one- or two-Spark fleet and has no physical acceptance claim; its validation checks retain the platform-supported distributed structural contract.",
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/commit/92d8bfb91c19ceb6fb530dfb538a3a24eceb6ef7"
+            ],
+            "summary": "Advanced the future TP4 contract to LibertAI's calibrated 92d8bfb9 checkpoint."
+          }
+        ],
+        "prior_recipe_content_sha256": "0d5006f9516282949fc3411417a6e5b1391d9fe5d8adf2d4f0144f577aac06ec",
+        "released_at": "2026-08-31",
+        "upgrade_effect": "reprepare",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "The exact TP4 contract is unsupported on the current one- or two-Spark configuration. MiaAI-Lab now physically exercises the corrected GLM 5.3 NVFP4 family at Ray TP2, but Vonk's conservative same-model recipe needs a 132 GB admission envelope per node. The independently pinned EXL3 DFlash2 TP2 Candidate needs 126 GB and is the current fleet-fit canary; this TP4 contract remains installable for future scale qualification.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-NVFP4-Dual-DGX-Spark/tree/aed98a13ca75140d2691cc5c651ea5817d9a3e44",
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks"
+            ],
+            "summary": "Separated upstream TP2 feasibility from current Controller admission fit."
+          }
+        ],
+        "prior_recipe_content_sha256": "a376b3124de81311726705125aff226d744dede3f000aeaa6e3b96fafb706bff",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "none",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The exact four-rank contract is retained for future scale qualification. No runtime, model, adapter, artifact, or validation claim changed.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Marked TP4 unavailable on the current fleet and promoted the dual profile for fleet trials."
+          }
+        ],
+        "prior_recipe_content_sha256": "23584bd8d1ff8eeb5ad21ad30fb6290eaff998ddc75f34a9dba238b061108bed",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "The stable Tech2Wild TP4 v8 profile is reproduced from public vLLM sources with fixed FP8 KV memory, MTP4, GLM multimodal chat handling, and exact NCCL 2.30.7. The upstream private image and experimental InstantTensor v9 multi-node path are not dependencies.",
+            "kind": "initial",
+            "references": [
+              "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/tree/98fc5d8fd48e7d1e2e95499f93cf90ceef14faf4",
+              "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/tree/11d73216cd636238e82e1d77fe1042ffab36e7fa",
+              "https://recipes.vllm.ai/zai-org/GLM-5.3-Flash"
+            ],
+            "summary": "Added an executable four-Spark GLM 5.3 Flash NVFP4 native-vLLM Candidate."
+          }
+        ],
+        "prior_recipe_content_sha256": "e9cb13bf8f9a7aa690d23d3039703ee55c6e77263103d4035ef288e004751726",
+        "released_at": "2026-08-27",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-03",
+    "version": "1.2.2"
+  },
   "runtime": {
     "arguments": [
       {

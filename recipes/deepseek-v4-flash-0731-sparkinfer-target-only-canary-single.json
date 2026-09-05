@@ -2170,6 +2170,70 @@
     "source_kind": "global",
     "source_reference": "https://github.com/0xSero/deepseek-v4-flash-0731-spark-sparkinfer/tree/590d2172394dd83c1f36ff29f0dc9ec6032ea9e2"
   },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "0.1.2"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "84427bc35d3cc5a485ce7cc142b81b223ecd9498ff63c80752a1c774246a9b2c",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "0.1.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "The original fixed-K5 DSpark recipe remains unchanged. This Candidate selects upstream's supported MODE=mtp0 target-only path, the proven padded-FP8 sparse-MLA cache, 262,144-token model limit, four scheduling slots, 8,192-token scheduler batch, CUDA graph sizes 1/2/4, and 0.95 memory utilization.",
+            "kind": "initial",
+            "references": [],
+            "summary": "Added a separate target-only SparkInfer canary that fits the current lower one-Spark memory baseline."
+          },
+          {
+            "details": "At the pinned source revision, target-only acceptance records 92.13 GiB loaded weights, 12.49 GiB KV, semantic generation, and strict JSON-schema output. The clean fixed-K5 DSpark record reports 95.39 GiB after target plus draft load. Omitting that measured 3.26 GiB draft load supports the conservative two-GB startup reduction used by the 126 GB admission envelope.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/0xSero/deepseek-v4-flash-0731-spark-sparkinfer/blob/590d2172394dd83c1f36ff29f0dc9ec6032ea9e2/results/acceptance.json",
+              "https://github.com/0xSero/deepseek-v4-flash-0731-spark-sparkinfer/blob/590d2172394dd83c1f36ff29f0dc9ec6032ea9e2/results/clean-image-acceptance.json",
+              "https://github.com/0xSero/deepseek-v4-flash-0731-spark-sparkinfer/blob/590d2172394dd83c1f36ff29f0dc9ec6032ea9e2/scripts/entrypoint.sh"
+            ],
+            "summary": "Bound the low-memory claim to upstream's immutable physical target-only and DSpark records."
+          },
+          {
+            "details": "The exact published image and 126 GB declaration remain Candidate until a Vonk-managed Spark canary records import, boot, memory headroom, endpoint health, bounded generation, and structured output.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Kept physical qualification fail-closed."
+          }
+        ],
+        "prior_recipe_content_sha256": "a6ec867073cea61fd2e5daff92695c2a79fbb1371f9047ad54833e1398d98dc9",
+        "released_at": "2026-08-31",
+        "upgrade_effect": "reprepare",
+        "version": "0.1.0"
+      }
+    ],
+    "released_at": "2026-09-03",
+    "version": "0.1.2"
+  },
   "runtime": {
     "arguments": [
       {

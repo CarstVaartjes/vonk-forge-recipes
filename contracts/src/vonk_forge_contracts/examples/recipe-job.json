@@ -14,29 +14,29 @@
   "interfaces": [
     {
       "adapter": "image-job",
+      "path": "/outputs",
       "input": null,
       "output": {
-        "max_total_bytes": 1048576,
         "path": "/outputs",
+        "max_total_bytes": 1048576,
         "slots": [
           {
-            "description": "PNG output",
-            "extensions": [
-              ".png"
-            ],
             "id": "image",
             "label": "Image",
-            "max_file_bytes": 1048576,
-            "max_files": 1,
-            "max_total_bytes": 1048576,
+            "description": "PNG output",
             "media_types": [
               "image/png"
             ],
-            "min_files": 1
+            "extensions": [
+              ".png"
+            ],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 1048576,
+            "max_total_bytes": 1048576
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -78,6 +78,23 @@
     ],
     "source_kind": "local",
     "source_reference": null
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "kind": "initial",
+            "summary": "Initial reviewed recipe contract."
+          }
+        ],
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.0.0"
   },
   "runtime": {
     "arguments": [],
@@ -148,23 +165,23 @@
   "validation": {
     "benchmarks": [],
     "serving": {
+      "interface": "image-job",
       "checks": [
         {
+          "name": "image",
+          "kind": "image-job.output",
+          "request": {
+            "transport": "job",
+            "fixture": "blank",
+            "output_path": "/outputs",
+            "output_slot": "image"
+          },
           "assertions": [
             "inference.completed",
             "artifact.output"
-          ],
-          "kind": "image-job.output",
-          "name": "image",
-          "request": {
-            "fixture": "blank",
-            "output_path": "/outputs",
-            "output_slot": "image",
-            "transport": "job"
-          }
+          ]
         }
-      ],
-      "interface": "image-job"
+      ]
     }
   }
 }

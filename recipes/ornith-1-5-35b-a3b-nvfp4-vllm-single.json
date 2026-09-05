@@ -306,6 +306,40 @@
     "source_kind": "global",
     "source_reference": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4/tree/9660379a2f2c429c465eeed2f3a0f2433fc4381e"
   },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial executable Candidate recipe for sfxnz's measured Ornith 1.5 35B-A3B NVFP4 single-Spark profile."
+          }
+        ],
+        "prior_recipe_content_sha256": "0a630168ee322bfffa4533f96788020f21ea39cb5f66037f4a85fad5e7442226",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-03",
+    "version": "1.0.1"
+  },
   "runtime": {
     "arguments": [
       {

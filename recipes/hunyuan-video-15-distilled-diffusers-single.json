@@ -130,6 +130,195 @@
     "source_kind": "global",
     "source_reference": "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038"
   },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.4.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "d5fb74a8550d8e0d2a4160c0c4ce700e63a5b569a734dbfc6d48b3fc02d52def",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.4.2"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "8fd77f241a1cc3424ff3ce865ecab2b152b0354ee21a4caa55348c1f8846b677",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.4.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Fail closed in the EU, UK, and South Korea as required by the exact Tencent Hunyuan Community License Agreement."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Correct the offloaded single-Spark memory envelope to require 112 GB plus the existing 8 GB system reserve, allowing admission on a healthy 128 GB Spark."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Validate the exact 121-frame MP4 stream before atomically publishing output.mp4 and reject oversized or unsupported image inputs before model loading."
+          }
+        ],
+        "prior_recipe_content_sha256": "efb85322238480a44cb9e42358d44dca090fcfb80493ce57f511a6f58c942764",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "rebuild",
+        "version": "1.4.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Replaced the hidden prompt default with a required signed prompt slot and bound the exact MP4 output contract."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Made the adapter consume the controller-authenticated slot manifest before model loading."
+          }
+        ],
+        "prior_recipe_content_sha256": "3634c3157a39999621a6ffbeb1e018deef69259c9254add4b4f692ac78770ea5",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "1.3.0"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "a9b0d6e94a162e5fa627314302eb25c01fb9c41128c28b846925591d96c469a2",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.2.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [
+              "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_t2v_distilled/tree/1abb14f06518f37448dcf3a6917dd086dd7045c7",
+              "https://github.com/huggingface/diffusers/commit/a3608b512ed7248499a44c61d954965ed9bdae4d"
+            ],
+            "summary": "Replaced the incomplete native snapshot with the complete 480p CFG-distilled Diffusers conversion and hash-locked CUDA 13 ARM64 runtime."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Bound 480p T2V to its self-contained CFG-distilled pipeline, 50 steps, CFG 1, local-only component loading, and MP4 verification."
+          },
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Corrected the model authority from Apache-2.0 to the territorial Tencent Hunyuan Community License."
+          }
+        ],
+        "prior_recipe_content_sha256": "99fa0a6f8dd78857290dc154b31de3f5ee1409b9839ed3fe2f10c5812992d46f",
+        "released_at": "2026-08-24",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038"
+            ],
+            "summary": "Corrected the immutable HunyuanVideo 1.5 snapshot and dependent disk resource sizes from the complete upstream inventory."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Marked the candidate as requiring a model-specific distilled-video adapter before container and physical Spark acceptance."
+          }
+        ],
+        "prior_recipe_content_sha256": "972728300cd3a78e781c7cae4fbc16657ec8e3b6e1a11bac1293491d9f69f148",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of HunyuanVideo 1.5 distilled diffusers single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "4a495df4a678b1fc9aa18cae9ef14eb8157c17bcc8c28b3ac0d552b9fb9f23a7",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+            ],
+            "summary": "Recovered the first public legacy revision from before semantic release tracking."
+          }
+        ],
+        "prior_recipe_content_sha256": "f5749d66cc38c6e199a9b492d6bb735284573d448ce8c3929a83111a2981d6a7",
+        "released_at": "2026-08-17",
+        "upgrade_effect": "reprepare",
+        "version": "0.1.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.4.3"
+  },
   "runtime": {
     "arguments": [
       {

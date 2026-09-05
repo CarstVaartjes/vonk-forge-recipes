@@ -749,6 +749,96 @@
     "source_kind": "global",
     "source_reference": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/tree/826aacdf6d8b2699d4e367def6f17c83b06044c2"
   },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "d4f5476032ae815cd840182ed6640d00d3674542c0cf1476e2d92922520bc167",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.3"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "57670a38917d14d1877d40e9bcaa66ab98a67d02095c6f96bc4078ccfe2552a5",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The upstream revision changes README metadata only; model weights, configuration, tokenizer, runtime image, and serving arguments remain byte-identical. Existing runtime containers do not require a rebuild, while the catalog now points at the current immutable source revision.",
+            "kind": "metadata",
+            "references": [
+              "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/commit/826aacdf6d8b2699d4e367def6f17c83b06044c2",
+              "https://github.com/vllm-project/vllm/tree/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
+              "https://docs.vllm.ai/en/v0.27.1/cli/serve/"
+            ],
+            "summary": "Pinned the current immutable Poolside Laguna S 2.1 NVFP4 snapshot at 826aacdf."
+          }
+        ],
+        "prior_recipe_content_sha256": "51d1044c7cea46c57ba0e31ee691b8e78a3a0d30917d225fe01539031feb4c60",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "The canary reuses the exact 64734b3a checkpoint, vLLM 0.27.1 ARM64 runtime, adapter, and OpenAI reasoning/tool contract. It explicitly bounds the FP8 KV cache to 3 GB, one sequence, 4K chunked prefills, and eager execution so physical qualification can test a 126 GB admission hypothesis independently of the original 130 GB profile.",
+            "kind": "initial",
+            "references": [
+              "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/tree/64734b3a449a05c79657451513d97544f2f53436",
+              "https://github.com/vllm-project/vllm/tree/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
+              "https://docs.vllm.ai/en/v0.27.1/cli/serve/"
+            ],
+            "summary": "Added a distinct 32K Laguna S low-memory physical canary without changing the original profile."
+          },
+          {
+            "details": "The declared 118 GB startup peak plus 8 GB system reserve fits the observed 126,946,283,520-byte lower fleet baseline by 946,283,520 bytes. This is a canary estimate derived from stricter supported allocation controls, not a claim that the exact image has already demonstrated the bound. CPU weight offload is intentionally not counted as savings because GB10 CPU and GPU allocations share unified physical memory.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Kept the new envelope fail-closed behind physical startup, memory, and output acceptance."
+          }
+        ],
+        "prior_recipe_content_sha256": "c384397f261aba1328f6e167041f04975cca67f111bcf89afaae41c1a0ffecf0",
+        "released_at": "2026-08-31",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.0.4"
+  },
   "runtime": {
     "arguments": [
       {
