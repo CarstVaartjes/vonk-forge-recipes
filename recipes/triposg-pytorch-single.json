@@ -1,102 +1,32 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 7946494238,
-      "id": "target",
-      "installed_bytes": 7946494238,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/target"
-      },
-      "repository": "VAST-AI/TripoSG",
-      "revision": "2c1c516d22d58db486a058d98d31bb6177344e06",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 842215095,
-      "id": "rmbg",
-      "installed_bytes": 842215095,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/rmbg"
-      },
-      "repository": "briaai/RMBG-1.4",
-      "revision": "2ceba5a5efaec153162aedea169f76caf9b46cf8",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 61440,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/three-d/triposg",
-      "sha256": "5710927e467944ef1a9419fc87b33f896241c415900d62fcf16f9b90f0b030e3"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [
-        "github.com",
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ],
-      "mode": "public"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 18000000000,
-      "memory_bytes": 16000000000,
-      "processes": 4096,
-      "temporary_bytes": 36000000000,
-      "timeout_seconds": 14400
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
   "execution": {
-    "harness": {
-      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "pytorch-pipeline"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "0e1392f431f89f143d0d6d0fa397a2b9a6a236f8b3628cfd3afbf21e15ab4a98",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/three-d/triposg"
+      },
+      "dockerfile": "adapters/three-d/triposg/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -161,6 +91,7 @@
       "path": "/outputs"
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Installable but not accepted TripoSG single-Spark Candidate with exact upstream source, frozen RMBG companion, offline inference, and deterministic GLB output. The native ARM64 container build is unvalidated and both that build and a physical GB10 image-to-GLB canary must pass before acceptance.",
@@ -179,13 +110,30 @@
     ],
     "title": "TripoSG base pytorch-pipeline single Spark"
   },
-  "model": {
-    "content_sha256": "132e5af27a142e83d534efa42274717b552507fb702e723b0db5927986aa0339",
-    "kind": "model-version",
-    "publisher": "vast-ai",
-    "slug": "triposg"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "snapshot",
+          "id": "primary-snapshot",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "fcc473d03874cfd6ef13241bbb53ea232b9c1917f8b9d1f53cfad85676a0159f",
+        "kind": "model",
+        "publisher": "vast-ai",
+        "slug": "triposg"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "vast-ai"
@@ -197,33 +145,33 @@
     "arguments": [
       {
         "name": "entrypoint",
+        "setting": null,
         "value": "/opt/vonk/source/run.py"
       },
       {
         "name": "output-mime",
+        "setting": null,
         "value": "model/gltf-binary"
       },
       {
         "name": "timeout-seconds",
+        "setting": null,
         "value": 3600
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 0
       }
     ],
-    "distribution": {
-      "content_sha256": "dacf695d6450432dd1c78e5e3f7c93e2a895790bf4439d260be310fbbf50ca29",
-      "kind": "runtime-distribution",
-      "publisher": "vast-ai",
-      "slug": "triposg-native-arm64"
-    },
+    "engine": "pytorch-pipeline",
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
@@ -234,41 +182,15 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/outputs",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 3600
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": true,
-          "source": "inputs",
-          "target": "/inputs"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -286,10 +208,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "target",
-          "rmbg"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -329,13 +247,28 @@
         "name": "bounded-startup"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "artifact.mime.model-gltf-binary"
-        ],
-        "interface": "mesh-job"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "mesh-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.png",
+            "input_path": "/inputs",
+            "input_slots": {
+              "image": "qualification/fixtures/tiny.png"
+            },
+            "output_path": "/outputs",
+            "output_slot": "mesh",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "mesh-job"
+    }
   }
 }

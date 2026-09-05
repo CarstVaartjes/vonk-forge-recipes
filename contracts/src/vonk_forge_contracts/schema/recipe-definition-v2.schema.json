@@ -452,7 +452,15 @@
           "$ref": "#/$defs/RecipeIntegerSetting"
         },
         "concurrency": {
-          "$ref": "#/$defs/RecipeIntegerSetting"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecipeIntegerSetting"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "max_batch_tokens": {
           "anyOf": [
@@ -468,8 +476,7 @@
       },
       "required": [
         "kind",
-        "context_tokens",
-        "concurrency"
+        "context_tokens"
       ],
       "title": "RecipeGenerationSettings",
       "type": "object"
@@ -1139,7 +1146,7 @@
           "items": {
             "$ref": "#/$defs/RecipeModelFile"
           },
-          "maxItems": 256,
+          "maxItems": 4096,
           "minItems": 1,
           "title": "Files",
           "type": "array"

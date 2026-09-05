@@ -1,110 +1,32 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 849608296,
-      "id": "target",
-      "installed_bytes": 849608296,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/target"
-      },
-      "repository": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning/resolve/d74eba145674fd7e31b949324e148e21e7118abd/Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors",
-      "revision": "sha256:22226e8d05d354bb356627d428809f5afd7819399b077238a2b70a82883a904f",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 57720463453,
-      "id": "base",
-      "installed_bytes": 57720463453,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/base"
-      },
-      "repository": "Qwen/Qwen-Image-Edit-2511",
-      "revision": "6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/image/qwen-image-lightning-diffusers",
-      "sha256": "7f83fbc800db09a653ee15bac1f931286f6baffc19fd197a6adaae756f49294d"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [
-        "github.com",
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ],
-      "mode": "public"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 60570071749,
-      "memory_bytes": 8000000000,
-      "processes": 4096,
-      "temporary_bytes": 70000000000,
-      "timeout_seconds": 14400
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
-  "dependencies": [
-    {
-      "content_sha256": "7fa25bbb20d9a73c4c406406de8c75432fffce413fcad6cd62aba13cbd178412",
-      "kind": "model-version",
-      "publisher": "qwen",
-      "slug": "qwen-image-edit-2511-6f3ccc0b"
-    }
-  ],
   "execution": {
-    "harness": {
-      "content_sha256": "9776b37f1bf4596bf4a0c75c3e9fd6da8b25050aa2cefded2ffd5e35baa583b2",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "diffusers"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/image/qwen-image-lightning-diffusers"
+      },
+      "dockerfile": "adapters/image/qwen-image-lightning-diffusers/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -185,6 +107,7 @@
       "path": "/outputs"
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Fast four-step Candidate for one-or-two-reference Qwen Image Edit 2511 jobs on one Spark, pairing the exact official BF16 base with ModelTC/lightx2v's selected LoRA and published shift-3 schedule. Its declared admission envelope is 126.00 GB unified memory including reserve and 150.57 GB peak installation disk; choose FP8mixed ComfyUI when memory or installation headroom matters.",
@@ -205,13 +128,426 @@
     ],
     "title": "Qwen Image Edit 2511 Lightning diffusers single Spark"
   },
-  "model": {
-    "content_sha256": "81b3740b87d1175cf27cac995d42b89c8a6cc2486508a16104ddb9c6fa31cca2",
-    "kind": "model-version",
-    "publisher": "qwen",
-    "slug": "qwen-image-edit-2511-lightning"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "qwen-image-edit-2511-lightning-4steps-v1-0-bf16",
+          "id": "primary-qwen-image-edit-2511-lightning-4steps-v1-0-bf16",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "c079c053955a827f11499960c53228535da09500f967ad67f468552f6731bbbd",
+        "kind": "model",
+        "publisher": "qwen",
+        "slug": "qwen-image-edit-2511-lightning"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-gitattributes",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-metadata-gitattributes",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-readme",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-metadata-readme",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-model-index",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-metadata-model-index",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-added-tokens",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-processor-added-tokens",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-chat-template",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-processor-chat-template",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-merges",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-processor-merges",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-preprocessor",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-processor-preprocessor",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-special-tokens",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-processor-special-token",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-tokenizer",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-processor-tokenizer",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-tokenizer-config",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-processor-tokenizer-con",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-video-config",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-processor-video-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-vocab",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-processor-vocab",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "scheduler-config",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-scheduler-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "text-encoder-config",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-text-encoder-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "text-encoder-generation-config",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-text-encoder-generation",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "text-encoder-weights-01",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-text-encoder-weights-01",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "text-encoder-weights-02",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-text-encoder-weights-02",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "text-encoder-weights-03",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-text-encoder-weights-03",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "text-encoder-weights-04",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-text-encoder-weights-04",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "text-encoder-index",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-text-encoder-index",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-added-tokens",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-tokenizer-added-tokens",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-chat-template",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-tokenizer-chat-template",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-merges",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-tokenizer-merges",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-special-tokens",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-tokenizer-special-token",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-tokenizer-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-vocab",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-tokenizer-vocab",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "transformer-config",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-transformer-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "transformer-weights-01",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-transformer-weights-01",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "transformer-weights-02",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-transformer-weights-02",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "transformer-weights-03",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-transformer-weights-03",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "transformer-weights-04",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-transformer-weights-04",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "transformer-weights-05",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-transformer-weights-05",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "transformer-index",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-transformer-index",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vae-config",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-vae-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vae-weights",
+          "id": "dependency-qwen-image-edit-2511-6f3ccc0b-vae-weights",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "dependency-qwen-image-edit-2511-6f3ccc0b",
+      "model": {
+        "content_sha256": "c1edcd8e0d91ea84afce6b8f6b68fbe0196100d690ce672076300d085bfef032",
+        "kind": "model",
+        "publisher": "qwen",
+        "slug": "qwen-image-edit-2511-6f3ccc0b"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "ModelTC",
@@ -225,41 +561,43 @@
     "arguments": [
       {
         "name": "pipeline",
+        "setting": null,
         "value": "image-to-image"
       },
       {
         "name": "output-mime",
+        "setting": null,
         "value": "image/png"
       },
       {
         "name": "num-inference-steps",
+        "setting": null,
         "value": 4
       },
       {
         "name": "true-cfg-scale",
+        "setting": null,
         "value": "1"
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 42
       }
     ],
-    "distribution": {
-      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7",
-      "kind": "runtime-distribution",
-      "publisher": "huggingface",
-      "slug": "diffusers-0-40-0-cuda13-arm64"
-    },
+    "engine": "diffusers",
     "entrypoint": [
       "/opt/vonk/bin/diffusers-job"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
@@ -270,41 +608,15 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/outputs",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 3600
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": true,
-          "source": "inputs",
-          "target": "/inputs"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -322,10 +634,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "target",
-          "base"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -366,13 +674,29 @@
         "name": "bounded-lightning-image-edit"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "artifact.mime.image-png"
-        ],
-        "interface": "image-job"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "image-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.png",
+            "input_path": "/inputs",
+            "input_slots": {
+              "image": "qualification/fixtures/tiny.png",
+              "prompt": "qualification/fixtures/prompt.txt"
+            },
+            "output_path": "/outputs",
+            "output_slot": "image",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "image-job"
+    }
   }
 }

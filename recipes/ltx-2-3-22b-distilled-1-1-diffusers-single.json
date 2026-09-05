@@ -1,442 +1,34 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 46149345334,
-      "id": "target",
-      "installed_bytes": 46149345334,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/target"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2.3/resolve/6b5a83e3045eaf8e46cfa0acce512412aa2b9cce/ltx-2.3-22b-distilled-1.1.safetensors",
-      "revision": "sha256:b33b7fe4bbfe084f484be4aaf90b0f1d95dca20d403ac4c0e037eb8c4f0af7cc",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 995743560,
-      "id": "spatial-upscaler",
-      "installed_bytes": 995743560,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/spatial-upscaler"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2.3/resolve/6b5a83e3045eaf8e46cfa0acce512412aa2b9cce/ltx-2.3-spatial-upscaler-x2-1.1.safetensors",
-      "revision": "sha256:5f416311fa8172b65af67530758964708d29a317b830d689a51143b7f91913ed",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 2960,
-      "id": "gemma-config",
-      "installed_bytes": 2960,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-config"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/config.json",
-      "revision": "sha256:fb4508a46270e0af2778cd72c191f290984e6a5fa8f155895544507d3803dbe9",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 168,
-      "id": "gemma-generation-config",
-      "installed_bytes": 168,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-generation-config"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/generation_config.json",
-      "revision": "sha256:1b77c4610a27b5aa38b72be8a757da4e14849bc4e3dc641ccbe923a0e226ed9a",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 1685223128,
-      "id": "gemma-weight-01",
-      "installed_bytes": 1685223128,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-weight-01"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00001-of-00011.safetensors",
-      "revision": "sha256:cbc6e8132e4998652d4c8c219f0ca8da10a143606c806c8728a7513d49bbcdb3",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 4987027384,
-      "id": "gemma-weight-02",
-      "installed_bytes": 4987027384,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-weight-02"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00002-of-00011.safetensors",
-      "revision": "sha256:b95e7ab472b88860e53c71ef078fe8ba4c85e3727b8f0a0bcc130c1f4a2b9ab9",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 4844749824,
-      "id": "gemma-weight-03",
-      "installed_bytes": 4844749824,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-weight-03"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00003-of-00011.safetensors",
-      "revision": "sha256:3731e7c18280d0e9dcbcfadaecaeb8b81fa7f7f15e702ea3d1b4f8eb1b5919f7",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 4954909736,
-      "id": "gemma-weight-04",
-      "installed_bytes": 4954909736,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-weight-04"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00004-of-00011.safetensors",
-      "revision": "sha256:e9d1ce8b472f2cc6d70c7885388f50fb3a5f233cf1d4784f6a4be1732547a74c",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 4907664584,
-      "id": "gemma-weight-05",
-      "installed_bytes": 4907664584,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-weight-05"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00005-of-00011.safetensors",
-      "revision": "sha256:cb478659a67b2e34a920f237387a1d7a8208325aa2fc285198a97603f15af1e6",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 4954909792,
-      "id": "gemma-weight-06",
-      "installed_bytes": 4954909792,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-weight-06"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00006-of-00011.safetensors",
-      "revision": "sha256:a190581d871980f9309f40d5c2b4db99d76737d7ed743d531bac95443f6b7145",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 4907664584,
-      "id": "gemma-weight-07",
-      "installed_bytes": 4907664584,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-weight-07"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00007-of-00011.safetensors",
-      "revision": "sha256:c347de789ff34be642e4fe7ab8e142ca5e3d833d70cb9ec5127a86af0e2ecfed",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 4954909792,
-      "id": "gemma-weight-08",
-      "installed_bytes": 4954909792,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-weight-08"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00008-of-00011.safetensors",
-      "revision": "sha256:2ec7525b89b083d774f4abbdd1f2d7ee190f0475658875cf700530a2faa84a4f",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 4907664584,
-      "id": "gemma-weight-09",
-      "installed_bytes": 4907664584,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-weight-09"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00009-of-00011.safetensors",
-      "revision": "sha256:2b0117ecf1d83691bb875c66a9f2b47e450a87fdfe90915bc7b9e9946c37a650",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 4954909792,
-      "id": "gemma-weight-10",
-      "installed_bytes": 4954909792,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-weight-10"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00010-of-00011.safetensors",
-      "revision": "sha256:d9f665a743589231adb812c61c9d8e295c9a68c31d3e87976ae032f1de4e46b6",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 2689808472,
-      "id": "gemma-weight-11",
-      "installed_bytes": 2689808472,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-weight-11"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model-00011-of-00011.safetensors",
-      "revision": "sha256:999bf4706d4f616e558eec486667fc2b66f8d0f9c106e1d1f802458fb349b0db",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 108642,
-      "id": "gemma-model-index",
-      "installed_bytes": 108642,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-model-index"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/text_encoder/model.safetensors.index.json",
-      "revision": "sha256:9c85ee65d0de363846bebbe921f43a641c8e0979471560ba8a76f6eec35693c8",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 35,
-      "id": "gemma-added-tokens",
-      "installed_bytes": 35,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-added-tokens"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/added_tokens.json",
-      "revision": "sha256:50b2f405ba56a26d4913fd772089992252d7f942123cc0a034d96424221ba946",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 1532,
-      "id": "gemma-chat-template",
-      "installed_bytes": 1532,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-chat-template"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/chat_template.jinja",
-      "revision": "sha256:7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 570,
-      "id": "gemma-preprocessor-config",
-      "installed_bytes": 570,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-preprocessor-config"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/preprocessor_config.json",
-      "revision": "sha256:f688d6bb20c5017601c4011de7ca656da8485b540b05013efdaf986c0fcc918d",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 70,
-      "id": "gemma-processor-config",
-      "installed_bytes": 70,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-processor-config"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/processor_config.json",
-      "revision": "sha256:3ffd5f11778dc73e2b69b3c00535e4121e1badf7018136263cd17b5b34fbaa53",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 662,
-      "id": "gemma-special-tokens-map",
-      "installed_bytes": 662,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-special-tokens-map"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/special_tokens_map.json",
-      "revision": "sha256:2f7b0adf4fb469770bb1490e3e35df87b1dc578246c5e7e6fc76ecf33213a397",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 33384568,
-      "id": "gemma-tokenizer",
-      "installed_bytes": 33384568,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-tokenizer"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/tokenizer.json",
-      "revision": "sha256:4667f2089529e8e7657cfb6d1c19910ae71ff5f28aa7ab2ff2763330affad795",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 4689074,
-      "id": "gemma-tokenizer-model",
-      "installed_bytes": 4689074,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-tokenizer-model"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/tokenizer.model",
-      "revision": "sha256:1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 1155387,
-      "id": "gemma-tokenizer-config",
-      "installed_bytes": 1155387,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/gemma-tokenizer-config"
-      },
-      "repository": "https://huggingface.co/Lightricks/LTX-2/resolve/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/tokenizer/tokenizer_config.json",
-      "revision": "sha256:983c80895e7b188911f5ccfbb4f780a4e73fb3131ed2080a3e847ef8623cfdca",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 20480,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/video/ltx23-sync-native-disk",
-      "sha256": "ff999ce2e86a89952e47149812ffccbd1cbe5ef3faa537fd4412f959e27e85ad"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [
-        "github.com",
-        "codeload.github.com",
-        "download.pytorch.org",
-        "download-r2.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ],
-      "mode": "public"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 103933874234,
-      "memory_bytes": 8000000000,
-      "processes": 4096,
-      "temporary_bytes": 191867748468,
-      "timeout_seconds": 14400
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
-  "dependencies": [
-    {
-      "content_sha256": "603bcc4d23cdf4c97b66149660c57199e7cac4809eab276fd9e6db87b828eb9d",
-      "kind": "model-version",
-      "publisher": "lightricks",
-      "slug": "ltx-2-gemma3-text-encoder-dfcc2108"
-    }
-  ],
   "execution": {
-    "harness": {
-      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "pytorch-pipeline"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "a52783d8d73ace53998d4e740515e9942e73072dc7fbd5322917eb382a0bc7fb",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/video/ltx23-sync-native-disk"
+      },
+      "dockerfile": "adapters/video/ltx23-sync-native-disk/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "codeload.github.com",
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -494,6 +86,7 @@
       "path": "/outputs"
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Still-deployable historical disk-offload Candidate using the exact official native LTX 1.3.0 pipeline with the LTX-2.3 distilled 1.1 checkpoint/upscaler pair and Gemma 3 companion closure. The 93 GB startup and 77 GB steady declarations conservatively retain the previously reviewed 31 GB disk-versus-CPU offload advantage, 8 GB growth, and 8 GB system reserve; the upstream decode-tiling OOM fix is not used to lower admission bounds without a physical canary. Physical Spark acceptance remains pending. LTX-2.5 BF16 is the current fidelity baseline and LTX-2.5 FP8-cast is the current lower-memory canary; this immutable execution contract remains available for reproducibility.",
@@ -515,13 +108,294 @@
     ],
     "title": "LTX-2.3 22B distilled 1.1 native synchronized single Spark (superseded)"
   },
-  "model": {
-    "content_sha256": "57a7e234e464fdc380cf17414aa2f0c7aaa3ff654c05a774efab60c7386a69a8",
-    "kind": "model-version",
-    "publisher": "lightricks",
-    "slug": "ltx-2-3-22b-distilled-1-1"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "target",
+          "id": "primary-target",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "spatial-upscaler",
+          "id": "primary-spatial-upscaler",
+          "mount": {
+            "read_only": true,
+            "target": "/models/spatial-upscaler"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "8b5ab5c2b8cc6c07121549963ce0ffd3fbb12c6701695a23a26b44108fcf08f7",
+        "kind": "model",
+        "publisher": "lightricks",
+        "slug": "ltx-2-3-22b-distilled-1-1"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "gemma-config",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-config"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-generation-config",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-generation-c",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-generation-config"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-weight-01",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-01",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-weight-01"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-weight-02",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-02",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-weight-02"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-weight-03",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-03",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-weight-03"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-weight-04",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-04",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-weight-04"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-weight-05",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-05",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-weight-05"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-weight-06",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-06",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-weight-06"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-weight-07",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-07",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-weight-07"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-weight-08",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-08",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-weight-08"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-weight-09",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-09",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-weight-09"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-weight-10",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-10",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-weight-10"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-weight-11",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-11",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-weight-11"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-model-index",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-model-index",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-model-index"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-added-tokens",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-added-tokens",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-added-tokens"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-chat-template",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-chat-templat",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-chat-template"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-preprocessor-config",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-preprocessor",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-preprocessor-config"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-processor-config",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-processor-co",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-processor-config"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-special-tokens-map",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-special-toke",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-special-tokens-map"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-tokenizer",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-tokenizer",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-tokenizer"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-tokenizer-model",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-tokenizer-mo",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-tokenizer-model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "gemma-tokenizer-config",
+          "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-tokenizer-co",
+          "mount": {
+            "read_only": true,
+            "target": "/models/gemma-tokenizer-config"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108",
+      "model": {
+        "content_sha256": "6c4e9463edca55a034cba24987d6dbc9dd6510c55d74e4b8ed9dcff72d6c97cc",
+        "kind": "model",
+        "publisher": "lightricks",
+        "slug": "ltx-2-gemma3-text-encoder-dfcc2108"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "Lightricks"
@@ -533,37 +407,38 @@
     "arguments": [
       {
         "name": "entrypoint",
+        "setting": null,
         "value": "/opt/vonk/source/run.py"
       },
       {
         "name": "output-mime",
+        "setting": null,
         "value": "video/mp4"
       },
       {
         "name": "timeout-seconds",
+        "setting": null,
         "value": 3600
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 0
       }
     ],
-    "distribution": {
-      "content_sha256": "ca55b66b31169753e7226f6e1cf35239dfc3ce33d74fdc1767ffbfd96991e184",
-      "kind": "runtime-distribution",
-      "publisher": "lightricks",
-      "slug": "ltx2-pipelines-1-3-arm64"
-    },
+    "engine": "pytorch-pipeline",
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "secret": null,
         "value": "expandable_segments:True"
       }
     ],
@@ -574,41 +449,15 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/outputs",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 3600
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": true,
-          "source": "inputs",
-          "target": "/inputs"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -626,32 +475,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "target",
-          "spatial-upscaler",
-          "gemma-config",
-          "gemma-generation-config",
-          "gemma-weight-01",
-          "gemma-weight-02",
-          "gemma-weight-03",
-          "gemma-weight-04",
-          "gemma-weight-05",
-          "gemma-weight-06",
-          "gemma-weight-07",
-          "gemma-weight-08",
-          "gemma-weight-09",
-          "gemma-weight-10",
-          "gemma-weight-11",
-          "gemma-model-index",
-          "gemma-added-tokens",
-          "gemma-chat-template",
-          "gemma-preprocessor-config",
-          "gemma-processor-config",
-          "gemma-special-tokens-map",
-          "gemma-tokenizer",
-          "gemma-tokenizer-model",
-          "gemma-tokenizer-config"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -693,13 +516,28 @@
         "name": "bounded-synchronized-video"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "artifact.mime.video-mp4"
-        ],
-        "interface": "video-job"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "video-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/prompt.txt",
+            "input_path": "/inputs",
+            "input_slots": {
+              "prompt": "qualification/fixtures/prompt.txt"
+            },
+            "output_path": "/outputs",
+            "output_slot": "video",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "video-job"
+    }
   }
 }

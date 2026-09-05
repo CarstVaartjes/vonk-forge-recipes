@@ -66,6 +66,27 @@ def test_model_manifest_deduplicates_download_projection_and_rejects_conflicting
         ModelDefinition.model_validate(document)
 
 
+def test_zero_byte_model_file_requires_the_empty_content_digest() -> None:
+    document = load("model-definition.json")
+    document["files"] = [{**document["files"][0], "size_bytes": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}]
+    ModelDefinition.model_validate(document)
+    document["files"][0]["sha256"] = "0" * 64
+    with pytest.raises(ValidationError, match="zero-byte"):
+        ModelDefinition.model_validate(document)
+
+
+def test_model_selection_accepts_large_but_bounded_shard_manifests() -> None:
+    recipe = load("recipe-image.json")
+    recipe["models"][0]["files"] = [
+        {**recipe["models"][0]["files"][0], "id": f"file-{index}", "file_id": f"file-{index}"}
+        for index in range(4096)
+    ]
+    RecipeDefinition.model_validate(recipe)
+    recipe["models"][0]["files"].append({**recipe["models"][0]["files"][0], "id": "overflow", "file_id": "overflow"})
+    with pytest.raises(ValidationError, match="at most 4096"):
+        RecipeDefinition.model_validate(recipe)
+
+
 def test_capability_facts_are_set_semantics_and_normalized() -> None:
     document = load("model-definition.json")
     facts = document["capabilities"]["facts"]

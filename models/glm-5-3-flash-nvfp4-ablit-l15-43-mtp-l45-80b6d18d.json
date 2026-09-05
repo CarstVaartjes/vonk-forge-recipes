@@ -1,0 +1,412 @@
+{
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "chat",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "code-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "image-understanding",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "text-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "video-understanding",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "80b6d18d77e3020f2384597081d405f19893f101",
+      "source_url": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45"
+    },
+    "schema_version": 2
+  },
+  "files": [
+    {
+      "id": "gitattributes-d1a8f4a1",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d1a8f4a1d2e3787c5956393d9306365ebefe1912cb76828870682b1ab16f5c27",
+      "size_bytes": 1635
+    },
+    {
+      "id": "ablit-meta-0ee97d0d",
+      "path": "ABLIT_META.json",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "0ee97d0d4086ca33eebeb0acd7b0bd113b904e9c8430655609cf1f8243bf7ff6",
+      "size_bytes": 10190
+    },
+    {
+      "id": "credits-d3771150",
+      "path": "CREDITS.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d37711506ba2cc557f66d11e09e4bf8fb21346991822b63e3ffc9b05f9d4dfe6",
+      "size_bytes": 2544
+    },
+    {
+      "id": "layer-map-666b2fe0",
+      "path": "LAYER_MAP.json",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "666b2fe0563d061cda91c0f5382b1c5ab3aabeb8984d58c31911a236b44d3420",
+      "size_bytes": 10445
+    },
+    {
+      "id": "license-f4f9c3f4",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "f4f9c3f443838247ab77ac1e7b7475828ce59dcb252df5d4de08be0c70f28dc4",
+      "size_bytes": 1592
+    },
+    {
+      "id": "license-keys-f4f9c3f4",
+      "path": "LICENSE-KEYS.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "f4f9c3f443838247ab77ac1e7b7475828ce59dcb252df5d4de08be0c70f28dc4",
+      "size_bytes": 1592
+    },
+    {
+      "id": "method-fea52eb6",
+      "path": "METHOD.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "fea52eb6db87af491c067b360a952fb0fd62413b570b76cd9a6573f7f8293a20",
+      "size_bytes": 6427
+    },
+    {
+      "id": "readme-d56e57c9",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d56e57c9c0fe3e58746cd0d8fcbc0d0d8a5ee60e004b0aa1daf86a5d9b857362",
+      "size_bytes": 11858
+    },
+    {
+      "id": "responsible-use-895e5deb",
+      "path": "RESPONSIBLE_USE.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "895e5deb2153b95a32a356579513a5ebdafb218ca549448c5777b1b1d5591feb",
+      "size_bytes": 3795
+    },
+    {
+      "id": "variations-869a8d45",
+      "path": "VARIATIONS.json",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "869a8d4588af5c6f4d0b12b14fefacc60cf36a7e9eda4eabd583cc75c7543092",
+      "size_bytes": 1869
+    },
+    {
+      "id": "refusal-bf-oproj-2f032225",
+      "path": "ablit/refusal_direction_glm53_bf_oproj.pt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "2f0322252b909f01a6cc24cf4bbca26a084353304bfd8f81aea7db2fb5dfcb2d",
+      "size_bytes": 18328
+    },
+    {
+      "id": "refusal-dealign-late-ef297400",
+      "path": "ablit/refusal_direction_glm53_dealign_late.pt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "ef297400d306f2dd83a7df9036af613ed18dbce68c7d4469b23587dc112cee2a",
+      "size_bytes": 18356
+    },
+    {
+      "id": "chat-template-34d5ee66",
+      "path": "chat_template.jinja",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34d5ee66b12fa6446cdae131c352b8f68cd85369e0e6fda115583805fada3891",
+      "size_bytes": 10644
+    },
+    {
+      "id": "chat-template-thinking-off-dbf7ca0b",
+      "path": "chat_template.thinking-off.jinja",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "dbf7ca0b9c264338c9d6f005c4a7135e00fb4f98c05f47d7b076dd4c27ee030d",
+      "size_bytes": 11326
+    },
+    {
+      "id": "config-29c9f417",
+      "path": "config.json",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "29c9f4171196910e99b9c069d6b76c56e3cdcd0f436dc1bacbc9513c9a7529ac",
+      "size_bytes": 53876
+    },
+    {
+      "id": "generation-config-e9e93ee3",
+      "path": "generation_config.json",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "e9e93ee323895fa5e8e160f1f9826fd98b6bd7b3935435f423c3554f88bfa3ac",
+      "size_bytes": 177
+    },
+    {
+      "id": "model-00001-6b6846fb",
+      "path": "model-00001-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "6b6846fb90f68505d54dc143c517cfb6dc5e6e0e83d1335942027a8c54369abb",
+      "size_bytes": 20002894272
+    },
+    {
+      "id": "model-00002-f8316bca",
+      "path": "model-00002-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f8316bca081630a5a6b2c8cf6a2a760e9f409649d7759d3dbc9777d9d91bcca2",
+      "size_bytes": 20002803476
+    },
+    {
+      "id": "model-00003-d26cf1a3",
+      "path": "model-00003-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d26cf1a3b639a9d57c0c0b2408d0f5bfaf9fc2e014b4260507aae7b864f1b5e3",
+      "size_bytes": 20000726256
+    },
+    {
+      "id": "model-00004-49aac2ea",
+      "path": "model-00004-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "49aac2eac1603c0c4d94946247c2cc2c2685892b0c4144b3dafea82176001bab",
+      "size_bytes": 20000334356
+    },
+    {
+      "id": "model-00005-2c054fbe",
+      "path": "model-00005-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2c054fbed9c3aa34d244ac85c04921da43fe737b9dc09dcb1799ccbd7399c093",
+      "size_bytes": 20000724512
+    },
+    {
+      "id": "model-00006-d6705ac4",
+      "path": "model-00006-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d6705ac4e7b7f5fd0793ee412f129ee6a3f2c12a85cfcda78612e93c95c3d7e9",
+      "size_bytes": 20000331556
+    },
+    {
+      "id": "model-00007-93ac9987",
+      "path": "model-00007-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "93ac9987d461a8303d710c7c580df06a5fe2c5a6c0365bda7b003878329b7f6d",
+      "size_bytes": 20000725168
+    },
+    {
+      "id": "model-00008-7d61f4c2",
+      "path": "model-00008-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7d61f4c2571edc07e42c5a090525826bfdd6726fe4a1c14bc142d3999d2917d3",
+      "size_bytes": 20000332348
+    },
+    {
+      "id": "model-00009-6ded1f8c",
+      "path": "model-00009-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "6ded1f8c734a8436a8d6d2f9559c861ddcf801f48b3e8dbe448378fecb4dff7e",
+      "size_bytes": 20000722232
+    },
+    {
+      "id": "model-00010-2bfd1774",
+      "path": "model-00010-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2bfd177459f4c1dbeadeded0936ce569ef72f198464dbe974c4e7cda5fb90bbd",
+      "size_bytes": 10215657876
+    },
+    {
+      "id": "model-index-015faae9",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "015faae91e8189c7553f1d48ec3d0694b8c02b282d7f58af2d7b4064a81ce4c0",
+      "size_bytes": 17055736
+    },
+    {
+      "id": "model-mtp-378f8875",
+      "path": "model_mtp.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "378f887512bffee45555d95856fd37ca5e804e16aed1dfee18da1ff06bbe5af7",
+      "size_bytes": 7618560424
+    },
+    {
+      "id": "processor-config-aae38374",
+      "path": "processor_config.json",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "aae38374c94b08cc9b0547c6e64f05b951bd9735cea571c6988f5ed552bed3ed",
+      "size_bytes": 909
+    },
+    {
+      "id": "recipe-yaml-c90bdcc6",
+      "path": "recipe.yaml",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "c90bdcc6cd502c44af68ed4017740fe448d213f537a1a9509dc6437b9833c673",
+      "size_bytes": 1200
+    },
+    {
+      "id": "tokenizer-0cfe2c09",
+      "path": "tokenizer.json",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "0cfe2c099a7702a0921abc315ee039deb51e4a34b4818fc509bd27fa3dc4acc1",
+      "size_bytes": 20217541
+    },
+    {
+      "id": "tokenizer-config-77af7d47",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "77af7d4769cd62c107b90495cac9b0ba81573c86486821bfba2980c04285ec7a",
+      "size_bytes": 790
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "mixed",
+    "quantization": "compressed-tensors-nvfp4-w4a4"
+  },
+  "identity": {
+    "family": {
+      "publisher": "redhatai",
+      "slug": "glm-5-3-redhat-compressed",
+      "title": "GLM 5.3 Red Hat compressed-tensors"
+    },
+    "model": {
+      "architecture": "GLM5 Next sparse and linear attention multimodal MoE transformer",
+      "publisher": "drowzeys",
+      "slug": "glm-5-3-flash-nvfp4-ablit-l15-43-mtp-l45",
+      "title": "GLM 5.3 Flash NVFP4 Abliterated L15-43 MTP L45"
+    },
+    "publisher": "drowzeys",
+    "slug": "glm-5-3-flash-nvfp4-ablit-l15-43-mtp-l45-80b6d18d",
+    "variant": "GLM 5.3 Flash NVFP4 Abliterated L15-43 MTP L45 80b6d18d",
+    "version": "80b6d18d77e3020f2384597081d405f19893f101"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Z.AI",
+      "Red Hat AI",
+      "DealignAI",
+      "drowzeys"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "MIT",
+    "url": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45/blob/80b6d18d77e3020f2384597081d405f19893f101/LICENSE-KEYS.md"
+  },
+  "limits": {
+    "context_tokens": 1048576,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "metadata": {
+    "description": "Complete fail-closed 32-file inventory of Drowzeys' gated Red Hat compressed-tensors checkpoint at 80b6d18d77e3020f2384597081d405f19893f101. Installation requires prior acceptance of the publisher's responsible-use gate and a read-only Hugging Face token supplied through the Controller secret path.",
+    "tags": [
+      "abliterated",
+      "candidate",
+      "compressed-tensors",
+      "dflash2",
+      "drowzeys",
+      "gated",
+      "glm-5.3",
+      "multimodal",
+      "nvfp4",
+      "w4a4"
+    ]
+  },
+  "modalities": [
+    "image",
+    "text",
+    "video"
+  ],
+  "parameters": {
+    "active": 18000000000,
+    "total": 321320000000
+  },
+  "provenance": {
+    "attribution": [
+      "Z.AI",
+      "Red Hat AI",
+      "DealignAI",
+      "drowzeys"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "80b6d18d77e3020f2384597081d405f19893f101",
+    "source_url": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45",
+    "revision": "80b6d18d77e3020f2384597081d405f19893f101"
+  }
+}

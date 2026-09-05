@@ -1,0 +1,144 @@
+{
+  "capabilities": {
+    "facts": [],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "8da79f23859810bbb806e7a25eaf70489a9441c5",
+      "source_url": "https://github.com/CarstVaartjes/vonk-forge-recipes"
+    },
+    "schema_version": 2
+  },
+  "files": [
+    {
+      "id": "metadata-gitattributes-11ad7efa2497",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "readme-505b2b8d7626",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "505b2b8d7626f14865e70de71d5c49025e9137af23082ce531108ad7c5fe49e7",
+      "size_bytes": 13736
+    },
+    {
+      "id": "config-699f34f0fc64",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "699f34f0fc645d29ebffa5767fb59e6ae6ec98e3a4605485eb9913256d0df7e6",
+      "size_bytes": 1924
+    },
+    {
+      "id": "configuration-nemotron-h-2b3ce37ae17d",
+      "path": "configuration_nemotron_h.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "2b3ce37ae17d9d2eb78594d9cc6becc57037245d828e69727d6f3cd45125a197",
+      "size_bytes": 13669
+    },
+    {
+      "id": "generation-config-dc5b4dbdff26",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "dc5b4dbdff26634eaab9c50adc4b58d01aaed0d1648214f1694665373c905516",
+      "size_bytes": 150
+    },
+    {
+      "id": "weights-f0114c95f8a8",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f0114c95f8a85fb19de1d05a8733abfffcd9a15203512ab715fe75a1d33b5c83",
+      "size_bytes": 5884780728
+    },
+    {
+      "id": "model-safetensors-index-7f36923c963a",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7f36923c963a0f95a331ef25aa9d51dc6e3d701eff53c58596c1c481e1d5e4b7",
+      "size_bytes": 77663
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "nemotron",
+      "title": "NVIDIA Nemotron"
+    },
+    "model": {
+      "architecture": "LatentMoE hybrid Mamba-2, attention, and sparse mixture-of-experts transformer",
+      "publisher": "nvidia",
+      "slug": "nemotron-3-super-120b-a12b",
+      "title": "Nemotron 3 Super 120B-A12B"
+    },
+    "publisher": "nvidia",
+    "slug": "nemotron-3-super-120b-a12b-bf16-mtpv2",
+    "variant": "Nemotron 3 Super BF16 MTPv2 c929f8a5",
+    "version": "BF16 MTPv2 c929f8a5"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/"
+  },
+  "limits": {
+    "context_tokens": 1048576,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "metadata": {
+    "description": "Exact NVIDIA MTPv2 speculative-decoding companion for Nemotron 3 Super target checkpoints; this is not a standalone language model.",
+    "tags": [
+      "nvidia",
+      "nemotron",
+      "language",
+      "mtp",
+      "speculative-decoding",
+      "companion"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "parameters": {
+    "active": null,
+    "total": 2942325248
+  },
+  "provenance": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "c929f8a55d0527fea9f58b4cedc9e0c855cfc421",
+    "source_url": "https://huggingface.co/nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2",
+    "revision": "c929f8a55d0527fea9f58b4cedc9e0c855cfc421"
+  }
+}

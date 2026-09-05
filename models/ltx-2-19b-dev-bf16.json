@@ -1,0 +1,121 @@
+{
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "audio-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "video-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
+      "source_url": "https://huggingface.co/Lightricks/LTX-2"
+    },
+    "schema_version": 2
+  },
+  "files": [
+    {
+      "id": "target",
+      "path": "ltx-2-19b-dev.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4a51e70aad660e55648d6f0b8af15c8acaaffc06e2a4ae7c7cb01ede701981a8",
+      "size_bytes": 43285058242
+    },
+    {
+      "id": "distilled-lora",
+      "path": "ltx-2-19b-distilled-lora-384.safetensors",
+      "roles": [
+        "adapter"
+      ],
+      "sha256": "2718f89582003cbb5b616635f18c091641917a3f3e5a2f2ad0fb3d5fdd153534",
+      "size_bytes": 7674558424
+    },
+    {
+      "id": "spatial-upscaler",
+      "path": "ltx-2-spatial-upscaler-x2-1.0.safetensors",
+      "roles": [
+        "upscaler"
+      ],
+      "sha256": "3160fabf8edf0bc4dd8de40353a180813b111ce586b655ad54af9a7b8c6736de",
+      "size_bytes": 995765578
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "lightricks",
+      "slug": "ltx",
+      "title": "LTX"
+    },
+    "model": {
+      "architecture": "19B synchronized audio-video diffusion transformer with Gemma text conditioning",
+      "publisher": "lightricks",
+      "slug": "ltx-2",
+      "title": "LTX-2"
+    },
+    "publisher": "lightricks",
+    "slug": "ltx-2-19b-dev-bf16",
+    "variant": "LTX-2 19B dev BF16",
+    "version": "19b-dev-bf16-dfcc2108"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Lightricks"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "LTX-2 Community License Agreement",
+    "url": "https://huggingface.co/Lightricks/LTX-2/blob/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": 65,
+    "resolution_pixels": 393216,
+    "sample_rate_hz": 24000
+  },
+  "metadata": {
+    "description": "Exact executable checkpoint closure at dfcc2108 with a digest-bound Gemma 3 companion dependency.",
+    "tags": [
+      "lightricks",
+      "ltx",
+      "video",
+      "audio",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "audio",
+    "video"
+  ],
+  "parameters": {
+    "active": null,
+    "total": 19000000000
+  },
+  "provenance": {
+    "attribution": [
+      "Lightricks"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
+    "source_url": "https://huggingface.co/Lightricks/LTX-2"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/Lightricks/LTX-2",
+    "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
+  }
+}

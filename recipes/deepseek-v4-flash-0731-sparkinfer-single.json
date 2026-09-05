@@ -1,79 +1,24 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 106862974754,
-      "id": "weights",
-      "installed_bytes": 106862974754,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/weights"
-      },
-      "repository": "0xSero/deepseek-v4-flash-0731-spark",
-      "revision": "ce5ff0f1efb2e184aafc759d281bfae47d3a359c",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/deepseek/sparkinfer-single",
-      "sha256": "1677352bcb1f338c4ab102359c0b8cab0abe76e02adac72788f20fb91e3a7908"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [],
-      "mode": "none"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 12000000000,
-      "memory_bytes": 4000000000,
-      "processes": 4096,
-      "temporary_bytes": 16000000000,
-      "timeout_seconds": 3600
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
   "execution": {
-    "harness": {
-      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "vllm"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "2e077489a83a0360952828051fe7f7a32c1801e5ce8436d85f7267583d614ff4",
+        "platform": "linux/arm64",
+        "repository": "ghcr.io/0xsero/deepseek-v4-flash-0731-spark-sparkinfer"
+      },
+      "context": {
+        "path": "adapters/deepseek/sparkinfer-single"
+      },
+      "dockerfile": "adapters/deepseek/sparkinfer-single/Dockerfile",
+      "network": {
+        "hosts": [],
+        "mode": "none"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -89,6 +34,7 @@
       "port": 8000
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Executable single-Spark Candidate for 0xSero's public REAP-K216 EXL3 checkpoint and immutable SparkInfer TP1 runtime. The offline adapter losslessly coalesces the hydrated TP4 archive, verifies it, builds the K64 DSpark draft, runs the SparkInfer self-test, and starts the OpenAI-compatible endpoint.",
@@ -107,13 +53,2109 @@
     ],
     "title": "DeepSeek V4 Flash 0731 REAP-K216 SparkInfer single Spark"
   },
-  "model": {
-    "content_sha256": "b8544185008065aa5cf9db526c2b13006653e57fb0fa0b47427c9a7604b4c4d4",
-    "kind": "model-version",
-    "publisher": "0xsero",
-    "slug": "deepseek-v4-flash-0731-sparkinfer-exl3-k216"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-c96667522371",
+          "id": "primary-metadata-c96667522371",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "calibration-coverage-21c70f0f186f",
+          "id": "primary-calibration-coverage-21c70f0f186f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-manifest-1e35cbbc33a9",
+          "id": "primary-exl3-manifest-1e35cbbc33a9",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-5018cee4256e",
+          "id": "primary-readme-5018cee4256e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "reap-k216-plan-cc2bdaf189eb",
+          "id": "primary-reap-k216-plan-cc2bdaf189eb",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "reap-k216-structured-report-8395e7380d0f",
+          "id": "primary-reap-k216-structured-report-8395e7380d0f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "carried-001-3b67ae29f1e7",
+          "id": "primary-carried-001-3b67ae29f1e7",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "carried-002-1dd46d58c304",
+          "id": "primary-carried-002-1dd46d58c304",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "carried-003-575d17d00109",
+          "id": "primary-carried-003-575d17d00109",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "carried-004-464e5a703972",
+          "id": "primary-carried-004-464e5a703972",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "carried-005-081607b99e61",
+          "id": "primary-carried-005-081607b99e61",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-b001ec830804",
+          "id": "primary-config-b001ec830804",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-000-tp4-rank0-2ed7ae798a79",
+          "id": "primary-exl3-layer-000-tp4-rank0-2ed7ae798a79",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-000-tp4-rank1-90c67773b779",
+          "id": "primary-exl3-layer-000-tp4-rank1-90c67773b779",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-000-tp4-rank2-a7e6fbde0239",
+          "id": "primary-exl3-layer-000-tp4-rank2-a7e6fbde0239",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-000-tp4-rank3-cc8f331941e8",
+          "id": "primary-exl3-layer-000-tp4-rank3-cc8f331941e8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-001-tp4-rank0-ef77ff985ddc",
+          "id": "primary-exl3-layer-001-tp4-rank0-ef77ff985ddc",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-001-tp4-rank1-757e55e7b62d",
+          "id": "primary-exl3-layer-001-tp4-rank1-757e55e7b62d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-001-tp4-rank2-fe5bfd3a86b1",
+          "id": "primary-exl3-layer-001-tp4-rank2-fe5bfd3a86b1",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-001-tp4-rank3-7ef9934382d2",
+          "id": "primary-exl3-layer-001-tp4-rank3-7ef9934382d2",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-002-tp4-rank0-fd83b6203d48",
+          "id": "primary-exl3-layer-002-tp4-rank0-fd83b6203d48",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-002-tp4-rank1-fc8f361a725d",
+          "id": "primary-exl3-layer-002-tp4-rank1-fc8f361a725d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-002-tp4-rank2-e25b13fe2203",
+          "id": "primary-exl3-layer-002-tp4-rank2-e25b13fe2203",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-002-tp4-rank3-ea74ad7636c3",
+          "id": "primary-exl3-layer-002-tp4-rank3-ea74ad7636c3",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-003-tp4-rank0-129c52f4b51a",
+          "id": "primary-exl3-layer-003-tp4-rank0-129c52f4b51a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-003-tp4-rank1-a0c906456bc5",
+          "id": "primary-exl3-layer-003-tp4-rank1-a0c906456bc5",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-003-tp4-rank2-f80d99805847",
+          "id": "primary-exl3-layer-003-tp4-rank2-f80d99805847",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-003-tp4-rank3-39bfc7af6cb5",
+          "id": "primary-exl3-layer-003-tp4-rank3-39bfc7af6cb5",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-004-tp4-rank0-41bd9609bc3d",
+          "id": "primary-exl3-layer-004-tp4-rank0-41bd9609bc3d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-004-tp4-rank1-5ff71db04ff6",
+          "id": "primary-exl3-layer-004-tp4-rank1-5ff71db04ff6",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-004-tp4-rank2-51b3f6af073f",
+          "id": "primary-exl3-layer-004-tp4-rank2-51b3f6af073f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-004-tp4-rank3-f6f896dcaddf",
+          "id": "primary-exl3-layer-004-tp4-rank3-f6f896dcaddf",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-005-tp4-rank0-515d9488070d",
+          "id": "primary-exl3-layer-005-tp4-rank0-515d9488070d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-005-tp4-rank1-a8c779cb75f5",
+          "id": "primary-exl3-layer-005-tp4-rank1-a8c779cb75f5",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-005-tp4-rank2-46c03373c1ea",
+          "id": "primary-exl3-layer-005-tp4-rank2-46c03373c1ea",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-005-tp4-rank3-e5079e13d929",
+          "id": "primary-exl3-layer-005-tp4-rank3-e5079e13d929",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-006-tp4-rank0-84df9fbc89e9",
+          "id": "primary-exl3-layer-006-tp4-rank0-84df9fbc89e9",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-006-tp4-rank1-efbbcd1e873d",
+          "id": "primary-exl3-layer-006-tp4-rank1-efbbcd1e873d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-006-tp4-rank2-7e63fa021816",
+          "id": "primary-exl3-layer-006-tp4-rank2-7e63fa021816",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-006-tp4-rank3-309e59765e9d",
+          "id": "primary-exl3-layer-006-tp4-rank3-309e59765e9d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-007-tp4-rank0-017cca519dcf",
+          "id": "primary-exl3-layer-007-tp4-rank0-017cca519dcf",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-007-tp4-rank1-db419a77553f",
+          "id": "primary-exl3-layer-007-tp4-rank1-db419a77553f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-007-tp4-rank2-d96512b28909",
+          "id": "primary-exl3-layer-007-tp4-rank2-d96512b28909",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-007-tp4-rank3-7f6d30bab852",
+          "id": "primary-exl3-layer-007-tp4-rank3-7f6d30bab852",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-008-tp4-rank0-eb90fdf4f71d",
+          "id": "primary-exl3-layer-008-tp4-rank0-eb90fdf4f71d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-008-tp4-rank1-d02d4d0a83a9",
+          "id": "primary-exl3-layer-008-tp4-rank1-d02d4d0a83a9",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-008-tp4-rank2-c48f91523b9a",
+          "id": "primary-exl3-layer-008-tp4-rank2-c48f91523b9a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-008-tp4-rank3-6aeee4645f05",
+          "id": "primary-exl3-layer-008-tp4-rank3-6aeee4645f05",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-009-tp4-rank0-f7260514923b",
+          "id": "primary-exl3-layer-009-tp4-rank0-f7260514923b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-009-tp4-rank1-97f7dcf83e12",
+          "id": "primary-exl3-layer-009-tp4-rank1-97f7dcf83e12",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-009-tp4-rank2-f2443da192a4",
+          "id": "primary-exl3-layer-009-tp4-rank2-f2443da192a4",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-009-tp4-rank3-298b941f710b",
+          "id": "primary-exl3-layer-009-tp4-rank3-298b941f710b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-010-tp4-rank0-3c0d06169962",
+          "id": "primary-exl3-layer-010-tp4-rank0-3c0d06169962",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-010-tp4-rank1-f834ba564e4f",
+          "id": "primary-exl3-layer-010-tp4-rank1-f834ba564e4f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-010-tp4-rank2-66c1ef28ead3",
+          "id": "primary-exl3-layer-010-tp4-rank2-66c1ef28ead3",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-010-tp4-rank3-3194cbc8280e",
+          "id": "primary-exl3-layer-010-tp4-rank3-3194cbc8280e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-011-tp4-rank0-d09505de01db",
+          "id": "primary-exl3-layer-011-tp4-rank0-d09505de01db",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-011-tp4-rank1-ce6dd9996568",
+          "id": "primary-exl3-layer-011-tp4-rank1-ce6dd9996568",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-011-tp4-rank2-37f29fb5bb03",
+          "id": "primary-exl3-layer-011-tp4-rank2-37f29fb5bb03",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-011-tp4-rank3-8654cc6e9f9c",
+          "id": "primary-exl3-layer-011-tp4-rank3-8654cc6e9f9c",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-012-tp4-rank0-405a5d64601f",
+          "id": "primary-exl3-layer-012-tp4-rank0-405a5d64601f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-012-tp4-rank1-ededad8e71b4",
+          "id": "primary-exl3-layer-012-tp4-rank1-ededad8e71b4",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-012-tp4-rank2-a54eb92af135",
+          "id": "primary-exl3-layer-012-tp4-rank2-a54eb92af135",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-012-tp4-rank3-0a5c55092595",
+          "id": "primary-exl3-layer-012-tp4-rank3-0a5c55092595",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-013-tp4-rank0-37a09bf614d9",
+          "id": "primary-exl3-layer-013-tp4-rank0-37a09bf614d9",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-013-tp4-rank1-bc53f31d31b1",
+          "id": "primary-exl3-layer-013-tp4-rank1-bc53f31d31b1",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-013-tp4-rank2-5aa2bdb6d189",
+          "id": "primary-exl3-layer-013-tp4-rank2-5aa2bdb6d189",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-013-tp4-rank3-443b10caa2b8",
+          "id": "primary-exl3-layer-013-tp4-rank3-443b10caa2b8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-014-tp4-rank0-686c1a7c38ba",
+          "id": "primary-exl3-layer-014-tp4-rank0-686c1a7c38ba",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-014-tp4-rank1-b37cf18c239a",
+          "id": "primary-exl3-layer-014-tp4-rank1-b37cf18c239a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-014-tp4-rank2-d2e669baf345",
+          "id": "primary-exl3-layer-014-tp4-rank2-d2e669baf345",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-014-tp4-rank3-fc086c4686ec",
+          "id": "primary-exl3-layer-014-tp4-rank3-fc086c4686ec",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-015-tp4-rank0-992d91fd7546",
+          "id": "primary-exl3-layer-015-tp4-rank0-992d91fd7546",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-015-tp4-rank1-b53e9264096e",
+          "id": "primary-exl3-layer-015-tp4-rank1-b53e9264096e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-015-tp4-rank2-65ea65a04c06",
+          "id": "primary-exl3-layer-015-tp4-rank2-65ea65a04c06",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-015-tp4-rank3-66d70fb8c615",
+          "id": "primary-exl3-layer-015-tp4-rank3-66d70fb8c615",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-016-tp4-rank0-0e1a9e33a5e8",
+          "id": "primary-exl3-layer-016-tp4-rank0-0e1a9e33a5e8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-016-tp4-rank1-623d8cb404f7",
+          "id": "primary-exl3-layer-016-tp4-rank1-623d8cb404f7",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-016-tp4-rank2-6bbbfeae934e",
+          "id": "primary-exl3-layer-016-tp4-rank2-6bbbfeae934e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-016-tp4-rank3-f3c30be4d6af",
+          "id": "primary-exl3-layer-016-tp4-rank3-f3c30be4d6af",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-017-tp4-rank0-af020791da1a",
+          "id": "primary-exl3-layer-017-tp4-rank0-af020791da1a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-017-tp4-rank1-3eaae33bfd55",
+          "id": "primary-exl3-layer-017-tp4-rank1-3eaae33bfd55",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-017-tp4-rank2-80fafa95a817",
+          "id": "primary-exl3-layer-017-tp4-rank2-80fafa95a817",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-017-tp4-rank3-62b0d3dfe992",
+          "id": "primary-exl3-layer-017-tp4-rank3-62b0d3dfe992",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-018-tp4-rank0-bd3b2050a73b",
+          "id": "primary-exl3-layer-018-tp4-rank0-bd3b2050a73b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-018-tp4-rank1-5224e8b270af",
+          "id": "primary-exl3-layer-018-tp4-rank1-5224e8b270af",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-018-tp4-rank2-d4e67eb116c1",
+          "id": "primary-exl3-layer-018-tp4-rank2-d4e67eb116c1",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-018-tp4-rank3-58cceff7e2ef",
+          "id": "primary-exl3-layer-018-tp4-rank3-58cceff7e2ef",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-019-tp4-rank0-4ce5ab67992a",
+          "id": "primary-exl3-layer-019-tp4-rank0-4ce5ab67992a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-019-tp4-rank1-b2a6fc8eef77",
+          "id": "primary-exl3-layer-019-tp4-rank1-b2a6fc8eef77",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-019-tp4-rank2-646716d95299",
+          "id": "primary-exl3-layer-019-tp4-rank2-646716d95299",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-019-tp4-rank3-c8806d8f8b88",
+          "id": "primary-exl3-layer-019-tp4-rank3-c8806d8f8b88",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-020-tp4-rank0-bcfd8eb4a5c3",
+          "id": "primary-exl3-layer-020-tp4-rank0-bcfd8eb4a5c3",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-020-tp4-rank1-41ae07243897",
+          "id": "primary-exl3-layer-020-tp4-rank1-41ae07243897",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-020-tp4-rank2-05f741701b92",
+          "id": "primary-exl3-layer-020-tp4-rank2-05f741701b92",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-020-tp4-rank3-1abebbca06cf",
+          "id": "primary-exl3-layer-020-tp4-rank3-1abebbca06cf",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-021-tp4-rank0-1c64dbb9ff1a",
+          "id": "primary-exl3-layer-021-tp4-rank0-1c64dbb9ff1a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-021-tp4-rank1-abbd224ce24c",
+          "id": "primary-exl3-layer-021-tp4-rank1-abbd224ce24c",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-021-tp4-rank2-9f4d265944e8",
+          "id": "primary-exl3-layer-021-tp4-rank2-9f4d265944e8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-021-tp4-rank3-b5f45c994c70",
+          "id": "primary-exl3-layer-021-tp4-rank3-b5f45c994c70",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-022-tp4-rank0-e8c2fed157f0",
+          "id": "primary-exl3-layer-022-tp4-rank0-e8c2fed157f0",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-022-tp4-rank1-27e4a34cbf29",
+          "id": "primary-exl3-layer-022-tp4-rank1-27e4a34cbf29",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-022-tp4-rank2-22ae1130dd07",
+          "id": "primary-exl3-layer-022-tp4-rank2-22ae1130dd07",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-022-tp4-rank3-87fb87529772",
+          "id": "primary-exl3-layer-022-tp4-rank3-87fb87529772",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-023-tp4-rank0-086fa43479a9",
+          "id": "primary-exl3-layer-023-tp4-rank0-086fa43479a9",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-023-tp4-rank1-825b83e34ee8",
+          "id": "primary-exl3-layer-023-tp4-rank1-825b83e34ee8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-023-tp4-rank2-4391a13427ab",
+          "id": "primary-exl3-layer-023-tp4-rank2-4391a13427ab",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-023-tp4-rank3-9736e7c2ac44",
+          "id": "primary-exl3-layer-023-tp4-rank3-9736e7c2ac44",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-024-tp4-rank0-0b8a96f103ac",
+          "id": "primary-exl3-layer-024-tp4-rank0-0b8a96f103ac",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-024-tp4-rank1-d8334acba9f4",
+          "id": "primary-exl3-layer-024-tp4-rank1-d8334acba9f4",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-024-tp4-rank2-a743ea220a97",
+          "id": "primary-exl3-layer-024-tp4-rank2-a743ea220a97",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-024-tp4-rank3-cf6a68c075d4",
+          "id": "primary-exl3-layer-024-tp4-rank3-cf6a68c075d4",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-025-tp4-rank0-97eca50e22e8",
+          "id": "primary-exl3-layer-025-tp4-rank0-97eca50e22e8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-025-tp4-rank1-ec1bfda45074",
+          "id": "primary-exl3-layer-025-tp4-rank1-ec1bfda45074",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-025-tp4-rank2-5a4e0d5dfec0",
+          "id": "primary-exl3-layer-025-tp4-rank2-5a4e0d5dfec0",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-025-tp4-rank3-0d459d2c62fd",
+          "id": "primary-exl3-layer-025-tp4-rank3-0d459d2c62fd",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-026-tp4-rank0-c7dd71fb7afe",
+          "id": "primary-exl3-layer-026-tp4-rank0-c7dd71fb7afe",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-026-tp4-rank1-fdf40841e40e",
+          "id": "primary-exl3-layer-026-tp4-rank1-fdf40841e40e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-026-tp4-rank2-b64a2ce13657",
+          "id": "primary-exl3-layer-026-tp4-rank2-b64a2ce13657",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-026-tp4-rank3-b541b91a856b",
+          "id": "primary-exl3-layer-026-tp4-rank3-b541b91a856b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-027-tp4-rank0-f061af5dd3fc",
+          "id": "primary-exl3-layer-027-tp4-rank0-f061af5dd3fc",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-027-tp4-rank1-2759706db3ab",
+          "id": "primary-exl3-layer-027-tp4-rank1-2759706db3ab",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-027-tp4-rank2-cd46c708eaf7",
+          "id": "primary-exl3-layer-027-tp4-rank2-cd46c708eaf7",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-027-tp4-rank3-50ffee4c3e91",
+          "id": "primary-exl3-layer-027-tp4-rank3-50ffee4c3e91",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-028-tp4-rank0-2b11da263ed2",
+          "id": "primary-exl3-layer-028-tp4-rank0-2b11da263ed2",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-028-tp4-rank1-078cf58e69b6",
+          "id": "primary-exl3-layer-028-tp4-rank1-078cf58e69b6",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-028-tp4-rank2-9d4e9faa03c6",
+          "id": "primary-exl3-layer-028-tp4-rank2-9d4e9faa03c6",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-028-tp4-rank3-277e35b30c8a",
+          "id": "primary-exl3-layer-028-tp4-rank3-277e35b30c8a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-029-tp4-rank0-efaf52e0440d",
+          "id": "primary-exl3-layer-029-tp4-rank0-efaf52e0440d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-029-tp4-rank1-f321cc884e0e",
+          "id": "primary-exl3-layer-029-tp4-rank1-f321cc884e0e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-029-tp4-rank2-7463b776a9f8",
+          "id": "primary-exl3-layer-029-tp4-rank2-7463b776a9f8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-029-tp4-rank3-9654b28806f7",
+          "id": "primary-exl3-layer-029-tp4-rank3-9654b28806f7",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-030-tp4-rank0-a487d1a02527",
+          "id": "primary-exl3-layer-030-tp4-rank0-a487d1a02527",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-030-tp4-rank1-e16cbe8cc085",
+          "id": "primary-exl3-layer-030-tp4-rank1-e16cbe8cc085",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-030-tp4-rank2-f521c70dcac0",
+          "id": "primary-exl3-layer-030-tp4-rank2-f521c70dcac0",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-030-tp4-rank3-7c6c81459a9b",
+          "id": "primary-exl3-layer-030-tp4-rank3-7c6c81459a9b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-031-tp4-rank0-2bc969daf8c8",
+          "id": "primary-exl3-layer-031-tp4-rank0-2bc969daf8c8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-031-tp4-rank1-3a819ea5d0a1",
+          "id": "primary-exl3-layer-031-tp4-rank1-3a819ea5d0a1",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-031-tp4-rank2-ec7382339909",
+          "id": "primary-exl3-layer-031-tp4-rank2-ec7382339909",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-031-tp4-rank3-08e1ef0f13b9",
+          "id": "primary-exl3-layer-031-tp4-rank3-08e1ef0f13b9",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-032-tp4-rank0-e50ca46e85d3",
+          "id": "primary-exl3-layer-032-tp4-rank0-e50ca46e85d3",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-032-tp4-rank1-eee1a358d01e",
+          "id": "primary-exl3-layer-032-tp4-rank1-eee1a358d01e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-032-tp4-rank2-88382a762c61",
+          "id": "primary-exl3-layer-032-tp4-rank2-88382a762c61",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-032-tp4-rank3-dc78935745ed",
+          "id": "primary-exl3-layer-032-tp4-rank3-dc78935745ed",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-033-tp4-rank0-1d5c5b861265",
+          "id": "primary-exl3-layer-033-tp4-rank0-1d5c5b861265",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-033-tp4-rank1-b7857f2d6957",
+          "id": "primary-exl3-layer-033-tp4-rank1-b7857f2d6957",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-033-tp4-rank2-bbea14b64d82",
+          "id": "primary-exl3-layer-033-tp4-rank2-bbea14b64d82",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-033-tp4-rank3-0307befa69de",
+          "id": "primary-exl3-layer-033-tp4-rank3-0307befa69de",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-034-tp4-rank0-7a38a6c99b14",
+          "id": "primary-exl3-layer-034-tp4-rank0-7a38a6c99b14",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-034-tp4-rank1-6497203977ca",
+          "id": "primary-exl3-layer-034-tp4-rank1-6497203977ca",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-034-tp4-rank2-ad100a4f7e5e",
+          "id": "primary-exl3-layer-034-tp4-rank2-ad100a4f7e5e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-034-tp4-rank3-234074e21708",
+          "id": "primary-exl3-layer-034-tp4-rank3-234074e21708",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-035-tp4-rank0-1148903f45c1",
+          "id": "primary-exl3-layer-035-tp4-rank0-1148903f45c1",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-035-tp4-rank1-9a966c55d886",
+          "id": "primary-exl3-layer-035-tp4-rank1-9a966c55d886",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-035-tp4-rank2-5aa09b21e486",
+          "id": "primary-exl3-layer-035-tp4-rank2-5aa09b21e486",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-035-tp4-rank3-a0dcf1be5d6e",
+          "id": "primary-exl3-layer-035-tp4-rank3-a0dcf1be5d6e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-036-tp4-rank0-180b275719d6",
+          "id": "primary-exl3-layer-036-tp4-rank0-180b275719d6",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-036-tp4-rank1-ac58a21e30a4",
+          "id": "primary-exl3-layer-036-tp4-rank1-ac58a21e30a4",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-036-tp4-rank2-c21f357a8dc9",
+          "id": "primary-exl3-layer-036-tp4-rank2-c21f357a8dc9",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-036-tp4-rank3-f88133d5b158",
+          "id": "primary-exl3-layer-036-tp4-rank3-f88133d5b158",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-037-tp4-rank0-6324acdc6ba1",
+          "id": "primary-exl3-layer-037-tp4-rank0-6324acdc6ba1",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-037-tp4-rank1-579772d800dd",
+          "id": "primary-exl3-layer-037-tp4-rank1-579772d800dd",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-037-tp4-rank2-a8a73d3bfd1d",
+          "id": "primary-exl3-layer-037-tp4-rank2-a8a73d3bfd1d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-037-tp4-rank3-f3acfb372879",
+          "id": "primary-exl3-layer-037-tp4-rank3-f3acfb372879",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-038-tp4-rank0-f3a0d0a500ec",
+          "id": "primary-exl3-layer-038-tp4-rank0-f3a0d0a500ec",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-038-tp4-rank1-5b6b5f042d45",
+          "id": "primary-exl3-layer-038-tp4-rank1-5b6b5f042d45",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-038-tp4-rank2-779fc22ae838",
+          "id": "primary-exl3-layer-038-tp4-rank2-779fc22ae838",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-038-tp4-rank3-aa44e9a19674",
+          "id": "primary-exl3-layer-038-tp4-rank3-aa44e9a19674",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-039-tp4-rank0-2e9fed9e069e",
+          "id": "primary-exl3-layer-039-tp4-rank0-2e9fed9e069e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-039-tp4-rank1-9a76ef155f11",
+          "id": "primary-exl3-layer-039-tp4-rank1-9a76ef155f11",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-039-tp4-rank2-320c34a1b599",
+          "id": "primary-exl3-layer-039-tp4-rank2-320c34a1b599",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-039-tp4-rank3-9d330607f4b2",
+          "id": "primary-exl3-layer-039-tp4-rank3-9d330607f4b2",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-040-tp4-rank0-e9daf4767106",
+          "id": "primary-exl3-layer-040-tp4-rank0-e9daf4767106",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-040-tp4-rank1-ca97c546fcd6",
+          "id": "primary-exl3-layer-040-tp4-rank1-ca97c546fcd6",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-040-tp4-rank2-67c774e6161c",
+          "id": "primary-exl3-layer-040-tp4-rank2-67c774e6161c",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-040-tp4-rank3-38f600369d07",
+          "id": "primary-exl3-layer-040-tp4-rank3-38f600369d07",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-041-tp4-rank0-898ccbc4be5f",
+          "id": "primary-exl3-layer-041-tp4-rank0-898ccbc4be5f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-041-tp4-rank1-c43e6ff6f389",
+          "id": "primary-exl3-layer-041-tp4-rank1-c43e6ff6f389",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-041-tp4-rank2-b7f550120406",
+          "id": "primary-exl3-layer-041-tp4-rank2-b7f550120406",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-041-tp4-rank3-891504ed0401",
+          "id": "primary-exl3-layer-041-tp4-rank3-891504ed0401",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-042-tp4-rank0-a6ce463b2a42",
+          "id": "primary-exl3-layer-042-tp4-rank0-a6ce463b2a42",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-042-tp4-rank1-cac5c7991e2a",
+          "id": "primary-exl3-layer-042-tp4-rank1-cac5c7991e2a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-042-tp4-rank2-0ace607796ef",
+          "id": "primary-exl3-layer-042-tp4-rank2-0ace607796ef",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exl3-layer-042-tp4-rank3-3ab52063d50d",
+          "id": "primary-exl3-layer-042-tp4-rank3-3ab52063d50d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-5fccff80f55a",
+          "id": "primary-generation-config-5fccff80f55a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-61af5c0782a8",
+          "id": "primary-model-safetensors-index-61af5c0782a8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "quantization-config-b076bf3012ab",
+          "id": "primary-quantization-config-b076bf3012ab",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tier-bitmap-3-0bpw-235bef5658aa",
+          "id": "primary-tier-bitmap-3-0bpw-235bef5658aa",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-8f9f37ca37fd",
+          "id": "primary-tokenizer-8f9f37ca37fd",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-6ac8c8dc065e",
+          "id": "primary-tokenizer-config-6ac8c8dc065e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "f86019d26c91b40a410ce17a79096d4426eb0ebd875a82038664761ae3ad0f9a",
+        "kind": "model",
+        "publisher": "0xsero",
+        "slug": "deepseek-v4-flash-0731-sparkinfer-exl3-k216"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "DeepSeek AI",
@@ -130,43 +2172,46 @@
     "arguments": [
       {
         "name": "served-model-name",
+        "setting": null,
         "value": "deepseek-v4-flash-0731-spark"
       },
       {
         "name": "kv-cache-dtype",
+        "setting": null,
         "value": "nvfp4_ds_mla"
       },
       {
         "name": "max-model-len",
-        "value": 262144
+        "setting": "context_tokens",
+        "value": null
       },
       {
         "name": "max-num-seqs",
-        "value": 4
+        "setting": "concurrency",
+        "value": null
       },
       {
         "name": "max-num-batched-tokens",
+        "setting": null,
         "value": 8224
       },
       {
         "name": "max-cudagraph-capture-size",
+        "setting": null,
         "value": 6
       },
       {
         "name": "gpu-memory-utilization",
+        "setting": null,
         "value": "0.9465"
       },
       {
         "name": "enable-prefix-caching",
+        "setting": null,
         "value": true
       }
     ],
-    "distribution": {
-      "content_sha256": "ca6bf55bee41b7325ac6b9366ee7c5f612ff8135a5d095a7a5c8b2e4d95d210a",
-      "kind": "runtime-distribution",
-      "publisher": "0xsero",
-      "slug": "sparkinfer-dsv4-single"
-    },
+    "engine": "vllm",
     "entrypoint": [
       "/opt/vonk/bin/vllm",
       "serve",
@@ -175,22 +2220,22 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "VLLM_NO_USAGE_STATS",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "VLLM_USE_BREAKABLE_CUDAGRAPH",
+        "secret": null,
         "value": "0"
       }
     ],
@@ -201,36 +2246,23 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/v1/models",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 3600
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -248,9 +2280,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "weights"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -293,15 +2322,46 @@
         "name": "bounded-greedy-chat"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "endpoint.healthy",
-          "chat.nonempty",
-          "chat.max-output-64"
-        ],
-        "interface": "openai"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "deepseek-v4-flash-0731-spark"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
   }
 }

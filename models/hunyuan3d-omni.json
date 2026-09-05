@@ -1,24 +1,94 @@
 {
-  "schema_version": 1,
-  "kind": "model",
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "3d-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "70e803bfb4e127d534049d8ab8c8cb511780d485",
+      "source_url": "https://huggingface.co/tencent/Hunyuan3D-Omni"
+    },
+    "schema_version": 2
+  },
+  "files": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "roles": [
+        "entrypoint"
+      ],
+      "sha256": "ab0f993eb838a5f4156bcf4b155913bf3b9562fefc7e34e186de3423f180bc09",
+      "size_bytes": 25729134701
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
   "identity": {
+    "family": {
+      "publisher": "tencent",
+      "slug": "hunyuan3d",
+      "title": "Hunyuan3D"
+    },
+    "model": {
+      "architecture": "upstream-native generation pipeline",
+      "publisher": "tencent",
+      "slug": "hunyuan3d-omni",
+      "title": "Hunyuan3D-Omni"
+    },
     "publisher": "tencent",
-    "slug": "hunyuan3d-omni"
+    "slug": "hunyuan3d-omni",
+    "variant": "Hunyuan3D-Omni",
+    "version": "Hunyuan3D-Omni"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "tencent"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License",
+    "url": "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/blob/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8/License.txt"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
   },
   "metadata": {
-    "title": "Hunyuan3D-Omni",
-    "description": "Hunyuan3D-Omni model family.",
+    "description": "Immutable public snapshot at 70e803bf.",
     "tags": [
       "tencent",
       "three-d",
-      "generation"
+      "candidate"
     ]
   },
-  "model_group": {
-    "kind": "model-group",
-    "publisher": "tencent",
-    "slug": "hunyuan3d",
-    "content_sha256": "792baf65962ca0743524c48860c7b23edea0e5ec4006e7f10092a004703b735d"
+  "modalities": [
+    "3d"
+  ],
+  "parameters": {
+    "active": null,
+    "total": null
   },
-  "architecture": "upstream-native generation pipeline"
+  "provenance": {
+    "attribution": [
+      "tencent"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "70e803bfb4e127d534049d8ab8c8cb511780d485",
+    "source_url": "https://huggingface.co/tencent/Hunyuan3D-Omni"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/tencent/Hunyuan3D-Omni",
+    "revision": "70e803bfb4e127d534049d8ab8c8cb511780d485"
+  }
 }

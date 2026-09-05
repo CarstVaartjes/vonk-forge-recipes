@@ -6,6 +6,7 @@ document is self describing when it is copied into a recipe package.
 """
 from __future__ import annotations
 
+import hashlib
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
@@ -96,7 +97,7 @@ class ModelFile(_ModelContract):
     id: StrictStr = Field(min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]{0,63}$")
     path: StrictStr = Field(min_length=1, max_length=512)
     sha256: Sha256
-    size_bytes: StrictInt = Field(ge=1)
+    size_bytes: StrictInt = Field(ge=0)
     roles: list[Annotated[StrictStr, Field(pattern=_TOKEN)]] = Field(min_length=1, max_length=16)
 
     @field_validator("path")
@@ -115,6 +116,12 @@ class ModelFile(_ModelContract):
         if len(value) != len(set(value)):
             raise ValueError("file roles must be unique")
         return value
+
+    @model_validator(mode="after")
+    def empty_file_has_empty_digest(self) -> ModelFile:
+        if self.size_bytes == 0 and self.sha256 != hashlib.sha256(b"").hexdigest():
+            raise ValueError("zero-byte files must use the empty-content SHA-256")
+        return self
 
 
 class ModelFormat(_ModelContract):

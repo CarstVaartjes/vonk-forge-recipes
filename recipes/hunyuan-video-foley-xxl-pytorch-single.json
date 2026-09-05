@@ -1,116 +1,35 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 18593354027,
-      "id": "target",
-      "installed_bytes": 18593354027,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/target"
-      },
-      "repository": "tencent/HunyuanVideo-Foley",
-      "revision": "3abd4e833b95b8db0fc9c687afc52483a48e9a97",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 1542001977,
-      "id": "siglip2",
-      "installed_bytes": 1542001977,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/siglip2"
-      },
-      "repository": "google/siglip2-base-patch16-512",
-      "revision": "a89f5c5093f902bf39d3cd4d81d2c09867f0724b",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 779815888,
-      "id": "clap",
-      "installed_bytes": 779815888,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/clap"
-      },
-      "repository": "laion/larger_clap_general",
-      "revision": "ada0c23a36c4e8582805bb38fec3905903f18b41",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 20992000,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/audio/hunyuan-video-foley-native",
-      "sha256": "9beb6e1e89c1e8a85c626408b2331c6d60d9e34bcf82d2f6237873e42557ecc0"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ],
-      "mode": "public"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 22915171892,
-      "memory_bytes": 8000000000,
-      "processes": 4096,
-      "temporary_bytes": 41830343784,
-      "timeout_seconds": 14400
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
   "execution": {
-    "harness": {
-      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "pytorch-pipeline"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/audio/hunyuan-video-foley-native"
+      },
+      "dockerfile": "adapters/audio/hunyuan-video-foley-native/Dockerfile",
+      "network": {
+        "hosts": [
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [
+        {
+          "path": "adapters/audio/hunyuan-video-foley-native/patch-offline-models.py"
+        }
+      ],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -193,6 +112,7 @@
       "path": "/outputs"
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Installable Candidate for text-conditioned Foley generation from one video, with the exact official XXL checkpoint and pinned local-only SigLIP2 and CLAP encoders; physical Spark acceptance remains pending.",
@@ -207,13 +127,30 @@
     ],
     "title": "HunyuanVideo Foley XXL PyTorch single Spark"
   },
-  "model": {
-    "content_sha256": "716391a1c902b99bf9102c2ce91bd9441e70c2d105e9b571f9a0e72bf56e94aa",
-    "kind": "model-version",
-    "publisher": "tencent",
-    "slug": "hunyuan-video-foley-xxl"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "snapshot",
+          "id": "primary-snapshot",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "af8db07ceba90230d7c97518fd991fff69a84ab86b77566cd13a8b0c5ff4f68c",
+        "kind": "model",
+        "publisher": "tencent",
+        "slug": "hunyuan-video-foley-xxl"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "tencent"
@@ -225,37 +162,38 @@
     "arguments": [
       {
         "name": "entrypoint",
+        "setting": null,
         "value": "/opt/vonk/source/pipelines/hunyuan_foley_xxl.py"
       },
       {
         "name": "output-mime",
+        "setting": null,
         "value": "audio/wav"
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 1
       },
       {
         "name": "timeout-seconds",
+        "setting": null,
         "value": 3600
       }
     ],
-    "distribution": {
-      "content_sha256": "c7f3e2faa285c3c2cc19db2e093857eb546e0d6a8c0ec26ace08cdc3f4221800",
-      "kind": "runtime-distribution",
-      "publisher": "tencent",
-      "slug": "hunyuan-video-foley-native-df7b005-cuda13-arm64"
-    },
+    "engine": "pytorch-pipeline",
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "secret": null,
         "value": "expandable_segments:True"
       }
     ],
@@ -266,41 +204,15 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/outputs",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 3600
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": true,
-          "source": "inputs",
-          "target": "/inputs"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -318,11 +230,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "target",
-          "siglip2",
-          "clap"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -364,13 +271,29 @@
         "name": "bounded-foley-xxl"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "artifact.mime.audio-wav"
-        ],
-        "interface": "audio-job"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "audio-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/foley-video-1s.mp4",
+            "input_path": "/inputs",
+            "input_slots": {
+              "prompt": "qualification/fixtures/prompt.txt",
+              "video": "qualification/fixtures/foley-video-1s.mp4"
+            },
+            "output_path": "/outputs",
+            "output_slot": "audio",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "audio-job"
+    }
   }
 }

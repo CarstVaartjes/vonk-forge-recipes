@@ -1,117 +1,32 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 7751105712,
-      "id": "target",
-      "installed_bytes": 7751105712,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/target"
-      },
-      "repository": "https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b/resolve/5f526678002e43af5551dadb73ce2e8c91b43afe/split_files/diffusion_models/flux-2-klein-4b.safetensors",
-      "revision": "sha256:ec3d4e733a771f61c052fb4856c48b336c55eaf2c65487c2a1faeb9bbda7a343",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 8044982048,
-      "id": "text-encoder",
-      "installed_bytes": 8044982048,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/text-encoder"
-      },
-      "repository": "https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b/resolve/5f526678002e43af5551dadb73ce2e8c91b43afe/split_files/text_encoders/qwen_3_4b.safetensors",
-      "revision": "sha256:6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 336211292,
-      "id": "vae",
-      "installed_bytes": 336211292,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/vae"
-      },
-      "repository": "https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b/resolve/5f526678002e43af5551dadb73ce2e8c91b43afe/split_files/vae/flux2-vae.safetensors",
-      "revision": "sha256:868fe7b343cc8f3a19dbcfcafbc3d5f888802be3f89bd81b65b3621a066ce8f3",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 51200,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/media/comfyui-core",
-      "sha256": "ab8f73d84fa6b14bf00beb4b3bd6188033759f1607549d9a7ca09d2c07c30b38"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [
-        "codeload.github.com",
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ],
-      "mode": "public"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 16132299052,
-      "memory_bytes": 6000000000,
-      "processes": 4096,
-      "temporary_bytes": 22000000000,
-      "timeout_seconds": 7200
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
   "execution": {
-    "harness": {
-      "content_sha256": "0d97fceaa9a7ab64bf3d826b5d9ca427ea10be79b54a8d4fe9190711c9bf70d6",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "comfyui"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/media/comfyui-core"
+      },
+      "dockerfile": "adapters/media/comfyui-core/Dockerfile",
+      "network": {
+        "hosts": [
+          "codeload.github.com",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -169,6 +84,7 @@
       "path": "/outputs"
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Candidate fast four-step single-Spark core-node ComfyUI text-to-image recipe for FLUX.2 Klein 4B.",
@@ -186,13 +102,52 @@
     ],
     "title": "FLUX.2 Klein 4B ComfyUI single Spark"
   },
-  "model": {
-    "content_sha256": "28309532829893c18291b12dca5e1145514080979d75cd483bd266fa7cf83d11",
-    "kind": "model-version",
-    "publisher": "black-forest-labs",
-    "slug": "flux-2-klein-4b-comfyui-5f526678"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "diffusion",
+          "id": "primary-diffusion",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "text-encoder",
+          "id": "primary-text-encoder",
+          "mount": {
+            "read_only": true,
+            "target": "/models/text-encoder"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vae",
+          "id": "primary-vae",
+          "mount": {
+            "read_only": true,
+            "target": "/models/vae"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "07bc84de5a07ae51b8412544f4851a68246f6fdb2596fbc004d2f060b0a7c23e",
+        "kind": "model",
+        "publisher": "black-forest-labs",
+        "slug": "flux-2-klein-4b-comfyui-5f526678"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "Black Forest Labs",
@@ -205,37 +160,33 @@
     "arguments": [
       {
         "name": "workflow",
+        "setting": null,
         "value": "/opt/vonk/source/workflows/flux-2-klein-4b.json"
       },
       {
         "name": "workflow-sha256",
+        "setting": null,
         "value": "b322f7b92589c49b6d15a4cd935dc12700de9c1f16cde3bba61118fb4dedca1d"
       },
       {
         "name": "output-mime",
+        "setting": null,
         "value": "image/png"
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 0
       }
     ],
-    "distribution": {
-      "content_sha256": "0400a5a7298a57cca1a049ef17baf21ce81c29fa897fbfa157256d4fde931d9c",
-      "kind": "runtime-distribution",
-      "publisher": "comfy-org",
-      "slug": "comfyui-0-34-0-cuda13-arm64"
-    },
+    "engine": "comfyui",
     "entrypoint": [
       "/opt/vonk/bin/comfyui-job"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "COMFYUI_DISABLE_TELEMETRY",
+        "secret": null,
         "value": "1"
       }
     ],
@@ -246,41 +197,15 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/outputs",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 1800
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": true,
-          "source": "inputs",
-          "target": "/inputs"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -298,11 +223,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "target",
-          "text-encoder",
-          "vae"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -345,13 +265,28 @@
         "name": "flux-2-klein-four-step"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "artifact.mime.image-png"
-        ],
-        "interface": "image-job"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "image-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/prompt.txt",
+            "input_path": "/inputs",
+            "input_slots": {
+              "prompt": "qualification/fixtures/prompt.txt"
+            },
+            "output_path": "/outputs",
+            "output_slot": "image",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "image-job"
+    }
   }
 }

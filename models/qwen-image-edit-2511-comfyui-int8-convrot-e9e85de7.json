@@ -1,0 +1,102 @@
+{
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "image-editing",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "e9e85de74a8f48c1e3e2656617626348675a2f21",
+      "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI"
+    },
+    "schema_version": 2
+  },
+  "files": [
+    {
+      "id": "target",
+      "path": "split_files/diffusion_models/qwen_image_edit_2511_int8_convrot.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "11b5af5ac601821d73930c84846c9a158e67177356daf927ce1c8d10f3963829",
+      "size_bytes": 20499083824
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "mixed",
+    "quantization": "int8_tensorwise_convrot"
+  },
+  "identity": {
+    "family": {
+      "publisher": "qwen",
+      "slug": "qwen-image-edit",
+      "title": "Qwen Image Edit"
+    },
+    "model": {
+      "architecture": "20B multimodal diffusion transformer image-editing pipeline",
+      "publisher": "qwen",
+      "slug": "qwen-image-edit",
+      "title": "Qwen Image Edit"
+    },
+    "publisher": "qwen",
+    "slug": "qwen-image-edit-2511-comfyui-int8-convrot-e9e85de7",
+    "variant": "Qwen Image Edit 2511 ComfyUI INT8 ConvRot revision e9e85de7",
+    "version": "comfyui-int8-convrot-e9e85de7"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "Comfy-Org"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/blob/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "metadata": {
+    "description": "Exact Comfy-Org stock-ComfyUI INT8 tensorwise ConvRot Qwen Image Edit 2511 transformer, used with the catalog's immutable scaled-FP8 Qwen-VL encoder and Qwen Image VAE companions.",
+    "tags": [
+      "qwen",
+      "image",
+      "editing",
+      "comfyui",
+      "int8",
+      "convrot",
+      "mixed-precision",
+      "candidate",
+      "spark"
+    ]
+  },
+  "modalities": [
+    "image"
+  ],
+  "parameters": {
+    "active": null,
+    "total": 20000000000
+  },
+  "provenance": {
+    "attribution": [
+      "Qwen",
+      "Comfy-Org"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "e9e85de74a8f48c1e3e2656617626348675a2f21",
+    "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI",
+    "revision": "e9e85de74a8f48c1e3e2656617626348675a2f21"
+  }
+}

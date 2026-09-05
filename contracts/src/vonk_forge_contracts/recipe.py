@@ -70,7 +70,10 @@ class RecipeModelFile(_RecipeContract):
 class RecipeModelSelection(_RecipeContract):
     id: Identifier
     model: ModelReference
-    files: list[RecipeModelFile] = Field(min_length=1, max_length=256)
+    # Large sharded manifests are valid exact model snapshots.  Keep a
+    # bounded upper limit while allowing the catalog's largest current
+    # manifests to be represented without truncating evidence.
+    files: list[RecipeModelFile] = Field(min_length=1, max_length=4096)
 
 
 class BuildContext(_RecipeContract):
@@ -144,7 +147,9 @@ class RecipeSetting(_RecipeContract):
 class RecipeGenerationSettings(_RecipeSettings):
     kind: Literal["generation"]
     context_tokens: RecipeIntegerSetting
-    concurrency: RecipeIntegerSetting
+    # Some engines leave scheduler capacity automatic. Null records that
+    # runtime fact without mistaking a benchmark request count for a limit.
+    concurrency: RecipeIntegerSetting | None = None
     max_batch_tokens: RecipeIntegerSetting | None = None
 
 

@@ -1,0 +1,100 @@
+{
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "image-editing",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "b6a0794717d3f5600f85c5edcdcd0c0eb93d7446",
+      "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI"
+    },
+    "schema_version": 2
+  },
+  "files": [
+    {
+      "id": "target",
+      "path": "split_files/diffusion_models/qwen_image_edit_2511_bf16.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ae42d927b5fac4f278b9a894554c727e619727a63622976f2d95625be4bce08c",
+      "size_bytes": 40861031560
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "bf16"
+  },
+  "identity": {
+    "family": {
+      "publisher": "qwen",
+      "slug": "qwen-image-edit",
+      "title": "Qwen Image Edit"
+    },
+    "model": {
+      "architecture": "20B multimodal diffusion transformer image-editing pipeline",
+      "publisher": "qwen",
+      "slug": "qwen-image-edit",
+      "title": "Qwen Image Edit"
+    },
+    "publisher": "qwen",
+    "slug": "qwen-image-edit-2511-comfyui-b6a07947",
+    "variant": "Qwen Image Edit 2511 ComfyUI revision b6a07947",
+    "version": "comfyui-b6a07947"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "Comfy-Org"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/blob/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "metadata": {
+    "description": "Exact Comfy-Org monolithic BF16 Qwen Image Edit 2511 transformer for core ComfyUI, used with the catalog's immutable scaled-FP8 Qwen-VL encoder and Qwen Image VAE companions.",
+    "tags": [
+      "qwen",
+      "image",
+      "editing",
+      "comfyui",
+      "bf16",
+      "candidate",
+      "spark"
+    ]
+  },
+  "modalities": [
+    "image"
+  ],
+  "parameters": {
+    "active": null,
+    "total": 20000000000
+  },
+  "provenance": {
+    "attribution": [
+      "Qwen",
+      "Comfy-Org"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "b6a0794717d3f5600f85c5edcdcd0c0eb93d7446",
+    "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI",
+    "revision": "b6a0794717d3f5600f85c5edcdcd0c0eb93d7446"
+  }
+}

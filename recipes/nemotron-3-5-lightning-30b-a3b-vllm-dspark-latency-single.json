@@ -1,102 +1,24 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 21583785362,
-      "id": "target",
-      "installed_bytes": 21583785362,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/target"
-      },
-      "repository": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4",
-      "revision": "cc84af2fe71647d87f4486c064f320e1e7535243",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 1349077661,
-      "id": "drafter",
-      "installed_bytes": 1349077661,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/drafter"
-      },
-      "repository": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark",
-      "revision": "d10c6ff40d6e69d1f92e407e027de3eafdb77645",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/nvidia/nemotron",
-      "sha256": "2d619b7a8edd8ef2115725d6120d388a9643ee4d43c6656e85ced65d85d56076"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [],
-      "mode": "none"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 22932862787,
-      "memory_bytes": 8000000000,
-      "processes": 4096,
-      "temporary_bytes": 36000000000,
-      "timeout_seconds": 7200
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
-  "dependencies": [
-    {
-      "content_sha256": "d77c9e910b5e8614aa0de830c57af994571fe95e94e96f8e9ed65317872bc47a",
-      "kind": "model-version",
-      "publisher": "nvidia",
-      "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark"
-    }
-  ],
   "execution": {
-    "harness": {
-      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "vllm"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+        "platform": "linux/arm64",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/nvidia/nemotron"
+      },
+      "dockerfile": "adapters/nvidia/nemotron/Dockerfile",
+      "network": {
+        "hosts": [],
+        "mode": "none"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -112,6 +34,7 @@
       "port": 8000
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Specialized high-context, low-concurrency single-DGX-Spark profile pairing NVIDIA's exact Nemotron 3.5 Lightning NVFP4 target with its official DSpark companion at the declared 1M-token context. Its declared memory contract is tight, so it is not the default Nemotron text profile; physical GB10 latency, acceptance-rate, memory, and output-equivalence canaries are still required.",
@@ -135,13 +58,866 @@
     ],
     "title": "Nemotron 3.5 Lightning 30B-A3B vLLM DSpark 1M latency single Spark (tight)"
   },
-  "model": {
-    "content_sha256": "536e7960466ebea9473c0f687cc84b34afc2ca99a48784a4789afe27b762ac2e",
-    "kind": "model-version",
-    "publisher": "nvidia",
-    "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-eval-results",
+          "id": "primary-metadata-eval-results",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-gitattributes",
+          "id": "primary-metadata-gitattributes",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-license",
+          "id": "primary-metadata-license",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-readme",
+          "id": "primary-metadata-readme",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-accuracy-plot",
+          "id": "primary-metadata-accuracy-plot",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-agentic-coding-benchmarks",
+          "id": "primary-metadata-agentic-coding-benchmarks",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-bias",
+          "id": "primary-metadata-bias",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-chat-template",
+          "id": "primary-tokenizer-chat-template",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration",
+          "id": "primary-configuration",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-explainability",
+          "id": "primary-metadata-explainability",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config",
+          "id": "primary-generation-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "quantization-config",
+          "id": "primary-quantization-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-01",
+          "id": "primary-weights-01",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-02",
+          "id": "primary-weights-02",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-03",
+          "id": "primary-weights-03",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-04",
+          "id": "primary-weights-04",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-05",
+          "id": "primary-weights-05",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-06",
+          "id": "primary-weights-06",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-07",
+          "id": "primary-weights-07",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-08",
+          "id": "primary-weights-08",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-09",
+          "id": "primary-weights-09",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-10",
+          "id": "primary-weights-10",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-11",
+          "id": "primary-weights-11",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-12",
+          "id": "primary-weights-12",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-13",
+          "id": "primary-weights-13",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-14",
+          "id": "primary-weights-14",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-15",
+          "id": "primary-weights-15",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-16",
+          "id": "primary-weights-16",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-17",
+          "id": "primary-weights-17",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-18",
+          "id": "primary-weights-18",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-19",
+          "id": "primary-weights-19",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-20",
+          "id": "primary-weights-20",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-21",
+          "id": "primary-weights-21",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-22",
+          "id": "primary-weights-22",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-23",
+          "id": "primary-weights-23",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-24",
+          "id": "primary-weights-24",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-25",
+          "id": "primary-weights-25",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-26",
+          "id": "primary-weights-26",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-27",
+          "id": "primary-weights-27",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-28",
+          "id": "primary-weights-28",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-29",
+          "id": "primary-weights-29",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-30",
+          "id": "primary-weights-30",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-31",
+          "id": "primary-weights-31",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-32",
+          "id": "primary-weights-32",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-33",
+          "id": "primary-weights-33",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-34",
+          "id": "primary-weights-34",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-35",
+          "id": "primary-weights-35",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-36",
+          "id": "primary-weights-36",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-37",
+          "id": "primary-weights-37",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-38",
+          "id": "primary-weights-38",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-39",
+          "id": "primary-weights-39",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-40",
+          "id": "primary-weights-40",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-41",
+          "id": "primary-weights-41",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-42",
+          "id": "primary-weights-42",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-43",
+          "id": "primary-weights-43",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-44",
+          "id": "primary-weights-44",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-45",
+          "id": "primary-weights-45",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-46",
+          "id": "primary-weights-46",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-47",
+          "id": "primary-weights-47",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-48",
+          "id": "primary-weights-48",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-49",
+          "id": "primary-weights-49",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-50",
+          "id": "primary-weights-50",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-51",
+          "id": "primary-weights-51",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-52",
+          "id": "primary-weights-52",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-index",
+          "id": "primary-weights-index",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-privacy",
+          "id": "primary-metadata-privacy",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-safety",
+          "id": "primary-metadata-safety",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens",
+          "id": "primary-special-tokens",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer",
+          "id": "primary-tokenizer",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config",
+          "id": "primary-tokenizer-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "7daa16f65c1ba46f9e36dd7b1f6468d13a188486126f4035619b67556ac2c323",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-gitattributes",
+          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-metadata-",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-license",
+          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-metadat-2",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-readme",
+          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-metadat-3",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration",
+          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-configura",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "quantization-config",
+          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-quantizat",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights",
+          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-weights",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark",
+      "model": {
+        "content_sha256": "27cc3fc052ab03ff0789dac156c317db52e7363330d4387be73f33805c82df36",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "NVIDIA Corporation"
@@ -153,63 +929,71 @@
     "arguments": [
       {
         "name": "served-model-name",
+        "setting": null,
         "value": "nemotron-3-5-lightning"
       },
       {
         "name": "max-model-len",
-        "value": 1048576
+        "setting": "context_tokens",
+        "value": null
       },
       {
         "name": "max-num-seqs",
-        "value": 1
+        "setting": "concurrency",
+        "value": null
       },
       {
         "name": "gpu-memory-utilization",
+        "setting": null,
         "value": "0.85"
       },
       {
         "name": "moe-backend",
+        "setting": null,
         "value": "marlin"
       },
       {
         "name": "kv-cache-dtype",
+        "setting": null,
         "value": "fp8"
       },
       {
         "name": "enable-prefix-caching",
+        "setting": null,
         "value": true
       },
       {
         "name": "mamba-backend",
+        "setting": null,
         "value": "flashinfer"
       },
       {
         "name": "mamba-cache-mode",
+        "setting": null,
         "value": "align"
       },
       {
         "name": "speculative-config",
+        "setting": null,
         "value": "{\"model\":\"/models/drafter\",\"num_speculative_tokens\":3}"
       },
       {
         "name": "reasoning-parser",
+        "setting": null,
         "value": "nemotron_v3"
       },
       {
         "name": "tool-call-parser",
+        "setting": null,
         "value": "qwen3_coder"
       },
       {
         "name": "enable-auto-tool-choice",
+        "setting": null,
         "value": true
       }
     ],
-    "distribution": {
-      "content_sha256": "95b0467cb73eeabfe8fd0c4f5f5e4f19a935b6bca3d56ed4bb6fc888470eca4a",
-      "kind": "runtime-distribution",
-      "publisher": "vllm",
-      "slug": "vllm-0-27-1-nvidia-arm64"
-    },
+    "engine": "vllm",
     "entrypoint": [
       "/opt/vonk/bin/vllm",
       "serve",
@@ -218,14 +1002,12 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "VLLM_NO_USAGE_STATS",
+        "secret": null,
         "value": "1"
       }
     ],
@@ -236,36 +1018,23 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/v1/models",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 900
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 1048576
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -283,10 +1052,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "target",
-          "drafter"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -329,15 +1094,46 @@
         "name": "bounded-greedy-chat"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "endpoint.healthy",
-          "chat.nonempty",
-          "chat.max-output-64"
-        ],
-        "interface": "openai"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "nemotron-3-5-lightning"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
   }
 }

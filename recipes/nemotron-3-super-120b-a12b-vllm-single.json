@@ -1,102 +1,24 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 80365684262,
-      "id": "target",
-      "installed_bytes": 80365684262,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/target"
-      },
-      "repository": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
-      "revision": "ff433f5493e25d631c9f12b5d55c674229923d02",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 5884889389,
-      "id": "drafter",
-      "installed_bytes": 5884889389,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/drafter"
-      },
-      "repository": "nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2",
-      "revision": "c929f8a55d0527fea9f58b4cedc9e0c855cfc421",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/llm/vllm-openai",
-      "sha256": "071b799afd9a3dbc74360a323faea7283b1f7ca1bef6eff0aaa8fe2cf3cca98f"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [],
-      "mode": "none"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 96783709272,
-      "memory_bytes": 8000000000,
-      "processes": 4096,
-      "temporary_bytes": 172501147302,
-      "timeout_seconds": 7200
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
-  "dependencies": [
-    {
-      "content_sha256": "9d6f71b572972090ee8433fd26955c973f9407849f2d4155082c4c3ae89fbb4f",
-      "kind": "model-version",
-      "publisher": "nvidia",
-      "slug": "nemotron-3-super-120b-a12b-bf16-mtpv2"
-    }
-  ],
   "execution": {
-    "harness": {
-      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "vllm"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+        "platform": "linux/arm64",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/llm/vllm-openai"
+      },
+      "dockerfile": "adapters/llm/vllm-openai/Dockerfile",
+      "network": {
+        "hosts": [],
+        "mode": "none"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -112,6 +34,7 @@
       "port": 8000
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Executable Candidate single-Spark recipe for NVIDIA's current Nemotron 3 Super NVFP4 contract. It binds vLLM 0.27.1, the immutable super_v3 parser, FP4/Marlin execution, FP8 KV, Mamba cache, and the separately pinned MTPv2 speculative-decoding head without runtime downloads.",
@@ -127,13 +50,503 @@
     ],
     "title": "Nemotron 3 Super 120B-A12B NVFP4 vLLM single Spark"
   },
-  "model": {
-    "content_sha256": "6b0ea38751209d8ff15fd2deec42ce6c94c6594bd009bfbe3ec72af8edc03847",
-    "kind": "model-version",
-    "publisher": "nvidia",
-    "slug": "nemotron-3-super-120b-a12b-nvfp4"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-d1a8f4a1d2e3",
+          "id": "primary-metadata-d1a8f4a1d2e3",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "runtime-e3b0c44298fc",
+          "id": "primary-runtime-e3b0c44298fc",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-75a09249ef13",
+          "id": "primary-readme-75a09249ef13",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "accuracy-chart-6fd72a7dcf86",
+          "id": "primary-accuracy-chart-6fd72a7dcf86",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "bias-6970c9d29da7",
+          "id": "primary-bias-6970c9d29da7",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-575fb74f54ed",
+          "id": "primary-chat-template-575fb74f54ed",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-14a1ad3ab6ec",
+          "id": "primary-config-14a1ad3ab6ec",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-nemotron-h-0fc818c10506",
+          "id": "primary-configuration-nemotron-h-0fc818c10506",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "explainability-0d2e55b6cb27",
+          "id": "primary-explainability-0d2e55b6cb27",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-27d520b2df55",
+          "id": "primary-generation-config-27d520b2df55",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-dbabb3970ad6",
+          "id": "primary-hf-quant-config-dbabb3970ad6",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00017-3d31c241fb77",
+          "id": "primary-model-00001-of-00017-3d31c241fb77",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00017-78d4a5ad2684",
+          "id": "primary-model-00002-of-00017-78d4a5ad2684",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00017-ecb72debb5d2",
+          "id": "primary-model-00003-of-00017-ecb72debb5d2",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00017-a7d1c68e8272",
+          "id": "primary-model-00004-of-00017-a7d1c68e8272",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00017-1d432c9c7834",
+          "id": "primary-model-00005-of-00017-1d432c9c7834",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00017-037ea60b87cb",
+          "id": "primary-model-00006-of-00017-037ea60b87cb",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00017-3c0527dac96f",
+          "id": "primary-model-00007-of-00017-3c0527dac96f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00017-ef6e73f64c3d",
+          "id": "primary-model-00008-of-00017-ef6e73f64c3d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00017-b4f598068350",
+          "id": "primary-model-00009-of-00017-b4f598068350",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00017-bf8bf1f4e2e0",
+          "id": "primary-model-00010-of-00017-bf8bf1f4e2e0",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00017-ac436f2e1af8",
+          "id": "primary-model-00011-of-00017-ac436f2e1af8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00017-7814c9ae0dc3",
+          "id": "primary-model-00012-of-00017-7814c9ae0dc3",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00017-b13aa79c0879",
+          "id": "primary-model-00013-of-00017-b13aa79c0879",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00017-1d8781b2643c",
+          "id": "primary-model-00014-of-00017-1d8781b2643c",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00017-5f6c3c0f8420",
+          "id": "primary-model-00015-of-00017-5f6c3c0f8420",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00017-a5f795056a1a",
+          "id": "primary-model-00016-of-00017-a5f795056a1a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00017-218355cf69f1",
+          "id": "primary-model-00017-of-00017-218355cf69f1",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-e0ca77ceed3a",
+          "id": "primary-model-safetensors-index-e0ca77ceed3a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modeling-nemotron-h-e1cb5fc02e88",
+          "id": "primary-modeling-nemotron-h-e1cb5fc02e88",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "privacy-aea46e6515ca",
+          "id": "primary-privacy-aea46e6515ca",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "safety-dbb015ffcafe",
+          "id": "primary-safety-dbb015ffcafe",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-e9435fefd6d8",
+          "id": "primary-special-tokens-map-e9435fefd6d8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "super-v3-reasoning-parser-f7fc71d1697e",
+          "id": "primary-super-v3-reasoning-parser-f7fc71d1697e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-623c34567aeb",
+          "id": "primary-tokenizer-623c34567aeb",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-10f93eabcb9b",
+          "id": "primary-tokenizer-config-10f93eabcb9b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "d9a3e5b88f2b474df22ec2c688f468ff745b8e053c81ae5f599ae6645120845e",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "nemotron-3-super-120b-a12b-nvfp4"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-gitattributes-11ad7efa2497",
+          "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-metadata-gitatt",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-505b2b8d7626",
+          "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-readme-505b2b8d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-699f34f0fc64",
+          "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-config-699f34f0",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-nemotron-h-2b3ce37ae17d",
+          "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-configuration-n",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-dc5b4dbdff26",
+          "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-generation-conf",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-f0114c95f8a8",
+          "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-weights-f0114c9",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-7f36923c963a",
+          "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-model-safetenso",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2",
+      "model": {
+        "content_sha256": "2fbd1b99640c163c8697d9b6a2105e810df6e7469807546495d425b95df90118",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "nemotron-3-super-120b-a12b-bf16-mtpv2"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "nvidia"
@@ -145,75 +558,86 @@
     "arguments": [
       {
         "name": "served-model-name",
+        "setting": null,
         "value": "nemotron-3-super"
       },
       {
         "name": "max-model-len",
-        "value": 262144
+        "setting": "context_tokens",
+        "value": null
       },
       {
         "name": "max-num-seqs",
-        "value": 4
+        "setting": "concurrency",
+        "value": null
       },
       {
         "name": "gpu-memory-utilization",
+        "setting": null,
         "value": "0.90"
       },
       {
         "name": "trust-remote-code",
+        "setting": null,
         "value": true
       },
       {
         "name": "kv-cache-dtype",
+        "setting": null,
         "value": "fp8"
       },
       {
         "name": "mamba-ssm-cache-dtype",
+        "setting": null,
         "value": "float16"
       },
       {
         "name": "enable-chunked-prefill",
+        "setting": null,
         "value": true
       },
       {
         "name": "moe-backend",
+        "setting": null,
         "value": "marlin"
       },
       {
         "name": "quantization",
+        "setting": null,
         "value": "modelopt_fp4"
       },
       {
         "name": "async-scheduling",
+        "setting": null,
         "value": true
       },
       {
         "name": "speculative-config",
+        "setting": null,
         "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3,\"model\":\"/models/drafter\",\"moe_backend\":\"triton\"}"
       },
       {
         "name": "tool-call-parser",
+        "setting": null,
         "value": "qwen3_coder"
       },
       {
         "name": "reasoning-parser-plugin",
+        "setting": null,
         "value": "/models/target/super_v3_reasoning_parser.py"
       },
       {
         "name": "reasoning-parser",
+        "setting": null,
         "value": "super_v3"
       },
       {
         "name": "enable-auto-tool-choice",
+        "setting": null,
         "value": true
       }
     ],
-    "distribution": {
-      "content_sha256": "95b0467cb73eeabfe8fd0c4f5f5e4f19a935b6bca3d56ed4bb6fc888470eca4a",
-      "kind": "runtime-distribution",
-      "publisher": "vllm",
-      "slug": "vllm-0-27-1-nvidia-arm64"
-    },
+    "engine": "vllm",
     "entrypoint": [
       "/opt/vonk/bin/vllm",
       "serve",
@@ -222,22 +646,22 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "VLLM_NO_USAGE_STATS",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "VLLM_NVFP4_GEMM_BACKEND",
+        "secret": null,
         "value": "marlin"
       },
       {
         "name": "VLLM_USE_FLASHINFER_MOE_FP4",
+        "secret": null,
         "value": "0"
       }
     ],
@@ -248,36 +672,23 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/v1/models",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 1800
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -295,10 +706,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "target",
-          "drafter"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -340,15 +747,46 @@
         "name": "bounded-chat"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "endpoint.healthy",
-          "chat.nonempty",
-          "chat.max-output-64"
-        ],
-        "interface": "openai"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "nemotron-3-super"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
   }
 }
