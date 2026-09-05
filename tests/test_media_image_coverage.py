@@ -39,6 +39,26 @@ DIFFUSERS_REVISION = "c5469b7ceb606edd7ba6570dcd17d38590a18db6"
 HUNYUAN_REVISION = "a3608b512ed7248499a44c61d954965ed9bdae4d"
 MINIMAX_REVISION = "efabd60d61c2b7aabf9f182bee6b5b6058980304"
 SOURCE_REFRESH_COMMIT = "f4268482b625ca9f8bd4d644171ab2638f20f2a0"
+QWEN_EDIT_ARTIFACTS = {
+    "vonk-forge/qwen-image-edit-2511-comfyui-single": (
+        "b6a0794717d3f5600f85c5edcdcd0c0eb93d7446",
+        "split_files/diffusion_models/qwen_image_edit_2511_bf16.safetensors",
+        "ae42d927b5fac4f278b9a894554c727e619727a63622976f2d95625be4bce08c",
+        40861031560,
+    ),
+    "vonk-forge/qwen-image-edit-2511-fp8mixed-comfyui-single": (
+        "4c7c4ea236326cbae56d403d22a03c6cd86ad9a0",
+        "split_files/diffusion_models/qwen_image_edit_2511_fp8mixed.safetensors",
+        "c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e",
+        20533762817,
+    ),
+    "vonk-forge/qwen-image-edit-2511-int8-convrot-comfyui-single": (
+        "e9e85de74a8f48c1e3e2656617626348675a2f21",
+        "split_files/diffusion_models/qwen_image_edit_2511_int8_convrot.safetensors",
+        "11b5af5ac601821d73930c84846c9a158e67177356daf927ce1c8d10f3963829",
+        20499083824,
+    ),
+}
 
 
 def load(path: Path) -> dict[str, object]:
@@ -80,6 +100,24 @@ class MediaImageCoverageTests(unittest.TestCase):
                     self.assertIn("diffusers==0.39.0", (ROOT / runtime["context"] / "requirements.lock").read_text())
                     self.assertEqual(row["decision"], "retained_intentional_variant")
                     self.assertTrue(row["named_blocker"])
+                    review = row["compatibility_review"]
+                    self.assertEqual(review["verdict"], "retained_compatible_pinned_wheel")
+                    self.assertIn("neither timesteps nor sigmas", review["adapter_call_contract"])
+                    self.assertTrue(review["unchanged_relevant_files"])
+                    changed = {item["path"]: item for item in review["changed_relevant_files"]}
+                    scheduler = changed["src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py"]
+                    self.assertNotEqual(scheduler["sha256_pinned"], scheduler["sha256_current"])
+                    self.assertIn("explicit timesteps", scheduler["change"])
+                    self.assertTrue(review["wheel_matches_pinned_source_for_scheduler"])
+                    self.assertTrue(review["current_tree_requires_new_wheel"])
+                    self.assertEqual(
+                        review["wheel_lock"]["scheduler_file_sha256"],
+                        scheduler["sha256_pinned"],
+                    )
+                    self.assertEqual(
+                        review["wheel_lock"]["wheel_sha256"],
+                        "912aca51b5787365110806e984d5555735bf8a461073bb8459029d0bca7870ef",
+                    )
                 elif runtime["family"] == "Diffusers/MiniMax H3 modular fork":
                     self.assertEqual(runtime["pinned_revision"], MINIMAX_REVISION)
                     self.assertIn(MINIMAX_REVISION, dockerfile)
@@ -123,11 +161,25 @@ class MediaImageCoverageTests(unittest.TestCase):
         }
         self.assertEqual(len(rows), 3)
         for row in rows.values():
+            pinned_revision, selected_path, selected_sha, selected_size = QWEN_EDIT_ARTIFACTS[
+                row["recipe_id"]
+            ]
             model = row["models"][0]
             self.assertEqual(model["repository"], "Comfy-Org/Qwen-Image-Edit_ComfyUI")
             self.assertEqual(model["status"], "retained_exact_variant")
             self.assertEqual(model["observed_current_head"], "984166f60a9b1fcede5e9b9287b7a7aebc050010")
-            self.assertIn("exact artifact", row["reason"])
+            comparison = row["artifact_comparison"]
+            self.assertEqual(comparison["pinned_commit"], pinned_revision)
+            self.assertEqual(comparison["selected_path"], selected_path)
+            selected = comparison["selected_file"]
+            self.assertEqual(selected["status"], "unchanged_exact_sha256_and_size")
+            self.assertEqual(selected["sha256_pinned"], selected["sha256_current"])
+            self.assertEqual(selected["size_pinned"], selected["size_current"])
+            self.assertEqual(selected["sha256_pinned"], selected_sha)
+            self.assertEqual(selected["size_pinned"], selected_size)
+            self.assertEqual(comparison["changed_runtime_or_config_paths"], [])
+            self.assertEqual(comparison["changed_metadata_paths"], ["README.md"])
+            self.assertIn("exact LFS SHA256", row["reason"])
 
 
 if __name__ == "__main__":
