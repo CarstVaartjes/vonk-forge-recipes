@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import runpy
 import subprocess
@@ -15,17 +16,46 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, content_sha256  # noqa: E402
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256  # noqa: E402
 ADAPTER = ROOT / "adapters/video/wan-dancer-native"
 RECIPE = ROOT / "recipes/wan-dancer-14b-pytorch-single.json"
-RUNTIME = ROOT / "runtime-distributions/wan-dancer-native-e6c87a9-cuda13-arm64.json"
 MODEL = ROOT / "models/wan-dancer-14b.json"
 ARCHIVE_SHA256 = "92c529d7727c75c6515ea990d27883a45bf566587cc9f5d325a0a488b9fa1649"
+PACKAGE = ROOT / "packages/wan-dancer-14b-pytorch-single.tar.gz"
+BASE_IMAGE = {
+    "repository": "nvcr.io/nvidia/cuda",
+    "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+    "platform": "linux/arm64",
+}
+BUILD_NETWORK_HOSTS = [
+    "download.pytorch.org",
+    "pypi.org",
+    "files.pythonhosted.org",
+    "archive.ubuntu.com",
+    "security.ubuntu.com",
+    "ports.ubuntu.com",
+]
+PLATFORM_OWNED_CACHE_ENVIRONMENT = {
+    "FLASHINFER_WORKSPACE_BASE",
+    "TILELANG_CACHE_DIR",
+    "B12X_CUTE_COMPILE_CACHE_DIR",
+    "TORCH_FR_DUMP_TEMP_FILE",
+    "TORCH_NCCL_DEBUG_INFO_PIPE_FILE",
+    "XDG_CACHE_HOME",
+    "HF_HOME",
+    "VLLM_CACHE_ROOT",
+    "TRITON_CACHE_DIR",
+}
 
 
 def canonical_digest(path: Path) -> str:
     document = json.loads(path.read_text(encoding="utf-8"))
     return content_sha256(ModelDefinition.model_validate(document))
+
+
+def package_manifest() -> dict[str, object]:
+    with tarfile.open(fileobj=io.BytesIO(PACKAGE.read_bytes()), mode="r:gz") as archive:
+        return json.load(archive.extractfile("manifest.json"))
 
 
 def load_runner():
@@ -39,8 +69,14 @@ class WanDancerAuthorityTests(unittest.TestCase):
     def test_recipe_resolves_complete_immutable_authorities(self) -> None:
         recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
         self.assertEqual(recipe["models"][0]["model"]["content_sha256"], canonical_digest(MODEL))
-        self.assertEqual(recipe["execution"]["mode"], "build")
-        self.assertEqual(recipe["execution"]["build"]["base_image"]["digest"], "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4")
+        execution = recipe["execution"]
+        self.assertEqual(execution["mode"], "build")
+        build = execution["build"]
+        self.assertEqual(build["base_image"], BASE_IMAGE)
+        self.assertEqual(build["context"], {"path": "adapters/video/wan-dancer-native"})
+        self.assertEqual(build["dockerfile"], "adapters/video/wan-dancer-native/Dockerfile")
+        self.assertEqual(build["patches"], [{"path": "adapters/video/wan-dancer-native/patch-upstream.py"}])
+        self.assertEqual(build["network"], {"mode": "public", "hosts": BUILD_NETWORK_HOSTS})
         tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         self.assertEqual(tool["source_bundle"](ADAPTER)[2], "71b98bb6f2ca9e6bca213a96cd444919eb4644a456fec3f09468b6dc565acbf5")
         self.assertEqual(json.loads(MODEL.read_text())["source"]["revision"], "85ce88dd8d025459dcf0fe93982d6da8b9002957")
@@ -55,10 +91,56 @@ class WanDancerAuthorityTests(unittest.TestCase):
         self.assertEqual(memory["steady_state_bytes"], 110000000000)
         self.assertEqual(memory["runtime_growth_bytes"], 8000000000)
         self.assertEqual(memory["system_reserve_bytes"], 8000000000)
-        self.assertIn(
-            {"source": "inputs", "target": "/inputs", "read_only": True},
-            recipe["runtime"]["security"]["mounts"],
+        runtime = recipe["runtime"]
+        self.assertEqual(
+            set(runtime), {"engine", "entrypoint", "arguments", "environment", "lifecycle"}
         )
+        self.assertEqual(runtime["engine"], "pytorch-pipeline")
+        environment_names = {item["name"] for item in runtime["environment"]}
+        self.assertFalse(PLATFORM_OWNED_CACHE_ENVIRONMENT & environment_names)
+        manifest = package_manifest()
+        self.assertEqual(manifest["schema_version"], 2)
+        self.assertEqual(manifest["package_type"], "recipe")
+        self.assertEqual(
+            manifest["build_inputs"],
+            [
+                {
+                    "kind": "oci-image",
+                    "platform": "linux/arm64",
+                    "reference": "nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:"
+                    "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+                }
+            ],
+        )
+        self.assertEqual(
+            manifest["recipe_content_sha256"],
+            content_sha256(RecipeDefinition.model_validate(recipe)),
+        )
+        package_paths = {item["path"] for item in manifest["files"]}
+        self.assertTrue(
+            {
+                build["context"]["path"] + "/Dockerfile",
+                build["dockerfile"],
+                build["patches"][0]["path"],
+                "models/wan-dancer-14b.json",
+                "recipe.json",
+            }
+            <= package_paths
+        )
+        with tarfile.open(fileobj=io.BytesIO(PACKAGE.read_bytes()), mode="r:gz") as archive:
+            for path in (
+                build["dockerfile"],
+                build["patches"][0]["path"],
+                "models/wan-dancer-14b.json",
+            ):
+                packaged = archive.extractfile(path)
+                self.assertIsNotNone(packaged)
+                payload = packaged.read()
+                if path == "models/wan-dancer-14b.json":
+                    model = ModelDefinition.model_validate(json.loads(payload))
+                    self.assertEqual(content_sha256(model), canonical_digest(MODEL))
+                else:
+                    self.assertEqual(payload, (ROOT / path).read_bytes())
         interface = recipe["interfaces"][0]
         slots = {slot["id"]: slot for slot in interface["input"]["slots"]}
         self.assertEqual(set(slots), {"prompt", "reference-image", "music", "controls"})
@@ -115,10 +197,15 @@ class WanDancerAuthorityTests(unittest.TestCase):
     def test_runtime_has_no_model_download_path(self) -> None:
         runner = (ADAPTER / "run.py").read_text(encoding="utf-8")
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
+        self.assertIn(
+            'org.opencontainers.image.revision="e6c87a94ec733230dac15b924c015f6e6501e618"',
+            dockerfile,
+        )
         self.assertNotIn("snapshot_download", runner)
         self.assertNotIn("from_pretrained", runner)
         self.assertIn("HF_HUB_OFFLINE=1", dockerfile)
         self.assertIn("TRANSFORMERS_OFFLINE=1", dockerfile)
+        self.assertIn("USER 10001:10001", dockerfile)
 
 
 class WanDancerInputTests(unittest.TestCase):
