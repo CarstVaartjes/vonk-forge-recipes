@@ -12,6 +12,42 @@ class ContractResolutionError(ValueError):
     """The recipe does not select the supplied exact model snapshot."""
 
 
+
+def validate_model_references(models: Iterable[ModelDefinition]) -> None:
+    """Resolve every exact dependency and supersedes reference in Model documents."""
+
+    all_models = list(models)
+    by_identity: dict[tuple[str, str], ModelDefinition] = {}
+    for model in all_models:
+        key = (model.identity.publisher, model.identity.slug)
+        if key in by_identity:
+            raise ContractResolutionError(f"duplicate model identity: {key[0]}/{key[1]}")
+        by_identity[key] = model
+    visiting: set[tuple[str, str]] = set()
+    visited: set[tuple[str, str]] = set()
+
+    def resolve(model: ModelDefinition) -> None:
+        key = (model.identity.publisher, model.identity.slug)
+        if key in visited:
+            return
+        if key in visiting:
+            raise ContractResolutionError(f"model dependency cycle: {key[0]}/{key[1]}")
+        visiting.add(key)
+        references = [*model.dependencies, *([model.supersedes] if model.supersedes is not None else [])]
+        for reference in references:
+            target_key = (reference.publisher, reference.slug)
+            target = by_identity.get(target_key)
+            if target is None:
+                raise ContractResolutionError(f"model reference is missing: {target_key[0]}/{target_key[1]}")
+            if content_sha256(target) != reference.content_sha256:
+                raise ContractResolutionError(f"model reference digest does not match: {target_key[0]}/{target_key[1]}")
+            resolve(target)
+        visiting.remove(key)
+        visited.add(key)
+
+    for model in all_models:
+        resolve(model)
+
 def validate_recipe_models(recipe: RecipeDefinition, models: Iterable[ModelDefinition]) -> None:
     """Resolve every recipe model reference and selector against model manifests."""
 

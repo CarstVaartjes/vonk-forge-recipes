@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -39,6 +44,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "metadata-d1a8f4a1d2e3",
@@ -1249,6 +1255,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Official upstream checkpoint at the pinned revision.",
+    "publisher": "libertaidai",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "libertaidai",
+      "slug": "glm-5-3-flash-nvfp4"
+    }
+  },
   "metadata": {
     "description": "Exact public GLM 5.3 Flash NVFP4 11d73216 checkpoint.",
     "tags": [
@@ -1280,5 +1296,6 @@
   "source": {
     "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
     "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa"
-  }
+  },
+  "supersedes": null
 }

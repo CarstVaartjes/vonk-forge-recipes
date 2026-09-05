@@ -1574,7 +1574,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ce4018360ab19f5e415f5860fd2e07cda52440b75d491c3a152f0c637950b0d5",
+        "content_sha256": "49a8aa751db894e9bf87631acf420dcd66dd6a801d8beaedba6e3b708c56b9ff",
         "kind": "model",
         "publisher": "drowzeys",
         "slug": "glm-5-3-flash-nvfp4-abliterated-d7f8afa8"

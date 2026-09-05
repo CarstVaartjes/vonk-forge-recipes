@@ -166,7 +166,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "0c03a53818176cba14eb1d796a48c621efecaa00d5cca606977598e7ae5afbe8",
+        "content_sha256": "72336c134cd48940d8211cbf4ac0b87bd8966bd06258f8add09d284c9c8e3247",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan3d-omni"

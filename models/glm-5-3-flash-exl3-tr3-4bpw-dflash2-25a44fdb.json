@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -39,6 +44,14 @@
     },
     "schema_version": 2
   },
+  "dependencies": [
+    {
+      "content_sha256": "ff9a00c5ea74761b0417e90e63211fde544e4b37fec85030c7174ac25f444cd7",
+      "kind": "model",
+      "publisher": "incoai",
+      "slug": "glm-5-3-flash-dflash2-bf582e4e"
+    }
+  ],
   "files": [
     {
       "id": "metadata-d3b10d515fb2-618cd5b83d",
@@ -1377,6 +1390,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Official upstream checkpoint at the pinned revision.",
+    "publisher": "mia-ai-lab",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "mia-ai-lab",
+      "slug": "glm-5-3-flash-exl3-tr3-dflash2"
+    }
+  },
   "metadata": {
     "description": "Exact public GLM 5.3 Flash EXL3 TR3 4bpw plus DFlash2 25a44fdb checkpoint.",
     "tags": [
@@ -1412,5 +1435,6 @@
   "source": {
     "repository": "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw",
     "revision": "25a44fdbf16862a46b7cc9921142c6c81350af2f"
-  }
+  },
+  "supersedes": null
 }
