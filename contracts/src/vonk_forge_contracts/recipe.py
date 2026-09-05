@@ -5,6 +5,7 @@ engine compatibility, and placement plans remain platform-owned concerns.
 """
 from __future__ import annotations
 
+from datetime import date
 from typing import Annotated, Literal
 
 from .model import ModelReference
@@ -17,6 +18,7 @@ from pydantic import (
     StrictInt,
     StrictStr,
     model_validator,
+    field_validator,
 )
 
 
@@ -32,6 +34,11 @@ RelativePath = Annotated[StrictStr, Field(max_length=256, pattern=rf"^{_SEGMENT}
 Scalar = StrictStr | StrictInt | StrictBool
 type JsonValue = Scalar | None | list[JsonValue] | dict[StrictStr, JsonValue]
 ChangeEffect = Literal["none", "restart", "reprepare", "rebuild"]
+ReleaseChangeKind = Literal[
+    "initial", "model", "runtime", "performance", "fix", "security",
+    "compatibility", "breaking", "metadata",
+]
+ReleaseUpgradeEffect = Literal["none", "restart", "reprepare", "rebuild"]
 
 
 class RecipeIdentity(_RecipeContract):
@@ -459,6 +466,70 @@ class RecipeProvenance(_RecipeContract):
     attribution: list[StrictStr] = Field(max_length=32)
 
 
+class RecipeReleaseChange(_RecipeContract):
+    kind: ReleaseChangeKind
+    summary: StrictStr = Field(min_length=1, max_length=160)
+    details: StrictStr | None = Field(default=None, max_length=1000)
+    references: list[Annotated[StrictStr, Field(min_length=1, max_length=500, pattern=r"^https://[^\s]+$")]] = Field(default_factory=list, max_length=8)
+
+    @model_validator(mode="after")
+    def unique_references(self) -> RecipeReleaseChange:
+        if len(self.references) != len(set(self.references)):
+            raise ValueError("release change references must be unique")
+        return self
+
+
+class RecipeReleaseHistoryEntry(_RecipeContract):
+    version: Annotated[StrictStr, Field(min_length=5, max_length=64, pattern=r"^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$")]
+    released_at: Annotated[StrictStr, Field(pattern=r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")]
+    # The current release deliberately omits its own digest to avoid a
+    # circular identity. Older entries retain their digest as explicitly
+    # historical evidence under a non-authoritative name.
+    prior_recipe_content_sha256: Sha256 | None = None
+    upgrade_effect: ReleaseUpgradeEffect
+    changes: list[RecipeReleaseChange] = Field(min_length=1, max_length=16)
+
+    @field_validator("released_at")
+    @classmethod
+    def valid_date(cls, value: str) -> str:
+        try:
+            parsed = date.fromisoformat(value)
+        except ValueError as error:
+            raise ValueError("released_at must be an ISO 8601 calendar date") from error
+        if parsed.isoformat() != value:
+            raise ValueError("released_at must use YYYY-MM-DD form")
+        return value
+
+
+class RecipeRelease(_RecipeContract):
+    version: Annotated[StrictStr, Field(min_length=5, max_length=64, pattern=r"^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$")]
+    released_at: Annotated[StrictStr, Field(pattern=r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")]
+    history: list[RecipeReleaseHistoryEntry] = Field(min_length=1, max_length=32)
+
+    @field_validator("released_at")
+    @classmethod
+    def valid_date(cls, value: str) -> str:
+        try:
+            parsed = date.fromisoformat(value)
+        except ValueError as error:
+            raise ValueError("released_at must be an ISO 8601 calendar date") from error
+        if parsed.isoformat() != value:
+            raise ValueError("released_at must use YYYY-MM-DD form")
+        return value
+
+    @model_validator(mode="after")
+    def ordered_history(self) -> RecipeRelease:
+        if self.history[0].version != self.version or self.history[0].released_at != self.released_at:
+            raise ValueError("release current version/date must match history[0]")
+        versions = [entry.version for entry in self.history]
+        if len(versions) != len(set(versions)):
+            raise ValueError("release history versions must be unique")
+        dates = [date.fromisoformat(entry.released_at) for entry in self.history]
+        if dates != sorted(dates, reverse=True):
+            raise ValueError("release history must be newest-first by date")
+        return self
+
+
 class RecipeDefinition(_RecipeContract):
     """The sole public recipe authoring contract."""
 
@@ -474,6 +545,7 @@ class RecipeDefinition(_RecipeContract):
     validation: RecipeValidation
     provenance: RecipeProvenance
     settings: RecipeSettings
+    release: RecipeRelease
 
     @model_validator(mode="after")
     def semantic_rules(self) -> RecipeDefinition:

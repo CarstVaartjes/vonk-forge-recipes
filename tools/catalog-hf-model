@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Materialize an immutable Hugging Face model and model-version entity."""
+"""Materialize an immutable Hugging Face ModelDefinition."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from urllib.request import Request, urlopen
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition
+from vonk_forge_contracts import ModelDefinition, content_sha256
 
 
 MAX_INLINE_ARTIFACT_BYTES = 16 * 1024 * 1024
@@ -61,7 +61,7 @@ def _get_bytes(url: str) -> bytes:
 
 
 def _content_hash(path: Path) -> str:
-    return _sha256(_canonical(json.loads(path.read_text())))
+    return content_sha256(ModelDefinition.model_validate_json(path.read_text(encoding="utf-8")))
 
 
 def _arguments() -> argparse.Namespace:
@@ -89,6 +89,13 @@ def _arguments() -> argparse.Namespace:
     parser.add_argument("--license-url", required=True)
     parser.add_argument("--attribution", action="append", required=True)
     parser.add_argument("--operator-acceptance-required", action="store_true")
+    parser.add_argument("--visibility", choices=("public", "restricted"), default="public")
+    parser.add_argument("--gated", action="store_true")
+    parser.add_argument("--authentication", choices=("none", "token"), default="none")
+    parser.add_argument("--lineage-relation", choices=("official", "derived", "quantized"), default="official")
+    parser.add_argument("--lineage-publisher")
+    parser.add_argument("--source-model-publisher")
+    parser.add_argument("--source-model-slug")
     return parser.parse_args()
 
 
@@ -138,7 +145,7 @@ def main() -> int:
     for entry in file_entries:
         path = entry.get("path")
         size = entry.get("size")
-        if not isinstance(path, str) or not isinstance(size, int) or size < 1:
+        if not isinstance(path, str) or not isinstance(size, int) or size < 0:
             continue
         lfs = entry.get("lfs")
         if isinstance(lfs, dict) and isinstance(lfs.get("oid"), str):
@@ -190,6 +197,9 @@ def main() -> int:
     if modality not in {"text", "image", "audio", "video", "3d", "embeddings"}:
         raise SystemExit(f"unsupported model modality: {args.modality}")
     evidence_digest = _sha256(_canonical({"repository": args.repository, "revision": revision, "artifacts": artifacts}))
+    lineage_publisher = args.lineage_publisher or args.publisher
+    source_model_publisher = args.source_model_publisher or args.publisher
+    source_model_slug = args.source_model_slug or args.model_slug
     document = {
         "schema_version": 2, "kind": "model",
         "identity": {
@@ -199,6 +209,9 @@ def main() -> int:
             "version": args.version, "variant": args.version,
         },
         "metadata": {"description": args.model_description, "tags": list(dict.fromkeys([args.publisher, args.model_group_slug, args.modality, "candidate"]))},
+        "access": {"visibility": args.visibility, "gated": args.gated, "authentication": args.authentication},
+        "lineage": {"publisher": lineage_publisher, "relation": args.lineage_relation, "source_model": {"kind": "model", "publisher": source_model_publisher, "slug": source_model_slug}, "derivation": "Immutable upstream snapshot at the pinned revision."},
+        "dependencies": [], "supersedes": None,
         "modalities": [modality],
         "source": {"repository": f"https://huggingface.co/{args.repository}", "revision": revision},
         "format": {"container": "safetensors", "precision": args.precision, "quantization": args.quantization},
