@@ -99,7 +99,7 @@ class MediaImageCoverageTests(unittest.TestCase):
                     self.assertIn(HUNYUAN_REVISION, dockerfile)
                     self.assertIn("diffusers==0.39.0", (ROOT / runtime["context"] / "requirements.lock").read_text())
                     self.assertEqual(row["decision"], "retained_intentional_variant")
-                    self.assertTrue(row["named_blocker"])
+                    self.assertIsNone(row["named_blocker"])
                     review = row["compatibility_review"]
                     self.assertEqual(review["verdict"], "retained_compatible_pinned_wheel")
                     self.assertIn("neither timesteps nor sigmas", review["adapter_call_contract"])

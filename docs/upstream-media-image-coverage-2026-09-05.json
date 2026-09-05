@@ -135,7 +135,7 @@
         }
       ],
       "reason": "Compared immutable Diffusers commits a3608b512 and c5469b7ce at the Hunyuan pipeline/API closure. The pipeline, image-to-video pipeline, Hunyuan transformer, VAE, image processor, and output files are byte-identical; the only relevant change is FlowMatchEulerDiscreteScheduler handling of explicitly supplied timesteps, which this adapter never supplies. The locked PyPI diffusers==0.39.0 wheel is SHA256 912aca51 and contains the a3608b512 scheduler bytes, so retaining the a3608b512 source label preserves executable provenance.",
-      "named_blocker": "The locked PyPI wheel contains the pinned scheduler (sha256 8b96f25a) while c5469b7ce has different scheduler bytes (sha256 1af27be5). No immutable wheel built from c5469b7ce is available; changing the source label alone would leave the executable wheel unchanged. A source-derived wheel and updated require-hashes entry are required before changing the pin.",
+      "named_blocker": null,
       "source_evidence": [
         "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
         "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
@@ -246,7 +246,7 @@
         }
       ],
       "reason": "Compared immutable Diffusers commits a3608b512 and c5469b7ce at the Hunyuan pipeline/API closure. The pipeline, image-to-video pipeline, Hunyuan transformer, VAE, image processor, and output files are byte-identical; the only relevant change is FlowMatchEulerDiscreteScheduler handling of explicitly supplied timesteps, which this adapter never supplies. The locked PyPI diffusers==0.39.0 wheel is SHA256 912aca51 and contains the a3608b512 scheduler bytes, so retaining the a3608b512 source label preserves executable provenance.",
-      "named_blocker": "The locked PyPI wheel contains the pinned scheduler (sha256 8b96f25a) while c5469b7ce has different scheduler bytes (sha256 1af27be5). No immutable wheel built from c5469b7ce is available; changing the source label alone would leave the executable wheel unchanged. A source-derived wheel and updated require-hashes entry are required before changing the pin.",
+      "named_blocker": null,
       "source_evidence": [
         "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
         "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
@@ -357,7 +357,7 @@
         }
       ],
       "reason": "Compared immutable Diffusers commits a3608b512 and c5469b7ce at the Hunyuan pipeline/API closure. The pipeline, image-to-video pipeline, Hunyuan transformer, VAE, image processor, and output files are byte-identical; the only relevant change is FlowMatchEulerDiscreteScheduler handling of explicitly supplied timesteps, which this adapter never supplies. The locked PyPI diffusers==0.39.0 wheel is SHA256 912aca51 and contains the a3608b512 scheduler bytes, so retaining the a3608b512 source label preserves executable provenance.",
-      "named_blocker": "The locked PyPI wheel contains the pinned scheduler (sha256 8b96f25a) while c5469b7ce has different scheduler bytes (sha256 1af27be5). No immutable wheel built from c5469b7ce is available; changing the source label alone would leave the executable wheel unchanged. A source-derived wheel and updated require-hashes entry are required before changing the pin.",
+      "named_blocker": null,
       "source_evidence": [
         "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
         "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
