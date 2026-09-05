@@ -159,6 +159,103 @@
     "source_kind": "global",
     "source_reference": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52"
   },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.5"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "b4bf2093e3cc3fe17bf06c96d1bccc2b92da34c48cdd922964ff0076dab636b6",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.4"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "72d95fd9534b89415bab5faa7e6cb12b373669c6149599d3a3b0bce05f128a4f",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.0.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+            "kind": "security",
+            "references": [],
+            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+          }
+        ],
+        "prior_recipe_content_sha256": "b7ffa44be4ae99feb10716ee5b46ba68a48632c47072579311f0bcc0b7ee2eab",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The source bundle now hash-locks stable tag v0.34.0 at exact commit 12d52794 and its verified source archive. Model artifacts, core-node workflow parameters, admission envelopes, and Candidate qualification are unchanged.",
+            "kind": "runtime",
+            "references": [
+              "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.34.0",
+              "https://github.com/Comfy-Org/ComfyUI/commit/12d5279438bfefc058a269eae805ceab6047777f"
+            ],
+            "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0."
+          }
+        ],
+        "prior_recipe_content_sha256": "bfde8c32a2adb166815a10306a8bcd09e44c03414ef40261004b1b4c0ee13782",
+        "released_at": "2026-08-31",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "The source-complete Candidate binds the exact upstream FP8 transformer, FP32 four-step Lightning LoRA, scaled-FP8 text encoder, VAE, published negative prompt, and pinned ComfyUI 0.33.4 blueprint defaults in an isolated offline runtime bundle. Its 31.8 GB artifact set and conservative 108 GB admission requirement fit one 128 GB Spark; physical output, latency, and peak-memory acceptance remain pending.",
+            "kind": "initial",
+            "references": [
+              "https://github.com/Comfy-Org/ComfyUI/blob/7a131a3afadc8200120f67f9236311a2c48b7445/blueprints/Text%20to%20Image%20(Qwen-Image%202512).json",
+              "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/commit/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f",
+              "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/commit/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52"
+            ],
+            "summary": "Added the official four-step FP8 Lightning ComfyUI profile for Qwen Image 2512 on one Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "1706afd5a3322729a3e1bf817447601928b12bdfa97ed1187d672283ee2f058c",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.0.5"
+  },
   "runtime": {
     "arguments": [
       {

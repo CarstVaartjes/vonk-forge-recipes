@@ -61,6 +61,23 @@
     "source_kind": "local",
     "source_reference": null
   },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "kind": "initial",
+            "summary": "Initial reviewed recipe contract."
+          }
+        ],
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.0.0"
+  },
   "runtime": {
     "arguments": [],
     "engine": "vllm",
