@@ -951,7 +951,7 @@
         "pre_start": {
           "items": {
             "items": {
-              "maxLength": 4096,
+              "maxLength": 65536,
               "minLength": 1,
               "type": "string"
             },
@@ -966,7 +966,7 @@
         "post_stop": {
           "items": {
             "items": {
-              "maxLength": 4096,
+              "maxLength": 65536,
               "minLength": 1,
               "type": "string"
             },
@@ -1565,7 +1565,7 @@
         },
         "entrypoint": {
           "items": {
-            "maxLength": 4096,
+            "maxLength": 65536,
             "minLength": 1,
             "type": "string"
           },
