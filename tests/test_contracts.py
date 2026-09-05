@@ -17,12 +17,12 @@ sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import (
     ModelDefinition,
     RecipeDefinition,
+    content_sha256,
     model_json_schema,
     recipe_json_schema,
 )
 from vonk_forge_contracts.recipe import RecipeJobServingRequest
 from vonk_forge_contracts.resolver import (
-    model_content_sha256,
     validate_recipe_models,
     validate_recipe_package_paths,
 )
@@ -160,7 +160,7 @@ def test_pure_model_resolver_binds_identity_version_file_and_selector_digest() -
     model_document = load("model-definition.json")
     model = ModelDefinition.model_validate(model_document)
     recipe_document = load("recipe-image.json")
-    digest = model_content_sha256(model)
+    digest = content_sha256(model)
     recipe_document["models"][0]["model"]["content_sha256"] = digest
     recipe = RecipeDefinition.model_validate(recipe_document)
     validate_recipe_models(recipe, [model])
@@ -180,6 +180,18 @@ def test_pure_model_resolver_binds_identity_version_file_and_selector_digest() -
     changed = ModelDefinition.model_validate(changed_model)
     with pytest.raises(ValueError, match="digest does not match"):
         validate_recipe_models(recipe, [changed])
+
+
+def test_content_digest_normalizes_defaults_and_rejects_raw_dicts() -> None:
+    document = load("recipe-image.json")
+    recipe = RecipeDefinition.model_validate(document)
+    omitted = copy.deepcopy(document)
+    omitted["settings"].pop("knobs")
+    normalized = RecipeDefinition.model_validate(omitted)
+    assert content_sha256(recipe) == content_sha256(normalized)
+    assert content_sha256(recipe) == content_sha256(RecipeDefinition.model_validate(recipe.model_dump()))
+    with pytest.raises(TypeError, match="validated"):
+        content_sha256(document)  # type: ignore[arg-type]
 
 
 def test_checked_in_schemas_are_generated_from_the_same_models() -> None:
