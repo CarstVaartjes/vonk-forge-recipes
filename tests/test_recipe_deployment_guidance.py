@@ -100,12 +100,17 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
             "nemotron-3-5-lightning-30b-a3b-vllm-single": ("1.3.6", "2026-09-03"),
             "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single": ("1.1.5", "2026-09-03"),
             "nemotron-3-nano-30b-a3b-vllm-single": ("2.0.6", "2026-09-05"),
-            "moss-vl-realtime-11b-pytorch-single": ("1.1.6", "2026-09-05"),
+            "moss-vl-realtime-11b-pytorch-single": (
+                "1.1.6",
+                "2026-09-05",
+                "70b5a72ac7089b4e00ec6cd602532c36769d1577ea8d1b0cbd4bd1c27742537c",
+            ),
             "mova-360p-diffusers-single": ("2.0.8", "2026-09-05"),
             "mova-720p-diffusers-single": ("2.0.8", "2026-09-05"),
             "muse-glimmer-30b-bf16-vllm-single": ("1.0.5", "2026-09-05"),
         }
-        for slug, (version, released_at) in versions.items():
+        for slug, expected in versions.items():
+            version, released_at, *prior = expected
             with self.subTest(recipe=slug):
                 recipe_path = f"recipes/{slug}.json"
                 recipe = RecipeDefinition.model_validate(load(recipe_path))
@@ -114,7 +119,10 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
                 self.assertEqual(release.released_at, released_at)
                 self.assertEqual(release.history[0].version, version)
                 self.assertEqual(release.history[0].released_at, released_at)
-                self.assertIsNone(release.history[0].prior_recipe_content_sha256)
+                self.assertEqual(
+                    release.history[0].prior_recipe_content_sha256,
+                    prior[0] if prior else None,
+                )
                 self.assertIn(release.history[0].upgrade_effect, {"none", "restart", "reprepare", "rebuild"})
                 entry = catalog_entry(slug)
                 digest = canonical_digest(recipe_path)
