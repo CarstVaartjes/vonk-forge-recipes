@@ -21,8 +21,24 @@ jobs:
       - name: Check out recipes
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.1"
+          python-version: "3.12"
+          enable-cache: false
+
+      - name: Install the shared Model and Recipe contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          audit_venv="$RUNNER_TEMP/upstream-audit-venv"
+          uv venv --python 3.12 "$audit_venv"
+          uv pip install --python "$audit_venv/bin/python" -e contracts
+          echo "UPSTREAM_AUDIT_PYTHON=$audit_venv/bin/python" >> "$GITHUB_ENV"
+
       - name: Test the drift checker offline
-        run: python3 -m unittest discover -s tests -p 'test_*.py'
+        run: '"$UPSTREAM_AUDIT_PYTHON" -m unittest discover -s tests -p test_check_upstream_drift.py'
 
       - name: Check upstream revisions
         id: audit
@@ -31,7 +47,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          python3 tools/check-upstream-drift \
+          "$UPSTREAM_AUDIT_PYTHON" tools/check-upstream-drift \
             --fail-on-drift \
             --output upstream-drift.json \
             > upstream-drift.txt

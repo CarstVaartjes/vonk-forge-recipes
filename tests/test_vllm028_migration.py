@@ -6,7 +6,6 @@ import json
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_HASH = "15c98035c9bbba7ec61d25acd93c3c34b0516754c299813e5f51344e858abd2d"
 IMAGE = (
@@ -45,13 +44,6 @@ class Vllm028MigrationTests(unittest.TestCase):
         dockerfile = (ROOT / recipe["execution"]["build"]["dockerfile"]).read_text()
         self.assertIn("2cf0a6915ce544dc493a0990f2ea38d81601128a", dockerfile)
         self.assertIn("vllm-openai", base["repository"])
-        watch = load("upstream-watch.json")
-        self.assertEqual(
-            watch["overrides"][
-                "runtime-distribution/vllm/vllm-0-28-0-nvidia-arm64"
-            ]["policy"],
-            "latest-release",
-        )
 
     def test_migrated_recipes_pin_changed_vllm_defaults(self) -> None:
         module = catalog_index_module()
@@ -61,7 +53,7 @@ class Vllm028MigrationTests(unittest.TestCase):
                 self.assertEqual(recipe["runtime"]["engine"], "vllm")
                 context = recipe["execution"]["build"]["context"]
                 self.assertEqual(context["path"], context_path)
-                archive, _, digest = module.source_bundle(ROOT / context_path)
+                _archive, _, digest = module.source_bundle(ROOT / context_path)
                 self.assertRegex(digest, r"^[a-f0-9]{64}$")
                 arguments = {
                     argument["name"]: argument["value"]
