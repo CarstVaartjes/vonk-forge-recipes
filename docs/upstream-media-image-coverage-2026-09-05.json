@@ -1,14 +1,19 @@
 {
   "schema_version": 1,
   "scope": "media_image",
-  "checked_at": "2026-09-05T20:43:51Z",
+  "checked_at": "2026-09-05T21:07:31Z",
   "coverage_count": 23,
   "review_inputs": {
     "coverage_groups": "/private/tmp/vonk-all-recipe-upstream-review-20260905/coverage-groups.json",
     "inventory": "/private/tmp/vonk-all-recipe-upstream-review-20260905/inventory.json",
     "review": "/private/tmp/vonk-all-recipe-upstream-review-20260905/REVIEW.md",
     "baseline_publication_commit": "77b832aa4ee4d59412eddb4d9b450ed0a946c50f",
-    "source_refresh_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0"
+    "source_refresh_commit": "f4268482b625ca9f8bd4d644171ab2638f20f2a0",
+    "followup_primary_source_checks": {
+      "hunyuan_pinned_commit": "https://github.com/huggingface/diffusers/tree/a3608b512ed7248499a44c61d954965ed9bdae4d",
+      "hunyuan_current_commit": "https://github.com/huggingface/diffusers/tree/c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+      "qwen_edit_current_tree": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/984166f60a9b1fcede5e9b9287b7a7aebc050010"
+    }
   },
   "upstream_heads": {
     "comfyui": "250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
@@ -129,14 +134,85 @@
           "current_head_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_t2v_distilled/tree/1abb14f06518f37448dcf3a6917dd086dd7045c7"
         }
       ],
-      "reason": "The adapter installs a hash-locked diffusers==0.39.0 wheel and labels the source at a3608b512; moving only the source revision would misdescribe the executable image. The exact runtime and lock pair must move together after focused adapter validation.",
-      "named_blocker": "diffusers==0.39.0 lockfile/source pair requires a coordinated dependency refresh before replacing a3608b512.",
+      "reason": "Compared immutable Diffusers commits a3608b512 and c5469b7ce at the Hunyuan pipeline/API closure. The pipeline, image-to-video pipeline, Hunyuan transformer, VAE, image processor, and output files are byte-identical; the only relevant change is FlowMatchEulerDiscreteScheduler handling of explicitly supplied timesteps, which this adapter never supplies. The locked PyPI diffusers==0.39.0 wheel is SHA256 912aca51 and contains the a3608b512 scheduler bytes, so retaining the a3608b512 source label preserves executable provenance.",
+      "named_blocker": "The locked PyPI wheel contains the pinned scheduler (sha256 8b96f25a) while c5469b7ce has different scheduler bytes (sha256 1af27be5). No immutable wheel built from c5469b7ce is available; changing the source label alone would leave the executable wheel unchanged. A source-derived wheel and updated require-hashes entry are required before changing the pin.",
       "source_evidence": [
         "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
         "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
         "https://github.com/huggingface/diffusers/tree/a3608b512ed7248499a44c61d954965ed9bdae4d"
       ],
-      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance.",
+      "compatibility_review": {
+        "pinned_commit": "a3608b512ed7248499a44c61d954965ed9bdae4d",
+        "current_commit": "c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "unchanged_relevant_files": [
+          {
+            "path": "src/diffusers/pipelines/hunyuan_video1_5/pipeline_hunyuan_video1_5.py",
+            "sha256_pinned": "9381ecf67c82694179afff3526b3cf2579687ca6263a1641b96b3f0c7d264921",
+            "sha256_current": "9381ecf67c82694179afff3526b3cf2579687ca6263a1641b96b3f0c7d264921",
+            "status": "identical"
+          },
+          {
+            "path": "src/diffusers/pipelines/hunyuan_video1_5/pipeline_hunyuan_video1_5_image2video.py",
+            "sha256_pinned": "ed8204c68c4c377021230ad3df2853a393cef3f4e05edb6b2eaafefc7f734a9c",
+            "sha256_current": "ed8204c68c4c377021230ad3df2853a393cef3f4e05edb6b2eaafefc7f734a9c",
+            "status": "identical"
+          },
+          {
+            "path": "src/diffusers/models/transformers/transformer_hunyuan_video15.py",
+            "sha256_pinned": "5bd3bb204041331639c620f708f5de088a40df523f28a372a94caaca10ce561b",
+            "sha256_current": "5bd3bb204041331639c620f708f5de088a40df523f28a372a94caaca10ce561b",
+            "status": "identical"
+          },
+          {
+            "path": "src/diffusers/models/autoencoders/autoencoder_kl_hunyuanvideo15.py",
+            "sha256_pinned": "8a1dce655298ce4405ef7e781bb604acb06cea86f8e950ce995670dda3b309a6",
+            "sha256_current": "8a1dce655298ce4405ef7e781bb604acb06cea86f8e950ce995670dda3b309a6",
+            "status": "identical"
+          },
+          {
+            "path": "src/diffusers/pipelines/hunyuan_video1_5/image_processor.py",
+            "sha256_pinned": "97caa81da800ed54187d7f5259cc678346d1b49d411027e56755e299b5bf95df",
+            "sha256_current": "97caa81da800ed54187d7f5259cc678346d1b49d411027e56755e299b5bf95df",
+            "status": "identical"
+          },
+          {
+            "path": "src/diffusers/pipelines/hunyuan_video1_5/pipeline_output.py",
+            "sha256_pinned": "8a10f78d5c26d78e9a3bbf4c168f7aadea517639b4b169105986048e9c3ea690",
+            "sha256_current": "8a10f78d5c26d78e9a3bbf4c168f7aadea517639b4b169105986048e9c3ea690",
+            "status": "identical"
+          }
+        ],
+        "changed_relevant_files": [
+          {
+            "path": "src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py",
+            "sha256_pinned": "8b96f25a6170480fb02decb58904e026250d6d68be5de8a7b8785b4c721e9d80",
+            "sha256_current": "1af27be5b2f92b7d139d3c50239be5ce3eafc4a7eddf59c2d30689f8ec31e93d",
+            "change": "current commit removes the explicit timesteps input branch in FlowMatchEulerDiscreteScheduler.set_timesteps; it always derives timesteps from sigmas"
+          }
+        ],
+        "adapter_call_contract": "adapters/video/hunyuan-video-15-native/run.py passes prompt, negative_prompt, generator, num_frames, and num_inference_steps; it passes neither timesteps nor sigmas.",
+        "adapter_effect": "The only changed Hunyuan-relevant scheduler branch is not exercised by these three recipes; pipeline, image-to-video pipeline, transformer, VAE, image processor, and output API files are byte-identical.",
+        "wheel_lock": {
+          "requirement": "diffusers==0.39.0",
+          "hashes": [
+            "sha256:14bb1d98c85a0e463d734c99aaa73b480a7bc9bad22af30fbf730ef8f09c1d67",
+            "sha256:912aca51b5787365110806e984d5555735bf8a461073bb8459029d0bca7870ef2"
+          ],
+          "source_label": "a3608b512ed7248499a44c61d954965ed9bdae4d",
+          "wheel_sha256": "912aca51b5787365110806e984d5555735bf8a461073bb8459029d0bca7870ef",
+          "wheel_url": "https://files.pythonhosted.org/packages/3f/3f/7469c46e9d22307ea686bab687d70e6bf328722952f9d10339f5e913e608/diffusers-0.39.0-py3-none-any.whl",
+          "scheduler_file_sha256": "8b96f25a6170480fb02decb58904e026250d6d68be5de8a7b8785b4c721e9d80"
+        },
+        "verdict": "retained_compatible_pinned_wheel",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/blob/c5469b7ceb606edd7ba6570dcd17d38590a18db6/src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py#L360-L370",
+          "https://pypi.org/project/diffusers/0.39.0/"
+        ],
+        "wheel_matches_pinned_source_for_scheduler": true,
+        "current_tree_requires_new_wheel": true
+      }
     },
     {
       "recipe_id": "vonk-forge/hunyuan-video-15-i2v-step-distilled-diffusers-single",
@@ -169,14 +245,85 @@
           "current_head_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled/tree/854c04a4c8a53d990b418c7478f0802c0fc8c726"
         }
       ],
-      "reason": "The adapter installs a hash-locked diffusers==0.39.0 wheel and labels the source at a3608b512; moving only the source revision would misdescribe the executable image. The exact runtime and lock pair must move together after focused adapter validation.",
-      "named_blocker": "diffusers==0.39.0 lockfile/source pair requires a coordinated dependency refresh before replacing a3608b512.",
+      "reason": "Compared immutable Diffusers commits a3608b512 and c5469b7ce at the Hunyuan pipeline/API closure. The pipeline, image-to-video pipeline, Hunyuan transformer, VAE, image processor, and output files are byte-identical; the only relevant change is FlowMatchEulerDiscreteScheduler handling of explicitly supplied timesteps, which this adapter never supplies. The locked PyPI diffusers==0.39.0 wheel is SHA256 912aca51 and contains the a3608b512 scheduler bytes, so retaining the a3608b512 source label preserves executable provenance.",
+      "named_blocker": "The locked PyPI wheel contains the pinned scheduler (sha256 8b96f25a) while c5469b7ce has different scheduler bytes (sha256 1af27be5). No immutable wheel built from c5469b7ce is available; changing the source label alone would leave the executable wheel unchanged. A source-derived wheel and updated require-hashes entry are required before changing the pin.",
       "source_evidence": [
         "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
         "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
         "https://github.com/huggingface/diffusers/tree/a3608b512ed7248499a44c61d954965ed9bdae4d"
       ],
-      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance.",
+      "compatibility_review": {
+        "pinned_commit": "a3608b512ed7248499a44c61d954965ed9bdae4d",
+        "current_commit": "c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "unchanged_relevant_files": [
+          {
+            "path": "src/diffusers/pipelines/hunyuan_video1_5/pipeline_hunyuan_video1_5.py",
+            "sha256_pinned": "9381ecf67c82694179afff3526b3cf2579687ca6263a1641b96b3f0c7d264921",
+            "sha256_current": "9381ecf67c82694179afff3526b3cf2579687ca6263a1641b96b3f0c7d264921",
+            "status": "identical"
+          },
+          {
+            "path": "src/diffusers/pipelines/hunyuan_video1_5/pipeline_hunyuan_video1_5_image2video.py",
+            "sha256_pinned": "ed8204c68c4c377021230ad3df2853a393cef3f4e05edb6b2eaafefc7f734a9c",
+            "sha256_current": "ed8204c68c4c377021230ad3df2853a393cef3f4e05edb6b2eaafefc7f734a9c",
+            "status": "identical"
+          },
+          {
+            "path": "src/diffusers/models/transformers/transformer_hunyuan_video15.py",
+            "sha256_pinned": "5bd3bb204041331639c620f708f5de088a40df523f28a372a94caaca10ce561b",
+            "sha256_current": "5bd3bb204041331639c620f708f5de088a40df523f28a372a94caaca10ce561b",
+            "status": "identical"
+          },
+          {
+            "path": "src/diffusers/models/autoencoders/autoencoder_kl_hunyuanvideo15.py",
+            "sha256_pinned": "8a1dce655298ce4405ef7e781bb604acb06cea86f8e950ce995670dda3b309a6",
+            "sha256_current": "8a1dce655298ce4405ef7e781bb604acb06cea86f8e950ce995670dda3b309a6",
+            "status": "identical"
+          },
+          {
+            "path": "src/diffusers/pipelines/hunyuan_video1_5/image_processor.py",
+            "sha256_pinned": "97caa81da800ed54187d7f5259cc678346d1b49d411027e56755e299b5bf95df",
+            "sha256_current": "97caa81da800ed54187d7f5259cc678346d1b49d411027e56755e299b5bf95df",
+            "status": "identical"
+          },
+          {
+            "path": "src/diffusers/pipelines/hunyuan_video1_5/pipeline_output.py",
+            "sha256_pinned": "8a10f78d5c26d78e9a3bbf4c168f7aadea517639b4b169105986048e9c3ea690",
+            "sha256_current": "8a10f78d5c26d78e9a3bbf4c168f7aadea517639b4b169105986048e9c3ea690",
+            "status": "identical"
+          }
+        ],
+        "changed_relevant_files": [
+          {
+            "path": "src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py",
+            "sha256_pinned": "8b96f25a6170480fb02decb58904e026250d6d68be5de8a7b8785b4c721e9d80",
+            "sha256_current": "1af27be5b2f92b7d139d3c50239be5ce3eafc4a7eddf59c2d30689f8ec31e93d",
+            "change": "current commit removes the explicit timesteps input branch in FlowMatchEulerDiscreteScheduler.set_timesteps; it always derives timesteps from sigmas"
+          }
+        ],
+        "adapter_call_contract": "adapters/video/hunyuan-video-15-native/run.py passes prompt, negative_prompt, generator, num_frames, and num_inference_steps; it passes neither timesteps nor sigmas.",
+        "adapter_effect": "The only changed Hunyuan-relevant scheduler branch is not exercised by these three recipes; pipeline, image-to-video pipeline, transformer, VAE, image processor, and output API files are byte-identical.",
+        "wheel_lock": {
+          "requirement": "diffusers==0.39.0",
+          "hashes": [
+            "sha256:14bb1d98c85a0e463d734c99aaa73b480a7bc9bad22af30fbf730ef8f09c1d67",
+            "sha256:912aca51b5787365110806e984d5555735bf8a461073bb8459029d0bca7870ef2"
+          ],
+          "source_label": "a3608b512ed7248499a44c61d954965ed9bdae4d",
+          "wheel_sha256": "912aca51b5787365110806e984d5555735bf8a461073bb8459029d0bca7870ef",
+          "wheel_url": "https://files.pythonhosted.org/packages/3f/3f/7469c46e9d22307ea686bab687d70e6bf328722952f9d10339f5e913e608/diffusers-0.39.0-py3-none-any.whl",
+          "scheduler_file_sha256": "8b96f25a6170480fb02decb58904e026250d6d68be5de8a7b8785b4c721e9d80"
+        },
+        "verdict": "retained_compatible_pinned_wheel",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/blob/c5469b7ceb606edd7ba6570dcd17d38590a18db6/src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py#L360-L370",
+          "https://pypi.org/project/diffusers/0.39.0/"
+        ],
+        "wheel_matches_pinned_source_for_scheduler": true,
+        "current_tree_requires_new_wheel": true
+      }
     },
     {
       "recipe_id": "vonk-forge/hunyuan-video-15-t2v-diffusers-single",
@@ -209,14 +356,85 @@
           "current_head_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v/tree/f4dbc4a1efa4ac8ea56680cdf79d9f455105e814"
         }
       ],
-      "reason": "The adapter installs a hash-locked diffusers==0.39.0 wheel and labels the source at a3608b512; moving only the source revision would misdescribe the executable image. The exact runtime and lock pair must move together after focused adapter validation.",
-      "named_blocker": "diffusers==0.39.0 lockfile/source pair requires a coordinated dependency refresh before replacing a3608b512.",
+      "reason": "Compared immutable Diffusers commits a3608b512 and c5469b7ce at the Hunyuan pipeline/API closure. The pipeline, image-to-video pipeline, Hunyuan transformer, VAE, image processor, and output files are byte-identical; the only relevant change is FlowMatchEulerDiscreteScheduler handling of explicitly supplied timesteps, which this adapter never supplies. The locked PyPI diffusers==0.39.0 wheel is SHA256 912aca51 and contains the a3608b512 scheduler bytes, so retaining the a3608b512 source label preserves executable provenance.",
+      "named_blocker": "The locked PyPI wheel contains the pinned scheduler (sha256 8b96f25a) while c5469b7ce has different scheduler bytes (sha256 1af27be5). No immutable wheel built from c5469b7ce is available; changing the source label alone would leave the executable wheel unchanged. A source-derived wheel and updated require-hashes entry are required before changing the pin.",
       "source_evidence": [
         "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038",
         "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
         "https://github.com/huggingface/diffusers/tree/a3608b512ed7248499a44c61d954965ed9bdae4d"
       ],
-      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance.",
+      "compatibility_review": {
+        "pinned_commit": "a3608b512ed7248499a44c61d954965ed9bdae4d",
+        "current_commit": "c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+        "unchanged_relevant_files": [
+          {
+            "path": "src/diffusers/pipelines/hunyuan_video1_5/pipeline_hunyuan_video1_5.py",
+            "sha256_pinned": "9381ecf67c82694179afff3526b3cf2579687ca6263a1641b96b3f0c7d264921",
+            "sha256_current": "9381ecf67c82694179afff3526b3cf2579687ca6263a1641b96b3f0c7d264921",
+            "status": "identical"
+          },
+          {
+            "path": "src/diffusers/pipelines/hunyuan_video1_5/pipeline_hunyuan_video1_5_image2video.py",
+            "sha256_pinned": "ed8204c68c4c377021230ad3df2853a393cef3f4e05edb6b2eaafefc7f734a9c",
+            "sha256_current": "ed8204c68c4c377021230ad3df2853a393cef3f4e05edb6b2eaafefc7f734a9c",
+            "status": "identical"
+          },
+          {
+            "path": "src/diffusers/models/transformers/transformer_hunyuan_video15.py",
+            "sha256_pinned": "5bd3bb204041331639c620f708f5de088a40df523f28a372a94caaca10ce561b",
+            "sha256_current": "5bd3bb204041331639c620f708f5de088a40df523f28a372a94caaca10ce561b",
+            "status": "identical"
+          },
+          {
+            "path": "src/diffusers/models/autoencoders/autoencoder_kl_hunyuanvideo15.py",
+            "sha256_pinned": "8a1dce655298ce4405ef7e781bb604acb06cea86f8e950ce995670dda3b309a6",
+            "sha256_current": "8a1dce655298ce4405ef7e781bb604acb06cea86f8e950ce995670dda3b309a6",
+            "status": "identical"
+          },
+          {
+            "path": "src/diffusers/pipelines/hunyuan_video1_5/image_processor.py",
+            "sha256_pinned": "97caa81da800ed54187d7f5259cc678346d1b49d411027e56755e299b5bf95df",
+            "sha256_current": "97caa81da800ed54187d7f5259cc678346d1b49d411027e56755e299b5bf95df",
+            "status": "identical"
+          },
+          {
+            "path": "src/diffusers/pipelines/hunyuan_video1_5/pipeline_output.py",
+            "sha256_pinned": "8a10f78d5c26d78e9a3bbf4c168f7aadea517639b4b169105986048e9c3ea690",
+            "sha256_current": "8a10f78d5c26d78e9a3bbf4c168f7aadea517639b4b169105986048e9c3ea690",
+            "status": "identical"
+          }
+        ],
+        "changed_relevant_files": [
+          {
+            "path": "src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py",
+            "sha256_pinned": "8b96f25a6170480fb02decb58904e026250d6d68be5de8a7b8785b4c721e9d80",
+            "sha256_current": "1af27be5b2f92b7d139d3c50239be5ce3eafc4a7eddf59c2d30689f8ec31e93d",
+            "change": "current commit removes the explicit timesteps input branch in FlowMatchEulerDiscreteScheduler.set_timesteps; it always derives timesteps from sigmas"
+          }
+        ],
+        "adapter_call_contract": "adapters/video/hunyuan-video-15-native/run.py passes prompt, negative_prompt, generator, num_frames, and num_inference_steps; it passes neither timesteps nor sigmas.",
+        "adapter_effect": "The only changed Hunyuan-relevant scheduler branch is not exercised by these three recipes; pipeline, image-to-video pipeline, transformer, VAE, image processor, and output API files are byte-identical.",
+        "wheel_lock": {
+          "requirement": "diffusers==0.39.0",
+          "hashes": [
+            "sha256:14bb1d98c85a0e463d734c99aaa73b480a7bc9bad22af30fbf730ef8f09c1d67",
+            "sha256:912aca51b5787365110806e984d5555735bf8a461073bb8459029d0bca7870ef2"
+          ],
+          "source_label": "a3608b512ed7248499a44c61d954965ed9bdae4d",
+          "wheel_sha256": "912aca51b5787365110806e984d5555735bf8a461073bb8459029d0bca7870ef",
+          "wheel_url": "https://files.pythonhosted.org/packages/3f/3f/7469c46e9d22307ea686bab687d70e6bf328722952f9d10339f5e913e608/diffusers-0.39.0-py3-none-any.whl",
+          "scheduler_file_sha256": "8b96f25a6170480fb02decb58904e026250d6d68be5de8a7b8785b4c721e9d80"
+        },
+        "verdict": "retained_compatible_pinned_wheel",
+        "evidence": [
+          "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+          "https://github.com/huggingface/diffusers/blob/c5469b7ceb606edd7ba6570dcd17d38590a18db6/src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py#L360-L370",
+          "https://pypi.org/project/diffusers/0.39.0/"
+        ],
+        "wheel_matches_pinned_source_for_scheduler": true,
+        "current_tree_requires_new_wheel": true
+      }
     },
     {
       "recipe_id": "vonk-forge/ltx-2-5-22b-distilled-bf16-diffusers-single",
@@ -620,14 +838,43 @@
           "current_head_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/984166f60a9b1fcede5e9b9287b7a7aebc050010"
         }
       ],
-      "reason": "The source-only refresh changed the executable runtime to the checked upstream ComfyUI commit while preserving the recipe workflow, adapter interface, model closure, and Spark resource declarations. The exact artifact variant is retained because the current Comfy-Org repository head is a composite upload; changing the revision would change the model artifact closure rather than only refresh the runtime.",
+      "reason": "The selected upstream artifact is unchanged at the current composite head: exact LFS SHA256 and byte size match the pinned revision. The head changes README metadata and adds other model/LoRA artifacts, but no runtime/config files; retaining the exact selected artifact avoids silently changing model closure.",
       "named_blocker": null,
       "source_evidence": [
         "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/b6a0794717d3f5600f85c5edcdcd0c0eb93d7446",
         "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
         "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
       ],
-      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance.",
+      "artifact_comparison": {
+        "repository": "Comfy-Org/Qwen-Image-Edit_ComfyUI",
+        "selected_path": "split_files/diffusion_models/qwen_image_edit_2511_bf16.safetensors",
+        "pinned_commit": "b6a0794717d3f5600f85c5edcdcd0c0eb93d7446",
+        "current_commit": "984166f60a9b1fcede5e9b9287b7a7aebc050010",
+        "selected_file": {
+          "sha256_pinned": "ae42d927b5fac4f278b9a894554c727e619727a63622976f2d95625be4bce08c",
+          "size_pinned": 40861031560,
+          "sha256_current": "ae42d927b5fac4f278b9a894554c727e619727a63622976f2d95625be4bce08c",
+          "size_current": 40861031560,
+          "status": "unchanged_exact_sha256_and_size"
+        },
+        "changed_runtime_or_config_paths": [],
+        "changed_metadata_paths": [
+          "README.md"
+        ],
+        "added_artifact_paths": [
+          "split_files/diffusion_models/firered_image_edit_1.0_bf16.safetensors",
+          "split_files/diffusion_models/qwen_image_edit_2511_fp8mixed.safetensors",
+          "split_files/diffusion_models/qwen_image_edit_2511_int8_convrot.safetensors",
+          "split_files/loras/Qwen-Image-Edit-2509-Light-Migration.safetensors"
+        ],
+        "tree_verdict": "No runtime or configuration files changed. The selected file is byte-identical by the upstream LFS SHA256 and size; current-head additions are other model/LoRA artifacts.",
+        "evidence": [
+          "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/b6a0794717d3f5600f85c5edcdcd0c0eb93d7446",
+          "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/984166f60a9b1fcede5e9b9287b7a7aebc050010",
+          "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/blob/984166f60a9b1fcede5e9b9287b7a7aebc050010/split_files/diffusion_models/qwen_image_edit_2511_bf16.safetensors"
+        ]
+      }
     },
     {
       "recipe_id": "vonk-forge/qwen-image-edit-2511-diffusers-single",
@@ -699,14 +946,42 @@
           "current_head_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/984166f60a9b1fcede5e9b9287b7a7aebc050010"
         }
       ],
-      "reason": "The source-only refresh changed the executable runtime to the checked upstream ComfyUI commit while preserving the recipe workflow, adapter interface, model closure, and Spark resource declarations. The exact artifact variant is retained because the current Comfy-Org repository head is a composite upload; changing the revision would change the model artifact closure rather than only refresh the runtime.",
+      "reason": "The selected upstream artifact is unchanged at the current composite head: exact LFS SHA256 and byte size match the pinned revision. The head changes README metadata and adds other model/LoRA artifacts, but no runtime/config files; retaining the exact selected artifact avoids silently changing model closure.",
       "named_blocker": null,
       "source_evidence": [
         "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/4c7c4ea236326cbae56d403d22a03c6cd86ad9a0",
         "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
         "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
       ],
-      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance.",
+      "artifact_comparison": {
+        "repository": "Comfy-Org/Qwen-Image-Edit_ComfyUI",
+        "selected_path": "split_files/diffusion_models/qwen_image_edit_2511_fp8mixed.safetensors",
+        "pinned_commit": "4c7c4ea236326cbae56d403d22a03c6cd86ad9a0",
+        "current_commit": "984166f60a9b1fcede5e9b9287b7a7aebc050010",
+        "selected_file": {
+          "sha256_pinned": "c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e",
+          "size_pinned": 20533762817,
+          "sha256_current": "c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e",
+          "size_current": 20533762817,
+          "status": "unchanged_exact_sha256_and_size"
+        },
+        "changed_runtime_or_config_paths": [],
+        "changed_metadata_paths": [
+          "README.md"
+        ],
+        "added_artifact_paths": [
+          "split_files/diffusion_models/firered_image_edit_1.0_bf16.safetensors",
+          "split_files/diffusion_models/qwen_image_edit_2511_int8_convrot.safetensors",
+          "split_files/loras/Qwen-Image-Edit-2509-Light-Migration.safetensors"
+        ],
+        "tree_verdict": "No runtime or configuration files changed. The selected file is byte-identical by the upstream LFS SHA256 and size; current-head additions are other model/LoRA artifacts.",
+        "evidence": [
+          "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/4c7c4ea236326cbae56d403d22a03c6cd86ad9a0",
+          "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/984166f60a9b1fcede5e9b9287b7a7aebc050010",
+          "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/blob/984166f60a9b1fcede5e9b9287b7a7aebc050010/split_files/diffusion_models/qwen_image_edit_2511_fp8mixed.safetensors"
+        ]
+      }
     },
     {
       "recipe_id": "vonk-forge/qwen-image-edit-2511-int8-convrot-comfyui-single",
@@ -739,14 +1014,38 @@
           "current_head_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/984166f60a9b1fcede5e9b9287b7a7aebc050010"
         }
       ],
-      "reason": "The source-only refresh changed the executable runtime to the checked upstream ComfyUI commit while preserving the recipe workflow, adapter interface, model closure, and Spark resource declarations. The exact artifact variant is retained because the current Comfy-Org repository head is a composite upload; changing the revision would change the model artifact closure rather than only refresh the runtime.",
+      "reason": "The selected upstream artifact is unchanged at the current composite head: exact LFS SHA256 and byte size match the pinned revision. The head changes README metadata and adds other model/LoRA artifacts, but no runtime/config files; retaining the exact selected artifact avoids silently changing model closure.",
       "named_blocker": null,
       "source_evidence": [
         "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/e9e85de74a8f48c1e3e2656617626348675a2f21",
         "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
         "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
       ],
-      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance."
+      "physical_qualification": "Not assessed here; this is source/executable closure evidence and does not claim native/container/Spark or model-quality acceptance.",
+      "artifact_comparison": {
+        "repository": "Comfy-Org/Qwen-Image-Edit_ComfyUI",
+        "selected_path": "split_files/diffusion_models/qwen_image_edit_2511_int8_convrot.safetensors",
+        "pinned_commit": "e9e85de74a8f48c1e3e2656617626348675a2f21",
+        "current_commit": "984166f60a9b1fcede5e9b9287b7a7aebc050010",
+        "selected_file": {
+          "sha256_pinned": "11b5af5ac601821d73930c84846c9a158e67177356daf927ce1c8d10f3963829",
+          "size_pinned": 20499083824,
+          "sha256_current": "11b5af5ac601821d73930c84846c9a158e67177356daf927ce1c8d10f3963829",
+          "size_current": 20499083824,
+          "status": "unchanged_exact_sha256_and_size"
+        },
+        "changed_runtime_or_config_paths": [],
+        "changed_metadata_paths": [
+          "README.md"
+        ],
+        "added_artifact_paths": [],
+        "tree_verdict": "No runtime or configuration files changed. The selected file is byte-identical by the upstream LFS SHA256 and size; current-head additions are other model/LoRA artifacts.",
+        "evidence": [
+          "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/e9e85de74a8f48c1e3e2656617626348675a2f21",
+          "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/984166f60a9b1fcede5e9b9287b7a7aebc050010",
+          "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/blob/984166f60a9b1fcede5e9b9287b7a7aebc050010/split_files/diffusion_models/qwen_image_edit_2511_int8_convrot.safetensors"
+        ]
+      }
     },
     {
       "recipe_id": "vonk-forge/qwen-image-edit-2511-lightning-diffusers-single",
