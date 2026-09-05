@@ -5,6 +5,8 @@ engine compatibility, and placement plans remain platform-owned concerns.
 """
 from __future__ import annotations
 
+import json
+import math
 from datetime import date
 from typing import Annotated, Literal
 
@@ -13,6 +15,7 @@ from pydantic import (
     ConfigDict,
     Field,
     StrictBool,
+    StrictFloat,
     StrictInt,
     StrictStr,
     field_validator,
@@ -31,7 +34,7 @@ Sha256 = Annotated[StrictStr, Field(pattern=r"^[a-f0-9]{64}$")]
 _SEGMENT = r"(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\.[A-Za-z0-9_-][A-Za-z0-9._-]*)"
 AbsolutePath = Annotated[StrictStr, Field(max_length=256, pattern=rf"^/{_SEGMENT}(?:/{_SEGMENT})*$")]
 RelativePath = Annotated[StrictStr, Field(max_length=256, pattern=rf"^{_SEGMENT}(?:/{_SEGMENT})*$")]
-Scalar = StrictStr | StrictInt | StrictBool
+Scalar = StrictStr | StrictInt | StrictBool | StrictFloat
 type JsonValue = Scalar | None | list[JsonValue] | dict[StrictStr, JsonValue]
 ChangeEffect = Literal["none", "restart", "reprepare", "rebuild"]
 ReleaseChangeKind = Literal[
@@ -39,6 +42,66 @@ ReleaseChangeKind = Literal[
     "compatibility", "breaking", "metadata",
 ]
 ReleaseUpgradeEffect = Literal["none", "restart", "reprepare", "rebuild"]
+
+
+# Runtime options are trusted recipe data, but still cross a process boundary.
+# Keep that boundary bounded without trying to predict every engine's option
+# vocabulary or requiring shell syntax for argv tokens.
+_MAX_RUNTIME_ARGUMENT_DEPTH = 8
+_MAX_RUNTIME_ARGUMENT_BYTES = 64 * 1024
+_MAX_RUNTIME_ARGUMENT_ITEMS = 256
+_MAX_RUNTIME_ARGUMENT_STRING_LENGTH = 4096
+
+
+def _reject_nul(value: str, *, label: str) -> str:
+    if "\x00" in value:
+        raise ValueError(f"{label} must not contain NUL")
+    return value
+
+
+def _validate_runtime_argument_value(value: JsonValue | None) -> JsonValue | None:
+    """Validate bounded JSON data without normalizing trusted engine options."""
+
+    if value is None:
+        return value
+
+    def visit(node: JsonValue, depth: int) -> None:
+        if depth > _MAX_RUNTIME_ARGUMENT_DEPTH:
+            raise ValueError("runtime argument value exceeds maximum nesting depth")
+        if isinstance(node, str):
+            _reject_nul(node, label="runtime argument value")
+            if len(node) > _MAX_RUNTIME_ARGUMENT_STRING_LENGTH:
+                raise ValueError("runtime argument value string exceeds maximum length")
+        elif type(node) is float and not math.isfinite(node):
+            raise ValueError("runtime argument value contains a non-finite number")
+        elif isinstance(node, list):
+            if len(node) > _MAX_RUNTIME_ARGUMENT_ITEMS:
+                raise ValueError("runtime argument value has too many items")
+            for item in node:
+                visit(item, depth + 1)
+        elif isinstance(node, dict):
+            if len(node) > _MAX_RUNTIME_ARGUMENT_ITEMS:
+                raise ValueError("runtime argument value has too many items")
+            for key, item in node.items():
+                _reject_nul(key, label="runtime argument object key")
+                if len(key) > _MAX_RUNTIME_ARGUMENT_STRING_LENGTH:
+                    raise ValueError("runtime argument object key exceeds maximum length")
+                visit(item, depth + 1)
+
+    visit(value, 0)
+    try:
+        encoded = json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode("utf-8")
+    except (TypeError, ValueError) as error:
+        raise ValueError("runtime argument value must be finite JSON") from error
+    if len(encoded) > _MAX_RUNTIME_ARGUMENT_BYTES:
+        raise ValueError("runtime argument value exceeds maximum size")
+    return value
+
+
+def _validate_argv(tokens: list[str]) -> list[str]:
+    for token in tokens:
+        _reject_nul(token, label="argv token")
+    return tokens
 
 
 class RecipeIdentity(_RecipeContract):
@@ -171,8 +234,18 @@ RecipeSettings = Annotated[RecipeGenerationSettings | RecipeEmbeddingSettings | 
 
 class RecipeRuntimeArgument(_RecipeContract):
     name: StrictStr = Field(min_length=1, max_length=64)
-    value: Scalar | None = None
+    value: JsonValue | None = None
     setting: Identifier | None = None
+
+    @field_validator("name")
+    @classmethod
+    def name_has_no_nul(cls, value: str) -> str:
+        return _reject_nul(value, label="runtime argument name")
+
+    @field_validator("value")
+    @classmethod
+    def value_is_bounded_json(cls, value: JsonValue | None) -> JsonValue | None:
+        return _validate_runtime_argument_value(value)
 
     @model_validator(mode="after")
     def one_source(self) -> RecipeRuntimeArgument:
@@ -185,6 +258,16 @@ class RecipeRuntimeEnvironment(_RecipeContract):
     name: StrictStr = Field(min_length=1, max_length=128)
     value: Scalar | None = None
     secret: StrictStr | None = None
+
+    @field_validator("name", "secret")
+    @classmethod
+    def names_have_no_nul(cls, value: str | None) -> str | None:
+        return None if value is None else _reject_nul(value, label="runtime environment field")
+
+    @field_validator("value")
+    @classmethod
+    def value_has_no_nul(cls, value: Scalar | None) -> Scalar | None:
+        return None if value is None else _validate_runtime_argument_value(value)
 
     @model_validator(mode="after")
     def one_source(self) -> RecipeRuntimeEnvironment:
@@ -207,6 +290,11 @@ class RecipeLifecycle(_RecipeContract):
     stop_timeout_seconds: StrictInt = Field(ge=1, le=600)
     failure: RecipeFailurePolicy | None = None
 
+    @field_validator("pre_start", "post_stop")
+    @classmethod
+    def lifecycle_argv_has_no_nul(cls, value: list[list[str]]) -> list[list[str]]:
+        return [_validate_argv(tokens) for tokens in value]
+
 
 class RecipeRuntime(_RecipeContract):
     engine: Identifier
@@ -214,6 +302,11 @@ class RecipeRuntime(_RecipeContract):
     arguments: list[RecipeRuntimeArgument] = Field(max_length=128)
     environment: list[RecipeRuntimeEnvironment] = Field(max_length=128)
     lifecycle: RecipeLifecycle
+
+    @field_validator("entrypoint")
+    @classmethod
+    def entrypoint_has_no_nul(cls, value: list[str]) -> list[str]:
+        return _validate_argv(value)
 
 
 class RecipeMemoryResources(_RecipeContract):
