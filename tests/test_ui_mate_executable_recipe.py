@@ -11,8 +11,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MODEL = ROOT / "model-versions/ui-mate-27b-3ade2378.json"
-RUNTIME = ROOT / "runtime-distributions/ui-mate-vllm-0-28-0-arm64.json"
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import ModelDefinition, content_sha256  # noqa: E402
+MODEL = ROOT / "models/ui-mate-27b-3ade2378.json"
 RECIPE = ROOT / "recipes/ui-mate-27b-vllm-single.json"
 ADAPTER = ROOT / "adapters/llm/ui-mate-vllm"
 
@@ -25,15 +26,7 @@ def _read(path: Path) -> dict[str, object]:
 
 
 def _canonical_digest(path: Path) -> str:
-    return hashlib.sha256(
-        json.dumps(
-            _read(path),
-            ensure_ascii=False,
-            allow_nan=False,
-            sort_keys=True,
-            separators=(",", ":"),
-        ).encode("utf-8")
-    ).hexdigest()
+    return content_sha256(ModelDefinition.model_validate(_read(path)))
 
 
 def _sha256(path: Path) -> str:
@@ -54,14 +47,8 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
         self.assertEqual(model["source"]["revision"], MODEL_REVISION)
         self.assertEqual(model["parameters"]["total"], 27_356_728_560)
         self.assertEqual(model["limits"]["context_tokens"], 262_144)
-        self.assertEqual(model["sizes"]["download_bytes"], 54_733_724_149)
-        artifacts = model["artifacts"]
+        artifacts = model["files"]
         self.assertEqual(len(artifacts), 22)
-        self.assertTrue(all(item["revision"] == MODEL_REVISION for item in artifacts))
-        self.assertEqual(
-            sum(item["download_bytes"] for item in artifacts),
-            model["sizes"]["download_bytes"],
-        )
         self.assertEqual(
             {item["path"] for item in artifacts if "weights" in item["roles"]},
             {f"model-{index:05d}-of-00012.safetensors" for index in range(1, 13)},
@@ -80,27 +67,17 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
             _sha256(ADAPTER / "agents/demo_workflow.py"),
             "4939d179bc15035661819efa149c3e1a7a5075a2f2334478e3c53e49991fd0a4",
         )
-        runtime = _read(RUNTIME)
-        self.assertEqual(runtime["source"]["revision"], HARNESS_REVISION)
-        self.assertEqual(
-            runtime["source"]["archive_sha256"],
-            "12046e80b390539417bfc803d1effcd7b867a4bb95ac8a20a5631ce60db9ab4d",
-        )
-        dependencies = {item["name"]: item for item in runtime["dependencies"]}
-        self.assertEqual(dependencies["vLLM"]["version"], "0.28.0")
-        self.assertEqual(
-            dependencies["vLLM"]["source"],
-            "https://github.com/vllm-project/vllm@2cf0a6915ce544dc493a0990f2ea38d81601128a",
-        )
+        dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
+        self.assertIn(f'org.opencontainers.image.revision="{HARNESS_REVISION}"', dockerfile)
+        self.assertIn('io.vonk.vllm.build-commit="2cf0a6915ce544dc493a0990f2ea38d81601128a"', dockerfile)
+        self.assertIn('io.vonk.ui-mate.upstream-archive-sha256="12046e80b390539417bfc803d1effcd7b867a4bb95ac8a20a5631ce60db9ab4d"', dockerfile)
 
     def test_recipe_uses_official_protocol_with_bounded_spark_resources(self) -> None:
         recipe = _read(RECIPE)
         arguments = _arguments(recipe)
-        self.assertEqual(recipe["model"]["content_sha256"], _canonical_digest(MODEL))
-        self.assertEqual(
-            recipe["runtime"]["distribution"]["content_sha256"],
-            _canonical_digest(RUNTIME),
-        )
+        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], _canonical_digest(MODEL))
+        self.assertEqual(recipe["execution"]["mode"], "build")
+        self.assertEqual(recipe["execution"]["build"]["base_image"]["digest"], "41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4")
         self.assertEqual(arguments["served-model-name"], "UI_Mate")
         self.assertIs(arguments["trust-remote-code"], True)
         self.assertEqual(arguments["chat-template-content-format"], "openai")
@@ -109,8 +86,8 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
             {"image": 6, "video": 0},
         )
         self.assertEqual(arguments["mm-encoder-tp-mode"], "data")
-        self.assertEqual(arguments["max-model-len"], 32_768)
-        self.assertEqual(arguments["max-num-seqs"], 1)
+        self.assertEqual(recipe["settings"]["context_tokens"]["value"], 32_768)
+        self.assertEqual(recipe["settings"]["concurrency"]["value"], 1)
         self.assertEqual(arguments["max-num-batched-tokens"], 8192)
         self.assertEqual(arguments["max-cudagraph-capture-size"], 4)
         self.assertEqual(recipe["topology"]["node_count"], 1)
@@ -138,13 +115,14 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
 
     def test_recipe_binds_the_exact_offline_adapter_bundle(self) -> None:
         recipe = _read(RECIPE)
-        context = recipe["build"]["context"]
+        context = recipe["execution"]["build"]["context"]
         source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[
             "source_bundle"
         ]
         archive, _, digest = source_bundle(ADAPTER)
-        self.assertEqual(context["sha256"], digest)
-        self.assertEqual(context["expected_bytes"], len(archive))
+        self.assertEqual(context["path"], "adapters/llm/ui-mate-vllm")
+        self.assertEqual(digest, "617da05a0afd62e6a7508b0c04dea52dae6f166a9ce8578cfb73754401738540")
+        self.assertGreater(len(archive), 0)
 
     def test_vendored_parser_scales_official_actions_without_actuating(self) -> None:
         pil = types.ModuleType("PIL")

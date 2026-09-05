@@ -14,6 +14,8 @@ from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import ModelDefinition, content_sha256  # noqa: E402
 ADAPTER = ROOT / "adapters/video/wan-dancer-diffsynth-disk"
 RECIPE = ROOT / "recipes/wan-dancer-14b-disk-offload-pytorch-single.json"
 ORIGINAL_RECIPE = ROOT / "recipes/wan-dancer-14b-pytorch-single.json"
@@ -21,7 +23,7 @@ RUNTIME = (
     ROOT
     / "runtime-distributions/diffsynth-studio-2-1-5-84f93fc4-disk-cuda13-arm64.json"
 )
-MODEL = ROOT / "model-versions/wan-dancer-14b.json"
+MODEL = ROOT / "models/wan-dancer-14b.json"
 ARCHIVE = (
     ADAPTER
     / "vendor/diffsynth-studio-84f93fc4907b6c193be5501bab0b5c37f383033c.tar.gz"
@@ -30,9 +32,7 @@ ARCHIVE_SHA256 = "5f0dfef5351341613e2c8ba96806bddb576e5e1f44aaa104c5d5c388cf44bc
 
 
 def canonical_digest(path: Path) -> str:
-    document = json.loads(path.read_text(encoding="utf-8"))
-    payload = json.dumps(document, sort_keys=True, separators=(",", ":")).encode()
-    return hashlib.sha256(payload).hexdigest()
+    return content_sha256(ModelDefinition.model_validate(json.loads(path.read_text(encoding="utf-8"))))
 
 
 def load_module(filename: str, name: str):
@@ -55,15 +55,11 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
 
     def test_canary_resolves_pinned_model_runtime_and_bounded_memory(self) -> None:
         recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
-        self.assertEqual(recipe["model"]["content_sha256"], canonical_digest(MODEL))
-        self.assertEqual(
-            recipe["runtime"]["distribution"]["content_sha256"],
-            canonical_digest(RUNTIME),
-        )
-        self.assertEqual(
-            recipe["artifacts"][0]["revision"],
-            "85ce88dd8d025459dcf0fe93982d6da8b9002957",
-        )
+        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], canonical_digest(MODEL))
+        dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
+        self.assertIn('org.opencontainers.image.revision="84f93fc4907b6c193be5501bab0b5c37f383033c"', dockerfile)
+        self.assertIn("diffsynth-studio-84f93fc4907b6c193be5501bab0b5c37f383033c.tar.gz", dockerfile)
+        self.assertEqual(json.loads(MODEL.read_text())["source"]["revision"], "85ce88dd8d025459dcf0fe93982d6da8b9002957")
         self.assertEqual(
             recipe["provenance"]["source_reference"],
             "https://github.com/modelscope/DiffSynth-Studio/tree/"

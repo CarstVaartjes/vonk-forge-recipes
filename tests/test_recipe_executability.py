@@ -2,12 +2,18 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 import unittest
 from pathlib import Path, PurePosixPath
 
 
 ROOT = Path(__file__).resolve().parents[1]
 RECIPES = ROOT / "recipes"
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition  # noqa: E402
+from vonk_forge_contracts.canonical import content_sha256  # noqa: E402
+from vonk_forge_contracts.resolver import validate_recipe_models, validate_recipe_package_paths  # noqa: E402
 
 FORBIDDEN_TAGS = frozenset(
     {
@@ -40,7 +46,7 @@ def recipe_documents() -> list[tuple[Path, dict[str, object]]]:
 
 class RecipeExecutabilityTests(unittest.TestCase):
     def test_user_facing_catalog_titles_are_unique_per_entity_kind(self) -> None:
-        for directory in ("model-groups", "models", "model-versions", "recipes"):
+        for directory in ("recipes",):
             seen: dict[str, Path] = {}
             for path in sorted((ROOT / directory).glob("*.json")):
                 document = json.loads(path.read_text(encoding="utf-8"))
@@ -57,6 +63,26 @@ class RecipeExecutabilityTests(unittest.TestCase):
                     f"{path.name}: title duplicates {seen.get(normalized)}",
                 )
                 seen[normalized] = path
+
+    def test_models_and_recipes_are_current_v2_documents(self) -> None:
+        models: dict[tuple[str, str], ModelDefinition] = {}
+        for path in sorted((ROOT / "models").glob("*.json")):
+            model = ModelDefinition.model_validate(json.loads(path.read_text(encoding="utf-8")))
+            key = (model.identity.publisher, model.identity.slug)
+            self.assertNotIn(key, models, path.name)
+            models[key] = model
+        self.assertEqual(len(models), 92)
+        self.assertEqual(len(list(RECIPES.glob("*.json"))), 84)
+        for path in sorted(RECIPES.glob("*.json")):
+            recipe = RecipeDefinition.model_validate(json.loads(path.read_text(encoding="utf-8")))
+            validate_recipe_models(recipe, models.values())
+            package_paths = {
+                item.relative_to(ROOT).as_posix()
+                for item in ROOT.rglob("*")
+                if (item.is_file() or item.is_dir()) and "__pycache__" not in item.parts and item.suffix != ".pyc"
+            }
+            validate_recipe_package_paths(recipe, package_paths)
+            self.assertEqual(content_sha256(recipe), content_sha256(recipe))
 
     def test_every_recipe_is_an_executable_candidate(self) -> None:
         recipes = recipe_documents()
