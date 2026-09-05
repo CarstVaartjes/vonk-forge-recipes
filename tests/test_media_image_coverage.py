@@ -4,7 +4,6 @@ import json
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "docs/upstream-media-image-coverage-2026-09-05.json"
 
