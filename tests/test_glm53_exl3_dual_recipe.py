@@ -62,6 +62,12 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertEqual(recipe["execution"]["build"]["base_image"]["digest"], "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce")
         self.assertEqual(arguments["max-num-batched-tokens"]["value"], 7168)
         self.assertEqual(arguments["kv-cache-dtype"]["value"], "fp8")
+        self.assertEqual(arguments["quantization"]["value"], "exl3")
+        self.assertEqual(arguments["chat-template"]["value"], "/opt/glm53/chat_template.jinja")
+        self.assertEqual(
+            json.loads(arguments["compilation-config"]["value"])["cudagraph_capture_sizes"],
+            [1, 2, 4, 8, 16, 24, 32],
+        )
         self.assertEqual(recipe["models"][0]["model"]["slug"], "glm-5-3-flash-exl3-tr3-4bpw-dflash2-25a44fdb")
 
     def test_wrapper_preserves_authored_engine_arguments(self) -> None:

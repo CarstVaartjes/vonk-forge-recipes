@@ -543,6 +543,22 @@
       {
         "changes": [
           {
+            "details": "The authored six-GiB KV allocation and current Vonk multimodal template are now the sole engine defaults; the placement-only wrapper preserves explicit, repeated, empty, JSON, and opaque engine arguments.",
+            "kind": "runtime",
+            "references": [
+              "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark/tree/050081dc41ce6edd4d3f15fa19dc3410ba4210e3"
+            ],
+            "summary": "Make the current L15-43 runtime profile authored and overrideable."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-06",
+        "upgrade_effect": "restart",
+        "version": "1.0.6"
+      },
+      {
+        "changes": [
+          {
             "details": "Adopt the current tonyd2wild TP2 DFlash2 launcher profile from commit 050081dc41ce6edd4d3f15fa19dc3410ba4210e3: 6,442,450,944-byte KV allocation with the existing 262K context, DFlash2 K7, FP8 E4M3 KV, eager execution, and 8K batched-token contract. The target and DFlash2 companion revisions remain unchanged.",
             "kind": "runtime",
             "references": [
@@ -634,8 +650,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.0.5"
+    "released_at": "2026-09-06",
+    "version": "1.0.6"
   },
   "runtime": {
     "arguments": [
