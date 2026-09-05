@@ -27,7 +27,7 @@
     ],
     "provenance": {
       "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
-      "source_revision": "86bb38ce2ba7a98ab0e550359fec5f48859dc723",
+    "source_revision": "f71f23d552d664e523b422157b2befbf74040380",
       "source_url": "https://huggingface.co/antirez/deepseek-v4-gguf"
     },
     "schema_version": 2
@@ -73,7 +73,7 @@
     "publisher": "antirez",
     "slug": "deepseek-v4-flash-0731-ds4",
     "variant": "DeepSeek V4 Flash 0731 DS4 IQ2/Q2 mixed",
-    "version": "0731-ds4-86bb38ce"
+    "version": "0731-ds4-f71f23d5"
   },
   "kind": "model",
   "license": {
@@ -124,13 +124,13 @@
       "Salvatore Sanfilippo (antirez)"
     ],
     "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
-    "source_revision": "86bb38ce2ba7a98ab0e550359fec5f48859dc723",
+      "source_revision": "f71f23d552d664e523b422157b2befbf74040380",
     "source_url": "https://huggingface.co/antirez/deepseek-v4-gguf"
   },
   "schema_version": 2,
   "source": {
     "repository": "https://huggingface.co/antirez/deepseek-v4-gguf",
-    "revision": "86bb38ce2ba7a98ab0e550359fec5f48859dc723"
+    "revision": "f71f23d552d664e523b422157b2befbf74040380"
   },
   "supersedes": null
 }

@@ -71,7 +71,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "77397c78c425641fa39d7734af6e2cba71b1a2d7d34b929d77ff5c61700cd8a3",
+        "content_sha256": "27bc86c91e0a979e19db7f1ab5e9a146aef1d1e615e75d82641a9c1b106872d1",
         "kind": "model",
         "publisher": "antirez",
         "slug": "deepseek-v4-flash-0731-ds4"
@@ -88,6 +88,22 @@
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "The current antirez/deepseek-v4-gguf tree adds Vision artifacts but leaves the selected target byte-for-byte unchanged. Its SHA-256 value remains ca22ae2f838e14077c22bc1c1417b71b45b5e5a3687bd96c2ac6e17fdb6261c0.",
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/antirez/deepseek-v4-gguf/commit/f71f23d552d664e523b422157b2befbf74040380"
+            ],
+            "summary": "Bind the DS4 model manifest and exact target artifact to current upstream commit f71f23d5."
+          }
+        ],
+        "prior_recipe_content_sha256": "92e813dd95f2987c92304e8c92b3d32cef4406e7c0da54166fbfe2892116f00b",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "reprepare",
+        "version": "2.1.1"
+      },
       {
         "changes": [
           {
@@ -229,7 +245,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "2.1.0"
+    "version": "2.1.1"
   },
   "runtime": {
     "arguments": [
