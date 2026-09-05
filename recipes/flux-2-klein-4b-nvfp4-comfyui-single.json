@@ -119,7 +119,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "8917094cac94f4fd6495eb2649f94aa1a1ae719fc1524a42fbeb1503a685bf11",
+        "content_sha256": "97b17e88e4edcbe533c7267c5b94c153f0f88a80402b2edfb1157a2394dba736",
         "kind": "model",
         "publisher": "black-forest-labs",
         "slug": "flux-2-klein-4b-nvfp4-1db2b2f7"

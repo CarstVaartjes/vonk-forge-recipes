@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -27,6 +32,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "metadata-11ad7efa2497",
@@ -732,6 +738,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Official DeepSeek 0731 checkpoint with the DSpark speculative module; MoE expert parameters use FP4 and remaining checkpoint tensors use FP8.",
+    "publisher": "deepseek-ai",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-v4-flash-0731"
+    }
+  },
   "metadata": {
     "description": "Complete exact official FP4/FP8 checkpoint with the DSpark speculative module, pinned to the 7872f01 model-card refresh; runtime and weight artifacts remain byte-identical to the 0731 release.",
     "tags": [
@@ -762,5 +778,6 @@
   "source": {
     "repository": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731",
     "revision": "7872f01b1d1fe23eabc4c98b48bffcef5a386062"
-  }
+  },
+  "supersedes": null
 }

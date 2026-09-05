@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -21,6 +26,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "diffusion",
@@ -88,6 +94,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Comfy-Org single-file conversion of official Wan 2.2 TI2V 5B and required companions.",
+    "publisher": "Comfy-Org",
+    "relation": "derived",
+    "source_model": {
+      "kind": "model",
+      "publisher": "wan-ai",
+      "slug": "wan-2-2-ti2v-5b"
+    }
+  },
   "metadata": {
     "description": "Exact Comfy-Org FP16 TI2V 5B model, scaled-FP8 encoder, and Wan 2.2 VAE.",
     "tags": [
@@ -120,5 +136,6 @@
   "source": {
     "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged",
     "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77"
-  }
+  },
+  "supersedes": null
 }

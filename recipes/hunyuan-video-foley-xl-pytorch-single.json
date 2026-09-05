@@ -144,7 +144,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "607a98b0cff6738d54749fcad6e1f88736fb4c380106d933e33b8997ccaa5f91",
+        "content_sha256": "652b01caa51a2a581fd4d1ec661f6a00719238ae0e19b9b0dc7e7e9daee4c344",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan-video-foley-xl"

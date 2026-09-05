@@ -128,7 +128,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "fbd5e0e712c7743738272179ce24f6ac6f3c7fd491d0586890055d28e27b96f6",
+        "content_sha256": "35fb58f92e192b0905637e1677c49e27de7aa84b4a91156a58533b3c90ba13b9",
         "kind": "model",
         "publisher": "stepfun-ai",
         "slug": "step1x-3d-label-geometry"

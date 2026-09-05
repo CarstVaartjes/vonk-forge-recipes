@@ -144,7 +144,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1b01f03cde3270eaa2f548eb94d3657b8675ec58af72ec5c953f2758cf8657e1",
+        "content_sha256": "c9a60aa3bc3b63f845bb297c425794e08d58870d24026812826284bd9397a33c",
         "kind": "model",
         "publisher": "stepfun-ai",
         "slug": "step1x-3d-texture"

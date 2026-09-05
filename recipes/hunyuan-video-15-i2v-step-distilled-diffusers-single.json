@@ -139,7 +139,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "0a6b42dfd7dc0a432b3692980edf87bef50ce18fe3ffaa00ddc4443913f119da",
+        "content_sha256": "16834875b23181681c9410f40c5da3bc6ded2167a260ac1ff931aa85a78c0dfa",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan-video-15-i2v-step-distilled"

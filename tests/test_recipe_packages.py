@@ -40,8 +40,39 @@ def test_full_catalog_packages_are_self_contained_and_deterministic(tmp_path: Pa
     second = TOOL["build"](package_dir=second_dir, platform_root=platform_root)
     assert first["kind"] == second["kind"] == "recipe-library-index"
     assert first["schema_version"] == second["schema_version"] == 2
-    assert len(first["recipes"]) == len(second["recipes"]) == 84
-    assert len(first["recipes"]) == len(second["recipes"])
+    source_models = {
+        (json.loads(path.read_text())["identity"]["publisher"], json.loads(path.read_text())["identity"]["slug"])
+        for path in ROOT.joinpath("models").glob("*.json")
+    }
+    source_recipes = {
+        (json.loads(path.read_text())["identity"]["publisher"], json.loads(path.read_text())["identity"]["slug"])
+        for path in ROOT.joinpath("recipes").glob("*.json")
+    }
+    assert source_models and source_recipes
+    assert len(source_models) == len(list(ROOT.joinpath("models").glob("*.json")))
+    assert len(source_recipes) == len(list(ROOT.joinpath("recipes").glob("*.json")))
+    for catalog in (first, second):
+        assert {
+            (item["document"]["identity"]["publisher"], item["document"]["identity"]["slug"])
+            for item in catalog["catalog_entities"]
+        } == source_models
+        assert {
+            (item["document"]["identity"]["publisher"], item["document"]["identity"]["slug"])
+            for item in catalog["recipes"]
+        } == source_recipes
+        package_names = {Path(str(item["package"]["path"])).name for item in catalog["recipes"]}
+        assert package_names == {f"{slug}.tar.gz" for _, slug in source_recipes}
+    checked_index = json.loads((ROOT / "catalog-index.json").read_text())
+    assert {
+        (item["document"]["identity"]["publisher"], item["document"]["identity"]["slug"])
+        for item in checked_index["catalog_entities"]
+    } == source_models
+    assert {
+        (item["document"]["identity"]["publisher"], item["document"]["identity"]["slug"])
+        for item in checked_index["recipes"]
+    } == source_recipes
+    expected_package_names = {f"{slug}.tar.gz" for _, slug in source_recipes}
+    assert {path.name for path in ROOT.joinpath("packages").glob("*.tar.gz")} == expected_package_names
 
     for first_row, second_row in zip(first["recipes"], second["recipes"], strict=True):
         first_package = first_row["package"]
@@ -159,10 +190,17 @@ def test_model_capability_authority_is_external_and_canonical() -> None:
         (item["model_version"]["publisher"], item["model_version"]["slug"]): item
         for item in evidence["entries"]
     }
-    assert len(entries) == len(evidence["entries"]) == 86
-
     model_versions = sorted((ROOT / "models").glob("*.json"))
-    assert len(model_versions) == 92
+    model_keys = {
+        (json.loads(path.read_text(encoding="utf-8"))["identity"]["publisher"],
+         json.loads(path.read_text(encoding="utf-8"))["identity"]["slug"])
+        for path in model_versions
+    }
+    evidence_keys = set(entries)
+    assert evidence_keys <= model_keys
+    unknown_keys = model_keys - evidence_keys
+    assert evidence_keys | unknown_keys == model_keys
+    assert not evidence_keys & unknown_keys
     unknown = []
     for path in model_versions:
         document = json.loads(path.read_text(encoding="utf-8"))
@@ -170,8 +208,10 @@ def test_model_capability_authority_is_external_and_canonical() -> None:
         key = (document["identity"]["publisher"], document["identity"]["slug"])
         assert capabilities is not None
         if not capabilities["facts"]:
-            unknown.append(path.name)
+            unknown.append(key)
+            assert key in unknown_keys
             continue
+        assert key in evidence_keys
         assert capabilities["schema_version"] == 2
         assert capabilities["provenance"]["evidence_digest"] == evidence_digest
         assert capabilities["provenance"]["source_url"].startswith("https://")
@@ -185,7 +225,55 @@ def test_model_capability_authority_is_external_and_canonical() -> None:
             item["evidence_digest"] in {None, evidence_digest} for item in facts
         )
         assert all("vision" != item["capability"] for item in facts)
-    assert len(unknown) == 6
+    assert set(unknown) == unknown_keys
+
+
+def test_model_access_lineage_and_related_model_references_are_preserved() -> None:
+    restricted = {}
+    dependency_count = 0
+    supersedes = []
+    for path in ROOT.joinpath("models").glob("*.json"):
+        document = json.loads(path.read_text())
+        access = document["access"]
+        assert set(access) == {"visibility", "gated", "authentication"}
+        if access["visibility"] == "restricted":
+            restricted[document["identity"]["slug"]] = access
+        dependency_count += len(document["dependencies"])
+        if document["supersedes"] is not None:
+            supersedes.append(document["identity"]["slug"])
+        lineage = document["lineage"]
+        assert set(lineage) == {"publisher", "relation", "source_model", "derivation"}
+        assert set(lineage["source_model"]) == {"kind", "publisher", "slug"}
+    assert set(restricted) == {
+        "glm-5-3-flash-nvfp4-ablit-l15-43-mtp-l45-80b6d18d",
+        "glm-5-3-flash-nvfp4-abliterated-d7f8afa8",
+        "ltx-2-5-22b-distilled-bf16-diffusers",
+    }
+    assert all(value == {"visibility": "restricted", "gated": True, "authentication": "token"} for value in restricted.values())
+    assert dependency_count == 7
+    assert supersedes == ["hunyuanocr-1-5-47644ecc"]
+
+
+def test_model_territorial_restrictions_preserve_all_published_records() -> None:
+    expected = {
+        "hunyuan-video-15-distilled": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
+        "hunyuan-video-15-i2v-step-distilled": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
+        "hunyuan-video-15-t2v": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
+        "hunyuan-video-foley-xl": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
+        "hunyuan-video-foley-xxl": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
+        "hunyuan3d-omni": (["EU", "GB", "KR"], "The upstream Hunyuan3D-Omni Community License does not apply in the European Union, United Kingdom, or South Korea."),
+        "hunyuanocr-1-5-449e7d47": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
+        "hunyuanocr-1-5-47644ecc": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
+        "minimax-h3": (["EU", "GB", "KR", "US"], "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."),
+        "minimax-h3-fl2va-42ed227e": (["EU", "GB", "KR", "US"], "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."),
+    }
+    actual = {}
+    for path in ROOT.joinpath("models").glob("*.json"):
+        document = json.loads(path.read_text())
+        restriction = document["license"].get("territorial_restrictions")
+        if restriction is not None:
+            actual[document["identity"]["slug"]] = (restriction["denied_jurisdictions"], restriction["notice"])
+    assert actual == expected
 
 
 def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(

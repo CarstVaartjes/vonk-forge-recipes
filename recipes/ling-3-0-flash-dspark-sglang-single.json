@@ -445,7 +445,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "153fd21ad30447580e400b86a1c9c8e00808ba834dc272ec6a7e2c7e6fd77c1a",
+        "content_sha256": "f2a326fd31b35fbcd3c6bf8ff0c16980a11900fe88d6fc37964cbb2429212d26",
         "kind": "model",
         "publisher": "inclusionai",
         "slug": "ling-3-0-flash-int4-7a27e9eb"
@@ -500,7 +500,7 @@
       ],
       "id": "dependency-ling-3-0-flash-dspark-8e5d9988",
       "model": {
-        "content_sha256": "cb661d575f8dd5ead3e62996c81b54c2f7a3de761f66d6b047dae14ca7789a01",
+        "content_sha256": "b1be64baee75c5fb09fb194f66f54d7e19e9dbcc8a4ddb0ffd928f590757e672",
         "kind": "model",
         "publisher": "inclusionai",
         "slug": "ling-3-0-flash-dspark-8e5d9988"

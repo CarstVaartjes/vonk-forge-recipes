@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "token",
+    "gated": true,
+    "visibility": "restricted"
+  },
   "capabilities": {
     "facts": [
       {
@@ -21,6 +26,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "filtered-snapshot",
@@ -74,6 +80,16 @@
     "resolution_pixels": 393216,
     "sample_rate_hz": 48000
   },
+  "lineage": {
+    "derivation": "Official gated Diffusers repository filtered to the distilled split components. The four-shard transformer closure is inferred from the identical pinned index used by transformer_full, which contains exactly those four shards, and is rejected at runtime if the authenticated index differs.",
+    "publisher": "Lightricks",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "lightricks",
+      "slug": "ltx-2-5"
+    }
+  },
   "metadata": {
     "description": "Filtered official gated Diffusers closure at 426936f8: distilled split transformer, convolutional video VAE, audio VAE, BWE vocoder, connectors, and text stack.",
     "tags": [
@@ -107,5 +123,6 @@
   "source": {
     "repository": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers",
     "revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc"
-  }
+  },
+  "supersedes": null
 }
