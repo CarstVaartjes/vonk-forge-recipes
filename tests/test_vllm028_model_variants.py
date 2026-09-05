@@ -4,10 +4,13 @@ import hashlib
 import importlib.machinery
 import importlib.util
 import json
+import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import RecipeDefinition, content_sha256  # noqa: E402
 RUNTIME_DIGEST = "15c98035c9bbba7ec61d25acd93c3c34b0516754c299813e5f51344e858abd2d"
 RUNTIME_IMAGE = (
     "docker.io/vllm/vllm-openai@sha256:"
@@ -20,14 +23,15 @@ def load(path: str) -> dict[str, object]:
 
 
 def digest(document: dict[str, object]) -> str:
-    payload = json.dumps(
-        document,
-        ensure_ascii=False,
-        allow_nan=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode()
-    return hashlib.sha256(payload).hexdigest()
+    return content_sha256(RecipeDefinition.model_validate(document))
+
+
+def catalog_entry(slug: str) -> dict[str, object]:
+    catalog = load("catalog-index.json")
+    return next(
+        item for item in catalog["recipes"]
+        if item["document"]["identity"]["slug"] == slug
+    )
 
 
 def catalog_index_module():
@@ -146,18 +150,29 @@ class Vllm028ModelVariantTests(unittest.TestCase):
                 self.assertIn("expected the immutable model at /models", wrapper_text)
                 self.assertIn("missing read-only multimodal input mount", wrapper_text)
 
-    def test_releases_bind_the_exact_candidate_recipes(self) -> None:
+    def test_releases_and_packages_bind_exact_candidate_recipes(self) -> None:
         for slug, recipe, version, released_at in (
-            ("gemma-4-26b-a4b-vllm028-single", self.gemma, "1.0.1", "2026-09-01"),
-            ("lfm2-5-vl-3b-vllm028-single", self.lfm, "1.1.1", "2026-09-01"),
+            ("gemma-4-26b-a4b-vllm028-single", self.gemma, "1.0.2", "2026-09-03"),
+            ("lfm2-5-vl-3b-vllm028-single", self.lfm, "1.1.3", "2026-09-05"),
         ):
             with self.subTest(recipe=slug):
-                release = load(f"recipe-releases/{slug}.json")
-                self.assertEqual(release["version"], release["history"][0]["version"])
-                self.assertRegex(release["released_at"], r"^2026-09-")
+                definition = RecipeDefinition.model_validate(recipe)
+                release = definition.release
+                self.assertEqual(release.version, version)
+                self.assertEqual(release.released_at, released_at)
+                self.assertEqual(release.history[0].version, version)
+                self.assertEqual(release.history[0].released_at, released_at)
+                self.assertIsNone(release.history[0].prior_recipe_content_sha256)
+                entry = catalog_entry(slug)
+                recipe_digest = digest(recipe)
                 self.assertEqual(
-                    release["history"][0]["recipe_content_sha256"], digest(recipe)
+                    entry["content_sha256"], recipe_digest
                 )
+                package = entry["package"]
+                self.assertEqual(package["recipe_content_sha256"], recipe_digest)
+                payload = (ROOT / package["path"]).read_bytes()
+                self.assertEqual(len(payload), package["expected_bytes"])
+                self.assertEqual(hashlib.sha256(payload).hexdigest(), package["sha256"])
 
 
 if __name__ == "__main__":

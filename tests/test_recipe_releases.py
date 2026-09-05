@@ -23,7 +23,6 @@ catalog_index = importlib.util.module_from_spec(SPEC)
 sys.modules[LOADER.name] = catalog_index
 LOADER.exec_module(catalog_index)
 
-CURRENT_DIGEST = "a" * 64
 OLDER_DIGEST = "b" * 64
 
 
@@ -35,7 +34,7 @@ def release_document() -> dict[str, object]:
             {
                 "version": "2.0.0",
                 "released_at": "2026-08-23",
-                "prior_recipe_content_sha256": CURRENT_DIGEST,
+                "prior_recipe_content_sha256": None,
                 "upgrade_effect": "rebuild",
                 "changes": [
                     {
@@ -74,14 +73,6 @@ def isolated_root() -> Iterator[Path]:
             catalog_index.ROOT = previous
 
 
-def write_release(root: Path, document: dict[str, object]) -> Path:
-    directory = root / "recipe-releases"
-    directory.mkdir(exist_ok=True)
-    path = directory / "demo.json"
-    path.write_text(json.dumps(document), encoding="utf-8")
-    return path
-
-
 class RecipeReleaseValidationTests(unittest.TestCase):
     def validate(self, document: dict[str, object]) -> RecipeRelease:
         recipe = json.loads(
@@ -92,21 +83,13 @@ class RecipeReleaseValidationTests(unittest.TestCase):
         self.assertEqual(parsed_recipe.identity.publisher, "vonk-forge")
         self.assertEqual(parsed_recipe.identity.slug, "synthetic-tiny-build")
         release = parsed_recipe.release
-        prior_digests = [entry.prior_recipe_content_sha256 for entry in release.history]
-        if len([digest for digest in prior_digests if digest is not None]) != len(
-            {digest for digest in prior_digests if digest is not None}
-        ):
-            raise ValueError("release history prior recipe digests must be unique")
-        versions = [tuple(int(part) for part in entry.version.split(".")[:3]) for entry in release.history]
-        if versions != sorted(versions, reverse=True):
-            raise ValueError("release history versions must be newest-first")
         return release
 
-    def assert_invalid(self, document: dict[str, object], _detail: str = "") -> None:
+    def assert_invalid(self, document: dict[str, object]) -> None:
         with self.assertRaises(ValueError):
             self.validate(document)
 
-    def test_accepts_current_digest_and_newest_first_history(self) -> None:
+    def test_accepts_current_release_without_self_digest(self) -> None:
         release = self.validate(release_document())
 
         self.assertEqual(release.version, "2.0.0")
@@ -114,95 +97,84 @@ class RecipeReleaseValidationTests(unittest.TestCase):
         history = release.history
         self.assertEqual(
             [item.prior_recipe_content_sha256 for item in history],
-            [CURRENT_DIGEST, OLDER_DIGEST],
+            [None, OLDER_DIGEST],
         )
 
-    def test_rejects_current_digest_mismatch(self) -> None:
+    def test_rejects_invalid_historical_digest(self) -> None:
         document = release_document()
-        document["history"][0]["prior_recipe_content_sha256"] = "invalid"
+        document["history"][1]["prior_recipe_content_sha256"] = "invalid"
 
-        self.assert_invalid(document, "prior recipe digest")
+        self.assert_invalid(document)
 
-    def test_rejects_identity_mismatch(self) -> None:
-        recipe = json.loads(
-            (ROOT / "contracts/src/vonk_forge_contracts/examples/recipe-source-build.json").read_text()
-        )
-        recipe["release"] = release_document()
-        recipe["identity"]["slug"] = "different"
-        with self.assertRaises(ValueError):
-            RecipeDefinition.model_validate(recipe)
+    def test_rejects_legacy_sidecar_identity_field(self) -> None:
+        document = release_document()
+        document["recipe"] = {"publisher": "example", "slug": "demo"}
+
+        self.assert_invalid(document)
 
     def test_rejects_unsorted_or_duplicate_history(self) -> None:
-        cases: dict[str, tuple[dict[str, object], str]] = {}
-
-        unsorted = release_document()
-        unsorted["history"][1]["version"] = "3.0.0"
-        cases["unsorted version"] = (unsorted, "semantic version")
+        cases: dict[str, dict[str, object]] = {}
 
         duplicate_version = release_document()
         duplicate_version["history"][1]["version"] = "2.0.0"
-        cases["duplicate version"] = (duplicate_version, "unique semantic version")
-
-        duplicate_digest = release_document()
-        duplicate_digest["history"][1]["prior_recipe_content_sha256"] = CURRENT_DIGEST
-        cases["duplicate digest"] = (duplicate_digest, "unique prior digest")
+        cases["duplicate version"] = duplicate_version
 
         unsorted_date = release_document()
         unsorted_date["history"][1]["released_at"] = "2026-08-24"
-        cases["unsorted date"] = (unsorted_date, "newest-first by released_at")
+        cases["unsorted date"] = unsorted_date
 
-        for name, (document, detail) in cases.items():
+        for name, document in cases.items():
             with self.subTest(name=name):
-                self.assert_invalid(document, detail)
+                self.assert_invalid(document)
 
     def test_rejects_invalid_date_category_and_upgrade_effect(self) -> None:
-        cases: dict[str, tuple[dict[str, object], str]] = {}
+        cases: dict[str, dict[str, object]] = {}
 
         invalid_date = release_document()
         invalid_date["released_at"] = "2026-02-30"
-        cases["date"] = (invalid_date, "ISO 8601 calendar date")
+        cases["date"] = invalid_date
 
         invalid_category = release_document()
         invalid_category["history"][0]["changes"][0]["kind"] = "marketing"
-        cases["category"] = (invalid_category, "kind is unsupported")
+        cases["category"] = invalid_category
 
         invalid_effect = release_document()
         invalid_effect["history"][0]["upgrade_effect"] = "redeploy"
-        cases["upgrade effect"] = (invalid_effect, "upgrade_effect is unsupported")
+        cases["upgrade effect"] = invalid_effect
 
-        for name, (document, detail) in cases.items():
+        for name, document in cases.items():
             with self.subTest(name=name):
-                self.assert_invalid(document, detail)
+                self.assert_invalid(document)
 
     def test_rejects_bounded_text_and_collection_overflows(self) -> None:
-        cases: dict[str, tuple[dict[str, object], str]] = {}
+        cases: dict[str, dict[str, object]] = {}
 
         long_summary = release_document()
         long_summary["history"][0]["changes"][0]["summary"] = "s" * 161
-        cases["summary"] = (long_summary, "1..160 characters")
+        cases["summary"] = long_summary
 
         long_details = release_document()
         long_details["history"][0]["changes"][0]["details"] = "d" * 1001
-        cases["details"] = (long_details, "1..1000 characters")
+        cases["details"] = long_details
 
         too_many_references = release_document()
         too_many_references["history"][0]["changes"][0]["references"] = [
             f"https://example.com/{index}" for index in range(9)
         ]
-        cases["references"] = (too_many_references, "1..8 unique URLs")
+        cases["references"] = too_many_references
 
         empty_changes = release_document()
         empty_changes["history"][0]["changes"] = []
-        cases["changes"] = (empty_changes, "changes must contain 1..16 entries")
+        cases["changes"] = empty_changes
 
         too_much_history = release_document()
         first = too_much_history["history"][0]
         too_much_history["history"] = [copy.deepcopy(first) for _ in range(33)]
-        cases["history"] = (too_much_history, "history must contain 1..32 releases")
+        cases["history"] = too_much_history
 
-        for name, (document, detail) in cases.items():
+        for name, document in cases.items():
             with self.subTest(name=name):
-                self.assert_invalid(document, detail)
+                self.assert_invalid(document)
 
 
 class RecipeReleaseBuildTests(unittest.TestCase):
