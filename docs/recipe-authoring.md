@@ -71,6 +71,13 @@ invent hashes, sizes, capabilities, context limits, or memory measurements.
 Describe capabilities with evidence and keep unknowns honest. A source model's
 vision capability does not prove that every engine recipe can serve images.
 
+Preserve upstream license terms, territorial notices, and their source links
+as information for the user. License compliance decisions belong to the user;
+do not add location setup, territorial admission gates, or tests requiring
+Vonk Forge to deny downloads or runs based on geography. A provider may still
+require authenticated access to download gated files: preserve those actual
+credential requirements and report provider access errors accurately.
+
 ### Recipe: a complete way to run those files
 
 Reference exact validated Model documents and their file IDs; do not duplicate
