@@ -1,140 +1,32 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 20430679144,
-      "id": "target",
-      "installed_bytes": 20430679144,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/target"
-      },
-      "repository": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f/split_files/diffusion_models/qwen_image_2512_fp8_e4m3fn.safetensors",
-      "revision": "sha256:5dc80554d5d83390046a2f4a94ece06afb7700bf7b0aaf8bde9769793875876b",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 1698951104,
-      "id": "lightning-lora",
-      "installed_bytes": 1698951104,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/lightning-lora"
-      },
-      "repository": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/resolve/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52/Qwen-Image-2512-Lightning-4steps-V1.0-fp32.safetensors",
-      "revision": "sha256:ad12117461cb41e2ea637fec8df6392ce8e8550c47fbe2b829ed3deb98262066",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 9384670680,
-      "id": "text-encoder",
-      "installed_bytes": 9384670680,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/text-encoder"
-      },
-      "repository": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f/split_files/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors",
-      "revision": "sha256:cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 253806246,
-      "id": "vae",
-      "installed_bytes": 253806246,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/vae"
-      },
-      "repository": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f/split_files/vae/qwen_image_vae.safetensors",
-      "revision": "sha256:a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 30720,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/media/comfyui-qwen-image-2512-fp8-lightning",
-      "sha256": "82a59baae4744fce76a79dc82244eb9c7f67d1ab340bf14196ed3f9f7fa7f12e"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [
-        "codeload.github.com",
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ],
-      "mode": "public"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 31768107174,
-      "memory_bytes": 8000000000,
-      "processes": 4096,
-      "temporary_bytes": 40000000000,
-      "timeout_seconds": 14400
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
-  "dependencies": [
-    {
-      "content_sha256": "65dc9dc4844cf5f780bc595c6d2304859cbb4ba00515b8daadabe507a6bb76c6",
-      "kind": "model-version",
-      "publisher": "qwen",
-      "slug": "qwen-image-2512-comfyui-fp8-7beb7b64"
-    }
-  ],
   "execution": {
-    "harness": {
-      "content_sha256": "0d97fceaa9a7ab64bf3d826b5d9ca427ea10be79b54a8d4fe9190711c9bf70d6",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "comfyui"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/media/comfyui-qwen-image-2512-fp8-lightning"
+      },
+      "dockerfile": "adapters/media/comfyui-qwen-image-2512-fp8-lightning/Dockerfile",
+      "network": {
+        "hosts": [
+          "codeload.github.com",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -192,6 +84,7 @@
       "path": "/outputs"
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Installable Candidate for the exact official ComfyUI 0.34.0 Qwen Image 2512 profile: FP8 transformer, FP32 four-step Lightning LoRA, scaled-FP8 text encoder, and Qwen Image VAE on one Spark.",
@@ -210,13 +103,52 @@
     ],
     "title": "Qwen Image 2512 FP8 Lightning ComfyUI single Spark"
   },
-  "model": {
-    "content_sha256": "927ac236a6b6f4ec9bac7f004106dd442622d90681c8b9d9af3c410f53b9d52a",
-    "kind": "model-version",
-    "publisher": "qwen",
-    "slug": "qwen-image-2512-lightning-fp32-a52649c9"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "qwen-image-2512-lightning-4steps-v1-0-fp32",
+          "id": "primary-qwen-image-2512-lightning-4steps-v1-0-fp32",
+          "mount": {
+            "read_only": true,
+            "target": "/models/lightning-lora"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "ded78d54d1641bba07b2e87255ac3dc3b02e093fcd61c74a1bce0839bb9ba619",
+        "kind": "model",
+        "publisher": "qwen",
+        "slug": "qwen-image-2512-lightning-fp32-a52649c9"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "qwen-image-2512-fp8-transformer",
+          "id": "dependency-qwen-image-2512-comfyui-fp8-7beb7b64-qwen-image-2512-",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "dependency-qwen-image-2512-comfyui-fp8-7beb7b64",
+      "model": {
+        "content_sha256": "e5e786261ab9ceefbeaa1b23bfdce485562906b10a1e2da3fa54ecbf965d43a6",
+        "kind": "model",
+        "publisher": "qwen",
+        "slug": "qwen-image-2512-comfyui-fp8-7beb7b64"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "Qwen",
@@ -231,37 +163,33 @@
     "arguments": [
       {
         "name": "workflow",
+        "setting": null,
         "value": "/opt/vonk/source/workflows/qwen-image-2512-fp8-lightning.json"
       },
       {
         "name": "workflow-sha256",
+        "setting": null,
         "value": "2bd76502d2846d5c0859171d40093e0335a803de42dc1c571cb0d9e3dd98da84"
       },
       {
         "name": "output-mime",
+        "setting": null,
         "value": "image/png"
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 0
       }
     ],
-    "distribution": {
-      "content_sha256": "0400a5a7298a57cca1a049ef17baf21ce81c29fa897fbfa157256d4fde931d9c",
-      "kind": "runtime-distribution",
-      "publisher": "comfy-org",
-      "slug": "comfyui-0-34-0-cuda13-arm64"
-    },
+    "engine": "comfyui",
     "entrypoint": [
       "/opt/vonk/bin/comfyui-job"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "COMFYUI_DISABLE_TELEMETRY",
+        "secret": null,
         "value": "1"
       }
     ],
@@ -272,41 +200,15 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/outputs",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 3600
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": true,
-          "source": "inputs",
-          "target": "/inputs"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -324,12 +226,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "target",
-          "lightning-lora",
-          "text-encoder",
-          "vae"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -372,13 +268,28 @@
         "name": "qwen-image-2512-fp8-lightning-four-step"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "artifact.mime.image-png"
-        ],
-        "interface": "image-job"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "image-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/prompt.txt",
+            "input_path": "/inputs",
+            "input_slots": {
+              "prompt": "qualification/fixtures/prompt.txt"
+            },
+            "output_path": "/outputs",
+            "output_slot": "image",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "image-job"
+    }
   }
 }

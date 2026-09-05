@@ -1,0 +1,293 @@
+{
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "image-understanding",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "tool-use",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "3ade2378fc84032d5017c1a9c93c4eaa77d65e57",
+      "source_url": "https://huggingface.co/tencent/UI-Mate-27B"
+    },
+    "schema_version": 2
+  },
+  "files": [
+    {
+      "id": "metadata-34448b82c17d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-31ca5f57a67a",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "31ca5f57a67a1e4e28723186df056791dfc5c72448632724e77be73d8096629b",
+      "size_bytes": 5909
+    },
+    {
+      "id": "chat-template-e84f32a23fdd",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e84f32a23fdda27689f868aa4a1a5621f41133e51a48d7f3efcbea2839574259",
+      "size_bytes": 7764
+    },
+    {
+      "id": "config-f6e4547010fc",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f6e4547010fc79dd7815939657317abcbf09f71ae83bb0fdb7acaadad97e927f",
+      "size_bytes": 3782
+    },
+    {
+      "id": "generation-config-252e0efee3de",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "252e0efee3ded327704912616f3493a227cdc39eb4bab52fcae1ceb3ed5dc890",
+      "size_bytes": 213
+    },
+    {
+      "id": "model-00001-of-00012-17574556eb01",
+      "path": "model-00001-of-00012.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "17574556eb0152de8987c994aa9b7e6752e89b2a39b0711dadac3a85b7be0916",
+      "size_bytes": 2542796896
+    },
+    {
+      "id": "model-00002-of-00012-a72dbd6bae26",
+      "path": "model-00002-of-00012.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a72dbd6bae263d826c0a758e24223ae9127a2af2269b268b87ea613a92a30921",
+      "size_bytes": 4842451888
+    },
+    {
+      "id": "model-00003-of-00012-1041e940900d",
+      "path": "model-00003-of-00012.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1041e940900d09750ec440247b9711300e7eff95dbb7052b7fe9ba7c7127cae6",
+      "size_bytes": 4965227912
+    },
+    {
+      "id": "model-00004-of-00012-49f1ce74a334",
+      "path": "model-00004-of-00012.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "49f1ce74a3343daa21d70c8c268f14c0df1082667af5a2443b506508ca86bb0c",
+      "size_bytes": 4912819240
+    },
+    {
+      "id": "model-00005-of-00012-182273072217",
+      "path": "model-00005-of-00012.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "182273072217fb7bf91225ca1d8fb6b382d4b416bc640e6c696d30ece77d5cce",
+      "size_bytes": 4986198512
+    },
+    {
+      "id": "model-00006-of-00012-6b1d17a7f919",
+      "path": "model-00006-of-00012.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "6b1d17a7f919857b399f1e9abf3b250ff4cddca6a965f13a2b1a44bc5d3a481e",
+      "size_bytes": 4912819288
+    },
+    {
+      "id": "model-00007-of-00012-5eab4cf1fd7f",
+      "path": "model-00007-of-00012.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5eab4cf1fd7fee887d839f4d1e5e8659b4c09d97f7985e0f04bf97c61af289b9",
+      "size_bytes": 4932703240
+    },
+    {
+      "id": "model-00008-of-00012-8785cdf4ce04",
+      "path": "model-00008-of-00012.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8785cdf4ce04b6322290b7596e7a79829c9864c0f33d4945db2c2e9a62741cba",
+      "size_bytes": 4966314544
+    },
+    {
+      "id": "model-00009-of-00012-59f3cffae2c3",
+      "path": "model-00009-of-00012.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "59f3cffae2c35787a7515e312cf80eb7f6488519557a0613bd0df07ff4801316",
+      "size_bytes": 4964162216
+    },
+    {
+      "id": "model-00010-of-00012-f6c8ec8fab1f",
+      "path": "model-00010-of-00012.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f6c8ec8fab1f9fdfa2a8475c161b9964077d6c1e0337d492b2100e13d0a3423b",
+      "size_bytes": 4933789792
+    },
+    {
+      "id": "model-00011-of-00012-4896732f379f",
+      "path": "model-00011-of-00012.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4896732f379f403685bff5b0b0e67c3fffa8b39b6d9bf9ada64a1242ed953ae6",
+      "size_bytes": 4965228000
+    },
+    {
+      "id": "model-00012-of-00012-19406a7487d7",
+      "path": "model-00012-of-00012.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "19406a7487d791accebe185930bcd360a98183fdfea052d101634896c47d3caf",
+      "size_bytes": 2789094864
+    },
+    {
+      "id": "model-safetensors-index-12c773be98a9",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "12c773be98a98698a2326a15ae5e2e04103434a1802badb2a9f984a4504142aa",
+      "size_bytes": 106351
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "processor-config-01562eddd6f9",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "01562eddd6f9e9ec4bc31656a3b7055284cafbf889acc6c4348dca431ae31f68",
+      "size_bytes": 1296
+    },
+    {
+      "id": "tokenizer-87a7830d63fc",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4",
+      "size_bytes": 19989343
+    },
+    {
+      "id": "tokenizer-config-e98f1901ac6f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e98f1901ac6f0adff67b1d540bfa0c36ac1a0cf59eb72ed78146ef89aafa1182",
+      "size_bytes": 1139
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "tencent",
+      "slug": "ui-mate",
+      "title": "UI-Mate"
+    },
+    "model": {
+      "architecture": "Qwen3.5 conditional-generation vision-language transformer fine-tuned from Qwen3.6-27B for GUI action generation",
+      "publisher": "tencent",
+      "slug": "ui-mate-27b",
+      "title": "UI-Mate 27B"
+    },
+    "publisher": "tencent",
+    "slug": "ui-mate-27b-3ade2378",
+    "variant": "UI-Mate 27B BF16",
+    "version": "UI-Mate 27B BF16"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Tencent",
+      "Tencent HY Frontier Team"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/Tencent/UI-Mate/blob/d185dc9d74cfcab3a890d7ffb2bb011ecdd64c64/LICENSE"
+  },
+  "limits": {
+    "context_tokens": 262144,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "metadata": {
+    "description": "Exact public UI-Mate 27B BF16 checkpoint.",
+    "tags": [
+      "tencent",
+      "ui-mate",
+      "multimodal",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "parameters": {
+    "active": 27356728560,
+    "total": 27356728560
+  },
+  "provenance": {
+    "attribution": [
+      "Tencent",
+      "Tencent HY Frontier Team"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "3ade2378fc84032d5017c1a9c93c4eaa77d65e57",
+    "source_url": "https://huggingface.co/tencent/UI-Mate-27B"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/tencent/UI-Mate-27B",
+    "revision": "3ade2378fc84032d5017c1a9c93c4eaa77d65e57"
+  }
+}

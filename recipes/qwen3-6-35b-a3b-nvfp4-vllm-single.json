@@ -1,79 +1,24 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 23462477790,
-      "id": "weights",
-      "installed_bytes": 23462477790,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models"
-      },
-      "repository": "nvidia/Qwen3.6-35B-A3B-NVFP4",
-      "revision": "1355db6a052410cfd62085d94b58866fd0f2c3c5",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/nvidia/qwen36-35b-vllm",
-      "sha256": "6d5a5ede747c1976bbc128402fc85da82c74841d6443cc6dc202282f18736db6"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [],
-      "mode": "none"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 33163973513,
-      "memory_bytes": 8000000000,
-      "processes": 4096,
-      "temporary_bytes": 46924955580,
-      "timeout_seconds": 7200
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
   "execution": {
-    "harness": {
-      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "vllm"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4",
+        "platform": "linux/arm64",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/nvidia/qwen36-35b-vllm"
+      },
+      "dockerfile": "adapters/nvidia/qwen36-35b-vllm/Dockerfile",
+      "network": {
+        "hosts": [],
+        "mode": "none"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -89,6 +34,7 @@
       "port": 8000
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Executable Candidate binding of NVIDIA's official agent-ready Qwen3.6 35B-A3B NVFP4 checkpoint and stable vLLM 0.28 ARM64 image for one DGX Spark. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
@@ -114,13 +60,206 @@
     ],
     "title": "NVIDIA Qwen3.6 35B-A3B NVFP4 vLLM single Spark"
   },
-  "model": {
-    "content_sha256": "4020f7063b39d47002a724b41def279cb747aff30c004d4ed3c924447a09755a",
-    "kind": "model-version",
-    "publisher": "nvidia",
-    "slug": "qwen3-6-35b-a3b-nvfp4-1355db6a"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-d1a8f4a1d2e3",
+          "id": "primary-metadata-d1a8f4a1d2e3",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file--quant-summary-bf884bde9da2",
+          "id": "primary-file--quant-summary-bf884bde9da2",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-bb3a29ef8870",
+          "id": "primary-readme-bb3a29ef8870",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-e84f32a23fdd",
+          "id": "primary-chat-template-e84f32a23fdd",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-58aefa1c9eff",
+          "id": "primary-config-58aefa1c9eff",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-c1b09db41911",
+          "id": "primary-configuration-c1b09db41911",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-e70c136c1b78",
+          "id": "primary-generation-config-e70c136c1b78",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-75fe7cc8d583",
+          "id": "primary-hf-quant-config-75fe7cc8d583",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00003-07141c2db92e",
+          "id": "primary-model-00001-of-00003-07141c2db92e",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00003-6dea9c759a0f",
+          "id": "primary-model-00002-of-00003-6dea9c759a0f",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00003-9758875fc55e",
+          "id": "primary-model-00003-of-00003-9758875fc55e",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-d67403a4e979",
+          "id": "primary-model-safetensors-index-d67403a4e979",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c",
+          "id": "primary-preprocessor-config-27225450ac9c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-5f9e4d4901a9",
+          "id": "primary-tokenizer-5f9e4d4901a9",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-5186f0defcd7",
+          "id": "primary-tokenizer-config-5186f0defcd7",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa",
+          "id": "primary-video-preprocessor-config-7768af27c1fa",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ce99b4cb2983",
+          "id": "primary-vocab-ce99b4cb2983",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "20a8e438be4063c988a1ca4667ab132ce8ebad19a370c2b321ce2370d015f57f",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "qwen3-6-35b-a3b-nvfp4-1355db6a"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "NVIDIA",
@@ -134,75 +273,86 @@
     "arguments": [
       {
         "name": "served-model-name",
+        "setting": null,
         "value": "qwen3-6-35b-a3b-nvfp4"
       },
       {
         "name": "tensor-parallel-size",
+        "setting": null,
         "value": 1
       },
       {
         "name": "trust-remote-code",
+        "setting": null,
         "value": true
       },
       {
         "name": "kv-cache-dtype",
+        "setting": null,
         "value": "fp8"
       },
       {
         "name": "moe-backend",
+        "setting": null,
         "value": "marlin"
       },
       {
         "name": "gpu-memory-utilization",
+        "setting": null,
         "value": "0.40"
       },
       {
         "name": "max-model-len",
-        "value": 262144
+        "setting": "context_tokens",
+        "value": null
       },
       {
         "name": "max-num-seqs",
-        "value": 4
+        "setting": "concurrency",
+        "value": null
       },
       {
         "name": "max-num-batched-tokens",
+        "setting": null,
         "value": 8192
       },
       {
         "name": "enable-chunked-prefill",
+        "setting": null,
         "value": true
       },
       {
         "name": "async-scheduling",
+        "setting": null,
         "value": true
       },
       {
         "name": "enable-prefix-caching",
+        "setting": null,
         "value": true
       },
       {
         "name": "speculative-config",
+        "setting": null,
         "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3,\"moe_backend\":\"triton\"}"
       },
       {
         "name": "reasoning-parser",
+        "setting": null,
         "value": "qwen3"
       },
       {
         "name": "tool-call-parser",
+        "setting": null,
         "value": "qwen3_xml"
       },
       {
         "name": "enable-auto-tool-choice",
+        "setting": null,
         "value": true
       }
     ],
-    "distribution": {
-      "content_sha256": "15c98035c9bbba7ec61d25acd93c3c34b0516754c299813e5f51344e858abd2d",
-      "kind": "runtime-distribution",
-      "publisher": "vllm",
-      "slug": "vllm-0-28-0-nvidia-arm64"
-    },
+    "engine": "vllm",
     "entrypoint": [
       "/opt/vonk/bin/vllm",
       "serve",
@@ -211,10 +361,12 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
@@ -225,36 +377,23 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/v1/models",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 2400
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -272,9 +411,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "weights"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -316,15 +452,46 @@
         "name": "bounded-chat"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "endpoint.healthy",
-          "chat.nonempty",
-          "chat.max-output-64"
-        ],
-        "interface": "openai"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "qwen3-6-35b-a3b-nvfp4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
   }
 }

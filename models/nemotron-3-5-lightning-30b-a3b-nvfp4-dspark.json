@@ -1,0 +1,137 @@
+{
+  "capabilities": {
+    "facts": [],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "8da79f23859810bbb806e7a25eaf70489a9441c5",
+      "source_url": "https://github.com/CarstVaartjes/vonk-forge-recipes"
+    },
+    "schema_version": 2
+  },
+  "files": [
+    {
+      "id": "metadata-gitattributes",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "metadata-license",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8a0c5e232551abcb102d1bd39a34866ef4520361b613bd6405d55b36562e4d88",
+      "size_bytes": 2618
+    },
+    {
+      "id": "metadata-readme",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "ef31e101956ab8f01c0e5a766c2f994088c7c786ba2c87e8dc1a2c284c015174",
+      "size_bytes": 13745
+    },
+    {
+      "id": "configuration",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e390ae49aaf2137b4bf3009c229cba852c44032163bb151b20bbc2376d3a6125",
+      "size_bytes": 1995
+    },
+    {
+      "id": "quantization-config",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "5b4eea93e73f8b14ac5a8ec98369c8100fb9911e25fe030afe87a82d44e68887",
+      "size_bytes": 280
+    },
+    {
+      "id": "weights",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "27e3225376a7d65e2b602a3909c8526217bdc7ad29a2310f5f8b66f7d5343d13",
+      "size_bytes": 1349057504
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "nvfp4",
+    "quantization": "w4a16-nvfp4"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "nemotron",
+      "title": "NVIDIA Nemotron"
+    },
+    "model": {
+      "architecture": "Six-layer dense FFN and grouped-query attention DSpark speculative decoder with sliding-window attention",
+      "publisher": "nvidia",
+      "slug": "nemotron-3-5-lightning-30b-a3b-dspark",
+      "title": "Nemotron 3.5 Lightning 30B-A3B DSpark companion"
+    },
+    "publisher": "nvidia",
+    "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark",
+    "variant": "Nemotron 3.5 Lightning 30B-A3B NVFP4 DSpark companion",
+    "version": "nvfp4-dspark-d10c6ff4"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "LicenseRef-OpenMDW-1.1",
+    "url": "https://openmdw.ai/license/1-1/"
+  },
+  "limits": {
+    "context_tokens": 1048576,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "metadata": {
+    "description": "Official NVIDIA six-layer DSpark speculative-decoding companion for the exact Nemotron 3.5 Lightning 30B-A3B NVFP4 target.",
+    "tags": [
+      "nvidia",
+      "nemotron",
+      "language",
+      "reasoning",
+      "nvfp4",
+      "dspark",
+      "speculative-decoding",
+      "spark"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "parameters": {
+    "active": null,
+    "total": 967000000
+  },
+  "provenance": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "d10c6ff40d6e69d1f92e407e027de3eafdb77645",
+    "source_url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark",
+    "revision": "d10c6ff40d6e69d1f92e407e027de3eafdb77645"
+  }
+}

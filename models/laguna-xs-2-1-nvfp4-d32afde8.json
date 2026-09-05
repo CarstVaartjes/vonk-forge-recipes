@@ -1,0 +1,255 @@
+{
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "code-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "reasoning",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "tool-use",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "d32afde8b09af1539b49ff96ff5551c674485f8e",
+      "source_url": "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4"
+    },
+    "schema_version": 2
+  },
+  "files": [
+    {
+      "id": "metadata-gitattributes",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "c96667522371c060c119874628058a5d62f0277ab322a30f717a42b20c92204b",
+      "size_bytes": 1584
+    },
+    {
+      "id": "metadata-license",
+      "path": "LICENSE.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8a0c5e232551abcb102d1bd39a34866ef4520361b613bd6405d55b36562e4d88",
+      "size_bytes": 2618
+    },
+    {
+      "id": "metadata-readme",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "19a698fce203f94cf859f33507812a6ed8a4bd647e9be86d1d0f60036afbb942",
+      "size_bytes": 11133
+    },
+    {
+      "id": "tokenizer-chat-template",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "2d3c724b3c2e9eb71fe9ccc5423ff268a370a8bfa89e9238b6de14fe000825c8",
+      "size_bytes": 3874
+    },
+    {
+      "id": "configuration",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "8bba8588c6197aa04be89a405a0af640e1914c6323934f7e0860f7cedc528f4e",
+      "size_bytes": 6365
+    },
+    {
+      "id": "configuration-laguna",
+      "path": "configuration_laguna.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "403780a055babd84007313d07c994006b900d91a5bb6d0dfeea352d18b7ec0ea",
+      "size_bytes": 13177
+    },
+    {
+      "id": "generation-config",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e0e4e54c20e5501d900b017dc890866fd0b51e81dd1ad5708690e50c63fbb777",
+      "size_bytes": 483
+    },
+    {
+      "id": "weights-index",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "1b210b9cd9301ce87579afa9a5e58edfed659ef68f439c952f600f509de8e8c2",
+      "size_bytes": 12092850
+    },
+    {
+      "id": "modeling-laguna",
+      "path": "modeling_laguna.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b1279340f2f45952738269ce801c8ef841540eba4e04e9df966a23ad5f188650",
+      "size_bytes": 41118
+    },
+    {
+      "id": "weights-01",
+      "path": "model-00001-of-00005.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5c57958ad46c9a012f08234e9587b8e7b25f4f72805228c91415455eb5900d66",
+      "size_bytes": 5120635984
+    },
+    {
+      "id": "weights-02",
+      "path": "model-00002-of-00005.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a5cdc16384bb24a59e342322148120705c78a5cca623e71375dd0e9a3b23e736",
+      "size_bytes": 5124031544
+    },
+    {
+      "id": "weights-03",
+      "path": "model-00003-of-00005.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7685bcfd4cd890e3504e10dfe7fda635c509f6d729b5245ba4b31a0dabd59575",
+      "size_bytes": 5124049880
+    },
+    {
+      "id": "weights-04",
+      "path": "model-00004-of-00005.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "05c31a155e4b1c383397d2703b839f96dcf254609542d3560095d5adb1b29585",
+      "size_bytes": 5124050664
+    },
+    {
+      "id": "weights-05",
+      "path": "model-00005-of-00005.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b9944765b6d8f21de94545e95f451d359ca1f7d54015159971d948172e787bd2",
+      "size_bytes": 1083833432
+    },
+    {
+      "id": "special-tokens",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "70cd3459fde61761e9440751a590e89a108c09b1803cc7727f5ad1ed1ea6122b",
+      "size_bytes": 214
+    },
+    {
+      "id": "tokenizer",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "807c53a95141e77c14e45f68c51db3f84d2ea6b555a6ea832bc99c88dae6a279",
+      "size_bytes": 7287678
+    },
+    {
+      "id": "tokenizer-config",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "7458ce192bcd810dd43cad15c1996711168f2cc12d5400dac247da5033d6c283",
+      "size_bytes": 12922
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "nvfp4",
+    "quantization": "nvfp4-fp8-kv-cache"
+  },
+  "identity": {
+    "family": {
+      "publisher": "poolside",
+      "slug": "poolside",
+      "title": "Poolside Laguna"
+    },
+    "model": {
+      "architecture": "Laguna sliding-window attention and gated sparse mixture-of-experts model",
+      "publisher": "poolside",
+      "slug": "laguna-xs-2-1",
+      "title": "Laguna XS 2.1"
+    },
+    "publisher": "poolside",
+    "slug": "laguna-xs-2-1-nvfp4-d32afde8",
+    "variant": "Laguna XS 2.1 NVFP4 d32afde8",
+    "version": "nvfp4-d32afde8"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Poolside"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "OpenMDW-1.1",
+    "url": "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4/blob/d32afde8b09af1539b49ff96ff5551c674485f8e/LICENSE.md"
+  },
+  "limits": {
+    "context_tokens": 262144,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "metadata": {
+    "description": "Exact Poolside Laguna XS 2.1 NVFP4 checkpoint with an FP8 KV cache for a candidate single-Spark vLLM recipe.",
+    "tags": [
+      "poolside",
+      "laguna",
+      "language",
+      "reasoning",
+      "agentic",
+      "nvfp4",
+      "fp8-kv-cache",
+      "spark"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "parameters": {
+    "active": 3000000000,
+    "total": 33000000000
+  },
+  "provenance": {
+    "attribution": [
+      "Poolside"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "d32afde8b09af1539b49ff96ff5551c674485f8e",
+    "source_url": "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4",
+    "revision": "d32afde8b09af1539b49ff96ff5551c674485f8e"
+  }
+}

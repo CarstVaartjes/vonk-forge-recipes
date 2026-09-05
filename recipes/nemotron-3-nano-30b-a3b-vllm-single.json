@@ -1,79 +1,24 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 19362748480,
-      "id": "weights",
-      "installed_bytes": 19362748480,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models"
-      },
-      "repository": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
-      "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/nvidia/nemotron-vllm-0-20-0",
-      "sha256": "3ecaad26775f53304c698d0c380977d6911ead3d11673ed18396f5375640fc7c"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [],
-      "mode": "none"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 28595913810,
-      "memory_bytes": 8000000000,
-      "processes": 4096,
-      "temporary_bytes": 32000000000,
-      "timeout_seconds": 7200
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
   "execution": {
-    "harness": {
-      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "vllm"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "871fc9b75a97dc6f58449bfb2aa30cab685c87a8bf6b4519a75c4760c1f8bcd8",
+        "platform": "linux/arm64",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/nvidia/nemotron-vllm-0-20-0"
+      },
+      "dockerfile": "adapters/nvidia/nemotron-vllm-0-20-0/Dockerfile",
+      "network": {
+        "hosts": [],
+        "mode": "none"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -89,6 +34,7 @@
       "port": 8000
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Executable Candidate legacy single-Spark profile for the exact NVIDIA Nemotron 3 Nano NVFP4 checkpoint. It remains installable for reproducibility, but Nemotron 3.5 Lightning is the preferred default for new text deployments. The immutable snapshot supplies the reviewed nano_v3 reasoning plugin, while FP8 KV and FlashInfer NVFP4 MoE follow NVIDIA's launch contract.",
@@ -106,13 +52,217 @@
     ],
     "title": "Nemotron 3 Nano 30B-A3B NVFP4 vLLM single Spark (superseded)"
   },
-  "model": {
-    "content_sha256": "afb650c3c8d4e1d2283dac1f71ffb55c382a69d56982577376eb4fe0023b4d2b",
-    "kind": "model-version",
-    "publisher": "nvidia",
-    "slug": "nemotron-3-nano-30b-a3b-nvfp4"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-gitattributes",
+          "id": "primary-metadata-gitattributes",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-readme",
+          "id": "primary-metadata-readme",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-chat-template",
+          "id": "primary-tokenizer-chat-template",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration",
+          "id": "primary-configuration",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-nemotron",
+          "id": "primary-configuration-nemotron",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config",
+          "id": "primary-generation-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "quantization-config",
+          "id": "primary-quantization-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-01",
+          "id": "primary-weights-01",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-02",
+          "id": "primary-weights-02",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-03",
+          "id": "primary-weights-03",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-04",
+          "id": "primary-weights-04",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-05",
+          "id": "primary-weights-05",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-index",
+          "id": "primary-weights-index",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modeling",
+          "id": "primary-modeling",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "reasoning-parser",
+          "id": "primary-reasoning-parser",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens",
+          "id": "primary-special-tokens",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer",
+          "id": "primary-tokenizer",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config",
+          "id": "primary-tokenizer-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "d63085202de59a1ccedbc89b61d027ea19a20b2e8d3b52dd1ad0ebcf891e6080",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "nemotron-3-nano-30b-a3b-nvfp4"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "NVIDIA Corporation"
@@ -124,63 +274,71 @@
     "arguments": [
       {
         "name": "served-model-name",
+        "setting": null,
         "value": "nemotron-3-nano"
       },
       {
         "name": "max-model-len",
-        "value": 262144
+        "setting": "context_tokens",
+        "value": null
       },
       {
         "name": "max-num-seqs",
-        "value": 8
+        "setting": "concurrency",
+        "value": null
       },
       {
         "name": "gpu-memory-utilization",
+        "setting": null,
         "value": "0.80"
       },
       {
         "name": "kv-cache-dtype",
+        "setting": null,
         "value": "fp8"
       },
       {
         "name": "enable-prefix-caching",
+        "setting": null,
         "value": true
       },
       {
         "name": "async-scheduling",
+        "setting": null,
         "value": true
       },
       {
         "name": "mamba-ssm-cache-dtype",
+        "setting": null,
         "value": "float32"
       },
       {
         "name": "trust-remote-code",
+        "setting": null,
         "value": true
       },
       {
         "name": "enable-auto-tool-choice",
+        "setting": null,
         "value": true
       },
       {
         "name": "tool-call-parser",
+        "setting": null,
         "value": "qwen3_coder"
       },
       {
         "name": "reasoning-parser-plugin",
+        "setting": null,
         "value": "/models/nano_v3_reasoning_parser.py"
       },
       {
         "name": "reasoning-parser",
+        "setting": null,
         "value": "nano_v3"
       }
     ],
-    "distribution": {
-      "content_sha256": "12ff8c23841e374ceec40b1407fa31f6856188a77e5d3ede9921616b58842ea6",
-      "kind": "runtime-distribution",
-      "publisher": "vllm",
-      "slug": "vllm-0-20-0-nvidia-arm64"
-    },
+    "engine": "vllm",
     "entrypoint": [
       "/opt/vonk/bin/vllm",
       "serve",
@@ -189,22 +347,22 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "VLLM_NO_USAGE_STATS",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "VLLM_FLASHINFER_MOE_BACKEND",
+        "secret": null,
         "value": "throughput"
       },
       {
         "name": "VLLM_USE_FLASHINFER_MOE_FP4",
+        "secret": null,
         "value": "1"
       }
     ],
@@ -215,36 +373,23 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/v1/models",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 1800
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 8
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -262,9 +407,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "weights"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -306,15 +448,46 @@
         "name": "bounded-chat"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "endpoint.healthy",
-          "chat.nonempty",
-          "chat.max-output-64"
-        ],
-        "interface": "openai"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "nemotron-3-nano"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
   }
 }

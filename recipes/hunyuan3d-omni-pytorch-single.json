@@ -1,102 +1,32 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 25729134701,
-      "id": "target",
-      "installed_bytes": 25729134701,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/target"
-      },
-      "repository": "tencent/Hunyuan3D-Omni",
-      "revision": "70e803bfb4e127d534049d8ab8c8cb511780d485",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 2435137457,
-      "id": "dinov2-large",
-      "installed_bytes": 2435137457,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/dinov2-large"
-      },
-      "repository": "facebook/dinov2-large",
-      "revision": "47b73eefe95e8d44ec3623f8890bd894b6ea2d6c",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 71680,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/three-d/hunyuan3d-omni",
-      "sha256": "f458c1fe53b940fc943bc49fa00bbaccb7842a009072c2ba290b1bc09ab1dec5"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [
-        "github.com",
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ],
-      "mode": "public"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 36435137457,
-      "memory_bytes": 16000000000,
-      "processes": 4096,
-      "temporary_bytes": 63000000000,
-      "timeout_seconds": 14400
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
   "execution": {
-    "harness": {
-      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "pytorch-pipeline"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "a52783d8d73ace53998d4e740515e9942e73072dc7fbd5322917eb382a0bc7fb",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/three-d/hunyuan3d-omni"
+      },
+      "dockerfile": "adapters/three-d/hunyuan3d-omni/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -202,6 +132,7 @@
       "path": "/outputs"
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Candidate native Hunyuan3D-Omni single-Spark controllable 3D pipeline with exact upstream source, offline multimodal job input, and GLB output; physical GB10 acceptance remains pending.",
@@ -218,13 +149,30 @@
     ],
     "title": "Hunyuan3D-Omni pytorch-pipeline single Spark"
   },
-  "model": {
-    "content_sha256": "662a0b8aaa6b784bdb85f96dffa1f878b36c7486030399170f6796edc332eea7",
-    "kind": "model-version",
-    "publisher": "tencent",
-    "slug": "hunyuan3d-omni"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "snapshot",
+          "id": "primary-snapshot",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "0c03a53818176cba14eb1d796a48c621efecaa00d5cca606977598e7ae5afbe8",
+        "kind": "model",
+        "publisher": "tencent",
+        "slug": "hunyuan3d-omni"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "tencent",
@@ -237,33 +185,33 @@
     "arguments": [
       {
         "name": "entrypoint",
+        "setting": null,
         "value": "/opt/vonk/source/run.py"
       },
       {
         "name": "output-mime",
+        "setting": null,
         "value": "model/gltf-binary"
       },
       {
         "name": "timeout-seconds",
+        "setting": null,
         "value": 3600
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 0
       }
     ],
-    "distribution": {
-      "content_sha256": "fecd543ceb8dbcd365c3650b5db01268262e20fa1ec58cc31b5d76ac7347931e",
-      "kind": "runtime-distribution",
-      "publisher": "tencent",
-      "slug": "hunyuan3d-omni-native-arm64"
-    },
+    "engine": "pytorch-pipeline",
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
@@ -274,41 +222,15 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/outputs",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 3600
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": true,
-          "source": "inputs",
-          "target": "/inputs"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -326,10 +248,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "target",
-          "dinov2-large"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -369,13 +287,28 @@
         "name": "bounded-startup"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "artifact.mime.model-gltf-binary"
-        ],
-        "interface": "mesh-job"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "mesh-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.png",
+            "input_path": "/inputs",
+            "input_slots": {
+              "image": "qualification/fixtures/tiny.png"
+            },
+            "output_path": "/outputs",
+            "output_slot": "mesh",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "mesh-job"
+    }
   }
 }

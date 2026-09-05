@@ -1,0 +1,407 @@
+{
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "reasoning",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "text-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "7a27e9eb8179b2c2eb71eb214f0dab14ec6a63f2",
+      "source_url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-int4"
+    },
+    "schema_version": 2
+  },
+  "files": [
+    {
+      "id": "metadata-d1a8f4a1d2e3",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d1a8f4a1d2e3787c5956393d9306365ebefe1912cb76828870682b1ab16f5c27",
+      "size_bytes": 1635
+    },
+    {
+      "id": "readme-605f948fac38",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "605f948fac38f68a1cf5ea4ece44427b8483b8aefaa60ccc97f9572253b6161a",
+      "size_bytes": 9509
+    },
+    {
+      "id": "chat-template-b4ab3a1c8f74",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "b4ab3a1c8f748e6f874d9aea102333efe7ab82528e8ab81c2eb155851e8705c6",
+      "size_bytes": 6073
+    },
+    {
+      "id": "clean-success-aistudio-7eoqmrwt-51ac694b4d2a",
+      "path": "clean-success-aistudio-7eoqmrwt.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "51ac694b4d2a075e5fc38e1a41c3875152b50b4933d0cfdd4921292dd8bbed87",
+      "size_bytes": 38
+    },
+    {
+      "id": "config-a021cef07735",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a021cef077355a81389fcbefd4667a3c98a1d18588172454805e34703e156cf1",
+      "size_bytes": 3456
+    },
+    {
+      "id": "configuration-bailing-moe-v3-f2c048966aec",
+      "path": "configuration_bailing_moe_v3.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f2c048966aec8a2f042cfeb1351f74d51a28589b409c55baae7d24e841c1f6c4",
+      "size_bytes": 4725
+    },
+    {
+      "id": "model-00001-of-00024-04477ff0a9f4",
+      "path": "model-00001-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "04477ff0a9f485237d6087b6618e2f9e1410436086ff8b93adadaf34edb0ee6a",
+      "size_bytes": 8290733816
+    },
+    {
+      "id": "model-00002-of-00024-1e92477b54f3",
+      "path": "model-00002-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1e92477b54f337bb5287835bc78b90c58fa28598a4289ee295ba70a056c11a5e",
+      "size_bytes": 2960470128
+    },
+    {
+      "id": "model-00003-of-00024-46091e2434b6",
+      "path": "model-00003-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "46091e2434b60f6181fb03ff9f8cedfd43878fb1b5217ac1e00ead349bdce827",
+      "size_bytes": 2960470832
+    },
+    {
+      "id": "model-00004-of-00024-29a59afc6b3b",
+      "path": "model-00004-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "29a59afc6b3bf30a9d9c1f630ec4c8478cc3dc9b1177f6b6f372222bd13338ba",
+      "size_bytes": 3013573120
+    },
+    {
+      "id": "model-00005-of-00024-f82962ef6c87",
+      "path": "model-00005-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f82962ef6c8712c84d0cc3c08759a6a9b026edc9fd1071b9d85b238806777f1f",
+      "size_bytes": 2960470128
+    },
+    {
+      "id": "model-00006-of-00024-1889875cf73d",
+      "path": "model-00006-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1889875cf73d4b13bbbeedcc485886df218f7303d25fd89ded8915c57c956ce9",
+      "size_bytes": 2960476128
+    },
+    {
+      "id": "model-00007-of-00024-2cd08846c8a2",
+      "path": "model-00007-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2cd08846c8a21d56584808d72c5ce4e635679768d78ae481cbf2c64d998f493e",
+      "size_bytes": 2960478864
+    },
+    {
+      "id": "model-00008-of-00024-f5518f25ecd2",
+      "path": "model-00008-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f5518f25ecd260724e63a67d0bcd6786423e2e82f9f645916829324894a532c7",
+      "size_bytes": 3013581296
+    },
+    {
+      "id": "model-00009-of-00024-66e3497b0290",
+      "path": "model-00009-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "66e3497b0290c9d7ae63b95be6e51d0d3985c3cfa47bdbf447928c8e6f949715",
+      "size_bytes": 2960478160
+    },
+    {
+      "id": "model-00010-of-00024-3cfafd28305b",
+      "path": "model-00010-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3cfafd28305b507ad7b38505f6373ce3bdedd93081c94800103024fa66eb467a",
+      "size_bytes": 2960478160
+    },
+    {
+      "id": "model-00011-of-00024-0fedd68bb61d",
+      "path": "model-00011-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "0fedd68bb61dde1c664628f2292abea0531633e4a91610eba61ade1e84739e0c",
+      "size_bytes": 2960478864
+    },
+    {
+      "id": "model-00012-of-00024-7f3a450a677b",
+      "path": "model-00012-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7f3a450a677bd6ded50c2bc548bec938ba5aef3978ef2ca95179b238e6e8c1c5",
+      "size_bytes": 3013581296
+    },
+    {
+      "id": "model-00013-of-00024-66078051904a",
+      "path": "model-00013-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "66078051904a969b7d4ce48ffab0d5c988669568d146b4312d0366800c00b326",
+      "size_bytes": 2960478160
+    },
+    {
+      "id": "model-00014-of-00024-02c5344b8552",
+      "path": "model-00014-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "02c5344b855287a5229d35ce26635c5e01ec82637377ded87548916671b6b0ea",
+      "size_bytes": 2960478160
+    },
+    {
+      "id": "model-00015-of-00024-9e2443f71773",
+      "path": "model-00015-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9e2443f717731bd797d03c7160fc451266c8157f8fd9184d09b944ecba8fe6b6",
+      "size_bytes": 2960478864
+    },
+    {
+      "id": "model-00016-of-00024-12698eb373b7",
+      "path": "model-00016-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "12698eb373b745b81d8a9ae0279a098fca63ceb9b66e20415c687ab74c9c8d40",
+      "size_bytes": 3013581296
+    },
+    {
+      "id": "model-00017-of-00024-b1b60ac5e7ce",
+      "path": "model-00017-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b1b60ac5e7cefa3d5d627557585b6b1908b36fc9ecb4423e5e26ddb07a17871f",
+      "size_bytes": 2960478160
+    },
+    {
+      "id": "model-00018-of-00024-973964c5998b",
+      "path": "model-00018-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "973964c5998b5b7b1da531b1668cf2d777e72a26e3155f48c835bddc2f804444",
+      "size_bytes": 2960478160
+    },
+    {
+      "id": "model-00019-of-00024-a5bf2838c9bf",
+      "path": "model-00019-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a5bf2838c9bfec038f8df6bca12f881deda650613cacaec76a64c822e5e2ecd1",
+      "size_bytes": 2960478864
+    },
+    {
+      "id": "model-00020-of-00024-ac61932ddc03",
+      "path": "model-00020-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ac61932ddc03ba26e66b34b84ae7a70f5e4e4a23207300126b84a1a3732fb934",
+      "size_bytes": 3013581296
+    },
+    {
+      "id": "model-00021-of-00024-84d8ec47efe6",
+      "path": "model-00021-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "84d8ec47efe6fb53530fa620384dd6049a6bce5eb7fcad4d77fd7bedec6c3cd5",
+      "size_bytes": 2960478160
+    },
+    {
+      "id": "model-00022-of-00024-335aaffaaaa5",
+      "path": "model-00022-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "335aaffaaaa555047c06970149efe51f917324b20d2f9fbf9f4206f47347468a",
+      "size_bytes": 2960478160
+    },
+    {
+      "id": "model-00023-of-00024-ddb6fe016791",
+      "path": "model-00023-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ddb6fe016791c7872056286ed3e8b0592531611f6f6a58a9ace7f5cae8fdaa89",
+      "size_bytes": 2960478864
+    },
+    {
+      "id": "model-00024-of-00024-e1a5d44f369c",
+      "path": "model-00024-of-00024.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e1a5d44f369cf0039a7e8a23aab60f7e89d954bf692224a75ea5239d3ac81702",
+      "size_bytes": 3325560528
+    },
+    {
+      "id": "model-safetensors-index-ec776a770a5b",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ec776a770a5b74d089885e62fe3d48b6291e863ea06a5c460d9ea575b0efe423",
+      "size_bytes": 18442409
+    },
+    {
+      "id": "modeling-bailing-moe-v3-c2509bf7ac58",
+      "path": "modeling_bailing_moe_v3.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "c2509bf7ac580c262e2581d34d6403aa21682d2e10beb9ad85ad8820a7e33a40",
+      "size_bytes": 73194
+    },
+    {
+      "id": "special-tokens-map-69b63b9f8104",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "69b63b9f81044ead642d16a5fdc01bcc737dc1183746485c8397ab14d3126614",
+      "size_bytes": 580
+    },
+    {
+      "id": "tokenizer-40fb9d7d7795",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "40fb9d7d7795b8bd305aeff39ce9963f3f450915b9553f2938e009be9a1fed60",
+      "size_bytes": 12205732
+    },
+    {
+      "id": "tokenizer-config-2456b0372956",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "2456b0372956cd3e82f17e33372148b115a94970bfd4878ba5e7e60cd3204f74",
+      "size_bytes": 49671
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "mixed",
+    "quantization": "int4-group32"
+  },
+  "identity": {
+    "family": {
+      "publisher": "inclusionai",
+      "slug": "ling-3-0",
+      "title": "Ling 3.0"
+    },
+    "model": {
+      "architecture": "BailingMoeV3 hybrid Kimi Delta Attention and MLA mixture-of-experts transformer",
+      "publisher": "inclusionai",
+      "slug": "ling-3-0-flash",
+      "title": "Ling 3.0 Flash"
+    },
+    "publisher": "inclusionai",
+    "slug": "ling-3-0-flash-int4-7a27e9eb",
+    "variant": "Ling 3.0 Flash INT4 7a27e9eb",
+    "version": "Ling 3.0 Flash INT4 7a27e9eb"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "InclusionAI"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "MIT",
+    "url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-int4/blob/7a27e9eb8179b2c2eb71eb214f0dab14ec6a63f2/LICENSE"
+  },
+  "limits": {
+    "context_tokens": 262144,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "metadata": {
+    "description": "Exact public Ling 3.0 Flash INT4 7a27e9eb checkpoint.",
+    "tags": [
+      "inclusionai",
+      "ling-3-0",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "parameters": {
+    "active": 5100000000,
+    "total": 124000000000
+  },
+  "provenance": {
+    "attribution": [
+      "InclusionAI"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "7a27e9eb8179b2c2eb71eb214f0dab14ec6a63f2",
+    "source_url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-int4"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/inclusionAI/Ling-3.0-flash-int4",
+    "revision": "7a27e9eb8179b2c2eb71eb214f0dab14ec6a63f2"
+  }
+}

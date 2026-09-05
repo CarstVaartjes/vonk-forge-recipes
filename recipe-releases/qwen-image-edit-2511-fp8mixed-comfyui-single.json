@@ -7,7 +7,7 @@
           "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
       ],
-      "recipe_content_sha256": "aeb386af750bdac5992bdf036e3a51da501808ff6b0baf7ddf61017648d3d977",
+      "recipe_content_sha256": "1e4076b234ec281de2d0ee33a7eb086a2a901c204ebad79529ac7e767b22af2a",
       "released_at": "2026-09-05",
       "upgrade_effect": "metadata-only",
       "version": "1.0.6"

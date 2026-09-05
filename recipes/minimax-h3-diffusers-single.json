@@ -1,87 +1,32 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 498474749480,
-      "id": "weights",
-      "installed_bytes": 498474749480,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models"
-      },
-      "repository": "MiniMaxAI/MiniMax-H3",
-      "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 20480,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/video/minimax-h3-modular-diffusers",
-      "sha256": "39fe3c3fef8171d9c1b1f48d51b5dd69f0966c3397487a6a873359048f9a147b"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [
-        "github.com",
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ],
-      "mode": "public"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 504474749480,
-      "memory_bytes": 8000000000,
-      "processes": 4096,
-      "temporary_bytes": 996949498960,
-      "timeout_seconds": 14400
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
   "execution": {
-    "harness": {
-      "content_sha256": "9776b37f1bf4596bf4a0c75c3e9fd6da8b25050aa2cefded2ffd5e35baa583b2",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "diffusers"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/video/minimax-h3-modular-diffusers"
+      },
+      "dockerfile": "adapters/video/minimax-h3-modular-diffusers/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -222,6 +167,7 @@
       "path": "/outputs"
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Installable single-Spark Candidate for text, keyframe, and ordered multimodal-reference generation with TorchAO int8 streamed offload and a verified joint 24-fps video plus 32-kHz stereo audio MP4 export. Physical Spark qualification is pending.",
@@ -241,13 +187,30 @@
     ],
     "title": "MiniMax H3 Modular Diffusers single Spark"
   },
-  "model": {
-    "content_sha256": "ac0744aecd0c00739f26d38850090d7239e86bbde771d924501326f0383c82a3",
-    "kind": "model-version",
-    "publisher": "minimax",
-    "slug": "minimax-h3"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "snapshot",
+          "id": "primary-snapshot",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "f6672716f948021d14a455dde331f647b9f89735dac6fc4c28fa1a2bd8ebd90c",
+        "kind": "model",
+        "publisher": "minimax",
+        "slug": "minimax-h3"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "MiniMaxAI",
@@ -260,45 +223,48 @@
     "arguments": [
       {
         "name": "output-mime",
+        "setting": null,
         "value": "video/mp4"
       },
       {
         "name": "pipeline",
+        "setting": null,
         "value": "text-to-video"
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 0
       },
       {
         "name": "num-inference-steps",
+        "setting": null,
         "value": 31
       },
       {
         "name": "width",
+        "setting": null,
         "value": 960
       },
       {
         "name": "height",
+        "setting": null,
         "value": 544
       }
     ],
-    "distribution": {
-      "content_sha256": "baf848236de64fe2c49861136bf2414c2387b7a7edaa2af26bfd18d2753c595c",
-      "kind": "runtime-distribution",
-      "publisher": "huggingface",
-      "slug": "minimax-h3-modular-diffusers-arm64"
-    },
+    "engine": "diffusers",
     "entrypoint": [
       "/opt/vonk/bin/diffusers-job"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
@@ -309,41 +275,15 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/outputs",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 3600
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": true,
-          "source": "inputs",
-          "target": "/inputs"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -361,9 +301,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "weights"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -427,13 +364,28 @@
         "name": "qualification-reference"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "artifact.mime.video-mp4"
-        ],
-        "interface": "video-job"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "video-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/prompt.txt",
+            "input_path": "/inputs",
+            "input_slots": {
+              "prompt": "qualification/fixtures/prompt.txt"
+            },
+            "output_path": "/outputs",
+            "output_slot": "video",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "video-job"
+    }
   }
 }

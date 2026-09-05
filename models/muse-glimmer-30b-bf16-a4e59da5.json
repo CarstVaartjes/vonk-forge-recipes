@@ -1,0 +1,222 @@
+{
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "code-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "image-understanding",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "text-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "tool-use",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "source_url": "https://huggingface.co/meta-models/Muse-Glimmer-30B"
+    },
+    "schema_version": 2
+  },
+  "files": [
+    {
+      "id": "metadata-34448b82c17d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "license-cfc7749b96f6",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "size_bytes": 11358
+    },
+    {
+      "id": "readme-5894e358c58f",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "5894e358c58f4f8425645a5b0b890468ecb3e6b049c2e941648db077c4b7df58",
+      "size_bytes": 16892
+    },
+    {
+      "id": "usage-policy-98a14dab9fd9",
+      "path": "USAGE_POLICY.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "98a14dab9fd97de1666dc8589d399efab1e7fc3ba4e6230d037d6637ba9481d3",
+      "size_bytes": 5230
+    },
+    {
+      "id": "chat-template-cfc67e5f349f",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "cfc67e5f349f37690dfd31ed1f18bc4442a9dd32fe39a648f993cb4eb3cae678",
+      "size_bytes": 9992
+    },
+    {
+      "id": "config-5a9df2d8a385",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "5a9df2d8a385b3d361ab6ae68d73586f4e775033933bd0cd863fb7f3820e6a14",
+      "size_bytes": 5109
+    },
+    {
+      "id": "generation-config-1fa51889b1f8",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "1fa51889b1f8d3659802dedaa27e005b81e5c58483f13ecf13f2d97306bc6e35",
+      "size_bytes": 202
+    },
+    {
+      "id": "model-00001-of-00002-8eef61530e12",
+      "path": "model-00001-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8eef61530e1283642c77ce2e6721feb5c6f348fa055c00e90f2844a136372694",
+      "size_bytes": 49950112952
+    },
+    {
+      "id": "model-00002-of-00002-b58cc2144ba1",
+      "path": "model-00002-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b58cc2144ba1ba1af4420f67f4ca3ced7f09298510b80464cc75018a0be14381",
+      "size_bytes": 9603322320
+    },
+    {
+      "id": "model-safetensors-index-7d817b4dccb1",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7d817b4dccb1b123fc6c1939356c65cee3a0ad462a5b821ac88280990a27d1ba",
+      "size_bytes": 132674
+    },
+    {
+      "id": "processor-config-97e2a486dd98",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "97e2a486dd9866b81f40cf4b8bc0c9ced9a7cd8a5bc65aa4cc2f4de0712dae77",
+      "size_bytes": 1084
+    },
+    {
+      "id": "tokenizer-c9dbee66967b",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c9dbee66967b58f31a7c27f723c3760da3526ccd0427578e8905b0abb0031c4d",
+      "size_bytes": 28129897
+    },
+    {
+      "id": "tokenizer-config-781e6c74f571",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "781e6c74f571642c71202167b67d9255b28cc439bdda1582ff31346182f5a9c5",
+      "size_bytes": 79936
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "meta",
+      "slug": "muse-glimmer",
+      "title": "Muse Glimmer"
+    },
+    "model": {
+      "architecture": "Dense Muse Glimmer multimodal transformer with 28B hybrid-attention text decoder and 2B Perception Encoder",
+      "publisher": "meta",
+      "slug": "muse-glimmer-30b",
+      "title": "Muse Glimmer 30B"
+    },
+    "publisher": "meta",
+    "slug": "muse-glimmer-30b-bf16-a4e59da5",
+    "variant": "Muse Glimmer 30B BF16 a4e59da5",
+    "version": "Muse Glimmer 30B BF16 a4e59da5"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Meta"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B/blob/a4e59da52a7bc87ae7251dd5545c0dd437c44b68/LICENSE"
+  },
+  "limits": {
+    "context_tokens": 131072,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "metadata": {
+    "description": "Exact public Muse Glimmer 30B BF16 a4e59da5 checkpoint.",
+    "tags": [
+      "meta",
+      "muse-glimmer",
+      "multimodal",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "parameters": {
+    "active": 29776626688,
+    "total": 29776626688
+  },
+  "provenance": {
+    "attribution": [
+      "Meta"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+    "source_url": "https://huggingface.co/meta-models/Muse-Glimmer-30B"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+    "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68"
+  }
+}

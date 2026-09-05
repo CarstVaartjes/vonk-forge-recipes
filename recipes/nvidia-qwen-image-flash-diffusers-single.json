@@ -1,87 +1,32 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 57708363017,
-      "id": "weights",
-      "installed_bytes": 57708363017,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models"
-      },
-      "repository": "nvidia/Qwen-Image-Flash",
-      "revision": "eafac15f6140e6dd9c6031217d658ac10bfb604b",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/image/nvidia-qwen-image-flash-diffusers",
-      "sha256": "fa7655947cf62c27613c505f8451cb961882611c7a04bb60c825d042f212783b"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [
-        "github.com",
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ],
-      "mode": "public"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 59708363017,
-      "memory_bytes": 8000000000,
-      "processes": 4096,
-      "temporary_bytes": 115416726034,
-      "timeout_seconds": 14400
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
   "execution": {
-    "harness": {
-      "content_sha256": "9776b37f1bf4596bf4a0c75c3e9fd6da8b25050aa2cefded2ffd5e35baa583b2",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "diffusers"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/image/nvidia-qwen-image-flash-diffusers"
+      },
+      "dockerfile": "adapters/image/nvidia-qwen-image-flash-diffusers/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -139,6 +84,7 @@
       "path": "/outputs"
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Candidate four-step NVIDIA Qwen Image Flash binding using the model card's tested scheduler, CFG, and 1024px profile; physical Spark acceptance is required.",
@@ -152,13 +98,283 @@
     ],
     "title": "NVIDIA Qwen Image Flash diffusers single Spark"
   },
-  "model": {
-    "content_sha256": "dff1dd45877a851a42a41f6235e207a28864232f91372d2aca9e9de0380a2cb0",
-    "kind": "model-version",
-    "publisher": "nvidia",
-    "slug": "nvidia-qwen-image-flash"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "artifact-01",
+          "id": "primary-artifact-01",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-02",
+          "id": "primary-artifact-02",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-03",
+          "id": "primary-artifact-03",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-04",
+          "id": "primary-artifact-04",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-05",
+          "id": "primary-artifact-05",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-06",
+          "id": "primary-artifact-06",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-07",
+          "id": "primary-artifact-07",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-08",
+          "id": "primary-artifact-08",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-09",
+          "id": "primary-artifact-09",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-10",
+          "id": "primary-artifact-10",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-11",
+          "id": "primary-artifact-11",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-12",
+          "id": "primary-artifact-12",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-13",
+          "id": "primary-artifact-13",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-14",
+          "id": "primary-artifact-14",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-15",
+          "id": "primary-artifact-15",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-16",
+          "id": "primary-artifact-16",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-17",
+          "id": "primary-artifact-17",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-18",
+          "id": "primary-artifact-18",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-19",
+          "id": "primary-artifact-19",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-20",
+          "id": "primary-artifact-20",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-21",
+          "id": "primary-artifact-21",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-22",
+          "id": "primary-artifact-22",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-23",
+          "id": "primary-artifact-23",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-24",
+          "id": "primary-artifact-24",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "0f9d29d3134dc6450f58699e54e9973c87b18292eff2a7e1e84fcf53432eb405",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "nvidia-qwen-image-flash"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "nvidia"
@@ -170,49 +386,53 @@
     "arguments": [
       {
         "name": "output-mime",
+        "setting": null,
         "value": "image/png"
       },
       {
         "name": "pipeline",
+        "setting": null,
         "value": "text-to-image"
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 42
       },
       {
         "name": "num-inference-steps",
+        "setting": null,
         "value": 4
       },
       {
         "name": "true-cfg-scale",
+        "setting": null,
         "value": "1"
       },
       {
         "name": "width",
+        "setting": null,
         "value": 1024
       },
       {
         "name": "height",
+        "setting": null,
         "value": 1024
       }
     ],
-    "distribution": {
-      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7",
-      "kind": "runtime-distribution",
-      "publisher": "huggingface",
-      "slug": "diffusers-0-40-0-cuda13-arm64"
-    },
+    "engine": "diffusers",
     "entrypoint": [
       "/opt/vonk/bin/diffusers-job"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
@@ -223,41 +443,15 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/outputs",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 3600
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": true,
-          "source": "inputs",
-          "target": "/inputs"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -275,9 +469,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "weights"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -320,13 +511,28 @@
         "name": "bounded-four-step-image"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "artifact.mime.image-png"
-        ],
-        "interface": "image-job"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "image-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/prompt.txt",
+            "input_path": "/inputs",
+            "input_slots": {
+              "prompt": "qualification/fixtures/prompt.txt"
+            },
+            "output_path": "/outputs",
+            "output_slot": "image",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "image-job"
+    }
   }
 }

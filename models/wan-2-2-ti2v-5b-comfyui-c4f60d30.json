@@ -1,0 +1,124 @@
+{
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "image-understanding",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "video-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+      "source_url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
+    },
+    "schema_version": 2
+  },
+  "files": [
+    {
+      "id": "diffusion",
+      "path": "split_files/diffusion_models/wan2.2_ti2v_5B_fp16.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "456f901338bd9eadbded3828b819109a9b68e8a525ca5cf8d0049a69fcfeca1e",
+      "size_bytes": 9999658848
+    },
+    {
+      "id": "text-encoder",
+      "path": "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "c3355d30191f1f066b26d93fba017ae9809dce6c627dda5f6a66eaa651204f68",
+      "size_bytes": 6735906897
+    },
+    {
+      "id": "vae",
+      "path": "split_files/vae/wan2.2_vae.safetensors",
+      "roles": [
+        "vae"
+      ],
+      "sha256": "e40321bd36b9709991dae2530eb4ac303dd168276980d3e9bc4b6e2b75fed156",
+      "size_bytes": 1409400960
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "mixed",
+    "quantization": "fp8"
+  },
+  "identity": {
+    "family": {
+      "publisher": "wan-ai",
+      "slug": "wan-2-2",
+      "title": "Wan 2.2"
+    },
+    "model": {
+      "architecture": "5B text-and-image-to-video diffusion transformer",
+      "publisher": "wan-ai",
+      "slug": "wan-2-2-ti2v-5b",
+      "title": "Wan 2.2 TI2V 5B"
+    },
+    "publisher": "wan-ai",
+    "slug": "wan-2-2-ti2v-5b-comfyui-c4f60d30",
+    "variant": "Wan 2.2 TI2V 5B ComfyUI revision c4f60d30",
+    "version": "comfyui-c4f60d30"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Wan-AI",
+      "Comfy-Org"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B/blob/921dbaf3f1674a56f47e83fb80a34bac8a8f203e/LICENSE.txt"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "metadata": {
+    "description": "Exact Comfy-Org FP16 TI2V 5B model, scaled-FP8 encoder, and Wan 2.2 VAE.",
+    "tags": [
+      "wan",
+      "video",
+      "image-to-video",
+      "comfyui",
+      "fp16",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image",
+    "video"
+  ],
+  "parameters": {
+    "active": 5000000000,
+    "total": 5000000000
+  },
+  "provenance": {
+    "attribution": [
+      "Wan-AI",
+      "Comfy-Org"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+    "source_url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged",
+    "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77"
+  }
+}

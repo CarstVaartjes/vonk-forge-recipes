@@ -1,124 +1,34 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 24044888779,
-      "id": "target",
-      "installed_bytes": 24044888779,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/target"
-      },
-      "repository": "TencentARC/Pixal3D",
-      "revision": "0b31f9160aa400719af409098bff7936a932f726",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 1212584680,
-      "id": "dino",
-      "installed_bytes": 1212584680,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/dino"
-      },
-      "repository": "camenduru/dinov3-vitl16-pretrain-lvd1689m",
-      "revision": "3c276edd87d6f6e569ff0c4400e086807d0f3881",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 2664431,
-      "id": "naf",
-      "installed_bytes": 2664431,
-      "kind": "http.file",
-      "mount": {
-        "read_only": true,
-        "target": "/models/naf"
-      },
-      "repository": "https://github.com/valeoai/NAF/releases/download/model/naf_release.pth",
-      "revision": "sha256:c096c1ab2217a5c3ac136365f721685e2201379cb69d509cfb0261183847c98f",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 81920,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/three-d/trellis2-native",
-      "sha256": "b4a92759570e2cbccb9d31904746326e07c914337fbbe4cc400329a4d432c158"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [
-        "github.com",
-        "objects.githubusercontent.com",
-        "gitlab.com",
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ],
-      "mode": "public"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 31260137890,
-      "memory_bytes": 16000000000,
-      "processes": 4096,
-      "temporary_bytes": 59000000000,
-      "timeout_seconds": 14400
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
   "execution": {
-    "harness": {
-      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "pytorch-pipeline"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "0e1392f431f89f143d0d6d0fa397a2b9a6a236f8b3628cfd3afbf21e15ab4a98",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/three-d/trellis2-native"
+      },
+      "dockerfile": "adapters/three-d/trellis2-native/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "objects.githubusercontent.com",
+          "gitlab.com",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": {
-      "content_sha256": "2959d49fe69e308a3d3b13c890049634a3052d3dc2c801747cf54e9b86f44f85",
-      "kind": "patch-bundle",
-      "publisher": "vonk-forge",
-      "slug": "trellis2-pixal3d-sdpa-arm64"
-    }
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -183,6 +93,7 @@
       "path": "/outputs"
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Installable single-DGX Spark image-to-3D Candidate using the pinned official Pixal3D source, local DINOv3 and NAF feature stack, bounded manual camera calibration, ARM64-native extensions, and deterministic GLB adapter. Its pinned nvdiffrast runtime dependency is limited to non-commercial research or evaluation; operator acceptance and physical Spark quality, memory, and latency evidence are still required.",
@@ -201,13 +112,30 @@
     ],
     "title": "Pixal3D native single Spark"
   },
-  "model": {
-    "content_sha256": "9d42a062a998febe6c39d9e04a4ffe34d2315d4d2b8285fa26750813835c9c4c",
-    "kind": "model-version",
-    "publisher": "tencentarc",
-    "slug": "pixal3d"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "snapshot",
+          "id": "primary-snapshot",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "0e87b0fb23fda402facc09dce9f9e1b873f58d960ec742ea2a7ca14838c325fb",
+        "kind": "model",
+        "publisher": "tencentarc",
+        "slug": "pixal3d"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "TencentARC Pixal3D contributors",
@@ -222,33 +150,33 @@
     "arguments": [
       {
         "name": "entrypoint",
+        "setting": null,
         "value": "/opt/vonk/source/pixal3d_job.py"
       },
       {
         "name": "output-mime",
+        "setting": null,
         "value": "model/gltf-binary"
       },
       {
         "name": "timeout-seconds",
+        "setting": null,
         "value": 3600
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 42
       }
     ],
-    "distribution": {
-      "content_sha256": "6bf52ed206eae314dabf0632db8300ab5e2157bd3bdfa6c2c8d70cf083ef7a2c",
-      "kind": "runtime-distribution",
-      "publisher": "vonk-forge",
-      "slug": "trellis2-pixal3d-native-arm64"
-    },
+    "engine": "pytorch-pipeline",
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
@@ -259,41 +187,15 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/outputs",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 3600
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": true,
-          "source": "inputs",
-          "target": "/inputs"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -311,11 +213,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "target",
-          "dino",
-          "naf"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -355,13 +252,28 @@
         "name": "bounded-startup"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "artifact.mime.model-gltf-binary"
-        ],
-        "interface": "mesh-job"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "mesh-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.png",
+            "input_path": "/inputs",
+            "input_slots": {
+              "image": "qualification/fixtures/tiny.png"
+            },
+            "output_path": "/outputs",
+            "output_slot": "mesh",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "mesh-job"
+    }
   }
 }

@@ -1,79 +1,24 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 54733724149,
-      "id": "weights",
-      "installed_bytes": 54733724149,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models"
-      },
-      "repository": "tencent/UI-Mate-27B",
-      "revision": "3ade2378fc84032d5017c1a9c93c4eaa77d65e57",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 102400,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/llm/ui-mate-vllm",
-      "sha256": "617da05a0afd62e6a7508b0c04dea52dae6f166a9ce8578cfb73754401738540"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [],
-      "mode": "none"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 64435219872,
-      "memory_bytes": 8000000000,
-      "processes": 4096,
-      "temporary_bytes": 109467448298,
-      "timeout_seconds": 7200
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
   "execution": {
-    "harness": {
-      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "vllm"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4",
+        "platform": "linux/arm64",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/llm/ui-mate-vllm"
+      },
+      "dockerfile": "adapters/llm/ui-mate-vllm/Dockerfile",
+      "network": {
+        "hosts": [],
+        "mode": "none"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -89,6 +34,7 @@
       "port": 8000
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Candidate single-Spark binding for Tencent's exact UI-Mate 27B checkpoint, official prompt/parser/action harness, and OpenAI-compatible vLLM server. It returns non-actuating action proposals only: a caller or operator must supply the screenshot/action loop and approve and execute actions externally.",
@@ -110,13 +56,261 @@
     ],
     "title": "UI-Mate 27B BF16 vLLM single Spark"
   },
-  "model": {
-    "content_sha256": "de0de02bf3f399ca542c34094dc5c906a5d82100b105eb0f3ee449441ce80161",
-    "kind": "model-version",
-    "publisher": "tencent",
-    "slug": "ui-mate-27b-3ade2378"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d",
+          "id": "primary-metadata-34448b82c17d",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-31ca5f57a67a",
+          "id": "primary-readme-31ca5f57a67a",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-e84f32a23fdd",
+          "id": "primary-chat-template-e84f32a23fdd",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-f6e4547010fc",
+          "id": "primary-config-f6e4547010fc",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-252e0efee3de",
+          "id": "primary-generation-config-252e0efee3de",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00012-17574556eb01",
+          "id": "primary-model-00001-of-00012-17574556eb01",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00012-a72dbd6bae26",
+          "id": "primary-model-00002-of-00012-a72dbd6bae26",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00012-1041e940900d",
+          "id": "primary-model-00003-of-00012-1041e940900d",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00012-49f1ce74a334",
+          "id": "primary-model-00004-of-00012-49f1ce74a334",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00012-182273072217",
+          "id": "primary-model-00005-of-00012-182273072217",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00012-6b1d17a7f919",
+          "id": "primary-model-00006-of-00012-6b1d17a7f919",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00012-5eab4cf1fd7f",
+          "id": "primary-model-00007-of-00012-5eab4cf1fd7f",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00012-8785cdf4ce04",
+          "id": "primary-model-00008-of-00012-8785cdf4ce04",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00012-59f3cffae2c3",
+          "id": "primary-model-00009-of-00012-59f3cffae2c3",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00012-f6c8ec8fab1f",
+          "id": "primary-model-00010-of-00012-f6c8ec8fab1f",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00012-4896732f379f",
+          "id": "primary-model-00011-of-00012-4896732f379f",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00012-19406a7487d7",
+          "id": "primary-model-00012-of-00012-19406a7487d7",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-12c773be98a9",
+          "id": "primary-model-safetensors-index-12c773be98a9",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c",
+          "id": "primary-preprocessor-config-27225450ac9c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-01562eddd6f9",
+          "id": "primary-processor-config-01562eddd6f9",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-87a7830d63fc",
+          "id": "primary-tokenizer-87a7830d63fc",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-e98f1901ac6f",
+          "id": "primary-tokenizer-config-e98f1901ac6f",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "6f4a3510e21b6f52fda8192e466ed997249c867ad2d9e96ddafc14d000a5e062",
+        "kind": "model",
+        "publisher": "tencent",
+        "slug": "ui-mate-27b-3ade2378"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "Tencent",
@@ -129,51 +323,56 @@
     "arguments": [
       {
         "name": "served-model-name",
+        "setting": null,
         "value": "UI_Mate"
       },
       {
         "name": "trust-remote-code",
+        "setting": null,
         "value": true
       },
       {
         "name": "max-model-len",
-        "value": 32768
+        "setting": "context_tokens",
+        "value": null
       },
       {
         "name": "max-num-seqs",
-        "value": 1
+        "setting": "concurrency",
+        "value": null
       },
       {
         "name": "max-num-batched-tokens",
+        "setting": null,
         "value": 8192
       },
       {
         "name": "max-cudagraph-capture-size",
+        "setting": null,
         "value": 4
       },
       {
         "name": "gpu-memory-utilization",
+        "setting": null,
         "value": "0.80"
       },
       {
         "name": "mm-encoder-tp-mode",
+        "setting": null,
         "value": "data"
       },
       {
         "name": "chat-template-content-format",
+        "setting": null,
         "value": "openai"
       },
       {
         "name": "limit-mm-per-prompt",
+        "setting": null,
         "value": "{\"image\":6,\"video\":0}"
       }
     ],
-    "distribution": {
-      "content_sha256": "efc18bacec1697d2b3b4d2d2d3cb09e2b4cfede3d0c3ee24f7b2a11d688a48e8",
-      "kind": "runtime-distribution",
-      "publisher": "tencent",
-      "slug": "ui-mate-vllm-0-28-0-arm64"
-    },
+    "engine": "vllm",
     "entrypoint": [
       "/opt/vonk/bin/vllm",
       "serve",
@@ -182,14 +381,12 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "VLLM_NO_USAGE_STATS",
+        "secret": null,
         "value": "1"
       }
     ],
@@ -200,36 +397,23 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/v1/models",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 1800
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 32768
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -247,9 +431,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "weights"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -291,15 +472,46 @@
         "name": "bounded-action-proposal"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "endpoint.healthy",
-          "chat.nonempty",
-          "chat.max-output-64"
-        ],
-        "interface": "openai"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "UI_Mate"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
   }
 }

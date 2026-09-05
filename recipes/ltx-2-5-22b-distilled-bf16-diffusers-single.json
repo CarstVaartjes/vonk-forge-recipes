@@ -1,135 +1,32 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 505,
-      "id": "license-token-preflight",
-      "include_paths": [
-        "audio_vae/config.json"
-      ],
-      "installed_bytes": 505,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/license-token-preflight"
-      },
-      "repository": "Lightricks/LTX-2.5-Diffusers",
-      "revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 70090051372,
-      "id": "target",
-      "include_paths": [
-        "audio_vae/config.json",
-        "audio_vae/diffusion_pytorch_model.safetensors",
-        "connectors/config.json",
-        "connectors/diffusion_pytorch_model-00001-of-00002.safetensors",
-        "connectors/diffusion_pytorch_model-00002-of-00002.safetensors",
-        "connectors/diffusion_pytorch_model.safetensors.index.json",
-        "scheduler/scheduler_config.json",
-        "text_encoder/config.json",
-        "text_encoder/generation_config.json",
-        "text_encoder/model-00001-of-00005.safetensors",
-        "text_encoder/model-00002-of-00005.safetensors",
-        "text_encoder/model-00003-of-00005.safetensors",
-        "text_encoder/model-00004-of-00005.safetensors",
-        "text_encoder/model-00005-of-00005.safetensors",
-        "text_encoder/model.safetensors.index.json",
-        "tokenizer/chat_template.jinja",
-        "tokenizer/tokenizer.json",
-        "tokenizer/tokenizer_config.json",
-        "transformer/config.json",
-        "transformer/diffusion_pytorch_model-00001-of-00004.safetensors",
-        "transformer/diffusion_pytorch_model-00002-of-00004.safetensors",
-        "transformer/diffusion_pytorch_model-00003-of-00004.safetensors",
-        "transformer/diffusion_pytorch_model-00004-of-00004.safetensors",
-        "transformer/diffusion_pytorch_model.safetensors.index.json",
-        "vae/config.json",
-        "vae/diffusion_pytorch_model.safetensors",
-        "vocoder/config.json",
-        "vocoder/diffusion_pytorch_model.safetensors"
-      ],
-      "installed_bytes": 70090051372,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/target"
-      },
-      "repository": "Lightricks/LTX-2.5-Diffusers",
-      "revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 40960,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/video/ltx25-diffusers",
-      "sha256": "3949acf62ba89cde7a241bf4eff0fa10cd727d869fd86c6ad1165ecee10fc7b0"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [
-        "github.com",
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ],
-      "mode": "public"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 10000000000,
-      "memory_bytes": 8000000000,
-      "processes": 4096,
-      "temporary_bytes": 20000000000,
-      "timeout_seconds": 14400
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
   "execution": {
-    "harness": {
-      "content_sha256": "9776b37f1bf4596bf4a0c75c3e9fd6da8b25050aa2cefded2ffd5e35baa583b2",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "diffusers"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/video/ltx25-diffusers"
+      },
+      "dockerfile": "adapters/video/ltx25-diffusers/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -218,6 +115,7 @@
       "path": "/outputs"
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Installable single-Spark Candidate using the exact official gated LTX-2.5 Diffusers closure, a 505-byte license/token access probe before the 70 GB model artifact, convolutional VAE, deterministic eight-sigma generation, BF16 offload baseline, and optional FP8 layerwise-cast profiles. Exact-license acknowledgement, same-account Hugging Face access, physical authenticated installation, and GB10 audiovisual qualification remain required.",
@@ -240,13 +138,41 @@
     ],
     "title": "LTX-2.5 distilled BF16 Diffusers single Spark"
   },
-  "model": {
-    "content_sha256": "e852478a5e9abc60efe87a3bd9238f1b15a24dc1710c98d0bbc03023eb10262c",
-    "kind": "model-version",
-    "publisher": "lightricks",
-    "slug": "ltx-2-5-22b-distilled-bf16-diffusers"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "filtered-snapshot",
+          "id": "primary-filtered-snapshot",
+          "mount": {
+            "read_only": true,
+            "target": "/models/license-token-preflight"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "filtered-snapshot",
+          "id": "primary-filtered-snapshot-2",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "37161c1aa5bf641c02ab2f57cda7f7ad10667bb4c1a7186e392b744075c007d9",
+        "kind": "model",
+        "publisher": "lightricks",
+        "slug": "ltx-2-5-22b-distilled-bf16-diffusers"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "Lightricks",
@@ -259,45 +185,48 @@
     "arguments": [
       {
         "name": "output-mime",
+        "setting": null,
         "value": "video/mp4"
       },
       {
         "name": "pipeline",
+        "setting": null,
         "value": "text-to-video"
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 42
       },
       {
         "name": "num-inference-steps",
+        "setting": null,
         "value": 8
       },
       {
         "name": "width",
+        "setting": null,
         "value": 768
       },
       {
         "name": "height",
+        "setting": null,
         "value": 512
       }
     ],
-    "distribution": {
-      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7",
-      "kind": "runtime-distribution",
-      "publisher": "huggingface",
-      "slug": "diffusers-0-40-0-cuda13-arm64"
-    },
+    "engine": "diffusers",
     "entrypoint": [
       "/opt/vonk/bin/diffusers-job"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
@@ -308,41 +237,15 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/outputs",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 3600
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": true,
-          "source": "inputs",
-          "target": "/inputs"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -360,10 +263,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "license-token-preflight",
-          "target"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -426,13 +325,28 @@
         "name": "fp8-cast-unified-memory-fallback"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "artifact.mime.video-mp4"
-        ],
-        "interface": "video-job"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "video-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/prompt.txt",
+            "input_path": "/inputs",
+            "input_slots": {
+              "prompt": "qualification/fixtures/prompt.txt"
+            },
+            "output_path": "/outputs",
+            "output_slot": "video",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "video-job"
+    }
   }
 }

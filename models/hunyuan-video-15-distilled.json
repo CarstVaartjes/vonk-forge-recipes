@@ -1,0 +1,94 @@
+{
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "video-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "1abb14f06518f37448dcf3a6917dd086dd7045c7",
+      "source_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_t2v_distilled"
+    },
+    "schema_version": 2
+  },
+  "files": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "roles": [
+        "entrypoint"
+      ],
+      "sha256": "fe62bf98d22abca260b847b89f7dfd349896494543243c4987b7d1708e9105ac",
+      "size_bytes": 53384320234
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "mixed",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "tencent",
+      "slug": "hunyuan-video",
+      "title": "HunyuanVideo"
+    },
+    "model": {
+      "architecture": "upstream-native generation pipeline",
+      "publisher": "tencent",
+      "slug": "hunyuan-video-15",
+      "title": "HunyuanVideo 1.5"
+    },
+    "publisher": "tencent",
+    "slug": "hunyuan-video-15-distilled",
+    "variant": "HunyuanVideo 1.5 distilled",
+    "version": "HunyuanVideo 1.5 distilled"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "tencent"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "LicenseRef-Tencent-Hunyuan-Community",
+    "url": "https://huggingface.co/tencent/HunyuanVideo-1.5/blob/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "metadata": {
+    "description": "Complete immutable 480p CFG-distilled Diffusers snapshot at 1abb14f0.",
+    "tags": [
+      "tencent",
+      "video",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "video"
+  ],
+  "parameters": {
+    "active": null,
+    "total": null
+  },
+  "provenance": {
+    "attribution": [
+      "tencent"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "1abb14f06518f37448dcf3a6917dd086dd7045c7",
+    "source_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_t2v_distilled"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_t2v_distilled",
+    "revision": "1abb14f06518f37448dcf3a6917dd086dd7045c7"
+  }
+}

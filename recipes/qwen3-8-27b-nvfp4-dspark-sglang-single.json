@@ -1,102 +1,24 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 23772921363,
-      "id": "target",
-      "installed_bytes": 23772921363,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/target"
-      },
-      "repository": "RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
-      "revision": "009632fef96dd349150baa780c984e62e70e91fe",
-      "roles": [
-        "entrypoint"
-      ]
-    },
-    {
-      "download_bytes": 3714763499,
-      "id": "draft",
-      "installed_bytes": 3714763499,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/draft"
-      },
-      "repository": "RadixArk/Qwen3.8-27B-DSpark",
-      "revision": "b3c9910194dc7ae53fea3d95a1959b654f495416",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/qwen/qwen38-27b-dspark-single",
-      "sha256": "e51c36e5bfd91bb625818ac4c009ac2bfd816c8b8b88380891674450fedd1a68"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [],
-      "mode": "none"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 17793228389,
-      "memory_bytes": 8000000000,
-      "processes": 4096,
-      "temporary_bytes": 24000000000,
-      "timeout_seconds": 7200
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
-  "dependencies": [
-    {
-      "content_sha256": "03d09c5dd8d95d901da360644010ad546521625eef37a26df26cc3624a1f8937",
-      "kind": "model-version",
-      "publisher": "radixark",
-      "slug": "qwen3-8-27b-dspark-b3c99101"
-    }
-  ],
   "execution": {
-    "harness": {
-      "content_sha256": "9bd9a41fe12dd4e551fac821623801b6df9af8943d42ddba9f46717636286947",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "sglang"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "3c0abdf41ef22de9d7a859dc16ed71eae69452e36c91f071a25e60c85a6d1fc6",
+        "platform": "linux/arm64",
+        "repository": "docker.io/lmsysorg/sglang"
+      },
+      "context": {
+        "path": "adapters/qwen/qwen38-27b-dspark-single"
+      },
+      "dockerfile": "adapters/qwen/qwen38-27b-dspark-single/Dockerfile",
+      "network": {
+        "hosts": [],
+        "mode": "none"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -112,6 +34,7 @@
       "port": 30000
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Executable Candidate adaptation of MiaAI-Lab's one-DGX-Spark Qwen3.8 27B profile, pairing the multimodal NVFP4 target with RadixArk's immutable DSpark v2 drafter for an offline OpenAI-compatible endpoint. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
@@ -136,13 +59,338 @@
     ],
     "title": "Qwen3.8 27B NVFP4 SGLang DSpark single Spark"
   },
-  "model": {
-    "content_sha256": "e1434211378f62d5c46b6ec55528d1d5ef04cb714a1c0a50828df4860cec42b0",
-    "kind": "model-version",
-    "publisher": "radixark",
-    "slug": "qwen3-8-27b-nvfp4-009632fe"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d",
+          "id": "primary-metadata-34448b82c17d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file--quant-summary-5920198f1770",
+          "id": "primary-file--quant-summary-5920198f1770",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-bbedc3fda330",
+          "id": "primary-license-bbedc3fda330",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-10a114243d31",
+          "id": "primary-readme-10a114243d31",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-c3cf9e34abf4",
+          "id": "primary-chat-template-c3cf9e34abf4",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-66402a06352a",
+          "id": "primary-config-66402a06352a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "conversion-manifest-4a45d15af79e",
+          "id": "primary-conversion-manifest-4a45d15af79e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-a4cef85934ea",
+          "id": "primary-generation-config-a4cef85934ea",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-2a63c5bd1e7f",
+          "id": "primary-hf-quant-config-2a63c5bd1e7f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-a9d356d7bdf1",
+          "id": "primary-merges-a9d356d7bdf1",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00003-fbcdb5ba1cdd",
+          "id": "primary-model-00001-of-00003-fbcdb5ba1cdd",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00003-db6146a5464f",
+          "id": "primary-model-00002-of-00003-db6146a5464f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00003-597573c145c2",
+          "id": "primary-model-00003-of-00003-597573c145c2",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-8af18756d73b",
+          "id": "primary-model-safetensors-index-8af18756d73b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c",
+          "id": "primary-preprocessor-config-27225450ac9c",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "qualification-criteria-8e3b57367245",
+          "id": "primary-qualification-criteria-8e3b57367245",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "qualification-7be9d60606fc",
+          "id": "primary-qualification-7be9d60606fc",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tensor-audit-8a7801e2b462",
+          "id": "primary-tensor-audit-8a7801e2b462",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-0997f410c57a",
+          "id": "primary-tokenizer-0997f410c57a",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-e5d078b00e6c",
+          "id": "primary-tokenizer-config-e5d078b00e6c",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa",
+          "id": "primary-video-preprocessor-config-7768af27c1fa",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ce99b4cb2983",
+          "id": "primary-vocab-ce99b4cb2983",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "9b01d2b79164a4555f7334808ca100e1dcbc4c37befed7c16eb4e8aa20380cd6",
+        "kind": "model",
+        "publisher": "radixark",
+        "slug": "qwen3-8-27b-nvfp4-009632fe"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-11ad7efa2497",
+          "id": "dependency-qwen3-8-27b-dspark-b3c99101-metadata-11ad7efa2497",
+          "mount": {
+            "read_only": true,
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-d45e903f8ce2",
+          "id": "dependency-qwen3-8-27b-dspark-b3c99101-readme-d45e903f8ce2",
+          "mount": {
+            "read_only": true,
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-dd65fb1b01c2",
+          "id": "dependency-qwen3-8-27b-dspark-b3c99101-config-dd65fb1b01c2",
+          "mount": {
+            "read_only": true,
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dflash-9825996703de",
+          "id": "dependency-qwen3-8-27b-dspark-b3c99101-dflash-9825996703de",
+          "mount": {
+            "read_only": true,
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dspark-75bba7c46916",
+          "id": "dependency-qwen3-8-27b-dspark-b3c99101-dspark-75bba7c46916",
+          "mount": {
+            "read_only": true,
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-2aff025f4582",
+          "id": "dependency-qwen3-8-27b-dspark-b3c99101-model-2aff025f4582",
+          "mount": {
+            "read_only": true,
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "dependency-qwen3-8-27b-dspark-b3c99101",
+      "model": {
+        "content_sha256": "320baac50c757177ac67fce2d45f8fe9709a20a9a5a38b207fcc3eb4331e1689",
+        "kind": "model",
+        "publisher": "radixark",
+        "slug": "qwen3-8-27b-dspark-b3c99101"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "Qwen",
@@ -157,37 +405,43 @@
     "arguments": [
       {
         "name": "model-path",
+        "setting": null,
         "value": "/models"
       },
       {
         "name": "served-model-name",
+        "setting": null,
         "value": "qwen3-8-27b"
       },
       {
         "name": "tp",
+        "setting": null,
         "value": 1
       },
       {
         "name": "context-length",
-        "value": 262144
+        "setting": "context_tokens",
+        "value": null
       },
       {
         "name": "mem-fraction-static",
+        "setting": null,
         "value": "0.80"
+      },
+      {
+        "name": "max-running-requests",
+        "setting": "concurrency",
+        "value": null
       }
     ],
-    "distribution": {
-      "content_sha256": "eed6835ce8aff92b63e1d779a9db51853eca56a5052baa5432d5e59d56383c97",
-      "kind": "runtime-distribution",
-      "publisher": "sglang",
-      "slug": "sglang-qwen38-27b-c4271c3f-arm64"
-    },
+    "engine": "sglang",
     "entrypoint": [
       "/opt/vonk/bin/sglang-serve"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
@@ -198,36 +452,23 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/v1/models",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 2400
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 10
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -245,10 +486,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "target",
-          "draft"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -290,15 +527,46 @@
         "name": "bounded-chat"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "endpoint.healthy",
-          "chat.nonempty",
-          "chat.max-output-64"
-        ],
-        "interface": "openai"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "qwen3-8-27b"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
   }
 }

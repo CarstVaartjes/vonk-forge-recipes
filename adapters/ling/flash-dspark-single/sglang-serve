@@ -14,6 +14,16 @@ except (ValueError, IndexError):
 if model_path != "/models":
     raise SystemExit("Ling DSpark requires the catalog model root at /models")
 arguments[model_index + 1] = "/models/target"
+max_requests_index=None
+if "--max-running-requests" in arguments:
+    max_requests_index=arguments.index("--max-running-requests")
+    try:
+        max_requests=arguments[max_requests_index + 1]
+    except IndexError:
+        raise SystemExit("--max-running-requests requires a value") from None
+    del arguments[max_requests_index:max_requests_index + 2]
+else:
+    max_requests="6"
 arguments.extend(
     (
         "--trust-remote-code",
@@ -26,7 +36,7 @@ arguments.extend(
         "--random-seed",
         "308534008",
         "--max-running-requests",
-        "6",
+        max_requests,
         "--max-mamba-cache-size",
         "32",
         "--chunked-prefill-size",

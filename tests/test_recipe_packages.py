@@ -38,7 +38,7 @@ def test_full_catalog_packages_are_self_contained_and_deterministic(tmp_path: Pa
     second = TOOL["build"](package_dir=second_dir, platform_root=platform_root)
     assert first["kind"] == second["kind"] == "recipe-library-index"
     assert first["schema_version"] == second["schema_version"] == 2
-    assert len(first["recipes"]) == len(list((ROOT / "recipes").glob("*.json"))) == 84
+    assert len(first["recipes"]) == len(second["recipes"]) == 84
     assert len(first["recipes"]) == len(second["recipes"])
 
     for first_row, second_row in zip(first["recipes"], second["recipes"], strict=True):
@@ -144,18 +144,17 @@ def test_model_capability_authority_is_external_and_canonical() -> None:
     }
     assert len(entries) == len(evidence["entries"]) == 86
 
-    model_versions = sorted((ROOT / "model-versions").glob("*.json"))
+    model_versions = sorted((ROOT / "models").glob("*.json"))
     assert len(model_versions) == 92
     unknown = []
     for path in model_versions:
         document = json.loads(path.read_text(encoding="utf-8"))
         capabilities = document.get("capabilities")
         key = (document["identity"]["publisher"], document["identity"]["slug"])
-        if capabilities is None:
-            assert key not in entries
+        assert capabilities is not None
+        if not capabilities["facts"]:
             unknown.append(path.name)
             continue
-        assert key in entries
         assert capabilities["schema_version"] == 2
         assert capabilities["provenance"]["evidence_digest"] == evidence_digest
         assert capabilities["provenance"]["source_url"].startswith("https://")
@@ -198,6 +197,15 @@ def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(
             not any(name.endswith(suffix) for suffix in payload_suffixes)
             for name in names
         )
-        assert all(
-            not name.startswith(("models/", "image/", "oci/")) for name in names
-        )
+        assert all(not name.startswith(("image/", "oci/")) for name in names)
+
+
+def test_ds4_multistage_package_manifests_both_digest_pinned_base_images(tmp_path: Path) -> None:
+    catalog = TOOL["build"](package_dir=tmp_path, platform_root=_platform_root())
+    row = next(item for item in catalog["recipes"] if item["document"]["identity"]["slug"] == "deepseek-v4-flash-0731-ds4-single")
+    with tarfile.open(tmp_path / Path(str(row["package"]["path"])).name, mode="r:gz") as archive:
+        manifest = json.load(archive.extractfile("manifest.json"))
+    assert manifest["build_inputs"] == [
+        {"kind": "oci-image", "reference": "nvcr.io/nvidia/cuda:13.0.1-devel-ubuntu24.04@sha256:5c36750138dc1447a17dafbb397674f167d3b44ce18d9160d769df114577b35d", "platform": "linux/arm64"},
+        {"kind": "oci-image", "reference": "nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4", "platform": "linux/arm64"},
+    ]

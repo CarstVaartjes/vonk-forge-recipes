@@ -1,24 +1,101 @@
 {
-  "schema_version": 1,
-  "kind": "model",
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "audio-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "video-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "eab4aa91d6d5eb515e259a0c8533c90062b117a5",
+      "source_url": "https://huggingface.co/OpenMOSS-Team/MOVA-360p"
+    },
+    "schema_version": 2
+  },
+  "files": [
+    {
+      "id": "snapshot",
+      "path": "snapshot",
+      "roles": [
+        "entrypoint"
+      ],
+      "sha256": "348a62758d1b2ff61ae2f324fb8ee113c3b9dba07f67a711006d90faa90261c7",
+      "size_bytes": 77689754697
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
   "identity": {
+    "family": {
+      "publisher": "openmoss",
+      "slug": "mova",
+      "title": "MOVA"
+    },
+    "model": {
+      "architecture": "upstream-native generation pipeline",
+      "publisher": "openmoss",
+      "slug": "mova-360p",
+      "title": "MOVA 360p"
+    },
     "publisher": "openmoss",
-    "slug": "mova-360p"
+    "slug": "mova-360p",
+    "variant": "MOVA 360p",
+    "version": "MOVA 360p"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "openmoss"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/OpenMOSS-Team/MOVA-360p/blob/eab4aa91d6d5eb515e259a0c8533c90062b117a5/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
   },
   "metadata": {
-    "title": "MOVA 360p",
-    "description": "MOVA 360p model family.",
+    "description": "Immutable public snapshot at eab4aa91.",
     "tags": [
       "openmoss",
       "video",
-      "generation"
+      "candidate"
     ]
   },
-  "model_group": {
-    "kind": "model-group",
-    "publisher": "openmoss",
-    "slug": "mova",
-    "content_sha256": "0d25e621d8a56806b4f0023384829c1a11829c07509808854f8e6a7da738021a"
+  "modalities": [
+    "audio",
+    "video"
+  ],
+  "parameters": {
+    "active": null,
+    "total": null
   },
-  "architecture": "upstream-native generation pipeline"
+  "provenance": {
+    "attribution": [
+      "openmoss"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "eab4aa91d6d5eb515e259a0c8533c90062b117a5",
+    "source_url": "https://huggingface.co/OpenMOSS-Team/MOVA-360p"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/OpenMOSS-Team/MOVA-360p",
+    "revision": "eab4aa91d6d5eb515e259a0c8533c90062b117a5"
+  }
 }

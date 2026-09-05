@@ -1,88 +1,33 @@
 {
-  "artifacts": [
-    {
-      "download_bytes": 1618924643,
-      "id": "target",
-      "installed_bytes": 1618924643,
-      "kind": "huggingface.snapshot",
-      "mount": {
-        "read_only": true,
-        "target": "/models/target"
-      },
-      "repository": "VAST-AI/SkinTokens",
-      "revision": "79736cad0fd84de384d5eede659b4ebd24effe33",
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "build": {
-    "arguments": [],
-    "context": {
-      "expected_bytes": 71680,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
-      "path": "adapters/three-d/skintokens",
-      "sha256": "cce641d72ef235966186c5ddc0ab89c65309cbe9dec4653d972027f81f751253"
-    },
-    "dockerfile": "Dockerfile",
-    "network": {
-      "hosts": [
-        "github.com",
-        "huggingface.co",
-        "download.pytorch.org",
-        "pypi.org",
-        "files.pythonhosted.org",
-        "archive.ubuntu.com",
-        "security.ubuntu.com",
-        "ports.ubuntu.com"
-      ],
-      "mode": "public"
-    },
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "platform": "linux/arm64",
-    "resources": {
-      "cpu_cores": 8,
-      "download_bytes": 12000000000,
-      "memory_bytes": 16000000000,
-      "processes": 4096,
-      "temporary_bytes": 32000000000,
-      "timeout_seconds": 14400
-    },
-    "security": {
-      "capabilities": []
-    }
-  },
   "execution": {
-    "harness": {
-      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c",
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "pytorch-pipeline"
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "0e1392f431f89f143d0d6d0fa397a2b9a6a236f8b3628cfd3afbf21e15ab4a98",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/three-d/skintokens"
+      },
+      "dockerfile": "adapters/three-d/skintokens/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "huggingface.co",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
     },
-    "patch_bundle": null
+    "mode": "build"
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -140,6 +85,7 @@
       "path": "/outputs"
     }
   ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
     "description": "Installable but not accepted SkinTokens/TokenRig single-Spark Candidate with an exact upstream source build, offline checkpoint binding, and deterministic rigged-GLB exporter. The native ARM64 container build is unvalidated and both that build and a physical GB10 rigged-GLB canary must pass before acceptance.",
@@ -158,13 +104,30 @@
     ],
     "title": "SkinTokens / TokenRig pytorch-pipeline single Spark"
   },
-  "model": {
-    "content_sha256": "45363cdb7afbbb7e02c845c9c96897a07625c96954ebb933160f587cddb0dcb7",
-    "kind": "model-version",
-    "publisher": "vast-ai",
-    "slug": "skintokens"
-  },
-  "parameters": [],
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "snapshot",
+          "id": "primary-snapshot",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "1ab9cf8ff92f21387a87c126416ac8449cc510d0a2c8320f5f5c7104b064e5a3",
+        "kind": "model",
+        "publisher": "vast-ai",
+        "slug": "skintokens"
+      }
+    }
+  ],
   "provenance": {
     "attribution": [
       "vast-ai"
@@ -176,33 +139,33 @@
     "arguments": [
       {
         "name": "entrypoint",
+        "setting": null,
         "value": "/opt/vonk/source/run.py"
       },
       {
         "name": "output-mime",
+        "setting": null,
         "value": "model/gltf-binary"
       },
       {
         "name": "timeout-seconds",
+        "setting": null,
         "value": 3600
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 0
       }
     ],
-    "distribution": {
-      "content_sha256": "902927b2883ac480752c2fea026f75009776aad3fda32d2b3a0458ce39f874fc",
-      "kind": "runtime-distribution",
-      "publisher": "vast-ai",
-      "slug": "skintokens-tokenrig-arm64"
-    },
+    "engine": "pytorch-pipeline",
     "entrypoint": [
       "/opt/vonk/bin/pytorch-pipeline"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
@@ -213,41 +176,15 @@
       },
       "post_stop": [],
       "pre_start": [],
-      "readiness": {
-        "path": "/outputs",
-        "strategy": "endpoint-owner",
-        "timeout_seconds": 3600
-      },
       "stop_timeout_seconds": 120
-    },
-    "security": {
-      "capabilities": [],
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "host_network": false,
-      "mounts": [
-        {
-          "read_only": true,
-          "source": "model",
-          "target": "/models"
-        },
-        {
-          "read_only": true,
-          "source": "inputs",
-          "target": "/inputs"
-        },
-        {
-          "read_only": false,
-          "source": "outputs",
-          "target": "/outputs"
-        }
-      ],
-      "privileged": false,
-      "user": "10001:10001"
     }
   },
-  "schema_version": 1,
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
     "fabric": {
       "connectivity": "none",
@@ -265,9 +202,6 @@
     },
     "roles": [
       {
-        "artifacts": [
-          "target"
-        ],
         "count": 1,
         "endpoint_owner": true,
         "name": "entrypoint",
@@ -307,13 +241,28 @@
         "name": "bounded-startup"
       }
     ],
-    "validators": [
-      {
-        "checks": [
-          "artifact.mime.model-gltf-binary"
-        ],
-        "interface": "mesh-job"
-      }
-    ]
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "mesh-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.glb",
+            "input_path": "/inputs",
+            "input_slots": {
+              "mesh": "qualification/fixtures/tiny.glb"
+            },
+            "output_path": "/outputs",
+            "output_slot": "mesh",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "mesh-job"
+    }
   }
 }

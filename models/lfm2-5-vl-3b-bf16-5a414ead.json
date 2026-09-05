@@ -1,0 +1,195 @@
+{
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "image-understanding",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "ocr",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "text-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "tool-use",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "5a414ead75d45db003906d06fb62bd5b6846cec0",
+      "source_url": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B"
+    },
+    "schema_version": 2
+  },
+  "files": [
+    {
+      "id": "metadata-31fcd4d7141f",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "31fcd4d7141fbe007a13a130a48489580f39c97ca15e1dfaead01a73cabe5e5e",
+      "size_bytes": 1612
+    },
+    {
+      "id": "license-30adf9d64781",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "30adf9d6478191fb87f2424f63ba0728598335aaf99cd2848ef17e8e545fe94b",
+      "size_bytes": 10574
+    },
+    {
+      "id": "readme-2ad0e4f36a75",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "2ad0e4f36a755e3c70b338f0118e6a603a4cb7b65c034263dc10a4d3d9ce7a03",
+      "size_bytes": 18521
+    },
+    {
+      "id": "chat-template-86f4770449a4",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "86f4770449a4797c9b4212d110b0cc70fb993c1ce960095bcfb12eea22f61cca",
+      "size_bytes": 5436
+    },
+    {
+      "id": "config-6df51b8c578a",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "6df51b8c578a828a310f3605fb74e1fc07fc96bb30edc41d215b92147875a2dc",
+      "size_bytes": 5095
+    },
+    {
+      "id": "generation-config-5d182b864215",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "5d182b864215c89c89f6e4e1ee4426ccba2ac954388d941359cb9a32855ab99f",
+      "size_bytes": 327
+    },
+    {
+      "id": "model-8413ba08bc74",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8413ba08bc7490552f3cf7611809927a825067e4375f7c39dfcb74df95301908",
+      "size_bytes": 6247065472
+    },
+    {
+      "id": "processor-config-ec549d27ef49",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ec549d27ef491d90a40fdd457fb618544c245771ceb1f3f84ff651bcd33e619d",
+      "size_bytes": 828
+    },
+    {
+      "id": "tokenizer-8096ecb9f545",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "8096ecb9f54599d756c8de728a598a340bc1e43c0deb77ddd62456c38349fcee",
+      "size_bytes": 17905750
+    },
+    {
+      "id": "tokenizer-config-ef6770d12dd9",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ef6770d12dd9ac58d334e979bf160c5cdfd41f13d205fd5d5516857645feb0ea",
+      "size_bytes": 507
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "liquidai",
+      "slug": "lfm2-5",
+      "title": "LiquidAI LFM2.5"
+    },
+    "model": {
+      "architecture": "LFM2.5 2.6B hybrid language backbone with 400M SigLIP2 NaFlex vision encoder",
+      "publisher": "liquidai",
+      "slug": "lfm2-5-vl-3b",
+      "title": "LFM2.5-VL-3B"
+    },
+    "publisher": "liquidai",
+    "slug": "lfm2-5-vl-3b-bf16-5a414ead",
+    "variant": "BF16 5a414ead",
+    "version": "BF16 5a414ead"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Liquid AI"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "LicenseRef-LFM-1.0",
+    "url": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/blob/5a414ead75d45db003906d06fb62bd5b6846cec0/LICENSE"
+  },
+  "limits": {
+    "context_tokens": 32768,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "metadata": {
+    "description": "Exact public BF16 5a414ead checkpoint.",
+    "tags": [
+      "liquidai",
+      "lfm2-5",
+      "multimodal",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "parameters": {
+    "active": 3123483888,
+    "total": 3123483888
+  },
+  "provenance": {
+    "attribution": [
+      "Liquid AI"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "5a414ead75d45db003906d06fb62bd5b6846cec0",
+    "source_url": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B",
+    "revision": "5a414ead75d45db003906d06fb62bd5b6846cec0"
+  }
+}
