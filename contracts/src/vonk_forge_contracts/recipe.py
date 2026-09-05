@@ -36,6 +36,7 @@ AbsolutePath = Annotated[StrictStr, Field(max_length=256, pattern=rf"^/{_SEGMENT
 RelativePath = Annotated[StrictStr, Field(max_length=256, pattern=rf"^{_SEGMENT}(?:/{_SEGMENT})*$")]
 Scalar = StrictStr | StrictInt | StrictBool | StrictFloat
 type JsonValue = Scalar | None | list[JsonValue] | dict[StrictStr, JsonValue]
+type RuntimeArgumentValue = Scalar | list[JsonValue] | dict[StrictStr, JsonValue]
 ChangeEffect = Literal["none", "restart", "reprepare", "rebuild"]
 ReleaseChangeKind = Literal[
     "initial", "model", "runtime", "performance", "fix", "security",
@@ -60,7 +61,7 @@ def _reject_nul(value: str, *, label: str) -> str:
     return value
 
 
-def _validate_runtime_argument_value(value: JsonValue | None) -> JsonValue | None:
+def _validate_runtime_argument_value(value: RuntimeArgumentValue | None) -> RuntimeArgumentValue | None:
     """Validate bounded JSON data without normalizing trusted engine options."""
 
     if value is None:
@@ -120,6 +121,18 @@ def _serialize_runtime_argument_value(value: JsonValue) -> str:
     if isinstance(value, str):
         return value
     return json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True, allow_nan=False)
+
+
+def _runtime_argument_tokens(argument: RecipeRuntimeArgument) -> list[str]:
+    """Render one argument without shell parsing or option-name rewriting."""
+
+    flag = f"--{argument.name}"
+    value = argument.value
+    if value is None:
+        return [flag]
+    if type(value) is bool:
+        return [flag] if value else []
+    return [flag, _serialize_runtime_argument_value(value)]
 
 
 class RecipeIdentity(_RecipeContract):
@@ -255,7 +268,10 @@ class RecipeRuntimeArgument(_RecipeContract):
     # enum.  Keep its shape structural so the compiler can form a flag safely;
     # the pinned engine remains the authority for whether the name is known.
     name: StrictStr = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z][A-Za-z0-9_-]{0,63}$")
-    value: JsonValue | None = None
+    value: RuntimeArgumentValue | None = Field(
+        default=None,
+        description="A literal process value; null is reserved for the setting-bound placeholder.",
+    )
     setting: Identifier | None = None
 
     @field_validator("name", mode="before")
@@ -269,7 +285,7 @@ class RecipeRuntimeArgument(_RecipeContract):
 
     @field_validator("value")
     @classmethod
-    def value_is_bounded_json(cls, value: JsonValue | None) -> JsonValue | None:
+    def value_is_bounded_json(cls, value: RuntimeArgumentValue | None) -> RuntimeArgumentValue | None:
         return _validate_runtime_argument_value(value)
 
     @model_validator(mode="after")
@@ -340,9 +356,7 @@ class RecipeRuntime(_RecipeContract):
     def rendered_argument_argv_is_bounded(self) -> RecipeRuntime:
         tokens = list(self.entrypoint)
         for argument in self.arguments:
-            tokens.append(f"--{argument.name}")
-            if argument.value is not None:
-                tokens.append(_serialize_runtime_argument_value(argument.value))
+            tokens.extend(_runtime_argument_tokens(argument))
         _validate_argv(tokens)
         return self
 
