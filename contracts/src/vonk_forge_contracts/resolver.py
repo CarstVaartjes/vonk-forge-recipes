@@ -1,21 +1,15 @@
 """Pure cross-document checks for a recipe's exact model selections."""
 from __future__ import annotations
 
-import hashlib
-import json
 from collections.abc import Iterable
 
+from .canonical import content_sha256
 from .model import ModelDefinition
 from .recipe import RecipeDefinition, RecipeJobServingRequest
 
 
 class ContractResolutionError(ValueError):
     """The recipe does not select the supplied exact model snapshot."""
-
-
-def model_content_sha256(model: ModelDefinition) -> str:
-    payload = json.dumps(model.model_dump(mode="json"), sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
-    return hashlib.sha256(payload).hexdigest()
 
 
 def validate_recipe_models(recipe: RecipeDefinition, models: Iterable[ModelDefinition]) -> None:
@@ -34,7 +28,7 @@ def validate_recipe_models(recipe: RecipeDefinition, models: Iterable[ModelDefin
         model = by_identity.get(key)
         if model is None:
             raise ContractResolutionError(f"model reference is missing: {key[0]}/{key[1]}")
-        digest = model_content_sha256(model)
+        digest = content_sha256(model)
         if digest != reference.content_sha256:
             raise ContractResolutionError(f"model reference digest does not match: {key[0]}/{key[1]}")
         selected[(reference.publisher, reference.slug, reference.content_sha256)] = model

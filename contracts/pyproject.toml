@@ -3,7 +3,7 @@ name = "vonk-forge-public-contracts"
 version = "0.1.0"
 description = "Standalone Pydantic v2 authoring contracts for Vonk Forge recipes"
 requires-python = ">=3.12"
-dependencies = ["pydantic>=2.13,<3", "typing-extensions>=4.12,<5"]
+dependencies = ["pydantic>=2.13,<3"]
 
 [build-system]
 requires = ["hatchling>=1.27,<2"]

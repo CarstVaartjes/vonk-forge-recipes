@@ -16,7 +16,6 @@ from pydantic import (
     StrictStr,
     model_validator,
 )
-from typing_extensions import TypeAliasType
 
 
 class _RecipeContract(BaseModel):
@@ -29,7 +28,7 @@ _SEGMENT = r"(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\.[A-Za-z0-9_-][A-Za-z0-9._-]*)"
 AbsolutePath = Annotated[StrictStr, Field(max_length=256, pattern=rf"^/{_SEGMENT}(?:/{_SEGMENT})*$")]
 RelativePath = Annotated[StrictStr, Field(max_length=256, pattern=rf"^{_SEGMENT}(?:/{_SEGMENT})*$")]
 Scalar = StrictStr | StrictInt | StrictBool
-JsonValue = TypeAliasType("JsonValue", Scalar | None | list["JsonValue"] | dict[StrictStr, "JsonValue"])
+type JsonValue = Scalar | None | list[JsonValue] | dict[StrictStr, JsonValue]
 ChangeEffect = Literal["none", "restart", "reprepare", "rebuild"]
 
 

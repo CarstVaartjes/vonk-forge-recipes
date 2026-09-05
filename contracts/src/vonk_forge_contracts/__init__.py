@@ -6,13 +6,14 @@ without creating a second public authority.
 """
 from __future__ import annotations
 
+from .canonical import content_sha256
 from .model import ModelDefinition
 from .recipe import RecipeDefinition
 
 __version__ = "0.1.0"
 CONTRACT_VERSION = 2
 
-__all__ = ["ModelDefinition", "RecipeDefinition"]
+__all__ = ["ModelDefinition", "RecipeDefinition", "content_sha256"]
 
 
 def model_json_schema() -> dict[str, object]:
