@@ -140,6 +140,22 @@
       {
         "changes": [
           {
+            "details": "Upstream main remains at 273b691d35989d71cd17ff2895fdc735097b92d1; the exact TokenRig adapter source and model snapshot therefore remain unchanged.",
+            "kind": "metadata",
+            "references": [
+              "https://github.com/VAST-AI-Research/SkinTokens/commit/273b691d35989d71cd17ff2895fdc735097b92d1"
+            ],
+            "summary": "Revalidated the SkinTokens source pin against upstream main."
+          }
+        ],
+        "prior_recipe_content_sha256": "c80418f46599030ae1358f67b0523a0bfe31ea899dbe6c8e7d17aadd25d0e9c5",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "2.0.9"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -335,7 +351,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "2.0.8"
+    "version": "2.0.9"
   },
   "runtime": {
     "arguments": [
