@@ -10,6 +10,8 @@ from pathlib import Path
 
 import pytest
 
+from vonk_forge_contracts import RecipeDefinition, content_sha256
+
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
@@ -119,13 +121,30 @@ def test_archive_rejects_payload_digest_and_undeclared_member(tmp_path: Path) ->
         TOOL["validate_recipe_archive"](extra, row["document"])
 
 
-def test_archive_rejects_stale_manifest_member_metadata(tmp_path: Path) -> None:
+def test_archive_rejects_consistent_but_different_recipe(tmp_path: Path) -> None:
+    row, payload = _job_row(tmp_path)
+    with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
+        entries = [(member.name, archive.extractfile(member).read()) for member in archive.getmembers() if member.isreg()]
+    altered_document = json.loads(next(body for name, body in entries if name == "recipe.json"))
+    altered_document["metadata"]["description"] += " altered"
+    altered_body = json.dumps(altered_document, ensure_ascii=False, sort_keys=True, indent=2).encode()
+    altered_entries = [(name, altered_body if name == "recipe.json" else body) for name, body in entries]
+    repaired = _rewrite(payload, altered_entries, repair_manifest=True)
+    with tarfile.open(fileobj=io.BytesIO(repaired), mode="r:gz") as archive:
+        manifest = json.load(archive.extractfile("manifest.json"))
+    manifest["recipe_content_sha256"] = content_sha256(RecipeDefinition.model_validate(altered_document))
+    consistent = _rewrite_member(repaired, "manifest.json", body=json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode())
+    with pytest.raises(SystemExit, match="recipe does not match the requested Recipe"):
+        TOOL["validate_recipe_archive"](consistent, row["document"])
+
+
+@pytest.mark.parametrize("field", ["size", "sha256"])
+def test_archive_rejects_stale_manifest_member_metadata(tmp_path: Path, field: str) -> None:
     row, payload = _job_row(tmp_path)
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         manifest = json.load(archive.extractfile("manifest.json"))
-        entries = [(member.name, archive.extractfile(member).read()) for member in archive.getmembers() if member.isreg()]
     recipe_entry = next(entry for entry in manifest["files"] if entry["path"] == "recipe.json")
-    recipe_entry["size"] += 1
+    recipe_entry[field] = recipe_entry[field] + 1 if field == "size" else "0" * 64
     manifest_body = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()
     malformed = _rewrite_member(payload, "manifest.json", body=manifest_body)
     with pytest.raises(SystemExit, match="manifest digest is stale: recipe.json"):
