@@ -19,13 +19,13 @@ permissions:
 jobs:
   validate:
     if: ${{ !inputs.producer_only }}
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@bb75f09063c4580cfb139c8c1defeef09c7c03ed
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@0cd25f50d4d9816537b57be7b66b41b98af00156
     with:
       # Validate against the published Forge main authority.  Keeping this
       # independent from a recipe PR's historical base prevents new runtime
       # contracts (such as verified vLLM-Ray) from being judged by an older
       # harness implementation.
-      platform_ref: 99ff2844d66622bfdf6b8bbf05a08a7ae187c1df
+      platform_ref: 0cd25f50d4d9816537b57be7b66b41b98af00156
 
   catalog-index:
     if: ${{ !inputs.producer_only }}
@@ -270,16 +270,6 @@ jobs:
           print("External wheel import and four Recipe resolutions: OK")
           PY
           )
-
-      - name: Upload checked package and index artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: recipe-library-checked-${{ github.sha }}
-          if-no-files-found: error
-          path: |
-            .artifacts/recipe-library/catalog-index.json
-            .artifacts/recipe-library/qualification/qualification-index.json
-            .artifacts/recipe-library/packages/*.tar.gz
 
   public-contracts:
     if: ${{ !inputs.producer_only }}

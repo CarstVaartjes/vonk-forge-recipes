@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -33,6 +38,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "metadata-31fcd4d7141f",
@@ -162,6 +168,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Official upstream checkpoint at the pinned revision.",
+    "publisher": "liquidai",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "liquidai",
+      "slug": "lfm2-5-vl-3b"
+    }
+  },
   "metadata": {
     "description": "Exact public BF16 5a414ead checkpoint.",
     "tags": [
@@ -191,5 +207,6 @@
   "source": {
     "repository": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B",
     "revision": "5a414ead75d45db003906d06fb62bd5b6846cec0"
-  }
+  },
+  "supersedes": null
 }

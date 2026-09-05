@@ -147,7 +147,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c30fce05af41dcad72d9031f6d27e5c4049953b01f5ddf701d45f26de2ea0373",
+        "content_sha256": "a0cc0c54c3d28111b48f041eda319f8c391ef669634aa40f0f870f68897f293a",
         "kind": "model",
         "publisher": "openmoss",
         "slug": "mova-360p"
@@ -160,6 +160,202 @@
     ],
     "source_kind": "global",
     "source_reference": "https://huggingface.co/OpenMOSS-Team/MOVA-360p/tree/eab4aa91d6d5eb515e259a0c8533c90062b117a5"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "2.0.8"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "6ab0e3efa9e91c9235af5866f0142cb0a896fbcd6056ae02baefb44c7bcc3524",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.7"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "a5ab6cc559e11a1f94524e0e305f13b2f2946c0fcd4dd89a42f5eed83ef55435",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "2.0.6"
+      },
+      {
+        "changes": [
+          {
+            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+            "kind": "security",
+            "references": [],
+            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+          }
+        ],
+        "prior_recipe_content_sha256": "e41a11631e0d26b32a10cfd5682c41ac66b8a68642382da7d4bbc1b9b5fbac43",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.5"
+      },
+      {
+        "changes": [
+          {
+            "details": "The synchronized-media execution contract is unchanged; the label distinguishes this profile from the tighter 720p candidate while physical acceptance remains pending.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Marked the 360p recipe as the preferred default MOVA profile for one Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "66f28da24cc2420ad8c1805d737202788a5cd087f0ad3d705cee9b6af76c56d6",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "none",
+        "version": "2.0.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "Publication now requires one 640x352 H.264 stream with 193 frames at 24 fps and one synchronized 48 kHz AAC stream in the MP4 container.",
+            "kind": "fix",
+            "references": [],
+            "summary": "Made synchronized MOVA media acceptance fail closed."
+          }
+        ],
+        "prior_recipe_content_sha256": "2ea424e85839b6053949763c7c0661212f34ff742ee8d9ed3237fa543ea1d4fd",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "The adapter now verifies the signed input manifest, reads the required bounded UTF-8 prompt before loading the model, and has no hidden default prompt.",
+            "kind": "fix",
+            "references": [],
+            "summary": "Added signed typed prompt, optional reference-image, and MP4 result slots."
+          }
+        ],
+        "prior_recipe_content_sha256": "5df9dfe947b084757fe94cd74ea64796e9d2df308e2a11bd342b2750e78da6ff",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Disambiguated the model title as MOVA 360p in catalog filters and details."
+          }
+        ],
+        "prior_recipe_content_sha256": "d3fbf8249323d15425d97aeb7da8e4006683b000b311a8681333aa00181465ae",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "2.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "runtime",
+            "references": [
+              "https://github.com/OpenMOSS/MOVA/tree/83bcbe8eab55ded920889239af93c112834ee5b8",
+              "https://huggingface.co/OpenMOSS-Team/MOVA-360p/tree/eab4aa91d6d5eb515e259a0c8533c90062b117a5"
+            ],
+            "summary": "Replaced the non-executable Diffusers placeholder with the exact official MOVA native pipeline and a pinned ARM64 runtime."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/OpenMOSS/MOVA/blob/83bcbe8eab55ded920889239af93c112834ee5b8/scripts/inference_single.py",
+              "https://github.com/OpenMOSS/MOVA/blob/83bcbe8eab55ded920889239af93c112834ee5b8/mova/utils/data.py"
+            ],
+            "summary": "Added optional image conditioning, the official white-frame T2VA fallback, and fail-closed synchronized video and 48 kHz audio verification."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Verified the fully pinned image build on linux/arm64 and kept the executable recipe Candidate pending only a physical single-Spark inference canary."
+          }
+        ],
+        "prior_recipe_content_sha256": "00061959a3acb5ce9e0b0827150c942972bc5cffeaacf505962c44bc9d20ac44",
+        "released_at": "2026-08-24",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/OpenMOSS/MOVA"
+            ],
+            "summary": "Marked the metadata-only candidate as requiring an immutable native MOVA source bundle and synchronized video/audio adapter before acceptance."
+          }
+        ],
+        "prior_recipe_content_sha256": "f5b4007fb0ed0eac038bfc61aea10d9d297f50aa5ff9131783fc66993bc295b5",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of MOVA 360p diffusers single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "5e92097932b6509269abcda2f8540614200239738141fc35baf43e4d26d1cd3d",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
+            ],
+            "summary": "Recovered the first public legacy revision from before semantic release tracking."
+          }
+        ],
+        "prior_recipe_content_sha256": "04ca6a64dfbfbfb63859a8035bbd80c788e402733d162afc898a27755f72a216",
+        "released_at": "2026-08-17",
+        "upgrade_effect": "reprepare",
+        "version": "0.1.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "2.0.8"
   },
   "runtime": {
     "arguments": [

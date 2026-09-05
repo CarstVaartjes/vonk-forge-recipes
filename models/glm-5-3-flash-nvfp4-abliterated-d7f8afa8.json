@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "token",
+    "gated": true,
+    "visibility": "restricted"
+  },
   "capabilities": {
     "facts": [
       {
@@ -39,6 +44,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "license-30b85b6b9659-c693279643",
@@ -1215,6 +1221,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "LibertAI NVFP4 body with DealignAI self_attn.o_proj tensors for layers 15 through 45, including MTP; layers 0 through 14 remain stock.",
+    "publisher": "drowzeys",
+    "relation": "derived",
+    "source_model": {
+      "kind": "model",
+      "publisher": "libertaidai",
+      "slug": "glm-5-3-flash-nvfp4"
+    }
+  },
   "metadata": {
     "description": "Fail-closed gated inventory at d7f8afa81e62c156446fda43304d704563622590: 126 files and 194692710561 bytes have exact SHA-256 values, but Hugging Face returns HTTP 401 for 13 Git files totaling 50928 bytes (.gitattributes, ABLIT_META.json, CREDITS.md, LICENSE-KEYS.md, METHOD.md, RESPONSIBLE_USE.md, VARIATIONS.json, ablit/LAYER_MAP.json, chat_template.jinja, config.json, generation_config.json, processor_config.json, tokenizer_config.json). The prior synthetic snapshot digest was removed; authenticate and refresh all 139 paths before reactivation.",
     "tags": [
@@ -1253,5 +1269,6 @@
   "source": {
     "repository": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock",
     "revision": "d7f8afa81e62c156446fda43304d704563622590"
-  }
+  },
+  "supersedes": null
 }

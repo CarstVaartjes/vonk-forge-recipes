@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -21,6 +26,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "snapshot",
@@ -61,6 +67,15 @@
     ],
     "operator_acceptance_required": true,
     "spdx": "LicenseRef-MiniMax-H3-Community-License",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR",
+        "US"
+      ],
+      "notice": "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."
+    },
     "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE"
   },
   "limits": {
@@ -68,6 +83,16 @@
     "frames": 345,
     "resolution_pixels": 1032192,
     "sample_rate_hz": 32000
+  },
+  "lineage": {
+    "derivation": "Immutable public upstream snapshot at the pinned revision.",
+    "publisher": "minimax",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "minimax",
+      "slug": "minimax-h3"
+    }
   },
   "metadata": {
     "description": "Immutable official MiniMax H3 BF16 snapshot with FL2VA and Ref2VA checkpoints plus the Modular Diffusers layout at 42ed227e.",
@@ -99,5 +124,6 @@
   "source": {
     "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
     "revision": "42ed227ee7df40d41602854ae760620d6eb651fe"
-  }
+  },
+  "supersedes": null
 }

@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -15,6 +20,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "artifact-01",
@@ -270,6 +276,16 @@
     "resolution_pixels": 1048576,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Immutable public upstream snapshot at the pinned revision.",
+    "publisher": "nvidia",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "nvidia",
+      "slug": "qwen-image-flash"
+    }
+  },
   "metadata": {
     "description": "Exact public four-step Qwen Image Flash checkpoint at eafac15f for candidate single-Spark Diffusers qualification.",
     "tags": [
@@ -297,5 +313,6 @@
   "source": {
     "repository": "https://huggingface.co/nvidia/Qwen-Image-Flash",
     "revision": "eafac15f6140e6dd9c6031217d658ac10bfb604b"
-  }
+  },
+  "supersedes": null
 }

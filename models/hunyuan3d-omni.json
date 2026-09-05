@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -15,6 +20,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "snapshot",
@@ -55,6 +61,14 @@
     ],
     "operator_acceptance_required": false,
     "spdx": "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR"
+      ],
+      "notice": "The upstream Hunyuan3D-Omni Community License does not apply in the European Union, United Kingdom, or South Korea."
+    },
     "url": "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/blob/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8/License.txt"
   },
   "limits": {
@@ -62,6 +76,16 @@
     "frames": null,
     "resolution_pixels": null,
     "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Immutable public upstream snapshot at the pinned revision.",
+    "publisher": "tencent",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "tencent",
+      "slug": "hunyuan3d-omni"
+    }
   },
   "metadata": {
     "description": "Immutable public snapshot at 70e803bf.",
@@ -90,5 +114,6 @@
   "source": {
     "repository": "https://huggingface.co/tencent/Hunyuan3D-Omni",
     "revision": "70e803bfb4e127d534049d8ab8c8cb511780d485"
-  }
+  },
+  "supersedes": null
 }

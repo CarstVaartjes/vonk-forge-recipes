@@ -836,7 +836,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "7daa16f65c1ba46f9e36dd7b1f6468d13a188486126f4035619b67556ac2c323",
+        "content_sha256": "1aa425dc5585daad4a4042787a60a14c4b7467e8dce829a903e136815bab6bb3",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4"
@@ -913,7 +913,7 @@
       ],
       "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark",
       "model": {
-        "content_sha256": "27cc3fc052ab03ff0789dac156c317db52e7363330d4387be73f33805c82df36",
+        "content_sha256": "d1634d4d6d2fc7c780a0f3030c70a485def00503ae9ba4c5e9b88e3aa93e7473",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark"
@@ -926,6 +926,65 @@
     ],
     "source_kind": "global",
     "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/cc84af2fe71647d87f4486c064f320e1e7535243"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "dbcdfdcce6ef41d5766434f568cf1970e9a268c5a8227305f63db0ba247de9ed",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "The canary preserves the exact cc84af2f target, d10c6ff4 six-layer DSpark companion, vLLM 0.27.1 ARM64 runtime, speculative depth three, and OpenAI reasoning/tool contract. It lowers context to 256K, keeps one sequence, bounds the FP8 KV cache to 4 GB, uses 4K chunked prefills and the supported FP16 Mamba state cache, and enforces eager execution.",
+            "kind": "initial",
+            "references": [
+              "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/cc84af2fe71647d87f4486c064f320e1e7535243",
+              "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark/tree/d10c6ff40d6e69d1f92e407e027de3eafdb77645",
+              "https://github.com/vllm-project/vllm/tree/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
+              "https://docs.vllm.ai/en/v0.27.1/cli/serve/"
+            ],
+            "summary": "Added a distinct 256K Nemotron 3.5 DSpark low-memory physical canary without changing the original 1M latency profile."
+          },
+          {
+            "details": "The declared 118 GB startup peak plus 8 GB system reserve fits the observed 126,946,283,520-byte lower fleet baseline by 946,283,520 bytes. It remains a canary estimate until the exact image proves startup and steady-state memory, draft acceptance rate, latency, and output equivalence. CPU weight offload is intentionally excluded as a source of unified-memory savings.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Kept the new envelope fail-closed behind physical memory and speculative-decoding acceptance."
+          }
+        ],
+        "prior_recipe_content_sha256": "87c61bb4c3cc3fda60aa510370ebd44af482da235de1b741aba7a0d964cae561",
+        "released_at": "2026-08-31",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-03",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
