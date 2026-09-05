@@ -8,6 +8,7 @@ closure.  Missing evidence is reported and leaves that document unconverted.
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import re
@@ -209,7 +210,10 @@ def recipe_serving(recipe: dict[str, Any], interface: dict[str, Any]) -> tuple[d
             "request": {"transport": "http", "method": "GET", "path": interface["health_path"]},
             "assertions": ["endpoint.healthy"],
         }
-        messages = [{"role": "user", "content": [{"type": "text", "text": "describe this image"}, {"type": "image_url", "image_url": {"url": "data:image/png;base64,AA=="}}]}] if vision else [{"role": "user", "content": "hello"}]
+        # The HTTP contract carries a representative media payload. Keep it a
+        # real decoded fixture rather than a syntactically valid one-byte stub.
+        tiny_png = base64.b64encode((ROOT / "qualification/fixtures/tiny.png").read_bytes()).decode("ascii")
+        messages = [{"role": "user", "content": [{"type": "text", "text": "describe this image"}, {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{tiny_png}"}}]}] if vision else [{"role": "user", "content": "hello"}]
         body = {"model": interface["model_aliases"][0], "messages": messages, "max_tokens": 64}
         check = {"name": "bounded-vision" if vision else "bounded-chat", "kind": "openai.vision" if vision else "openai.chat", "request": {"transport": "http", "method": "POST", "path": "/v1/chat/completions", "body": body}, "assertions": ["chat.nonempty", "chat.output-cap"]}
         return {"interface": "openai", "checks": [health, check]}, []

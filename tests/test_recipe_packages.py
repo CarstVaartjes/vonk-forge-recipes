@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import base64
 import copy
 import hashlib
+import struct
 import io
 import json
 import os
@@ -63,6 +65,21 @@ def test_full_catalog_packages_are_self_contained_and_deterministic(tmp_path: Pa
                 payload = archive.extractfile(entry["path"]).read()
                 assert len(payload) == entry["size"]
                 assert hashlib.sha256(payload).hexdigest() == entry["sha256"]
+
+
+def test_vision_serving_uses_a_real_png_payload() -> None:
+    recipe_path = ROOT / "recipes/deepseek-v4-flash-vision-exp-mia-dual.json"
+    recipe = json.loads(recipe_path.read_text())
+    checks = recipe["validation"]["serving"]["checks"]
+    vision = next(check for check in checks if check["kind"] == "openai.vision")
+    parts = vision["request"]["body"]["messages"][0]["content"]
+    image = next(part["image_url"]["url"] for part in parts if part["type"] == "image_url")
+    prefix, encoded = image.split(",", 1)
+    assert prefix == "data:image/png;base64"
+    payload = base64.b64decode(encoded, validate=True)
+    assert payload.startswith(b"\x89PNG\r\n\x1a\n")
+    assert payload[12:16] == b"IHDR"
+    assert struct.unpack(">II", payload[16:24]) == (64, 64)
 
 
 def test_editing_one_recipe_changes_only_that_package(tmp_path: Path) -> None:
