@@ -30,6 +30,17 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertEqual(specification["num_speculative_tokens"], 7)
         self.assertEqual(load(RECIPE)["topology"]["start_order"], ["worker", "entrypoint"])
 
+    def test_pinned_runtime_is_explicitly_distinct_from_current_upstream_defaults(self) -> None:
+        recipe = load(RECIPE)
+        arguments = {item["name"]: item for item in recipe["runtime"]["arguments"]}
+        self.assertEqual(
+            recipe["provenance"]["source_reference"],
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/493cb88fc69f8ba73ac87404f429d763e2739d89",
+        )
+        self.assertEqual(recipe["execution"]["build"]["base_image"]["digest"], "9bb1557a4234fce63d59599e44d10747eabd742beb337eebf9e7070be8a0fd58")
+        self.assertEqual(arguments["max-num-batched-tokens"]["value"], 2048)
+        self.assertEqual(arguments["kv-cache-dtype"]["value"], "fp8")
+
     def test_adapter_bundle_is_pinned_and_uses_no_ssh(self) -> None:
         tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         _, _, digest = tool["source_bundle"](ADAPTER)
