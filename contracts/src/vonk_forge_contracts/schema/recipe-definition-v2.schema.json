@@ -1,0 +1,1936 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.vonkforge.ai/contracts/recipe-definition-v2.schema.json",
+  "$defs": {
+    "BuildArgument": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "BuildArgument",
+      "type": "object"
+    },
+    "BuildContext": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "maxLength": 256,
+          "pattern": "^(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*)(?:/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*))*$",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "BuildContext",
+      "type": "object"
+    },
+    "BuildNetwork": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "none",
+            "public"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "hosts": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Hosts",
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode",
+        "hosts"
+      ],
+      "title": "BuildNetwork",
+      "type": "object"
+    },
+    "BuildPatch": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "maxLength": 256,
+          "pattern": "^(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*)(?:/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*))*$",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "BuildPatch",
+      "type": "object"
+    },
+    "JsonValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ModelReference": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "model",
+          "title": "Kind",
+          "type": "string"
+        },
+        "publisher": {
+          "maxLength": 64,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 64,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        },
+        "content_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "publisher",
+        "slug",
+        "content_sha256"
+      ],
+      "title": "ModelReference",
+      "type": "object"
+    },
+    "RecipeBenchmark": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "framework": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Framework",
+          "type": "string"
+        },
+        "configuration": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Configuration",
+          "type": "object"
+        }
+      },
+      "required": [
+        "name",
+        "framework",
+        "configuration"
+      ],
+      "title": "RecipeBenchmark",
+      "type": "object"
+    },
+    "RecipeBuildDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "base_image": {
+          "$ref": "#/$defs/RecipeImage"
+        },
+        "context": {
+          "$ref": "#/$defs/BuildContext"
+        },
+        "dockerfile": {
+          "maxLength": 256,
+          "pattern": "^(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*)(?:/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*))*$",
+          "title": "Dockerfile",
+          "type": "string"
+        },
+        "patches": {
+          "items": {
+            "$ref": "#/$defs/BuildPatch"
+          },
+          "maxItems": 64,
+          "title": "Patches",
+          "type": "array"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
+        },
+        "arguments": {
+          "items": {
+            "$ref": "#/$defs/BuildArgument"
+          },
+          "maxItems": 64,
+          "title": "Arguments",
+          "type": "array"
+        },
+        "network": {
+          "$ref": "#/$defs/BuildNetwork"
+        }
+      },
+      "required": [
+        "base_image",
+        "context",
+        "dockerfile",
+        "patches",
+        "arguments",
+        "network"
+      ],
+      "title": "RecipeBuildDefinition",
+      "type": "object"
+    },
+    "RecipeBuildExecution": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "const": "build",
+          "title": "Mode",
+          "type": "string"
+        },
+        "build": {
+          "$ref": "#/$defs/RecipeBuildDefinition"
+        }
+      },
+      "required": [
+        "mode",
+        "build"
+      ],
+      "title": "RecipeBuildExecution",
+      "type": "object"
+    },
+    "RecipeDiskResources": {
+      "additionalProperties": false,
+      "properties": {
+        "image_bytes": {
+          "minimum": 0,
+          "title": "Image Bytes",
+          "type": "integer"
+        },
+        "artifact_bytes": {
+          "minimum": 0,
+          "title": "Artifact Bytes",
+          "type": "integer"
+        },
+        "staging_bytes": {
+          "minimum": 0,
+          "title": "Staging Bytes",
+          "type": "integer"
+        },
+        "cache_bytes": {
+          "minimum": 0,
+          "title": "Cache Bytes",
+          "type": "integer"
+        },
+        "rollback_bytes": {
+          "minimum": 0,
+          "title": "Rollback Bytes",
+          "type": "integer"
+        },
+        "safety_margin_bytes": {
+          "minimum": 0,
+          "title": "Safety Margin Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "image_bytes",
+        "artifact_bytes",
+        "staging_bytes",
+        "cache_bytes",
+        "rollback_bytes",
+        "safety_margin_bytes"
+      ],
+      "title": "RecipeDiskResources",
+      "type": "object"
+    },
+    "RecipeEmbeddingSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "knobs": {
+          "maxProperties": 64,
+          "patternProperties": {
+            "^[a-z][a-z0-9_-]*$": {
+              "$ref": "#/$defs/RecipeSetting"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "title": "Knobs",
+          "type": "object"
+        },
+        "kind": {
+          "const": "embedding",
+          "title": "Kind",
+          "type": "string"
+        },
+        "concurrency": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecipeIntegerSetting"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "max_batch_tokens": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecipeIntegerSetting"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "RecipeEmbeddingSettings",
+      "type": "object"
+    },
+    "RecipeFabric": {
+      "additionalProperties": false,
+      "properties": {
+        "connectivity": {
+          "enum": [
+            "none",
+            "connected",
+            "full_mesh",
+            "switch"
+          ],
+          "title": "Connectivity",
+          "type": "string"
+        },
+        "minimum_bandwidth_mbps": {
+          "minimum": 0,
+          "title": "Minimum Bandwidth Mbps",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "connectivity",
+        "minimum_bandwidth_mbps"
+      ],
+      "title": "RecipeFabric",
+      "type": "object"
+    },
+    "RecipeFailurePolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "rank_loss": {
+          "enum": [
+            "not-applicable",
+            "withdraw-endpoint"
+          ],
+          "title": "Rank Loss",
+          "type": "string"
+        },
+        "recovery": {
+          "enum": [
+            "restart-entrypoint",
+            "restart-worker-then-entrypoint"
+          ],
+          "title": "Recovery",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rank_loss",
+        "recovery"
+      ],
+      "title": "RecipeFailurePolicy",
+      "type": "object"
+    },
+    "RecipeGenerationSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "knobs": {
+          "maxProperties": 64,
+          "patternProperties": {
+            "^[a-z][a-z0-9_-]*$": {
+              "$ref": "#/$defs/RecipeSetting"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "title": "Knobs",
+          "type": "object"
+        },
+        "kind": {
+          "const": "generation",
+          "title": "Kind",
+          "type": "string"
+        },
+        "context_tokens": {
+          "$ref": "#/$defs/RecipeIntegerSetting"
+        },
+        "concurrency": {
+          "$ref": "#/$defs/RecipeIntegerSetting"
+        },
+        "max_batch_tokens": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecipeIntegerSetting"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "kind",
+        "context_tokens",
+        "concurrency"
+      ],
+      "title": "RecipeGenerationSettings",
+      "type": "object"
+    },
+    "RecipeHttpServingRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "transport": {
+          "const": "http",
+          "title": "Transport",
+          "type": "string"
+        },
+        "method": {
+          "enum": [
+            "GET",
+            "POST"
+          ],
+          "title": "Method",
+          "type": "string"
+        },
+        "path": {
+          "maxLength": 256,
+          "pattern": "^/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*)(?:/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*))*$",
+          "title": "Path",
+          "type": "string"
+        },
+        "body": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "maxProperties": 32,
+              "minProperties": 1,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Body"
+        }
+      },
+      "required": [
+        "transport",
+        "method",
+        "path"
+      ],
+      "title": "RecipeHttpServingRequest",
+      "type": "object"
+    },
+    "RecipeIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "publisher": {
+          "maxLength": 64,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 64,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "slug"
+      ],
+      "title": "RecipeIdentity",
+      "type": "object"
+    },
+    "RecipeImage": {
+      "additionalProperties": false,
+      "properties": {
+        "repository": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9._/-]*$",
+          "title": "Repository",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "platform": {
+          "const": "linux/arm64",
+          "title": "Platform",
+          "type": "string"
+        }
+      },
+      "required": [
+        "repository",
+        "digest",
+        "platform"
+      ],
+      "title": "RecipeImage",
+      "type": "object"
+    },
+    "RecipeImageExecution": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "const": "image",
+          "title": "Mode",
+          "type": "string"
+        },
+        "image": {
+          "$ref": "#/$defs/RecipeImage"
+        }
+      },
+      "required": [
+        "mode",
+        "image"
+      ],
+      "title": "RecipeImageExecution",
+      "type": "object"
+    },
+    "RecipeInputSlot": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "media_types": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Media Types",
+          "type": "array"
+        },
+        "extensions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16,
+          "title": "Extensions",
+          "type": "array"
+        },
+        "min_files": {
+          "maximum": 32,
+          "minimum": 0,
+          "title": "Min Files",
+          "type": "integer"
+        },
+        "max_files": {
+          "maximum": 32,
+          "minimum": 1,
+          "title": "Max Files",
+          "type": "integer"
+        },
+        "max_file_bytes": {
+          "maximum": 536870912,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        },
+        "max_total_bytes": {
+          "maximum": 1073741824,
+          "minimum": 1,
+          "title": "Max Total Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "description",
+        "media_types",
+        "extensions",
+        "min_files",
+        "max_files",
+        "max_file_bytes",
+        "max_total_bytes"
+      ],
+      "title": "RecipeInputSlot",
+      "type": "object"
+    },
+    "RecipeIntegerSetting": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "minimum": 1,
+          "title": "Value",
+          "type": "integer"
+        },
+        "change_effect": {
+          "enum": [
+            "none",
+            "restart",
+            "reprepare",
+            "rebuild"
+          ],
+          "title": "Change Effect",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "change_effect"
+      ],
+      "title": "RecipeIntegerSetting",
+      "type": "object"
+    },
+    "RecipeJobInput": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "const": "/inputs",
+          "title": "Path",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "media_types": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Media Types",
+          "type": "array"
+        },
+        "max_bytes": {
+          "maximum": 1073741824,
+          "minimum": 1,
+          "title": "Max Bytes",
+          "type": "integer"
+        },
+        "slots": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/RecipeInputSlot"
+              },
+              "maxItems": 32,
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Slots"
+        }
+      },
+      "required": [
+        "path",
+        "required",
+        "media_types",
+        "max_bytes"
+      ],
+      "title": "RecipeJobInput",
+      "type": "object"
+    },
+    "RecipeJobInterface": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter": {
+          "enum": [
+            "image-job",
+            "audio-job",
+            "video-job",
+            "mesh-job",
+            "artifact-job"
+          ],
+          "title": "Adapter",
+          "type": "string"
+        },
+        "path": {
+          "const": "/outputs",
+          "title": "Path",
+          "type": "string"
+        },
+        "input": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecipeJobInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "output": {
+          "$ref": "#/$defs/RecipeJobOutput"
+        }
+      },
+      "required": [
+        "adapter",
+        "path",
+        "output"
+      ],
+      "title": "RecipeJobInterface",
+      "type": "object"
+    },
+    "RecipeJobOutput": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "const": "/outputs",
+          "title": "Path",
+          "type": "string"
+        },
+        "max_total_bytes": {
+          "maximum": 2147483648,
+          "minimum": 1,
+          "title": "Max Total Bytes",
+          "type": "integer"
+        },
+        "slots": {
+          "items": {
+            "$ref": "#/$defs/RecipeOutputSlot"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Slots",
+          "type": "array"
+        }
+      },
+      "required": [
+        "path",
+        "max_total_bytes",
+        "slots"
+      ],
+      "title": "RecipeJobOutput",
+      "type": "object"
+    },
+    "RecipeJobServingRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "transport": {
+          "const": "job",
+          "title": "Transport",
+          "type": "string"
+        },
+        "fixture": {
+          "maxLength": 256,
+          "pattern": "^(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*)(?:/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*))*$",
+          "title": "Fixture",
+          "type": "string"
+        },
+        "input_path": {
+          "anyOf": [
+            {
+              "const": "/inputs",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Input Path"
+        },
+        "input_slots": {
+          "maxProperties": 32,
+          "patternProperties": {
+            "^[a-z][a-z0-9_-]*$": {
+              "maxLength": 256,
+              "pattern": "^(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*)(?:/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*))*$",
+              "type": "string"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "title": "Input Slots",
+          "type": "object"
+        },
+        "output_path": {
+          "const": "/outputs",
+          "title": "Output Path",
+          "type": "string"
+        },
+        "output_slot": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "title": "Output Slot",
+          "type": "string"
+        }
+      },
+      "required": [
+        "transport",
+        "fixture",
+        "output_path",
+        "output_slot"
+      ],
+      "title": "RecipeJobServingRequest",
+      "type": "object"
+    },
+    "RecipeJobSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "knobs": {
+          "maxProperties": 64,
+          "patternProperties": {
+            "^[a-z][a-z0-9_-]*$": {
+              "$ref": "#/$defs/RecipeSetting"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "title": "Knobs",
+          "type": "object"
+        },
+        "kind": {
+          "const": "job",
+          "title": "Kind",
+          "type": "string"
+        },
+        "concurrency": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecipeIntegerSetting"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "RecipeJobSettings",
+      "type": "object"
+    },
+    "RecipeLifecycle": {
+      "additionalProperties": false,
+      "properties": {
+        "pre_start": {
+          "items": {
+            "items": {
+              "maxLength": 4096,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 64,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 16,
+          "title": "Pre Start",
+          "type": "array"
+        },
+        "post_stop": {
+          "items": {
+            "items": {
+              "maxLength": 4096,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 64,
+            "minItems": 1,
+            "type": "array"
+          },
+          "maxItems": 16,
+          "title": "Post Stop",
+          "type": "array"
+        },
+        "stop_timeout_seconds": {
+          "maximum": 600,
+          "minimum": 1,
+          "title": "Stop Timeout Seconds",
+          "type": "integer"
+        },
+        "failure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecipeFailurePolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "pre_start",
+        "post_stop",
+        "stop_timeout_seconds"
+      ],
+      "title": "RecipeLifecycle",
+      "type": "object"
+    },
+    "RecipeMemoryResources": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "unified",
+            "host",
+            "accelerator"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "startup_peak_bytes": {
+          "minimum": 1,
+          "title": "Startup Peak Bytes",
+          "type": "integer"
+        },
+        "steady_state_bytes": {
+          "minimum": 1,
+          "title": "Steady State Bytes",
+          "type": "integer"
+        },
+        "runtime_growth_bytes": {
+          "minimum": 0,
+          "title": "Runtime Growth Bytes",
+          "type": "integer"
+        },
+        "system_reserve_bytes": {
+          "minimum": 0,
+          "title": "System Reserve Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "startup_peak_bytes",
+        "steady_state_bytes",
+        "runtime_growth_bytes",
+        "system_reserve_bytes"
+      ],
+      "title": "RecipeMemoryResources",
+      "type": "object"
+    },
+    "RecipeMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Tags",
+          "type": "array"
+        },
+        "alignment": {
+          "anyOf": [
+            {
+              "enum": [
+                "standard",
+                "abliterated",
+                "derisked",
+                "other-modified",
+                "unspecified"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alignment"
+        }
+      },
+      "required": [
+        "title",
+        "description",
+        "tags"
+      ],
+      "title": "RecipeMetadata",
+      "type": "object"
+    },
+    "RecipeModelFile": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "file_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "File Id",
+          "type": "string"
+        },
+        "roles": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Roles",
+          "type": "array"
+        },
+        "mount": {
+          "$ref": "#/$defs/RecipeMount"
+        }
+      },
+      "required": [
+        "id",
+        "file_id",
+        "roles",
+        "mount"
+      ],
+      "title": "RecipeModelFile",
+      "type": "object"
+    },
+    "RecipeModelSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "model": {
+          "$ref": "#/$defs/ModelReference"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/$defs/RecipeModelFile"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Files",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "model",
+        "files"
+      ],
+      "title": "RecipeModelSelection",
+      "type": "object"
+    },
+    "RecipeMount": {
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "maxLength": 256,
+          "pattern": "^/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*)(?:/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*))*$",
+          "title": "Target",
+          "type": "string"
+        },
+        "read_only": {
+          "const": true,
+          "title": "Read Only",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "target",
+        "read_only"
+      ],
+      "title": "RecipeMount",
+      "type": "object"
+    },
+    "RecipeOpenAIInterface": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter": {
+          "const": "openai",
+          "title": "Adapter",
+          "type": "string"
+        },
+        "port": {
+          "maximum": 65535,
+          "minimum": 1024,
+          "title": "Port",
+          "type": "integer"
+        },
+        "model_aliases": {
+          "items": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Model Aliases",
+          "type": "array"
+        },
+        "health_path": {
+          "maxLength": 256,
+          "pattern": "^/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*)(?:/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*))*$",
+          "title": "Health Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "adapter",
+        "port",
+        "model_aliases",
+        "health_path"
+      ],
+      "title": "RecipeOpenAIInterface",
+      "type": "object"
+    },
+    "RecipeOutputSlot": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,31}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "media_types": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Media Types",
+          "type": "array"
+        },
+        "extensions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Extensions",
+          "type": "array"
+        },
+        "min_files": {
+          "maximum": 32,
+          "minimum": 0,
+          "title": "Min Files",
+          "type": "integer"
+        },
+        "max_files": {
+          "maximum": 32,
+          "minimum": 1,
+          "title": "Max Files",
+          "type": "integer"
+        },
+        "max_file_bytes": {
+          "maximum": 1073741824,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        },
+        "max_total_bytes": {
+          "maximum": 2147483648,
+          "minimum": 1,
+          "title": "Max Total Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "description",
+        "media_types",
+        "extensions",
+        "min_files",
+        "max_files",
+        "max_file_bytes",
+        "max_total_bytes"
+      ],
+      "title": "RecipeOutputSlot",
+      "type": "object"
+    },
+    "RecipeParallelism": {
+      "additionalProperties": false,
+      "properties": {
+        "world_size": {
+          "minimum": 1,
+          "title": "World Size",
+          "type": "integer"
+        },
+        "tensor": {
+          "minimum": 1,
+          "title": "Tensor",
+          "type": "integer"
+        },
+        "pipeline": {
+          "minimum": 1,
+          "title": "Pipeline",
+          "type": "integer"
+        },
+        "data": {
+          "minimum": 1,
+          "title": "Data",
+          "type": "integer"
+        },
+        "backend": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Backend",
+          "type": "string"
+        }
+      },
+      "required": [
+        "world_size",
+        "tensor",
+        "pipeline",
+        "data",
+        "backend"
+      ],
+      "title": "RecipeParallelism",
+      "type": "object"
+    },
+    "RecipeProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "source_kind": {
+          "enum": [
+            "local",
+            "workload_run",
+            "global",
+            "fork"
+          ],
+          "title": "Source Kind",
+          "type": "string"
+        },
+        "source_reference": {
+          "anyOf": [
+            {
+              "maxLength": 2048,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Reference"
+        },
+        "attribution": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Attribution",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source_kind",
+        "attribution"
+      ],
+      "title": "RecipeProvenance",
+      "type": "object"
+    },
+    "RecipeRoleResources": {
+      "additionalProperties": false,
+      "properties": {
+        "memory": {
+          "$ref": "#/$defs/RecipeMemoryResources"
+        },
+        "disk": {
+          "$ref": "#/$defs/RecipeDiskResources"
+        }
+      },
+      "required": [
+        "memory",
+        "disk"
+      ],
+      "title": "RecipeRoleResources",
+      "type": "object"
+    },
+    "RecipeRuntime": {
+      "additionalProperties": false,
+      "properties": {
+        "engine": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "title": "Engine",
+          "type": "string"
+        },
+        "entrypoint": {
+          "items": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Entrypoint",
+          "type": "array"
+        },
+        "arguments": {
+          "items": {
+            "$ref": "#/$defs/RecipeRuntimeArgument"
+          },
+          "maxItems": 128,
+          "title": "Arguments",
+          "type": "array"
+        },
+        "environment": {
+          "items": {
+            "$ref": "#/$defs/RecipeRuntimeEnvironment"
+          },
+          "maxItems": 128,
+          "title": "Environment",
+          "type": "array"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/RecipeLifecycle"
+        }
+      },
+      "required": [
+        "engine",
+        "entrypoint",
+        "arguments",
+        "environment",
+        "lifecycle"
+      ],
+      "title": "RecipeRuntime",
+      "type": "object"
+    },
+    "RecipeRuntimeArgument": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "setting": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9_-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Setting"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "RecipeRuntimeArgument",
+      "type": "object"
+    },
+    "RecipeRuntimeEnvironment": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "secret": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Secret"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "RecipeRuntimeEnvironment",
+      "type": "object"
+    },
+    "RecipeServingValidation": {
+      "additionalProperties": false,
+      "properties": {
+        "interface": {
+          "enum": [
+            "openai",
+            "image-job",
+            "audio-job",
+            "video-job",
+            "mesh-job",
+            "artifact-job"
+          ],
+          "title": "Interface",
+          "type": "string"
+        },
+        "checks": {
+          "items": {
+            "$ref": "#/$defs/RecipeValidationCheck"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Checks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "interface",
+        "checks"
+      ],
+      "title": "RecipeServingValidation",
+      "type": "object"
+    },
+    "RecipeSetting": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "title": "Value"
+        },
+        "change_effect": {
+          "enum": [
+            "none",
+            "restart",
+            "reprepare",
+            "rebuild"
+          ],
+          "title": "Change Effect",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "change_effect"
+      ],
+      "title": "RecipeSetting",
+      "type": "object"
+    },
+    "RecipeTopology": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "single",
+            "distributed",
+            "tensor_parallel",
+            "pipeline_parallel",
+            "data_parallel",
+            "hybrid",
+            "ray",
+            "mpi"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "node_count": {
+          "minimum": 1,
+          "title": "Node Count",
+          "type": "integer"
+        },
+        "roles": {
+          "items": {
+            "$ref": "#/$defs/RecipeTopologyRole"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Roles",
+          "type": "array"
+        },
+        "parallelism": {
+          "$ref": "#/$defs/RecipeParallelism"
+        },
+        "fabric": {
+          "$ref": "#/$defs/RecipeFabric"
+        },
+        "start_order": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Start Order",
+          "type": "array"
+        },
+        "stop_order": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Stop Order",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "mode",
+        "node_count",
+        "roles",
+        "parallelism",
+        "fabric",
+        "start_order",
+        "stop_order"
+      ],
+      "title": "RecipeTopology",
+      "type": "object"
+    },
+    "RecipeTopologyRole": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "count": {
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "endpoint_owner": {
+          "title": "Endpoint Owner",
+          "type": "boolean"
+        },
+        "resources": {
+          "$ref": "#/$defs/RecipeRoleResources"
+        }
+      },
+      "required": [
+        "name",
+        "count",
+        "endpoint_owner",
+        "resources"
+      ],
+      "title": "RecipeTopologyRole",
+      "type": "object"
+    },
+    "RecipeValidation": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmarks": {
+          "items": {
+            "$ref": "#/$defs/RecipeBenchmark"
+          },
+          "maxItems": 32,
+          "title": "Benchmarks",
+          "type": "array"
+        },
+        "serving": {
+          "$ref": "#/$defs/RecipeServingValidation"
+        }
+      },
+      "required": [
+        "benchmarks",
+        "serving"
+      ],
+      "title": "RecipeValidation",
+      "type": "object"
+    },
+    "RecipeValidationCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "openai.health",
+            "openai.chat",
+            "openai.vision",
+            "openai.tools",
+            "openai.completion",
+            "openai.embedding",
+            "image-job.output",
+            "audio-job.output",
+            "video-job.output",
+            "mesh-job.output",
+            "artifact-job.output"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "request": {
+          "discriminator": {
+            "mapping": {
+              "http": "#/$defs/RecipeHttpServingRequest",
+              "job": "#/$defs/RecipeJobServingRequest"
+            },
+            "propertyName": "transport"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/RecipeHttpServingRequest"
+            },
+            {
+              "$ref": "#/$defs/RecipeJobServingRequest"
+            }
+          ],
+          "title": "Request"
+        },
+        "assertions": {
+          "items": {
+            "enum": [
+              "endpoint.healthy",
+              "chat.nonempty",
+              "chat.output-cap",
+              "tools.called",
+              "completion.nonempty",
+              "completion.output-cap",
+              "embedding.nonempty",
+              "inference.completed",
+              "artifact.output"
+            ],
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Assertions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "kind",
+        "request",
+        "assertions"
+      ],
+      "title": "RecipeValidationCheck",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The sole public recipe authoring contract.",
+  "properties": {
+    "schema_version": {
+      "const": 2,
+      "default": 2,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "kind": {
+      "const": "recipe",
+      "default": "recipe",
+      "title": "Kind",
+      "type": "string"
+    },
+    "identity": {
+      "$ref": "#/$defs/RecipeIdentity"
+    },
+    "metadata": {
+      "$ref": "#/$defs/RecipeMetadata"
+    },
+    "models": {
+      "items": {
+        "$ref": "#/$defs/RecipeModelSelection"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "title": "Models",
+      "type": "array"
+    },
+    "execution": {
+      "discriminator": {
+        "mapping": {
+          "build": "#/$defs/RecipeBuildExecution",
+          "image": "#/$defs/RecipeImageExecution"
+        },
+        "propertyName": "mode"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/RecipeImageExecution"
+        },
+        {
+          "$ref": "#/$defs/RecipeBuildExecution"
+        }
+      ],
+      "title": "Execution"
+    },
+    "runtime": {
+      "$ref": "#/$defs/RecipeRuntime"
+    },
+    "topology": {
+      "$ref": "#/$defs/RecipeTopology"
+    },
+    "interfaces": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "artifact-job": "#/$defs/RecipeJobInterface",
+            "audio-job": "#/$defs/RecipeJobInterface",
+            "image-job": "#/$defs/RecipeJobInterface",
+            "mesh-job": "#/$defs/RecipeJobInterface",
+            "openai": "#/$defs/RecipeOpenAIInterface",
+            "video-job": "#/$defs/RecipeJobInterface"
+          },
+          "propertyName": "adapter"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/RecipeOpenAIInterface"
+          },
+          {
+            "$ref": "#/$defs/RecipeJobInterface"
+          }
+        ]
+      },
+      "maxItems": 1,
+      "minItems": 1,
+      "title": "Interfaces",
+      "type": "array"
+    },
+    "validation": {
+      "$ref": "#/$defs/RecipeValidation"
+    },
+    "provenance": {
+      "$ref": "#/$defs/RecipeProvenance"
+    },
+    "settings": {
+      "discriminator": {
+        "mapping": {
+          "embedding": "#/$defs/RecipeEmbeddingSettings",
+          "generation": "#/$defs/RecipeGenerationSettings",
+          "job": "#/$defs/RecipeJobSettings"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/RecipeGenerationSettings"
+        },
+        {
+          "$ref": "#/$defs/RecipeEmbeddingSettings"
+        },
+        {
+          "$ref": "#/$defs/RecipeJobSettings"
+        }
+      ],
+      "title": "Settings"
+    }
+  },
+  "required": [
+    "identity",
+    "metadata",
+    "models",
+    "execution",
+    "runtime",
+    "topology",
+    "interfaces",
+    "validation",
+    "provenance",
+    "settings"
+  ],
+  "title": "RecipeDefinition",
+  "type": "object"
+}

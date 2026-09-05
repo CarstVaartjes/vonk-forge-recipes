@@ -1,0 +1,97 @@
+{
+  "schema_version": 2,
+  "kind": "model",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "synthetic-tiny-fp16",
+    "family": {
+      "publisher": "vonk-forge",
+      "slug": "synthetic",
+      "title": "Synthetic"
+    },
+    "model": {
+      "publisher": "vonk-forge",
+      "slug": "synthetic-tiny",
+      "title": "Synthetic Tiny",
+      "architecture": "synthetic-transformer"
+    },
+    "version": "1.0.0",
+    "variant": "fp16"
+  },
+  "metadata": {
+    "description": "A small model used only for contract examples.",
+    "tags": [
+      "synthetic",
+      "text"
+    ]
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "source": {
+    "repository": "https://example.com/models/synthetic-tiny",
+    "revision": "0123456789abcdef0123456789abcdef01234567"
+  },
+  "format": {
+    "container": "safetensors",
+    "precision": "fp16",
+    "quantization": "none"
+  },
+  "parameters": {
+    "total": 1024,
+    "active": 1024
+  },
+  "limits": {
+    "context_tokens": 1024
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0",
+    "attribution": [
+      "Vonk Forge"
+    ],
+    "operator_acceptance_required": false
+  },
+  "files": [
+    {
+      "id": "weights",
+      "path": "model.safetensors",
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "size_bytes": 1024,
+      "roles": [
+        "weights"
+      ]
+    }
+  ],
+  "capabilities": {
+    "schema_version": 2,
+    "facts": [
+      {
+        "capability": "image-generation",
+        "support": "supported",
+        "evidence_status": "declared",
+        "evidence_digest": null
+      },
+      {
+        "capability": "text-generation",
+        "support": "supported",
+        "evidence_status": "declared",
+        "evidence_digest": null
+      }
+    ],
+    "provenance": {
+      "source_url": "https://example.com/evidence/synthetic-tiny",
+      "source_revision": "fedcba9876543210fedcba9876543210fedcba98",
+      "evidence_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    }
+  },
+  "provenance": {
+    "source_url": "https://example.com/models/synthetic-tiny",
+    "source_revision": "0123456789abcdef0123456789abcdef01234567",
+    "evidence_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "attribution": [
+      "Vonk Forge"
+    ]
+  }
+}
