@@ -8,8 +8,6 @@ from __future__ import annotations
 from datetime import date
 from typing import Annotated, Literal
 
-from .model import ModelReference
-
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -17,9 +15,11 @@ from pydantic import (
     StrictBool,
     StrictInt,
     StrictStr,
-    model_validator,
     field_validator,
+    model_validator,
 )
+
+from .model import ModelReference
 
 
 class _RecipeContract(BaseModel):

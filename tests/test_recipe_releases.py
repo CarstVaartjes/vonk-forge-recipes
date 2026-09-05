@@ -13,8 +13,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import RecipeDefinition  # noqa: E402
-from vonk_forge_contracts.recipe import RecipeRelease  # noqa: E402
+from vonk_forge_contracts import RecipeDefinition
+from vonk_forge_contracts.recipe import RecipeRelease
+
 SCRIPT = ROOT / "tools/build-catalog-index"
 LOADER = importlib.machinery.SourceFileLoader("build_catalog_index", str(SCRIPT))
 SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)
