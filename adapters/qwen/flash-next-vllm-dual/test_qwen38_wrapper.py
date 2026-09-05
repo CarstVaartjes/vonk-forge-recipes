@@ -5,6 +5,7 @@ import json
 import stat
 from pathlib import Path
 
+
 def _wrapper():
     path = Path(__file__).with_name("qwen38-vllm-wrapper.py")
     spec = importlib.util.spec_from_file_location("qwen38_vllm_wrapper", path)
