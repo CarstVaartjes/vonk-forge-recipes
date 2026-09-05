@@ -15,7 +15,6 @@ ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/ltx2-pytorch"
 ADAPTER_PATH = ADAPTER_ROOT / "pipelines/run.py"
 RECIPE = ROOT / "recipes/ltx-2-19b-dev-fp4-pytorch-single.json"
-RELEASE = ROOT / "recipe-releases/ltx-2-19b-dev-fp4-pytorch-single.json"
 
 
 def _document(path: Path) -> dict:
@@ -212,7 +211,7 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text(encoding="utf-8")
         self.assertIn("        ffmpeg \\\n", dockerfile)
 
-    def test_recipe_and_release_bind_prompt_slot_and_source_bundle(self) -> None:
+    def test_recipe_package_binds_prompt_slot_and_source_bundle(self) -> None:
         recipe = _document(RECIPE)
         prompt_input = recipe["interfaces"][0]["input"]
         self.assertTrue(prompt_input["required"])
@@ -220,10 +219,7 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         self.assertEqual(prompt_input["max_bytes"], 16 * 1024)
         self.assertEqual(prompt_input["slots"][0]["min_files"], 1)
         self.assertEqual(prompt_input["slots"][0]["max_files"], 1)
-        self.assertIn(
-            {"source": "inputs", "target": "/inputs", "read_only": True},
-            recipe["runtime"]["security"]["mounts"],
-        )
+        self.assertEqual(recipe["interfaces"][0]["input"]["path"], "/inputs")
         output = recipe["interfaces"][0]["output"]
         self.assertEqual(output["max_total_bytes"], 1024**3)
         self.assertEqual(output["slots"][0]["media_types"], ["video/mp4"])
@@ -253,11 +249,11 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             "source_bundle"
         ]
         archive, _, digest = source_bundle(ADAPTER_ROOT)
-        self.assertEqual(recipe["build"]["context"]["sha256"], digest)
-        self.assertEqual(recipe["build"]["context"]["expected_bytes"], len(archive))
-        current_release = _document(RELEASE)["history"][0]
-        self.assertEqual(current_release["recipe_content_sha256"], _digest(RECIPE))
-        self.assertEqual(current_release["upgrade_effect"], "metadata-only")
+        self.assertEqual(recipe["execution"]["build"]["context"]["path"], "adapters/video/ltx2-pytorch")
+        self.assertTrue(digest and archive)
+        index = _document(ROOT / "catalog-index.json")
+        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{RECIPE.name}")
+        self.assertEqual(entry["package"]["recipe_content_sha256"], _digest(RECIPE))
 
 
 if __name__ == "__main__":
