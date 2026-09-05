@@ -1,85 +1,97 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "muse-glimmer-30b-bf16-vllm-single"
-  },
-  "version": "1.0.4",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.0.4",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "b8e68275dcf1c77c15b4cfab3497b6d955b486a47a2345bc278383bb816a32a9",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "b7259e7b35b32c41068479adc8626f2e74c1917c42ffa2b77c41647cadf5a8ca",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.5"
     },
     {
-      "version": "1.0.3",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "b3115e5c654a93152731a6ac536aa64de8c642a694c2534b2068a9fb649e758e",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "b8e68275dcf1c77c15b4cfab3497b6d955b486a47a2345bc278383bb816a32a9",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.4"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
+      ],
+      "recipe_content_sha256": "b3115e5c654a93152731a6ac536aa64de8c642a694c2534b2068a9fb649e758e",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.3"
     },
     {
-      "version": "1.0.2",
-      "released_at": "2026-08-30",
-      "recipe_content_sha256": "03d702f37d99dd8338b615ca8bb73a346128d785695842e763630eb00c65c97a",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
-          "kind": "metadata",
-          "summary": "Corrected stale release wording and documented the pinned vLLM structured-output limitation.",
           "details": "The image digest, source commit, launch arguments, and Candidate qualification are unchanged. The runtime is now described as an exact development image for the released model, and reasoning combined with JSON-schema structured output is explicitly unsupported.",
+          "kind": "metadata",
           "references": [
             "https://huggingface.co/meta-models/Muse-Glimmer-30B",
             "https://github.com/vllm-project/vllm/issues/52594"
-          ]
+          ],
+          "summary": "Corrected stale release wording and documented the pinned vLLM structured-output limitation."
         }
-      ]
-    },
-    {
-      "version": "1.0.1",
-      "released_at": "2026-08-26",
-      "recipe_content_sha256": "f97a2a00e1f4fedb6d9eb8ed74480eeace7ebfa3af1ccdfc9d600b71b2e6c660",
+      ],
+      "recipe_content_sha256": "03d702f37d99dd8338b615ca8bb73a346128d785695842e763630eb00c65c97a",
+      "released_at": "2026-08-30",
       "upgrade_effect": "metadata-only",
-      "changes": [
-        {
-          "kind": "metadata",
-          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
-          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
-        }
-      ]
+      "version": "1.0.2"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-24",
-      "recipe_content_sha256": "130842467b27bb99b62b0fec74a31f75417c7a1b348dca4fe66372c0531f4299",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
-          "kind": "initial",
-          "summary": "Initial executable Pending single-Spark release for Muse Glimmer 30B BF16 text-and-image serving.",
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+          "kind": "metadata",
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+        }
+      ],
+      "recipe_content_sha256": "f97a2a00e1f4fedb6d9eb8ed74480eeace7ebfa3af1ccdfc9d600b71b2e6c660",
+      "released_at": "2026-08-26",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.1"
+    },
+    {
+      "changes": [
+        {
           "details": "Binds Meta's exact public checkpoint to the official Muse-specific vLLM CUDA 13 ARM64 image, dedicated reasoning and tool parsers, offline local model hydration, and a read-only local image-input contract. The 32K context and one-sequence limit preserve unified-memory headroom until a physical GB10 multimodal canary supports raising them.",
+          "kind": "initial",
           "references": [
             "https://huggingface.co/meta-models/Muse-Glimmer-30B/tree/a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
             "https://recipes.vllm.ai/meta-models/Muse-Glimmer-30B",
             "https://github.com/meta-models/meta-oss-cookbook/blob/499ad7422c2175cf47dbad5df37c4c8f6c11f924/inference-server/vllm.md",
             "https://github.com/vllm-project/vllm/commit/99a10304dce8945119bd0b1a072297803c52a749"
-          ]
+          ],
+          "summary": "Initial executable Pending single-Spark release for Muse Glimmer 30B BF16 text-and-image serving."
         }
-      ]
+      ],
+      "recipe_content_sha256": "130842467b27bb99b62b0fec74a31f75417c7a1b348dca4fe66372c0531f4299",
+      "released_at": "2026-08-24",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "muse-glimmer-30b-bf16-vllm-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "1.0.5"
 }

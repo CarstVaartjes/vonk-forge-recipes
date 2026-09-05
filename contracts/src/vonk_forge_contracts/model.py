@@ -6,6 +6,7 @@ document is self describing when it is copied into a recipe package.
 """
 from __future__ import annotations
 
+import hashlib
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
@@ -96,7 +97,7 @@ class ModelFile(_ModelContract):
     id: StrictStr = Field(min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]{0,63}$")
     path: StrictStr = Field(min_length=1, max_length=512)
     sha256: Sha256
-    size_bytes: StrictInt = Field(ge=1)
+    size_bytes: StrictInt = Field(ge=0)
     roles: list[Annotated[StrictStr, Field(pattern=_TOKEN)]] = Field(min_length=1, max_length=16)
 
     @field_validator("path")
@@ -115,6 +116,12 @@ class ModelFile(_ModelContract):
         if len(value) != len(set(value)):
             raise ValueError("file roles must be unique")
         return value
+
+    @model_validator(mode="after")
+    def empty_file_has_empty_digest(self) -> ModelFile:
+        if self.size_bytes == 0 and self.sha256 != hashlib.sha256(b"").hexdigest():
+            raise ValueError("zero-byte files must use the empty-content SHA-256")
+        return self
 
 
 class ModelFormat(_ModelContract):
@@ -135,11 +142,60 @@ class ModelLimits(_ModelContract):
     sample_rate_hz: StrictInt | None = Field(default=None, ge=1)
 
 
+class ModelAccess(_ModelContract):
+    visibility: Literal["public", "restricted"]
+    gated: StrictBool
+    authentication: Literal["none", "token"]
+
+    @model_validator(mode="after")
+    def consistent_access(self) -> ModelAccess:
+        expected_gated = self.visibility == "restricted"
+        expected_authentication = "token" if expected_gated else "none"
+        if self.gated != expected_gated or self.authentication != expected_authentication:
+            raise ValueError("model access visibility, gated, and authentication must agree")
+        return self
+
+
+class ModelReference(_ModelContract):
+    kind: Literal["model"] = "model"
+    publisher: StrictStr = Field(min_length=1, max_length=128)
+    slug: Slug
+    content_sha256: Sha256
+
+
+class ModelLineageSource(_ModelContract):
+    kind: Literal["model"] = "model"
+    publisher: StrictStr = Field(min_length=1, max_length=128)
+    slug: Slug
+
+
+class ModelLineage(_ModelContract):
+    publisher: StrictStr = Field(min_length=1, max_length=128)
+    relation: Literal["official", "derived", "quantized"]
+    source_model: ModelLineageSource
+    derivation: StrictStr = Field(min_length=1, max_length=2000)
+
+
+class ModelTerritorialRestrictions(_ModelContract):
+    denied_jurisdictions: list[Annotated[StrictStr, Field(pattern=r"^[A-Z]{2,3}$")]] = Field(
+        min_length=1, max_length=64
+    )
+    notice: StrictStr = Field(min_length=1, max_length=1024)
+
+    @field_validator("denied_jurisdictions")
+    @classmethod
+    def unique_jurisdictions(cls, value: list[str]) -> list[str]:
+        if len(value) != len(set(value)):
+            raise ValueError("territorial restrictions must list unique jurisdictions")
+        return value
+
+
 class ModelLicense(_ModelContract):
     spdx: StrictStr = Field(min_length=1, max_length=128)
     url: StrictStr = Field(min_length=1, max_length=512)
     attribution: list[StrictStr] = Field(max_length=32)
     operator_acceptance_required: StrictBool
+    territorial_restrictions: ModelTerritorialRestrictions | None = None
 
     @field_validator("url")
     @classmethod
@@ -221,6 +277,10 @@ class ModelDefinition(_ModelContract):
     kind: Literal["model"] = "model"
     identity: ModelIdentity
     metadata: ModelMetadata
+    access: ModelAccess
+    lineage: ModelLineage
+    dependencies: list[ModelReference] = Field(max_length=32)
+    supersedes: ModelReference | None = None
     modalities: list[Literal["text", "image", "audio", "video", "3d", "embeddings"]] = Field(min_length=1, max_length=6)
     source: ModelSource
     format: ModelFormat
@@ -241,6 +301,11 @@ class ModelDefinition(_ModelContract):
             raise ValueError("file paths must be unique")
         if len(self.modalities) != len(set(self.modalities)):
             raise ValueError("modalities must be unique")
+        dependency_keys = [(item.publisher, item.slug) for item in self.dependencies]
+        if len(dependency_keys) != len(set(dependency_keys)):
+            raise ValueError("model dependencies must be unique")
+        if self.supersedes is not None and (self.supersedes.publisher, self.supersedes.slug) == (self.identity.publisher, self.identity.slug):
+            raise ValueError("model cannot supersede itself")
         self.modalities = sorted(self.modalities)
         sizes: dict[str, int] = {}
         for item in self.files:

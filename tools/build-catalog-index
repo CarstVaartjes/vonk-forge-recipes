@@ -6,16 +6,22 @@ from __future__ import annotations
 import argparse
 import base64
 import datetime as dt
+import gzip
 import hashlib
 import io
 import json
 import re
+import sys
+import subprocess
+import tempfile
 import tarfile
 from pathlib import Path
+from pathlib import PurePosixPath
 from urllib.parse import urlsplit
 
 REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
 OUTPUT = ROOT / "catalog-index.json"
 QUALIFICATION_ROOT = ROOT / "qualification"
 QUALIFICATION_DEFINITIONS = QUALIFICATION_ROOT / "definitions.json"
@@ -46,12 +52,11 @@ RELEASE_CHANGE_KINDS = {
 }
 UPGRADE_EFFECTS = {"metadata-only", "restart", "reinstall", "rebuild"}
 ENTITY_DIRECTORIES = {
-    "model-groups": "model-group",
     "models": "model",
-    "model-versions": "model-version",
-    "runtime-distributions": "runtime-distribution",
-    "patch-bundles": "patch-bundle",
 }
+PACKAGE_SCHEMA_VERSION = 2
+PACKAGE_MEDIA_TYPE = "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
+FROM_LINE = re.compile(r"^FROM(?:\s+--platform=(\S+))?\s+(\S+)(?:\s+AS\s+(\S+))?\s*$", re.IGNORECASE)
 
 
 def canonical(document: object) -> bytes:
@@ -610,6 +615,366 @@ def rendered(document: dict[str, object]) -> str:
     )
 
 
+def _git_revision(cwd: Path) -> str:
+    try:
+        value = subprocess.run(["git", "rev-parse", "HEAD"], cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError) as error:
+        raise SystemExit("unable to determine the immutable recipe source commit") from error
+    if not re.fullmatch(r"[0-9a-f]{40}", value):
+        raise SystemExit("source commit must be a full SHA-1")
+    return value
+
+
+def _recorded_source_commit() -> str:
+    try:
+        value = json.loads(OUTPUT.read_text(encoding="utf-8")).get("source_commit")
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        value = None
+    if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{40}", value):
+        raise SystemExit("catalog-index.json does not record a full source commit")
+    try:
+        result = subprocess.run(["git", "merge-base", "--is-ancestor", value, "HEAD"], cwd=ROOT)
+    except (OSError, subprocess.CalledProcessError) as error:
+        raise SystemExit("catalog source commit is not an ancestor of the current checkout") from error
+    if result.returncode != 0:
+        raise SystemExit("catalog source commit is not an ancestor of the current checkout")
+    return value
+
+
+# v2 package producer.  This deliberately replaces the historical six-entity
+# producer above; it remains in the file only so old release validation helpers
+# can be reused while branches transition.
+def _catalog_entity_documents() -> dict[str, dict[str, object]]:
+    result: dict[str, dict[str, object]] = {}
+    from vonk_forge_contracts import ModelDefinition
+    for path in sorted((ROOT / "models").glob("*.json")):
+        document = ModelDefinition.model_validate(json.loads(path.read_text(encoding="utf-8"))).model_dump(mode="json", exclude_unset=False, exclude_none=False)
+        identity = document.get("identity", {})
+        if document.get("kind") != "model":
+            raise SystemExit(f"model document is not kind=model: {path.relative_to(ROOT)}")
+        key = f"{identity.get('publisher')}/{identity.get('slug')}"
+        result[key] = document
+    return result
+
+
+def _platform_harness_documents(_platform_root: Path) -> dict[str, dict[str, object]]:
+    # Runtime distributions and harness documents are platform-owned.  They
+    # are intentionally resolved into recipe execution fields and never copied
+    # into an author package.
+    return {}
+
+
+def _safe_file(path: Path) -> bool:
+    return path.is_file() and not path.is_symlink() and "__pycache__" not in path.parts and path.suffix != ".pyc"
+
+
+def _recipe_closure(recipe: dict[str, object], recipe_path: Path, entities: dict[str, dict[str, object]]) -> list[tuple[str, bytes]]:
+    files: dict[str, bytes] = {"recipe.json": canonical(recipe)}
+    pending = [selection["model"] for selection in recipe["models"]]  # type: ignore[index]
+    seen_models: set[str] = set()
+    while pending:
+        reference = pending.pop(0)
+        key = f"{reference['publisher']}/{reference['slug']}"
+        if key in seen_models:
+            continue
+        model = entities.get(key)
+        if model is None:
+            raise SystemExit(f"package model snapshot is missing: {key}")
+        seen_models.add(key)
+        files[f"models/{reference['slug']}.json"] = canonical(model)
+        pending.extend(model.get("dependencies", []))
+        if model.get("supersedes") is not None:
+            pending.append(model["supersedes"])
+    execution = recipe["execution"]  # type: ignore[index]
+    if execution["mode"] == "build":  # type: ignore[index]
+        build = execution["build"]  # type: ignore[index]
+        context = ROOT / build["context"]["path"]  # type: ignore[index]
+        if not context.is_dir():
+            raise SystemExit(f"package source context is missing: {context.relative_to(ROOT)}")
+        for path in sorted(context.rglob("*"), key=lambda item: item.relative_to(ROOT).as_posix()):
+            if _safe_file(path):
+                files[path.relative_to(ROOT).as_posix()] = path.read_bytes()
+        for name in (build["dockerfile"], *(patch["path"] for patch in build["patches"])):  # type: ignore[index]
+            source = ROOT / name
+            if not _safe_file(source):
+                raise SystemExit(f"package source file is missing: {name}")
+            files[name] = source.read_bytes()
+    for check in recipe["validation"]["serving"]["checks"]:  # type: ignore[index]
+        request = check["request"]  # type: ignore[index]
+        if request.get("transport") != "job":
+            continue
+        required = [request["fixture"], *request.get("input_slots", {}).values()]
+        for name in required:
+            source = ROOT / name
+            if not _safe_file(source):
+                raise SystemExit(f"package serving fixture is missing: {name}")
+            files[name] = source.read_bytes()
+    return sorted(files.items())
+
+
+def _archive(files: list[tuple[str, bytes]]) -> bytes:
+    stream = io.BytesIO()
+    with gzip.GzipFile(fileobj=stream, mode="wb", mtime=0) as compressed:
+        with tarfile.open(fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT) as archive:
+            for name, payload in files:
+                member = tarfile.TarInfo(name)
+                member.size = len(payload)
+                member.mode = 0o644
+                member.uid = member.gid = 0
+                member.uname = member.gname = ""
+                member.mtime = 0
+                archive.addfile(member, io.BytesIO(payload))
+    return stream.getvalue()
+
+
+def _dockerfile_build_inputs(content: bytes, *, label: str) -> list[dict[str, str]]:
+    try:
+        text = content.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise SystemExit(f"Dockerfile is not UTF-8: {label}") from error
+    inputs: list[dict[str, str]] = []
+    aliases: set[str] = set()
+    seen: set[tuple[str, str]] = set()
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if not line.upper().startswith("FROM"):
+            continue
+        match = FROM_LINE.fullmatch(line)
+        if match is None:
+            raise SystemExit(f"Dockerfile FROM syntax is invalid: {label}: {line}")
+        platform, reference, alias = match.groups()
+        platform = platform or "linux/arm64"
+        if platform not in {"linux/arm64", "linux/arm64/v8"}:
+            raise SystemExit(f"Dockerfile FROM platform is not ARM64: {label}: {platform}")
+        if reference.lower() in {item.lower() for item in aliases}:
+            if alias:
+                aliases.add(alias)
+            continue
+        if reference.startswith("$") or "@sha256:" not in reference:
+            raise SystemExit(f"Dockerfile FROM image is not digest pinned: {label}: {reference}")
+        repository, digest = reference.rsplit("@sha256:", 1)
+        if not repository or not SHA256.fullmatch(digest):
+            raise SystemExit(f"Dockerfile FROM image digest is invalid: {label}: {reference}")
+        key = (reference, platform)
+        if key not in seen:
+            inputs.append({"kind": "oci-image", "reference": reference, "platform": platform})
+            seen.add(key)
+        if alias:
+            aliases.add(alias)
+    if not inputs:
+        raise SystemExit(f"Dockerfile has no FROM image: {label}")
+    return inputs
+
+
+def validate_recipe_archive(payload: bytes, recipe: dict[str, object], entities: dict[str, dict[str, object]] | None = None) -> None:
+    """Validate the physical immutable archive closure, including entrypoints."""
+    entities = entities or _catalog_entity_documents()
+    from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256
+    from vonk_forge_contracts.resolver import validate_model_references
+    expected_recipe = RecipeDefinition.model_validate(recipe)
+    validate_model_references([ModelDefinition.model_validate(document) for document in entities.values()])
+    expected_recipe_document = expected_recipe.model_dump(mode="json", exclude_unset=False, exclude_none=False)
+    with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
+        members = archive.getmembers()
+        names = [member.name for member in members]
+        if len(names) != len(set(names)):
+            raise SystemExit("recipe package contains duplicate paths")
+        if any(not member.isreg() for member in members):
+            raise SystemExit("recipe package contains a non-regular archive member")
+        for name in names:
+            path = PurePosixPath(name)
+            if path.is_absolute() or any(part in {"", ".", ".."} for part in path.parts):
+                raise SystemExit(f"recipe package contains unsafe path: {name}")
+            if name.startswith(("image/", "oci/", "weights/", "runtime-distributions/", "patch-bundles/", "execution-harnesses/")) or name.endswith((".safetensors", ".bin", ".pt", ".pth", ".ckpt", ".onnx")):
+                raise SystemExit(f"recipe package contains model or OCI payload: {name}")
+        recipe_entries = [name for name in names if PurePosixPath(name).name == "recipe.json"]
+        if recipe_entries != ["recipe.json"]:
+            raise SystemExit("recipe package must contain exactly one recipe.json entrypoint")
+        try:
+            manifest_member = archive.extractfile("manifest.json")
+        except KeyError:
+            manifest_member = None
+        if manifest_member is None:
+            raise SystemExit("recipe package manifest is missing")
+        manifest = json.load(manifest_member)
+        if manifest.get("kind") != "recipe-package" or manifest.get("package_type") != "recipe":
+            raise SystemExit("recipe package manifest kind is invalid")
+        manifest_entries = manifest.get("files")
+        if not isinstance(manifest_entries, list):
+            raise SystemExit("recipe package manifest files are invalid")
+        declared: dict[str, dict[str, object]] = {}
+        for entry in manifest_entries:
+            if not isinstance(entry, dict) or not isinstance(entry.get("path"), str) or entry["path"] in declared:
+                raise SystemExit("recipe package manifest contains duplicate or invalid paths")
+            if not isinstance(entry.get("size"), int) or isinstance(entry["size"], bool) or entry["size"] < 0:
+                raise SystemExit("recipe package manifest file size is invalid")
+            if not isinstance(entry.get("sha256"), str) or SHA256.fullmatch(entry["sha256"]) is None:
+                raise SystemExit("recipe package manifest file digest is invalid")
+            declared[entry["path"]] = entry
+        actual_payload_names = set(names) - {"manifest.json"}
+        if set(declared) != actual_payload_names:
+            raise SystemExit("recipe package manifest does not exactly describe archive payloads")
+        for name, entry in declared.items():
+            member = archive.extractfile(name)
+            content = member.read() if member is not None else None
+            if content is None or len(content) != entry["size"] or hashlib.sha256(content).hexdigest() != entry["sha256"]:
+                raise SystemExit(f"recipe package manifest digest is stale: {name}")
+        recipe_member = archive.extractfile("recipe.json")
+        if recipe_member is None:
+            raise SystemExit("recipe package recipe entrypoint is missing")
+        try:
+            actual_recipe = RecipeDefinition.model_validate(json.load(recipe_member))
+        except Exception as error:
+            raise SystemExit(f"recipe package recipe.json is invalid: {error}") from error
+        recipe_digest = content_sha256(actual_recipe)
+        if actual_recipe.model_dump(mode="json", exclude_unset=False, exclude_none=False) != expected_recipe_document:
+            raise SystemExit("recipe package recipe does not match the requested Recipe")
+        if manifest.get("recipe_content_sha256") != recipe_digest:
+            raise SystemExit("recipe package recipe digest is stale")
+        pending_models = [selection.model for selection in expected_recipe.models]
+        seen_model_keys: set[tuple[str, str]] = set()
+        while pending_models:
+            reference = pending_models.pop(0)
+            model_key = (reference.publisher, reference.slug)
+            if model_key in seen_model_keys:
+                continue
+            seen_model_keys.add(model_key)
+            model_path = f"models/{reference.slug}.json"
+            if model_path not in names:
+                raise SystemExit(f"recipe package exact Model snapshot is missing: {model_path}")
+            model_member = archive.extractfile(model_path)
+            try:
+                model = ModelDefinition.model_validate(json.load(model_member)) if model_member else None
+            except Exception as error:
+                raise SystemExit(f"recipe package Model snapshot is invalid: {model_path}") from error
+            if model is None or content_sha256(model) != reference.content_sha256:
+                raise SystemExit(f"recipe package Model snapshot digest is stale: {model_path}")
+            pending_models.extend(model.dependencies)
+            if model.supersedes is not None:
+                pending_models.append(model.supersedes)
+        paths = set(names)
+        execution = expected_recipe_document["execution"]
+        if execution["mode"] == "build":  # type: ignore[index]
+            build = execution["build"]  # type: ignore[index]
+            context = build["context"]["path"]  # type: ignore[index]
+            if not any(name.startswith(context + "/") for name in paths):
+                raise SystemExit(f"recipe package build context is missing: {context}")
+            required = [build["dockerfile"], *(patch["path"] for patch in build["patches"])]  # type: ignore[index]
+            missing = sorted(name for name in required if name not in paths)
+            if missing:
+                raise SystemExit(f"recipe package source closure is missing: {', '.join(missing)}")
+            dockerfile_member = archive.extractfile(build["dockerfile"])  # type: ignore[index]
+            if dockerfile_member is None:
+                raise SystemExit("recipe package Dockerfile is missing")
+            inputs = _dockerfile_build_inputs(dockerfile_member.read(), label=build["dockerfile"])  # type: ignore[index]
+            manifest_inputs = manifest.get("build_inputs")
+            if manifest_inputs != inputs:
+                raise SystemExit("recipe package build inputs are stale")
+            base = build["base_image"]  # type: ignore[index]
+            base_digest = base["digest"]  # type: ignore[index]
+            base_repository = base["repository"]  # type: ignore[index]
+            base_platform = base["platform"]  # type: ignore[index]
+            def matches_base(item: dict[str, str]) -> bool:
+                repository, digest = item["reference"].rsplit("@sha256:", 1)
+                parent, leaf = repository.rsplit("/", 1) if "/" in repository else ("", repository)
+                base_parent, base_leaf = base_repository.rsplit("/", 1) if "/" in base_repository else ("", base_repository)
+                repository = f"{parent}/{leaf.split(':', 1)[0]}" if parent else leaf.split(":", 1)[0]
+                expected_repository = f"{base_parent}/{base_leaf.split(':', 1)[0]}" if base_parent else base_leaf.split(":", 1)[0]
+                return repository == expected_repository and digest == base_digest and item["platform"] == base_platform
+            if not any(matches_base(item) for item in inputs):
+                raise SystemExit("recipe package base image is absent from Dockerfile build inputs")
+        for check in expected_recipe_document["validation"]["serving"]["checks"]:  # type: ignore[index]
+            request = check["request"]  # type: ignore[index]
+            if request.get("transport") == "job":
+                required = [request["fixture"], *request.get("input_slots", {}).values()]
+                missing = sorted(name for name in required if name not in paths)
+                if missing:
+                    raise SystemExit(f"recipe package serving closure is missing: {', '.join(missing)}")
+
+
+def recipe_package(document: dict[str, object], release: dict[str, object] | None = None, *, recipe_path: Path | None = None, entity_documents: dict[str, dict[str, object]] | None = None, qualification_definitions: dict[str, object] | None = None) -> tuple[bytes, dict[str, object]]:
+    del release, qualification_definitions
+    from vonk_forge_contracts import RecipeDefinition, content_sha256
+    validated = RecipeDefinition.model_validate(document)
+    document = validated.model_dump(mode="json", exclude_unset=False, exclude_none=False)
+    recipe_digest = content_sha256(validated)
+    recipe_path = recipe_path or ROOT / "recipes" / f"{document['identity']['slug']}.json"  # type: ignore[index]
+    entities = entity_documents or _catalog_entity_documents()
+    files = _recipe_closure(document, recipe_path, entities)
+    manifest_files = [{"path": name, "size": len(payload), "sha256": hashlib.sha256(payload).hexdigest()} for name, payload in files]
+    manifest = {"schema_version": PACKAGE_SCHEMA_VERSION, "kind": "recipe-package", "package_type": "recipe", "recipe_content_sha256": recipe_digest, "files": manifest_files}
+    execution = document["execution"]
+    if execution["mode"] == "build":  # type: ignore[index]
+        dockerfile_path = execution["build"]["dockerfile"]  # type: ignore[index]
+        dockerfile_payload = dict(files)[dockerfile_path]
+        manifest["build_inputs"] = _dockerfile_build_inputs(dockerfile_payload, label=dockerfile_path)
+    archive_files = [("manifest.json", canonical(manifest)), *files]
+    payload = _archive(archive_files)
+    validate_recipe_archive(payload, document, entities)
+    metadata = {"media_type": PACKAGE_MEDIA_TYPE, "sha256": hashlib.sha256(payload).hexdigest(), "expected_bytes": len(payload), "path": f"packages/{document['identity']['slug']}.tar.gz", "recipe_content_sha256": recipe_digest, "minimum_consumer_schema": 2}  # type: ignore[index]
+    return payload, metadata
+
+
+def build(*, package_dir: Path | None = None, platform_root: Path | None = None, source_commit: str | None = None) -> dict[str, object]:
+    package_dir = package_dir or ROOT / "packages"
+    package_dir.mkdir(parents=True, exist_ok=True)
+    entities = _catalog_entity_documents()
+    recipes: list[dict[str, object]] = []
+    for path in sorted((ROOT / "recipes").glob("*.json")):
+        document = json.loads(path.read_text(encoding="utf-8"))
+        from vonk_forge_contracts import RecipeDefinition, content_sha256
+        try:
+            validated = RecipeDefinition.model_validate(document)
+        except Exception as error:
+            raise SystemExit(f"recipe contract validation failed ({path.relative_to(ROOT)}): {error}") from error
+        document = validated.model_dump(mode="json", exclude_unset=False, exclude_none=False)
+        payload, metadata = recipe_package(document, recipe_path=path, entity_documents=entities)
+        filename = Path(str(metadata["path"])).name
+        (package_dir / filename).write_bytes(payload)
+        release_path = ROOT / "recipe-releases" / f"{document['identity']['slug']}.json"
+        recipe_digest = content_sha256(validated)
+        if not release_path.is_file():
+            raise SystemExit(f"recipe release is missing: {release_path.relative_to(ROOT)}")
+        release = recipe_release(release_path, publisher=document["identity"]["publisher"], slug=document["identity"]["slug"], recipe_digest=recipe_digest)
+        recipes.append({"source_path": path.relative_to(ROOT).as_posix(), "content_sha256": recipe_digest, "document": document, "package": metadata, "release": release})
+    from vonk_forge_contracts import ModelDefinition, content_sha256
+    catalog_entities = []
+    for document in sorted(entities.values(), key=lambda item: str(item["identity"]["slug"])):
+        model = ModelDefinition.model_validate(document)
+        catalog_entities.append({"source_path": f"models/{document['identity']['slug']}.json", "content_sha256": content_sha256(model), "document": model.model_dump(mode="json", exclude_unset=False, exclude_none=False)})
+    expected_names = {Path(str(row["package"]["path"])).name for row in recipes}
+    if package_dir.resolve() == (ROOT / "packages").resolve():
+        for stale in package_dir.glob("*.tar.gz"):
+            if stale.name not in expected_names:
+                stale.unlink()
+    platform_commit = ""
+    if platform_root is not None:
+        platform_commit = _git_revision(Path(platform_root))
+    source_value = source_commit or _git_revision(ROOT)
+    if not re.fullmatch(r"[0-9a-f]{40}", source_value):
+        raise SystemExit("source commit must be a full SHA-1")
+    return {"schema_version": 2, "kind": "recipe-library-index", "repository": REPOSITORY, "source_commit": source_value, "platform_commit": platform_commit, "package_contract": {"schema_version": PACKAGE_SCHEMA_VERSION, "media_type": PACKAGE_MEDIA_TYPE, "path_prefix": "packages/", "metadata_fields": ["path", "media_type", "sha256", "expected_bytes", "recipe_content_sha256", "minimum_consumer_schema"]}, "catalog_entities": catalog_entities, "recipes": recipes}
+
+
+def qualification_index(catalog: dict[str, object]) -> dict[str, object]:
+    """Bind only structurally converted recipes into qualification transport data."""
+    definitions = json.loads(QUALIFICATION_DEFINITIONS.read_text(encoding="utf-8"))
+    available = {
+        f"{entry['document']['identity']['publisher']}/{entry['document']['identity']['slug']}": entry["content_sha256"]
+        for entry in catalog.get("recipes", [])
+    }
+    generated = json.loads(json.dumps(definitions))
+    for field in ("recipes", "service_recipes", "special_fixtures"):
+        generated[field] = {
+            key: {**value, "content_sha256": available[key]}
+            for key, value in definitions.get(field, {}).items()
+            if key in available
+        }
+    return generated
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -617,8 +982,25 @@ def main() -> int:
         action="store_true",
         help="fail when catalog-index.json is missing or stale",
     )
+    parser.add_argument("--source-commit", help="immutable recipe source commit recorded in the generated index")
     arguments = parser.parse_args()
-    document = build()
+    if arguments.check:
+        with tempfile.TemporaryDirectory(prefix="vonk-forge-catalog-check-") as directory:
+            package_dir = Path(directory)
+            document = build(package_dir=package_dir, source_commit=_recorded_source_commit())
+            expected_names = {Path(str(row["package"]["path"])).name for row in document["recipes"]}
+            actual_dir = ROOT / "packages"
+            actual_names = {path.name for path in actual_dir.glob("*.tar.gz")} if actual_dir.is_dir() else set()
+            if actual_names != expected_names:
+                print("recipe package set is stale; run tools/build-catalog-index")
+                return 1
+            for row in document["recipes"]:
+                name = Path(str(row["package"]["path"])).name
+                if (actual_dir / name).read_bytes() != (package_dir / name).read_bytes():
+                    print(f"recipe package is stale: packages/{name}")
+                    return 1
+    else:
+        document = build(source_commit=arguments.source_commit or _git_revision(ROOT))
     qualification = qualification_index(document)
     expected = rendered(document)
     expected_qualification = rendered(qualification)

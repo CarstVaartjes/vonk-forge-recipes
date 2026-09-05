@@ -1,66 +1,71 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "qwen3-5-9b-vllm-single"
-  },
-  "version": "1.1.3",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.1.3",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "18db26e95b18ec77e9361c38e6024c2c2482791a9da2bd947b93b765fe79ded3",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "197c1165760780eb4b22623bf815ed3b03a78a5f51239781ce11c7c0ff814696",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "1.1.4"
     },
     {
-      "version": "1.1.2",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "e6b19742296ff86fc779d1ac0432e5c52f0df9b9ba5fb1e071b8bf6d9881e4b4",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "18db26e95b18ec77e9361c38e6024c2c2482791a9da2bd947b93b765fe79ded3",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.1.3"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
-    },
-    {
-      "version": "1.1.1",
-      "released_at": "2026-08-30",
-      "recipe_content_sha256": "5db19392ad2dd5e4931f1c19e8bbbcc4c37e0ca9b22d00ca5f2ea6d028a51955",
+      ],
+      "recipe_content_sha256": "e6b19742296ff86fc779d1ac0432e5c52f0df9b9ba5fb1e071b8bf6d9881e4b4",
+      "released_at": "2026-09-01",
       "upgrade_effect": "metadata-only",
-      "changes": [{
-        "kind": "metadata",
-        "summary": "Separated native multimodal capability from the recipe's currently text-only qualification evidence.",
-        "details": "The checkpoint remains multimodal-capable, while the catalog now states that bounded text chat is qualified and Spark vision serving is still unproven.",
-        "references": ["https://huggingface.co/Qwen/Qwen3.5-9B/tree/c202236235762e1c871ad0ccb60c8ee5ba337b9a"]
-      }]
+      "version": "1.1.2"
     },
     {
-      "version": "1.1.0",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "09209aaec7d077883ad175715b32b89237e3d004760d7d693ff7b2aeea5ca788",
-      "upgrade_effect": "reinstall",
+      "changes": [
+        {
+          "details": "The checkpoint remains multimodal-capable, while the catalog now states that bounded text chat is qualified and Spark vision serving is still unproven.",
+          "kind": "metadata",
+          "references": [
+            "https://huggingface.co/Qwen/Qwen3.5-9B/tree/c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+          ],
+          "summary": "Separated native multimodal capability from the recipe's currently text-only qualification evidence."
+        }
+      ],
+      "recipe_content_sha256": "5db19392ad2dd5e4931f1c19e8bbbcc4c37e0ca9b22d00ca5f2ea6d028a51955",
+      "released_at": "2026-08-30",
+      "upgrade_effect": "metadata-only",
+      "version": "1.1.1"
+    },
+    {
       "changes": [
         {
           "kind": "runtime",
           "summary": "Migrated to the official vLLM 0.28.0 ARM64 release image and pinned the changed batch and CUDA-graph defaults."
         }
-      ]
+      ],
+      "recipe_content_sha256": "09209aaec7d077883ad175715b32b89237e3d004760d7d693ff7b2aeea5ca788",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "reinstall",
+      "version": "1.1.0"
     },
     {
-      "version": "1.0.2",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "a00fd718ca80d10ee242ca8c45b9cf19594f33b951223e27ae25f60b94d93d8c",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "compatibility",
@@ -70,47 +75,58 @@
           "kind": "metadata",
           "summary": "Corrected the dense architecture and multimodal discovery metadata."
         }
-      ]
+      ],
+      "recipe_content_sha256": "a00fd718ca80d10ee242ca8c45b9cf19594f33b951223e27ae25f60b94d93d8c",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.2"
     },
     {
-      "version": "1.0.1",
-      "released_at": "2026-08-26",
-      "recipe_content_sha256": "66e2969462dc4159c247b940834c5e8b1f19d613a24f845718c353a9b7a5ede5",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
           "kind": "metadata",
-          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
-          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
         }
-      ]
+      ],
+      "recipe_content_sha256": "66e2969462dc4159c247b940834c5e8b1f19d613a24f845718c353a9b7a5ede5",
+      "released_at": "2026-08-26",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.1"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "0103c36a89253bd56bde0a266d73c89a47d3c76807c35bd8f4bb59c505717daa",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
           "summary": "Initial reviewed catalog release of Qwen3.5 9B vLLM single Spark."
         }
-      ]
+      ],
+      "recipe_content_sha256": "0103c36a89253bd56bde0a266d73c89a47d3c76807c35bd8f4bb59c505717daa",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     },
     {
-      "version": "0.1.0",
-      "released_at": "2026-08-16",
-      "recipe_content_sha256": "bcded17a821eb36ddf4a7a2caaaac7314aefa720488ba97db8583b5296b180bc",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
-          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
           "references": [
             "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/e4d88c260a8b7a6c2ee621b5f32f2da94663f816"
-          ]
+          ],
+          "summary": "Recovered the first public legacy revision from before semantic release tracking."
         }
-      ]
+      ],
+      "recipe_content_sha256": "bcded17a821eb36ddf4a7a2caaaac7314aefa720488ba97db8583b5296b180bc",
+      "released_at": "2026-08-16",
+      "upgrade_effect": "reinstall",
+      "version": "0.1.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-5-9b-vllm-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "1.1.4"
 }

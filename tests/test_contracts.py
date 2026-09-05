@@ -23,6 +23,7 @@ from vonk_forge_contracts import (
 )
 from vonk_forge_contracts.recipe import RecipeJobServingRequest
 from vonk_forge_contracts.resolver import (
+    validate_model_references,
     validate_recipe_models,
     validate_recipe_package_paths,
 )
@@ -64,6 +65,27 @@ def test_model_manifest_deduplicates_download_projection_and_rejects_conflicting
     document["files"][1]["size_bytes"] = 2048
     with pytest.raises(ValidationError, match="same size"):
         ModelDefinition.model_validate(document)
+
+
+def test_zero_byte_model_file_requires_the_empty_content_digest() -> None:
+    document = load("model-definition.json")
+    document["files"] = [{**document["files"][0], "size_bytes": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}]
+    ModelDefinition.model_validate(document)
+    document["files"][0]["sha256"] = "0" * 64
+    with pytest.raises(ValidationError, match="zero-byte"):
+        ModelDefinition.model_validate(document)
+
+
+def test_model_selection_accepts_large_but_bounded_shard_manifests() -> None:
+    recipe = load("recipe-image.json")
+    recipe["models"][0]["files"] = [
+        {**recipe["models"][0]["files"][0], "id": f"file-{index}", "file_id": f"file-{index}"}
+        for index in range(4096)
+    ]
+    RecipeDefinition.model_validate(recipe)
+    recipe["models"][0]["files"].append({**recipe["models"][0]["files"][0], "id": "overflow", "file_id": "overflow"})
+    with pytest.raises(ValidationError, match="at most 4096"):
+        RecipeDefinition.model_validate(recipe)
 
 
 def test_capability_facts_are_set_semantics_and_normalized() -> None:
@@ -263,3 +285,75 @@ def test_checked_in_schemas_are_generated_from_the_same_models() -> None:
     assert json.loads((ROOT / "contracts/src/vonk_forge_contracts/schema/recipe-definition-v2.schema.json").read_text()) == recipe_json_schema()
     result = subprocess.run([sys.executable, "tools/generate-contract-schemas", "--check"], cwd=ROOT, capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr
+
+
+def test_model_access_requires_consistent_visibility_and_authentication() -> None:
+    document = load("model-definition.json")
+    document["access"] = {"visibility": "restricted", "gated": True, "authentication": "token"}
+    ModelDefinition.model_validate(document)
+    for access in (
+        {"visibility": "public", "gated": True, "authentication": "none"},
+        {"visibility": "restricted", "gated": False, "authentication": "token"},
+        {"visibility": "public", "gated": False, "authentication": "token"},
+    ):
+        document["access"] = access
+        with pytest.raises(ValidationError, match="must agree"):
+            ModelDefinition.model_validate(document)
+
+
+def test_model_references_resolve_and_reject_swapped_digest() -> None:
+    source = ModelDefinition.model_validate(load("model-definition.json"))
+    target_document = copy.deepcopy(source.model_dump(mode="json"))
+    target_document["identity"]["slug"] = "synthetic-target"
+    target_document["identity"]["model"]["slug"] = "synthetic-target"
+    target_document["lineage"]["source_model"]["slug"] = "synthetic-target"
+    target = ModelDefinition.model_validate(target_document)
+    source_document = source.model_dump(mode="json")
+    source_document["dependencies"] = [{
+        "kind": "model",
+        "publisher": target.identity.publisher,
+        "slug": target.identity.slug,
+        "content_sha256": content_sha256(target),
+    }]
+    source = ModelDefinition.model_validate(source_document)
+    validate_model_references([source, target])
+    source_document["dependencies"][0]["content_sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="digest does not match"):
+        validate_model_references([ModelDefinition.model_validate(source_document), target])
+
+
+def test_model_license_accepts_typed_territorial_restrictions() -> None:
+    document = load("model-definition.json")
+    document["license"]["territorial_restrictions"] = {
+        "denied_jurisdictions": ["EU", "GB", "KR"],
+        "notice": "This license does not apply in the listed jurisdictions.",
+    }
+    parsed = ModelDefinition.model_validate(document)
+    assert parsed.license.territorial_restrictions is not None
+    assert parsed.license.territorial_restrictions.denied_jurisdictions == ["EU", "GB", "KR"]
+
+
+def test_model_license_rejects_duplicate_territories() -> None:
+    document = load("model-definition.json")
+    document["license"]["territorial_restrictions"] = {
+        "denied_jurisdictions": ["EU", "EU"],
+        "notice": "Duplicate jurisdictions are invalid.",
+    }
+    with pytest.raises(ValidationError, match="unique jurisdictions"):
+        ModelDefinition.model_validate(document)
+
+
+@pytest.mark.parametrize(
+    "restrictions, message",
+    [
+        ({"denied_jurisdictions": ["e1"], "notice": "Invalid code."}, "string_pattern_mismatch"),
+        ({"denied_jurisdictions": ["EU"], "notice": ""}, "String should have at least 1 character"),
+    ],
+)
+def test_model_license_rejects_invalid_territorial_restrictions(
+    restrictions: dict[str, object], message: str
+) -> None:
+    document = load("model-definition.json")
+    document["license"]["territorial_restrictions"] = restrictions
+    with pytest.raises(ValidationError, match=message):
+        ModelDefinition.model_validate(document)

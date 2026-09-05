@@ -1,0 +1,150 @@
+{
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "image-understanding",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "video-generation",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+      "source_url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "high-noise",
+      "path": "split_files/diffusion_models/wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "6122e79d55e0f235698d11d657f3b196c5273c830da00b2b013c5a048d5e6a42",
+      "size_bytes": 14294742832
+    },
+    {
+      "id": "low-noise",
+      "path": "split_files/diffusion_models/wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5471a457b6ac404202a5fbe6c11595a3d5641fc766b00f38763f72303fffc21e",
+      "size_bytes": 14294742832
+    },
+    {
+      "id": "text-encoder",
+      "path": "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "c3355d30191f1f066b26d93fba017ae9809dce6c627dda5f6a66eaa651204f68",
+      "size_bytes": 6735906897
+    },
+    {
+      "id": "vae",
+      "path": "split_files/vae/wan_2.1_vae.safetensors",
+      "roles": [
+        "vae"
+      ],
+      "sha256": "2fc39d31359a4b0a64f55876d8ff7fa8d780956ae2cb13463b0223e15148976b",
+      "size_bytes": 253815318
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "fp8",
+    "quantization": "fp8"
+  },
+  "identity": {
+    "family": {
+      "publisher": "wan-ai",
+      "slug": "wan-2-2",
+      "title": "Wan 2.2"
+    },
+    "model": {
+      "architecture": "14B high- and low-noise expert image-conditioned video diffusion transformer",
+      "publisher": "wan-ai",
+      "slug": "wan-2-2-i2v-14b",
+      "title": "Wan 2.2 I2V 14B"
+    },
+    "publisher": "wan-ai",
+    "slug": "wan-2-2-i2v-14b-comfyui-c4f60d30",
+    "variant": "Wan 2.2 I2V 14B ComfyUI revision c4f60d30",
+    "version": "comfyui-c4f60d30"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Wan-AI",
+      "Comfy-Org"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B/blob/206a9ee1b7bfaaf8f7e4d81335650533490646a3/LICENSE.txt"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Comfy-Org scaled-FP8 conversion of the official Wan 2.2 I2V A14B experts and required companions.",
+    "publisher": "Comfy-Org",
+    "relation": "derived",
+    "source_model": {
+      "kind": "model",
+      "publisher": "wan-ai",
+      "slug": "wan-2-2-i2v-14b"
+    }
+  },
+  "metadata": {
+    "description": "Exact Comfy-Org scaled-FP8 high/low-noise I2V experts, encoder, and Wan VAE.",
+    "tags": [
+      "wan",
+      "video",
+      "image-to-video",
+      "comfyui",
+      "fp8",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image",
+    "video"
+  ],
+  "parameters": {
+    "active": 14000000000,
+    "total": 14000000000
+  },
+  "provenance": {
+    "attribution": [
+      "Wan-AI",
+      "Comfy-Org"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+    "source_url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged",
+    "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77"
+  },
+  "supersedes": null
+}

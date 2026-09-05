@@ -1,57 +1,69 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "wan-dancer-14b-disk-offload-pytorch-single"
-  },
-  "version": "1.0.2",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.0.2",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "a24242f145fa0734ddd2d3b4b06111d3d678be45a5fcddaf3f9a9f60eae0f1e6",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "44984cd19a5a57150c828c6861976512a0e2f666ae760f6da958a044dfa23ad2",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.3"
     },
     {
-      "version": "1.0.1",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "37b53a96bf2c61c5994903368989d65b47d67850589cad319cfed5cd6eb291a2",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "a24242f145fa0734ddd2d3b4b06111d3d678be45a5fcddaf3f9a9f60eae0f1e6",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.2"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
+      ],
+      "recipe_content_sha256": "37b53a96bf2c61c5994903368989d65b47d67850589cad319cfed5cd6eb291a2",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.1"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-31",
-      "recipe_content_sha256": "84dc412a64fc5d9011ffde30a034077c203da273428fa9fb16ef27421b4c0c5a",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "initial",
-          "summary": "Added a distinct Wan-Dancer single-Spark disk-offload canary without changing the original recipe.",
           "details": "Pinned DiffSynth-Studio 2.1.5 at commit 84f93fc4, disk-mapped each safetensors expert with a 64 GiB device-residency threshold, isolated global and local stages in separate processes, and retained the 921,600-pixel generation bound. The 126 GB declared envelope passes Controller capacity admission but remains explicitly physical-OOM-gated.",
+          "kind": "initial",
           "references": [
             "https://github.com/modelscope/DiffSynth-Studio/tree/84f93fc4907b6c193be5501bab0b5c37f383033c/examples/wanvideo/model_inference_low_vram",
             "https://huggingface.co/Wan-AI/Wan-Dancer-14B/tree/85ce88dd8d025459dcf0fe93982d6da8b9002957"
-          ]
+          ],
+          "summary": "Added a distinct Wan-Dancer single-Spark disk-offload canary without changing the original recipe."
         },
         {
           "kind": "security",
           "summary": "Vendored and digest-pinned the runtime source, disabled runtime downloads, and retained bounded signed inputs plus fail-closed MP4 verification."
         }
-      ]
+      ],
+      "recipe_content_sha256": "84dc412a64fc5d9011ffde30a034077c203da273428fa9fb16ef27421b4c0c5a",
+      "released_at": "2026-08-31",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "wan-dancer-14b-disk-offload-pytorch-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "1.0.3"
 }

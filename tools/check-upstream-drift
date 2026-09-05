@@ -23,9 +23,7 @@ DEFAULT_MANIFEST = ROOT / "upstream-watch.json"
 SHA = re.compile(r"^[0-9a-f]{40}$")
 REPOSITORY_PART = re.compile(r"^[A-Za-z0-9_.-]+$")
 ENTITY_DIRECTORIES = {
-    "model-versions": "model-version",
-    "runtime-distributions": "runtime-distribution",
-    "patch-bundles": "patch-bundle",
+    "models": "model",
 }
 POLICIES = {"default-branch", "latest-release", "manual"}
 MAX_RESPONSE_BYTES = 4 * 1024 * 1024

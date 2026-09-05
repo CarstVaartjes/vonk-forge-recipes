@@ -1,14 +1,112 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+        "platform": "linux/arm64",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/ocr/hunyuanocr-1-5-vllm-dflash"
+      },
+      "dockerfile": "adapters/ocr/hunyuanocr-1-5-vllm-dflash/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "hunyuanocr-1-5-vllm-dflash-single"
   },
+  "interfaces": [
+    {
+      "adapter": "artifact-job",
+      "input": {
+        "max_bytes": 1040252928,
+        "media_types": [
+          "application/json",
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "path": "/inputs",
+        "required": true,
+        "slots": [
+          {
+            "description": "One to 31 document images to recognize.",
+            "extensions": [
+              ".jpeg",
+              ".jpg",
+              ".png",
+              ".webp"
+            ],
+            "id": "document",
+            "label": "Document images",
+            "max_file_bytes": 33554432,
+            "max_files": 31,
+            "max_total_bytes": 1040187392,
+            "media_types": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "min_files": 1
+          },
+          {
+            "description": "Optional UTF-8 JSON selecting document filenames, task type, and max tokens.",
+            "extensions": [
+              ".json"
+            ],
+            "id": "config",
+            "label": "OCR config",
+            "max_file_bytes": 65536,
+            "max_files": 1,
+            "max_total_bytes": 65536,
+            "media_types": [
+              "application/json"
+            ],
+            "min_files": 0
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 536870912,
+        "path": "/outputs",
+        "slots": [
+          {
+            "description": "ZIP bundle containing recognized documents and an evidence manifest.",
+            "extensions": [
+              ".zip"
+            ],
+            "id": "bundle",
+            "label": "OCR bundle",
+            "max_file_bytes": 536870912,
+            "max_files": 1,
+            "max_total_bytes": 536870912,
+            "media_types": [
+              "application/zip"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "path": "/outputs"
+    }
+  ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "title": "HunyuanOCR 1.5 vLLM DFlash single Spark",
     "description": "Executable Pending single-DGX-Spark document-image OCR job using Tencent's exact HunyuanOCR 1.5 target and DFlash draft, all 12 official tasks, fixed sampling, repetition cleanup, and document Markdown normalization.",
-    "tags": ["executable",
+    "tags": [
+      "executable",
       "candidate",
       "pending",
       "tencent",
@@ -26,226 +124,526 @@
       "dflash",
       "single",
       "spark"
-    ]
+    ],
+    "title": "HunyuanOCR 1.5 vLLM DFlash single Spark"
   },
-  "model": {
-    "kind": "model-version",
-    "publisher": "tencent",
-    "slug": "hunyuanocr-1-5-47644ecc",
-    "content_sha256": "1267577f5e6ee6c1ba970d9dcaf04a08b86d521280d7377e807d00f667f7f464"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "pytorch-pipeline",
-      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c"
-    },
-    "patch_bundle": null
-  },
-  "build": {
-    "context": {
-      "path": "adapters/ocr/hunyuanocr-1-5-vllm-dflash",
-      "sha256": "1233e60176f1382abf72678fc0d7091dd435479673c6c65842ec5037ded06fc7",
-      "expected_bytes": 20480,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {
-      "mode": "public",
-      "hosts": [
-        "github.com"
-      ]
-    },
-    "resources": {
-      "download_bytes": 10550300000,
-      "temporary_bytes": 18000000000,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 7200
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+  "models": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "tencent/HunyuanOCR",
-      "revision": "47644ecc4fc854efa4f505155158831f36773ee4",
-      "include_paths": [
-        ".gitattributes",
-        "LICENSE",
-        "README.md",
-        "assets/",
-        "chat_template.jinja",
-        "config.json",
-        "dflash/",
-        "generation_config.json",
-        "model.safetensors",
-        "preprocessor_config.json",
-        "special_tokens_map.json",
-        "tokenizer.json",
-        "tokenizer_config.json",
-        "video_preprocessor_config.json"
+      "files": [
+        {
+          "file_id": "metadata-gitattributes",
+          "id": "primary-metadata-gitattributes",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license",
+          "id": "primary-license",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-readme",
+          "id": "primary-metadata-readme",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-teaser",
+          "id": "primary-metadata-teaser",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template",
+          "id": "primary-chat-template",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-config",
+          "id": "primary-model-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "draft-gitattributes",
+          "id": "primary-draft-gitattributes",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "draft-readme",
+          "id": "primary-draft-readme",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "draft-chat-template",
+          "id": "primary-draft-chat-template",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "draft-config",
+          "id": "primary-draft-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "draft-code",
+          "id": "primary-draft-code",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "draft-weights",
+          "id": "primary-draft-weights",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "draft-processor",
+          "id": "primary-draft-processor",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "draft-tokenizer",
+          "id": "primary-draft-tokenizer",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "draft-tokenizer-config",
+          "id": "primary-draft-tokenizer-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config",
+          "id": "primary-generation-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-weights",
+          "id": "primary-model-weights",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config",
+          "id": "primary-preprocessor-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens",
+          "id": "primary-special-tokens",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer",
+          "id": "primary-tokenizer",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config",
+          "id": "primary-tokenizer-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "legacy-gitattributes",
+          "id": "primary-legacy-gitattributes",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "legacy-gitignore",
+          "id": "primary-legacy-gitignore",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "legacy-license",
+          "id": "primary-legacy-license",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "legacy-readme",
+          "id": "primary-legacy-readme",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "legacy-config",
+          "id": "primary-legacy-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "legacy-generation-config",
+          "id": "primary-legacy-generation-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "legacy-weights-01",
+          "id": "primary-legacy-weights-01",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "legacy-weights-02",
+          "id": "primary-legacy-weights-02",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "legacy-weights-03",
+          "id": "primary-legacy-weights-03",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "legacy-weights-04",
+          "id": "primary-legacy-weights-04",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "legacy-weights-index",
+          "id": "primary-legacy-weights-index",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "legacy-preprocessor",
+          "id": "primary-legacy-preprocessor",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "legacy-special-tokens",
+          "id": "primary-legacy-special-tokens",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "legacy-tokenizer",
+          "id": "primary-legacy-tokenizer",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "legacy-tokenizer-config",
+          "id": "primary-legacy-tokenizer-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config",
+          "id": "primary-video-preprocessor-config",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
       ],
-      "download_bytes": 2623793897,
-      "installed_bytes": 2623793897,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+      "id": "primary",
+      "model": {
+        "content_sha256": "cc853ace4c674727c45663ae409c0d885a6f2da1712a69a34288ccb6b8cd3015",
+        "kind": "model",
+        "publisher": "tencent",
+        "slug": "hunyuanocr-1-5-47644ecc"
+      }
     }
   ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "tencent",
-      "slug": "hunyuanocr-1-5-vllm-dflash-arm64",
-      "content_sha256": "4af889261d842310034701d3351024a2762c3fc6b436522a11f50b1b979ac80e"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/pytorch-pipeline"
+  "provenance": {
+    "attribution": [
+      "Tencent Hunyuan",
+      "vLLM"
     ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/tencent/HunyuanOCR/tree/47644ecc4fc854efa4f505155158831f36773ee4"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "entrypoint",
+        "setting": null,
         "value": "/opt/vonk/source/run.py"
       },
       {
         "name": "output-mime",
+        "setting": null,
         "value": "application/zip"
       },
       {
         "name": "timeout-seconds",
+        "setting": null,
         "value": 3600
       },
       {
         "name": "seed",
+        "setting": null,
         "value": 0
       }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
     ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/outputs",
-        "timeout_seconds": 3600
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "stop_timeout_seconds": 120
     }
   },
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": [
-          "weights"
-        ],
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 12000000000,
             "artifact_bytes": 2623793897,
-            "staging_bytes": 6000000000,
             "cache_bytes": 4000000000,
+            "image_bytes": 12000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 6000000000
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 16000000000,
             "startup_peak_bytes": 40000000000,
             "steady_state_bytes": 28000000000,
-            "runtime_growth_bytes": 16000000000,
             "system_reserve_bytes": 12000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -253,60 +651,41 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "artifact-job",
-      "path": "/outputs",
-      "input": {
-        "path": "/inputs",
-        "required": true,
-        "media_types": [
-          "application/json",
-          "image/jpeg",
-          "image/png",
-          "image/webp"
-        ],
-        "max_bytes": 1040252928,
-        "slots": [
-          {"id": "document", "label": "Document images", "description": "One to 31 document images to recognize.", "media_types": ["image/jpeg", "image/png", "image/webp"], "extensions": [".jpeg", ".jpg", ".png", ".webp"], "min_files": 1, "max_files": 31, "max_file_bytes": 33554432, "max_total_bytes": 1040187392},
-          {"id": "config", "label": "OCR config", "description": "Optional UTF-8 JSON selecting document filenames, task type, and max tokens.", "media_types": ["application/json"], "extensions": [".json"], "min_files": 0, "max_files": 1, "max_file_bytes": 65536, "max_total_bytes": 65536}
-        ]
-      },
-      "output": {
-        "path": "/outputs",
-        "max_total_bytes": 536870912,
-        "slots": [{"id": "bundle", "label": "OCR bundle", "description": "ZIP bundle containing recognized documents and an evidence manifest.", "media_types": ["application/zip"], "extensions": [".zip"], "min_files": 1, "max_files": 1, "max_file_bytes": 536870912, "max_total_bytes": 536870912}]
-      }
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "artifact-job",
-        "checks": [
-          "artifact.mime.application-zip"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bounded-document-ocr",
-        "framework": "pytorch-pipeline",
         "configuration": {
-          "task_type": "doc_parse",
-          "max_tokens": 4096,
           "images": 1,
+          "max_tokens": 4096,
+          "task_type": "doc_parse",
           "timeout_seconds": 3600
-        }
+        },
+        "framework": "pytorch-pipeline",
+        "name": "bounded-document-ocr"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/tencent/HunyuanOCR/tree/47644ecc4fc854efa4f505155158831f36773ee4",
-    "attribution": [
-      "Tencent Hunyuan",
-      "vLLM"
-    ]
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "artifact-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.png",
+            "input_path": "/inputs",
+            "input_slots": {
+              "document": "qualification/fixtures/tiny.png"
+            },
+            "output_path": "/outputs",
+            "output_slot": "bundle",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "artifact-job"
+    }
   }
 }

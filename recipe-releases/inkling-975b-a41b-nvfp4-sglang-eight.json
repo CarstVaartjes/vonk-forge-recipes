@@ -1,113 +1,125 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "inkling-975b-a41b-nvfp4-sglang-eight"
-  },
-  "version": "1.0.6",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.0.6",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "14ebf23f2807eb098e1dfca75a904fb3f787577c6117aeb460b7f0cf07453067",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "afcb66d4c0c0e696d0009bbc2f2ca678dcd97697eef1013ddd8ef2cd35fca8c2",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.7"
     },
     {
-      "version": "1.0.5",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "acacd18ff6b4cd87a620e508d7fa81b975e1654b764ee46a7f5bcca6c332d7ca",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "14ebf23f2807eb098e1dfca75a904fb3f787577c6117aeb460b7f0cf07453067",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.6"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
+      ],
+      "recipe_content_sha256": "acacd18ff6b4cd87a620e508d7fa81b975e1654b764ee46a7f5bcca6c332d7ca",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.5"
     },
     {
-      "version": "1.0.4",
-      "released_at": "2026-08-30",
-      "recipe_content_sha256": "6407a0382f89762e27c282f11826de632496ceffd9f17b54a414047fb295c0be",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Recorded the exact TP2 checkpoint lower bound and the smaller-model admission gate.",
           "details": "The exact TP8 contract is unsupported on the current one- or two-Spark configuration. Half of the immutable 592,037,337,118-byte Inkling snapshot is already 296.0 GB per rank before KV cache and runtime memory, so no safe TP2 variant can fit. Inkling Small TP2 is physically verified upstream but its current Vonk envelope is 128 GB per node, 1.1 GB above the roughly 126.9 GB inventory; the TP8 contract remains installable for future hardware.",
+          "kind": "compatibility",
           "references": [
             "https://github.com/sgl-project/sglang/issues/31359",
             "https://github.com/sgl-project/sglang/blob/a74222ef6e690f851e2e4ff1c0be7dc1357be313/docs_new/src/snippets/configs/thinkingmachines/inkling-small.jsx"
-          ]
+          ],
+          "summary": "Recorded the exact TP2 checkpoint lower bound and the smaller-model admission gate."
         }
-      ]
+      ],
+      "recipe_content_sha256": "6407a0382f89762e27c282f11826de632496ceffd9f17b54a414047fb295c0be",
+      "released_at": "2026-08-30",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.4"
     },
     {
-      "version": "1.0.3",
-      "released_at": "2026-08-28",
+      "changes": [
+        {
+          "details": "The eight-rank contract remains an executable Candidate for future hardware, without claiming physical DGX Spark evidence. Inkling Small NVFP4 dual is the deployable fleet alternative.",
+          "kind": "metadata",
+          "summary": "Marked TP8 unavailable on the current two-Spark fleet and named the dual alternative."
+        }
+      ],
       "recipe_content_sha256": "aa7c429e59a296a10bb2a77f1aec2cbf5b34fea6e7b95c5e2df3406b14fd829c",
+      "released_at": "2026-08-28",
       "upgrade_effect": "metadata-only",
-      "changes": [
-        {
-          "kind": "metadata",
-          "summary": "Marked TP8 unavailable on the current two-Spark fleet and named the dual alternative.",
-          "details": "The eight-rank contract remains an executable Candidate for future hardware, without claiming physical DGX Spark evidence. Inkling Small NVFP4 dual is the deployable fleet alternative."
-        }
-      ]
+      "version": "1.0.3"
     },
     {
-      "version": "1.0.2",
-      "released_at": "2026-08-26",
-      "recipe_content_sha256": "73afa8c54f780338d2549118c475967bf14abc26568f36accee091b918a7c962",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
-          "kind": "metadata",
-          "summary": "Replaced mutable issue provenance with the immutable SGLang revision used by the runtime.",
           "details": "The prior issue URL prevented the upstream drift audit from checking any catalog sources. Runtime behavior and Candidate qualification are unchanged.",
+          "kind": "metadata",
           "references": [
             "https://github.com/sgl-project/sglang/tree/b7252cc6b0c78b25ecea7ee5efa91a6ae37d0f19"
-          ]
+          ],
+          "summary": "Replaced mutable issue provenance with the immutable SGLang revision used by the runtime."
         }
-      ]
-    },
-    {
-      "version": "1.0.1",
+      ],
+      "recipe_content_sha256": "73afa8c54f780338d2549118c475967bf14abc26568f36accee091b918a7c962",
       "released_at": "2026-08-26",
-      "recipe_content_sha256": "ea09415ec5391f9ea7398f5523f0ae720a14da1767c36310f236d8cc68f1f020",
       "upgrade_effect": "metadata-only",
-      "changes": [
-        {
-          "kind": "metadata",
-          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
-          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
-        }
-      ]
+      "version": "1.0.2"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-24",
-      "recipe_content_sha256": "3e5f8d1e8c3bcc55827d3338e81ff3daf9166ff6af4c93d9ced666a74b7c8366",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
-          "kind": "initial",
-          "summary": "Added the source-complete flagship Inkling NVFP4 SGLang recipe for eight DGX Sparks.",
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+          "kind": "metadata",
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+        }
+      ],
+      "recipe_content_sha256": "ea09415ec5391f9ea7398f5523f0ae720a14da1767c36310f236d8cc68f1f020",
+      "released_at": "2026-08-26",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.1"
+    },
+    {
+      "changes": [
+        {
           "details": "The Pending recipe combines SGLang's official flagship TP8 multimodal contract with conservative GB10 Triton/Marlin execution choices adapted from SGLang's verified Inkling-Small Spark profile. It is not Accepted until an eight-Spark canary passes.",
+          "kind": "initial",
           "references": [
             "https://huggingface.co/thinkingmachines/Inkling-NVFP4/tree/42a75a99a40eb2ba1e0717db6357a0bf15205044",
             "https://github.com/sgl-project/sglang/issues/31359",
             "https://github.com/sgl-project/sglang/blob/a74222ef6e690f851e2e4ff1c0be7dc1357be313/docs_new/docs/cookbook/autoregressive/ThinkingMachines/Inkling-Small.mdx"
-          ]
+          ],
+          "summary": "Added the source-complete flagship Inkling NVFP4 SGLang recipe for eight DGX Sparks."
         }
-      ]
+      ],
+      "recipe_content_sha256": "3e5f8d1e8c3bcc55827d3338e81ff3daf9166ff6af4c93d9ced666a74b7c8366",
+      "released_at": "2026-08-24",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-975b-a41b-nvfp4-sglang-eight"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "1.0.7"
 }

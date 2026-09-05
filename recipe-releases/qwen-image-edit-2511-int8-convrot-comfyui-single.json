@@ -1,84 +1,96 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "qwen-image-edit-2511-int8-convrot-comfyui-single"
-  },
-  "version": "1.0.4",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.0.4",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "27d286858112d352f55114e829ddf5d7fac4fe8942a0557129d15907134aba39",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "39e8528d76f3059963eace595c140b44660f5d69faba8326e61f49d89b0f831d",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.5"
     },
     {
-      "version": "1.0.3",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "cf1c9983c9419b2b31a296ebebe013ee0eddd36c8e649d47739ba3e6f59fda62",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "27d286858112d352f55114e829ddf5d7fac4fe8942a0557129d15907134aba39",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.4"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
-    },
-    {
-      "version": "1.0.2",
+      ],
+      "recipe_content_sha256": "cf1c9983c9419b2b31a296ebebe013ee0eddd36c8e649d47739ba3e6f59fda62",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "61fda0a7c2ad58e699f5e1bff52dc592f53d518b2cdeea6c74be801e79b30e97",
-      "upgrade_effect": "rebuild",
-      "changes": [
-        {
-          "kind": "security",
-          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
-          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
-        }
-      ]
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.3"
     },
     {
-      "version": "1.0.1",
-      "released_at": "2026-08-31",
-      "recipe_content_sha256": "fee0c2880a89bf639e8e6d6b257825a07cd52e972dfb9809e1f920fd53c02627",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "runtime",
-          "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+        }
+      ],
+      "recipe_content_sha256": "61fda0a7c2ad58e699f5e1bff52dc592f53d518b2cdeea6c74be801e79b30e97",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.2"
+    },
+    {
+      "changes": [
+        {
           "details": "The source bundle now hash-locks stable tag v0.34.0 at exact commit 12d52794 and its verified source archive. Model artifacts, core-node workflow parameters, admission envelopes, and Candidate qualification are unchanged.",
+          "kind": "runtime",
           "references": [
             "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.34.0",
             "https://github.com/Comfy-Org/ComfyUI/commit/12d5279438bfefc058a269eae805ceab6047777f"
-          ]
+          ],
+          "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0."
         }
-      ]
+      ],
+      "recipe_content_sha256": "fee0c2880a89bf639e8e6d6b257825a07cd52e972dfb9809e1f920fd53c02627",
+      "released_at": "2026-08-31",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.1"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-30",
-      "recipe_content_sha256": "2d3bbe3b5d52de3d889ca0abd692ed874c109e4dbf9ea3d4c86770e3b41a8e77",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
-          "kind": "initial",
-          "summary": "Added the official INT8 tensorwise ConvRot Qwen Image Edit 2511 Candidate for one Spark.",
           "details": "The isolated stock-ComfyUI source bundle installs the exact 20.50 GB INT8 ConvRot transformer plus immutable scaled-FP8 encoder and VAE, pins the official non-turbo shift-3.1 40-step Euler/simple workflow, accepts one or two signed reference images and a bounded prompt, and publishes exactly one PNG. Its 108.00 GB unified-memory and 95.14 GB peak installation-disk envelopes fit one 128 GB Spark, while physical quality, latency, and peak-memory acceptance remain pending.",
+          "kind": "initial",
           "references": [
             "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/commit/e9e85de74a8f48c1e3e2656617626348675a2f21",
             "https://github.com/Comfy-Org/workflow_templates/blob/d3b4a9e89573162b005961865164c18c8ae2206b/templates/image_qwen_image_edit_2511_int8.json",
             "https://github.com/Comfy-Org/comfy-quants/blob/main/docs/quantization/int8_tensorwise.md"
-          ]
+          ],
+          "summary": "Added the official INT8 tensorwise ConvRot Qwen Image Edit 2511 Candidate for one Spark."
         }
-      ]
+      ],
+      "recipe_content_sha256": "2d3bbe3b5d52de3d889ca0abd692ed874c109e4dbf9ea3d4c86770e3b41a8e77",
+      "released_at": "2026-08-30",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-edit-2511-int8-convrot-comfyui-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "1.0.5"
 }

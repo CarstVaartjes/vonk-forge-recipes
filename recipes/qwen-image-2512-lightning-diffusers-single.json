@@ -1,203 +1,634 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "platform": "linux/arm64",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/image/qwen-image-lightning-diffusers"
+      },
+      "dockerfile": "adapters/image/qwen-image-lightning-diffusers/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "download.pytorch.org",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ],
+        "mode": "public"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "qwen-image-2512-lightning-diffusers-single"
   },
+  "interfaces": [
+    {
+      "adapter": "image-job",
+      "input": {
+        "max_bytes": 16384,
+        "media_types": [
+          "text/plain"
+        ],
+        "path": "/inputs",
+        "required": true,
+        "slots": [
+          {
+            "description": "UTF-8 text prompt for image generation.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "prompt",
+            "label": "Prompt",
+            "max_file_bytes": 16384,
+            "max_files": 1,
+            "max_total_bytes": 16384,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 16777216,
+        "path": "/outputs",
+        "slots": [
+          {
+            "description": "Single generated PNG image.",
+            "extensions": [
+              ".png"
+            ],
+            "id": "image",
+            "label": "Generated image",
+            "max_file_bytes": 16777216,
+            "max_files": 1,
+            "max_total_bytes": 16777216,
+            "media_types": [
+              "image/png"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "path": "/outputs"
+    }
+  ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "title": "Qwen Image 2512 Lightning diffusers single Spark",
     "description": "Installable Candidate pairing the exact Qwen Image 2512 base checkpoint with ModelTC/lightx2v's four-step BF16 Lightning LoRA and published shift-3 schedule; physical Spark acceptance remains pending.",
-    "tags": ["executable", "candidate", "qwen", "image", "generation", "text-to-image", "lightning", "lora", "diffusers", "bf16", "single", "spark"]
+    "tags": [
+      "executable",
+      "candidate",
+      "qwen",
+      "image",
+      "generation",
+      "text-to-image",
+      "lightning",
+      "lora",
+      "diffusers",
+      "bf16",
+      "single",
+      "spark"
+    ],
+    "title": "Qwen Image 2512 Lightning diffusers single Spark"
   },
-  "model": {
-    "kind": "model-version",
-    "publisher": "qwen",
-    "slug": "qwen-image-2512-lightning",
-    "content_sha256": "6ddf10e09d5e4b4f0d2b3dd881f8825e18b508d32e7765ed952dd6959923fe09"
-  },
-  "dependencies": [
+  "models": [
     {
-      "kind": "model-version",
-      "publisher": "qwen",
-      "slug": "qwen-image-2512-25468b98",
-      "content_sha256": "fa722eb4a4a54d21a341e18cd922bc8feb10f176af05d3c623bb855488182f26"
+      "files": [
+        {
+          "file_id": "qwen-image-2512-lightning-4steps-v1-0-bf16",
+          "id": "primary-qwen-image-2512-lightning-4steps-v1-0-bf16",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "87ab99c04b82bc06431e2e0f5c9d8c01af4c861f8351e8181cc8cd9ce59d7700",
+        "kind": "model",
+        "publisher": "qwen",
+        "slug": "qwen-image-2512-lightning"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "artifact-01",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-01",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-02",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-02",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-03",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-03",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-04",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-04",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-05",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-05",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-06",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-06",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-07",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-07",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-08",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-08",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-09",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-09",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-10",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-10",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-11",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-11",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-12",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-12",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-13",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-13",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-14",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-14",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-15",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-15",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-16",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-16",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-17",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-17",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-18",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-18",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-19",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-19",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-20",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-20",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-21",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-21",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-22",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-22",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-23",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-23",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-24",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-24",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-25",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-25",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-26",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-26",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-27",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-27",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-28",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-28",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-29",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-29",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "artifact-30",
+          "id": "dependency-qwen-image-2512-25468b98-artifact-30",
+          "mount": {
+            "read_only": true,
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "dependency-qwen-image-2512-25468b98",
+      "model": {
+        "content_sha256": "c0b41d0caf302d4f4319a9e2b543e2a8ad5ad48cf533379e576d69d24b4094a1",
+        "kind": "model",
+        "publisher": "qwen",
+        "slug": "qwen-image-2512-25468b98"
+      }
     }
   ],
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "diffusers",
-      "content_sha256": "9776b37f1bf4596bf4a0c75c3e9fd6da8b25050aa2cefded2ffd5e35baa583b2"
-    },
-    "patch_bundle": null
+  "provenance": {
+    "attribution": [
+      "ModelTC",
+      "lightx2v",
+      "Qwen"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52"
   },
-  "build": {
-    "context": {
-      "path": "adapters/image/qwen-image-lightning-diffusers",
-      "sha256": "7f83fbc800db09a653ee15bac1f931286f6baffc19fd197a6adaae756f49294d",
-      "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {
-      "mode": "public",
-      "hosts": ["github.com", "download.pytorch.org", "pypi.org", "files.pythonhosted.org", "archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"]
-    },
-    "resources": {
-      "download_bytes": 60554204031,
-      "temporary_bytes": 70000000000,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 14400
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
-    {
-      "id": "target",
-      "kind": "http.file",
-      "repository": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/resolve/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52/Qwen-Image-2512-Lightning-4steps-V1.0-bf16.safetensors",
-      "revision": "sha256:de0d236e54ecf2c43b32447d13478c6eae0d361b1fed48c69675b084fa240d87",
-      "download_bytes": 849608296,
-      "installed_bytes": 849608296,
-      "mount": {"target": "/models/target", "read_only": true},
-      "roles": ["entrypoint"]
-    },
-    {
-      "id": "base",
-      "kind": "huggingface.snapshot",
-      "repository": "Qwen/Qwen-Image-2512",
-      "revision": "25468b98e3276ca6700de15c6628e51b7de54a26",
-      "download_bytes": 57704595735,
-      "installed_bytes": 57704595735,
-      "mount": {"target": "/models/base", "read_only": true},
-      "roles": ["entrypoint"]
-    }
-  ],
   "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "huggingface",
-      "slug": "diffusers-0-40-0-cuda13-arm64",
-      "content_sha256": "fb786446dfca669e68d109f505ab4b14fb1f0a50b9a13507ce2bb6a6ddcb11b7"
-    },
-    "entrypoint": ["/opt/vonk/bin/diffusers-job"],
     "arguments": [
-      {"name": "pipeline", "value": "text-to-image"},
-      {"name": "output-mime", "value": "image/png"},
-      {"name": "num-inference-steps", "value": 4},
-      {"name": "true-cfg-scale", "value": "1"},
-      {"name": "width", "value": 1328},
-      {"name": "height", "value": 1328},
-      {"name": "seed", "value": 42}
+      {
+        "name": "pipeline",
+        "setting": null,
+        "value": "text-to-image"
+      },
+      {
+        "name": "output-mime",
+        "setting": null,
+        "value": "image/png"
+      },
+      {
+        "name": "num-inference-steps",
+        "setting": null,
+        "value": 4
+      },
+      {
+        "name": "true-cfg-scale",
+        "setting": null,
+        "value": "1"
+      },
+      {
+        "name": "width",
+        "setting": null,
+        "value": 1328
+      },
+      {
+        "name": "height",
+        "setting": null,
+        "value": 1328
+      },
+      {
+        "name": "seed",
+        "setting": null,
+        "value": 42
+      }
+    ],
+    "engine": "diffusers",
+    "entrypoint": [
+      "/opt/vonk/bin/diffusers-job"
     ],
     "environment": [
-      {"name": "HF_HUB_OFFLINE", "value": "1"},
-      {"name": "TRANSFORMERS_OFFLINE", "value": "1"}
+      {
+        "name": "HF_HUB_OFFLINE",
+        "secret": null,
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "secret": null,
+        "value": "1"
+      }
     ],
-    "security": {
-      "devices": ["nvidia.com/gpu=all"],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {"source": "model", "target": "/models", "read_only": true},
-        {"source": "inputs", "target": "/inputs", "read_only": true},
-        {"source": "outputs", "target": "/outputs", "read_only": false}
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
+      "failure": {
+        "rank_loss": "not-applicable",
+        "recovery": "restart-entrypoint"
+      },
       "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {"strategy": "endpoint-owner", "path": "/outputs", "timeout_seconds": 3600},
-      "failure": {"rank_loss": "not-applicable", "recovery": "restart-entrypoint"}
+      "pre_start": [],
+      "stop_timeout_seconds": 120
     }
   },
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": ["target", "base"],
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 2000000000,
             "artifact_bytes": 58554204031,
-            "staging_bytes": 70000000000,
             "cache_bytes": 8000000000,
+            "image_bytes": 2000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 70000000000
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
             "startup_peak_bytes": 118000000000,
             "steady_state_bytes": 98000000000,
-            "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {"world_size": 1, "tensor": 1, "pipeline": 1, "data": 1, "backend": "local"},
-    "fabric": {"connectivity": "none", "minimum_bandwidth_mbps": 0},
-    "start_order": ["entrypoint"],
-    "stop_order": ["entrypoint"]
-  },
-  "interfaces": [
-    {
-      "adapter": "image-job",
-      "path": "/outputs",
-      "input": {"path": "/inputs", "required": true, "media_types": ["text/plain"], "max_bytes": 16384, "slots": [{"id": "prompt", "label": "Prompt", "description": "UTF-8 text prompt for image generation.", "media_types": ["text/plain"], "extensions": [".txt"], "min_files": 1, "max_files": 1, "max_file_bytes": 16384, "max_total_bytes": 16384}]},
-      "output": {"path": "/outputs", "max_total_bytes": 16777216, "slots": [{"id": "image", "label": "Generated image", "description": "Single generated PNG image.", "media_types": ["image/png"], "extensions": [".png"], "min_files": 1, "max_files": 1, "max_file_bytes": 16777216, "max_total_bytes": 16777216}]}
-    }
-  ],
-  "validation": {
-    "validators": [{"interface": "image-job", "checks": ["artifact.mime.image-png"]}],
-    "benchmarks": [
-      {"name": "bounded-lightning-image", "framework": "diffusers", "configuration": {"width": 1328, "height": 1328, "num_inference_steps": 4, "timeout_seconds": 14400}}
+    "start_order": [
+      "entrypoint"
+    ],
+    "stop_order": [
+      "entrypoint"
     ]
   },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
-    "attribution": ["ModelTC", "lightx2v", "Qwen"]
+  "validation": {
+    "benchmarks": [
+      {
+        "configuration": {
+          "height": 1328,
+          "num_inference_steps": 4,
+          "timeout_seconds": 14400,
+          "width": 1328
+        },
+        "framework": "diffusers",
+        "name": "bounded-lightning-image"
+      }
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "image-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/prompt.txt",
+            "input_path": "/inputs",
+            "input_slots": {
+              "prompt": "qualification/fixtures/prompt.txt"
+            },
+            "output_path": "/outputs",
+            "output_slot": "image",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "image-job"
+    }
   }
 }

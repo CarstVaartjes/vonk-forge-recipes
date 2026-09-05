@@ -1,12 +1,42 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4",
+        "platform": "linux/arm64",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/liquidai/lfm25-vl-vllm-028"
+      },
+      "dockerfile": "adapters/liquidai/lfm25-vl-vllm-028/Dockerfile",
+      "network": {
+        "hosts": [],
+        "mode": "none"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "lfm2-5-vl-3b-vllm028-single"
   },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "lfm2-5-vl-3b-vllm028"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "title": "LFM2.5-VL-3B BF16 vLLM 0.28 single Spark",
     "description": "Executable one-Spark Candidate for the exact LFM2.5-VL-3B checkpoint on the pinned vLLM 0.28 ARM64 runtime, with bounded local multi-image chat, OCR/grounding, and parsed tool calls. The vLLM 0.27.1 recipe remains available as the fallback until physical Spark canary acceptance.",
     "tags": [
       "executable",
@@ -25,242 +55,274 @@
       "openai",
       "single",
       "spark"
-    ]
+    ],
+    "title": "LFM2.5-VL-3B BF16 vLLM 0.28 single Spark"
   },
-  "model": {
-    "kind": "model-version",
-    "publisher": "liquidai",
-    "slug": "lfm2-5-vl-3b-bf16-a3af5799",
-    "content_sha256": "7e3e867d87484a0d04ba983d087e01ee65aa87b19e48809538d2da0756918040"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "vllm",
-      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"
-    },
-    "patch_bundle": null
-  },
-  "build": {
-    "context": {
-      "path": "adapters/liquidai/lfm25-vl-vllm-028",
-      "sha256": "8a70ef3c06595c0b32331113df0a34982bbcf38151b00e94725012cf013b177a",
-      "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {
-      "mode": "none",
-      "hosts": []
-    },
-    "resources": {
-      "download_bytes": 15966509845,
-      "temporary_bytes": 32000000000,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 7200
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+  "models": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "LiquidAI/LFM2.5-VL-3B",
-      "revision": "a3af5799199acdd2a4f56ac4342816abb46c12a9",
-      "download_bytes": 6265014121,
-      "installed_bytes": 6265014121,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint"
-      ]
+      "files": [
+        {
+          "file_id": "metadata-31fcd4d7141f-618cd5b83d",
+          "id": "primary-metadata-31fcd4d7141f-618cd5b83d",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-30adf9d64781-c693279643",
+          "id": "primary-license-30adf9d64781-c693279643",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-2ad0e4f36a75-b335630551",
+          "id": "primary-readme-2ad0e4f36a75-b335630551",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-86f4770449a4-00824420d1",
+          "id": "primary-chat-template-86f4770449a4-00824420d1",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-68ed2ea181e1-587cb980af",
+          "id": "primary-config-68ed2ea181e1-587cb980af",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-5d182b864215-97dd3d578b",
+          "id": "primary-generation-config-5d182b864215-97dd3d578b",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-8413ba08bc74-9d75c1098f",
+          "id": "primary-model-8413ba08bc74-9d75c1098f",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-ad5ce6e2a0e1-27f0cb76af",
+          "id": "primary-processor-config-ad5ce6e2a0e1-27f0cb76af",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-8096ecb9f545-224931eb13",
+          "id": "primary-tokenizer-8096ecb9f545-224931eb13",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-ef6770d12dd9-94d5c6ba8f",
+          "id": "primary-tokenizer-config-ef6770d12dd9-94d5c6ba8f",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "4f79212c95556739f491ed99646496bd7a2d4c7e9c090082bb1780b9b82c2552",
+        "kind": "model",
+        "publisher": "liquidai",
+        "slug": "lfm2-5-vl-3b-bf16-a3af5799"
+      }
     }
   ],
+  "provenance": {
+    "attribution": [
+      "Liquid AI",
+      "vLLM contributors"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/tree/a3af5799199acdd2a4f56ac4342816abb46c12a9"
+  },
   "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "vllm",
-      "slug": "vllm-0-28-0-nvidia-arm64",
-      "content_sha256": "15c98035c9bbba7ec61d25acd93c3c34b0516754c299813e5f51344e858abd2d"
-    },
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "lfm2-5-vl-3b-vllm028"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 4096
+      },
+      {
+        "name": "max-cudagraph-capture-size",
+        "setting": null,
+        "value": 4
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.45"
+      },
+      {
+        "name": "limit-mm-per-prompt",
+        "setting": null,
+        "value": "{\"image\":4}"
+      },
+      {
+        "name": "allowed-local-media-path",
+        "setting": null,
+        "value": "/inputs"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "lfm2"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "vllm",
     "entrypoint": [
       "/opt/vonk/bin/vllm",
       "serve",
       "/models"
     ],
-    "arguments": [
-      {
-        "name": "served-model-name",
-        "value": "lfm2-5-vl-3b-vllm028"
-      },
-      {
-        "name": "max-model-len",
-        "value": 32768
-      },
-      {
-        "name": "max-num-seqs",
-        "value": 4
-      },
-      {
-        "name": "max-num-batched-tokens",
-        "value": 4096
-      },
-      {
-        "name": "max-cudagraph-capture-size",
-        "value": 4
-      },
-      {
-        "name": "gpu-memory-utilization",
-        "value": "0.45"
-      },
-      {
-        "name": "limit-mm-per-prompt",
-        "value": "{\"image\":4}"
-      },
-      {
-        "name": "allowed-local-media-path",
-        "value": "/inputs"
-      },
-      {
-        "name": "tool-call-parser",
-        "value": "lfm2"
-      },
-      {
-        "name": "enable-auto-tool-choice",
-        "value": true
-      }
-    ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
+        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "VLLM_NO_USAGE_STATS",
+        "secret": null,
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/v1/models",
-        "timeout_seconds": 1800
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "stop_timeout_seconds": 120
     }
   },
+  "schema_version": 2,
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 32768
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": [
-          "weights"
-        ],
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 12000000000,
             "artifact_bytes": 6265014121,
-            "staging_bytes": 32000000000,
             "cache_bytes": 4000000000,
+            "image_bytes": 12000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 32000000000
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 4000000000,
             "startup_peak_bytes": 70000000000,
             "steady_state_bytes": 64000000000,
-            "runtime_growth_bytes": 4000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -268,45 +330,58 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "openai",
-      "port": 8000,
-      "model_aliases": [
-        "lfm2-5-vl-3b-vllm028"
-      ],
-      "health_path": "/v1/models"
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "openai",
-        "checks": [
-          "endpoint.healthy",
-          "chat.nonempty",
-          "chat.max-output-64"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bounded-chat",
-        "framework": "openai",
         "configuration": {
           "max_output_tokens": 64,
           "requests": 1,
           "timeout_seconds": 600
-        }
+        },
+        "framework": "openai",
+        "name": "bounded-chat"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/tree/a3af5799199acdd2a4f56ac4342816abb46c12a9",
-    "attribution": [
-      "Liquid AI",
-      "vLLM contributors"
-    ]
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "lfm2-5-vl-3b-vllm028"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
   }
 }

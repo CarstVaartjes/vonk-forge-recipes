@@ -126,18 +126,18 @@
       "properties": {
         "kind": {
           "const": "model",
+          "default": "model",
           "title": "Kind",
           "type": "string"
         },
         "publisher": {
-          "maxLength": 64,
-          "minLength": 2,
-          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "maxLength": 128,
+          "minLength": 1,
           "title": "Publisher",
           "type": "string"
         },
         "slug": {
-          "maxLength": 64,
+          "maxLength": 63,
           "minLength": 2,
           "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
           "title": "Slug",
@@ -150,7 +150,6 @@
         }
       },
       "required": [
-        "kind",
         "publisher",
         "slug",
         "content_sha256"
@@ -452,7 +451,15 @@
           "$ref": "#/$defs/RecipeIntegerSetting"
         },
         "concurrency": {
-          "$ref": "#/$defs/RecipeIntegerSetting"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecipeIntegerSetting"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "max_batch_tokens": {
           "anyOf": [
@@ -468,8 +475,7 @@
       },
       "required": [
         "kind",
-        "context_tokens",
-        "concurrency"
+        "context_tokens"
       ],
       "title": "RecipeGenerationSettings",
       "type": "object"
@@ -1139,7 +1145,7 @@
           "items": {
             "$ref": "#/$defs/RecipeModelFile"
           },
-          "maxItems": 256,
+          "maxItems": 4096,
           "minItems": 1,
           "title": "Files",
           "type": "array"

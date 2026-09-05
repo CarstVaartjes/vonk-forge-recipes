@@ -1,114 +1,115 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "ltx-2-3-22b-distilled-1-1-diffusers-single"
-  },
-  "version": "3.2.4",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "3.2.4",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "9e015e5e1dea36245c48f69579772ecb8ac439f80341b9752fe99740fdeb770e",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "6fd2502f05902a62f109df6e75c5d3e402ecf10d22e4c24410acf2437a1773f8",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "3.2.5"
     },
     {
-      "version": "3.2.3",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "2a2844c48122ead2e0a6bcc2e8a1badd179d8aa0a2a6d83355aba7c0121abcf3",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "9e015e5e1dea36245c48f69579772ecb8ac439f80341b9752fe99740fdeb770e",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "3.2.4"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
+      ],
+      "recipe_content_sha256": "2a2844c48122ead2e0a6bcc2e8a1badd179d8aa0a2a6d83355aba7c0121abcf3",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "metadata-only",
+      "version": "3.2.3"
     },
     {
-      "version": "3.2.2",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "c2279d47dec15e776ba9498d896ddb4476d39b17c681576b61c36cf69a617316",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
-          "kind": "metadata",
-          "summary": "Marked the historical LTX-2.3 profile superseded while retaining its directly deployable immutable execution contract.",
           "details": "LTX-2.5 BF16 is the current fidelity baseline and its fixed FP8-cast sequential-offload variant is the current lower-memory canary. Runtime, artifacts, build context, topology, interfaces, validation, and provenance are unchanged.",
+          "kind": "metadata",
           "references": [
             "https://huggingface.co/Lightricks/LTX-2.3/tree/6b5a83e3045eaf8e46cfa0acce512412aa2b9cce",
             "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc"
-          ]
+          ],
+          "summary": "Marked the historical LTX-2.3 profile superseded while retaining its directly deployable immutable execution contract."
         }
-      ]
-    },
-    {
-      "version": "3.2.1",
+      ],
+      "recipe_content_sha256": "c2279d47dec15e776ba9498d896ddb4476d39b17c681576b61c36cf69a617316",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "1850c1240b7028522631d23cd1438bc930db199fcdbddca3606263081ace6b42",
-      "upgrade_effect": "rebuild",
-      "changes": [
-        {
-          "kind": "security",
-          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
-          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
-        }
-      ]
+      "upgrade_effect": "metadata-only",
+      "version": "3.2.2"
     },
     {
-      "version": "3.2.0",
-      "released_at": "2026-08-31",
-      "recipe_content_sha256": "08e3c9c5b9f7336ada4200e29f1ab107eb6e70cd87d04527af11d44ce56f4921",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "runtime",
-          "summary": "Refreshed the native LTX-2.3 distilled path from LTX 1.2 to exact 1.3.0 source and its named PipelineOutput contract.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+        }
+      ],
+      "recipe_content_sha256": "1850c1240b7028522631d23cd1438bc930db199fcdbddca3606263081ace6b42",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "rebuild",
+      "version": "3.2.1"
+    },
+    {
+      "changes": [
+        {
           "details": "The disk-offload adapter fails closed unless ltx-pipelines is version 1.3.0 and PipelineOutput exposes video, audio, num_frames, tiling_config, keyframes, and video_latent.",
+          "kind": "runtime",
           "references": [
             "https://github.com/Lightricks/LTX-2/tree/a95ab856bf29407b6b066ede0abe1846050db56c"
-          ]
+          ],
+          "summary": "Refreshed the native LTX-2.3 distilled path from LTX 1.2 to exact 1.3.0 source and its named PipelineOutput contract."
         },
         {
           "kind": "fix",
           "summary": "Added the upstream-required TorchVision 0.28 and cuDNN 9.24 pins to the checksummed ARM64 source build."
         },
         {
+          "details": "The runtime contains DFR and keyframe-aware decoding, but this recipe lacks the additional DFR artifact closure and continues to expose only its declared distilled generation path.",
           "kind": "compatibility",
-          "summary": "Retained the 101 GB admission total rather than spending the upstream decode-tiling OOM fix before a physical canary.",
-          "details": "The runtime contains DFR and keyframe-aware decoding, but this recipe lacks the additional DFR artifact closure and continues to expose only its declared distilled generation path."
+          "summary": "Retained the 101 GB admission total rather than spending the upstream decode-tiling OOM fix before a physical canary."
         }
-      ]
+      ],
+      "recipe_content_sha256": "08e3c9c5b9f7336ada4200e29f1ab107eb6e70cd87d04527af11d44ce56f4921",
+      "released_at": "2026-08-31",
+      "upgrade_effect": "rebuild",
+      "version": "3.2.0"
     },
     {
-      "version": "3.1.0",
-      "released_at": "2026-08-29",
-      "recipe_content_sha256": "c8757fcfc0f4d3a466eeb33584b875d82b828c47c1ba3e2364199a67e8581a8e",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Selected the pinned upstream's explicit disk-streaming offload mode for the LTX-2.3 single-Spark Candidate.",
           "details": "Pinned upstream quantifies disk offload at about 5 GB host RAM plus 5 GB accelerator memory versus about 36 GB host RAM plus 5 GB accelerator memory for CPU offload. The dedicated adapter preserves the exact checkpoint, Gemma closure, and output contract. Its conservative Candidate envelope subtracts only that documented 31 GB host-memory delta from the prior profile: startup 124 to 93 GB and steady 108 to 77 GB, with growth and system reserve unchanged at 8 GB each. Admission therefore requires 101 GB including reserve and fits a 128 GB Spark; physical acceptance and refinement remain pending.",
+          "kind": "compatibility",
           "references": [
             "https://github.com/Lightricks/LTX-2/blob/400fd31054597515f47125691032c04b1c3ee24e/packages/ltx-pipelines/src/ltx_pipelines/utils/types.py#L117-L127",
             "https://github.com/Lightricks/LTX-2/blob/400fd31054597515f47125691032c04b1c3ee24e/packages/ltx-pipelines/src/ltx_pipelines/utils/args.py#L596-L608"
-          ]
+          ],
+          "summary": "Selected the pinned upstream's explicit disk-streaming offload mode for the LTX-2.3 single-Spark Candidate."
         }
-      ]
+      ],
+      "recipe_content_sha256": "c8757fcfc0f4d3a466eeb33584b875d82b828c47c1ba3e2364199a67e8581a8e",
+      "released_at": "2026-08-29",
+      "upgrade_effect": "rebuild",
+      "version": "3.1.0"
     },
     {
-      "version": "3.0.0",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "607ccdf9c88f4b03df5f76bb3091ecf4f096fe67cf5cf95f9d7981f28e983c22",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "breaking",
@@ -118,97 +119,108 @@
           "kind": "fix",
           "summary": "Validate the exact H.264/AAC codec, geometry, frame rate, frame count, duration, 48 kHz stereo audio, and synchronization before atomic publication."
         }
-      ]
+      ],
+      "recipe_content_sha256": "607ccdf9c88f4b03df5f76bb3091ecf4f096fe67cf5cf95f9d7981f28e983c22",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "rebuild",
+      "version": "3.0.0"
     },
     {
-      "version": "2.0.2",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "0cfe5a86b495648569f695e6af2d70b645c440ec8d308c453752f19fc7d2e399",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "fix",
           "summary": "Resolved the recipe-supplied LTX 2.3 spatial upscaler instead of hardcoding the incompatible LTX 2.0 companion filename."
         }
-      ]
+      ],
+      "recipe_content_sha256": "0cfe5a86b495648569f695e6af2d70b645c440ec8d308c453752f19fc7d2e399",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.2"
     },
     {
-      "version": "2.0.1",
-      "released_at": "2026-08-26",
-      "recipe_content_sha256": "a9117190f65557999ba8e6a20e1a58667ae2d11b3e28fb21b66f958d16f10094",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
           "kind": "metadata",
-          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
-          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
         }
-      ]
+      ],
+      "recipe_content_sha256": "a9117190f65557999ba8e6a20e1a58667ae2d11b3e28fb21b66f958d16f10094",
+      "released_at": "2026-08-26",
+      "upgrade_effect": "metadata-only",
+      "version": "2.0.1"
     },
     {
-      "version": "2.0.0",
-      "released_at": "2026-08-24",
-      "recipe_content_sha256": "52e2469d53b2c2549751b90535fd78e2e831274e87a5850b277bc24dcac1124c",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "compatibility",
-          "summary": "Replaced the non-executable generic diffusers binding with the pinned official LTX 1.2 native ARM64 pipeline adapter.",
           "references": [
             "https://github.com/Lightricks/LTX-2/tree/400fd31054597515f47125691032c04b1c3ee24e"
-          ]
+          ],
+          "summary": "Replaced the non-executable generic diffusers binding with the pinned official LTX 1.2 native ARM64 pipeline adapter."
         },
         {
           "kind": "fix",
-          "summary": "Bound the exact checkpoint, Gemma 3 encoder, tokenizer, upscaler, and optional distilled LoRA files by SHA-256 without unrelated repository downloads.",
           "references": [
             "https://huggingface.co/Lightricks/LTX-2.3/tree/6b5a83e3045eaf8e46cfa0acce512412aa2b9cce"
-          ]
+          ],
+          "summary": "Bound the exact checkpoint, Gemma 3 encoder, tokenizer, upscaler, and optional distilled LoRA files by SHA-256 without unrelated repository downloads."
         },
         {
           "kind": "runtime",
           "summary": "Added offline synchronized audio-video MP4 generation with post-export video and audio stream verification."
         }
-      ]
+      ],
+      "recipe_content_sha256": "52e2469d53b2c2549751b90535fd78e2e831274e87a5850b277bc24dcac1124c",
+      "released_at": "2026-08-24",
+      "upgrade_effect": "reinstall",
+      "version": "2.0.0"
     },
     {
-      "version": "1.1.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "6133d95e0fc68e9b30a09a76dab68ab3a316917fc5ca54a56d488712c52d3531",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "compatibility",
           "summary": "Marked the metadata-only candidate as requiring a native LTX-2.3 adapter and an explicit companion dependency closure before acceptance."
         }
-      ]
+      ],
+      "recipe_content_sha256": "6133d95e0fc68e9b30a09a76dab68ab3a316917fc5ca54a56d488712c52d3531",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.1.0"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "fbd867ad2e11e184312a9cf2ef903ef33e4de694c150c1f3beb3ac4493171687",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
           "summary": "Initial reviewed catalog release of LTX-2.3 22B distilled 1.1 diffusers single Spark."
         }
-      ]
+      ],
+      "recipe_content_sha256": "fbd867ad2e11e184312a9cf2ef903ef33e4de694c150c1f3beb3ac4493171687",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     },
     {
-      "version": "0.1.0",
-      "released_at": "2026-08-17",
-      "recipe_content_sha256": "527571063b297bb50c5ef2088f6eae1bb9829d2eb91990024f2d673adb4dc105",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
-          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
           "references": [
             "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-          ]
+          ],
+          "summary": "Recovered the first public legacy revision from before semantic release tracking."
         }
-      ]
+      ],
+      "recipe_content_sha256": "527571063b297bb50c5ef2088f6eae1bb9829d2eb91990024f2d673adb4dc105",
+      "released_at": "2026-08-17",
+      "upgrade_effect": "reinstall",
+      "version": "0.1.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "ltx-2-3-22b-distilled-1-1-diffusers-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "3.2.5"
 }

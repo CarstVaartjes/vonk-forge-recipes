@@ -1,44 +1,99 @@
 {
-  "schema_version": 1,
-  "recipe": {"publisher": "vonk-forge", "slug": "qwen3-8-27b-nvfp4-dspark-sglang-single"},
-  "version": "1.1.3",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.1.3",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "19fffabd854f75140cd624a6196ef480299b754a30fd38585eea81b27da81e28",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
           "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
         }
-      ]
-    },{
-      "version": "1.1.2",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "4f0a99da434a17db0524e45f38e50ac315551cac183b4f7bbb6b1554970e1e49",
-      "upgrade_effect": "metadata-only",
+      ],
+      "recipe_content_sha256": "680d703fa0e97a7a6214503bb1fc5b55b219d172a2f2b00c6b300a18eb477a69",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.1.3"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
+      ],
+      "recipe_content_sha256": "4f0a99da434a17db0524e45f38e50ac315551cac183b4f7bbb6b1554970e1e49",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "metadata-only",
+      "version": "1.1.2"
     },
     {
-    "version": "1.1.1", "released_at": "2026-08-30", "recipe_content_sha256": "523aae6db13461d517d974c01b811591f08988ba5a544453d597430c18d76b9a", "upgrade_effect": "metadata-only",
-    "changes": [{"kind": "metadata", "summary": "Separated the refreshed NVFP4 DSpark v2 profile's multimodal capability from text-only qualification.", "details": "The immutable target, refreshed DSpark v2 drafter, and runtime contract are unchanged. Bounded text chat is qualified; Spark vision serving remains unproven.", "references": ["https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead/tree/009632fef96dd349150baa780c984e62e70e91fe", "https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark/tree/b3c9910194dc7ae53fea3d95a1959b654f495416"]}]
-  }, {
-    "version": "1.1.0", "released_at": "2026-08-29", "recipe_content_sha256": "7e6add08a42a7b21981837219b260c9c75b85157d88b58fbb8e7046e47cd075b", "upgrade_effect": "reinstall",
-    "changes": [{"kind": "model", "summary": "Updated the external draft from DSpark v1 to RadixArk's validated v2 checkpoint.", "details": "Pins the Stage 2 step-5500 export and its complete immutable 3.71 GB snapshot; the SGLang launch contract remains block-size 7 with eight draft tokens.", "references": ["https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark/tree/b3c9910194dc7ae53fea3d95a1959b654f495416"]}]
-  }, {
-    "version": "1.0.1", "released_at": "2026-08-28", "recipe_content_sha256": "f4b7e6f8bc98a2fa0ed32a667ededaf713f2c460c8083568d08c29fa8f50a277", "upgrade_effect": "reinstall",
-    "changes": [{"kind": "fix", "summary": "Corrected the DSpark launcher profile and lowered the validated Spark memory fraction.", "details": "Uses the DSPARK algorithm, block size 7, the supported continuous-decode flag, torch compilation, and mem-fraction-static 0.80."}]
-  }, {
-    "version": "1.0.0", "released_at": "2026-08-27", "recipe_content_sha256": "7c82ca566d8558648738c8fbfc4a17c847f723c89ab81e07d7435c79bba12e00", "upgrade_effect": "reinstall",
-    "changes": [{"kind": "initial", "summary": "Added the immutable one-Spark Qwen3.8 27B SGLang DSpark profile.", "details": "Pins the NVFP4 target, external DSpark draft, CUDA 13 ARM64 image, 262K context, FlashInfer attention, Qwen parsers, and bounded speculative decoding without runtime downloads.", "references": ["https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark/tree/751e29eb6a3057ccfd8f992f87dfc260787e05a1", "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead/tree/009632fef96dd349150baa780c984e62e70e91fe"]}]
-  }]
+      "changes": [
+        {
+          "details": "The immutable target, refreshed DSpark v2 drafter, and runtime contract are unchanged. Bounded text chat is qualified; Spark vision serving remains unproven.",
+          "kind": "metadata",
+          "references": [
+            "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead/tree/009632fef96dd349150baa780c984e62e70e91fe",
+            "https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark/tree/b3c9910194dc7ae53fea3d95a1959b654f495416"
+          ],
+          "summary": "Separated the refreshed NVFP4 DSpark v2 profile's multimodal capability from text-only qualification."
+        }
+      ],
+      "recipe_content_sha256": "523aae6db13461d517d974c01b811591f08988ba5a544453d597430c18d76b9a",
+      "released_at": "2026-08-30",
+      "upgrade_effect": "metadata-only",
+      "version": "1.1.1"
+    },
+    {
+      "changes": [
+        {
+          "details": "Pins the Stage 2 step-5500 export and its complete immutable 3.71 GB snapshot; the SGLang launch contract remains block-size 7 with eight draft tokens.",
+          "kind": "model",
+          "references": [
+            "https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark/tree/b3c9910194dc7ae53fea3d95a1959b654f495416"
+          ],
+          "summary": "Updated the external draft from DSpark v1 to RadixArk's validated v2 checkpoint."
+        }
+      ],
+      "recipe_content_sha256": "7e6add08a42a7b21981837219b260c9c75b85157d88b58fbb8e7046e47cd075b",
+      "released_at": "2026-08-29",
+      "upgrade_effect": "reinstall",
+      "version": "1.1.0"
+    },
+    {
+      "changes": [
+        {
+          "details": "Uses the DSPARK algorithm, block size 7, the supported continuous-decode flag, torch compilation, and mem-fraction-static 0.80.",
+          "kind": "fix",
+          "summary": "Corrected the DSpark launcher profile and lowered the validated Spark memory fraction."
+        }
+      ],
+      "recipe_content_sha256": "f4b7e6f8bc98a2fa0ed32a667ededaf713f2c460c8083568d08c29fa8f50a277",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.1"
+    },
+    {
+      "changes": [
+        {
+          "details": "Pins the NVFP4 target, external DSpark draft, CUDA 13 ARM64 image, 262K context, FlashInfer attention, Qwen parsers, and bounded speculative decoding without runtime downloads.",
+          "kind": "initial",
+          "references": [
+            "https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark/tree/751e29eb6a3057ccfd8f992f87dfc260787e05a1",
+            "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead/tree/009632fef96dd349150baa780c984e62e70e91fe"
+          ],
+          "summary": "Added the immutable one-Spark Qwen3.8 27B SGLang DSpark profile."
+        }
+      ],
+      "recipe_content_sha256": "7c82ca566d8558648738c8fbfc4a17c847f723c89ab81e07d7435c79bba12e00",
+      "released_at": "2026-08-27",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
+    }
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-27b-nvfp4-dspark-sglang-single"
+  },
+  "released_at": "2026-09-03",
+  "schema_version": 1,
+  "version": "1.1.3"
 }

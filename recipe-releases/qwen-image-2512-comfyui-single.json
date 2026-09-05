@@ -1,136 +1,148 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "qwen-image-2512-comfyui-single"
-  },
-  "version": "1.0.8",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.0.8",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "16d243dddd39160568ddae2013d1229ca40635e6fbf0242ed696df086f9d2559",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "5d63a30f44a76a2bad33e4786c97f2a172f729c41a8914bc0c4cbfb1e4f2d223",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.9"
     },
     {
-      "version": "1.0.7",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "f67e93ad6711109df06b41b8b69ca800823436d20e14825dd4856bfefa2dcbeb",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "16d243dddd39160568ddae2013d1229ca40635e6fbf0242ed696df086f9d2559",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.8"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
-    },
-    {
-      "version": "1.0.6",
+      ],
+      "recipe_content_sha256": "f67e93ad6711109df06b41b8b69ca800823436d20e14825dd4856bfefa2dcbeb",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "681b33b3c55a91597692ace91c35b099b9278d4eebef597456f5709e0e228190",
-      "upgrade_effect": "rebuild",
-      "changes": [
-        {
-          "kind": "security",
-          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
-          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
-        }
-      ]
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.7"
     },
     {
-      "version": "1.0.5",
-      "released_at": "2026-08-31",
-      "recipe_content_sha256": "5951289d2234b9fc7e2796cbc15f2ca5cadc5fde9769574ec1b316c27a5ff3f5",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "runtime",
-          "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+        }
+      ],
+      "recipe_content_sha256": "681b33b3c55a91597692ace91c35b099b9278d4eebef597456f5709e0e228190",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.6"
+    },
+    {
+      "changes": [
+        {
           "details": "The source bundle now hash-locks stable tag v0.34.0 at exact commit 12d52794 and its verified source archive. Model artifacts, core-node workflow parameters, admission envelopes, and Candidate qualification are unchanged.",
+          "kind": "runtime",
           "references": [
             "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.34.0",
             "https://github.com/Comfy-Org/ComfyUI/commit/12d5279438bfefc058a269eae805ceab6047777f"
-          ]
+          ],
+          "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0."
         }
-      ]
+      ],
+      "recipe_content_sha256": "5951289d2234b9fc7e2796cbc15f2ca5cadc5fde9769574ec1b316c27a5ff3f5",
+      "released_at": "2026-08-31",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.5"
     },
     {
-      "version": "1.0.4",
-      "released_at": "2026-08-30",
-      "recipe_content_sha256": "8435da5ff3c67973cf4984dbae614d642ff2eae869e87f15c23fb7dd72f1d55d",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "fix",
-          "summary": "Applied Qwen Image 2512's published negative-prompt default to ComfyUI jobs.",
           "details": "An isolated source bundle now bakes Qwen's exact quality-oriented negative prompt into the immutable 50-step, true-CFG 4.0 workflow instead of silently using an empty negative conditioning string. Other ComfyUI recipes keep their existing source-bundle identities.",
+          "kind": "fix",
           "references": [
             "https://huggingface.co/Qwen/Qwen-Image-2512/blob/25468b98e3276ca6700de15c6628e51b7de54a26/README.md"
-          ]
+          ],
+          "summary": "Applied Qwen Image 2512's published negative-prompt default to ComfyUI jobs."
         }
-      ]
+      ],
+      "recipe_content_sha256": "8435da5ff3c67973cf4984dbae614d642ff2eae869e87f15c23fb7dd72f1d55d",
+      "released_at": "2026-08-30",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.4"
     },
     {
-      "version": "1.0.3",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "cc5fa075a964afbd494c2cc001cab315c9c2367e5fbfffc036805fab9514020c",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
+          "details": "The shared adapter now resolves a bounded UTF-8 prompt file from its signed manifest while preserving the legacy VONK_PROMPT fallback.",
           "kind": "compatibility",
-          "summary": "Added signed prompt and PNG output slots to the core ComfyUI job.",
-          "details": "The shared adapter now resolves a bounded UTF-8 prompt file from its signed manifest while preserving the legacy VONK_PROMPT fallback."
+          "summary": "Added signed prompt and PNG output slots to the core ComfyUI job."
         }
-      ]
-    },
-    {
-      "version": "1.0.2",
+      ],
+      "recipe_content_sha256": "cc5fa075a964afbd494c2cc001cab315c9c2367e5fbfffc036805fab9514020c",
       "released_at": "2026-08-28",
-      "recipe_content_sha256": "5840f9753afc35819b795b88bc1ff5333f478a88e6fe824885eca40bd56215cf",
       "upgrade_effect": "rebuild",
+      "version": "1.0.3"
+    },
+    {
       "changes": [
         {
+          "details": "Jobs now fail closed on missing, empty, multiple, or unexpected media outputs before atomically publishing one declared result.",
           "kind": "fix",
-          "summary": "Hardened shared ComfyUI job result selection.",
-          "details": "Jobs now fail closed on missing, empty, multiple, or unexpected media outputs before atomically publishing one declared result."
+          "summary": "Hardened shared ComfyUI job result selection."
         }
-      ]
+      ],
+      "recipe_content_sha256": "5840f9753afc35819b795b88bc1ff5333f478a88e6fe824885eca40bd56215cf",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.2"
     },
     {
-      "version": "1.0.1",
-      "released_at": "2026-08-26",
-      "recipe_content_sha256": "7d0b3d13f2f8f0c1a24c4312149fc61786543d586e1f626894f079f3630d574d",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
           "kind": "metadata",
-          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
-          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
         }
-      ]
+      ],
+      "recipe_content_sha256": "7d0b3d13f2f8f0c1a24c4312149fc61786543d586e1f626894f079f3630d574d",
+      "released_at": "2026-08-26",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.1"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-25",
-      "recipe_content_sha256": "954b2cb959ac55683e183908ce266daf06b18df6620516e2bdb24ec9825291a0",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
-          "summary": "Initial candidate core-node ComfyUI release for Qwen Image 2512 BF16 on a single Spark.",
           "references": [
             "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/tree/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f"
-          ]
+          ],
+          "summary": "Initial candidate core-node ComfyUI release for Qwen Image 2512 BF16 on a single Spark."
         }
-      ]
+      ],
+      "recipe_content_sha256": "954b2cb959ac55683e183908ce266daf06b18df6620516e2bdb24ec9825291a0",
+      "released_at": "2026-08-25",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-2512-comfyui-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "1.0.9"
 }

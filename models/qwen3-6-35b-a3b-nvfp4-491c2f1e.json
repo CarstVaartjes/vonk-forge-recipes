@@ -1,0 +1,263 @@
+{
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "image-understanding",
+        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "491c2f1ea524c639598bf8fa787a93fed5a6fbce",
+      "source_url": "https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-d1a8f4a1d2e3",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d1a8f4a1d2e3787c5956393d9306365ebefe1912cb76828870682b1ab16f5c27",
+      "size_bytes": 1635
+    },
+    {
+      "id": "file--quant-summary-bf884bde9da2",
+      "path": ".quant_summary.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "bf884bde9da240fb35a435a6fb5bc3bc8d3222e5728c00199ce8f5bc8fcb2548",
+      "size_bytes": 4752286
+    },
+    {
+      "id": "readme-bb3a29ef8870",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "bb3a29ef8870dd68be8a0e0d508880dd49a4db5aafb034bb9b3f475ca5740481",
+      "size_bytes": 9869
+    },
+    {
+      "id": "chat-template-e84f32a23fdd",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e84f32a23fdda27689f868aa4a1a5621f41133e51a48d7f3efcbea2839574259",
+      "size_bytes": 7764
+    },
+    {
+      "id": "config-58aefa1c9eff",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "58aefa1c9eff7989f431d748f2ddec39446cb1fd2a69acc46e285c6a37b0cecc",
+      "size_bytes": 58110
+    },
+    {
+      "id": "configuration-c1b09db41911",
+      "path": "configuration.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "c1b09db419119513247e9b8b912c4b9897106c9b20c6cada7e107d993c5435eb",
+      "size_bytes": 58
+    },
+    {
+      "id": "generation-config-e70c136c1b78",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e",
+      "size_bytes": 202
+    },
+    {
+      "id": "hf-quant-config-75fe7cc8d583",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "75fe7cc8d5836b58734e05ee67423a4ce91d602aaad45c8173a1b7597cd57663",
+      "size_bytes": 35085
+    },
+    {
+      "id": "model-00001-of-00003-07141c2db92e",
+      "path": "model-00001-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "07141c2db92e47bc08777132cd1a0323faf300eab3a7d7c111bc2bf075fda050",
+      "size_bytes": 10006877608
+    },
+    {
+      "id": "model-00002-of-00003-6dea9c759a0f",
+      "path": "model-00002-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "6dea9c759a0f941cf9e1cc1501216b0e107966a66c90425050e212efbd053f02",
+      "size_bytes": 10003595752
+    },
+    {
+      "id": "model-00003-of-00003-9758875fc55e",
+      "path": "model-00003-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9758875fc55e49561165f4a44342b654c123c3e25c6811b34abb83553fb1a164",
+      "size_bytes": 3413864960
+    },
+    {
+      "id": "model-safetensors-index-d67403a4e979",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d67403a4e9793c0ba8a136baf14b3b76ec7b32c822267978084895e07ebd8a3e",
+      "size_bytes": 13726227
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "tokenizer-5f9e4d4901a9",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+      "size_bytes": 12807982
+    },
+    {
+      "id": "tokenizer-config-5186f0defcd7",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "5186f0defcd7f232382c7f0aebcd2252d073bb921ab240e407b7ae8745d2b29b",
+      "size_bytes": 16718
+    },
+    {
+      "id": "video-preprocessor-config-7768af27c1fa",
+      "path": "video_preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "size_bytes": 385
+    },
+    {
+      "id": "vocab-ce99b4cb2983",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+      "size_bytes": 6722759
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "mixed",
+    "quantization": "nvfp4"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "nvidia-qwen",
+      "title": "NVIDIA Qwen"
+    },
+    "model": {
+      "architecture": "Qwen3.6 hybrid attention and Gated DeltaNet sparse mixture-of-experts multimodal transformer",
+      "publisher": "nvidia",
+      "slug": "qwen3-6-35b-a3b-nvfp4",
+      "title": "NVIDIA Qwen3.6 35B-A3B NVFP4"
+    },
+    "publisher": "nvidia",
+    "slug": "qwen3-6-35b-a3b-nvfp4-491c2f1e",
+    "variant": "NVFP4 491c2f1e",
+    "version": "NVFP4 491c2f1e"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA",
+      "Qwen"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4/blob/491c2f1ea524c639598bf8fa787a93fed5a6fbce/LICENSE"
+  },
+  "limits": {
+    "context_tokens": 262144,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Official upstream checkpoint at the pinned revision.",
+    "publisher": "nvidia",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "nvidia",
+      "slug": "qwen3-6-35b-a3b-nvfp4"
+    }
+  },
+  "metadata": {
+    "description": "Exact NVIDIA Model Optimizer NVFP4 checkpoint for Qwen3.6 35B-A3B multimodal agentic inference.",
+    "tags": [
+      "nvidia",
+      "nvidia-qwen",
+      "multimodal",
+      "vision",
+      "reasoning",
+      "agentic",
+      "moe",
+      "nvfp4",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image"
+  ],
+  "parameters": {
+    "active": 3000000000,
+    "total": 35000000000
+  },
+  "provenance": {
+    "attribution": [
+      "NVIDIA",
+      "Qwen"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "491c2f1ea524c639598bf8fa787a93fed5a6fbce",
+    "source_url": "https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4",
+    "revision": "491c2f1ea524c639598bf8fa787a93fed5a6fbce"
+  },
+  "supersedes": null
+}

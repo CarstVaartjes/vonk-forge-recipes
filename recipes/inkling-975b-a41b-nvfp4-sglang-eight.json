@@ -1,14 +1,45 @@
 {
-  "schema_version": 1,
+  "execution": {
+    "build": {
+      "arguments": [],
+      "base_image": {
+        "digest": "c60f221f8f42929469bedf74716b4314a1951ff97556dd9e17d9e11040512ac6",
+        "platform": "linux/arm64",
+        "repository": "docker.io/lmsysorg/sglang"
+      },
+      "context": {
+        "path": "adapters/llm/inkling-sglang-eight"
+      },
+      "dockerfile": "adapters/llm/inkling-sglang-eight/Dockerfile",
+      "network": {
+        "hosts": [],
+        "mode": "none"
+      },
+      "patches": [],
+      "target": null
+    },
+    "mode": "build"
+  },
   "identity": {
     "publisher": "vonk-forge",
     "slug": "inkling-975b-a41b-nvfp4-sglang-eight"
   },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "inkling"
+      ],
+      "port": 30000
+    }
+  ],
+  "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "title": "Inkling 975B-A41B NVFP4 SGLang eight Sparks",
     "description": "Complete offline Candidate TP8 recipe for Thinking Machines' flagship Inkling NVFP4 checkpoint. Its exact eight-rank topology is unsupported on Vonk's current one- or two-Spark configuration: a two-rank split alone would require at least 296.0 GB of checkpoint bytes per Spark before KV cache or runtime overhead. The executable contract remains installable for a future eight-Spark canary and has no DGX Spark physical evidence. Inkling Small NVFP4 dual is the same-family alternative for text, image, and 16 kHz WAV audio, but its current 128 GB Controller admission envelope also needs either at least 128 GB free per node or a separately proven lower-memory profile.",
-    "tags": ["executable",
+    "tags": [
+      "executable",
       "audio",
       "candidate",
       "distributed",
@@ -22,227 +53,768 @@
       "text",
       "tool-use",
       "tp8"
-    ]
+    ],
+    "title": "Inkling 975B-A41B NVFP4 SGLang eight Sparks"
   },
-  "model": {
-    "kind": "model-version",
-    "publisher": "thinkingmachines",
-    "slug": "inkling-975b-a41b-nvfp4",
-    "content_sha256": "8293f47fdff932970deb1dc4c2b10e4c83a27c5081af1a0618611048e496d2c7"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "sglang",
-      "content_sha256": "9bd9a41fe12dd4e551fac821623801b6df9af8943d42ddba9f46717636286947"
-    },
-    "patch_bundle": {
-      "kind": "patch-bundle",
-      "publisher": "sglang",
-      "slug": "inkling-sglang-eight-spark-topology",
-      "content_sha256": "637a28f69fd9d4d92db7cf67608b7bb3ad600b9c2413b136843bfb873c1b2702"
-    }
-  },
-  "build": {
-    "context": {
-      "path": "adapters/llm/inkling-sglang-eight",
-      "sha256": "150f36ddc097889a6c9d501c1ed8baa2f1586fa612cc0d53a3b8d3ad68d0c6d5",
-      "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
-    },
-    "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {
-      "mode": "none",
-      "hosts": []
-    },
-    "resources": {
-      "download_bytes": 605328598113,
-      "temporary_bytes": 1184074674236,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 86400
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
-    "options": {
-      "additional_contexts": [],
-      "annotations": [],
-      "environment": [],
-      "format": "oci",
-      "identity_label": true,
-      "ignorefile": null,
-      "jobs": 1,
-      "labels": [],
-      "layer_compression": "disabled",
-      "layer_labels": [],
-      "layers": true,
-      "no_hostname": false,
-      "no_hosts": false,
-      "omit_history": false,
-      "os_features": [],
-      "os_version": null,
-      "shm_bytes": 67108864,
-      "skip_unused_stages": true,
-      "squash": "none",
-      "timestamp": null,
-      "unset_environment": [],
-      "unset_labels": []
-    },
-    "security": {
-      "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+  "models": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "thinkingmachines/Inkling-NVFP4",
-      "revision": "42a75a99a40eb2ba1e0717db6357a0bf15205044",
-      "download_bytes": 592037337118,
-      "installed_bytes": 592037337118,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint",
-        "worker"
-      ]
+      "files": [
+        {
+          "file_id": "metadata-deb930275aeb",
+          "id": "primary-metadata-deb930275aeb",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-2ea1315d3948",
+          "id": "primary-readme-2ea1315d3948",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "chat-template-0aa1aa0c729d",
+          "id": "primary-chat-template-0aa1aa0c729d",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "config-58720f145bce",
+          "id": "primary-config-58720f145bce",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-13277ee163a6",
+          "id": "primary-hf-quant-config-13277ee163a6",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00033-d23be7ca189d",
+          "id": "primary-model-00001-of-00033-d23be7ca189d",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00033-41b33ae96076",
+          "id": "primary-model-00002-of-00033-41b33ae96076",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00033-fe781903b1bb",
+          "id": "primary-model-00003-of-00033-fe781903b1bb",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00033-cfd2beda8c08",
+          "id": "primary-model-00004-of-00033-cfd2beda8c08",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00033-b19b96fb7ace",
+          "id": "primary-model-00005-of-00033-b19b96fb7ace",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00033-e718c10c7770",
+          "id": "primary-model-00006-of-00033-e718c10c7770",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00033-74fc6ed7fec4",
+          "id": "primary-model-00007-of-00033-74fc6ed7fec4",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00033-e47c3b0b413c",
+          "id": "primary-model-00008-of-00033-e47c3b0b413c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00033-d07c90536ed4",
+          "id": "primary-model-00009-of-00033-d07c90536ed4",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00033-1fcc29248d30",
+          "id": "primary-model-00010-of-00033-1fcc29248d30",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00033-6acd555f7925",
+          "id": "primary-model-00011-of-00033-6acd555f7925",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00033-86d80117e4de",
+          "id": "primary-model-00012-of-00033-86d80117e4de",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00033-13307919a112",
+          "id": "primary-model-00013-of-00033-13307919a112",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00033-554ea1d6bf0b",
+          "id": "primary-model-00014-of-00033-554ea1d6bf0b",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00033-9f93de27a392",
+          "id": "primary-model-00015-of-00033-9f93de27a392",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00033-e0f295b3871f",
+          "id": "primary-model-00016-of-00033-e0f295b3871f",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00033-9373b84f05de",
+          "id": "primary-model-00017-of-00033-9373b84f05de",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00018-of-00033-75dae1981cd6",
+          "id": "primary-model-00018-of-00033-75dae1981cd6",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00019-of-00033-d6302d4e1c1d",
+          "id": "primary-model-00019-of-00033-d6302d4e1c1d",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00020-of-00033-c1e547007ec0",
+          "id": "primary-model-00020-of-00033-c1e547007ec0",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00021-of-00033-10ad49ad1a9f",
+          "id": "primary-model-00021-of-00033-10ad49ad1a9f",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00022-of-00033-52e84a65712c",
+          "id": "primary-model-00022-of-00033-52e84a65712c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00023-of-00033-3aaf8a3bba4c",
+          "id": "primary-model-00023-of-00033-3aaf8a3bba4c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00024-of-00033-9b889e3657ce",
+          "id": "primary-model-00024-of-00033-9b889e3657ce",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00025-of-00033-8d7577d69d5c",
+          "id": "primary-model-00025-of-00033-8d7577d69d5c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00026-of-00033-f00eb775e4d2",
+          "id": "primary-model-00026-of-00033-f00eb775e4d2",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00027-of-00033-22006739079d",
+          "id": "primary-model-00027-of-00033-22006739079d",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00028-of-00033-16fcb85bb6b1",
+          "id": "primary-model-00028-of-00033-16fcb85bb6b1",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00029-of-00033-a37f89d84360",
+          "id": "primary-model-00029-of-00033-a37f89d84360",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00030-of-00033-4afa6d80ea00",
+          "id": "primary-model-00030-of-00033-4afa6d80ea00",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00031-of-00033-a15ba8214581",
+          "id": "primary-model-00031-of-00033-a15ba8214581",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00032-of-00033-91a6e0d6613e",
+          "id": "primary-model-00032-of-00033-91a6e0d6613e",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00033-of-00033-de00ac84eb64",
+          "id": "primary-model-00033-of-00033-de00ac84eb64",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-23e5784d5695",
+          "id": "primary-model-safetensors-index-23e5784d5695",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "mtp-a0a01bf72ac4",
+          "id": "primary-mtp-a0a01bf72ac4",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "processor-config-b4a3962ea5f7",
+          "id": "primary-processor-config-b4a3962ea5f7",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-abc97715b4b3",
+          "id": "primary-special-tokens-map-abc97715b4b3",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-bc253fd2b702",
+          "id": "primary-tokenizer-bc253fd2b702",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-9fb6333a7db8",
+          "id": "primary-tokenizer-9fb6333a7db8",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-2e36c9748a20",
+          "id": "primary-tokenizer-config-2e36c9748a20",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "d5939fdd15e49eb9a726635f3d2aadc5f58944760fe60499e8a44a5e8b5e3771",
+        "kind": "model",
+        "publisher": "thinkingmachines",
+        "slug": "inkling-975b-a41b-nvfp4"
+      }
     }
   ],
+  "provenance": {
+    "attribution": [
+      "Thinking Machines Lab",
+      "SGLang contributors",
+      "NVIDIA DGX Spark",
+      "Vonk Forge"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://github.com/sgl-project/sglang/tree/b7252cc6b0c78b25ecea7ee5efa91a6ae37d0f19"
+  },
   "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "sglang",
-      "slug": "sglang-inkling-dgx-spark-b7252cc6-arm64",
-      "content_sha256": "7e2146731799d355842fe9995b11b9de42ed75f6ae2d177826b57b387c0b8fea"
-    },
+    "arguments": [
+      {
+        "name": "model-path",
+        "setting": null,
+        "value": "/models"
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "inkling"
+      },
+      {
+        "name": "tp",
+        "setting": null,
+        "value": 8
+      },
+      {
+        "name": "context-length",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "modelopt_fp4"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "triton"
+      },
+      {
+        "name": "page-size",
+        "setting": null,
+        "value": 128
+      },
+      {
+        "name": "fp4-gemm-backend",
+        "setting": null,
+        "value": "marlin"
+      },
+      {
+        "name": "moe-runner-backend",
+        "setting": null,
+        "value": "marlin"
+      },
+      {
+        "name": "mamba-radix-cache-strategy",
+        "setting": null,
+        "value": "extra_buffer"
+      },
+      {
+        "name": "mem-fraction-static",
+        "setting": null,
+        "value": "0.80"
+      },
+      {
+        "name": "swa-full-tokens-ratio",
+        "setting": null,
+        "value": "0.10"
+      },
+      {
+        "name": "mamba-full-memory-ratio",
+        "setting": null,
+        "value": "0.10"
+      },
+      {
+        "name": "enable-multimodal",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "disable-prefill-cuda-graph",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "inkling"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "inkling"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "sglang",
     "entrypoint": [
       "/opt/vonk/bin/sglang-serve"
     ],
-    "arguments": [
-      {"name": "model-path", "value": "/models"},
-      {"name": "served-model-name", "value": "inkling"},
-      {"name": "tp", "value": 8},
-      {"name": "context-length", "value": 262144},
-      {"name": "quantization", "value": "modelopt_fp4"},
-      {"name": "attention-backend", "value": "triton"},
-      {"name": "page-size", "value": 128},
-      {"name": "fp4-gemm-backend", "value": "marlin"},
-      {"name": "moe-runner-backend", "value": "marlin"},
-      {"name": "mamba-radix-cache-strategy", "value": "extra_buffer"},
-      {"name": "mem-fraction-static", "value": "0.80"},
-      {"name": "swa-full-tokens-ratio", "value": "0.10"},
-      {"name": "mamba-full-memory-ratio", "value": "0.10"},
-      {"name": "enable-multimodal", "value": true},
-      {"name": "disable-prefill-cuda-graph", "value": true},
-      {"name": "reasoning-parser", "value": "inkling"},
-      {"name": "tool-call-parser", "value": "inkling"},
-      {"name": "trust-remote-code", "value": true}
-    ],
     "environment": [
-      {"name": "HF_HUB_OFFLINE", "value": "1"},
-      {"name": "SGLANG_ENABLE_UNIFIED_RADIX_TREE", "value": "1"},
-      {"name": "NCCL_DEBUG", "value": "WARN"}
-    ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": true,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {"source": "model", "target": "/models", "read_only": true},
-        {"source": "outputs", "target": "/outputs", "read_only": false}
-      ]
-    },
-    "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 180,
-      "readiness": {
-        "strategy": "endpoint-owner-after-all-ranks",
-        "path": "/v1/models",
-        "timeout_seconds": 3600
+      {
+        "name": "HF_HUB_OFFLINE",
+        "secret": null,
+        "value": "1"
       },
+      {
+        "name": "SGLANG_ENABLE_UNIFIED_RADIX_TREE",
+        "secret": null,
+        "value": "1"
+      },
+      {
+        "name": "NCCL_DEBUG",
+        "secret": null,
+        "value": "WARN"
+      }
+    ],
+    "lifecycle": {
       "failure": {
         "rank_loss": "withdraw-endpoint",
         "recovery": "restart-worker-then-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "stop_timeout_seconds": 180
     }
   },
-  "topology": {
-    "name": "eight",
-    "mode": "distributed",
-    "node_count": 8,
-    "roles": [
-      {
-        "name": "entrypoint",
-        "count": 1,
-        "endpoint_owner": true,
-        "artifacts": [
-          "weights"
-        ],
-        "resources": {
-          "disk": {
-            "image_bytes": 40000000000,
-            "artifact_bytes": 592037337118,
-            "staging_bytes": 1184074674236,
-            "cache_bytes": 50000000000,
-            "rollback_bytes": 0,
-            "safety_margin_bytes": 50000000000
-          },
-          "memory": {
-            "kind": "unified",
-            "startup_peak_bytes": 119000000000,
-            "steady_state_bytes": 111000000000,
-            "runtime_growth_bytes": 5000000000,
-            "system_reserve_bytes": 8000000000
-          }
-        }
-      },
-      {
-        "name": "worker",
-        "count": 7,
-        "endpoint_owner": false,
-        "artifacts": [
-          "weights"
-        ],
-        "resources": {
-          "disk": {
-            "image_bytes": 40000000000,
-            "artifact_bytes": 592037337118,
-            "staging_bytes": 1184074674236,
-            "cache_bytes": 50000000000,
-            "rollback_bytes": 0,
-            "safety_margin_bytes": 50000000000
-          },
-          "memory": {
-            "kind": "unified",
-            "startup_peak_bytes": 119000000000,
-            "steady_state_bytes": 111000000000,
-            "runtime_growth_bytes": 5000000000,
-            "system_reserve_bytes": 8000000000
-          }
-        }
-      }
-    ],
-    "parallelism": {
-      "world_size": 8,
-      "tensor": 8,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "native"
+  "schema_version": 2,
+  "settings": {
+    "concurrency": null,
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
     },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
     "fabric": {
       "connectivity": "connected",
       "minimum_bandwidth_mbps": 200000
     },
+    "mode": "distributed",
+    "name": "eight",
+    "node_count": 8,
+    "parallelism": {
+      "backend": "native",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 8,
+      "world_size": 8
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 592037337118,
+            "cache_bytes": 50000000000,
+            "image_bytes": 40000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 50000000000,
+            "staging_bytes": 1184074674236
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 5000000000,
+            "startup_peak_bytes": 119000000000,
+            "steady_state_bytes": 111000000000,
+            "system_reserve_bytes": 8000000000
+          }
+        }
+      },
+      {
+        "count": 7,
+        "endpoint_owner": false,
+        "name": "worker",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 592037337118,
+            "cache_bytes": 50000000000,
+            "image_bytes": 40000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 50000000000,
+            "staging_bytes": 1184074674236
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 5000000000,
+            "startup_peak_bytes": 119000000000,
+            "steady_state_bytes": 111000000000,
+            "system_reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
     "start_order": [
       "worker",
       "entrypoint"
@@ -252,51 +824,59 @@
       "worker"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "openai",
-      "port": 30000,
-      "model_aliases": [
-        "inkling"
-      ],
-      "health_path": "/v1/models"
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "openai",
-        "checks": [
-          "endpoint.healthy",
-          "collective.two-ranks",
-          "chat.nonempty",
-          "chat.max-output-64",
-          "rank-loss.withdrawal",
-          "rank-recovery.healthy"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bounded-multimodal-chat",
-        "framework": "openai",
         "configuration": {
-          "modalities": "text,image,audio",
           "max_output_tokens": 64,
+          "modalities": "text,image,audio",
           "requests": 1,
           "timeout_seconds": 600
-        }
+        },
+        "framework": "openai",
+        "name": "bounded-multimodal-chat"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://github.com/sgl-project/sglang/tree/b7252cc6b0c78b25ecea7ee5efa91a6ae37d0f19",
-    "attribution": [
-      "Thinking Machines Lab",
-      "SGLang contributors",
-      "NVIDIA DGX Spark",
-      "Vonk Forge"
-    ]
+    ],
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "inkling"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
   }
 }

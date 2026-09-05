@@ -1,152 +1,152 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "nemotron-3-nano-30b-a3b-vllm-single"
-  },
-  "version": "2.0.5",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "2.0.5",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "6b517e21f36f4a204be0a2b2d387db53dd509a7410a65e8f14cdf879c7742b55",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
           "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
         }
-      ]
+      ],
+      "recipe_content_sha256": "147a51ffa5bcff51835a9d9151402142bef7dc25142548e5ba12dd894cf3a00c",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.5"
     },
     {
-      "version": "2.0.4",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "b7c882ce34b171cd810b7843d584cf1ec22079458f5217e4eef18491cf7d384d",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
+      ],
+      "recipe_content_sha256": "b7c882ce34b171cd810b7843d584cf1ec22079458f5217e4eef18491cf7d384d",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "metadata-only",
+      "version": "2.0.4"
     },
     {
-      "version": "2.0.3",
-      "released_at": "2026-08-30",
+      "changes": [
+        {
+          "details": "Nemotron 3.5 Lightning is now the preferred default for new text deployments; this immutable Nano contract remains available for reproducibility.",
+          "kind": "metadata",
+          "summary": "Marked Nemotron 3 Nano as a superseded but still installable historical text profile."
+        }
+      ],
       "recipe_content_sha256": "fadadffcff1fda26e64d0a52f89765c24b94185b7bb2a83d465bed24dc20531f",
+      "released_at": "2026-08-30",
       "upgrade_effect": "metadata-only",
-      "changes": [
-        {
-          "kind": "metadata",
-          "summary": "Marked Nemotron 3 Nano as a superseded but still installable historical text profile.",
-          "details": "Nemotron 3.5 Lightning is now the preferred default for new text deployments; this immutable Nano contract remains available for reproducibility."
-        }
-      ]
+      "version": "2.0.3"
     },
     {
-      "version": "2.0.2",
-      "released_at": "2026-08-26",
+      "changes": [
+        {
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+          "kind": "metadata",
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+        }
+      ],
       "recipe_content_sha256": "c3e77691e3a5ddc1dc857a7382bb0b187a15c06ad9cd4b8e440d3960f35e9cef",
+      "released_at": "2026-08-26",
       "upgrade_effect": "metadata-only",
-      "changes": [
-        {
-          "kind": "metadata",
-          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
-          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
-        }
-      ]
+      "version": "2.0.2"
     },
     {
-      "version": "2.0.1",
-      "released_at": "2026-08-24",
-      "recipe_content_sha256": "8e06c376dd5c7119f6184441915f6679f34808d7507eb51276c6428196cfc425",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
-          "kind": "metadata",
-          "summary": "Corrected the vLLM 0.20.0 authority description and pinned drift monitoring to the immutable v0.20.0 tag.",
           "details": "The runtime image, source commit, dependency closure, adapter, and launch arguments are unchanged; only authority metadata and its resulting content digest changed.",
+          "kind": "metadata",
           "references": [
             "https://github.com/vllm-project/vllm/releases/tag/v0.20.0"
-          ]
+          ],
+          "summary": "Corrected the vLLM 0.20.0 authority description and pinned drift monitoring to the immutable v0.20.0 tag."
         }
-      ]
+      ],
+      "recipe_content_sha256": "8e06c376dd5c7119f6184441915f6679f34808d7507eb51276c6428196cfc425",
+      "released_at": "2026-08-24",
+      "upgrade_effect": "metadata-only",
+      "version": "2.0.1"
     },
     {
-      "version": "2.0.0",
-      "released_at": "2026-08-24",
-      "recipe_content_sha256": "f032855409ac405f54ba35a002a779e03d5fedcacff494ed98b843e5d9d6e97a",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "runtime",
-          "summary": "Made reasoning serving executable by binding the pinned nano_v3 plugin from the model snapshot and NVIDIA's immutable vLLM 0.20.0 ARM64 runtime.",
           "details": "The launch now follows NVIDIA's 256K-context, FP8-KV, FlashInfer-NVFP4 contract with no startup download or unresolved parser dependency.",
+          "kind": "runtime",
           "references": [
             "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4/tree/ce1b118ae66ec705d02c241525192832eb045fd3",
             "https://github.com/vllm-project/vllm/releases/tag/v0.20.0"
-          ]
+          ],
+          "summary": "Made reasoning serving executable by binding the pinned nano_v3 plugin from the model snapshot and NVIDIA's immutable vLLM 0.20.0 ARM64 runtime."
         }
-      ]
+      ],
+      "recipe_content_sha256": "f032855409ac405f54ba35a002a779e03d5fedcacff494ed98b843e5d9d6e97a",
+      "released_at": "2026-08-24",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.0"
     },
     {
-      "version": "1.1.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "84405b61e9215b5735b57d884ca76fbed7f205a1a7ddb6d520ecb76520eb09c1",
-      "upgrade_effect": "restart",
       "changes": [
         {
           "kind": "fix",
-          "summary": "Applied FP8 KV and FlashInfer NVFP4 MoE settings and recorded the unsupported snapshot-pinned nano_v3 parser requirement.",
           "references": [
             "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4/tree/ce1b118ae66ec705d02c241525192832eb045fd3"
-          ]
+          ],
+          "summary": "Applied FP8 KV and FlashInfer NVFP4 MoE settings and recorded the unsupported snapshot-pinned nano_v3 parser requirement."
         }
-      ]
+      ],
+      "recipe_content_sha256": "84405b61e9215b5735b57d884ca76fbed7f205a1a7ddb6d520ecb76520eb09c1",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "restart",
+      "version": "1.1.0"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "4ff062ebd5d5e5bc767af23d6209800dc948451f0db959eb917b3edd886045bf",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
           "summary": "Initial reviewed catalog release of Nemotron 3 Nano 30B-A3B NVFP4 vLLM single Spark."
         }
-      ]
+      ],
+      "recipe_content_sha256": "4ff062ebd5d5e5bc767af23d6209800dc948451f0db959eb917b3edd886045bf",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     },
     {
-      "version": "0.2.0",
-      "released_at": "2026-08-16",
-      "recipe_content_sha256": "853efaff26a47545443fe7e20c8a76569ad318bc78df2b4846d2c9dd26132416",
-      "upgrade_effect": "restart",
       "changes": [
         {
           "kind": "fix",
-          "summary": "Aligned the legacy Nemotron candidate with the vLLM execution harness.",
           "references": [
             "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/6b6bfecef687233939a7c6036cf755e17aeacd74"
-          ]
+          ],
+          "summary": "Aligned the legacy Nemotron candidate with the vLLM execution harness."
         }
-      ]
+      ],
+      "recipe_content_sha256": "853efaff26a47545443fe7e20c8a76569ad318bc78df2b4846d2c9dd26132416",
+      "released_at": "2026-08-16",
+      "upgrade_effect": "restart",
+      "version": "0.2.0"
     },
     {
-      "version": "0.1.0",
-      "released_at": "2026-08-16",
-      "recipe_content_sha256": "2225195ce801473bd9469421afbf30e0ccb9a02157b7ab7485e02dee3e0416ff",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
-          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
           "references": [
             "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/47944c8a69ae12d157a63c3a82df9c39b65be1ff"
-          ]
+          ],
+          "summary": "Recovered the first public legacy revision from before semantic release tracking."
         }
-      ]
+      ],
+      "recipe_content_sha256": "2225195ce801473bd9469421afbf30e0ccb9a02157b7ab7485e02dee3e0416ff",
+      "released_at": "2026-08-16",
+      "upgrade_effect": "reinstall",
+      "version": "0.1.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-nano-30b-a3b-vllm-single"
+  },
+  "released_at": "2026-09-03",
+  "schema_version": 1,
+  "version": "2.0.5"
 }
