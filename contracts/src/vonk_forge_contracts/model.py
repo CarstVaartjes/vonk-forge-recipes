@@ -96,7 +96,7 @@ class ModelFile(_ModelContract):
     id: StrictStr = Field(min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]{0,63}$")
     path: StrictStr = Field(min_length=1, max_length=512)
     sha256: Sha256
-    size_bytes: StrictInt = Field(ge=0)
+    size_bytes: StrictInt = Field(ge=1)
     roles: list[Annotated[StrictStr, Field(pattern=_TOKEN)]] = Field(min_length=1, max_length=16)
 
     @field_validator("path")

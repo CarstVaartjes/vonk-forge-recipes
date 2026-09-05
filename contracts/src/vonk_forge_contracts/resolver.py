@@ -52,7 +52,7 @@ def validate_recipe_models(recipe: RecipeDefinition, models: Iterable[ModelDefin
 
 
 def validate_recipe_package_paths(recipe: RecipeDefinition, package_paths: Iterable[str]) -> None:
-    """Ensure filesystem job fixtures and slot bindings are in the package closure."""
+    """Ensure build sources and filesystem job fixtures are in the package closure."""
 
     paths = set(package_paths)
     if recipe.execution.mode == "build":

@@ -37,6 +37,8 @@ def test_examples_validate_against_the_two_roots_and_generated_schemas() -> None
     recipe = load("recipe-image.json")
     parsed_model = ModelDefinition.model_validate(model)
     parsed_recipe = RecipeDefinition.model_validate(recipe)
+    for name in ("recipe-image.json", "recipe-source-build.json", "recipe-job.json", "recipe-dual.json"):
+        validate_recipe_models(RecipeDefinition.model_validate(load(name)), [parsed_model])
     Draft202012Validator(model_json_schema()).validate(model)
     Draft202012Validator(recipe_json_schema()).validate(recipe)
     assert parsed_model.kind == "model"

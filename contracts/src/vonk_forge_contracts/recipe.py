@@ -30,7 +30,7 @@ AbsolutePath = Annotated[StrictStr, Field(max_length=256, pattern=rf"^/{_SEGMENT
 RelativePath = Annotated[StrictStr, Field(max_length=256, pattern=rf"^{_SEGMENT}(?:/{_SEGMENT})*$")]
 Scalar = StrictStr | StrictInt | StrictBool
 JsonValue = TypeAliasType("JsonValue", Scalar | None | list["JsonValue"] | dict[StrictStr, "JsonValue"])
-ChangeEffect = Literal["none", "restart", "reinstall", "rebuild", "reprepare"]
+ChangeEffect = Literal["none", "restart", "reprepare", "rebuild"]
 
 
 class RecipeReference(_RecipeContract):
@@ -96,11 +96,6 @@ class BuildArgument(_RecipeContract):
 class BuildNetwork(_RecipeContract):
     mode: Literal["none", "public"]
     hosts: list[StrictStr] = Field(max_length=64)
-
-
-class BuildMetadata(_RecipeContract):
-    name: StrictStr = Field(min_length=1, max_length=128)
-    value: StrictStr = Field(max_length=1024)
 
 
 class RecipeBuildDefinition(_RecipeContract):
@@ -182,21 +177,6 @@ class RecipeRuntimeEnvironment(_RecipeContract):
         if (self.value is None) == (self.secret is None):
             raise ValueError("exactly one of value or secret is required")
         return self
-
-
-class RecipeRuntimeMount(_RecipeContract):
-    source: Identifier
-    target: AbsolutePath
-    read_only: StrictBool
-
-
-class RecipeRuntimeSecurity(_RecipeContract):
-    devices: list[Literal["nvidia.com/gpu=all"]] = Field(max_length=8)
-    capabilities: list[StrictStr] = Field(max_length=0)
-    host_network: StrictBool
-    privileged: Literal[False]
-    user: StrictStr = Field(max_length=21, pattern=r"^[1-9][0-9]*:[1-9][0-9]*$")
-    mounts: list[RecipeRuntimeMount] = Field(min_length=1, max_length=32)
 
 
 class RecipeReadiness(_RecipeContract):

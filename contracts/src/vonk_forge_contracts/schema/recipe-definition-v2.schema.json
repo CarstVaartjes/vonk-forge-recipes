@@ -683,9 +683,8 @@
           "enum": [
             "none",
             "restart",
-            "reinstall",
-            "rebuild",
-            "reprepare"
+            "reprepare",
+            "rebuild"
           ],
           "title": "Change Effect",
           "type": "string"
@@ -1635,9 +1634,8 @@
           "enum": [
             "none",
             "restart",
-            "reinstall",
-            "rebuild",
-            "reprepare"
+            "reprepare",
+            "rebuild"
           ],
           "title": "Change Effect",
           "type": "string"
