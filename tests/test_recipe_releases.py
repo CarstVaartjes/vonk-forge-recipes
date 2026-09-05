@@ -237,8 +237,8 @@ class RecipeReleaseBuildTests(unittest.TestCase):
             recipe = self.recipe_fixture(root)
             (recipes / "demo.json").write_text(json.dumps(recipe), encoding="utf-8")
 
-            with self.assertRaisesRegex(SystemExit, "recipe contract validation failed"):
-                catalog_index.build()
+            with self.assertRaisesRegex(SystemExit, "recipe release is missing"):
+                catalog_index.build(source_commit="a" * 40)
 
     def test_build_rejects_orphan_sidecar(self) -> None:
         with isolated_root() as root:
@@ -246,16 +246,20 @@ class RecipeReleaseBuildTests(unittest.TestCase):
             recipes.mkdir()
             recipe = self.recipe_fixture(root)
             (recipes / "demo.json").write_text(json.dumps(recipe), encoding="utf-8")
-            digest = hashlib.sha256(catalog_index.canonical(recipe)).hexdigest()
+            from vonk_forge_contracts import RecipeDefinition, content_sha256
+
+            digest = content_sha256(RecipeDefinition.model_validate(recipe))
             release = release_document()
             release["history"][0]["recipe_content_sha256"] = digest
+            release["version"] = release["history"][0]["version"]
+            release["released_at"] = release["history"][0]["released_at"]
             write_release(root, release)
             (root / "recipe-releases/orphan.json").write_text(
                 json.dumps(release), encoding="utf-8"
             )
 
-            with self.assertRaisesRegex(SystemExit, "recipe contract validation failed"):
-                catalog_index.build()
+            with self.assertRaisesRegex(SystemExit, "orphan recipe release"):
+                catalog_index.build(source_commit="a" * 40)
 
 
 if __name__ == "__main__":

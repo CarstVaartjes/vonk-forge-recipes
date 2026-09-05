@@ -14,6 +14,8 @@ from types import SimpleNamespace
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import ModelDefinition, content_sha256  # noqa: E402
 ADAPTER = ROOT / "adapters/video/wan-dancer-native"
 RECIPE = ROOT / "recipes/wan-dancer-14b-pytorch-single.json"
 RUNTIME = ROOT / "runtime-distributions/wan-dancer-native-e6c87a9-cuda13-arm64.json"
@@ -23,8 +25,7 @@ ARCHIVE_SHA256 = "92c529d7727c75c6515ea990d27883a45bf566587cc9f5d325a0a488b9fa16
 
 def canonical_digest(path: Path) -> str:
     document = json.loads(path.read_text(encoding="utf-8"))
-    payload = json.dumps(document, sort_keys=True, separators=(",", ":")).encode()
-    return hashlib.sha256(payload).hexdigest()
+    return content_sha256(ModelDefinition.model_validate(document))
 
 
 def load_runner():
