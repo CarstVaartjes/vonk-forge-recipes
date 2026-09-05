@@ -164,6 +164,22 @@
       {
         "changes": [
           {
+            "details": "The Comfy-Org Qwen Image Edit snapshot moved from 4c7c4ea2 to 984166f6 and adds or changes weight artifacts. The exact fp8mixed snapshot is retained until the changed artifact manifest is rehashed and the workflow is requalified.",
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/984166f60a9b1fcede5e9b9287b7a7aebc050010"
+            ],
+            "summary": "Record Qwen Image Edit artifact drift; retain the exact fp8mixed snapshot."
+          }
+        ],
+        "prior_recipe_content_sha256": "71eb15eec5154bb5aac47acba7d0e9c836df5314e8b5c9d20d0a21d31e120394",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.7"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -267,7 +283,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "1.0.6"
+    "version": "1.0.7"
   },
   "runtime": {
     "arguments": [

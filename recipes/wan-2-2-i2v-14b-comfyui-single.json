@@ -198,6 +198,22 @@
       {
         "changes": [
           {
+            "details": "ComfyUI moved from 12d52794 to 250b2e95; the upstream range changes core runtime and WAN nodes. The exact Wan 2.2 workflow and model snapshot remain unchanged, so the specialized pin is retained pending focused build and serving qualification.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+            ],
+            "summary": "Record ComfyUI upstream drift; retain the qualified source pin."
+          }
+        ],
+        "prior_recipe_content_sha256": "236984fbae3174660bf5ccc679cd4de6a21c41e7724fe563466638c43f953fd3",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.10"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -342,7 +358,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "1.0.9"
+    "version": "1.0.10"
   },
   "runtime": {
     "arguments": [

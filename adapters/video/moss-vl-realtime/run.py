@@ -279,7 +279,7 @@ def main() -> None:
 
     try:
         session.start()
-        record("session-start", model_revision="06b067617677661194cf837970fe3a10f1a0e56d")
+        record("session-start", model_revision="25e81cb952d5f353a5690f2c1ea09a725815df80")
         for event_index, event in enumerate(events):
             due = event["at_seconds"] / playback_speed
             while True:

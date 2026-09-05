@@ -456,6 +456,22 @@
       {
         "changes": [
           {
+            "details": "Diffusers moved from d035dcd7 to c5469b7c and includes runtime changes across pipelines and loading paths. The exact Qwen Image 2512 checkpoint and adapter remain pinned until focused ARM64 build and serving checks cover the range.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+            ],
+            "summary": "Record Diffusers upstream drift; retain the Qwen Image source pin."
+          }
+        ],
+        "prior_recipe_content_sha256": "90cf88b478a95574a5fb142ac11d3e08b48c97e138f4029f590da9ad6305a64f",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.2.6"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -599,7 +615,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "1.2.5"
+    "version": "1.2.6"
   },
   "runtime": {
     "arguments": [
