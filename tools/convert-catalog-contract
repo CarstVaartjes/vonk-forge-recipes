@@ -109,12 +109,32 @@ def model_document(version: dict[str, Any], model: dict[str, Any], group: dict[s
             "version": version["version"], "variant": version["metadata"]["title"],
         },
         "metadata": {"description": version["metadata"]["description"], "tags": version["metadata"].get("tags", [])[:20]},
+        "access": version["access"],
+        "lineage": {
+            "publisher": version["lineage"]["publisher"],
+            "relation": version["lineage"]["relation"],
+            "source_model": {
+                "kind": "model",
+                "publisher": version["lineage"]["source_model"]["publisher"],
+                "slug": version["lineage"]["source_model"]["slug"],
+            },
+            "derivation": version["lineage"]["derivation"],
+        },
+        "dependencies": [],
+        "supersedes": None,
         "modalities": modalities(version, model),
         "source": {"repository": source["repository"], "revision": source["revision"]},
         "format": {"container": version["format"]["container"], "precision": version["format"]["precision"], "quantization": version["format"]["quantization"]},
         "parameters": version.get("parameters", {"total": None, "active": None}),
         "limits": {key: version.get("limits", {}).get(key) for key in ("context_tokens", "resolution_pixels", "frames", "sample_rate_hz")},
-        "license": {"spdx": version["license"]["spdx"], "url": version["license"]["url"], "attribution": version["license"].get("attribution", []), "operator_acceptance_required": version["license"].get("operator_acceptance_required", False)}, "files": artifacts,
+        "license": {
+            "spdx": version["license"]["spdx"],
+            "url": version["license"]["url"],
+            "attribution": version["license"].get("attribution", []),
+            "operator_acceptance_required": version["license"].get("operator_acceptance_required", False),
+            **({"territorial_restrictions": version["license"]["territorial_restrictions"]}
+               if version["license"].get("territorial_restrictions") is not None else {}),
+        }, "files": artifacts,
         "capabilities": capabilities,
         "provenance": {
             "source_url": source["repository"], "source_revision": source["revision"],
@@ -247,7 +267,7 @@ def recipe_serving(recipe: dict[str, Any], interface: dict[str, Any]) -> tuple[d
     return {"interface": adapter, "checks": [{"name": "job-output", "kind": f"{adapter}.output", "request": request, "assertions": ["inference.completed", "artifact.output"]}]}, [*input_slots.values()]
 
 
-def recipe_document(old: dict[str, Any], versions: dict[str, dict[str, Any]], models: dict[str, dict[str, Any]], groups: dict[str, dict[str, Any]]) -> tuple[dict[str, Any] | None, list[str]]:
+def recipe_document(old: dict[str, Any], versions: dict[str, dict[str, Any]], models: dict[str, dict[str, Any]], groups: dict[str, dict[str, Any]], candidate_models: dict[str, dict[str, Any]] | None = None) -> tuple[dict[str, Any] | None, list[str]]:
     blockers: list[str] = []
     refs = model_refs(old)
     selections: list[dict[str, Any]] = []
@@ -268,7 +288,7 @@ def recipe_document(old: dict[str, Any], versions: dict[str, dict[str, Any]], mo
         if group is None:
             blockers.append(f"missing model-group {group_slug}")
             continue
-        model_doc = model_document(version, model, group)
+        model_doc = (candidate_models or {}).get(slug) or model_document(version, model, group)
         try:
             model_digest = content_sha256(ModelDefinition.model_validate(model_doc))
         except Exception as error:
@@ -385,11 +405,37 @@ def convert(apply: bool = False) -> dict[str, Any]:
             report["models_converted"] += 1
         except Exception as error:
             report["blockers"][f"model:{slug}"] = str(error)
+    model_by_identity = {
+        (document["identity"]["publisher"], document["identity"]["slug"]): document
+        for document in candidate_models.values()
+    }
+    for slug, candidate in candidate_models.items():
+        version = versions[slug]
+        refs = []
+        for dependency in version.get("dependencies", []):
+            target = model_by_identity.get((dependency["publisher"], dependency["slug"]))
+            if target is None:
+                report["blockers"][f"model:{slug}"] = f"dependency model is missing: {dependency['publisher']}/{dependency['slug']}"
+                continue
+            refs.append({"kind": "model", "publisher": target["identity"]["publisher"], "slug": target["identity"]["slug"], "content_sha256": content_sha256(ModelDefinition.model_validate(target))})
+        candidate["dependencies"] = refs
+        supersedes = version.get("supersedes")
+        if supersedes:
+            target = model_by_identity.get((supersedes["publisher"], supersedes["slug"]))
+            if target is None:
+                report["blockers"][f"model:{slug}"] = f"superseded model is missing: {supersedes['publisher']}/{supersedes['slug']}"
+            else:
+                candidate["supersedes"] = {"kind": "model", "publisher": target["identity"]["publisher"], "slug": target["identity"]["slug"], "content_sha256": content_sha256(ModelDefinition.model_validate(target))}
+        try:
+            ModelDefinition.model_validate(candidate)
+        except Exception as error:
+            report["blockers"][f"model:{slug}"] = str(error)
+
     recipes = []
     for path in sorted((ROOT / "recipes").glob("*.json")):
         report["recipes_total"] += 1
         old = read(path)
-        document, extra = recipe_document(old, versions, models, groups)
+        document, extra = recipe_document(old, versions, models, groups, candidate_models)
         if document is None:
             report["blockers"][f"recipe:{path.stem}"] = extra
             continue

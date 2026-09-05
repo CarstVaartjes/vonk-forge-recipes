@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [],
     "provenance": {
@@ -8,6 +13,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "metadata-gitattributes",
@@ -101,6 +107,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Official NVIDIA six-layer Qwen3DSparkModel companion trained for speculative decoding against Nemotron 3.5 Lightning.",
+    "publisher": "nvidia",
+    "relation": "derived",
+    "source_model": {
+      "kind": "model",
+      "publisher": "nvidia",
+      "slug": "nemotron-3-5-lightning-30b-a3b"
+    }
+  },
   "metadata": {
     "description": "Official NVIDIA six-layer DSpark speculative-decoding companion for the exact Nemotron 3.5 Lightning 30B-A3B NVFP4 target.",
     "tags": [
@@ -133,5 +149,6 @@
   "source": {
     "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark",
     "revision": "d10c6ff40d6e69d1f92e407e027de3eafdb77645"
-  }
+  },
+  "supersedes": null
 }

@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -27,6 +32,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "metadata-fe81d528e7ee",
@@ -1345,6 +1351,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Official upstream checkpoint at the pinned revision.",
+    "publisher": "quanttrio",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "quanttrio",
+      "slug": "glm-5-2-int4-int8mix"
+    }
+  },
   "metadata": {
     "description": "Exact public GLM 5.2 Int4 Int8Mix checkpoint.",
     "tags": [
@@ -1374,5 +1390,6 @@
   "source": {
     "repository": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix",
     "revision": "1d3bcfe5ec549ecd000fd80b37f191183842e983"
-  }
+  },
+  "supersedes": null
 }

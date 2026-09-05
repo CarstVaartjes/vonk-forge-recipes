@@ -129,7 +129,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "01fd88dd7ca83ecc656c3d67ca5eac896a8f5767782cfbe4b85253d28d1da142",
+        "content_sha256": "2a2c5ab050deb4373a02013cd01ed94268240b702fa13691fa0d21a64716edc9",
         "kind": "model",
         "publisher": "microsoft",
         "slug": "trellis-2-4b"

@@ -943,7 +943,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1104edecdaeaf2722300b76c8f0e78a56f685ee285e374270adaf84789a6dd4f",
+        "content_sha256": "57ec8e1313e745e466e3707e81ee608e0025257126faabfc45252b8edf972fdf",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-flash-0731-official"

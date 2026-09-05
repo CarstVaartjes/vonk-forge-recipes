@@ -452,7 +452,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d9a3e5b88f2b474df22ec2c688f468ff745b8e053c81ae5f599ae6645120845e",
+        "content_sha256": "d3311444a9ef601e113c36063232145eac5f940edc914c861260174479e8c467",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-super-120b-a12b-nvfp4"
@@ -540,7 +540,7 @@
       ],
       "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2",
       "model": {
-        "content_sha256": "2fbd1b99640c163c8697d9b6a2105e810df6e7469807546495d425b95df90118",
+        "content_sha256": "26311f02294750b06ed1fb59ad94d61e47d27c79b19a7bf2b8594863692a7d5a",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-super-120b-a12b-bf16-mtpv2"

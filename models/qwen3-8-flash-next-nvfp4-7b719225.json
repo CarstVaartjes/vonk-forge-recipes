@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -39,6 +44,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "metadata-fe81d528e7ee",
@@ -3850,6 +3856,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Official upstream checkpoint at the pinned revision.",
+    "publisher": "radixark",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "radixark",
+      "slug": "qwen3-8-flash-next-nvfp4"
+    }
+  },
   "metadata": {
     "description": "Exact public Qwen3.8 Flash Next NVFP4 7b719225 checkpoint.",
     "tags": [
@@ -3881,5 +3897,6 @@
   "source": {
     "repository": "https://huggingface.co/RadixArk/Qwen3.8-Flash-Next-NVFP4",
     "revision": "7b719225242aacd3dbd3f9407468c2ee9a9d2594"
-  }
+  },
+  "supersedes": null
 }
