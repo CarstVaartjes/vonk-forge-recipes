@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import ModelDefinition, content_sha256  # noqa: E402
 
 
 def read(path: Path) -> dict[str, object]:
@@ -46,7 +49,7 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
                 self.assertEqual(recipe["runtime"]["engine"], "comfyui")
                 for selection in recipe["models"]:
                     model = read(ROOT / "models" / f"{selection['model']['slug']}.json")  # type: ignore[index]
-                    canonical = hashlib.sha256(json.dumps(model, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+                    canonical = content_sha256(ModelDefinition.model_validate(model))
                     self.assertEqual(selection["model"]["content_sha256"], canonical)  # type: ignore[index]
 
 

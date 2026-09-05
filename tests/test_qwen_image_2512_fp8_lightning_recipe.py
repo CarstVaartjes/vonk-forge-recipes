@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import ModelDefinition, content_sha256  # noqa: E402
 
 
 def read(path: Path) -> dict[str, object]:
@@ -13,7 +16,7 @@ def read(path: Path) -> dict[str, object]:
 
 
 def digest(value: dict[str, object]) -> str:
-    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    return content_sha256(ModelDefinition.model_validate(value))
 
 
 class QwenImage2512FP8LightningRecipeTests(unittest.TestCase):

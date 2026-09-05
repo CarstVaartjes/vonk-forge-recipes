@@ -4,11 +4,14 @@ import hashlib
 import json
 import runpy
 import subprocess
+import sys
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256  # noqa: E402
 ADAPTER_ROOT = ROOT / "adapters/deepseek/sparkinfer-single"
 MODEL_PATH = ROOT / "models/deepseek-v4-flash-0731-sparkinfer-exl3-k216.json"
 RECIPE_PATH = ROOT / "recipes/deepseek-v4-flash-0731-sparkinfer-single.json"
@@ -24,14 +27,8 @@ def _document(path: Path) -> dict[str, object]:
 
 
 def _canonical_digest(path: Path) -> str:
-    payload = json.dumps(
-        _document(path),
-        ensure_ascii=False,
-        allow_nan=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode()
-    return hashlib.sha256(payload).hexdigest()
+    contract = ModelDefinition if path.parent.name == "models" else RecipeDefinition
+    return content_sha256(contract.model_validate(_document(path)))
 
 
 class SparkInferSingleRecipeTests(unittest.TestCase):

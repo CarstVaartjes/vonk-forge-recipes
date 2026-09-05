@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import ModelDefinition, content_sha256  # noqa: E402
 SUPER_RECIPE = ROOT / "recipes/nemotron-3-super-120b-a12b-vllm-single.json"
 FLASH_RECIPE = ROOT / "recipes/nvidia-qwen-image-flash-diffusers-single.json"
 
@@ -15,7 +18,7 @@ def read(path: Path) -> dict[str, object]:
 
 
 def digest(document: dict[str, object]) -> str:
-    return hashlib.sha256(json.dumps(document, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    return content_sha256(ModelDefinition.model_validate(document))
 
 
 def model_for(recipe: dict[str, object], index: int = 0) -> dict[str, object]:

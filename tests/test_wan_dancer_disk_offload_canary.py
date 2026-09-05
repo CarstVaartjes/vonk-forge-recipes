@@ -14,6 +14,8 @@ from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import ModelDefinition, content_sha256  # noqa: E402
 ADAPTER = ROOT / "adapters/video/wan-dancer-diffsynth-disk"
 RECIPE = ROOT / "recipes/wan-dancer-14b-disk-offload-pytorch-single.json"
 ORIGINAL_RECIPE = ROOT / "recipes/wan-dancer-14b-pytorch-single.json"
@@ -30,9 +32,7 @@ ARCHIVE_SHA256 = "5f0dfef5351341613e2c8ba96806bddb576e5e1f44aaa104c5d5c388cf44bc
 
 
 def canonical_digest(path: Path) -> str:
-    document = json.loads(path.read_text(encoding="utf-8"))
-    payload = json.dumps(document, sort_keys=True, separators=(",", ":")).encode()
-    return hashlib.sha256(payload).hexdigest()
+    return content_sha256(ModelDefinition.model_validate(json.loads(path.read_text(encoding="utf-8"))))
 
 
 def load_module(filename: str, name: str):

@@ -11,6 +11,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import ModelDefinition, content_sha256  # noqa: E402
 MODEL = ROOT / "models/ui-mate-27b-3ade2378.json"
 RECIPE = ROOT / "recipes/ui-mate-27b-vllm-single.json"
 ADAPTER = ROOT / "adapters/llm/ui-mate-vllm"
@@ -24,15 +26,7 @@ def _read(path: Path) -> dict[str, object]:
 
 
 def _canonical_digest(path: Path) -> str:
-    return hashlib.sha256(
-        json.dumps(
-            _read(path),
-            ensure_ascii=False,
-            allow_nan=False,
-            sort_keys=True,
-            separators=(",", ":"),
-        ).encode("utf-8")
-    ).hexdigest()
+    return content_sha256(ModelDefinition.model_validate(_read(path)))
 
 
 def _sha256(path: Path) -> str:
