@@ -3,7 +3,7 @@
 This adapter uses the official gated `Lightricks/LTX-2.5-Diffusers`
 repository at commit `426936f8b22dc28e4def61e515478b0b7e4a53cc` and the pinned
 Diffusers layerwise-casting implementation at
-`d035dcd7cc7c88e0a154609b62887d50bba9fdc2`. It is a physical canary,
+`c5469b7ceb606edd7ba6570dcd17d38590a18db6`. It is a physical canary,
 not an accepted recipe.
 
 ## Required before build and installation

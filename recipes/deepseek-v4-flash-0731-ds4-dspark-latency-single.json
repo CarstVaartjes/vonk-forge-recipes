@@ -95,10 +95,27 @@
       "Salvatore Sanfilippo (antirez)"
     ],
     "source_kind": "global",
-    "source_reference": "https://github.com/antirez/ds4/tree/c1d4597a80e300b803dc642519718f2c999589da"
+    "source_reference": "https://github.com/antirez/ds4/tree/f4d03f6cf9f11c1e7b630bcb160853acfba7c52a"
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "Rebuilt from the shared vendored DS4 CUDA Spark source archive at f4d03f6cf9f11c1e7b630bcb160853acfba7c52a (archive SHA-256 d7964a627d4f4ed490a5f20704fff7e4021398289a941ffe292ac28dfcb46d37). The non-batched DSpark latency profile and its target/drafter contract remain unchanged; a physical Spark build and latency canary remain unverified.",
+            "kind": "runtime",
+            "references": [
+              "https://github.com/antirez/ds4/compare/c1d4597a80e300b803dc642519718f2c999589da...f4d03f6cf9f11c1e7b630bcb160853acfba7c52a",
+              "https://github.com/antirez/ds4/tree/f4d03f6cf9f11c1e7b630bcb160853acfba7c52a"
+            ],
+            "summary": "Advance the shared DS4 CUDA Spark source for the DSpark latency profile."
+          }
+        ],
+        "prior_recipe_content_sha256": "53909785a52b26ece6006858ffc961b5c037bfb9471a2a3305419ce4623f88e9",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.3"
+      },
       {
         "changes": [
           {
@@ -202,8 +219,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "1.2.2"
+    "released_at": "2026-09-05",
+    "version": "1.2.3"
   },
   "runtime": {
     "arguments": [

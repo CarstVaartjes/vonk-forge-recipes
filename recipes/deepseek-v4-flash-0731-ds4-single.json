@@ -84,10 +84,27 @@
       "Salvatore Sanfilippo (antirez)"
     ],
     "source_kind": "global",
-    "source_reference": "https://github.com/antirez/ds4/tree/c1d4597a80e300b803dc642519718f2c999589da"
+    "source_reference": "https://github.com/antirez/ds4/tree/f4d03f6cf9f11c1e7b630bcb160853acfba7c52a"
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "Rebuilt the vendored CUDA Spark source archive at f4d03f6cf9f11c1e7b630bcb160853acfba7c52a (archive SHA-256 d7964a627d4f4ed490a5f20704fff7e4021398289a941ffe292ac28dfcb46d37). The source keeps the make cuda-spark target and the recipe's GGUF target/runtime contract; the upstream revision also contains backend and vision work outside this target-only profile, so no performance or model-quality claim is made. A physical Spark build and two-session canary remain unverified.",
+            "kind": "runtime",
+            "references": [
+              "https://github.com/antirez/ds4/compare/c1d4597a80e300b803dc642519718f2c999589da...f4d03f6cf9f11c1e7b630bcb160853acfba7c52a",
+              "https://github.com/antirez/ds4/tree/f4d03f6cf9f11c1e7b630bcb160853acfba7c52a"
+            ],
+            "summary": "Advance the vendored DS4 CUDA Spark source to the current verified upstream revision."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "rebuild",
+        "version": "2.1.0"
+      },
       {
         "changes": [
           {
@@ -211,8 +228,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "2.0.4"
+    "released_at": "2026-09-05",
+    "version": "2.1.0"
   },
   "runtime": {
     "arguments": [

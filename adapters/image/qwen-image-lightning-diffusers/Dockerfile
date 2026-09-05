@@ -3,7 +3,7 @@ FROM nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:36050649ad1acc5d3de2c
 LABEL org.opencontainers.image.source="https://github.com/ModelTC/Qwen-Image-Lightning" \
       org.opencontainers.image.revision="25d1e9935ba97e1f60503f8c000201e08b1fe8f4" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      io.vonk.diffusers.revision="d035dcd7cc7c88e0a154609b62887d50bba9fdc2"
+      io.vonk.diffusers.revision="c5469b7ceb606edd7ba6570dcd17d38590a18db6"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -21,7 +21,7 @@ RUN apt-get update \
         torch==2.13.0 \
         torchvision==0.28.0 \
     && python3 -m pip install --break-system-packages --no-cache-dir \
-        "diffusers @ git+https://github.com/huggingface/diffusers.git@d035dcd7cc7c88e0a154609b62887d50bba9fdc2" \
+        "diffusers @ git+https://github.com/huggingface/diffusers.git@c5469b7ceb606edd7ba6570dcd17d38590a18db6" \
         accelerate==1.14.0 \
         Pillow==12.3.0 \
         safetensors==0.8.0 \

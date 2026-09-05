@@ -536,17 +536,18 @@
       {
         "changes": [
           {
-            "details": "Diffusers moved from d035dcd7 to c5469b7c and includes runtime changes across pipelines and loading paths. The exact Qwen Image Edit 2511 checkpoint and adapter remain pinned until focused ARM64 build and serving checks cover the range.",
+            "details": "The current Diffusers source preserves the Qwen pipeline call surface used by this adapter; the selected prompt/image/layer arguments remain accepted without changing model files or recipe settings.",
             "kind": "compatibility",
             "references": [
-              "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+              "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+              "https://github.com/huggingface/diffusers/tree/c5469b7ceb606edd7ba6570dcd17d38590a18db6/src/diffusers"
             ],
-            "summary": "Record Diffusers upstream drift; retain the Qwen Image Edit source pin."
+            "summary": "Rebuilt the Diffusers media adapter at upstream commit c5469b7ceb60."
           }
         ],
-        "prior_recipe_content_sha256": "8a2e39e5c721878f0b9d25a8b1fc67ec6f5ebe94cb9d13e0a62a11070c65164b",
+        "prior_recipe_content_sha256": "d0f6419ce274c141d30ea263d3a2d624b0bb374fb71cc145e3a943c1997aa1a2",
         "released_at": "2026-09-05",
-        "upgrade_effect": "none",
+        "upgrade_effect": "rebuild",
         "version": "1.1.7"
       },
       {

@@ -3,7 +3,7 @@ FROM nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:36050649ad1acc5d3de2c
 LABEL org.opencontainers.image.source="https://huggingface.co/Lightricks/LTX-2.5-Diffusers" \
       org.opencontainers.image.revision="426936f8b22dc28e4def61e515478b0b7e4a53cc" \
       org.opencontainers.image.licenses="LTX-2 Community License Agreement" \
-      io.vonk.diffusers.revision="d035dcd7cc7c88e0a154609b62887d50bba9fdc2"
+      io.vonk.diffusers.revision="c5469b7ceb606edd7ba6570dcd17d38590a18db6"
 
 ENV CUBLAS_WORKSPACE_CONFIG=:4096:8 \
     DEBIAN_FRONTEND=noninteractive \
@@ -30,7 +30,7 @@ RUN apt-get update \
         torch==2.13.0 \
         torchvision==0.28.0 \
     && python3 -m pip install --break-system-packages --no-cache-dir \
-        "diffusers @ git+https://github.com/huggingface/diffusers.git@d035dcd7cc7c88e0a154609b62887d50bba9fdc2" \
+        "diffusers @ git+https://github.com/huggingface/diffusers.git@c5469b7ceb606edd7ba6570dcd17d38590a18db6" \
         accelerate==1.14.0 \
         av==18.1.0 \
         Pillow==12.3.0 \
