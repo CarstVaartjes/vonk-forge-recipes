@@ -15,11 +15,11 @@ from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha2
 ADAPTER_ROOT = ROOT / "adapters/deepseek/sparkinfer-single"
 MODEL_PATH = ROOT / "models/deepseek-v4-flash-0731-sparkinfer-exl3-k216.json"
 RECIPE_PATH = ROOT / "recipes/deepseek-v4-flash-0731-sparkinfer-single.json"
-RELEASE_PATH = ROOT / "recipe-releases/deepseek-v4-flash-0731-sparkinfer-single.json"
 MODEL_REVISION = "ce5ff0f1efb2e184aafc759d281bfae47d3a359c"
 EXECUTABLE_PAYLOAD_REVISION = "22f28d32b9b29b4352eaa380ff8c2c170b2847ab"
 RUNTIME_REVISION = "590d2172394dd83c1f36ff29f0dc9ec6032ea9e2"
 IMAGE_DIGEST = "2e077489a83a0360952828051fe7f7a32c1801e5ce8436d85f7267583d614ff4"
+SOURCE_BUNDLE_DIGEST = "1677352bcb1f338c4ab102359c0b8cab0abe76e02adac72788f20fb91e3a7908"
 
 
 def _document(path: Path) -> dict[str, object]:
@@ -29,6 +29,14 @@ def _document(path: Path) -> dict[str, object]:
 def _canonical_digest(path: Path) -> str:
     contract = ModelDefinition if path.parent.name == "models" else RecipeDefinition
     return content_sha256(contract.model_validate(_document(path)))
+
+
+def _catalog_entry(slug: str) -> dict[str, object]:
+    catalog = _document(ROOT / "catalog-index.json")
+    return next(
+        item for item in catalog["recipes"]
+        if item["document"]["identity"]["slug"] == slug
+    )
 
 
 class SparkInferSingleRecipeTests(unittest.TestCase):
@@ -45,7 +53,6 @@ class SparkInferSingleRecipeTests(unittest.TestCase):
         dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text(encoding="utf-8")
         wrapper = (ADAPTER_ROOT / "vllm-wrapper.sh").read_text(encoding="utf-8")
         recipe_text = RECIPE_PATH.read_text(encoding="utf-8")
-        release_text = RELEASE_PATH.read_text(encoding="utf-8")
 
         self.assertIn(f"@sha256:{IMAGE_DIGEST}", dockerfile)
         self.assertIn(
@@ -81,31 +88,32 @@ class SparkInferSingleRecipeTests(unittest.TestCase):
             "exit 78",
         ):
             self.assertNotIn(forbidden, recipe_text)
-        for forbidden in (
-            "non-executable",
-            "integration-required",
-            "/bin/false",
-            "exit 78",
-        ):
-            self.assertNotIn(forbidden, release_text)
+        for forbidden in ("non-executable", "integration-required", "/bin/false", "exit 78"):
+            self.assertNotIn(forbidden, recipe_text)
 
         subprocess.run(
             ["bash", "-n", str(ADAPTER_ROOT / "vllm-wrapper.sh")],
             check=True,
         )
 
-    def test_source_bundle_and_release_digests_match(self) -> None:
+    def test_source_bundle_and_package_digests_match(self) -> None:
         recipe = _document(RECIPE_PATH)
-        release = _document(RELEASE_PATH)
         index_tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
-        archive, _files, digest = index_tool["source_bundle"](ADAPTER_ROOT)
+        _archive, _files, source_digest = index_tool["source_bundle"](ADAPTER_ROOT)
         context = recipe["execution"]["build"]["context"]
         self.assertEqual(context["path"], "adapters/deepseek/sparkinfer-single")
-        self.assertRegex(digest, r"^[a-f0-9]{64}$")
+        self.assertEqual(source_digest, SOURCE_BUNDLE_DIGEST)
+        recipe_digest = _canonical_digest(RECIPE_PATH)
+        entry = _catalog_entry(recipe["identity"]["slug"])
         self.assertEqual(
-            release["history"][0]["recipe_content_sha256"],
-            _canonical_digest(RECIPE_PATH),
+            entry["content_sha256"],
+            recipe_digest,
         )
+        package = entry["package"]
+        self.assertEqual(package["recipe_content_sha256"], recipe_digest)
+        payload = (ROOT / package["path"]).read_bytes()
+        self.assertEqual(len(payload), package["expected_bytes"])
+        self.assertEqual(hashlib.sha256(payload).hexdigest(), package["sha256"])
 
 
 if __name__ == "__main__":
