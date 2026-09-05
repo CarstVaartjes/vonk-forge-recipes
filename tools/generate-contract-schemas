@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+"""Generate checked-in JSON Schemas from the two public Pydantic roots."""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import model_json_schema, recipe_json_schema
+
+
+def _write(path: Path, document: dict[str, object], check: bool) -> bool:
+    expected = json.dumps(document, indent=2, ensure_ascii=False) + "\n"
+    if check:
+        return path.is_file() and path.read_text(encoding="utf-8") == expected
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(expected, encoding="utf-8")
+    return True
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args()
+    targets = (
+        (ROOT / "contracts/src/vonk_forge_contracts/schema/model-definition-v2.schema.json", model_json_schema()),
+        (ROOT / "contracts/src/vonk_forge_contracts/schema/recipe-definition-v2.schema.json", recipe_json_schema()),
+    )
+    ok = all(_write(path, schema, args.check) for path, schema in targets)
+    if not ok:
+        print("Generated contract schema is stale; run tools/generate-contract-schemas", file=sys.stderr)
+        return 1
+    if args.check:
+        print("Contract schemas match Pydantic.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
