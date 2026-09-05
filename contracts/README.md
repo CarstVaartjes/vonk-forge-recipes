@@ -59,6 +59,6 @@ Catalog tooling and the Controller use the same validators and canonical seriali
 
 Private API, Spark execution-plan, operation-progress, build-receipt and telemetry contracts remain platform-owned. They do not add public catalog-authoring documents.
 
-## Review checkpoint
+## Release evidence
 
-The central package and examples are available for review. Consumer wiring, PostgreSQL replacement, full existing-catalog conversion and deployed runtime verification are separate work; the existence of these types does not claim those tasks are complete.
+The shared definitions describe the supported first-release contract. Catalog validation, consumer integration, publication, and physical runtime checks establish separate facts. Report the exact commits and checks used; the existence of these types alone does not prove a successful deployment or model run.

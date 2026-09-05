@@ -60,4 +60,4 @@ The repository contains definitions and build sources, not model weights or cont
 - [Contract guide](contracts/README.md): validation, package reuse and Controller integration details.
 - [Public catalog](https://vonkforge.ai/recipes): browse models and recipes.
 
-The new contracts are available for review. Converting the existing catalog and wiring all consumers to them is still in progress.
+This repository defines the first-release catalog contract. Consumers use the same shared definitions; there is no parallel legacy catalog format.
