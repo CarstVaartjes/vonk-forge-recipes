@@ -267,7 +267,7 @@ def recipe_serving(recipe: dict[str, Any], interface: dict[str, Any]) -> tuple[d
     return {"interface": adapter, "checks": [{"name": "job-output", "kind": f"{adapter}.output", "request": request, "assertions": ["inference.completed", "artifact.output"]}]}, [*input_slots.values()]
 
 
-def recipe_document(old: dict[str, Any], versions: dict[str, dict[str, Any]], models: dict[str, dict[str, Any]], groups: dict[str, dict[str, Any]]) -> tuple[dict[str, Any] | None, list[str]]:
+def recipe_document(old: dict[str, Any], versions: dict[str, dict[str, Any]], models: dict[str, dict[str, Any]], groups: dict[str, dict[str, Any]], candidate_models: dict[str, dict[str, Any]] | None = None) -> tuple[dict[str, Any] | None, list[str]]:
     blockers: list[str] = []
     refs = model_refs(old)
     selections: list[dict[str, Any]] = []
@@ -288,7 +288,7 @@ def recipe_document(old: dict[str, Any], versions: dict[str, dict[str, Any]], mo
         if group is None:
             blockers.append(f"missing model-group {group_slug}")
             continue
-        model_doc = model_document(version, model, group)
+        model_doc = (candidate_models or {}).get(slug) or model_document(version, model, group)
         try:
             model_digest = content_sha256(ModelDefinition.model_validate(model_doc))
         except Exception as error:
@@ -435,7 +435,7 @@ def convert(apply: bool = False) -> dict[str, Any]:
     for path in sorted((ROOT / "recipes").glob("*.json")):
         report["recipes_total"] += 1
         old = read(path)
-        document, extra = recipe_document(old, versions, models, groups)
+        document, extra = recipe_document(old, versions, models, groups, candidate_models)
         if document is None:
             report["blockers"][f"recipe:{path.stem}"] = extra
             continue
