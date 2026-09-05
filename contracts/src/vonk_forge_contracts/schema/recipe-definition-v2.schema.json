@@ -126,18 +126,18 @@
       "properties": {
         "kind": {
           "const": "model",
+          "default": "model",
           "title": "Kind",
           "type": "string"
         },
         "publisher": {
-          "maxLength": 64,
-          "minLength": 2,
-          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "maxLength": 128,
+          "minLength": 1,
           "title": "Publisher",
           "type": "string"
         },
         "slug": {
-          "maxLength": 64,
+          "maxLength": 63,
           "minLength": 2,
           "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
           "title": "Slug",
@@ -150,7 +150,6 @@
         }
       },
       "required": [
-        "kind",
         "publisher",
         "slug",
         "content_sha256"

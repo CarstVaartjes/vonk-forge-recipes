@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
+from .model import ModelReference
+
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -30,17 +32,6 @@ RelativePath = Annotated[StrictStr, Field(max_length=256, pattern=rf"^{_SEGMENT}
 Scalar = StrictStr | StrictInt | StrictBool
 type JsonValue = Scalar | None | list[JsonValue] | dict[StrictStr, JsonValue]
 ChangeEffect = Literal["none", "restart", "reprepare", "rebuild"]
-
-
-class RecipeReference(_RecipeContract):
-    kind: Literal["model"]
-    publisher: StrictStr = Field(min_length=2, max_length=64, pattern=r"^[a-z0-9][a-z0-9-]{1,62}$")
-    slug: StrictStr = Field(min_length=2, max_length=64, pattern=r"^[a-z0-9][a-z0-9-]{1,62}$")
-    content_sha256: Sha256
-
-
-class ModelReference(RecipeReference):
-    kind: Literal["model"]
 
 
 class RecipeIdentity(_RecipeContract):
