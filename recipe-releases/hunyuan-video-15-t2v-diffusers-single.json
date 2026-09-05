@@ -1,42 +1,43 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "hunyuan-video-15-t2v-diffusers-single"
-  },
-  "version": "1.4.2",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.4.2",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "e15c5e88092ded7dcb4fa62b67348efc0ec6ab58eb28a24e07ac10c60be5fa2d",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "6a599f3658e87d4d745cd565ab48171b048f73d7454015494e4041df7e1f7a1d",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "1.4.3"
     },
     {
-      "version": "1.4.1",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "a8fcc0949df4b2051042def6422fa52f96f5a7896888472d05e9b9702dd7e893",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "e15c5e88092ded7dcb4fa62b67348efc0ec6ab58eb28a24e07ac10c60be5fa2d",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.4.2"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
+      ],
+      "recipe_content_sha256": "a8fcc0949df4b2051042def6422fa52f96f5a7896888472d05e9b9702dd7e893",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "metadata-only",
+      "version": "1.4.1"
     },
     {
-      "version": "1.4.0",
-      "released_at": "2026-08-30",
-      "recipe_content_sha256": "9ab6bc977a064843419f3cb1fc801737982a3066120346f620b5ed4b73703d26",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "fix",
@@ -50,35 +51,50 @@
           "kind": "fix",
           "summary": "Validate the exact 121-frame MP4 stream before atomically publishing output.mp4 and reject malformed signed inputs before model loading."
         }
-      ]
+      ],
+      "recipe_content_sha256": "9ab6bc977a064843419f3cb1fc801737982a3066120346f620b5ed4b73703d26",
+      "released_at": "2026-08-30",
+      "upgrade_effect": "rebuild",
+      "version": "1.4.0"
     },
-    {"version": "1.3.0", "released_at": "2026-08-28", "recipe_content_sha256": "850d912a9ad2e0a3f3d82c81bd7b7bc7d35eb0568dd369f52117a7d749687654", "upgrade_effect": "rebuild", "changes": [{"kind": "fix", "summary": "Replaced the hidden prompt default with a required signed prompt slot and bound the exact MP4 output contract."}, {"kind": "compatibility", "summary": "Made the adapter consume the controller-authenticated slot manifest before model loading."}]},
     {
-      "version": "1.2.1",
-      "released_at": "2026-08-26",
-      "recipe_content_sha256": "455c1eccc79f72288382d0ff8923ac50341c15bab71e7c55e5743d3948fdb9db",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
-          "kind": "metadata",
-          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
-          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
+          "kind": "fix",
+          "summary": "Replaced the hidden prompt default with a required signed prompt slot and bound the exact MP4 output contract."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Made the adapter consume the controller-authenticated slot manifest before model loading."
         }
-      ]
+      ],
+      "recipe_content_sha256": "850d912a9ad2e0a3f3d82c81bd7b7bc7d35eb0568dd369f52117a7d749687654",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "rebuild",
+      "version": "1.3.0"
     },
     {
-      "version": "1.2.0",
-      "released_at": "2026-08-24",
-      "recipe_content_sha256": "df3b71dd63b7a9dfff40aff3259df430ddac220e8c32b538e8ce32921893e551",
-      "upgrade_effect": "rebuild",
+      "changes": [
+        {
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+          "kind": "metadata",
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+        }
+      ],
+      "recipe_content_sha256": "455c1eccc79f72288382d0ff8923ac50341c15bab71e7c55e5743d3948fdb9db",
+      "released_at": "2026-08-26",
+      "upgrade_effect": "metadata-only",
+      "version": "1.2.1"
+    },
+    {
       "changes": [
         {
           "kind": "compatibility",
-          "summary": "Replaced the incomplete native snapshot with the complete 720p T2V Diffusers conversion and hash-locked CUDA 13 ARM64 runtime.",
           "references": [
             "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v/tree/f4dbc4a1efa4ac8ea56680cdf79d9f455105e814",
             "https://github.com/huggingface/diffusers/commit/a3608b512ed7248499a44c61d954965ed9bdae4d"
-          ]
+          ],
+          "summary": "Replaced the incomplete native snapshot with the complete 720p T2V Diffusers conversion and hash-locked CUDA 13 ARM64 runtime."
         },
         {
           "kind": "fix",
@@ -88,53 +104,64 @@
           "kind": "metadata",
           "summary": "Corrected the model authority from Apache-2.0 to the territorial Tencent Hunyuan Community License."
         }
-      ]
+      ],
+      "recipe_content_sha256": "df3b71dd63b7a9dfff40aff3259df430ddac220e8c32b538e8ce32921893e551",
+      "released_at": "2026-08-24",
+      "upgrade_effect": "rebuild",
+      "version": "1.2.0"
     },
     {
-      "version": "1.1.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "9f6b66a9112a2cadd925bca4f88b81046f275f4cd744cd9653873862408eb132",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "fix",
-          "summary": "Corrected the immutable HunyuanVideo 1.5 snapshot and dependent disk resource sizes from the complete upstream inventory.",
           "references": [
             "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038"
-          ]
+          ],
+          "summary": "Corrected the immutable HunyuanVideo 1.5 snapshot and dependent disk resource sizes from the complete upstream inventory."
         },
         {
           "kind": "compatibility",
           "summary": "Marked the candidate as requiring a model-specific video adapter before container and physical Spark acceptance."
         }
-      ]
+      ],
+      "recipe_content_sha256": "9f6b66a9112a2cadd925bca4f88b81046f275f4cd744cd9653873862408eb132",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.1.0"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "81ff79c354013f8740e383225e97e67b2bcd7ca73c2cfabc4f142bc6011658c4",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
           "summary": "Initial reviewed catalog release of HunyuanVideo 1.5 T2V diffusers single Spark."
         }
-      ]
+      ],
+      "recipe_content_sha256": "81ff79c354013f8740e383225e97e67b2bcd7ca73c2cfabc4f142bc6011658c4",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     },
     {
-      "version": "0.1.0",
-      "released_at": "2026-08-17",
-      "recipe_content_sha256": "d0123a0a35dba7d6ead6666eca217b03b184ec6c29ae0048f1ee1c90c05f6cd8",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
-          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
           "references": [
             "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-          ]
+          ],
+          "summary": "Recovered the first public legacy revision from before semantic release tracking."
         }
-      ]
+      ],
+      "recipe_content_sha256": "d0123a0a35dba7d6ead6666eca217b03b184ec6c29ae0048f1ee1c90c05f6cd8",
+      "released_at": "2026-08-17",
+      "upgrade_effect": "reinstall",
+      "version": "0.1.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "hunyuan-video-15-t2v-diffusers-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "1.4.3"
 }

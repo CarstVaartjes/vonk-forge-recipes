@@ -1,133 +1,145 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "wan-2-2-t2v-14b-comfyui-single"
-  },
-  "version": "1.0.8",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.0.8",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "2bfd1b1a79e7ff158235b9eb58d9e0305170deaee16e19ce196f58d96f3822c0",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "50506b11c72cf934b8c50a6a2ad893fc90b20e8ddc34f3182c0a080c4eba931e",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.9"
     },
     {
-      "version": "1.0.7",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "28cb8e8b9f0b0e4c289bfa088930f29a46c3c0db5e9c6b7f0b05d62e6884db9f",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "2bfd1b1a79e7ff158235b9eb58d9e0305170deaee16e19ce196f58d96f3822c0",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.8"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
-    },
-    {
-      "version": "1.0.6",
+      ],
+      "recipe_content_sha256": "28cb8e8b9f0b0e4c289bfa088930f29a46c3c0db5e9c6b7f0b05d62e6884db9f",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "63da00c0906859479ecf251b4366219853752228fc8f7bfb12f033e2a6caa021",
-      "upgrade_effect": "rebuild",
-      "changes": [
-        {
-          "kind": "security",
-          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
-          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
-        }
-      ]
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.7"
     },
     {
-      "version": "1.0.5",
-      "released_at": "2026-08-31",
-      "recipe_content_sha256": "697037cf44b33a7abc4f7e460d18cc1e311385d79b41b5863538f34488a0ac0b",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "runtime",
-          "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0.",
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+        }
+      ],
+      "recipe_content_sha256": "63da00c0906859479ecf251b4366219853752228fc8f7bfb12f033e2a6caa021",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.6"
+    },
+    {
+      "changes": [
+        {
           "details": "The source bundle now hash-locks stable tag v0.34.0 at exact commit 12d52794 and its verified source archive. Model artifacts, core-node workflow parameters, admission envelopes, and Candidate qualification are unchanged.",
+          "kind": "runtime",
           "references": [
             "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.34.0",
             "https://github.com/Comfy-Org/ComfyUI/commit/12d5279438bfefc058a269eae805ceab6047777f"
-          ]
+          ],
+          "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0."
         }
-      ]
+      ],
+      "recipe_content_sha256": "697037cf44b33a7abc4f7e460d18cc1e311385d79b41b5863538f34488a0ac0b",
+      "released_at": "2026-08-31",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.5"
     },
     {
-      "version": "1.0.4",
-      "released_at": "2026-08-30",
+      "changes": [
+        {
+          "details": "The catalog now exposes the declared 126 GB startup-plus-reserve envelope and makes clear this Candidate is not the default before a physical OOM canary passes.",
+          "kind": "metadata",
+          "summary": "Marked the 14B T2V profile memory-tight and physical-OOM-gated."
+        }
+      ],
       "recipe_content_sha256": "b6eafcbbda35afa687317fb9f14cb6d1015c1a472380bd71389178fdddc0288e",
+      "released_at": "2026-08-30",
       "upgrade_effect": "metadata-only",
-      "changes": [
-        {
-          "kind": "metadata",
-          "summary": "Marked the 14B T2V profile memory-tight and physical-OOM-gated.",
-          "details": "The catalog now exposes the declared 126 GB startup-plus-reserve envelope and makes clear this Candidate is not the default before a physical OOM canary passes."
-        }
-      ]
+      "version": "1.0.4"
     },
     {
-      "version": "1.0.3",
-      "released_at": "2026-08-28",
+      "changes": [
+        {
+          "details": "The adapter now consumes the prompt from its signed manifest slot, while the recipe declares exact input limits and one bounded MP4 result.",
+          "kind": "fix",
+          "summary": "Added signed typed prompt and MP4 result slots."
+        }
+      ],
       "recipe_content_sha256": "225109abbdf2d6ce867fefff5196c0496be1d23c893d8bf779b755474b740d17",
-      "upgrade_effect": "rebuild",
-      "changes": [
-        {
-          "kind": "fix",
-          "summary": "Added signed typed prompt and MP4 result slots.",
-          "details": "The adapter now consumes the prompt from its signed manifest slot, while the recipe declares exact input limits and one bounded MP4 result."
-        }
-      ]
-    },
-    {
-      "version": "1.0.2",
       "released_at": "2026-08-28",
-      "recipe_content_sha256": "3064a8f590893e05ad29986198727be94da4d867d8ad78c25fb2ad0f3352c2cc",
       "upgrade_effect": "rebuild",
+      "version": "1.0.3"
+    },
+    {
       "changes": [
         {
+          "details": "The adapter rejects blank prompts before model linking and requires one H.264 640x640, 81-frame, 16 fps MP4 with a matching duration.",
           "kind": "fix",
-          "summary": "Required a prompt and fail-closed Wan MP4 result validation.",
-          "details": "The adapter rejects blank prompts before model linking and requires one H.264 640x640, 81-frame, 16 fps MP4 with a matching duration."
+          "summary": "Required a prompt and fail-closed Wan MP4 result validation."
         }
-      ]
+      ],
+      "recipe_content_sha256": "3064a8f590893e05ad29986198727be94da4d867d8ad78c25fb2ad0f3352c2cc",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.2"
     },
     {
-      "version": "1.0.1",
-      "released_at": "2026-08-26",
-      "recipe_content_sha256": "1e28f9375b274a70ae839094086da74e27521a612791836e01ed5718711403d0",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
           "kind": "metadata",
-          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
-          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
         }
-      ]
+      ],
+      "recipe_content_sha256": "1e28f9375b274a70ae839094086da74e27521a612791836e01ed5718711403d0",
+      "released_at": "2026-08-26",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.1"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-25",
-      "recipe_content_sha256": "c72115c6e96d2b3c333d02db30fbe2536e755d98597df51669e4c85dea82feb5",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
-          "summary": "Initial candidate two-expert core-node ComfyUI text-to-video release for Wan 2.2 T2V 14B on a single Spark.",
           "references": [
             "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77"
-          ]
+          ],
+          "summary": "Initial candidate two-expert core-node ComfyUI text-to-video release for Wan 2.2 T2V 14B on a single Spark."
         }
-      ]
+      ],
+      "recipe_content_sha256": "c72115c6e96d2b3c333d02db30fbe2536e755d98597df51669e4c85dea82feb5",
+      "released_at": "2026-08-25",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "wan-2-2-t2v-14b-comfyui-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "1.0.9"
 }

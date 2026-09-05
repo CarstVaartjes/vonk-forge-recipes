@@ -229,7 +229,7 @@ class LagunaSVllmRecipeTests(unittest.TestCase):
         self.assertEqual(docker_environment(source), CACHE_ENVIRONMENT)
         self.assertEqual(
             {item["name"] for item in self.recipe["runtime"]["environment"]},
-            {"HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE", "VLLM_NO_USAGE_STATS"},
+            {"HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE"},
         )
         self.assertEqual(
             self.recipe["runtime"]["distribution"]["slug"],

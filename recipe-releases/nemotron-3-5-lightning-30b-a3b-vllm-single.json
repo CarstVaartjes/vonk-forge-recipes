@@ -1,187 +1,187 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "nemotron-3-5-lightning-30b-a3b-vllm-single"
-  },
-  "version": "1.3.6",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.3.6",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "18f536eb813d0a85daa3f2c0f2b1ce2c1f6cc7094afe1299de899679eda160b2",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
           "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
         }
-      ]
+      ],
+      "recipe_content_sha256": "95b04ccaee48ae85dd4075eabfc833b679aaea94871e6b0bcaaf7d30c040b80f",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.3.6"
     },
     {
-      "version": "1.3.5",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "97249126c3ba6a23878f739bd901fca42013c13211a6d843e982e30ed786e0ba",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
+      ],
+      "recipe_content_sha256": "97249126c3ba6a23878f739bd901fca42013c13211a6d843e982e30ed786e0ba",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "metadata-only",
+      "version": "1.3.5"
     },
     {
-      "version": "1.3.4",
-      "released_at": "2026-08-30",
-      "recipe_content_sha256": "eac9aa50eeda5f01a21b01a0177b85c3062699ce85a5d1a1a3678f35acfe0468",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
+          "details": "Corrected a 236-byte underdeclaration without changing the pinned artifact, runtime, or execution contract.",
           "kind": "fix",
-          "summary": "Matched declared artifact disk bytes to the exact retained target snapshot.",
-          "details": "Corrected a 236-byte underdeclaration without changing the pinned artifact, runtime, or execution contract."
+          "summary": "Matched declared artifact disk bytes to the exact retained target snapshot."
         }
-      ]
-    },
-    {
-      "version": "1.3.3",
+      ],
+      "recipe_content_sha256": "eac9aa50eeda5f01a21b01a0177b85c3062699ce85a5d1a1a3678f35acfe0468",
       "released_at": "2026-08-30",
-      "recipe_content_sha256": "188fac9553055d8eea9d4bc9d10999e9c9721a616a7aac69d107c195adece71d",
       "upgrade_effect": "metadata-only",
-      "changes": [
-        {
-          "kind": "metadata",
-          "summary": "Marked the target-only profile as the preferred default Nemotron text deployment on one Spark.",
-          "details": "The refreshed immutable model, runtime, arguments, and resource contract are unchanged; the catalog now distinguishes this profile from the specialized high-context DSpark latency variant."
-        }
-      ]
+      "version": "1.3.4"
     },
     {
-      "version": "1.3.2",
-      "released_at": "2026-08-29",
-      "recipe_content_sha256": "75655df83de9abe019fb7b8a0b6ceddb15534a6ca25ab758bed4b2c3675cfa57",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
+          "details": "The refreshed immutable model, runtime, arguments, and resource contract are unchanged; the catalog now distinguishes this profile from the specialized high-context DSpark latency variant.",
           "kind": "metadata",
-          "summary": "Advanced the target to NVIDIA revision cc84af2f after a README-only disclosure update.",
+          "summary": "Marked the target-only profile as the preferred default Nemotron text deployment on one Spark."
+        }
+      ],
+      "recipe_content_sha256": "188fac9553055d8eea9d4bc9d10999e9c9721a616a7aac69d107c195adece71d",
+      "released_at": "2026-08-30",
+      "upgrade_effect": "metadata-only",
+      "version": "1.3.3"
+    },
+    {
+      "changes": [
+        {
           "details": "All executable, configuration, tokenizer, and weight blobs remain byte-identical; only README.md adds a 236-byte link to NVIDIA's public training-content summary.",
+          "kind": "metadata",
           "references": [
             "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/cc84af2fe71647d87f4486c064f320e1e7535243",
             "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/compare/e8f3c7c4de75ad84fe1bcef95d38eca76214480b...cc84af2fe71647d87f4486c064f320e1e7535243"
-          ]
+          ],
+          "summary": "Advanced the target to NVIDIA revision cc84af2f after a README-only disclosure update."
         },
         {
           "kind": "compatibility",
           "summary": "Retained NVIDIA's explicitly documented vLLM 0.27.1 DGX Spark runtime and unchanged target-only launch contract."
         }
-      ]
+      ],
+      "recipe_content_sha256": "75655df83de9abe019fb7b8a0b6ceddb15534a6ca25ab758bed4b2c3675cfa57",
+      "released_at": "2026-08-29",
+      "upgrade_effect": "metadata-only",
+      "version": "1.3.2"
     },
     {
-      "version": "1.3.1",
-      "released_at": "2026-08-26",
-      "recipe_content_sha256": "82c994c439a814aa60cac3657aff0f0b919fc2b6e43d5226b8ac85a872378bb5",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
           "kind": "metadata",
-          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
-          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
         }
-      ]
+      ],
+      "recipe_content_sha256": "82c994c439a814aa60cac3657aff0f0b919fc2b6e43d5226b8ac85a872378bb5",
+      "released_at": "2026-08-26",
+      "upgrade_effect": "metadata-only",
+      "version": "1.3.1"
     },
     {
-      "version": "1.3.0",
-      "released_at": "2026-08-24",
-      "recipe_content_sha256": "b84a9f8acb3370d8943637f9db82e32eff6675c02b73ce5c2cc0f72359718644",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "model",
-          "summary": "Advanced the target to NVIDIA revision e8f3c7c4 and reconciled the exhaustive 70-file inventory with official SHA-256 values.",
           "references": [
             "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/e8f3c7c4de75ad84fe1bcef95d38eca76214480b"
-          ]
+          ],
+          "summary": "Advanced the target to NVIDIA revision e8f3c7c4 and reconciled the exhaustive 70-file inventory with official SHA-256 values."
         },
         {
           "kind": "compatibility",
           "summary": "Retained NVIDIA's vLLM 0.27.1 DGX Spark settings and Candidate status pending physical GB10 acceptance."
         }
-      ]
+      ],
+      "recipe_content_sha256": "b84a9f8acb3370d8943637f9db82e32eff6675c02b73ce5c2cc0f72359718644",
+      "released_at": "2026-08-24",
+      "upgrade_effect": "reinstall",
+      "version": "1.3.0"
     },
     {
-      "version": "1.2.0",
-      "released_at": "2026-08-24",
-      "recipe_content_sha256": "b4198f751c755564b7a86f5dabdaafa61d722c8e9609bb691b098ebfb7180f4b",
-      "upgrade_effect": "restart",
       "changes": [
         {
           "kind": "performance",
-          "summary": "Enabled NVIDIA's Marlin MoE backend and aligned Mamba cache mode for the target-only DGX Spark profile.",
           "references": [
             "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/blob/6dbbd757ea75a8ece6e0702872e3ae53f9987728/README.md"
-          ]
+          ],
+          "summary": "Enabled NVIDIA's Marlin MoE backend and aligned Mamba cache mode for the target-only DGX Spark profile."
         }
-      ]
+      ],
+      "recipe_content_sha256": "b4198f751c755564b7a86f5dabdaafa61d722c8e9609bb691b098ebfb7180f4b",
+      "released_at": "2026-08-24",
+      "upgrade_effect": "restart",
+      "version": "1.2.0"
     },
     {
-      "version": "1.1.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "55702490dc6bd661f59453aafd244608e5557c4718e7fbb457aee0a71af18ed5",
-      "upgrade_effect": "restart",
       "changes": [
         {
           "kind": "performance",
-          "summary": "Applied NVIDIA's allowlisted single-GB10 FP8 KV and memory settings and recorded the Marlin/aligned-cache harness gaps.",
           "references": [
             "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/6dbbd757ea75a8ece6e0702872e3ae53f9987728"
-          ]
+          ],
+          "summary": "Applied NVIDIA's allowlisted single-GB10 FP8 KV and memory settings and recorded the Marlin/aligned-cache harness gaps."
         }
-      ]
+      ],
+      "recipe_content_sha256": "55702490dc6bd661f59453aafd244608e5557c4718e7fbb457aee0a71af18ed5",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "restart",
+      "version": "1.1.0"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "b28811b318432658d0348efda98264c1487fd3903af19104d3d59bede69b0d77",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
           "summary": "Initial reviewed catalog release of Nemotron 3.5 Lightning 30B-A3B NVFP4 vLLM single Spark."
         }
-      ]
+      ],
+      "recipe_content_sha256": "b28811b318432658d0348efda98264c1487fd3903af19104d3d59bede69b0d77",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     },
     {
-      "version": "0.2.0",
-      "released_at": "2026-08-16",
-      "recipe_content_sha256": "be1409e70502b0ae2e58d3a7352555ac105da66d028bcbd28292368a69eb250b",
-      "upgrade_effect": "restart",
       "changes": [
         {
           "kind": "fix",
-          "summary": "Aligned the legacy Nemotron candidate with the vLLM execution harness.",
           "references": [
             "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/6b6bfecef687233939a7c6036cf755e17aeacd74"
-          ]
+          ],
+          "summary": "Aligned the legacy Nemotron candidate with the vLLM execution harness."
         }
-      ]
+      ],
+      "recipe_content_sha256": "be1409e70502b0ae2e58d3a7352555ac105da66d028bcbd28292368a69eb250b",
+      "released_at": "2026-08-16",
+      "upgrade_effect": "restart",
+      "version": "0.2.0"
     },
     {
-      "version": "0.1.0",
-      "released_at": "2026-08-16",
-      "recipe_content_sha256": "1b4d71fa4a18099e4eacefb83c84b7641a177cbdd626dc0e3156acb130f9ea30",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
-          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
           "references": [
             "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/d153f0b8913268b66d7b764f609892379805eb30"
-          ]
+          ],
+          "summary": "Recovered the first public legacy revision from before semantic release tracking."
         }
-      ]
+      ],
+      "recipe_content_sha256": "1b4d71fa4a18099e4eacefb83c84b7641a177cbdd626dc0e3156acb130f9ea30",
+      "released_at": "2026-08-16",
+      "upgrade_effect": "reinstall",
+      "version": "0.1.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-5-lightning-30b-a3b-vllm-single"
+  },
+  "released_at": "2026-09-03",
+  "schema_version": 1,
+  "version": "1.3.6"
 }

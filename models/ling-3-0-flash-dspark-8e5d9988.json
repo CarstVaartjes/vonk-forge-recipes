@@ -1,0 +1,132 @@
+{
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "8da79f23859810bbb806e7a25eaf70489a9441c5",
+      "source_url": "https://github.com/CarstVaartjes/vonk-forge-recipes"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-11ad7efa2497",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "readme-078ab3a40e93",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "078ab3a40e931ed2ba11fe5b761dbaf0cfcfc2ab29a4d4f6368229516803aafa",
+      "size_bytes": 3140
+    },
+    {
+      "id": "config-d7fa25034d78",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d7fa25034d782b4e98582df19feeb8cdfd39503ae808e0e178bc776056270201",
+      "size_bytes": 1272
+    },
+    {
+      "id": "model-0885659804b3",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "0885659804b3e4460f4bcd50c292923ea4f60e5a83745f96ff3d0736a5e5ddb5",
+      "size_bytes": 2727422642
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "inclusionai",
+      "slug": "ling-3-0",
+      "title": "Ling 3.0"
+    },
+    "model": {
+      "architecture": "Five-layer LingDSpark full-attention speculative decoder with confidence head",
+      "publisher": "inclusionai",
+      "slug": "ling-3-0-flash-dspark",
+      "title": "Ling 3.0 Flash DSpark companion"
+    },
+    "publisher": "inclusionai",
+    "slug": "ling-3-0-flash-dspark-8e5d9988",
+    "variant": "Ling 3.0 Flash DSpark 8e5d9988",
+    "version": "Ling 3.0 Flash DSpark 8e5d9988"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "InclusionAI"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "LicenseRef-Ling-DSpark",
+    "url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-dspark/blob/8e5d9988c9b09de13f1f7c9d999ff2bfa533a149/README.md"
+  },
+  "limits": {
+    "context_tokens": 262144,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Official upstream checkpoint at the pinned revision.",
+    "publisher": "inclusionai",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "inclusionai",
+      "slug": "ling-3-0-flash-dspark"
+    }
+  },
+  "metadata": {
+    "description": "Exact public Ling 3.0 Flash DSpark 8e5d9988 checkpoint.",
+    "tags": [
+      "inclusionai",
+      "ling-3-0",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "parameters": {
+    "active": 1363707905,
+    "total": 1363707905
+  },
+  "provenance": {
+    "attribution": [
+      "InclusionAI"
+    ],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "8e5d9988c9b09de13f1f7c9d999ff2bfa533a149",
+    "source_url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-dspark"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/inclusionAI/Ling-3.0-flash-dspark",
+    "revision": "8e5d9988c9b09de13f1f7c9d999ff2bfa533a149"
+  },
+  "supersedes": null
+}

@@ -1,42 +1,43 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "trellis-2-4b-pytorch-single"
-  },
-  "version": "2.0.5",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "2.0.5",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "9d501686bd29154dbba22071a124a8625a16f753e45be9786efeb4a0527913d3",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "53f101834f619285b71739e34c6e7374418ea34e039b28ddce36e165ef418303",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "2.0.6"
     },
     {
-      "version": "2.0.4",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "251208898ec2329d1296289ef20c3d1d162fb66b4e2c3389c9b59eccf3c5b8c8",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "9d501686bd29154dbba22071a124a8625a16f753e45be9786efeb4a0527913d3",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.5"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
+      ],
+      "recipe_content_sha256": "251208898ec2329d1296289ef20c3d1d162fb66b4e2c3389c9b59eccf3c5b8c8",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "metadata-only",
+      "version": "2.0.4"
     },
     {
-      "version": "2.0.3",
-      "released_at": "2026-08-30",
-      "recipe_content_sha256": "a01291d9f6a8a0aa8b3172c278668ae665a9c400637e571d4b6a6844d85f26ab",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "fix",
@@ -46,25 +47,25 @@
           "kind": "metadata",
           "summary": "Exposed the pinned nvdiffrast dependency's non-commercial research and evaluation restriction on the recipe card."
         }
-      ]
+      ],
+      "recipe_content_sha256": "a01291d9f6a8a0aa8b3172c278668ae665a9c400637e571d4b6a6844d85f26ab",
+      "released_at": "2026-08-30",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.3"
     },
     {
-      "version": "2.0.2",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "65d1e5156e8928a94e525c35567bf40bd25e3b10a4aa7b9cb06daccd76bc9f2e",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "fix",
           "summary": "Validated embedded UV, base-color, and metallic-roughness PBR data on a bounded triangle mesh before atomic GLB publication."
         }
-      ]
+      ],
+      "recipe_content_sha256": "65d1e5156e8928a94e525c35567bf40bd25e3b10a4aa7b9cb06daccd76bc9f2e",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.2"
     },
     {
-      "version": "2.0.1",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "7a0f9536deb28dd40dddc21db1ba04c6c9c7fb8e946667af7dd62cb9ca4dfac1",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "fix",
@@ -74,13 +75,13 @@
           "kind": "compatibility",
           "summary": "Declared exact one-image input and single-GLB output slots with bounded bytes."
         }
-      ]
+      ],
+      "recipe_content_sha256": "7a0f9536deb28dd40dddc21db1ba04c6c9c7fb8e946667af7dd62cb9ca4dfac1",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.1"
     },
     {
-      "version": "2.0.0",
-      "released_at": "2026-08-24",
-      "recipe_content_sha256": "f1de54916c6759856c1bf64a4c5f3644d9517007abe904b7cfd4ee78a6c0e542",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "breaking",
@@ -94,13 +95,13 @@
           "kind": "compatibility",
           "summary": "Kept Candidate status until the reproducible offline build and workload pass a physical DGX Spark canary."
         }
-      ]
+      ],
+      "recipe_content_sha256": "f1de54916c6759856c1bf64a4c5f3644d9517007abe904b7cfd4ee78a6c0e542",
+      "released_at": "2026-08-24",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.0"
     },
     {
-      "version": "1.1.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "f8dd39545b42797bb90b4d00be9a7fdffe292103afec954dbdfb403c577956b2",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "compatibility",
@@ -114,34 +115,45 @@
           "kind": "metadata",
           "summary": "Corrected the checkpoint license to MIT."
         }
-      ]
+      ],
+      "recipe_content_sha256": "f8dd39545b42797bb90b4d00be9a7fdffe292103afec954dbdfb403c577956b2",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.1.0"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "17353e78581247f8b94aa50c9161dfc98d7ee7b6b1ae31465f3b911897a06922",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
           "summary": "Initial reviewed catalog release of TRELLIS.2 4B pytorch-pipeline single Spark."
         }
-      ]
+      ],
+      "recipe_content_sha256": "17353e78581247f8b94aa50c9161dfc98d7ee7b6b1ae31465f3b911897a06922",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     },
     {
-      "version": "0.1.0",
-      "released_at": "2026-08-17",
-      "recipe_content_sha256": "7e5a50c2afe257e9697eb9f1c317e31ad2b1fa29d564377a63817114f2e8c6a1",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
-          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
           "references": [
             "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-          ]
+          ],
+          "summary": "Recovered the first public legacy revision from before semantic release tracking."
         }
-      ]
+      ],
+      "recipe_content_sha256": "7e5a50c2afe257e9697eb9f1c317e31ad2b1fa29d564377a63817114f2e8c6a1",
+      "released_at": "2026-08-17",
+      "upgrade_effect": "reinstall",
+      "version": "0.1.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "trellis-2-4b-pytorch-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "2.0.6"
 }

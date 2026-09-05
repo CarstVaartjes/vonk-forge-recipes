@@ -1,149 +1,161 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "deepseek-v4-flash-vision-exp-mia-dual"
-  },
-  "version": "1.1.5",
-  "released_at": "2026-09-05",
   "history": [
     {
-      "version": "1.1.5",
+      "changes": [
+        {
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+        }
+      ],
+      "recipe_content_sha256": "45313dac2f98b7751cedf5f5c82c4f521c042adaf6f2d2e7b76be75d793bd0b5",
       "released_at": "2026-09-05",
-      "recipe_content_sha256": "a7d0b5e0a76d03f659149d713aa921d28e3a2c0f7cccd442df0df1b0cfba5996",
-      "upgrade_effect": "rebuild",
-      "changes": [
-        {
-          "kind": "fix",
-          "summary": "Made the non-root runtime UID resolvable inside the image.",
-          "details": "Physical dual-Spark launch evidence showed vLLM exited while importing PyTorch because numeric UID 10001 had no passwd entry and getpass.getuser() raised KeyError. The image now creates a non-login 10001:10001 account and verifies UID and getpass resolution while still running with no capabilities, no new privileges, and the existing non-root runtime identity. Model, topology, and serving parameters are unchanged."
-        }
-      ]
+      "upgrade_effect": "metadata-only",
+      "version": "1.1.6"
     },
     {
-      "version": "1.1.4",
-      "released_at": "2026-09-03",
+      "changes": [
+        {
+          "details": "Physical dual-Spark launch evidence showed vLLM exited while importing PyTorch because numeric UID 10001 had no passwd entry and getpass.getuser() raised KeyError. The image now creates a non-login 10001:10001 account and verifies UID and getpass resolution while still running with no capabilities, no new privileges, and the existing non-root runtime identity. Model, topology, and serving parameters are unchanged.",
+          "kind": "fix",
+          "summary": "Made the non-root runtime UID resolvable inside the image."
+        }
+      ],
+      "recipe_content_sha256": "8436c2d9eb12a38f233b3f7f22a3c4d6528b55fcdfc22831537b016865cdcba9",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "rebuild",
+      "version": "1.1.5"
+    },
+    {
+      "changes": [
+        {
+          "details": "Physical Spark evidence showed the fully verified image was emitted but layered rootless fuse-overlayfs cleanup returned a nonzero build status. The same pinned Dockerfile, Mia patch tree, inclusive safe Podman arguments, no-subuid identity, storage options, and 8 GB limit passed in OrbStack. Building without disposable intermediate layers preserves the final runtime filesystem and security boundary while avoiding that host-specific cleanup path.",
+          "kind": "compatibility",
+          "summary": "Disabled disposable intermediate Podman layers for the physical rootless Spark build."
+        },
+        {
+          "details": "The recipe already referenced source bundle 0a9a32e9, but the companion patch-bundle document and its focused test retained the superseded pre-directory-fix digest. Both records now bind the same 368,640-byte archive used by the executable build.",
+          "kind": "fix",
+          "summary": "Rebound the patch-bundle record to the current deterministic source archive."
+        }
+      ],
       "recipe_content_sha256": "08138fd1d1cef9d702975800cb655fd812728d728acc0b6d0ce7d765d132efb5",
+      "released_at": "2026-09-03",
       "upgrade_effect": "rebuild",
-      "changes": [
-        {
-          "kind": "compatibility",
-          "summary": "Disabled disposable intermediate Podman layers for the physical rootless Spark build.",
-          "details": "Physical Spark evidence showed the fully verified image was emitted but layered rootless fuse-overlayfs cleanup returned a nonzero build status. The same pinned Dockerfile, Mia patch tree, inclusive safe Podman arguments, no-subuid identity, storage options, and 8 GB limit passed in OrbStack. Building without disposable intermediate layers preserves the final runtime filesystem and security boundary while avoiding that host-specific cleanup path."
-        },
-        {
-          "kind": "fix",
-          "summary": "Rebound the patch-bundle record to the current deterministic source archive.",
-          "details": "The recipe already referenced source bundle 0a9a32e9, but the companion patch-bundle document and its focused test retained the superseded pre-directory-fix digest. Both records now bind the same 368,640-byte archive used by the executable build."
-        }
-      ]
+      "version": "1.1.4"
     },
     {
-      "version": "1.1.3",
-      "released_at": "2026-09-03",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        },
+        {
+          "details": "The Dockerfile now creates /state and /outputs through deterministic COPY layers, so its rootless, capability-free RUN step works with the read-only root directory in the pinned Anemll base image.",
+          "kind": "fix",
+          "summary": "Materialized writable state and output directories without build-time Linux capabilities."
+        }
+      ],
       "recipe_content_sha256": "bfea529dde11890cc2c1b476fbc8e55208d927da1ff10fc5af60de7ce2b008e3",
+      "released_at": "2026-09-03",
       "upgrade_effect": "rebuild",
-      "changes": [
-        {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
-        },
-        {
-          "kind": "fix",
-          "summary": "Materialized writable state and output directories without build-time Linux capabilities.",
-          "details": "The Dockerfile now creates /state and /outputs through deterministic COPY layers, so its rootless, capability-free RUN step works with the read-only root directory in the pinned Anemll base image."
-        }
-      ]
+      "version": "1.1.3"
     },
     {
-      "version": "1.1.2",
-      "released_at": "2026-09-03",
+      "changes": [
+        {
+          "details": "Physical Spark evidence showed that the Docker-compatible adapter failed under the agent's rootless Podman boundary. Directory creation no longer requests chown capability during RUN, and the final image now declares the required ai.vonkforge.runtime-interface=v1 label. Runtime sources, model, topology, and serving parameters are unchanged.",
+          "kind": "fix",
+          "summary": "Made the image build compatible with the rootless capability-dropped builder."
+        }
+      ],
       "recipe_content_sha256": "ed8269962314219726d3e469429170b4dfbeb108f5d9148f25e0d43f573600fd",
+      "released_at": "2026-09-03",
       "upgrade_effect": "reinstall",
-      "changes": [
-        {
-          "kind": "fix",
-          "summary": "Made the image build compatible with the rootless capability-dropped builder.",
-          "details": "Physical Spark evidence showed that the Docker-compatible adapter failed under the agent's rootless Podman boundary. Directory creation no longer requests chown capability during RUN, and the final image now declares the required ai.vonkforge.runtime-interface=v1 label. Runtime sources, model, topology, and serving parameters are unchanged."
-        }
-      ]
+      "version": "1.1.2"
     },
     {
-      "version": "1.1.1",
-      "released_at": "2026-09-03",
+      "changes": [
+        {
+          "details": "A physical Spark build proved that the previous 16 GB temporary allowance could not hold the verified 9.79 GB compressed base-image archive and its expanded rootless Podman graph at the same time. The recipe now reserves 64 GB of temporary build storage; model, runtime, image source, topology, and serving behavior are unchanged.",
+          "kind": "fix",
+          "summary": "Raised the bounded build staging envelope for the pinned Anemll base image."
+        }
+      ],
       "recipe_content_sha256": "a90881aebea832c0d277a91647c0b4a49619b6fdd0384a0a9c88b54ac8e80ff5",
+      "released_at": "2026-09-03",
       "upgrade_effect": "reinstall",
-      "changes": [
-        {
-          "kind": "fix",
-          "summary": "Raised the bounded build staging envelope for the pinned Anemll base image.",
-          "details": "A physical Spark build proved that the previous 16 GB temporary allowance could not hold the verified 9.79 GB compressed base-image archive and its expanded rootless Podman graph at the same time. The recipe now reserves 64 GB of temporary build storage; model, runtime, image source, topology, and serving behavior are unchanged."
-        }
-      ]
+      "version": "1.1.1"
     },
     {
-      "version": "1.1.0",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "6fb0aeb3c29b51fe3f33b063364186d1497e9744598975b74eecdfc1970d5df7",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
-          "kind": "fix",
-          "summary": "Advanced the Mia native-Vision runtime contract to c444d703.",
           "details": "Vendors the current Vision-Exp routing, image-layout cache, narrow RGB CHW, and quoted-tag role fixes plus the issue-117 shared-memory ring recovery backport. The measured TP2 defaults now use cudagraph capture size 48 and two in-flight prefills. The official model snapshot remains byte-pinned at Hugging Face 6821d6ad; Candidate status remains until this exact image passes physical two-Spark image acceptance.",
+          "kind": "fix",
           "references": [
             "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/c444d7032957f5a5437261d5366fd06b27a01760",
             "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp/commit/6821d6ad3681a4b137b066b76094fa82ebd0a380"
-          ]
+          ],
+          "summary": "Advanced the Mia native-Vision runtime contract to c444d703."
         }
-      ]
+      ],
+      "recipe_content_sha256": "6fb0aeb3c29b51fe3f33b063364186d1497e9744598975b74eecdfc1970d5df7",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "reinstall",
+      "version": "1.1.0"
     },
     {
-      "version": "1.0.3",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "2a090d1628de993e48d5386b0d7ed743f566c27c0c707009192cc9381131c01d",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
+      ],
+      "recipe_content_sha256": "2a090d1628de993e48d5386b0d7ed743f566c27c0c707009192cc9381131c01d",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.3"
     },
     {
-      "version": "1.0.2",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "0e43a31fca3e33334ae3660a5a1601285177ce865660d39f6bfd50f5cc348d90",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
-          "kind": "fix",
-          "summary": "Advanced the official Vision-Exp snapshot to Hugging Face 6821d6ad.",
           "details": "The 84-file snapshot is refreshed from e46e16bf to 6821d6ad. All model payloads and configuration files are byte-identical; only the upstream README changed, increasing the exact inventory by 1,506 bytes. The pinned MiaAI-Lab de230b45 runtime patch, topology, and Candidate acceptance state remain unchanged; installed containers must be recreated.",
+          "kind": "fix",
           "references": [
             "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp/commit/6821d6ad3681a4b137b066b76094fa82ebd0a380",
             "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/de230b45bc49e88ea92af898650b6bbb92f0e266"
-          ]
+          ],
+          "summary": "Advanced the official Vision-Exp snapshot to Hugging Face 6821d6ad."
         }
-      ]
+      ],
+      "recipe_content_sha256": "0e43a31fca3e33334ae3660a5a1601285177ce865660d39f6bfd50f5cc348d90",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.2"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-31",
-      "recipe_content_sha256": "d0121b2d092af5ffeada0555f47ce2acc6ca541c3dcc3bc0a79e818d623f6d09",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
-          "kind": "initial",
-          "summary": "Added the official native-vision DeepSeek V4 Flash Experimental dual-Spark Candidate.",
           "details": "Pins all 84 files and 167,831,847,285 bytes at official revision e46e16bf, then reproduces MiaAI-Lab 7963d432 on the immutable Anemll ARM64 runtime with OpenAI image_url input, the official 32-layer ViT and aligner, NVFP4 DS-MLA KV, DSpark K6, TP2, and the measured 1M profile. The older Mia single-Spark repository remains a text-only 0731 EXL3 lane, so no unsupported Vision single-Spark recipe is claimed.",
+          "kind": "initial",
           "references": [
             "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp/tree/e46e16bf6035c6f317eb2ac7458eb0362926d402",
             "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/7963d432bfe717f2a7249a53fb4c0673c239c03e"
-          ]
+          ],
+          "summary": "Added the official native-vision DeepSeek V4 Flash Experimental dual-Spark Candidate."
         }
-      ]
+      ],
+      "recipe_content_sha256": "d0121b2d092af5ffeada0555f47ce2acc6ca541c3dcc3bc0a79e818d623f6d09",
+      "released_at": "2026-08-31",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-flash-vision-exp-mia-dual"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "1.1.6"
 }

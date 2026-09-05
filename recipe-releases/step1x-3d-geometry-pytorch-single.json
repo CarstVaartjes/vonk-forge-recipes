@@ -1,80 +1,81 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "step1x-3d-geometry-pytorch-single"
-  },
-  "version": "1.2.6",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.2.6",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "e0b4269e9c1e7128c64c1dd728c01fd69582b74b14c9e2ec46567642a91a5702",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "ac614269b86a18d6c1f8dcb14e023cd2cbdbf80049b6398c24b3f994a7edb5c6",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "1.2.7"
     },
     {
-      "version": "1.2.5",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "76301ec1f088d2569b9b1c8b14297b936aa338bf1eb3dc874fb31d5297d0dbbc",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "e0b4269e9c1e7128c64c1dd728c01fd69582b74b14c9e2ec46567642a91a5702",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.2.6"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
-    },
-    {
-      "version": "1.2.4",
+      ],
+      "recipe_content_sha256": "76301ec1f088d2569b9b1c8b14297b936aa338bf1eb3dc874fb31d5297d0dbbc",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "adb5968933e13f826e81da1ad928146fa96edfb6f23a01b5478c9cb6cad4392b",
-      "upgrade_effect": "rebuild",
-      "changes": [
-        {
-          "kind": "fix",
-          "summary": "Added the Ubuntu security mirror required by the shared Step1X package-install build.",
-          "details": "The host allowlist now matches the pinned Step1X runtime distribution while preserving offline execution after installation."
-        }
-      ]
-    },
-    {
-      "version": "1.2.3",
-      "released_at": "2026-08-30",
-      "recipe_content_sha256": "034e0c4aad9a43e02160f833fbff0962e8bdd184b2bb86c4cbe1341fd84572d0",
       "upgrade_effect": "metadata-only",
-      "changes": [
-        {
-          "kind": "metadata",
-          "summary": "Linked bounded geometry output to the Step1X texture stage.",
-          "details": "Operator guidance names the exact next recipe and the existing 240 MiB downstream input limit without claiming unsupported composite orchestration."
-        }
-      ]
+      "version": "1.2.5"
     },
     {
-      "version": "1.2.2",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "d1fc53b506cc1a1f851c93389538aa1d16136bf0209b9502872caf3929fbcc26",
+      "changes": [
+        {
+          "details": "The host allowlist now matches the pinned Step1X runtime distribution while preserving offline execution after installation.",
+          "kind": "fix",
+          "summary": "Added the Ubuntu security mirror required by the shared Step1X package-install build."
+        }
+      ],
+      "recipe_content_sha256": "adb5968933e13f826e81da1ad928146fa96edfb6f23a01b5478c9cb6cad4392b",
+      "released_at": "2026-09-01",
       "upgrade_effect": "rebuild",
+      "version": "1.2.4"
+    },
+    {
+      "changes": [
+        {
+          "details": "Operator guidance names the exact next recipe and the existing 240 MiB downstream input limit without claiming unsupported composite orchestration.",
+          "kind": "metadata",
+          "summary": "Linked bounded geometry output to the Step1X texture stage."
+        }
+      ],
+      "recipe_content_sha256": "034e0c4aad9a43e02160f833fbff0962e8bdd184b2bb86c4cbe1341fd84572d0",
+      "released_at": "2026-08-30",
+      "upgrade_effect": "metadata-only",
+      "version": "1.2.3"
+    },
+    {
       "changes": [
         {
           "kind": "fix",
           "summary": "Validated reachable finite nondegenerate indexed triangle geometry before atomically publishing each GLB."
         }
-      ]
+      ],
+      "recipe_content_sha256": "d1fc53b506cc1a1f851c93389538aa1d16136bf0209b9502872caf3929fbcc26",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "rebuild",
+      "version": "1.2.2"
     },
     {
-      "version": "1.2.1",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "a769c07a3279a65cc91ef59d96342dae163dd12f1bf0bb48a22d3016a0933e4d",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "fix",
@@ -88,13 +89,13 @@
           "kind": "compatibility",
           "summary": "Declared exact one-image input and single-GLB output slots with bounded bytes."
         }
-      ]
+      ],
+      "recipe_content_sha256": "a769c07a3279a65cc91ef59d96342dae163dd12f1bf0bb48a22d3016a0933e4d",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "rebuild",
+      "version": "1.2.1"
     },
     {
-      "version": "1.2.0",
-      "released_at": "2026-08-24",
-      "recipe_content_sha256": "c550dbc8597e3d9a5f1b79e0b2e6ff73eaa9f3860e634fbc443260fa8b47464a",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "compatibility",
@@ -108,13 +109,13 @@
           "kind": "fix",
           "summary": "Eliminated the implicit BRIA download and bound the DINOv2 processor authority so execution remains offline after installation."
         }
-      ]
+      ],
+      "recipe_content_sha256": "c550dbc8597e3d9a5f1b79e0b2e6ff73eaa9f3860e634fbc443260fa8b47464a",
+      "released_at": "2026-08-24",
+      "upgrade_effect": "rebuild",
+      "version": "1.2.0"
     },
     {
-      "version": "1.1.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "5f0612f079df796f52c6c03bb2bde7efa255d089cb0a72f3bf7c13061e1d19fb",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "compatibility",
@@ -128,34 +129,45 @@
           "kind": "metadata",
           "summary": "Replaced the broken model-card license URL with the exact upstream Apache-2.0 license."
         }
-      ]
+      ],
+      "recipe_content_sha256": "5f0612f079df796f52c6c03bb2bde7efa255d089cb0a72f3bf7c13061e1d19fb",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.1.0"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "e985c41d373499d308f8757bff5157b8a185238a907d6d4c380c67e523997733",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
           "summary": "Initial reviewed catalog release of Step1X-3D geometry pytorch-pipeline single Spark."
         }
-      ]
+      ],
+      "recipe_content_sha256": "e985c41d373499d308f8757bff5157b8a185238a907d6d4c380c67e523997733",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     },
     {
-      "version": "0.1.0",
-      "released_at": "2026-08-17",
-      "recipe_content_sha256": "8c6f9e9cd3ee947ef6f6eb76328c3292cc799ff63ea733c3c33dde6c88518625",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
-          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
           "references": [
             "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-          ]
+          ],
+          "summary": "Recovered the first public legacy revision from before semantic release tracking."
         }
-      ]
+      ],
+      "recipe_content_sha256": "8c6f9e9cd3ee947ef6f6eb76328c3292cc799ff63ea733c3c33dde6c88518625",
+      "released_at": "2026-08-17",
+      "upgrade_effect": "reinstall",
+      "version": "0.1.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "step1x-3d-geometry-pytorch-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "1.2.7"
 }
