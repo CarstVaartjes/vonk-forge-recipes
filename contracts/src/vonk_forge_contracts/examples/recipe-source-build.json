@@ -20,7 +20,7 @@
         "kind": "model",
         "publisher": "vonk-forge",
         "slug": "synthetic-tiny-fp16",
-        "content_sha256": "7b5431cb5c3f062afa8cc3e7013610cd1fa52fad35c53b5dd0f57482649c4202"
+        "content_sha256": "316f50462f9e44fe3f139e914a0d18c072807e389c81db714d633a565a4f4eaf"
       },
       "files": [
         {
@@ -136,7 +136,7 @@
       "checks": [
         {
           "name": "chat",
-          "kind": "openai.chat",
+          "kind": "openai.vision",
           "request": {
             "transport": "http",
             "method": "POST",
@@ -146,7 +146,18 @@
               "messages": [
                 {
                   "role": "user",
-                  "content": "Say hello."
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Describe this synthetic image."
+                    },
+                    {
+                      "type": "image_url",
+                      "image_url": {
+                        "url": "data:image/png;base64,iVBORw0KGgo="
+                      }
+                    }
+                  ]
                 }
               ],
               "max_tokens": 16

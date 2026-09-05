@@ -28,3 +28,73 @@ jobs:
 
       - name: Verify generated catalog index
         run: python3 tools/build-catalog-index --check
+
+  public-contracts:
+    name: Verify public contracts package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out recipes
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.1"
+          python-version: "3.12"
+          enable-cache: false
+
+      - name: Test, lint, and build public contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_venv="$RUNNER_TEMP/contracts-test-venv"
+          uv venv --python 3.12 "$test_venv"
+          uv pip install --python "$test_venv/bin/python" \
+            'pydantic>=2.13,<3' 'jsonschema>=4.24,<5' 'pytest>=8,<9'
+          "$test_venv/bin/pytest" -q tests/test_contracts.py
+          "$test_venv/bin/python" tools/generate-contract-schemas --check
+          "$test_venv/bin/python" tools/generate-contract-examples
+          if ! git diff --quiet -- contracts/src/vonk_forge_contracts/examples; then
+            echo 'Generated contract examples are stale; run tools/generate-contract-examples' >&2
+            git diff -- contracts/src/vonk_forge_contracts/examples
+            exit 1
+          fi
+          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" \
+            uvx --from ruff==0.16.1 ruff check \
+              contracts/src/vonk_forge_contracts tests/test_contracts.py \
+              tools/generate-contract-schemas tools/generate-contract-examples
+
+          wheel_dir="$RUNNER_TEMP/contracts-wheel"
+          uv build --wheel --out-dir "$wheel_dir" contracts
+          consumer_venv="$RUNNER_TEMP/contracts-consumer-venv"
+          uv venv --python 3.12 "$consumer_venv"
+          uv pip install --python "$consumer_venv/bin/python" "$wheel_dir"/*.whl
+          consumer_cwd="$RUNNER_TEMP/contracts-consumer"
+          mkdir -p "$consumer_cwd"
+          (
+            cd "$consumer_cwd"
+            "$consumer_venv/bin/python" - <<'PY'
+          from importlib.resources import files
+
+          from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256
+          from vonk_forge_contracts.resolver import validate_recipe_models
+
+          examples = files("vonk_forge_contracts").joinpath("examples")
+          model = ModelDefinition.model_validate_json(
+              examples.joinpath("model-definition.json").read_text()
+          )
+          for name in (
+              "recipe-image.json",
+              "recipe-source-build.json",
+              "recipe-job.json",
+              "recipe-dual.json",
+          ):
+              recipe = RecipeDefinition.model_validate_json(
+                  examples.joinpath(name).read_text()
+              )
+              validate_recipe_models(recipe, [model])
+          assert len(content_sha256(model)) == 64
+          print("External wheel import and four recipe resolutions: OK")
+          PY
+          )
