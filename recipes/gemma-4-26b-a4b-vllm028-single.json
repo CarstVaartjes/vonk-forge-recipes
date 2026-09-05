@@ -193,7 +193,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "3287798fcef6c50981ed45b567f355e60b30cd24d85624ee8aac069e3570d9aa",
+        "content_sha256": "93d54f08a0649db7d06a397f2870952cd37573f1b17b5d6441fe6ddd3a959917",
         "kind": "model",
         "publisher": "google",
         "slug": "gemma-4-26b-a4b-it-4d7ae498"
@@ -207,6 +207,66 @@
     ],
     "source_kind": "global",
     "source_reference": "https://huggingface.co/google/gemma-4-26B-A4B-it/tree/4d7ae4984b7db7de8f8457170b3f1a419ee76d52"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "ea17c8b424ffbef5ffdaaf9ae732fdbda24c4cb316fed03b60f78822cae93fc0",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://github.com/vllm-project/vllm/tree/2cf0a6915ce544dc493a0990f2ea38d81601128a",
+              "https://huggingface.co/google/gemma-4-26B-A4B-it/tree/4d7ae4984b7db7de8f8457170b3f1a419ee76d52"
+            ],
+            "summary": "Added a separate vLLM 0.28 Candidate while retaining the vLLM 0.27.1 fallback recipe."
+          },
+          {
+            "details": null,
+            "kind": "compatibility",
+            "references": [
+              "https://docs.vllm.ai/en/v0.28.0/api/vllm/model_executor/models/gemma4_mm/",
+              "https://github.com/vllm-project/vllm/issues/53431"
+            ],
+            "summary": "Bound local-image serving and exact Gemma 4 multimodal/parser import checks to the immutable ARM64 image."
+          }
+        ],
+        "prior_recipe_content_sha256": "078047fc8139b5ed42da608e6d131df791b45ee74b2eedccea45c50f22d39469",
+        "released_at": "2026-08-29",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      }
+    ],
+    "released_at": "2026-09-03",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [

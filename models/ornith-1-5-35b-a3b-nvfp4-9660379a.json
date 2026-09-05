@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -21,6 +26,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "metadata-8342fc1e4d71-618cd5b83d",
@@ -249,6 +255,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Official upstream checkpoint at the pinned revision.",
+    "publisher": "ornith-ai",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "ornith-ai",
+      "slug": "ornith-1-5-35b-a3b"
+    }
+  },
   "metadata": {
     "description": "Exact public NVFP4 9660379a checkpoint.",
     "tags": [
@@ -278,5 +294,6 @@
   "source": {
     "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
     "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e"
-  }
+  },
+  "supersedes": null
 }

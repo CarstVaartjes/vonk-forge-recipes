@@ -479,7 +479,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "23c3bcfef4068e989231ae8e89549083e9396ac192583658533f2012f7122b74",
+        "content_sha256": "a0ec3b83211c5752baeac673c8c4b71ff0949ca88bb44992b2d1fa9a4f860955",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-layered-8f0ca708"
@@ -492,6 +492,176 @@
     ],
     "source_kind": "global",
     "source_reference": "https://huggingface.co/Qwen/Qwen-Image-Layered/tree/8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.1.8"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "b49f7cace89eb804335a7f55808fd8ead5cf32063a3fe48649f9e8a67f70448e",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.7"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "75614f3d5ad4b470e2990ffee024199ddc0d973f65bab768a9b58d841ebbda8c",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.1.6"
+      },
+      {
+        "changes": [
+          {
+            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+            "kind": "security",
+            "references": [],
+            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+          }
+        ],
+        "prior_recipe_content_sha256": "747988f1dc95f93aac153597f221bbb45686892e27399e2af0e2749550f1532b",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.5"
+      },
+      {
+        "changes": [
+          {
+            "details": "Published the exact 640-pixel, 50-step output and single-Spark admission envelopes so it is not mistaken for a general image-edit speed or precision variant.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Clarified that Layered is a separate four-output decomposition task."
+          }
+        ],
+        "prior_recipe_content_sha256": "243331d70f2da290c2a15d0a7fcb71467f2a8e9ca7e1079ec9e478a098bdb3dc",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "none",
+        "version": "1.1.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "Declared the exact source-image slot and four-PNG layered output cardinality.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Added typed artifact input and output slot contracts."
+          }
+        ],
+        "prior_recipe_content_sha256": "72fb0b18e261e90bca688cd347c02c3184849b24ccbb4dc0604ec3d62925c8c8",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "none",
+        "version": "1.1.3"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Requires exactly one regular image input and fails if decomposition returns fewer or more layers than requested."
+          },
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [],
+            "summary": "Preserves every requested RGBA layer as a deterministic numbered PNG output."
+          }
+        ],
+        "prior_recipe_content_sha256": "4e4b0e73672c221f42d3b6290fe8e7f058a6f37591a658e6e27562c76da5b9b7",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "955e35590d1a2927c2b6b7b4b7f990922044769ccdadbc9da0358240c6351961",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.1.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/Qwen/Qwen-Image-Layered/tree/8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf"
+            ],
+            "summary": "Enabled the upstream-recommended CFG normalization for layered RGBA decomposition."
+          }
+        ],
+        "prior_recipe_content_sha256": "e77167bb5e3f0a63a1c4181798cd337207f6939320a50d9f33dec9184f9ec911",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of Qwen Image Layered Diffusers single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "3247ae2fdfcab2eb4c80f6d42de47a6ec61debcfa49f6242e2c9c0827265b972",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/b906fccb5c86db91b485b02c0d1adba7ec411414"
+            ],
+            "summary": "Recovered the first public legacy revision from before semantic release tracking."
+          }
+        ],
+        "prior_recipe_content_sha256": "f8ede882c70d7972aae466f96bd6c5d767db84ff582229d654e8b953f7cace54",
+        "released_at": "2026-08-16",
+        "upgrade_effect": "reprepare",
+        "version": "0.1.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.1.8"
   },
   "runtime": {
     "arguments": [

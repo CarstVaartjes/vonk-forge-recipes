@@ -246,7 +246,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ff81c7479c70b74de88a6e1bede8b44beed3215263fb3bbf9bc919e651223fc8",
+        "content_sha256": "f2c44f5a4edfc1c59948b8a41eb4650c3f35f1c6c049b4025b538ba752c2b613",
         "kind": "model",
         "publisher": "poolside",
         "slug": "laguna-xs-2-1-nvfp4-d32afde8"
@@ -259,6 +259,129 @@
     ],
     "source_kind": "global",
     "source_reference": "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4/tree/d32afde8b09af1539b49ff96ff5551c674485f8e"
+  },
+  "release": {
+    "history": [
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.6"
+      },
+      {
+        "changes": [
+          {
+            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "e7bd353e6ba98fdcb54b368efbb467308718b621171767830e1e74bc6974663a",
+        "released_at": "2026-09-03",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.5"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
+          }
+        ],
+        "prior_recipe_content_sha256": "d007c441421f075aa632ba4a4daea6233b53f0919977c3629d84e24f7375a897",
+        "released_at": "2026-09-01",
+        "upgrade_effect": "none",
+        "version": "1.0.4"
+      },
+      {
+        "changes": [
+          {
+            "details": "Laguna XS weights are externally mounted and retain exact Poolside provenance in the model and recipe contracts. The adapter image now labels its Apache-2.0 vLLM source and revision instead of claiming the mounted model as image source code.",
+            "kind": "runtime",
+            "references": [
+              "https://github.com/vllm-project/vllm/tree/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
+              "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4/tree/d32afde8b09af1539b49ff96ff5551c674485f8e"
+            ],
+            "summary": "Corrected OCI labels to identify the vLLM runtime actually baked into the image."
+          }
+        ],
+        "prior_recipe_content_sha256": "a55d133e00b9263dd887a6d8514f1e5bb13df2817b055978a763d3b4df1a2419",
+        "released_at": "2026-08-30",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.3"
+      },
+      {
+        "changes": [
+          {
+            "details": "The adapter now creates UID 10001 explicitly, routes HOME, Hugging Face, vLLM, FlashInfer workspace and autotune, Triton, PyTorch, CUDA, and uv cache state beneath the declared writable /outputs mount, and uses the bounded writable /tmp tmpfs as its working directory.",
+            "kind": "runtime",
+            "references": [],
+            "summary": "Made non-root runtime caches compatible with the controller-enforced read-only root filesystem."
+          }
+        ],
+        "prior_recipe_content_sha256": "2fcb3d117cf1436d347416d3249f7a1ea848cad299f4a92af06f935d2c811b7b",
+        "released_at": "2026-08-28",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.2"
+      },
+      {
+        "changes": [
+          {
+            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+          }
+        ],
+        "prior_recipe_content_sha256": "818dff1b4de34c277c01e08670cd408f8f07c855084f97eb485a808b4cf97387",
+        "released_at": "2026-08-26",
+        "upgrade_effect": "none",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [],
+            "summary": "Initial reviewed catalog release of Laguna XS 2.1 NVFP4 vLLM single Spark."
+          }
+        ],
+        "prior_recipe_content_sha256": "fb8042d037c39e53a84e03bfa56b606ada1afb5310436a88a628d7c5b655912f",
+        "released_at": "2026-08-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.0.0"
+      },
+      {
+        "changes": [
+          {
+            "details": null,
+            "kind": "initial",
+            "references": [
+              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/92bc339589fdffbcb8d20f758bb1f8cae5423598"
+            ],
+            "summary": "Recovered the first public legacy revision from before semantic release tracking."
+          }
+        ],
+        "prior_recipe_content_sha256": "5aa44eed976f53675e1aee224baea9c5631f3e59276fc45eb16cb3c595e12f24",
+        "released_at": "2026-08-16",
+        "upgrade_effect": "reprepare",
+        "version": "0.1.0"
+      }
+    ],
+    "released_at": "2026-09-05",
+    "version": "1.0.6"
   },
   "runtime": {
     "arguments": [

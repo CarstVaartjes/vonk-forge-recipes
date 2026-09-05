@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -15,6 +20,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "target",
@@ -64,6 +70,16 @@
     "resolution_pixels": null,
     "sample_rate_hz": null
   },
+  "lineage": {
+    "derivation": "Comfy-Org's upstream-supported mixed-precision FP8 conversion of the official Qwen Image Edit 2511 transformer for native ComfyUI MixedPrecisionOps; no runtime-side shard merging is required.",
+    "publisher": "Comfy-Org",
+    "relation": "quantized",
+    "source_model": {
+      "kind": "model",
+      "publisher": "qwen",
+      "slug": "qwen-image-edit"
+    }
+  },
   "metadata": {
     "description": "Exact Comfy-Org mixed-precision FP8 Qwen Image Edit 2511 transformer for core ComfyUI MixedPrecisionOps, used with the catalog's immutable scaled-FP8 Qwen-VL encoder and Qwen Image VAE companions.",
     "tags": [
@@ -98,5 +114,6 @@
   "source": {
     "repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI",
     "revision": "4c7c4ea236326cbae56d403d22a03c6cd86ad9a0"
-  }
+  },
+  "supersedes": null
 }

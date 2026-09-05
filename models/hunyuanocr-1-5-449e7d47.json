@@ -1,4 +1,9 @@
 {
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
   "capabilities": {
     "facts": [
       {
@@ -33,6 +38,7 @@
     },
     "schema_version": 2
   },
+  "dependencies": [],
   "files": [
     {
       "id": "metadata-gitattributes",
@@ -410,6 +416,14 @@
     ],
     "operator_acceptance_required": true,
     "spdx": "LicenseRef-Tencent-Hunyuan-Community",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR"
+      ],
+      "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
+    },
     "url": "https://huggingface.co/tencent/HunyuanOCR/blob/449e7d471a8a1ef5bd5d652e4881183d7252cbc7/LICENSE"
   },
   "limits": {
@@ -417,6 +431,16 @@
     "frames": null,
     "resolution_pixels": 16777216,
     "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Official HunyuanOCR 1.5 target checkpoint at the repository root plus the official DFlash draft under dflash/. The immutable Hugging Face snapshot also retains the publisher's archived HunyuanOCR 1.0 files under v1.0/.",
+    "publisher": "Tencent Hunyuan",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "tencent",
+      "slug": "hunyuanocr-1-5"
+    }
   },
   "metadata": {
     "description": "Exact official HunyuanOCR 1.5 BF16 target checkpoint with its lossless DFlash speculative-decoding draft and archived 1.0 files from the immutable upstream snapshot.",
@@ -450,5 +474,6 @@
   "source": {
     "repository": "https://huggingface.co/tencent/HunyuanOCR",
     "revision": "449e7d471a8a1ef5bd5d652e4881183d7252cbc7"
-  }
+  },
+  "supersedes": null
 }
