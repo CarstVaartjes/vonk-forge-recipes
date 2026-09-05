@@ -224,6 +224,22 @@
       {
         "changes": [
           {
+            "details": "Diffusers moved from efabd60d to c5469b7c and includes runtime changes across pipelines and loading paths. The exact MiniMax H3 model and modular adapter remain pinned until focused ARM64 build and serving checks cover the range.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/huggingface/diffusers/compare/efabd60d61c2b7aabf9f182bee6b5b6058980304...c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+            ],
+            "summary": "Record Diffusers upstream drift; retain the MiniMax H3 source pin."
+          }
+        ],
+        "prior_recipe_content_sha256": "b2a5d49644995ea946477dc9f43c1db8d37c0c41aa7c1695a9fb0c877cf2bc25",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "3.0.5"
+      },
+      {
+        "changes": [
+          {
             "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
             "kind": "compatibility",
             "references": [],
@@ -468,8 +484,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "3.0.4"
+    "released_at": "2026-09-05",
+    "version": "3.0.5"
   },
   "runtime": {
     "arguments": [

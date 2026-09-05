@@ -147,6 +147,22 @@
       {
         "changes": [
           {
+            "details": "Upstream main remains at cb5ac944709c6c913109070c7b90c3447f57f3d4; the exact label-geometry adapter source and model snapshot therefore remain unchanged.",
+            "kind": "metadata",
+            "references": [
+              "https://github.com/stepfun-ai/Step1X-3D/commit/cb5ac944709c6c913109070c7b90c3447f57f3d4"
+            ],
+            "summary": "Revalidated the Step1X label-geometry source pin against upstream main."
+          }
+        ],
+        "prior_recipe_content_sha256": "4b3ee91b9f3183dc745ad5b7b3768063f916795643506b961cd03f3841f35a60",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.2.8"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -344,7 +360,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "1.2.7"
+    "version": "1.2.8"
   },
   "runtime": {
     "arguments": [

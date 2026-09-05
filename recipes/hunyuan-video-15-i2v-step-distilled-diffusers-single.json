@@ -158,6 +158,22 @@
       {
         "changes": [
           {
+            "details": "Diffusers moved from a3608b51 to c5469b7c and includes runtime changes across pipelines and loading paths. The exact HunyuanVideo 1.5 i2v step-distilled model and native adapter remain pinned until focused ARM64 build and serving checks cover the range.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+            ],
+            "summary": "Record Diffusers upstream drift; retain the HunyuanVideo source pin."
+          }
+        ],
+        "prior_recipe_content_sha256": "4fe13785a189aa43aa48284ebe6ef34039d7a608979db7b91b26f52c629eb9e8",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.4.4"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -340,7 +356,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "1.4.3"
+    "version": "1.4.4"
   },
   "runtime": {
     "arguments": [

@@ -186,6 +186,22 @@
       {
         "changes": [
           {
+            "details": "Upstream main remains at 4d47c0cc2bd0c4281963a7314ab330a5af36bfa8; the exact adapter source and model snapshot therefore remain unchanged.",
+            "kind": "metadata",
+            "references": [
+              "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/commit/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8"
+            ],
+            "summary": "Revalidated the Hunyuan3D-Omni source pin against upstream main."
+          }
+        ],
+        "prior_recipe_content_sha256": "6245be399863b05c7b97ad58673c6db3966377fb660b64c9785ea625928908df",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "2.0.8"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -385,7 +401,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "2.0.7"
+    "version": "2.0.8"
   },
   "runtime": {
     "arguments": [

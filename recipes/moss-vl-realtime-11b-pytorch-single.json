@@ -313,8 +313,8 @@
           ]
         },
         {
-          "file_id": "modeling-moss-vl-4e356362c743",
-          "id": "primary-modeling-moss-vl-4e356362c743",
+          "file_id": "modeling-moss-vl-b594a48d7ef4",
+          "id": "primary-modeling-moss-vl-b594a48d7ef4",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -335,8 +335,8 @@
           ]
         },
         {
-          "file_id": "processing-moss-vl-c03bc5dc41bd",
-          "id": "primary-processing-moss-vl-c03bc5dc41bd",
+          "file_id": "processing-moss-vl-fe2d78777ada",
+          "id": "primary-processing-moss-vl-fe2d78777ada",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -379,8 +379,8 @@
           ]
         },
         {
-          "file_id": "video-processing-moss-vl-f1f3302f6792",
-          "id": "primary-video-processing-moss-vl-f1f3302f6792",
+          "file_id": "video-processing-moss-vl-4ffda6f8124e",
+          "id": "primary-video-processing-moss-vl-4ffda6f8124e",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -403,10 +403,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ac6cbe5733277031767e202ce1e78fcd764e678c905c260dfbad9e90a84cb08a",
+        "content_sha256": "86922089e21e3d91fc741ddf58c75a6cad69d91bed6be2695d2dbb3c2d7a9437",
         "kind": "model",
         "publisher": "openmoss",
-        "slug": "moss-vl-realtime-11b-bf16-06b06761"
+        "slug": "moss-vl-realtime-11b-bf16-25e81cb9"
       }
     }
   ],
@@ -415,10 +415,28 @@
       "OpenMOSS"
     ],
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/tree/06b067617677661194cf837970fe3a10f1a0e56d"
+    "source_reference": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/tree/25e81cb952d5f353a5690f2c1ea09a725815df80"
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "The exact BF16 weights, tokenizer, and configuration are unchanged. Upstream remote code now uses a 20 ms idle poll to keep in-process siblings responsive, drops invalid Unicode replacement characters from streamed chunks, and adds an NPU fallback while preserving the CUDA path. The adapter and source notices are bound to the verified revisions.",
+            "kind": "compatibility",
+            "references": [
+              "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/commit/25e81cb952d5f353a5690f2c1ea09a725815df80",
+              "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/compare/06b067617677661194cf837970fe3a10f1a0e56d...25e81cb952d5f353a5690f2c1ea09a725815df80",
+              "https://github.com/OpenMOSS/MOSS-VL/compare/560f8872c362b47a52ddf20ff6a1f9c8ac10b706...288cc2dcd145e53a3baf9c11fc9be298cf1b30d7"
+            ],
+            "summary": "Refresh MOSS-VL-Realtime remote code to 25e81cb9."
+          }
+        ],
+        "prior_recipe_content_sha256": "70b5a72ac7089b4e00ec6cd602532c36769d1577ea8d1b0cbd4bd1c27742537c",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.6"
+      },
       {
         "changes": [
           {
@@ -536,7 +554,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "1.1.5"
+    "version": "1.1.6"
   },
   "runtime": {
     "arguments": [

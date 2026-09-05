@@ -146,6 +146,22 @@
       {
         "changes": [
           {
+            "details": "Upstream main remains at fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c; the exact TripoSG adapter source and model snapshot therefore remain unchanged.",
+            "kind": "metadata",
+            "references": [
+              "https://github.com/VAST-AI-Research/TripoSG/commit/fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c"
+            ],
+            "summary": "Revalidated the TripoSG source pin against upstream main."
+          }
+        ],
+        "prior_recipe_content_sha256": "20da2f98bd4257df1b711839441bb43012dc14ca59af5f42e9d067f5528243f9",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "2.0.9"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -347,7 +363,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "2.0.8"
+    "version": "2.0.9"
   },
   "runtime": {
     "arguments": [

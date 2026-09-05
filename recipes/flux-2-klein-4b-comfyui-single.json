@@ -161,6 +161,22 @@
       {
         "changes": [
           {
+            "details": "ComfyUI moved from 12d52794 to 250b2e95; the upstream range changes core runtime and model nodes, including WAN support. The exact FLUX workflow and model snapshot remain unchanged, so the specialized pin is retained pending focused build and serving qualification.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+            ],
+            "summary": "Record ComfyUI upstream drift; retain the qualified source pin."
+          }
+        ],
+        "prior_recipe_content_sha256": "5f8ce1bb97e86e09bc6563067f91e07967921d6e4c2955eb06f6156920cb2d4f",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.9"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -291,7 +307,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "1.0.8"
+    "version": "1.0.9"
   },
   "runtime": {
     "arguments": [

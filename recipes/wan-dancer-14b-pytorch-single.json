@@ -452,6 +452,22 @@
       {
         "changes": [
           {
+            "details": "DiffSynth-Studio moved from 84f93fc4 to 4dbf980d and changed model configuration, pipeline, and runtime support. The native Wan Dancer adapter retains the specialized 84f93fc4 pin until compatibility and serving checks cover the changed implementation.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/modelscope/DiffSynth-Studio/compare/84f93fc4907b6c193be5501bab0b5c37f383033c...4dbf980d4d0eb34eda136300dd0d72014cff8965"
+            ],
+            "summary": "Record DiffSynth-Studio runtime drift; retain the native source pin."
+          }
+        ],
+        "prior_recipe_content_sha256": "1626a1e5675717775778f64cf23f6b4c4e266122587631c2391c828d8deffa96",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.9"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -606,7 +622,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "1.0.8"
+    "version": "1.0.9"
   },
   "runtime": {
     "arguments": [

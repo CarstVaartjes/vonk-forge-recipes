@@ -187,6 +187,22 @@
       {
         "changes": [
           {
+            "details": "Diffusers moved from d035dcd7 to c5469b7c and includes runtime changes across pipelines and loading paths. The exact LTX-2.5 fp8 cast checkpoint and canary adapter remain pinned until focused ARM64 build and serving checks cover the range.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+            ],
+            "summary": "Record Diffusers upstream drift; retain the LTX-2.5 source pin."
+          }
+        ],
+        "prior_recipe_content_sha256": "4edca82271ba5412d3d95e26bb3d81f8aa782bfe13e048e4cfe909e7737b6c47",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.5"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -260,7 +276,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "1.0.4"
+    "version": "1.0.5"
   },
   "runtime": {
     "arguments": [

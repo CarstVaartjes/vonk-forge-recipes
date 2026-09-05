@@ -3,7 +3,7 @@ FROM nvcr.io/nvidia/cuda:13.2.1-devel-ubuntu24.04@sha256:0e1392f431f89f143d0d6d0
 LABEL org.opencontainers.image.source="https://github.com/microsoft/TRELLIS.2" \
       org.opencontainers.image.revision="75fbf0183001ed9876c8dbb35de6b68552ee08bd" \
       org.opencontainers.image.licenses="MIT" \
-      io.vonk.pixal3d.revision="cdbb2bbffbf4e6f298b5f2af3d1d76a8d823d2af" \
+      io.vonk.pixal3d.revision="f7cf38429b0bd264f1995f0f8743a88b1c728b94" \
       io.vonk.platform="linux/arm64"
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -65,7 +65,7 @@ RUN git clone --filter=blob:none --no-checkout https://github.com/microsoft/TREL
     && git -C /opt/vonk/trellis2-source checkout 75fbf0183001ed9876c8dbb35de6b68552ee08bd \
     && git -C /opt/vonk/trellis2-source submodule update --init --recursive \
     && git clone --filter=blob:none --no-checkout https://github.com/TencentARC/Pixal3D.git /opt/vonk/pixal3d-source \
-    && git -C /opt/vonk/pixal3d-source checkout cdbb2bbffbf4e6f298b5f2af3d1d76a8d823d2af \
+    && git -C /opt/vonk/pixal3d-source checkout f7cf38429b0bd264f1995f0f8743a88b1c728b94 \
     && git clone --filter=blob:none --no-checkout https://github.com/valeoai/NAF.git /opt/vonk/naf-source \
     && git -C /opt/vonk/naf-source checkout 37f2dfc180f2de53d98bd601109c0da0dd6b0f43 \
     && git clone --filter=blob:none --no-checkout https://github.com/EasternJournalist/utils3d.git /opt/vonk/utils3d-source \
