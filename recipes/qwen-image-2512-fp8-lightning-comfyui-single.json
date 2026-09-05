@@ -164,6 +164,22 @@
       {
         "changes": [
           {
+            "details": "ComfyUI moved from 12d52794 to 250b2e95; the upstream range changes core runtime and model nodes. The exact Qwen Image 2512 Lightning workflow and model snapshots remain unchanged, so the specialized pin is retained pending focused build and serving qualification.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
+            ],
+            "summary": "Record ComfyUI upstream drift; retain the qualified source pin."
+          }
+        ],
+        "prior_recipe_content_sha256": "0e8690fe5a686e7fc2f0761e5d16078ccaa0571ae57a0ca313b753f46a8252a5",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.6"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -254,7 +270,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "1.0.5"
+    "version": "1.0.6"
   },
   "runtime": {
     "arguments": [

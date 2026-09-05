@@ -165,6 +165,22 @@
       {
         "changes": [
           {
+            "details": "The Comfy-Org Qwen Image Edit repository moved from e9e85de7 to 984166f6 with README metadata changes only; the exact int8 convrot artifact snapshot is unchanged and retained.",
+            "kind": "metadata",
+            "references": [
+              "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/984166f60a9b1fcede5e9b9287b7a7aebc050010"
+            ],
+            "summary": "Record Qwen Image Edit artifact drift; retain the exact int8 convrot snapshot."
+          }
+        ],
+        "prior_recipe_content_sha256": "e2b45bac7a171e35fc4092def2e8a6ced00a2e5d5e59bb8a2663af1b9ec21180",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.6"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -255,7 +271,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "1.0.5"
+    "version": "1.0.6"
   },
   "runtime": {
     "arguments": [

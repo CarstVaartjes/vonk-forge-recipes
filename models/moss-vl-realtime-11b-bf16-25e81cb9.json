@@ -27,7 +27,7 @@
     ],
     "provenance": {
       "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
-      "source_revision": "06b067617677661194cf837970fe3a10f1a0e56d",
+        "source_revision": "25e81cb952d5f353a5690f2c1ea09a725815df80",
       "source_url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime"
     },
     "schema_version": 2
@@ -170,13 +170,13 @@
       "size_bytes": 81805
     },
     {
-      "id": "modeling-moss-vl-4e356362c743",
+      "id": "modeling-moss-vl-b594a48d7ef4",
       "path": "modeling_moss_vl.py",
       "roles": [
         "runtime"
       ],
-      "sha256": "4e356362c7438e684f031f2c763591674fec663e63e435e58d6a65d5dbe1e33b",
-      "size_bytes": 210853
+      "sha256": "b594a48d7ef42ac5c68e02efbe7737639abb3206fa81fbf39a298782d4ea2952",
+      "size_bytes": 211847
     },
     {
       "id": "preprocessor-config-94f62f9fd2d7",
@@ -188,13 +188,13 @@
       "size_bytes": 591
     },
     {
-      "id": "processing-moss-vl-c03bc5dc41bd",
+      "id": "processing-moss-vl-fe2d78777ada",
       "path": "processing_moss_vl.py",
       "roles": [
         "runtime"
       ],
-      "sha256": "c03bc5dc41bde534a2d3513381a02151c277e3afbf2eace51e063e4dca46d653",
-      "size_bytes": 51567
+      "sha256": "fe2d78777adabe203a3156d694b14e66a47ed497855a672041e6cb8ef08c7bcb",
+      "size_bytes": 51880
     },
     {
       "id": "tokenizer-e7bbd0f97840",
@@ -224,13 +224,13 @@
       "size_bytes": 679
     },
     {
-      "id": "video-processing-moss-vl-f1f3302f6792",
+      "id": "video-processing-moss-vl-4ffda6f8124e",
       "path": "video_processing_moss_vl.py",
       "roles": [
         "runtime"
       ],
-      "sha256": "f1f3302f6792f3709bd4b05382ac2b0767dad74564b787231abba8daad656bdf",
-      "size_bytes": 53100
+      "sha256": "4ffda6f8124e7246b40a3a295eb52ea82d84027c7bcba6b1e51ab7e3239b49cb",
+      "size_bytes": 53392
     },
     {
       "id": "vocab-ca10d7e9fb3e",
@@ -260,9 +260,9 @@
       "title": "MOSS-VL-Realtime 11B"
     },
     "publisher": "openmoss",
-    "slug": "moss-vl-realtime-11b-bf16-06b06761",
-    "variant": "Realtime 0708 BF16 06b06761",
-    "version": "Realtime 0708 BF16 06b06761"
+    "slug": "moss-vl-realtime-11b-bf16-25e81cb9",
+    "variant": "Realtime 0708 BF16 25e81cb9",
+    "version": "Realtime 0708 BF16 25e81cb9"
   },
   "kind": "model",
   "license": {
@@ -271,7 +271,7 @@
     ],
     "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/blob/06b067617677661194cf837970fe3a10f1a0e56d/README.md"
+    "url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/blob/25e81cb952d5f353a5690f2c1ea09a725815df80/README.md"
   },
   "limits": {
     "context_tokens": 262144,
@@ -280,7 +280,7 @@
     "sample_rate_hz": null
   },
   "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
+    "derivation": "Official upstream checkpoint at the pinned revision; the 25e81cb9 snapshot updates realtime idle scheduling and Unicode output cleanup while preserving the CUDA execution path.",
     "publisher": "openmoss",
     "relation": "official",
     "source_model": {
@@ -290,7 +290,7 @@
     }
   },
   "metadata": {
-    "description": "Exact public Realtime 0708 BF16 06b06761 checkpoint.",
+    "description": "Exact public Realtime 0708 BF16 25e81cb9 checkpoint with the upstream realtime scheduling and output-cleanup fixes.",
     "tags": [
       "openmoss",
       "moss-vl",
@@ -312,13 +312,13 @@
       "OpenMOSS"
     ],
     "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
-    "source_revision": "06b067617677661194cf837970fe3a10f1a0e56d",
+    "source_revision": "25e81cb952d5f353a5690f2c1ea09a725815df80",
     "source_url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime"
   },
   "schema_version": 2,
   "source": {
     "repository": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime",
-    "revision": "06b067617677661194cf837970fe3a10f1a0e56d"
+    "revision": "25e81cb952d5f353a5690f2c1ea09a725815df80"
   },
   "supersedes": null
 }

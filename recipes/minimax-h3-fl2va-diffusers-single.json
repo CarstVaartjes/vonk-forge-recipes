@@ -856,6 +856,22 @@
       {
         "changes": [
           {
+            "details": "Diffusers moved from efabd60d to c5469b7c and includes runtime changes across pipelines and loading paths. The exact MiniMax H3 FL2VA model and modular adapter remain pinned until focused ARM64 build and serving checks cover the range.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/huggingface/diffusers/compare/efabd60d61c2b7aabf9f182bee6b5b6058980304...c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+            ],
+            "summary": "Record Diffusers upstream drift; retain the MiniMax H3 FL2VA source pin."
+          }
+        ],
+        "prior_recipe_content_sha256": "d67e84840f6a55e8d8c737cb31c0a1ffc45e1bcc210e8ba3f7f417d1c4ca83ba",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.6"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -952,7 +968,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "1.0.5"
+    "version": "1.0.6"
   },
   "runtime": {
     "arguments": [

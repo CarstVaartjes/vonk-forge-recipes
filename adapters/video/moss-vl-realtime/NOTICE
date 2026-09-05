@@ -5,8 +5,8 @@ contributors and licensed under Apache-2.0. The adapter calls the checkpoint's
 native create_realtime_session API; it does not reimplement model inference.
 
 Primary sources:
-- https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/tree/06b067617677661194cf837970fe3a10f1a0e56d
-- https://github.com/OpenMOSS/MOSS-VL/tree/560f8872c362b47a52ddf20ff6a1f9c8ac10b706/realtime_inference
+- https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/tree/25e81cb952d5f353a5690f2c1ea09a725815df80
+- https://github.com/OpenMOSS/MOSS-VL/tree/288cc2dcd145e53a3baf9c11fc9be298cf1b30d7/realtime_inference
 
 The upstream deployment currently pins PyTorch 2.8 CUDA 12.8. This Vonk source
 context is a thin, unaccepted CUDA 13 ARM64 adaptation for DGX Spark. It must

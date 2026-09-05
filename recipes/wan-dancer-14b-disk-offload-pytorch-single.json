@@ -458,6 +458,22 @@
       {
         "changes": [
           {
+            "details": "DiffSynth-Studio moved from 84f93fc4 to 4dbf980d and changed model configuration, pipeline, and runtime support. The disk-offload Wan Dancer adapter retains the specialized 84f93fc4 pin until compatibility and serving checks cover the changed implementation.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/modelscope/DiffSynth-Studio/compare/84f93fc4907b6c193be5501bab0b5c37f383033c...4dbf980d4d0eb34eda136300dd0d72014cff8965"
+            ],
+            "summary": "Record DiffSynth-Studio runtime drift; retain the disk-offload source pin."
+          }
+        ],
+        "prior_recipe_content_sha256": "acaf4629eea380087fdaca5aedfd4bb3bb35b6ac96164b95ac9ee724197b92b8",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "none",
+        "version": "1.0.4"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -522,7 +538,7 @@
       }
     ],
     "released_at": "2026-09-05",
-    "version": "1.0.3"
+    "version": "1.0.4"
   },
   "runtime": {
     "arguments": [
