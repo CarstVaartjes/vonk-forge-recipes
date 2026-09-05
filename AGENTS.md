@@ -5,6 +5,10 @@ shared Pydantic contracts. Read [the authoring guide](docs/recipe-authoring.md)
 before creating, refreshing, or repairing a recipe. Follow the same guide for
 one recipe and for a catalog-wide refresh.
 
+This is the first-release baseline. Maintain one current contract and execution
+path; remove superseded implementations instead of adding migration shims or
+keeping old formats usable alongside it.
+
 ## Working agreement
 
 - Start from current `origin/main` in an isolated branch/worktree. Preserve
@@ -15,9 +19,9 @@ one recipe and for a catalog-wide refresh.
   two authored catalog document kinds: `models/*.json` and `recipes/*.json`.
   Do not restore runtime-distribution documents, shared recipe packages, or
   old schema readers. Supporting Dockerfiles, patches, and fixtures are allowed.
-- A format conversion is not an upstream refresh. For a refresh, check the
-  actual source repositories and record old/new pins and retained-version
-  reasons. Preserve specialized forks when their implementation is required.
+- For an upstream refresh, check the actual source repositories and record
+  old/new pins and retained-version reasons. Preserve specialized forks when
+  their implementation is required. A structural edit alone is not a refresh.
 - A trusted recipe may use engine options that the Controller does not know.
   Preserve option names, values, ordering, and setting bindings. Unknown engine
   flags or values alone are not a rejection reason. Keep structural validation
