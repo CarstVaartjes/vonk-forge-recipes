@@ -1,78 +1,90 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "lfm2-5-vl-3b-vllm028-single"
-  },
-  "version": "1.1.2",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.1.2",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "2fb362f427a70e4c36c63cd4f606ee75bdfa5800f74e8b1c4cc3f251dce992cc",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "7b5f06687ae239707b3c8d4291cd25fe9a4e97de92427549ed9c1d9de645f83a",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "1.1.3"
     },
     {
-      "version": "1.1.1",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "bd42aa982f6c27f89e52aed70f94f0413471af883a58cd5559fc81dbf2a71feb",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "2fb362f427a70e4c36c63cd4f606ee75bdfa5800f74e8b1c4cc3f251dce992cc",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.1.2"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
+      ],
+      "recipe_content_sha256": "bd42aa982f6c27f89e52aed70f94f0413471af883a58cd5559fc81dbf2a71feb",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "metadata-only",
+      "version": "1.1.1"
     },
     {
-      "version": "1.1.0",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "b86876422bcbc1f2adc21e3f1ea58c9e2a1849ddc15930ac8d07283c943be9b4",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
-          "kind": "fix",
-          "summary": "Pinned Liquid AI's corrected a3af5799 LFM2.5-VL snapshot.",
           "details": "The official correction sets min_tiles to 2 and text_config.max_position_embeddings to 32768. The model weights are unchanged, but config.json and processor_config.json changed, so the immutable model version and vLLM 0.28 adapter source bundle are refreshed and existing installs require reinstall.",
+          "kind": "fix",
           "references": [
             "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/commit/a3af5799199acdd2a4f56ac4342816abb46c12a9",
             "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/blob/a3af5799199acdd2a4f56ac4342816abb46c12a9/config.json",
             "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/blob/a3af5799199acdd2a4f56ac4342816abb46c12a9/processor_config.json"
-          ]
+          ],
+          "summary": "Pinned Liquid AI's corrected a3af5799 LFM2.5-VL snapshot."
         }
-      ]
+      ],
+      "recipe_content_sha256": "b86876422bcbc1f2adc21e3f1ea58c9e2a1849ddc15930ac8d07283c943be9b4",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "reinstall",
+      "version": "1.1.0"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-29",
-      "recipe_content_sha256": "26d475b2b589cf655d461729de3bc16944e6ca9e8a1e605347946258a032b2b7",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
-          "summary": "Added a separate vLLM 0.28 Candidate while retaining the vLLM 0.27.1 fallback recipe.",
           "references": [
             "https://github.com/vllm-project/vllm/tree/2cf0a6915ce544dc493a0990f2ea38d81601128a",
             "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/tree/5a414ead75d45db003906d06fb62bd5b6846cec0"
-          ]
+          ],
+          "summary": "Added a separate vLLM 0.28 Candidate while retaining the vLLM 0.27.1 fallback recipe."
         },
         {
           "kind": "compatibility",
-          "summary": "Bound exact LFM2.5-VL image and tool-parser checks to the immutable ARM64 image.",
           "references": [
             "https://docs.vllm.ai/en/v0.28.0/api/vllm/model_executor/models/lfm2_vl/",
             "https://docs.vllm.ai/en/v0.28.0/api/vllm/tool_parsers/lfm2_tool_parser/"
-          ]
+          ],
+          "summary": "Bound exact LFM2.5-VL image and tool-parser checks to the immutable ARM64 image."
         }
-      ]
+      ],
+      "recipe_content_sha256": "26d475b2b589cf655d461729de3bc16944e6ca9e8a1e605347946258a032b2b7",
+      "released_at": "2026-08-29",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "lfm2-5-vl-3b-vllm028-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "1.1.3"
 }

@@ -1,72 +1,35 @@
 {
-  "schema_version": 1,
-  "identity": {
-    "publisher": "vonk-forge",
-    "slug": "inkling-975b-a41b-nvfp4-sglang-eight"
-  },
-  "metadata": {
-    "alignment": "unspecified",
-    "title": "Inkling 975B-A41B NVFP4 SGLang eight Sparks",
-    "description": "Complete offline Candidate TP8 recipe for Thinking Machines' flagship Inkling NVFP4 checkpoint. Its exact eight-rank topology is unsupported on Vonk's current one- or two-Spark configuration: a two-rank split alone would require at least 296.0 GB of checkpoint bytes per Spark before KV cache or runtime overhead. The executable contract remains installable for a future eight-Spark canary and has no DGX Spark physical evidence. Inkling Small NVFP4 dual is the same-family alternative for text, image, and 16 kHz WAV audio, but its current 128 GB Controller admission envelope also needs either at least 128 GB free per node or a separately proven lower-memory profile.",
-    "tags": ["executable",
-      "audio",
-      "candidate",
-      "distributed",
-      "image",
-      "inkling",
-      "multimodal",
-      "nvfp4",
-      "reasoning",
-      "sglang",
-      "spark",
-      "text",
-      "tool-use",
-      "tp8"
-    ]
-  },
-  "model": {
-    "kind": "model-version",
-    "publisher": "thinkingmachines",
-    "slug": "inkling-975b-a41b-nvfp4",
-    "content_sha256": "8293f47fdff932970deb1dc4c2b10e4c83a27c5081af1a0618611048e496d2c7"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "sglang",
-      "content_sha256": "9bd9a41fe12dd4e551fac821623801b6df9af8943d42ddba9f46717636286947"
-    },
-    "patch_bundle": {
-      "kind": "patch-bundle",
-      "publisher": "sglang",
-      "slug": "inkling-sglang-eight-spark-topology",
-      "content_sha256": "637a28f69fd9d4d92db7cf67608b7bb3ad600b9c2413b136843bfb873c1b2702"
+  "artifacts": [
+    {
+      "download_bytes": 592037337118,
+      "id": "weights",
+      "installed_bytes": 592037337118,
+      "kind": "huggingface.snapshot",
+      "mount": {
+        "read_only": true,
+        "target": "/models"
+      },
+      "repository": "thinkingmachines/Inkling-NVFP4",
+      "revision": "42a75a99a40eb2ba1e0717db6357a0bf15205044",
+      "roles": [
+        "entrypoint",
+        "worker"
+      ]
     }
-  },
+  ],
   "build": {
+    "arguments": [],
     "context": {
-      "path": "adapters/llm/inkling-sglang-eight",
-      "sha256": "150f36ddc097889a6c9d501c1ed8baa2f1586fa612cc0d53a3b8d3ad68d0c6d5",
       "expected_bytes": 10240,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
+      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
+      "path": "adapters/llm/inkling-sglang-eight",
+      "sha256": "150f36ddc097889a6c9d501c1ed8baa2f1586fa612cc0d53a3b8d3ad68d0c6d5"
     },
     "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
     "network": {
-      "mode": "none",
-      "hosts": []
+      "hosts": [],
+      "mode": "none"
     },
-    "resources": {
-      "download_bytes": 605328598113,
-      "temporary_bytes": 1184074674236,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 86400
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
     "options": {
       "additional_contexts": [],
       "annotations": [],
@@ -91,158 +54,287 @@
       "unset_environment": [],
       "unset_labels": []
     },
+    "platform": "linux/arm64",
+    "resources": {
+      "cpu_cores": 8,
+      "download_bytes": 605328598113,
+      "memory_bytes": 8000000000,
+      "processes": 4096,
+      "temporary_bytes": 1184074674236,
+      "timeout_seconds": 86400
+    },
     "security": {
       "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+    }
+  },
+  "execution": {
+    "harness": {
+      "content_sha256": "9bd9a41fe12dd4e551fac821623801b6df9af8943d42ddba9f46717636286947",
+      "kind": "execution-harness",
+      "publisher": "vonk-forge",
+      "slug": "sglang"
+    },
+    "patch_bundle": {
+      "content_sha256": "637a28f69fd9d4d92db7cf67608b7bb3ad600b9c2413b136843bfb873c1b2702",
+      "kind": "patch-bundle",
+      "publisher": "sglang",
+      "slug": "inkling-sglang-eight-spark-topology"
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-975b-a41b-nvfp4-sglang-eight"
+  },
+  "interfaces": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "thinkingmachines/Inkling-NVFP4",
-      "revision": "42a75a99a40eb2ba1e0717db6357a0bf15205044",
-      "download_bytes": 592037337118,
-      "installed_bytes": 592037337118,
-      "mount": {
-        "target": "/models",
-        "read_only": true
-      },
-      "roles": [
-        "entrypoint",
-        "worker"
-      ]
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "inkling"
+      ],
+      "port": 30000
     }
   ],
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Complete offline Candidate TP8 recipe for Thinking Machines' flagship Inkling NVFP4 checkpoint. Its exact eight-rank topology is unsupported on Vonk's current one- or two-Spark configuration: a two-rank split alone would require at least 296.0 GB of checkpoint bytes per Spark before KV cache or runtime overhead. The executable contract remains installable for a future eight-Spark canary and has no DGX Spark physical evidence. Inkling Small NVFP4 dual is the same-family alternative for text, image, and 16 kHz WAV audio, but its current 128 GB Controller admission envelope also needs either at least 128 GB free per node or a separately proven lower-memory profile.",
+    "tags": [
+      "executable",
+      "audio",
+      "candidate",
+      "distributed",
+      "image",
+      "inkling",
+      "multimodal",
+      "nvfp4",
+      "reasoning",
+      "sglang",
+      "spark",
+      "text",
+      "tool-use",
+      "tp8"
+    ],
+    "title": "Inkling 975B-A41B NVFP4 SGLang eight Sparks"
+  },
+  "model": {
+    "content_sha256": "47cdc3312831a788e7ffb9e5f35a59f970b436ed0b22dfdfa1bdeb61d6aa140a",
+    "kind": "model-version",
+    "publisher": "thinkingmachines",
+    "slug": "inkling-975b-a41b-nvfp4"
+  },
+  "parameters": [],
+  "provenance": {
+    "attribution": [
+      "Thinking Machines Lab",
+      "SGLang contributors",
+      "NVIDIA DGX Spark",
+      "Vonk Forge"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://github.com/sgl-project/sglang/tree/b7252cc6b0c78b25ecea7ee5efa91a6ae37d0f19"
+  },
   "runtime": {
+    "arguments": [
+      {
+        "name": "model-path",
+        "value": "/models"
+      },
+      {
+        "name": "served-model-name",
+        "value": "inkling"
+      },
+      {
+        "name": "tp",
+        "value": 8
+      },
+      {
+        "name": "context-length",
+        "value": 262144
+      },
+      {
+        "name": "quantization",
+        "value": "modelopt_fp4"
+      },
+      {
+        "name": "attention-backend",
+        "value": "triton"
+      },
+      {
+        "name": "page-size",
+        "value": 128
+      },
+      {
+        "name": "fp4-gemm-backend",
+        "value": "marlin"
+      },
+      {
+        "name": "moe-runner-backend",
+        "value": "marlin"
+      },
+      {
+        "name": "mamba-radix-cache-strategy",
+        "value": "extra_buffer"
+      },
+      {
+        "name": "mem-fraction-static",
+        "value": "0.80"
+      },
+      {
+        "name": "swa-full-tokens-ratio",
+        "value": "0.10"
+      },
+      {
+        "name": "mamba-full-memory-ratio",
+        "value": "0.10"
+      },
+      {
+        "name": "enable-multimodal",
+        "value": true
+      },
+      {
+        "name": "disable-prefill-cuda-graph",
+        "value": true
+      },
+      {
+        "name": "reasoning-parser",
+        "value": "inkling"
+      },
+      {
+        "name": "tool-call-parser",
+        "value": "inkling"
+      },
+      {
+        "name": "trust-remote-code",
+        "value": true
+      }
+    ],
     "distribution": {
+      "content_sha256": "7e2146731799d355842fe9995b11b9de42ed75f6ae2d177826b57b387c0b8fea",
       "kind": "runtime-distribution",
       "publisher": "sglang",
-      "slug": "sglang-inkling-dgx-spark-b7252cc6-arm64",
-      "content_sha256": "7e2146731799d355842fe9995b11b9de42ed75f6ae2d177826b57b387c0b8fea"
+      "slug": "sglang-inkling-dgx-spark-b7252cc6-arm64"
     },
     "entrypoint": [
       "/opt/vonk/bin/sglang-serve"
     ],
-    "arguments": [
-      {"name": "model-path", "value": "/models"},
-      {"name": "served-model-name", "value": "inkling"},
-      {"name": "tp", "value": 8},
-      {"name": "context-length", "value": 262144},
-      {"name": "quantization", "value": "modelopt_fp4"},
-      {"name": "attention-backend", "value": "triton"},
-      {"name": "page-size", "value": 128},
-      {"name": "fp4-gemm-backend", "value": "marlin"},
-      {"name": "moe-runner-backend", "value": "marlin"},
-      {"name": "mamba-radix-cache-strategy", "value": "extra_buffer"},
-      {"name": "mem-fraction-static", "value": "0.80"},
-      {"name": "swa-full-tokens-ratio", "value": "0.10"},
-      {"name": "mamba-full-memory-ratio", "value": "0.10"},
-      {"name": "enable-multimodal", "value": true},
-      {"name": "disable-prefill-cuda-graph", "value": true},
-      {"name": "reasoning-parser", "value": "inkling"},
-      {"name": "tool-call-parser", "value": "inkling"},
-      {"name": "trust-remote-code", "value": true}
-    ],
     "environment": [
-      {"name": "HF_HUB_OFFLINE", "value": "1"},
-      {"name": "SGLANG_ENABLE_UNIFIED_RADIX_TREE", "value": "1"},
-      {"name": "NCCL_DEBUG", "value": "WARN"}
-    ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": true,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {"source": "model", "target": "/models", "read_only": true},
-        {"source": "outputs", "target": "/outputs", "read_only": false}
-      ]
-    },
-    "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 180,
-      "readiness": {
-        "strategy": "endpoint-owner-after-all-ranks",
-        "path": "/v1/models",
-        "timeout_seconds": 3600
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
       },
+      {
+        "name": "SGLANG_ENABLE_UNIFIED_RADIX_TREE",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_DEBUG",
+        "value": "WARN"
+      }
+    ],
+    "lifecycle": {
       "failure": {
         "rank_loss": "withdraw-endpoint",
         "recovery": "restart-worker-then-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "readiness": {
+        "path": "/v1/models",
+        "strategy": "endpoint-owner-after-all-ranks",
+        "timeout_seconds": 3600
+      },
+      "stop_timeout_seconds": 180
+    },
+    "security": {
+      "capabilities": [],
+      "devices": [
+        "nvidia.com/gpu=all"
+      ],
+      "host_network": true,
+      "mounts": [
+        {
+          "read_only": true,
+          "source": "model",
+          "target": "/models"
+        },
+        {
+          "read_only": false,
+          "source": "outputs",
+          "target": "/outputs"
+        }
+      ],
+      "privileged": false,
+      "user": "10001:10001"
     }
   },
+  "schema_version": 1,
   "topology": {
-    "name": "eight",
-    "mode": "distributed",
-    "node_count": 8,
-    "roles": [
-      {
-        "name": "entrypoint",
-        "count": 1,
-        "endpoint_owner": true,
-        "artifacts": [
-          "weights"
-        ],
-        "resources": {
-          "disk": {
-            "image_bytes": 40000000000,
-            "artifact_bytes": 592037337118,
-            "staging_bytes": 1184074674236,
-            "cache_bytes": 50000000000,
-            "rollback_bytes": 0,
-            "safety_margin_bytes": 50000000000
-          },
-          "memory": {
-            "kind": "unified",
-            "startup_peak_bytes": 119000000000,
-            "steady_state_bytes": 111000000000,
-            "runtime_growth_bytes": 5000000000,
-            "system_reserve_bytes": 8000000000
-          }
-        }
-      },
-      {
-        "name": "worker",
-        "count": 7,
-        "endpoint_owner": false,
-        "artifacts": [
-          "weights"
-        ],
-        "resources": {
-          "disk": {
-            "image_bytes": 40000000000,
-            "artifact_bytes": 592037337118,
-            "staging_bytes": 1184074674236,
-            "cache_bytes": 50000000000,
-            "rollback_bytes": 0,
-            "safety_margin_bytes": 50000000000
-          },
-          "memory": {
-            "kind": "unified",
-            "startup_peak_bytes": 119000000000,
-            "steady_state_bytes": 111000000000,
-            "runtime_growth_bytes": 5000000000,
-            "system_reserve_bytes": 8000000000
-          }
-        }
-      }
-    ],
-    "parallelism": {
-      "world_size": 8,
-      "tensor": 8,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "native"
-    },
     "fabric": {
       "connectivity": "connected",
       "minimum_bandwidth_mbps": 200000
     },
+    "mode": "distributed",
+    "name": "eight",
+    "node_count": 8,
+    "parallelism": {
+      "backend": "native",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 8,
+      "world_size": 8
+    },
+    "roles": [
+      {
+        "artifacts": [
+          "weights"
+        ],
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 592037337118,
+            "cache_bytes": 50000000000,
+            "image_bytes": 40000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 50000000000,
+            "staging_bytes": 1184074674236
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 5000000000,
+            "startup_peak_bytes": 119000000000,
+            "steady_state_bytes": 111000000000,
+            "system_reserve_bytes": 8000000000
+          }
+        }
+      },
+      {
+        "artifacts": [
+          "weights"
+        ],
+        "count": 7,
+        "endpoint_owner": false,
+        "name": "worker",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 592037337118,
+            "cache_bytes": 50000000000,
+            "image_bytes": 40000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 50000000000,
+            "staging_bytes": 1184074674236
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 5000000000,
+            "startup_peak_bytes": 119000000000,
+            "steady_state_bytes": 111000000000,
+            "system_reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
     "start_order": [
       "worker",
       "entrypoint"
@@ -252,20 +344,21 @@
       "worker"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "openai",
-      "port": 30000,
-      "model_aliases": [
-        "inkling"
-      ],
-      "health_path": "/v1/models"
-    }
-  ],
   "validation": {
+    "benchmarks": [
+      {
+        "configuration": {
+          "max_output_tokens": 64,
+          "modalities": "text,image,audio",
+          "requests": 1,
+          "timeout_seconds": 600
+        },
+        "framework": "openai",
+        "name": "bounded-multimodal-chat"
+      }
+    ],
     "validators": [
       {
-        "interface": "openai",
         "checks": [
           "endpoint.healthy",
           "collective.two-ranks",
@@ -273,30 +366,9 @@
           "chat.max-output-64",
           "rank-loss.withdrawal",
           "rank-recovery.healthy"
-        ]
+        ],
+        "interface": "openai"
       }
-    ],
-    "benchmarks": [
-      {
-        "name": "bounded-multimodal-chat",
-        "framework": "openai",
-        "configuration": {
-          "modalities": "text,image,audio",
-          "max_output_tokens": 64,
-          "requests": 1,
-          "timeout_seconds": 600
-        }
-      }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://github.com/sgl-project/sglang/tree/b7252cc6b0c78b25ecea7ee5efa91a6ae37d0f19",
-    "attribution": [
-      "Thinking Machines Lab",
-      "SGLang contributors",
-      "NVIDIA DGX Spark",
-      "Vonk Forge"
     ]
   }
 }

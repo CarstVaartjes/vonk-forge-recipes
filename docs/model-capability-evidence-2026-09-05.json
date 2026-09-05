@@ -1,0 +1,1340 @@
+{
+  "artifact": "model-capability-evidence",
+  "authority": {
+    "audit_reports": {
+      "partition_a_report_sha256": "bda30c2ac7f48cd6f633acb4f4be9f4460a02621b7f8f89af784c458b7567042",
+      "partition_b_report_file_sha256": "5f1e8736adebae3b021cadca3190575ba4f5f46c4cb57ecd9dbd227f23101ffe",
+      "partition_c_report_sha256": "edfc7c2e8325f3d3fc095ab178928058cefbdd7332dc068fb49ad562ed81e8ff"
+    },
+    "repository": "CarstVaartjes/vonk-forge-recipes",
+    "source_commit": "4b0e6a7053d3963086bed5d8f8a715997c5bfc6e"
+  },
+  "entries": [
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "0xsero",
+        "slug": "deepseek-v4-flash-0731-sparkinfer-exl3-k216"
+      },
+      "source": {
+        "revision": "ce5ff0f1efb2e184aafc759d281bfae47d3a359c",
+        "url": "https://huggingface.co/0xSero/deepseek-v4-flash-0731-spark"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "antirez",
+        "slug": "deepseek-v4-flash-0731-ds4"
+      },
+      "source": {
+        "revision": "86bb38ce2ba7a98ab0e550359fec5f48859dc723",
+        "url": "https://huggingface.co/antirez/deepseek-v4-gguf"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-generation"
+      ],
+      "model_version": {
+        "publisher": "black-forest-labs",
+        "slug": "flux-2-klein-4b-comfyui-5f526678"
+      },
+      "source": {
+        "revision": "5f526678002e43af5551dadb73ce2e8c91b43afe",
+        "url": "https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-generation"
+      ],
+      "model_version": {
+        "publisher": "black-forest-labs",
+        "slug": "flux-2-klein-4b-nvfp4-1db2b2f7"
+      },
+      "source": {
+        "revision": "1db2b2f776c24b76f1122e5f69ab1949fc620068",
+        "url": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "deepseek-ai",
+        "slug": "deepseek-v4-flash-0731-official"
+      },
+      "source": {
+        "revision": "7872f01b1d1fe23eabc4c98b48bffcef5a386062",
+        "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "image-understanding",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "deepseek-ai",
+        "slug": "deepseek-v4-flash-vision-exp-6821d6ad"
+      },
+      "source": {
+        "revision": "6821d6ad3681a4b137b066b76094fa82ebd0a380",
+        "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "image-understanding",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "deepseek-ai",
+        "slug": "deepseek-v4-flash-vision-exp-e46e16bf"
+      },
+      "source": {
+        "revision": "e46e16bf6035c6f317eb2ac7458eb0362926d402",
+        "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "image-understanding",
+        "text-generation",
+        "video-understanding"
+      ],
+      "model_version": {
+        "publisher": "drowzeys",
+        "slug": "glm-5-3-flash-nvfp4-ablit-l15-43-mtp-l45-80b6d18d"
+      },
+      "source": {
+        "revision": "80b6d18d77e3020f2384597081d405f19893f101",
+        "url": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "image-understanding",
+        "text-generation",
+        "video-understanding"
+      ],
+      "model_version": {
+        "publisher": "drowzeys",
+        "slug": "glm-5-3-flash-nvfp4-abliterated-d7f8afa8"
+      },
+      "source": {
+        "revision": "d7f8afa81e62c156446fda43304d704563622590",
+        "url": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "code-generation",
+        "image-understanding",
+        "text-generation",
+        "video-understanding"
+      ],
+      "model_version": {
+        "publisher": "google",
+        "slug": "gemma-4-26b-a4b-24548b62"
+      },
+      "source": {
+        "revision": "24548b62aa021d562695c04aaf7758a1ea47990b",
+        "url": "https://huggingface.co/google/gemma-4-26B-A4B"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "image-understanding",
+        "text-generation",
+        "video-understanding"
+      ],
+      "model_version": {
+        "publisher": "google",
+        "slug": "gemma-4-26b-a4b-it-4d7ae498"
+      },
+      "source": {
+        "revision": "4d7ae4984b7db7de8f8457170b3f1a419ee76d52",
+        "url": "https://huggingface.co/google/gemma-4-26B-A4B-it"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "reasoning",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "inclusionai",
+        "slug": "ling-3-0-flash-int4-7a27e9eb"
+      },
+      "source": {
+        "revision": "7a27e9eb8179b2c2eb71eb214f0dab14ec6a63f2",
+        "url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-int4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "incoai",
+        "slug": "glm-5-3-flash-dflash2-bf582e4e"
+      },
+      "source": {
+        "revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a",
+        "url": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "incoai",
+        "slug": "glm-5-3-flash-dflash2-dc77ff1c"
+      },
+      "source": {
+        "revision": "dc77ff1c99eeb2df044ee3d4f0094eb033fee410",
+        "url": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "image-understanding",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "jarrelscy",
+        "slug": "glm-5-2-nvfp4-aqlm-hybrid-53e0082e"
+      },
+      "source": {
+        "revision": "c5d93567f1ff2de4dbba6018b58a653654c1309a",
+        "url": "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "image-understanding",
+        "text-generation",
+        "video-understanding"
+      ],
+      "model_version": {
+        "publisher": "libertaidai",
+        "slug": "glm-5-3-flash-nvfp4-11d73216"
+      },
+      "source": {
+        "revision": "11d73216cd636238e82e1d77fe1042ffab36e7fa",
+        "url": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "image-understanding",
+        "text-generation",
+        "video-understanding"
+      ],
+      "model_version": {
+        "publisher": "libertaidai",
+        "slug": "glm-5-3-flash-nvfp4-357b45cc"
+      },
+      "source": {
+        "revision": "357b45cc73a07a541cede88861f7736c9487ebf7",
+        "url": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "image-understanding",
+        "text-generation",
+        "video-understanding"
+      ],
+      "model_version": {
+        "publisher": "libertaidai",
+        "slug": "glm-5-3-flash-nvfp4-92d8bfb9"
+      },
+      "source": {
+        "revision": "92d8bfb91c19ceb6fb530dfb538a3a24eceb6ef7",
+        "url": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "image-understanding",
+        "text-generation",
+        "video-understanding"
+      ],
+      "model_version": {
+        "publisher": "libertaidai",
+        "slug": "glm-5-3-flash-nvfp4-caca4e6a"
+      },
+      "source": {
+        "revision": "caca4e6a4ebbd66f159d3d2fc256683fd6e27177",
+        "url": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "audio-generation",
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "lightricks",
+        "slug": "ltx-2-19b-dev-bf16"
+      },
+      "source": {
+        "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
+        "url": "https://huggingface.co/Lightricks/LTX-2"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "audio-generation",
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "lightricks",
+        "slug": "ltx-2-19b-dev-fp4-dfcc2108"
+      },
+      "source": {
+        "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
+        "url": "https://huggingface.co/Lightricks/LTX-2"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "audio-generation",
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "lightricks",
+        "slug": "ltx-2-19b-distilled"
+      },
+      "source": {
+        "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
+        "url": "https://huggingface.co/Lightricks/LTX-2"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "audio-generation",
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "lightricks",
+        "slug": "ltx-2-19b-distilled-fp8"
+      },
+      "source": {
+        "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
+        "url": "https://huggingface.co/Lightricks/LTX-2"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "audio-generation",
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "lightricks",
+        "slug": "ltx-2-3-22b-distilled-1-1"
+      },
+      "source": {
+        "revision": "6b5a83e3045eaf8e46cfa0acce512412aa2b9cce",
+        "url": "https://huggingface.co/Lightricks/LTX-2.3"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "audio-generation",
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "lightricks",
+        "slug": "ltx-2-5-22b-distilled-bf16-diffusers"
+      },
+      "source": {
+        "revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
+        "url": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-understanding",
+        "ocr",
+        "text-generation",
+        "tool-use"
+      ],
+      "model_version": {
+        "publisher": "liquidai",
+        "slug": "lfm2-5-vl-3b-bf16-5a414ead"
+      },
+      "source": {
+        "revision": "5a414ead75d45db003906d06fb62bd5b6846cec0",
+        "url": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-understanding",
+        "ocr",
+        "text-generation",
+        "tool-use"
+      ],
+      "model_version": {
+        "publisher": "liquidai",
+        "slug": "lfm2-5-vl-3b-bf16-a3af5799"
+      },
+      "source": {
+        "revision": "a3af5799199acdd2a4f56ac4342816abb46c12a9",
+        "url": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "code-generation",
+        "image-understanding",
+        "text-generation",
+        "tool-use"
+      ],
+      "model_version": {
+        "publisher": "meta",
+        "slug": "muse-glimmer-30b-bf16-a4e59da5"
+      },
+      "source": {
+        "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+        "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "image-understanding",
+        "text-generation",
+        "video-understanding"
+      ],
+      "model_version": {
+        "publisher": "mia-ai-lab",
+        "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-024db9f7"
+      },
+      "source": {
+        "revision": "024db9f7e9871e8efdf21538ba55af7442be3cd5",
+        "url": "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "image-understanding",
+        "text-generation",
+        "video-understanding"
+      ],
+      "model_version": {
+        "publisher": "mia-ai-lab",
+        "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-25a44fdb"
+      },
+      "source": {
+        "revision": "25a44fdbf16862a46b7cc9921142c6c81350af2f",
+        "url": "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "3d-generation"
+      ],
+      "model_version": {
+        "publisher": "microsoft",
+        "slug": "trellis-2-4b"
+      },
+      "source": {
+        "revision": "af44b45f2e35a493886929c6d786e563ec68364d",
+        "url": "https://huggingface.co/microsoft/TRELLIS.2-4B"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "audio-generation",
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "minimax",
+        "slug": "minimax-h3"
+      },
+      "source": {
+        "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+        "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "audio-generation",
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "minimax",
+        "slug": "minimax-h3-fl2va-42ed227e"
+      },
+      "source": {
+        "revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
+        "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "reasoning",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "nvidia",
+        "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4"
+      },
+      "source": {
+        "revision": "cc84af2fe71647d87f4486c064f320e1e7535243",
+        "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "reasoning",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "nvidia",
+        "slug": "nemotron-3-nano-30b-a3b-nvfp4"
+      },
+      "source": {
+        "revision": "ce1b118ae66ec705d02c241525192832eb045fd3",
+        "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "reasoning",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "nvidia",
+        "slug": "nemotron-3-nano-omni-30b-a3b-reasoning-nvfp4"
+      },
+      "source": {
+        "revision": "16993199e436da4ba75ddc410855f87e0d996ee6",
+        "url": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "reasoning",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "nvidia",
+        "slug": "nemotron-3-super-120b-a12b-nvfp4"
+      },
+      "source": {
+        "revision": "ff433f5493e25d631c9f12b5d55c674229923d02",
+        "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-generation"
+      ],
+      "model_version": {
+        "publisher": "nvidia",
+        "slug": "nvidia-qwen-image-flash"
+      },
+      "source": {
+        "revision": "eafac15f6140e6dd9c6031217d658ac10bfb604b",
+        "url": "https://huggingface.co/nvidia/Qwen-Image-Flash"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-understanding"
+      ],
+      "model_version": {
+        "publisher": "nvidia",
+        "slug": "qwen3-6-35b-a3b-nvfp4-1355db6a"
+      },
+      "source": {
+        "revision": "1355db6a052410cfd62085d94b58866fd0f2c3c5",
+        "url": "https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-understanding"
+      ],
+      "model_version": {
+        "publisher": "nvidia",
+        "slug": "qwen3-6-35b-a3b-nvfp4-491c2f1e"
+      },
+      "source": {
+        "revision": "491c2f1ea524c639598bf8fa787a93fed5a6fbce",
+        "url": "https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-understanding",
+        "text-generation",
+        "video-understanding"
+      ],
+      "model_version": {
+        "publisher": "openmoss",
+        "slug": "moss-vl-realtime-11b-bf16-06b06761"
+      },
+      "source": {
+        "revision": "06b067617677661194cf837970fe3a10f1a0e56d",
+        "url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "audio-generation",
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "openmoss",
+        "slug": "mova-360p"
+      },
+      "source": {
+        "revision": "eab4aa91d6d5eb515e259a0c8533c90062b117a5",
+        "url": "https://huggingface.co/OpenMOSS-Team/MOVA-360p"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "audio-generation",
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "openmoss",
+        "slug": "mova-720p"
+      },
+      "source": {
+        "revision": "8462bea9a317a3591279faeedfd3ca01b055cb59",
+        "url": "https://huggingface.co/OpenMOSS-Team/MOVA-720p"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-understanding",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "ornith-ai",
+        "slug": "ornith-1-5-35b-a3b-nvfp4-9660379a"
+      },
+      "source": {
+        "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+        "url": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "code-generation",
+        "reasoning",
+        "tool-use"
+      ],
+      "model_version": {
+        "publisher": "poolside",
+        "slug": "laguna-s-2-1-nvfp4"
+      },
+      "source": {
+        "revision": "64734b3a449a05c79657451513d97544f2f53436",
+        "url": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "code-generation",
+        "reasoning",
+        "tool-use"
+      ],
+      "model_version": {
+        "publisher": "poolside",
+        "slug": "laguna-s-2-1-nvfp4-826aacdf"
+      },
+      "source": {
+        "revision": "826aacdf6d8b2699d4e367def6f17c83b06044c2",
+        "url": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "code-generation",
+        "reasoning",
+        "tool-use"
+      ],
+      "model_version": {
+        "publisher": "poolside",
+        "slug": "laguna-xs-2-1-nvfp4-d32afde8"
+      },
+      "source": {
+        "revision": "d32afde8b09af1539b49ff96ff5551c674485f8e",
+        "url": "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "code-generation",
+        "image-understanding",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "quanttrio",
+        "slug": "glm-5-2-int4-int8mix"
+      },
+      "source": {
+        "revision": "1d3bcfe5ec549ecd000fd80b37f191183842e983",
+        "url": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-generation"
+      ],
+      "model_version": {
+        "publisher": "qwen",
+        "slug": "qwen-image-2512-25468b98"
+      },
+      "source": {
+        "revision": "25468b98e3276ca6700de15c6628e51b7de54a26",
+        "url": "https://huggingface.co/Qwen/Qwen-Image-2512"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-generation"
+      ],
+      "model_version": {
+        "publisher": "qwen",
+        "slug": "qwen-image-2512-comfyui-7beb7b64"
+      },
+      "source": {
+        "revision": "7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f",
+        "url": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-generation"
+      ],
+      "model_version": {
+        "publisher": "qwen",
+        "slug": "qwen-image-2512-comfyui-fp8-7beb7b64"
+      },
+      "source": {
+        "revision": "7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f",
+        "url": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-generation"
+      ],
+      "model_version": {
+        "publisher": "qwen",
+        "slug": "qwen-image-2512-lightning"
+      },
+      "source": {
+        "revision": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
+        "url": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-generation"
+      ],
+      "model_version": {
+        "publisher": "qwen",
+        "slug": "qwen-image-2512-lightning-fp32-a52649c9"
+      },
+      "source": {
+        "revision": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
+        "url": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-editing"
+      ],
+      "model_version": {
+        "publisher": "qwen",
+        "slug": "qwen-image-edit-2511-6f3ccc0b"
+      },
+      "source": {
+        "revision": "6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
+        "url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-editing"
+      ],
+      "model_version": {
+        "publisher": "qwen",
+        "slug": "qwen-image-edit-2511-comfyui-b6a07947"
+      },
+      "source": {
+        "revision": "b6a0794717d3f5600f85c5edcdcd0c0eb93d7446",
+        "url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-editing"
+      ],
+      "model_version": {
+        "publisher": "qwen",
+        "slug": "qwen-image-edit-2511-comfyui-fp8mixed-4c7c4ea2"
+      },
+      "source": {
+        "revision": "4c7c4ea236326cbae56d403d22a03c6cd86ad9a0",
+        "url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-editing"
+      ],
+      "model_version": {
+        "publisher": "qwen",
+        "slug": "qwen-image-edit-2511-comfyui-int8-convrot-e9e85de7"
+      },
+      "source": {
+        "revision": "e9e85de74a8f48c1e3e2656617626348675a2f21",
+        "url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-editing"
+      ],
+      "model_version": {
+        "publisher": "qwen",
+        "slug": "qwen-image-edit-2511-lightning"
+      },
+      "source": {
+        "revision": "d74eba145674fd7e31b949324e148e21e7118abd",
+        "url": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-editing"
+      ],
+      "model_version": {
+        "publisher": "qwen",
+        "slug": "qwen-image-layered-8f0ca708"
+      },
+      "source": {
+        "revision": "8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf",
+        "url": "https://huggingface.co/Qwen/Qwen-Image-Layered"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-understanding",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "qwen",
+        "slug": "qwen3-5-9b-c2022362"
+      },
+      "source": {
+        "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+        "url": "https://huggingface.co/Qwen/Qwen3.5-9B"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "code-generation",
+        "image-understanding",
+        "reasoning"
+      ],
+      "model_version": {
+        "publisher": "qwen",
+        "slug": "qwen3-6-27b-6a9e13bd"
+      },
+      "source": {
+        "revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9",
+        "url": "https://huggingface.co/Qwen/Qwen3.6-27B"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "code-generation",
+        "image-understanding",
+        "reasoning"
+      ],
+      "model_version": {
+        "publisher": "qwen",
+        "slug": "qwen3-8-27b-1d4bf0f2"
+      },
+      "source": {
+        "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+        "url": "https://huggingface.co/Qwen/Qwen3.8-27B"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "code-generation",
+        "image-understanding",
+        "reasoning"
+      ],
+      "model_version": {
+        "publisher": "qwen",
+        "slug": "qwen3-8-27b-fp8-017b9c7a"
+      },
+      "source": {
+        "revision": "017b9c7af6b5689d5dd426a76e0bc077eb5ca20a",
+        "url": "https://huggingface.co/Qwen/Qwen3.8-27B-FP8"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-understanding",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "radixark",
+        "slug": "qwen3-8-27b-nvfp4-009632fe"
+      },
+      "source": {
+        "revision": "009632fef96dd349150baa780c984e62e70e91fe",
+        "url": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "code-generation",
+        "image-understanding",
+        "reasoning",
+        "text-generation",
+        "video-understanding"
+      ],
+      "model_version": {
+        "publisher": "radixark",
+        "slug": "qwen3-8-flash-next-nvfp4-7b719225"
+      },
+      "source": {
+        "revision": "7b719225242aacd3dbd3f9407468c2ee9a9d2594",
+        "url": "https://huggingface.co/RadixArk/Qwen3.8-Flash-Next-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "3d-generation"
+      ],
+      "model_version": {
+        "publisher": "stepfun-ai",
+        "slug": "step1x-3d-geometry"
+      },
+      "source": {
+        "revision": "bf7084495b3a72222f36549b7942948aa4d9daa7",
+        "url": "https://huggingface.co/stepfun-ai/Step1X-3D"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "3d-generation"
+      ],
+      "model_version": {
+        "publisher": "stepfun-ai",
+        "slug": "step1x-3d-label-geometry"
+      },
+      "source": {
+        "revision": "bf7084495b3a72222f36549b7942948aa4d9daa7",
+        "url": "https://huggingface.co/stepfun-ai/Step1X-3D"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "3d-generation"
+      ],
+      "model_version": {
+        "publisher": "stepfun-ai",
+        "slug": "step1x-3d-texture"
+      },
+      "source": {
+        "revision": "bf7084495b3a72222f36549b7942948aa4d9daa7",
+        "url": "https://huggingface.co/stepfun-ai/Step1X-3D"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "tencent",
+        "slug": "hunyuan-video-15-distilled"
+      },
+      "source": {
+        "revision": "1abb14f06518f37448dcf3a6917dd086dd7045c7",
+        "url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_t2v_distilled"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "tencent",
+        "slug": "hunyuan-video-15-i2v-step-distilled"
+      },
+      "source": {
+        "revision": "854c04a4c8a53d990b418c7478f0802c0fc8c726",
+        "url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "tencent",
+        "slug": "hunyuan-video-15-t2v"
+      },
+      "source": {
+        "revision": "f4dbc4a1efa4ac8ea56680cdf79d9f455105e814",
+        "url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "audio-generation",
+        "video-understanding"
+      ],
+      "model_version": {
+        "publisher": "tencent",
+        "slug": "hunyuan-video-foley-xl"
+      },
+      "source": {
+        "revision": "3abd4e833b95b8db0fc9c687afc52483a48e9a97",
+        "url": "https://huggingface.co/tencent/HunyuanVideo-Foley"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "audio-generation",
+        "video-understanding"
+      ],
+      "model_version": {
+        "publisher": "tencent",
+        "slug": "hunyuan-video-foley-xxl"
+      },
+      "source": {
+        "revision": "3abd4e833b95b8db0fc9c687afc52483a48e9a97",
+        "url": "https://huggingface.co/tencent/HunyuanVideo-Foley"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "3d-generation"
+      ],
+      "model_version": {
+        "publisher": "tencent",
+        "slug": "hunyuan3d-omni"
+      },
+      "source": {
+        "revision": "70e803bfb4e127d534049d8ab8c8cb511780d485",
+        "url": "https://huggingface.co/tencent/Hunyuan3D-Omni"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "image-understanding",
+        "ocr",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "tencent",
+        "slug": "hunyuanocr-1-5-449e7d47"
+      },
+      "source": {
+        "revision": "449e7d471a8a1ef5bd5d652e4881183d7252cbc7",
+        "url": "https://huggingface.co/tencent/HunyuanOCR"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "chat",
+        "image-understanding",
+        "ocr",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "tencent",
+        "slug": "hunyuanocr-1-5-47644ecc"
+      },
+      "source": {
+        "revision": "47644ecc4fc854efa4f505155158831f36773ee4",
+        "url": "https://huggingface.co/tencent/HunyuanOCR"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-understanding",
+        "tool-use"
+      ],
+      "model_version": {
+        "publisher": "tencent",
+        "slug": "ui-mate-27b-3ade2378"
+      },
+      "source": {
+        "revision": "3ade2378fc84032d5017c1a9c93c4eaa77d65e57",
+        "url": "https://huggingface.co/tencent/UI-Mate-27B"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "3d-generation"
+      ],
+      "model_version": {
+        "publisher": "tencentarc",
+        "slug": "pixal3d"
+      },
+      "source": {
+        "revision": "0b31f9160aa400719af409098bff7936a932f726",
+        "url": "https://huggingface.co/TencentARC/Pixal3D"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "audio-understanding",
+        "image-understanding",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "thinkingmachines",
+        "slug": "inkling-975b-a41b-nvfp4"
+      },
+      "source": {
+        "revision": "42a75a99a40eb2ba1e0717db6357a0bf15205044",
+        "url": "https://huggingface.co/thinkingmachines/Inkling-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "audio-understanding",
+        "image-understanding",
+        "text-generation"
+      ],
+      "model_version": {
+        "publisher": "thinkingmachines",
+        "slug": "inkling-small-nvfp4"
+      },
+      "source": {
+        "revision": "b6a99534467840620d411e4cd4ad5819b2610d9c",
+        "url": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "3d-generation"
+      ],
+      "model_version": {
+        "publisher": "vast-ai",
+        "slug": "skintokens"
+      },
+      "source": {
+        "revision": "79736cad0fd84de384d5eede659b4ebd24effe33",
+        "url": "https://huggingface.co/VAST-AI/SkinTokens"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "3d-generation"
+      ],
+      "model_version": {
+        "publisher": "vast-ai",
+        "slug": "triposg"
+      },
+      "source": {
+        "revision": "2c1c516d22d58db486a058d98d31bb6177344e06",
+        "url": "https://huggingface.co/VAST-AI/TripoSG"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-understanding",
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "wan-ai",
+        "slug": "wan-2-2-i2v-14b-comfyui-c4f60d30"
+      },
+      "source": {
+        "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+        "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "wan-ai",
+        "slug": "wan-2-2-t2v-14b-comfyui-c4f60d30"
+      },
+      "source": {
+        "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+        "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "image-understanding",
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "wan-ai",
+        "slug": "wan-2-2-ti2v-5b-comfyui-c4f60d30"
+      },
+      "source": {
+        "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+        "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
+      }
+    },
+    {
+      "basis": "Independent evidence audit of the pinned model card and exact local model-version authority; capability terms are normalized to the platform vocabulary from explicit inputs and outputs.",
+      "facts": [
+        "audio-understanding",
+        "image-understanding",
+        "video-generation"
+      ],
+      "model_version": {
+        "publisher": "wan-ai",
+        "slug": "wan-dancer-14b"
+      },
+      "source": {
+        "revision": "85ce88dd8d025459dcf0fe93982d6da8b9002957",
+        "url": "https://huggingface.co/Wan-AI/Wan-Dancer-14B"
+      }
+    }
+  ],
+  "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+  "evidence_digest_scope": "sha256 of this canonical evidence record with evidence_digest and evidence_digest_scope omitted",
+  "schema_version": 2
+}

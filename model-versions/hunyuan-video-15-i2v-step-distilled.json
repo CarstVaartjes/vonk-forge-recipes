@@ -1,64 +1,58 @@
 {
-  "schema_version": 1,
-  "kind": "model-version",
-  "identity": {
-    "publisher": "tencent",
-    "slug": "hunyuan-video-15-i2v-step-distilled"
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
   },
-  "metadata": {
-    "title": "HunyuanVideo 1.5 I2V 480p step-distilled",
-    "description": "Complete immutable 480p I2V step-distilled Diffusers snapshot at 854c04a4.",
-    "tags": [
-      "tencent",
-      "video",
-      "candidate"
-    ]
-  },
-  "model": {
-    "kind": "model",
-    "publisher": "tencent",
-    "slug": "hunyuan-video-15",
-    "content_sha256": "e546ceb3f57952fe5faaf8a91cca44aec583d0f8fc282e636d09aed9f816115e"
-  },
-  "version": "HunyuanVideo 1.5 I2V 480p step-distilled",
-  "source": {
-    "repository": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled",
-    "revision": "854c04a4c8a53d990b418c7478f0802c0fc8c726"
-  },
-  "lineage": {
-    "publisher": "huggingface",
-    "relation": "derived",
-    "source_model": {
-      "kind": "model",
-      "publisher": "tencent",
-      "slug": "hunyuan-video-15",
-      "content_sha256": "e546ceb3f57952fe5faaf8a91cca44aec583d0f8fc282e636d09aed9f816115e"
+  "artifacts": [
+    {
+      "download_bytes": 34636998160,
+      "id": "snapshot",
+      "installed_bytes": 34636998160,
+      "kind": "huggingface.file",
+      "path": "snapshot",
+      "repository": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled",
+      "revision": "854c04a4c8a53d990b418c7478f0802c0fc8c726",
+      "roles": [
+        "entrypoint"
+      ],
+      "sha256": "c402463052804aeae95055f5a687b689996e65879ddcda88ffc2b4ba89e8b2cc"
+    }
+  ],
+  "availability": "active",
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "video-generation",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "source_revision": "854c04a4c8a53d990b418c7478f0802c0fc8c726",
+      "source_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled"
     },
-    "derivation": "Hugging Face Diffusers conversion linked by the official Tencent model card; the snapshot includes every inference component."
+    "schema_version": 2
   },
+  "dependencies": [],
   "format": {
     "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
-  "parameters": {
-    "total": null,
-    "active": null
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hunyuan-video-15-i2v-step-distilled"
   },
-  "limits": {
-    "context_tokens": null
-  },
-  "sizes": {
-    "download_bytes": 34636998160,
-    "installed_bytes": 34636998160
-  },
+  "kind": "model-version",
   "license": {
-    "spdx": "LicenseRef-Tencent-Hunyuan-Community",
-    "url": "https://huggingface.co/tencent/HunyuanVideo-1.5/blob/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038/LICENSE",
     "attribution": [
       "tencent"
     ],
     "operator_acceptance_required": true,
+    "spdx": "LicenseRef-Tencent-Hunyuan-Community",
     "territorial_restrictions": {
       "denied_jurisdictions": [
         "EU",
@@ -66,29 +60,51 @@
         "KR"
       ],
       "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
+    },
+    "url": "https://huggingface.co/tencent/HunyuanVideo-1.5/blob/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null
+  },
+  "lineage": {
+    "derivation": "Hugging Face Diffusers conversion linked by the official Tencent model card; the snapshot includes every inference component.",
+    "publisher": "huggingface",
+    "relation": "derived",
+    "source_model": {
+      "content_sha256": "e546ceb3f57952fe5faaf8a91cca44aec583d0f8fc282e636d09aed9f816115e",
+      "kind": "model",
+      "publisher": "tencent",
+      "slug": "hunyuan-video-15"
     }
   },
-  "access": {
-    "visibility": "public",
-    "gated": false,
-    "authentication": "none"
+  "metadata": {
+    "description": "Complete immutable 480p I2V step-distilled Diffusers snapshot at 854c04a4.",
+    "tags": [
+      "tencent",
+      "video",
+      "candidate"
+    ],
+    "title": "HunyuanVideo 1.5 I2V 480p step-distilled"
   },
-  "artifacts": [
-    {
-      "id": "snapshot",
-      "path": "snapshot",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled",
-      "revision": "854c04a4c8a53d990b418c7478f0802c0fc8c726",
-      "sha256": "c402463052804aeae95055f5a687b689996e65879ddcda88ffc2b4ba89e8b2cc",
-      "download_bytes": 34636998160,
-      "installed_bytes": 34636998160,
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "dependencies": [],
-  "availability": "active",
-  "supersedes": null
+  "model": {
+    "content_sha256": "e546ceb3f57952fe5faaf8a91cca44aec583d0f8fc282e636d09aed9f816115e",
+    "kind": "model",
+    "publisher": "tencent",
+    "slug": "hunyuan-video-15"
+  },
+  "parameters": {
+    "active": null,
+    "total": null
+  },
+  "schema_version": 1,
+  "sizes": {
+    "download_bytes": 34636998160,
+    "installed_bytes": 34636998160
+  },
+  "source": {
+    "repository": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled",
+    "revision": "854c04a4c8a53d990b418c7478f0802c0fc8c726"
+  },
+  "supersedes": null,
+  "version": "HunyuanVideo 1.5 I2V 480p step-distilled"
 }

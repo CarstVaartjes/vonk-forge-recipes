@@ -1,42 +1,43 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "hunyuanocr-1-5-vllm-dflash-single"
-  },
-  "version": "1.2.2",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.2.2",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "50d78c20dd1f92646a891afbf12491f16afe8148e907cb4cb13d645ed1570e79",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "1bcf2b10072d40d7bc5d68672ae6fc85cef7e6469c23aab48d1f743de19dac43",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "1.2.3"
     },
     {
-      "version": "1.2.1",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "0fe23484acd6aa377aaa55a6ef40254a31bb2340ca10bab7338dbcfe92349d4a",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "50d78c20dd1f92646a891afbf12491f16afe8148e907cb4cb13d645ed1570e79",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.2.2"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
+      ],
+      "recipe_content_sha256": "0fe23484acd6aa377aaa55a6ef40254a31bb2340ca10bab7338dbcfe92349d4a",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "metadata-only",
+      "version": "1.2.1"
     },
     {
-      "version": "1.2.0",
-      "released_at": "2026-08-29",
-      "recipe_content_sha256": "d36f6473ed09633b004cf760173ca0ee7061890308461be8a2c00acf9a5793d2",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "compatibility",
@@ -50,39 +51,65 @@
           "kind": "performance",
           "summary": "Exclude the archived HunyuanOCR 1.0 payload exactly as Tencent recommends, reducing each install by 1,998,806,533 bytes."
         }
-      ]
-    },
-    {"version": "1.1.0", "released_at": "2026-08-28", "recipe_content_sha256": "4f12846efdfaf6c32b28556391eba298254c068df99f7fc95acf27954cf914ef", "upgrade_effect": "rebuild", "changes": [{"kind": "fix", "summary": "Declared separate document and optional OCR-config slots and the exact application/zip output contract."}, {"kind": "compatibility", "summary": "Made the adapter consume the controller-authenticated slot manifest before model loading."}]},
-    {
-      "version": "1.0.1",
-      "released_at": "2026-08-26",
-      "recipe_content_sha256": "ff33476116c0e314de7e535b29e326cf0299a9c82eb0e5197b28267b77b89690",
-      "upgrade_effect": "metadata-only",
-      "changes": [
-        {
-          "kind": "metadata",
-          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
-          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
-        }
-      ]
-    },
-    {
-      "version": "1.0.0",
-      "released_at": "2026-08-24",
-      "recipe_content_sha256": "4c98fda621dabd1ab0f678c4c3f2e078938c6417276dc4142d770c9752e2dd68",
+      ],
+      "recipe_content_sha256": "d36f6473ed09633b004cf760173ca0ee7061890308461be8a2c00acf9a5793d2",
+      "released_at": "2026-08-29",
       "upgrade_effect": "rebuild",
+      "version": "1.2.0"
+    },
+    {
       "changes": [
         {
-          "kind": "initial",
-          "summary": "Add the executable Pending HunyuanOCR 1.5 DFlash document-image job for one DGX Spark.",
+          "kind": "fix",
+          "summary": "Declared separate document and optional OCR-config slots and the exact application/zip output contract."
+        },
+        {
+          "kind": "compatibility",
+          "summary": "Made the adapter consume the controller-authenticated slot manifest before model loading."
+        }
+      ],
+      "recipe_content_sha256": "4f12846efdfaf6c32b28556391eba298254c068df99f7fc95acf27954cf914ef",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "rebuild",
+      "version": "1.1.0"
+    },
+    {
+      "changes": [
+        {
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
+          "kind": "metadata",
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
+        }
+      ],
+      "recipe_content_sha256": "ff33476116c0e314de7e535b29e326cf0299a9c82eb0e5197b28267b77b89690",
+      "released_at": "2026-08-26",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.1"
+    },
+    {
+      "changes": [
+        {
           "details": "Pins Tencent's target and DFlash draft, uses the official 12 task prompts and fixed sampling, preserves repetition cleanup and document Markdown normalization, and emits a ZIP with UTF-8 results plus provenance metadata.",
+          "kind": "initial",
           "references": [
             "https://huggingface.co/tencent/HunyuanOCR",
             "https://github.com/Tencent-Hunyuan/HunyuanOCR",
             "https://recipes.vllm.ai/tencent/HunyuanOCR"
-          ]
+          ],
+          "summary": "Add the executable Pending HunyuanOCR 1.5 DFlash document-image job for one DGX Spark."
         }
-      ]
+      ],
+      "recipe_content_sha256": "4c98fda621dabd1ab0f678c4c3f2e078938c6417276dc4142d770c9752e2dd68",
+      "released_at": "2026-08-24",
+      "upgrade_effect": "rebuild",
+      "version": "1.0.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "hunyuanocr-1-5-vllm-dflash-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "1.2.3"
 }

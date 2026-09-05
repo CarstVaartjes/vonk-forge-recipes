@@ -1,46 +1,109 @@
 {
-  "schema_version": 1,
-  "kind": "model-version",
-  "identity": {"publisher": "qwen", "slug": "qwen-image-2512-comfyui-fp8-7beb7b64"},
-  "metadata": {
-    "title": "Qwen Image 2512 ComfyUI FP8 revision 7beb7b64",
-    "description": "Exact Comfy-Org FP8 Qwen Image 2512 transformer selected by the pinned official ComfyUI blueprint.",
-    "tags": ["qwen", "image", "generation", "text-to-image", "comfyui", "fp8", "candidate", "spark"]
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
   },
-  "model": {"kind": "model", "publisher": "qwen", "slug": "qwen-image-2512", "content_sha256": "42155d285f8c95bf86515b1b01b891fa0f1046f07b0b2c61a824203ecb01f559"},
-  "version": "comfyui-fp8-7beb7b64",
-  "source": {"repository": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI", "revision": "7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f"},
-  "lineage": {
-    "publisher": "Comfy-Org",
-    "relation": "quantized",
-    "source_model": {"kind": "model", "publisher": "qwen", "slug": "qwen-image-2512", "content_sha256": "42155d285f8c95bf86515b1b01b891fa0f1046f07b0b2c61a824203ecb01f559"},
-    "derivation": "Comfy-Org's upstream-supported FP8 conversion of the exact Qwen Image 2512 transformer for native core-node ComfyUI execution."
-  },
-  "format": {"container": "safetensors", "precision": "fp8", "quantization": "fp8"},
-  "parameters": {"total": 20000000000, "active": null},
-  "limits": {"context_tokens": null, "resolution_pixels": null},
-  "sizes": {"download_bytes": 20430679144, "installed_bytes": 20430679144},
-  "license": {
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Qwen/Qwen-Image-2512/blob/25468b98e3276ca6700de15c6628e51b7de54a26/LICENSE",
-    "attribution": ["Qwen", "Comfy-Org"],
-    "operator_acceptance_required": false
-  },
-  "access": {"visibility": "public", "gated": false, "authentication": "none"},
   "artifacts": [
     {
+      "download_bytes": 20430679144,
       "id": "qwen-image-2512-fp8-transformer",
-      "path": "split_files/diffusion_models/qwen_image_2512_fp8_e4m3fn.safetensors",
+      "installed_bytes": 20430679144,
       "kind": "huggingface.file",
+      "path": "split_files/diffusion_models/qwen_image_2512_fp8_e4m3fn.safetensors",
       "repository": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f/split_files/diffusion_models/qwen_image_2512_fp8_e4m3fn.safetensors",
       "revision": "7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f",
-      "sha256": "5dc80554d5d83390046a2f4a94ece06afb7700bf7b0aaf8bde9769793875876b",
-      "download_bytes": 20430679144,
-      "installed_bytes": 20430679144,
-      "roles": ["weights"]
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5dc80554d5d83390046a2f4a94ece06afb7700bf7b0aaf8bde9769793875876b"
     }
   ],
-  "dependencies": [],
   "availability": "active",
-  "supersedes": null
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "image-generation",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "source_revision": "7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f",
+      "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "format": {
+    "container": "safetensors",
+    "precision": "fp8",
+    "quantization": "fp8"
+  },
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen-image-2512-comfyui-fp8-7beb7b64"
+  },
+  "kind": "model-version",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "Comfy-Org"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen-Image-2512/blob/25468b98e3276ca6700de15c6628e51b7de54a26/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null,
+    "resolution_pixels": null
+  },
+  "lineage": {
+    "derivation": "Comfy-Org's upstream-supported FP8 conversion of the exact Qwen Image 2512 transformer for native core-node ComfyUI execution.",
+    "publisher": "Comfy-Org",
+    "relation": "quantized",
+    "source_model": {
+      "content_sha256": "42155d285f8c95bf86515b1b01b891fa0f1046f07b0b2c61a824203ecb01f559",
+      "kind": "model",
+      "publisher": "qwen",
+      "slug": "qwen-image-2512"
+    }
+  },
+  "metadata": {
+    "description": "Exact Comfy-Org FP8 Qwen Image 2512 transformer selected by the pinned official ComfyUI blueprint.",
+    "tags": [
+      "qwen",
+      "image",
+      "generation",
+      "text-to-image",
+      "comfyui",
+      "fp8",
+      "candidate",
+      "spark"
+    ],
+    "title": "Qwen Image 2512 ComfyUI FP8 revision 7beb7b64"
+  },
+  "model": {
+    "content_sha256": "42155d285f8c95bf86515b1b01b891fa0f1046f07b0b2c61a824203ecb01f559",
+    "kind": "model",
+    "publisher": "qwen",
+    "slug": "qwen-image-2512"
+  },
+  "parameters": {
+    "active": null,
+    "total": 20000000000
+  },
+  "schema_version": 1,
+  "sizes": {
+    "download_bytes": 20430679144,
+    "installed_bytes": 20430679144
+  },
+  "source": {
+    "repository": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI",
+    "revision": "7beb7b647f04469fbe64ba8adc2bb0d7e5e9f73f"
+  },
+  "supersedes": null,
+  "version": "comfyui-fp8-7beb7b64"
 }

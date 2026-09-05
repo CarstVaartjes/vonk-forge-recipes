@@ -1,59 +1,31 @@
 {
-  "schema_version": 1,
-  "identity": {
-    "publisher": "vonk-forge",
-    "slug": "mova-360p-diffusers-single"
-  },
-  "metadata": {
-    "alignment": "unspecified",
-    "title": "MOVA 360p native synchronized media single Spark (preferred)",
-    "description": "Preferred default MOVA profile for one Spark, using the exact official 360p checkpoint and native pipeline. It produces one fail-closed MP4 containing synchronized 24 fps video and 48 kHz audio; the ARM64 image builds reproducibly and only the physical Spark canary remains pending.",
-    "tags": [
-      "candidate",
-      "executable",
-      "preferred",
-      "default",
-      "openmoss",
-      "mova",
-      "video",
-      "audio",
-      "pytorch",
-      "single",
-      "spark"
-    ]
-  },
-  "model": {
-    "kind": "model-version",
-    "publisher": "openmoss",
-    "slug": "mova-360p",
-    "content_sha256": "8081b1a244e11d1019c7bef51526d8987f62c579cb4ba880a70fade019d97fb9"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "pytorch-pipeline",
-      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c"
-    },
-    "patch_bundle": {
-      "kind": "patch-bundle",
-      "publisher": "openmoss",
-      "slug": "mova-inference-only-import",
-      "content_sha256": "9f66a8193a1a762650d849ed429cd404484cbaaff60c8e7a1bfbd1fa7e7e6fa8"
+  "artifacts": [
+    {
+      "download_bytes": 77689754697,
+      "id": "weights",
+      "installed_bytes": 77689754697,
+      "kind": "huggingface.snapshot",
+      "mount": {
+        "read_only": true,
+        "target": "/models"
+      },
+      "repository": "OpenMOSS-Team/MOVA-360p",
+      "revision": "eab4aa91d6d5eb515e259a0c8533c90062b117a5",
+      "roles": [
+        "entrypoint"
+      ]
     }
-  },
+  ],
   "build": {
+    "arguments": [],
     "context": {
-      "path": "adapters/video/mova-pytorch",
-        "sha256": "5a929c3aa1727a2448c3794b36906c02487354b506b7514c9ec8e76fe19b5cd2",
       "expected_bytes": 30720,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
+      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
+      "path": "adapters/video/mova-pytorch",
+      "sha256": "5a929c3aa1727a2448c3794b36906c02487354b506b7514c9ec8e76fe19b5cd2"
     },
     "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
     "network": {
-      "mode": "public",
       "hosts": [
         "developer.download.nvidia.com",
         "pypi.nvidia.com",
@@ -66,17 +38,9 @@
         "archive.ubuntu.com",
         "security.ubuntu.com",
         "ports.ubuntu.com"
-      ]
+      ],
+      "mode": "public"
     },
-    "resources": {
-      "download_bytes": 81689754697,
-      "temporary_bytes": 155379509394,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 14400
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
     "options": {
       "additional_contexts": [],
       "annotations": [],
@@ -101,37 +65,145 @@
       "unset_environment": [],
       "unset_labels": []
     },
+    "platform": "linux/arm64",
+    "resources": {
+      "cpu_cores": 8,
+      "download_bytes": 81689754697,
+      "memory_bytes": 8000000000,
+      "processes": 4096,
+      "temporary_bytes": 155379509394,
+      "timeout_seconds": 14400
+    },
     "security": {
       "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
+    }
+  },
+  "execution": {
+    "harness": {
+      "content_sha256": "29977e349e97f34a2f4f7d6a033abcc9383b0763278192c05e148b2a09cdf01c",
+      "kind": "execution-harness",
+      "publisher": "vonk-forge",
+      "slug": "pytorch-pipeline"
+    },
+    "patch_bundle": {
+      "content_sha256": "12a92b53a79e53cc3ba870715ce98332aaec6ea18024ebe726e188b15d20632d",
+      "kind": "patch-bundle",
+      "publisher": "openmoss",
+      "slug": "mova-inference-only-import"
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "mova-360p-diffusers-single"
+  },
+  "interfaces": [
     {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "OpenMOSS-Team/MOVA-360p",
-      "revision": "eab4aa91d6d5eb515e259a0c8533c90062b117a5",
-      "download_bytes": 77689754697,
-      "installed_bytes": 77689754697,
-      "mount": {
-        "target": "/models",
-        "read_only": true
+      "adapter": "video-job",
+      "input": {
+        "max_bytes": 16793600,
+        "media_types": [
+          "text/plain",
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "path": "/inputs",
+        "required": true,
+        "slots": [
+          {
+            "description": "Text prompt describing the synchronized video and audio to generate.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "prompt",
+            "label": "Prompt",
+            "max_file_bytes": 16384,
+            "max_files": 1,
+            "max_total_bytes": 16384,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          },
+          {
+            "description": "Optional first-frame visual reference; omit it to use MOVA's white-frame text-to-video-and-audio path.",
+            "extensions": [
+              ".jpg",
+              ".jpeg",
+              ".png",
+              ".webp"
+            ],
+            "id": "reference-image",
+            "label": "Reference image",
+            "max_file_bytes": 16777216,
+            "max_files": 1,
+            "max_total_bytes": 16777216,
+            "media_types": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "min_files": 0
+          }
+        ]
       },
-      "roles": [
-        "entrypoint"
-      ]
+      "output": {
+        "max_total_bytes": 536870912,
+        "path": "/outputs",
+        "slots": [
+          {
+            "description": "Generated MP4 containing 640x352 H.264 video at 24 fps and synchronized 48 kHz AAC audio.",
+            "extensions": [
+              ".mp4"
+            ],
+            "id": "video",
+            "label": "Synchronized video",
+            "max_file_bytes": 536870912,
+            "max_files": 1,
+            "max_total_bytes": 536870912,
+            "media_types": [
+              "video/mp4"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "path": "/outputs"
     }
   ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "openmoss",
-      "slug": "mova-native-arm64",
-      "content_sha256": "679719ffa1a09449959f159b92548514125f21a0cac71f2bc86cf7e535d041a1"
-    },
-    "entrypoint": [
-      "/opt/vonk/bin/pytorch-pipeline"
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Preferred default MOVA profile for one Spark, using the exact official 360p checkpoint and native pipeline. It produces one fail-closed MP4 containing synchronized 24 fps video and 48 kHz audio; the ARM64 image builds reproducibly and only the physical Spark canary remains pending.",
+    "tags": [
+      "candidate",
+      "executable",
+      "preferred",
+      "default",
+      "openmoss",
+      "mova",
+      "video",
+      "audio",
+      "pytorch",
+      "single",
+      "spark"
     ],
+    "title": "MOVA 360p native synchronized media single Spark (preferred)"
+  },
+  "model": {
+    "content_sha256": "6d109969a25a407107928e4f20de04525a32239e9cf6aa5a3ffbae3b37614b61",
+    "kind": "model-version",
+    "publisher": "openmoss",
+    "slug": "mova-360p"
+  },
+  "parameters": [],
+  "provenance": {
+    "attribution": [
+      "openmoss"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://huggingface.co/OpenMOSS-Team/MOVA-360p/tree/eab4aa91d6d5eb515e259a0c8533c90062b117a5"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "entrypoint",
@@ -150,95 +222,105 @@
         "value": 0
       }
     ],
+    "distribution": {
+      "content_sha256": "679719ffa1a09449959f159b92548514125f21a0cac71f2bc86cf7e535d041a1",
+      "kind": "runtime-distribution",
+      "publisher": "openmoss",
+      "slug": "mova-native-arm64"
+    },
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
         "value": "1"
       }
     ],
-    "security": {
-      "devices": [
-        "nvidia.com/gpu=all"
-      ],
-      "capabilities": [],
-      "host_network": false,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {
-          "source": "model",
-          "target": "/models",
-          "read_only": true
-        },
-        {
-          "source": "inputs",
-          "target": "/inputs",
-          "read_only": true
-        },
-        {
-          "source": "outputs",
-          "target": "/outputs",
-          "read_only": false
-        }
-      ]
-    },
     "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 120,
-      "readiness": {
-        "strategy": "endpoint-owner",
-        "path": "/outputs",
-        "timeout_seconds": 3600
-      },
       "failure": {
         "rank_loss": "not-applicable",
         "recovery": "restart-entrypoint"
-      }
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "readiness": {
+        "path": "/outputs",
+        "strategy": "endpoint-owner",
+        "timeout_seconds": 3600
+      },
+      "stop_timeout_seconds": 120
+    },
+    "security": {
+      "capabilities": [],
+      "devices": [
+        "nvidia.com/gpu=all"
+      ],
+      "host_network": false,
+      "mounts": [
+        {
+          "read_only": true,
+          "source": "model",
+          "target": "/models"
+        },
+        {
+          "read_only": true,
+          "source": "inputs",
+          "target": "/inputs"
+        },
+        {
+          "read_only": false,
+          "source": "outputs",
+          "target": "/outputs"
+        }
+      ],
+      "privileged": false,
+      "user": "10001:10001"
     }
   },
+  "schema_version": 1,
   "topology": {
-    "name": "solo",
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
     "mode": "single",
+    "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1,
+      "world_size": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
-        "count": 1,
-        "endpoint_owner": true,
         "artifacts": [
           "weights"
         ],
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 6000000000,
             "artifact_bytes": 77689754697,
-            "staging_bytes": 155379509394,
             "cache_bytes": 8000000000,
+            "image_bytes": 6000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 12000000000
+            "safety_margin_bytes": 12000000000,
+            "staging_bytes": 155379509394
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
             "startup_peak_bytes": 110000000000,
             "steady_state_bytes": 96000000000,
-            "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "world_size": 1,
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
     "start_order": [
       "entrypoint"
     ],
@@ -246,96 +328,31 @@
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "video-job",
-      "path": "/outputs",
-      "input": {
-        "path": "/inputs",
-        "required": true,
-        "media_types": [
-          "text/plain",
-          "image/jpeg",
-          "image/png",
-          "image/webp"
-        ],
-        "max_bytes": 16793600,
-        "slots": [
-          {
-            "id": "prompt",
-            "label": "Prompt",
-            "description": "Text prompt describing the synchronized video and audio to generate.",
-            "media_types": ["text/plain"],
-            "extensions": [".txt"],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 16384,
-            "max_total_bytes": 16384
-          },
-          {
-            "id": "reference-image",
-            "label": "Reference image",
-            "description": "Optional first-frame visual reference; omit it to use MOVA's white-frame text-to-video-and-audio path.",
-            "media_types": ["image/jpeg", "image/png", "image/webp"],
-            "extensions": [".jpg", ".jpeg", ".png", ".webp"],
-            "min_files": 0,
-            "max_files": 1,
-            "max_file_bytes": 16777216,
-            "max_total_bytes": 16777216
-          }
-        ]
-      },
-      "output": {
-        "path": "/outputs",
-        "max_total_bytes": 536870912,
-        "slots": [
-          {
-            "id": "video",
-            "label": "Synchronized video",
-            "description": "Generated MP4 containing 640x352 H.264 video at 24 fps and synchronized 48 kHz AAC audio.",
-            "media_types": ["video/mp4"],
-            "extensions": [".mp4"],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 536870912,
-            "max_total_bytes": 536870912
-          }
-        ]
-      }
-    }
-  ],
   "validation": {
-    "validators": [
-      {
-        "interface": "video-job",
-        "checks": [
-          "artifact.mime.video-mp4"
-        ]
-      }
-    ],
     "benchmarks": [
       {
-        "name": "bounded-synchronized-video",
-        "framework": "mova-native",
         "configuration": {
-          "frames": 193,
+          "audio_codec": "aac",
+          "audio_sample_rate": 48000,
           "fps": 24,
+          "frames": 193,
           "height": 352,
-          "width": 640,
-        "audio_sample_rate": 48000,
-        "video_codec": "h264",
-        "audio_codec": "aac",
           "num_inference_steps": 50,
-          "timeout_seconds": 3600
-        }
+          "timeout_seconds": 3600,
+          "video_codec": "h264",
+          "width": 640
+        },
+        "framework": "mova-native",
+        "name": "bounded-synchronized-video"
       }
-    ]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://huggingface.co/OpenMOSS-Team/MOVA-360p/tree/eab4aa91d6d5eb515e259a0c8533c90062b117a5",
-    "attribution": [
-      "openmoss"
+    ],
+    "validators": [
+      {
+        "checks": [
+          "artifact.mime.video-mp4"
+        ],
+        "interface": "video-job"
+      }
     ]
   }
 }

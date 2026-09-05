@@ -1,52 +1,35 @@
 {
-  "schema_version": 1,
-  "identity": {"publisher": "vonk-forge", "slug": "deepseek-v4-flash-0731-mia-dual"},
-  "metadata": {
-    "alignment": "unspecified",
-    "title": "DeepSeek V4 Flash 0731 Mia dual Spark",
-    "description": "Installable Candidate two-Spark profile for the official DeepSeek V4 Flash 0731 checkpoint, refreshed to MiaAI-Lab's source-exact XGrammar termination fix, fail-closed patches, persistent compile caches, and NCCL diagnostics.",
-    "tags": ["executable", "candidate", "deepseek", "distributed", "mia", "openai", "spark"]
-  },
-  "model": {
-    "kind": "model-version",
-    "publisher": "deepseek-ai",
-    "slug": "deepseek-v4-flash-0731-official",
-    "content_sha256": "fd8d996770f3f92421542c733da92c01c9dcf45cb407d4e1a7e14ac392b54392"
-  },
-  "execution": {
-    "harness": {
-      "kind": "execution-harness",
-      "publisher": "vonk-forge",
-      "slug": "vllm",
-      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"
-    },
-    "patch_bundle": {
-      "kind": "patch-bundle",
-      "publisher": "miaai-lab",
-      "slug": "mia-deepseek-v4-flash-0731",
-      "content_sha256": "ccf57ad694d42ecbf10a0a5a65c2fe801ef329521a98968341063aa316388e1c"
+  "artifacts": [
+    {
+      "download_bytes": 166898661074,
+      "id": "weights",
+      "installed_bytes": 166898661074,
+      "kind": "huggingface.snapshot",
+      "mount": {
+        "read_only": true,
+        "target": "/models"
+      },
+      "repository": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "revision": "7872f01b1d1fe23eabc4c98b48bffcef5a386062",
+      "roles": [
+        "entrypoint",
+        "worker"
+      ]
     }
-  },
+  ],
   "build": {
+    "arguments": [],
     "context": {
-      "path": "adapters/deepseek/mia-vllm",
-      "sha256": "6b36c33cfed7c6078c6ebd29b7426d8dc82d05db25e92c994369a8ff5e26f88f",
       "expected_bytes": 276480,
-      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"
+      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
+      "path": "adapters/deepseek/mia-vllm",
+      "sha256": "6b36c33cfed7c6078c6ebd29b7426d8dc82d05db25e92c994369a8ff5e26f88f"
     },
     "dockerfile": "Dockerfile",
-    "platform": "linux/arm64",
-    "arguments": [],
-    "network": {"mode": "none", "hosts": []},
-    "resources": {
-      "download_bytes": 10000000000,
-      "temporary_bytes": 16000000000,
-      "memory_bytes": 8000000000,
-      "timeout_seconds": 7200
-    ,
-      "cpu_cores": 8,
-      "processes": 4096}
-  ,
+    "network": {
+      "hosts": [],
+      "mode": "none"
+    },
     "options": {
       "additional_contexts": [],
       "annotations": [],
@@ -71,194 +54,475 @@
       "unset_environment": [],
       "unset_labels": []
     },
+    "platform": "linux/arm64",
+    "resources": {
+      "cpu_cores": 8,
+      "download_bytes": 10000000000,
+      "memory_bytes": 8000000000,
+      "processes": 4096,
+      "temporary_bytes": 16000000000,
+      "timeout_seconds": 7200
+    },
     "security": {
       "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
-    {
-      "id": "weights",
-      "kind": "huggingface.snapshot",
-      "repository": "deepseek-ai/DeepSeek-V4-Flash-0731",
-      "revision": "7872f01b1d1fe23eabc4c98b48bffcef5a386062",
-      "download_bytes": 166898661074,
-      "installed_bytes": 166898661074,
-      "mount": {"target": "/models", "read_only": true},
-      "roles": ["entrypoint", "worker"]
-    }
-  ],
-  "runtime": {
-    "distribution": {
-      "kind": "runtime-distribution",
-      "publisher": "anemll",
-      "slug": "anemll-vllm-mia",
-      "content_sha256": "c989f4f60a09ffc107bfb966f71b09ca1066bedcbe606a70be00b0c8128c08f5"
-    },
-    "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
-    "arguments": [
-      {"name": "served-model-name", "value": "deepseek-v4-flash-0731"},
-      {"name": "trust-remote-code", "value": true},
-      {"name": "kv-cache-dtype", "value": "nvfp4_ds_mla"},
-      {"name": "block-size", "value": 256},
-      {"name": "max-model-len", "value": 1048576},
-      {"name": "max-num-seqs", "value": 6},
-      {"name": "max-num-batched-tokens", "value": 8192},
-      {"name": "long-prefill-token-threshold", "value": 1024},
-      {"name": "max-cudagraph-capture-size", "value": 36},
-      {"name": "gpu-memory-utilization", "value": "0.835"},
-      {"name": "enable-prefix-caching", "value": true},
-      {"name": "enable-prompt-tokens-details", "value": true},
-      {"name": "async-scheduling", "value": true},
-      {"name": "enable-chunked-prefill", "value": true},
-      {"name": "speculative-config", "value": "{\"method\":\"dspark\",\"num_speculative_tokens\":5,\"draft_sample_method\":\"probabilistic\"}"},
-      {"name": "tokenizer-mode", "value": "deepseek_v4"},
-      {"name": "moe-backend", "value": "flashinfer_b12x"},
-      {"name": "tool-call-parser", "value": "deepseek_v4"},
-      {"name": "enable-auto-tool-choice", "value": true},
-      {"name": "reasoning-parser", "value": "deepseek_v4"},
-      {"name": "reasoning-config", "value": "{\"reasoning_parser\":\"deepseek_v4\",\"reasoning_start_str\":\"<think>\",\"reasoning_end_str\":\"</think>\"}"},
-      {"name": "default-chat-template-kwargs", "value": "{\"thinking\":true,\"reasoning_effort\":\"low\"}"},
-      {"name": "generation-config", "value": "vllm"},
-      {"name": "enable-flashinfer-autotune", "value": true}
-    ],
-    "environment": [
-      {"name": "HF_HUB_OFFLINE", "value": "1"},
-      {"name": "TRANSFORMERS_OFFLINE", "value": "1"},
-      {"name": "HF_HUB_DISABLE_XET", "value": "1"},
-      {"name": "VLLM_PREFIX_CACHE_RETENTION_INTERVAL", "value": "4096"},
-      {"name": "VLLM_ALLOW_LONG_MAX_MODEL_LEN", "value": "1"},
-      {"name": "VLLM_SPARSE_INDEXER_MAX_LOGITS_MB", "value": "256"},
-      {"name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS", "value": "0"},
-      {"name": "VLLM_USE_FLASHINFER_SAMPLER", "value": "1"},
-      {"name": "VLLM_USE_BREAKABLE_CUDAGRAPH", "value": "0"},
-      {"name": "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS", "value": "1800"},
-      {"name": "VLLM_USE_B12X_MOE", "value": "1"},
-      {"name": "VLLM_B12X_W4A16_FORCE_BLOCKS_PER_SM", "value": "0"},
-      {"name": "VLLM_B12X_W4A16_FORCE_BLOCKS_MAX_M", "value": "16"},
-      {"name": "DSPARK_MAX_INFLIGHT_PREFILLS", "value": "1"},
-      {"name": "TORCH_CUDA_ARCH_LIST", "value": "12.1a"},
-      {"name": "FLASHINFER_CUDA_ARCH_LIST", "value": "12.1a"},
-      {"name": "CUTE_DSL_ARCH", "value": "sm_121a"},
-      {"name": "FLASHINFER_DISABLE_VERSION_CHECK", "value": "1"},
-      {"name": "FLASHINFER_WORKSPACE_BASE", "value": "/outputs/cache/flashinfer"},
-      {"name": "TILELANG_CACHE_DIR", "value": "/outputs/cache/tilelang"},
-      {"name": "TRITON_CACHE_DIR", "value": "/outputs/cache/triton"},
-      {"name": "B12X_CUTE_COMPILE_CACHE_DIR", "value": "/outputs/cache/b12x-cute-compile"},
-      {"name": "TILELANG_CLEANUP_TEMP_FILES", "value": "1"},
-      {"name": "DG_JIT_USE_NVRTC", "value": "0"},
-      {"name": "DG_JIT_NVCC_COMPILER", "value": "/usr/local/cuda/bin/nvcc"},
-      {"name": "PYTORCH_CUDA_ALLOC_CONF", "value": "expandable_segments:True"},
-      {"name": "NCCL_NET", "value": "IB"},
-      {"name": "NCCL_IB_DISABLE", "value": "0"},
-      {"name": "NCCL_IB_ADDR_FAMILY", "value": "AF_INET"},
-      {"name": "NCCL_IB_ROCE_VERSION_NUM", "value": "2"},
-      {"name": "NCCL_CROSS_NIC", "value": "1"},
-      {"name": "NCCL_CUMEM_ENABLE", "value": "0"},
-      {"name": "NCCL_IGNORE_CPU_AFFINITY", "value": "1"},
-      {"name": "NCCL_DEBUG", "value": "WARN"},
-      {"name": "NCCL_NVLS_ENABLE", "value": "0"},
-      {"name": "TORCH_FR_BUFFER_SIZE", "value": "2000"},
-      {"name": "TORCH_NCCL_DUMP_ON_TIMEOUT", "value": "1"},
-      {"name": "TORCH_NCCL_ENABLE_MONITORING", "value": "1"},
-      {"name": "TORCH_FR_DUMP_TEMP_FILE", "value": "/outputs/cache/nccl-fr/comm_lib_trace_rank_"},
-      {"name": "TORCH_NCCL_DEBUG_INFO_PIPE_FILE", "value": "/outputs/cache/nccl-fr/fr_dump_pipe_"}
-    ],
-    "security": {
-      "devices": ["nvidia.com/gpu=all"],
-      "capabilities": [],
-      "host_network": true,
-      "privileged": false,
-      "user": "10001:10001",
-      "mounts": [
-        {"source": "model", "target": "/models", "read_only": true},
-        {"source": "outputs", "target": "/outputs", "read_only": false}
-      ]
-    },
-    "lifecycle": {
-      "pre_start": [],
-      "post_stop": [],
-      "stop_timeout_seconds": 180,
-      "readiness": {"strategy": "endpoint-owner-after-all-ranks", "path": "/v1/models", "timeout_seconds": 900},
-      "failure": {"rank_loss": "withdraw-endpoint", "recovery": "restart-worker-then-entrypoint"}
     }
   },
+  "execution": {
+    "harness": {
+      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d",
+      "kind": "execution-harness",
+      "publisher": "vonk-forge",
+      "slug": "vllm"
+    },
+    "patch_bundle": {
+      "content_sha256": "5298f53c58cc7971b1fec81020ba038daff6fbde849b9858c23315d119532bb6",
+      "kind": "patch-bundle",
+      "publisher": "miaai-lab",
+      "slug": "mia-deepseek-v4-flash-0731"
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-flash-0731-mia-dual"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "deepseek-v4-flash-0731"
+      ],
+      "port": 8888
+    }
+  ],
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Installable Candidate two-Spark profile for the official DeepSeek V4 Flash 0731 checkpoint, refreshed to MiaAI-Lab's source-exact XGrammar termination fix, fail-closed patches, persistent compile caches, and NCCL diagnostics.",
+    "tags": [
+      "executable",
+      "candidate",
+      "deepseek",
+      "distributed",
+      "mia",
+      "openai",
+      "spark"
+    ],
+    "title": "DeepSeek V4 Flash 0731 Mia dual Spark"
+  },
+  "model": {
+    "content_sha256": "6b318ccefc40d93462049d3cf982d815f0409e557d14bf56f40fbffc9bbb9cf5",
+    "kind": "model-version",
+    "publisher": "deepseek-ai",
+    "slug": "deepseek-v4-flash-0731-official"
+  },
+  "parameters": [],
+  "provenance": {
+    "attribution": [
+      "DeepSeek AI",
+      "MiaAI-Lab",
+      "Anemll",
+      "vLLM contributors"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/0107cef1835a56d1a2bcdabf7d9e1a085b70338b"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "value": "deepseek-v4-flash-0731"
+      },
+      {
+        "name": "trust-remote-code",
+        "value": true
+      },
+      {
+        "name": "kv-cache-dtype",
+        "value": "nvfp4_ds_mla"
+      },
+      {
+        "name": "block-size",
+        "value": 256
+      },
+      {
+        "name": "max-model-len",
+        "value": 1048576
+      },
+      {
+        "name": "max-num-seqs",
+        "value": 6
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "value": 8192
+      },
+      {
+        "name": "long-prefill-token-threshold",
+        "value": 1024
+      },
+      {
+        "name": "max-cudagraph-capture-size",
+        "value": 36
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "value": "0.835"
+      },
+      {
+        "name": "enable-prefix-caching",
+        "value": true
+      },
+      {
+        "name": "enable-prompt-tokens-details",
+        "value": true
+      },
+      {
+        "name": "async-scheduling",
+        "value": true
+      },
+      {
+        "name": "enable-chunked-prefill",
+        "value": true
+      },
+      {
+        "name": "speculative-config",
+        "value": "{\"method\":\"dspark\",\"num_speculative_tokens\":5,\"draft_sample_method\":\"probabilistic\"}"
+      },
+      {
+        "name": "tokenizer-mode",
+        "value": "deepseek_v4"
+      },
+      {
+        "name": "moe-backend",
+        "value": "flashinfer_b12x"
+      },
+      {
+        "name": "tool-call-parser",
+        "value": "deepseek_v4"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "value": true
+      },
+      {
+        "name": "reasoning-parser",
+        "value": "deepseek_v4"
+      },
+      {
+        "name": "reasoning-config",
+        "value": "{\"reasoning_parser\":\"deepseek_v4\",\"reasoning_start_str\":\"<think>\",\"reasoning_end_str\":\"</think>\"}"
+      },
+      {
+        "name": "default-chat-template-kwargs",
+        "value": "{\"thinking\":true,\"reasoning_effort\":\"low\"}"
+      },
+      {
+        "name": "generation-config",
+        "value": "vllm"
+      },
+      {
+        "name": "enable-flashinfer-autotune",
+        "value": true
+      }
+    ],
+    "distribution": {
+      "content_sha256": "c989f4f60a09ffc107bfb966f71b09ca1066bedcbe606a70be00b0c8128c08f5",
+      "kind": "runtime-distribution",
+      "publisher": "anemll",
+      "slug": "anemll-vllm-mia"
+    },
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "HF_HUB_DISABLE_XET",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_PREFIX_CACHE_RETENTION_INTERVAL",
+        "value": "4096"
+      },
+      {
+        "name": "VLLM_ALLOW_LONG_MAX_MODEL_LEN",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_SPARSE_INDEXER_MAX_LOGITS_MB",
+        "value": "256"
+      },
+      {
+        "name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS",
+        "value": "0"
+      },
+      {
+        "name": "VLLM_USE_FLASHINFER_SAMPLER",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_USE_BREAKABLE_CUDAGRAPH",
+        "value": "0"
+      },
+      {
+        "name": "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS",
+        "value": "1800"
+      },
+      {
+        "name": "VLLM_USE_B12X_MOE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_B12X_W4A16_FORCE_BLOCKS_PER_SM",
+        "value": "0"
+      },
+      {
+        "name": "VLLM_B12X_W4A16_FORCE_BLOCKS_MAX_M",
+        "value": "16"
+      },
+      {
+        "name": "DSPARK_MAX_INFLIGHT_PREFILLS",
+        "value": "1"
+      },
+      {
+        "name": "TORCH_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "FLASHINFER_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "CUTE_DSL_ARCH",
+        "value": "sm_121a"
+      },
+      {
+        "name": "FLASHINFER_DISABLE_VERSION_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "TILELANG_CLEANUP_TEMP_FILES",
+        "value": "1"
+      },
+      {
+        "name": "DG_JIT_USE_NVRTC",
+        "value": "0"
+      },
+      {
+        "name": "DG_JIT_NVCC_COMPILER",
+        "value": "/usr/local/cuda/bin/nvcc"
+      },
+      {
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "value": "expandable_segments:True"
+      },
+      {
+        "name": "NCCL_NET",
+        "value": "IB"
+      },
+      {
+        "name": "NCCL_IB_DISABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IB_ADDR_FAMILY",
+        "value": "AF_INET"
+      },
+      {
+        "name": "NCCL_IB_ROCE_VERSION_NUM",
+        "value": "2"
+      },
+      {
+        "name": "NCCL_CROSS_NIC",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_CUMEM_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IGNORE_CPU_AFFINITY",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_DEBUG",
+        "value": "WARN"
+      },
+      {
+        "name": "NCCL_NVLS_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "TORCH_FR_BUFFER_SIZE",
+        "value": "2000"
+      },
+      {
+        "name": "TORCH_NCCL_DUMP_ON_TIMEOUT",
+        "value": "1"
+      },
+      {
+        "name": "TORCH_NCCL_ENABLE_MONITORING",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "failure": {
+        "rank_loss": "withdraw-endpoint",
+        "recovery": "restart-worker-then-entrypoint"
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "readiness": {
+        "path": "/v1/models",
+        "strategy": "endpoint-owner-after-all-ranks",
+        "timeout_seconds": 900
+      },
+      "stop_timeout_seconds": 180
+    },
+    "security": {
+      "capabilities": [],
+      "devices": [
+        "nvidia.com/gpu=all"
+      ],
+      "host_network": true,
+      "mounts": [
+        {
+          "read_only": true,
+          "source": "model",
+          "target": "/models"
+        },
+        {
+          "read_only": false,
+          "source": "outputs",
+          "target": "/outputs"
+        }
+      ],
+      "privileged": false,
+      "user": "10001:10001"
+    }
+  },
+  "schema_version": 1,
   "topology": {
-    "name": "dual",
+    "fabric": {
+      "connectivity": "connected",
+      "minimum_bandwidth_mbps": 200000
+    },
     "mode": "distributed",
+    "name": "dual",
     "node_count": 2,
+    "parallelism": {
+      "backend": "mp",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 2,
+      "world_size": 2
+    },
     "roles": [
       {
-        "name": "entrypoint",
+        "artifacts": [
+          "weights"
+        ],
         "count": 1,
         "endpoint_owner": true,
-        "artifacts": ["weights"],
+        "name": "entrypoint",
         "resources": {
           "disk": {
-            "image_bytes": 25000000000,
             "artifact_bytes": 166898661074,
-            "staging_bytes": 10000000000,
             "cache_bytes": 50000000000,
+            "image_bytes": 25000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 20000000000
+            "safety_margin_bytes": 20000000000,
+            "staging_bytes": 10000000000
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
             "startup_peak_bytes": 118000000000,
             "steady_state_bytes": 108000000000,
-            "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       },
       {
-        "name": "worker",
+        "artifacts": [
+          "weights"
+        ],
         "count": 1,
         "endpoint_owner": false,
-        "artifacts": ["weights"],
+        "name": "worker",
         "resources": {
           "disk": {
-            "image_bytes": 25000000000,
             "artifact_bytes": 166898661074,
-            "staging_bytes": 10000000000,
             "cache_bytes": 50000000000,
+            "image_bytes": 25000000000,
             "rollback_bytes": 0,
-            "safety_margin_bytes": 20000000000
+            "safety_margin_bytes": 20000000000,
+            "staging_bytes": 10000000000
           },
           "memory": {
             "kind": "unified",
+            "runtime_growth_bytes": 8000000000,
             "startup_peak_bytes": 118000000000,
             "steady_state_bytes": 108000000000,
-            "runtime_growth_bytes": 8000000000,
             "system_reserve_bytes": 8000000000
           }
         }
       }
     ],
-    "parallelism": {"world_size": 2, "tensor": 2, "pipeline": 1, "data": 1, "backend": "mp"},
-    "fabric": {"connectivity": "connected", "minimum_bandwidth_mbps": 200000},
-    "start_order": ["worker", "entrypoint"],
-    "stop_order": ["entrypoint", "worker"]
-  },
-  "interfaces": [
-    {
-      "adapter": "openai",
-      "port": 8888,
-      "model_aliases": ["deepseek-v4-flash-0731"],
-      "health_path": "/v1/models"
-    }
-  ],
-  "validation": {
-    "validators": [
-      {"interface": "openai", "checks": ["endpoint.healthy", "collective.two-ranks", "chat.nonempty", "chat.max-output-64", "rank-loss.withdrawal", "rank-recovery.healthy"]}
+    "start_order": [
+      "worker",
+      "entrypoint"
     ],
-    "benchmarks": [
-      {"name": "bounded-chat", "framework": "openai", "configuration": {"max_output_tokens": 64, "requests": 1, "timeout_seconds": 300}},
-      {"name": "sampler-shape-canary", "framework": "openai", "configuration": {"max_output_tokens": 24, "requests": 9, "timeout_seconds": 300, "temperature": "0.8", "top_k": 40, "top_p": "0.9"}}
+    "stop_order": [
+      "entrypoint",
+      "worker"
     ]
   },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/0107cef1835a56d1a2bcdabf7d9e1a085b70338b",
-    "attribution": ["DeepSeek AI", "MiaAI-Lab", "Anemll", "vLLM contributors"]
+  "validation": {
+    "benchmarks": [
+      {
+        "configuration": {
+          "max_output_tokens": 64,
+          "requests": 1,
+          "timeout_seconds": 300
+        },
+        "framework": "openai",
+        "name": "bounded-chat"
+      },
+      {
+        "configuration": {
+          "max_output_tokens": 24,
+          "requests": 9,
+          "temperature": "0.8",
+          "timeout_seconds": 300,
+          "top_k": 40,
+          "top_p": "0.9"
+        },
+        "framework": "openai",
+        "name": "sampler-shape-canary"
+      }
+    ],
+    "validators": [
+      {
+        "checks": [
+          "endpoint.healthy",
+          "collective.two-ranks",
+          "chat.nonempty",
+          "chat.max-output-64",
+          "rank-loss.withdrawal",
+          "rank-recovery.healthy"
+        ],
+        "interface": "openai"
+      }
+    ]
   }
 }

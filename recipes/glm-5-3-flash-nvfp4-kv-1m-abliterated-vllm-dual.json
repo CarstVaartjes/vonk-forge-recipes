@@ -1,23 +1,35 @@
 {
-  "schema_version": 1,
-  "identity": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual"},
-  "metadata": {
-    "title": "GLM 5.3 Flash Abliterated NVFP4 KV 1M vLLM two Sparks",
-    "description": "Executable gated Candidate reproducing Drowzeys' native-mp TP2, 1,048,576-token GLM 5.3 Flash profile with NVFP4 weights and KV cache, B12X sparse MLA, MTP2, Marlin experts, vision, reasoning, and tools. Installation requires an accepted Hugging Face token; qualification is blocked until an authenticated inventory refresh supplies SHA-256 values for the 13 gated Git files omitted from the withdrawn model-version manifest.",
-    "tags": ["abliterated", "candidate", "executable", "gated", "glm-5.3", "inventory-blocked", "mtp", "multimodal", "native-mp", "nvfp4", "reasoning", "spark", "tool-use", "vllm"],
-    "alignment": "abliterated"
-  },
-  "model": {"kind": "model-version", "publisher": "drowzeys", "slug": "glm-5-3-flash-nvfp4-abliterated-d7f8afa8", "content_sha256": "206d70bc7470b79349c94fafe89d595cdc0ac771f52875302438a7305f9cf77e"},
-  "execution": {
-    "harness": {"kind": "execution-harness", "publisher": "vonk-forge", "slug": "vllm", "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d"},
-    "patch_bundle": {"kind": "patch-bundle", "publisher": "drowzeys", "slug": "drowzeys-glm53-nvfp4-kv-1m-dual-profile", "content_sha256": "d9e1c1928a9b929cf773111b053e0eac4435e4bd2bfb4040f031b60efdde91fd"}
-  },
+  "artifacts": [
+    {
+      "download_bytes": 194692761489,
+      "id": "weights",
+      "installed_bytes": 194692761489,
+      "kind": "huggingface.snapshot",
+      "mount": {
+        "read_only": true,
+        "target": "/models"
+      },
+      "repository": "drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock",
+      "revision": "d7f8afa81e62c156446fda43304d704563622590",
+      "roles": [
+        "entrypoint",
+        "worker"
+      ]
+    }
+  ],
   "build": {
-    "context": {"path": "adapters/glm/drowzeys-glm53-1m", "sha256": "8c2d848776b4b0f67f0bcd216a796d14daf3d1fc55f5117f3e0e542c09fabfb3", "expected_bytes": 788480, "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar"},
-    "dockerfile": "Dockerfile", "platform": "linux/arm64", "arguments": [],
-    "network": {"mode": "none", "hosts": []},
-    "resources": {"download_bytes": 10083828030, "temporary_bytes": 25000000000, "memory_bytes": 8000000000, "timeout_seconds": 7200, "cpu_cores": 8, "processes": 4096}
-  ,
+    "arguments": [],
+    "context": {
+      "expected_bytes": 788480,
+      "media_type": "application/vnd.vonk-forge.source-bundle.v1+tar",
+      "path": "adapters/glm/drowzeys-glm53-1m",
+      "sha256": "8c2d848776b4b0f67f0bcd216a796d14daf3d1fc55f5117f3e0e542c09fabfb3"
+    },
+    "dockerfile": "Dockerfile",
+    "network": {
+      "hosts": [],
+      "mode": "none"
+    },
     "options": {
       "additional_contexts": [],
       "annotations": [],
@@ -42,76 +54,373 @@
       "unset_environment": [],
       "unset_labels": []
     },
+    "platform": "linux/arm64",
+    "resources": {
+      "cpu_cores": 8,
+      "download_bytes": 10083828030,
+      "memory_bytes": 8000000000,
+      "processes": 4096,
+      "temporary_bytes": 25000000000,
+      "timeout_seconds": 7200
+    },
     "security": {
       "capabilities": []
-    }},
-  "parameters": [],
-  "artifacts": [
-    {"id": "weights", "kind": "huggingface.snapshot", "repository": "drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock", "revision": "d7f8afa81e62c156446fda43304d704563622590", "download_bytes": 194692761489, "installed_bytes": 194692761489, "mount": {"target": "/models", "read_only": true}, "roles": ["entrypoint", "worker"]}
+    }
+  },
+  "execution": {
+    "harness": {
+      "content_sha256": "c0d297318f223378fe573964291bc90fc950242e0d16d1d301c7d3cb4251487d",
+      "kind": "execution-harness",
+      "publisher": "vonk-forge",
+      "slug": "vllm"
+    },
+    "patch_bundle": {
+      "content_sha256": "d9e1c1928a9b929cf773111b053e0eac4435e4bd2bfb4040f031b60efdde91fd",
+      "kind": "patch-bundle",
+      "publisher": "drowzeys",
+      "slug": "drowzeys-glm53-nvfp4-kv-1m-dual-profile"
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "glm-5.3-flash-nvfp4"
+      ],
+      "port": 8000
+    }
   ],
+  "metadata": {
+    "alignment": "abliterated",
+    "description": "Executable gated Candidate reproducing Drowzeys' native-mp TP2, 1,048,576-token GLM 5.3 Flash profile with NVFP4 weights and KV cache, B12X sparse MLA, MTP2, Marlin experts, vision, reasoning, and tools. Installation requires an accepted Hugging Face token; qualification is blocked until an authenticated inventory refresh supplies SHA-256 values for the 13 gated Git files omitted from the withdrawn model-version manifest.",
+    "tags": [
+      "abliterated",
+      "candidate",
+      "executable",
+      "gated",
+      "glm-5.3",
+      "inventory-blocked",
+      "mtp",
+      "multimodal",
+      "native-mp",
+      "nvfp4",
+      "reasoning",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "GLM 5.3 Flash Abliterated NVFP4 KV 1M vLLM two Sparks"
+  },
+  "model": {
+    "content_sha256": "96e047e0329f7c90a59d9e77847ecebc8fb8c7872b06bd841e5c5ff50fbce7d5",
+    "kind": "model-version",
+    "publisher": "drowzeys",
+    "slug": "glm-5-3-flash-nvfp4-abliterated-d7f8afa8"
+  },
+  "parameters": [],
+  "provenance": {
+    "attribution": [
+      "Z.ai",
+      "LibertAI",
+      "DealignAI",
+      "drowzeys",
+      "b12x contributors",
+      "vLLM contributors"
+    ],
+    "source_kind": "global",
+    "source_reference": "https://github.com/drowzeys/keys-vLLm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated/tree/c36b5958412158a69629e7fbed321312e6d0761d"
+  },
   "runtime": {
-    "distribution": {"kind": "runtime-distribution", "publisher": "drowzeys", "slug": "vllm-glm53-drowzeys-1m-c36b5958-arm64", "content_sha256": "d657b3ddb6c6c99b1693c25df9ad002d94a986a9b54817ba71ba0ec91072a5e2"},
-    "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
     "arguments": [
-      {"name": "served-model-name", "value": "glm-5.3-flash-nvfp4"},
-      {"name": "trust-remote-code", "value": true},
-      {"name": "tensor-parallel-size", "value": 2},
-      {"name": "pipeline-parallel-size", "value": 1},
-      {"name": "gpu-memory-utilization", "value": "0.85"},
-      {"name": "max-model-len", "value": 1048576},
-      {"name": "max-num-seqs", "value": 2},
-      {"name": "max-num-batched-tokens", "value": 4096},
-      {"name": "block-size", "value": 7168},
-      {"name": "kv-cache-memory", "value": 6334808064},
-      {"name": "kv-cache-dtype", "value": "nvfp4_ds_mla"},
-      {"name": "no-enable-prefix-caching", "value": true},
-      {"name": "moe-backend", "value": "marlin"},
-      {"name": "speculative-config", "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":2}"},
-      {"name": "enforce-eager", "value": true},
-      {"name": "allowed-local-media-path", "value": "/inputs"},
-      {"name": "limit-mm-per-prompt", "value": "{\"image\":4,\"video\":1}"},
-      {"name": "tool-call-parser", "value": "glm47"},
-      {"name": "enable-auto-tool-choice", "value": true},
-      {"name": "reasoning-parser", "value": "glm45"}
+      {
+        "name": "served-model-name",
+        "value": "glm-5.3-flash-nvfp4"
+      },
+      {
+        "name": "trust-remote-code",
+        "value": true
+      },
+      {
+        "name": "tensor-parallel-size",
+        "value": 2
+      },
+      {
+        "name": "pipeline-parallel-size",
+        "value": 1
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "value": "0.85"
+      },
+      {
+        "name": "max-model-len",
+        "value": 1048576
+      },
+      {
+        "name": "max-num-seqs",
+        "value": 2
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "value": 4096
+      },
+      {
+        "name": "block-size",
+        "value": 7168
+      },
+      {
+        "name": "kv-cache-memory",
+        "value": 6334808064
+      },
+      {
+        "name": "kv-cache-dtype",
+        "value": "nvfp4_ds_mla"
+      },
+      {
+        "name": "no-enable-prefix-caching",
+        "value": true
+      },
+      {
+        "name": "moe-backend",
+        "value": "marlin"
+      },
+      {
+        "name": "speculative-config",
+        "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":2}"
+      },
+      {
+        "name": "enforce-eager",
+        "value": true
+      },
+      {
+        "name": "allowed-local-media-path",
+        "value": "/inputs"
+      },
+      {
+        "name": "limit-mm-per-prompt",
+        "value": "{\"image\":4,\"video\":1}"
+      },
+      {
+        "name": "tool-call-parser",
+        "value": "glm47"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "value": true
+      },
+      {
+        "name": "reasoning-parser",
+        "value": "glm45"
+      }
+    ],
+    "distribution": {
+      "content_sha256": "d657b3ddb6c6c99b1693c25df9ad002d94a986a9b54817ba71ba0ec91072a5e2",
+      "kind": "runtime-distribution",
+      "publisher": "drowzeys",
+      "slug": "vllm-glm53-drowzeys-1m-c36b5958-arm64"
+    },
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
     ],
     "environment": [
-      {"name": "HF_HUB_OFFLINE", "value": "1"},
-      {"name": "TRANSFORMERS_OFFLINE", "value": "1"},
-      {"name": "VLLM_NO_USAGE_STATS", "value": "1"},
-      {"name": "PYTORCH_CUDA_ALLOC_CONF", "value": "expandable_segments:True"},
-      {"name": "NCCL_NET", "value": "IB"},
-      {"name": "NCCL_IB_DISABLE", "value": "0"},
-      {"name": "NCCL_CROSS_NIC", "value": "0"},
-      {"name": "NCCL_IB_MERGE_NICS", "value": "0"},
-      {"name": "NCCL_CUMEM_ENABLE", "value": "0"},
-      {"name": "NCCL_P2P_DISABLE", "value": "1"},
-      {"name": "NCCL_SHM_DISABLE", "value": "1"},
-      {"name": "NCCL_DEBUG", "value": "WARN"}
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_NO_USAGE_STATS",
+        "value": "1"
+      },
+      {
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "value": "expandable_segments:True"
+      },
+      {
+        "name": "NCCL_NET",
+        "value": "IB"
+      },
+      {
+        "name": "NCCL_IB_DISABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CROSS_NIC",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IB_MERGE_NICS",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CUMEM_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_P2P_DISABLE",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_SHM_DISABLE",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_DEBUG",
+        "value": "WARN"
+      }
     ],
-    "security": {
-      "devices": ["nvidia.com/gpu=all"], "capabilities": [], "host_network": true, "privileged": false, "user": "10001:10001",
-      "mounts": [{"source": "model", "target": "/models", "read_only": true}, {"source": "inputs", "target": "/inputs", "read_only": true}, {"source": "outputs", "target": "/outputs", "read_only": false}]
+    "lifecycle": {
+      "failure": {
+        "rank_loss": "withdraw-endpoint",
+        "recovery": "restart-worker-then-entrypoint"
+      },
+      "post_stop": [],
+      "pre_start": [],
+      "readiness": {
+        "path": "/v1/models",
+        "strategy": "endpoint-owner-after-all-ranks",
+        "timeout_seconds": 3600
+      },
+      "stop_timeout_seconds": 180
     },
-    "lifecycle": {"pre_start": [], "post_stop": [], "stop_timeout_seconds": 180, "readiness": {"strategy": "endpoint-owner-after-all-ranks", "path": "/v1/models", "timeout_seconds": 3600}, "failure": {"rank_loss": "withdraw-endpoint", "recovery": "restart-worker-then-entrypoint"}}
+    "security": {
+      "capabilities": [],
+      "devices": [
+        "nvidia.com/gpu=all"
+      ],
+      "host_network": true,
+      "mounts": [
+        {
+          "read_only": true,
+          "source": "model",
+          "target": "/models"
+        },
+        {
+          "read_only": true,
+          "source": "inputs",
+          "target": "/inputs"
+        },
+        {
+          "read_only": false,
+          "source": "outputs",
+          "target": "/outputs"
+        }
+      ],
+      "privileged": false,
+      "user": "10001:10001"
+    }
   },
+  "schema_version": 1,
   "topology": {
-    "name": "dual", "mode": "distributed", "node_count": 2,
+    "fabric": {
+      "connectivity": "connected",
+      "minimum_bandwidth_mbps": 200000
+    },
+    "mode": "distributed",
+    "name": "dual",
+    "node_count": 2,
+    "parallelism": {
+      "backend": "mp",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 2,
+      "world_size": 2
+    },
     "roles": [
-      {"name": "entrypoint", "count": 1, "endpoint_owner": true, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194692761489, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 126000000000, "steady_state_bytes": 120000000000, "runtime_growth_bytes": 3000000000, "system_reserve_bytes": 5000000000}}},
-      {"name": "worker", "count": 1, "endpoint_owner": false, "artifacts": ["weights"], "resources": {"disk": {"image_bytes": 30000000000, "artifact_bytes": 194692761489, "staging_bytes": 25000000000, "cache_bytes": 40000000000, "rollback_bytes": 0, "safety_margin_bytes": 24000000000}, "memory": {"kind": "unified", "startup_peak_bytes": 126000000000, "steady_state_bytes": 120000000000, "runtime_growth_bytes": 3000000000, "system_reserve_bytes": 5000000000}}}
+      {
+        "artifacts": [
+          "weights"
+        ],
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 194692761489,
+            "cache_bytes": 40000000000,
+            "image_bytes": 30000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 24000000000,
+            "staging_bytes": 25000000000
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 3000000000,
+            "startup_peak_bytes": 126000000000,
+            "steady_state_bytes": 120000000000,
+            "system_reserve_bytes": 5000000000
+          }
+        }
+      },
+      {
+        "artifacts": [
+          "weights"
+        ],
+        "count": 1,
+        "endpoint_owner": false,
+        "name": "worker",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 194692761489,
+            "cache_bytes": 40000000000,
+            "image_bytes": 30000000000,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 24000000000,
+            "staging_bytes": 25000000000
+          },
+          "memory": {
+            "kind": "unified",
+            "runtime_growth_bytes": 3000000000,
+            "startup_peak_bytes": 126000000000,
+            "steady_state_bytes": 120000000000,
+            "system_reserve_bytes": 5000000000
+          }
+        }
+      }
     ],
-    "parallelism": {"world_size": 2, "tensor": 2, "pipeline": 1, "data": 1, "backend": "mp"},
-    "fabric": {"connectivity": "connected", "minimum_bandwidth_mbps": 200000},
-    "start_order": ["worker", "entrypoint"], "stop_order": ["entrypoint", "worker"]
+    "start_order": [
+      "worker",
+      "entrypoint"
+    ],
+    "stop_order": [
+      "entrypoint",
+      "worker"
+    ]
   },
-  "interfaces": [{"adapter": "openai", "port": 8000, "model_aliases": ["glm-5.3-flash-nvfp4"], "health_path": "/v1/models"}],
   "validation": {
-    "validators": [{"interface": "openai", "checks": ["endpoint.healthy", "collective.two-ranks", "chat.nonempty", "chat.max-output-64", "rank-loss.withdrawal", "rank-recovery.healthy"]}],
-    "benchmarks": [{"name": "bounded-chat", "framework": "openai", "configuration": {"max_output_tokens": 64, "requests": 1, "timeout_seconds": 600}}]
-  },
-  "provenance": {
-    "source_kind": "global",
-    "source_reference": "https://github.com/drowzeys/keys-vLLm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated/tree/c36b5958412158a69629e7fbed321312e6d0761d",
-    "attribution": ["Z.ai", "LibertAI", "DealignAI", "drowzeys", "b12x contributors", "vLLM contributors"]
+    "benchmarks": [
+      {
+        "configuration": {
+          "max_output_tokens": 64,
+          "requests": 1,
+          "timeout_seconds": 600
+        },
+        "framework": "openai",
+        "name": "bounded-chat"
+      }
+    ],
+    "validators": [
+      {
+        "checks": [
+          "endpoint.healthy",
+          "collective.two-ranks",
+          "chat.nonempty",
+          "chat.max-output-64",
+          "rank-loss.withdrawal",
+          "rank-recovery.healthy"
+        ],
+        "interface": "openai"
+      }
+    ]
   }
 }

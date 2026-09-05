@@ -1,112 +1,113 @@
 {
-  "schema_version": 1,
-  "recipe": {
-    "publisher": "vonk-forge",
-    "slug": "skintokens-pytorch-single"
-  },
-  "version": "2.0.7",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "2.0.7",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "b8b7effe30a73e106d10e54e778e58478edafe2be54aedd60480ab111b42833a",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "kind": "metadata",
+          "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
         }
-      ]
+      ],
+      "recipe_content_sha256": "9cd47002823554378af4a8fc4352d20cb6db5be22ac18c4ca367054f43c77b10",
+      "released_at": "2026-09-05",
+      "upgrade_effect": "metadata-only",
+      "version": "2.0.8"
     },
     {
-      "version": "2.0.6",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "203cc376ca857537ec67c28a3b339934e6bf4adf24b5ad3b0c77734302303622",
-      "upgrade_effect": "metadata-only",
+      "changes": [
+        {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
+          "kind": "compatibility",
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
+        }
+      ],
+      "recipe_content_sha256": "b8b7effe30a73e106d10e54e778e58478edafe2be54aedd60480ab111b42833a",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.7"
+    },
+    {
       "changes": [
         {
           "kind": "metadata",
           "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
         }
-      ]
-    },
-    {
-      "version": "2.0.5",
+      ],
+      "recipe_content_sha256": "203cc376ca857537ec67c28a3b339934e6bf4adf24b5ad3b0c77734302303622",
       "released_at": "2026-09-01",
-      "recipe_content_sha256": "1078fec55c9d6b58ecdb2c94ed0e515912e0a2bac08379fb7d7f21c98ab6283a",
-      "upgrade_effect": "rebuild",
-      "changes": [
-        {
-          "kind": "security",
-          "summary": "Restricted public build egress to hosts used during Dockerfile execution.",
-          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled."
-        }
-      ]
-    },
-    {
-      "version": "2.0.4",
-      "released_at": "2026-08-30",
-      "recipe_content_sha256": "c9195fb2bfd95242491df225153750b2d1aa5a00198ddd5dadaaabf6c47ef704",
       "upgrade_effect": "metadata-only",
-      "changes": [
-        {
-          "kind": "metadata",
-          "summary": "Published SkinTokens native-build and physical acceptance gates.",
-          "details": "The installable Candidate is explicitly not accepted until its ARM64 container build and a physical GB10 rigged-GLB canary both pass."
-        }
-      ]
+      "version": "2.0.6"
     },
     {
-      "version": "2.0.3",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "8631b1513364c4ef282567eaceb4964f8f1ed902dce83641fb12db2b244ff382",
+      "changes": [
+        {
+          "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
+          "kind": "security",
+          "summary": "Restricted public build egress to hosts used during Dockerfile execution."
+        }
+      ],
+      "recipe_content_sha256": "1078fec55c9d6b58ecdb2c94ed0e515912e0a2bac08379fb7d7f21c98ab6283a",
+      "released_at": "2026-09-01",
       "upgrade_effect": "rebuild",
+      "version": "2.0.5"
+    },
+    {
+      "changes": [
+        {
+          "details": "The installable Candidate is explicitly not accepted until its ARM64 container build and a physical GB10 rigged-GLB canary both pass.",
+          "kind": "metadata",
+          "summary": "Published SkinTokens native-build and physical acceptance gates."
+        }
+      ],
+      "recipe_content_sha256": "c9195fb2bfd95242491df225153750b2d1aa5a00198ddd5dadaaabf6c47ef704",
+      "released_at": "2026-08-30",
+      "upgrade_effect": "metadata-only",
+      "version": "2.0.4"
+    },
+    {
       "changes": [
         {
           "kind": "fix",
           "summary": "Validated bounded geometry, joints, inverse bind matrices, normals, and normalized skin weights before atomic GLB publication."
         }
-      ]
+      ],
+      "recipe_content_sha256": "8631b1513364c4ef282567eaceb4964f8f1ed902dce83641fb12db2b244ff382",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.3"
     },
     {
-      "version": "2.0.2",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "e24e36e810c5f8096e01196467a3f88b8d1024d0852bc269b61b9e72db347b4f",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
           "kind": "compatibility",
           "summary": "Declared exact one-GLB input and single-GLB rigged output slots with bounded bytes."
         }
-      ]
+      ],
+      "recipe_content_sha256": "e24e36e810c5f8096e01196467a3f88b8d1024d0852bc269b61b9e72db347b4f",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "metadata-only",
+      "version": "2.0.2"
     },
     {
-      "version": "2.0.1",
-      "released_at": "2026-08-26",
-      "recipe_content_sha256": "a997ed4332566bab38f038f39f2c466e2c88f2c1bae3d76d988e8c987ea02cf4",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
+          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
           "kind": "metadata",
-          "summary": "Declared the complete recipe contract installable without changing Candidate qualification.",
-          "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate."
+          "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
         }
-      ]
+      ],
+      "recipe_content_sha256": "a997ed4332566bab38f038f39f2c466e2c88f2c1bae3d76d988e8c987ea02cf4",
+      "released_at": "2026-08-26",
+      "upgrade_effect": "metadata-only",
+      "version": "2.0.1"
     },
     {
-      "version": "2.0.0",
-      "released_at": "2026-08-24",
-      "recipe_content_sha256": "bc3c835b5b5c1772ec6edffe4f1d28ef5c0a7ebf26fb29dcc3e9040d3b13bdc1",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
           "kind": "compatibility",
-          "summary": "Replaced the metadata placeholder with the exact upstream TokenRig inference path and an offline GLB mesh input workflow.",
           "references": [
             "https://github.com/VAST-AI-Research/SkinTokens/tree/273b691d35989d71cd17ff2895fdc735097b92d1"
-          ]
+          ],
+          "summary": "Replaced the metadata placeholder with the exact upstream TokenRig inference path and an offline GLB mesh input workflow."
         },
         {
           "kind": "runtime",
@@ -116,13 +117,13 @@
           "kind": "fix",
           "summary": "Added a deterministic pure glTF exporter for generated joints, inverse bind matrices, and skin weights."
         }
-      ]
+      ],
+      "recipe_content_sha256": "bc3c835b5b5c1772ec6edffe4f1d28ef5c0a7ebf26fb29dcc3e9040d3b13bdc1",
+      "released_at": "2026-08-24",
+      "upgrade_effect": "rebuild",
+      "version": "2.0.0"
     },
     {
-      "version": "1.1.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "bfb39565680b3412dd3895bece722fbfde601f24d3b3d0eecaeecc81c473b8a5",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "compatibility",
@@ -136,34 +137,45 @@
           "kind": "metadata",
           "summary": "Corrected the checkpoint license to MIT."
         }
-      ]
+      ],
+      "recipe_content_sha256": "bfb39565680b3412dd3895bece722fbfde601f24d3b3d0eecaeecc81c473b8a5",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.1.0"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-23",
-      "recipe_content_sha256": "8fea688cd7ec61a40302a56d797c9fc970bfc1dca356d53eae113ad496adc47c",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
           "summary": "Initial reviewed catalog release of SkinTokens / TokenRig pytorch-pipeline single Spark."
         }
-      ]
+      ],
+      "recipe_content_sha256": "8fea688cd7ec61a40302a56d797c9fc970bfc1dca356d53eae113ad496adc47c",
+      "released_at": "2026-08-23",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     },
     {
-      "version": "0.1.0",
-      "released_at": "2026-08-17",
-      "recipe_content_sha256": "082bf899f66b71ba0970a957fbd838c727dd2d4c1b869def2990146e349c12b1",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
           "kind": "initial",
-          "summary": "Recovered the first public legacy revision from before semantic release tracking.",
           "references": [
             "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-          ]
+          ],
+          "summary": "Recovered the first public legacy revision from before semantic release tracking."
         }
-      ]
+      ],
+      "recipe_content_sha256": "082bf899f66b71ba0970a957fbd838c727dd2d4c1b869def2990146e349c12b1",
+      "released_at": "2026-08-17",
+      "upgrade_effect": "reinstall",
+      "version": "0.1.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "skintokens-pytorch-single"
+  },
+  "released_at": "2026-09-05",
+  "schema_version": 1,
+  "version": "2.0.8"
 }

@@ -1,64 +1,64 @@
 {
-  "schema_version": 1,
-  "kind": "model-version",
-  "identity": {
-    "publisher": "tencent",
-    "slug": "hunyuan-video-foley-xl"
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
   },
-  "metadata": {
-    "title": "HunyuanVideo Foley XL",
-    "description": "Immutable public snapshot at 3abd4e83.",
-    "tags": [
-      "tencent",
-      "audio",
-      "candidate"
-    ]
-  },
-  "model": {
-    "kind": "model",
-    "publisher": "tencent",
-    "slug": "hunyuan-video-foley",
-    "content_sha256": "ae04e35a47bc5aed8959321eb6ced64c82b3f08b0a7f306a14663be1877cae1d"
-  },
-  "version": "HunyuanVideo Foley XL",
-  "source": {
-    "repository": "https://huggingface.co/tencent/HunyuanVideo-Foley",
-    "revision": "3abd4e833b95b8db0fc9c687afc52483a48e9a97"
-  },
-  "lineage": {
-    "publisher": "tencent",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "tencent",
-      "slug": "hunyuan-video-foley",
-      "content_sha256": "ae04e35a47bc5aed8959321eb6ced64c82b3f08b0a7f306a14663be1877cae1d"
+  "artifacts": [
+    {
+      "download_bytes": 18593354027,
+      "id": "snapshot",
+      "installed_bytes": 18593354027,
+      "kind": "huggingface.file",
+      "path": "snapshot",
+      "repository": "https://huggingface.co/tencent/HunyuanVideo-Foley",
+      "revision": "3abd4e833b95b8db0fc9c687afc52483a48e9a97",
+      "roles": [
+        "entrypoint"
+      ],
+      "sha256": "da065286636f559cc551856969b12b5a529b36af496b6e7b7557f8323ad66c12"
+    }
+  ],
+  "availability": "active",
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "audio-generation",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      },
+      {
+        "capability": "video-understanding",
+        "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "ad9cc36f31c8e8b09b72e06dc6452de8bae78acaed33c66db17c0b619536ccd8",
+      "source_revision": "3abd4e833b95b8db0fc9c687afc52483a48e9a97",
+      "source_url": "https://huggingface.co/tencent/HunyuanVideo-Foley"
     },
-    "derivation": "Immutable public upstream snapshot at the pinned revision."
+    "schema_version": 2
   },
+  "dependencies": [],
   "format": {
     "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
-  "parameters": {
-    "total": null,
-    "active": null
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hunyuan-video-foley-xl"
   },
-  "limits": {
-    "context_tokens": null
-  },
-  "sizes": {
-    "download_bytes": 18593354027,
-    "installed_bytes": 18593354027
-  },
+  "kind": "model-version",
   "license": {
-    "spdx": "LicenseRef-Tencent-Hunyuan-Community",
-    "url": "https://huggingface.co/tencent/HunyuanVideo-Foley/blob/3abd4e833b95b8db0fc9c687afc52483a48e9a97/LICENSE",
     "attribution": [
       "tencent"
     ],
     "operator_acceptance_required": true,
+    "spdx": "LicenseRef-Tencent-Hunyuan-Community",
     "territorial_restrictions": {
       "denied_jurisdictions": [
         "EU",
@@ -66,29 +66,51 @@
         "KR"
       ],
       "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
+    },
+    "url": "https://huggingface.co/tencent/HunyuanVideo-Foley/blob/3abd4e833b95b8db0fc9c687afc52483a48e9a97/LICENSE"
+  },
+  "limits": {
+    "context_tokens": null
+  },
+  "lineage": {
+    "derivation": "Immutable public upstream snapshot at the pinned revision.",
+    "publisher": "tencent",
+    "relation": "official",
+    "source_model": {
+      "content_sha256": "ae04e35a47bc5aed8959321eb6ced64c82b3f08b0a7f306a14663be1877cae1d",
+      "kind": "model",
+      "publisher": "tencent",
+      "slug": "hunyuan-video-foley"
     }
   },
-  "access": {
-    "visibility": "public",
-    "gated": false,
-    "authentication": "none"
+  "metadata": {
+    "description": "Immutable public snapshot at 3abd4e83.",
+    "tags": [
+      "tencent",
+      "audio",
+      "candidate"
+    ],
+    "title": "HunyuanVideo Foley XL"
   },
-  "artifacts": [
-    {
-      "id": "snapshot",
-      "path": "snapshot",
-      "kind": "huggingface.file",
-      "repository": "https://huggingface.co/tencent/HunyuanVideo-Foley",
-      "revision": "3abd4e833b95b8db0fc9c687afc52483a48e9a97",
-      "sha256": "da065286636f559cc551856969b12b5a529b36af496b6e7b7557f8323ad66c12",
-      "download_bytes": 18593354027,
-      "installed_bytes": 18593354027,
-      "roles": [
-        "entrypoint"
-      ]
-    }
-  ],
-  "dependencies": [],
-  "availability": "active",
-  "supersedes": null
+  "model": {
+    "content_sha256": "ae04e35a47bc5aed8959321eb6ced64c82b3f08b0a7f306a14663be1877cae1d",
+    "kind": "model",
+    "publisher": "tencent",
+    "slug": "hunyuan-video-foley"
+  },
+  "parameters": {
+    "active": null,
+    "total": null
+  },
+  "schema_version": 1,
+  "sizes": {
+    "download_bytes": 18593354027,
+    "installed_bytes": 18593354027
+  },
+  "source": {
+    "repository": "https://huggingface.co/tencent/HunyuanVideo-Foley",
+    "revision": "3abd4e833b95b8db0fc9c687afc52483a48e9a97"
+  },
+  "supersedes": null,
+  "version": "HunyuanVideo Foley XL"
 }

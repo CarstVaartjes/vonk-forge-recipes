@@ -1,93 +1,96 @@
 {
-  "schema_version": 1,
-  "recipe": {"publisher": "vonk-forge", "slug": "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual"},
-  "version": "1.1.3",
-  "released_at": "2026-09-03",
   "history": [
     {
-      "version": "1.1.3",
-      "released_at": "2026-09-03",
-      "recipe_content_sha256": "19fef2dd4024ac92415129ec63d1a5ce4f0afc0f57bac262cfebd9db6cc541d5",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
+          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
           "kind": "compatibility",
-          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract.",
-          "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy."
+          "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
         }
-      ]
+      ],
+      "recipe_content_sha256": "52b7a2a9ec4cd13d059967c19920b5796a92ab42767c545d5c6487dbd0f1f522",
+      "released_at": "2026-09-03",
+      "upgrade_effect": "rebuild",
+      "version": "1.1.3"
     },
     {
-      "version": "1.1.2",
-      "released_at": "2026-09-01",
-      "recipe_content_sha256": "a1fb226732c5e750096ae68cc5c97e35e7c768c72f0a1bd226efc0550fee1d84",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
+          "details": "The Dockerfile performs only local patching and verification after the digest-pinned base image is transferred separately.",
           "kind": "security",
-          "summary": "Removed unnecessary public network access from the deterministic dual-Spark image build.",
-          "details": "The Dockerfile performs only local patching and verification after the digest-pinned base image is transferred separately."
+          "summary": "Removed unnecessary public network access from the deterministic dual-Spark image build."
         },
         {
+          "details": "The recipe now publishes an explicit abliterated alignment facet; consumers must not infer alignment from names or tags.",
           "kind": "metadata",
-          "summary": "Declared the checkpoint alignment explicitly.",
-          "details": "The recipe now publishes an explicit abliterated alignment facet; consumers must not infer alignment from names or tags."
+          "summary": "Declared the checkpoint alignment explicitly."
         }
-      ]
+      ],
+      "recipe_content_sha256": "a1fb226732c5e750096ae68cc5c97e35e7c768c72f0a1bd226efc0550fee1d84",
+      "released_at": "2026-09-01",
+      "upgrade_effect": "rebuild",
+      "version": "1.1.2"
     },
     {
-      "version": "1.1.0",
-      "released_at": "2026-08-29",
-      "recipe_content_sha256": "6d1e6ac8a4c8d09aba8260c001d6e16ff5d0dd3230d41008582b74de117a1800",
-      "upgrade_effect": "rebuild",
       "changes": [
         {
-          "kind": "runtime",
-          "summary": "Adopted Drowzeys' upstream-published digest-pinned B12X runtime image.",
           "details": "The adapter now builds directly from the validated linux/arm64 GHCR image instead of reinstalling b12x and Cutlass DSL from PyPI on every Spark; the reviewed overlays and non-root offline runtime remain unchanged.",
+          "kind": "runtime",
           "references": [
             "https://github.com/drowzeys/keys-vLLm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated/commit/c36b5958412158a69629e7fbed321312e6d0761d"
-          ]
+          ],
+          "summary": "Adopted Drowzeys' upstream-published digest-pinned B12X runtime image."
         },
         {
+          "details": "The previous 0.87 value is no longer recommended; operators should reduce concurrency or batched-token limits instead of raising the cap. Gated checkpoint inventory and physical two-Spark acceptance remain blocked separately.",
           "kind": "fix",
-          "summary": "Applied upstream's 0.85 unified-memory hard cap for the 1M profile.",
-          "details": "The previous 0.87 value is no longer recommended; operators should reduce concurrency or batched-token limits instead of raising the cap. Gated checkpoint inventory and physical two-Spark acceptance remain blocked separately."
+          "summary": "Applied upstream's 0.85 unified-memory hard cap for the 1M profile."
         }
-      ]
+      ],
+      "recipe_content_sha256": "6d1e6ac8a4c8d09aba8260c001d6e16ff5d0dd3230d41008582b74de117a1800",
+      "released_at": "2026-08-29",
+      "upgrade_effect": "rebuild",
+      "version": "1.1.0"
     },
     {
-      "version": "1.0.1",
-      "released_at": "2026-08-28",
-      "recipe_content_sha256": "979b7a7d3c4290c4a5de962d1fc1aa92ea8bf86327b679cb2917564dbf396208",
-      "upgrade_effect": "metadata-only",
       "changes": [
         {
-          "kind": "metadata",
-          "summary": "Removed the synthetic snapshot digest and failed closed on gated Git files.",
           "details": "The withdrawn model entity now lists 126 files with upstream-verifiable SHA-256 values. Thirteen Git files totaling 50,928 bytes return HTTP 401 without an accepted token and are explicitly excluded until an authenticated refresh; runtime and installed snapshot pins are unchanged.",
+          "kind": "metadata",
           "references": [
             "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock/tree/d7f8afa81e62c156446fda43304d704563622590"
-          ]
+          ],
+          "summary": "Removed the synthetic snapshot digest and failed closed on gated Git files."
         }
-      ]
+      ],
+      "recipe_content_sha256": "979b7a7d3c4290c4a5de962d1fc1aa92ea8bf86327b679cb2917564dbf396208",
+      "released_at": "2026-08-28",
+      "upgrade_effect": "metadata-only",
+      "version": "1.0.1"
     },
     {
-      "version": "1.0.0",
-      "released_at": "2026-08-27",
-      "recipe_content_sha256": "a18e9ea3a8789cb8ee53742ced6fd2239a490d0d04df466f503983e7f3ac14c4",
-      "upgrade_effect": "reinstall",
       "changes": [
         {
-          "kind": "initial",
-          "summary": "Added Drowzeys' gated GLM 5.3 Flash NVFP4 KV 1M two-Spark Candidate.",
           "details": "Pins the exact serving source and gated checkpoint revisions, packages the B12X NVFP4 KV and sparse-MLA overlays, and preserves the published 1,048,576 context, 7168 block, 6,334,808,064-byte KV allocation, MTP2, and native-mp TP2 profile.",
+          "kind": "initial",
           "references": [
             "https://github.com/drowzeys/keys-vLLm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated/tree/ee0dabadc83f11f8c97cdd8b9b367488755bb846",
             "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock/tree/d7f8afa81e62c156446fda43304d704563622590"
-          ]
+          ],
+          "summary": "Added Drowzeys' gated GLM 5.3 Flash NVFP4 KV 1M two-Spark Candidate."
         }
-      ]
+      ],
+      "recipe_content_sha256": "a18e9ea3a8789cb8ee53742ced6fd2239a490d0d04df466f503983e7f3ac14c4",
+      "released_at": "2026-08-27",
+      "upgrade_effect": "reinstall",
+      "version": "1.0.0"
     }
-  ]
+  ],
+  "recipe": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual"
+  },
+  "released_at": "2026-09-03",
+  "schema_version": 1,
+  "version": "1.1.3"
 }
