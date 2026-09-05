@@ -54,6 +54,7 @@ The repository contains definitions and build sources, not model weights or cont
 
 ## Where to look
 
+- [Create and update recipes](docs/recipe-authoring.md): the standard workflow for agents and maintainers, including upstream refreshes and version notes.
 - [Pydantic definitions](contracts/src/vonk_forge_contracts): the shared source of truth for Model and Recipe structure.
 - [Generated JSON Schemas](contracts/src/vonk_forge_contracts/schema): editor and non-Python tooling support.
 - [Contract guide](contracts/README.md): validation, package reuse and Controller integration details.
