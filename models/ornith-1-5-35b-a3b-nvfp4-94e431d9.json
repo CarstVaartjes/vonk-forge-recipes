@@ -8,20 +8,20 @@
     "facts": [
       {
         "capability": "image-understanding",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_digest": "9c5292c7e4c640b45e06abb7e0243a11b4aa363d2cde73f6fe181caa8bd43d73",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "text-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_digest": "9c5292c7e4c640b45e06abb7e0243a11b4aa363d2cde73f6fe181caa8bd43d73",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
-      "source_revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+      "evidence_digest": "9c5292c7e4c640b45e06abb7e0243a11b4aa363d2cde73f6fe181caa8bd43d73",
+      "source_revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
       "source_url": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4"
     },
     "schema_version": 2
@@ -29,25 +29,34 @@
   "dependencies": [],
   "files": [
     {
-      "id": "metadata-8342fc1e4d71-618cd5b83d",
+      "id": "file--c72cd14e9557-618cd5b83d",
       "path": ".gitattributes",
       "roles": [
         "metadata"
       ],
-      "sha256": "8342fc1e4d71351f0ec5d50fe84258e89906c305455776c1d908407eef259ecd",
+      "sha256": "c72cd14e9557980d83211f09a414ae320cf6e86c3fb571bd2cf4355c428ae441",
       "size_bytes": 1754
     },
     {
-      "id": "file--quant-summary-9660f36ad241-e17ab81a0d",
+      "id": "file--e3b0c44298fc-af165cf854",
+      "path": ".model_only_pruned",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "id": "file--quant-summary-53ad6a368188-e17ab81a0d",
       "path": ".quant_summary.txt",
       "roles": [
         "metadata"
       ],
-      "sha256": "9660f36ad241ffb182bd312aa2a943f1a4dd620d4ef6d10d937e5304b827e422",
-      "size_bytes": 4772897
+      "sha256": "53ad6a368188106bcdfcba6318555e33657cfc1a3eb1cf343e6af42b098e78cd",
+      "size_bytes": 4713767
     },
     {
-      "id": "metadata-d790a1d453a7-04dcd99eb1",
+      "id": "file--d790a1d453a7-04dcd99eb1",
       "path": ".sync_complete",
       "roles": [
         "metadata"
@@ -56,13 +65,13 @@
       "size_bytes": 295
     },
     {
-      "id": "readme-072ccf0efbf7-b335630551",
+      "id": "readme-a4f67cd2a7b7-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "072ccf0efbf7c0f9071641d839362f4b0ee134389c2e7b692f44f59e9f8871fa",
-      "size_bytes": 29747
+      "sha256": "a4f67cd2a7b78583e2faf57518d4666338334e8646ac3aacea24d53bfcef9fd8",
+      "size_bytes": 29864
     },
     {
       "id": "ornith-35b-eval-758a8f72b41a-ab9a132fdf",
@@ -92,13 +101,13 @@
       "size_bytes": 7536
     },
     {
-      "id": "config-4b12527ba7cc-587cb980af",
+      "id": "config-319ee1293a27-587cb980af",
       "path": "config.json",
       "roles": [
         "configuration"
       ],
-      "sha256": "4b12527ba7cc6d64ce5fd8a2569c77ea2713efca2b5ffc42b4402048ee857c4b",
-      "size_bytes": 69023
+      "sha256": "319ee1293a279a57990fcfc18fdb533101ffaf264a990a7d0bcb1c3d24fc720d",
+      "size_bytes": 58155
     },
     {
       "id": "generation-config-e70c136c1b78-97dd3d578b",
@@ -128,39 +137,39 @@
       "size_bytes": 3353259
     },
     {
-      "id": "model-00001-of-00003-3fd2238ccda4-5ad6951325",
+      "id": "model-00001-of-00003-648fe8317148-5ad6951325",
       "path": "model-00001-of-00003.safetensors",
       "roles": [
         "weights"
       ],
-      "sha256": "3fd2238ccda4af53b44d0c8f1017bccabfa91084ef3bf4fea415a5d14d734bd2",
-      "size_bytes": 10005227452
+      "sha256": "648fe83171485f4be03ea58d86089e088c94c2a3dc88922233f9002f30d8bc8b",
+      "size_bytes": 10005851848
     },
     {
-      "id": "model-00002-of-00003-e66cc8cc37c4-b421ec05d0",
+      "id": "model-00002-of-00003-cb5c5978721a-b421ec05d0",
       "path": "model-00002-of-00003.safetensors",
       "roles": [
         "weights"
       ],
-      "sha256": "e66cc8cc37c472e2d23c8c5f45b563e997a6e33117317a420c6f5da14eb7b756",
-      "size_bytes": 10001532968
+      "sha256": "cb5c5978721a1e87406ae68f1cd5a855326e40ff8bc13832644c392115336987",
+      "size_bytes": 10006454416
     },
     {
-      "id": "model-00003-of-00003-5724de7de4b8-c5bdb3d6ec",
+      "id": "model-00003-of-00003-8303cef7d375-c5bdb3d6ec",
       "path": "model-00003-of-00003.safetensors",
       "roles": [
         "weights"
       ],
-      "sha256": "5724de7de4b8c44f68639b57f404e6c662c8ef22a3be3935a2fabf92b2af2c51",
-      "size_bytes": 3413657112
+      "sha256": "8303cef7d375021d69dcafc60d3fad5f8186995b18b0db5e2a609aadeb8a4f51",
+      "size_bytes": 3408113436
     },
     {
-      "id": "model-safetensors-index-c9bfd574cc1d-0a05be8238",
+      "id": "model-safetensors-index-52af7e400d01-0a05be8238",
       "path": "model.safetensors.index.json",
       "roles": [
         "configuration"
       ],
-      "sha256": "c9bfd574cc1deffe09d8fbc5a7d8c2e105cfdb7764b1ee7b16ca52072e7366f7",
+      "sha256": "52af7e400d0138ffde60f127fbf3ce494e6ebf682748f7e44545c25b68d28128",
       "size_bytes": 10380665
     },
     {
@@ -236,9 +245,9 @@
       "title": "Ornith 1.5 35B-A3B"
     },
     "publisher": "ornith-ai",
-    "slug": "ornith-1-5-35b-a3b-nvfp4-9660379a",
-    "variant": "NVFP4 9660379a",
-    "version": "NVFP4 9660379a"
+    "slug": "ornith-1-5-35b-a3b-nvfp4-94e431d9",
+    "variant": "NVFP4 94e431d9",
+    "version": "NVFP4 94e431d9"
   },
   "kind": "model",
   "license": {
@@ -247,7 +256,7 @@
     ],
     "operator_acceptance_required": true,
     "spdx": "MIT",
-    "url": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4/blob/9660379a2f2c429c465eeed2f3a0f2433fc4381e/LICENSE"
+    "url": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4/blob/94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa/LICENSE"
   },
   "limits": {
     "context_tokens": 262144,
@@ -266,7 +275,7 @@
     }
   },
   "metadata": {
-    "description": "Exact public NVFP4 9660379a checkpoint.",
+    "description": "Exact public NVFP4 94e431d9 checkpoint.",
     "tags": [
       "ornith-ai",
       "ornith-1-5",
@@ -286,14 +295,14 @@
     "attribution": [
       "Ornith AI"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
-    "source_revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+    "evidence_digest": "9c5292c7e4c640b45e06abb7e0243a11b4aa363d2cde73f6fe181caa8bd43d73",
+    "source_revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
     "source_url": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4"
   },
   "schema_version": 2,
   "source": {
     "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-    "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e"
+    "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa"
   },
   "supersedes": null
 }

@@ -26,6 +26,7 @@ else:
 arguments.extend(
     (
         "--trust-remote-code",
+        "--sleep-on-idle",
         "--attention-backend",
         "flashinfer",
         "--chunked-prefill-size",
