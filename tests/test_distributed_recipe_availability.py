@@ -47,6 +47,26 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
         self.assertEqual(arguments["speculative-config"], '{"method":"dflash","model":"/models/dflash2-draft","num_speculative_tokens":7}')
         self.assertFalse(arguments["enforce-eager"])
         self.assertEqual(arguments["compilation-config"], '{"cudagraph_mode":"FULL_AND_PIECEWISE"}')
+        drafter = next(
+            selection
+            for selection in recipe["models"]
+            if selection["id"] == "dependency-glm-5-3-flash-dflash2-bf582e4e"
+        )
+        self.assertEqual(
+            {file["file_id"] for file in drafter["files"]},
+            {
+                "metadata-70e0ed421d65-618cd5b83d",
+                "readme-2014434d3e36-b335630551",
+                "dflash2-figure-6d8dcc9a9472-e520c8f797",
+                "config-c4aeac010119-587cb980af",
+                "model-b038e1d9d1e7-9d75c1098f",
+            },
+        )
+        self.assertEqual(
+            {file["mount"]["target"] for file in drafter["files"]},
+            {"/models/dflash2-draft"},
+        )
+        self.assertIn('ai.vonkforge.runtime-interface="v1"', dockerfile)
         self.assertIn("COPY overlay-dflash2/qwen3_dflash2.py", dockerfile)
         self.assertIn("COPY overlay-dflash2/dflash2/", dockerfile)
         self.assertTrue((adapter / "upstream-Dockerfile.glm53-sm121-v9").is_file())

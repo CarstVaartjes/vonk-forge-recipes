@@ -452,6 +452,77 @@
         "publisher": "drowzeys",
         "slug": "glm-5-3-flash-nvfp4-ablit-l15-43-mtp-l45-80b6d18d"
       }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-70e0ed421d65-618cd5b83d",
+          "id": "drafter-metadata-70e0ed421d65-618cd5b83d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-2014434d3e36-b335630551",
+          "id": "drafter-readme-2014434d3e36-b335630551",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "dflash2-figure-6d8dcc9a9472-e520c8f797",
+          "id": "drafter-dflash2-figure-6d8dcc9a9472-e520c8f797",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "config-c4aeac010119-587cb980af",
+          "id": "drafter-config-c4aeac010119-587cb980af",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-b038e1d9d1e7-9d75c1098f",
+          "id": "drafter-model-b038e1d9d1e7-9d75c1098f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "dependency-glm-5-3-flash-dflash2-bf582e4e",
+      "model": {
+        "content_sha256": "ff9a00c5ea74761b0417e90e63211fde544e4b37fec85030c7174ac25f444cd7",
+        "kind": "model",
+        "publisher": "incoai",
+        "slug": "glm-5-3-flash-dflash2-bf582e4e"
+      }
     }
   ],
   "provenance": {
@@ -823,7 +894,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 200223714003,
+            "artifact_bytes": 202566174700,
             "cache_bytes": 40000000000,
             "image_bytes": 30000000000,
             "rollback_bytes": 0,
@@ -845,7 +916,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 200223714003,
+            "artifact_bytes": 202566174700,
             "cache_bytes": 40000000000,
             "image_bytes": 30000000000,
             "rollback_bytes": 0,
