@@ -137,8 +137,6 @@ def prepare_model() -> str:
 
 def _set_option(arguments: list[str], option: str, option_value: str) -> None:
     indexes = [index for index, item in enumerate(arguments) if item == option]
-    if len(indexes) > 1:
-        raise SystemExit(f"{option} may only be specified once")
     if indexes:
         index = indexes[0]
         if index + 1 >= len(arguments):
@@ -149,6 +147,11 @@ def _set_option(arguments: list[str], option: str, option_value: str) -> None:
 
 
 def _merged_hf_overrides(arguments: list[str]) -> str | None:
+    option_count = arguments.count("--hf-overrides")
+    if option_count > 1:
+        # Preserve repeated engine options exactly; there is no safe way to
+        # merge opaque JSON values without changing the engine's semantics.
+        return None
     existing = value(arguments, "--hf-overrides")
     if existing is None:
         overrides: dict[str, object] = {}
@@ -171,24 +174,22 @@ def _merged_hf_overrides(arguments: list[str]) -> str | None:
         ple_dtype = subprocess.run(
             [sys.executable, str(DETECT), str(PREPARED)], check=True, capture_output=True, text=True
         ).stdout.strip()
-    if ple_dtype:
-        if "ple_embedding_dtype" in text_config and text_config["ple_embedding_dtype"] != ple_dtype:
-            raise SystemExit("--hf-overrides cannot replace the checkpoint PLE embedding dtype")
+    inject_ple_dtype = bool(ple_dtype and "ple_embedding_dtype" not in text_config)
+    if inject_ple_dtype:
         text_config["ple_embedding_dtype"] = ple_dtype
     max_len = value(arguments, "--max-model-len")
     if max_len is None or not max_len.isascii() or not max_len.isdigit() or int(max_len) <= 0:
         raise SystemExit("--max-model-len must be a positive integer")
-    if int(max_len) > 262144:
+    inject_yarn = int(max_len) > 262144 and "rope_parameters" not in text_config
+    if inject_yarn:
         required_rope = {
             "rope_type": "yarn",
             "factor": 4.0,
             "original_max_position_embeddings": 262144,
         }
-        if "rope_parameters" in text_config and text_config["rope_parameters"] != required_rope:
-            raise SystemExit("--hf-overrides.text_config.rope_parameters conflicts with the native YaRN guard")
         text_config["rope_parameters"] = required_rope
-    elif "rope_parameters" in text_config:
-        raise SystemExit("YaRN rope_parameters are forbidden at or below the native 262144-token context")
+    if existing is not None and not inject_ple_dtype and not inject_yarn:
+        return existing
     if text_config:
         overrides["text_config"] = text_config
     return json.dumps(overrides, separators=(",", ":")) if overrides else None

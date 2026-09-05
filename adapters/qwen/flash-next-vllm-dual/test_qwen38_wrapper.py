@@ -5,9 +5,6 @@ import json
 import stat
 from pathlib import Path
 
-import pytest
-
-
 def _wrapper():
     path = Path(__file__).with_name("qwen38-vllm-wrapper.py")
     spec = importlib.util.spec_from_file_location("qwen38_vllm_wrapper", path)
@@ -67,12 +64,15 @@ def test_hf_overrides_merges_safe_options_and_enforces_yarn_guard(tmp_path: Path
     assert merged["text_config"]["custom_flag"] is True
     assert merged["text_config"]["ple_embedding_dtype"] == "float8_e4m3fn"
     assert merged["text_config"]["rope_parameters"]["rope_type"] == "yarn"
-    with pytest.raises(SystemExit, match="YaRN"):
-        wrapper._merged_hf_overrides(
-            [
-                "--max-model-len",
-                "262144",
-                "--hf-overrides",
-                '{"text_config":{"rope_parameters":{"rope_type":"yarn"}}}',
-            ]
-        )
+
+    explicit = '{ "text_config": { "ple_embedding_dtype": "nvfp4", "rope_parameters": {"rope_type":"custom"}, "opaque": "x;$✓" } }'
+    explicit_args = ["--max-model-len", "262144", "--hf-overrides", explicit]
+    assert wrapper._merged_hf_overrides(explicit_args) == explicit
+
+    default_args = ["--max-model-len", "262144"]
+    default = json.loads(wrapper._merged_hf_overrides(default_args))
+    assert default["text_config"]["ple_embedding_dtype"] == "float8_e4m3fn"
+    assert "rope_parameters" not in default["text_config"]
+
+    duplicate = ["--hf-overrides", explicit, "--hf-overrides", '{"other":"$;✓"}']
+    assert wrapper._merged_hf_overrides(duplicate) is None
