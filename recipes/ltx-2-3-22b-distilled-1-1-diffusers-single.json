@@ -408,6 +408,20 @@
       {
         "changes": [
           {
+            "details": "The native runner now consumes only schema-2 selected-file identities, mount targets, and relative paths, relying on agent-verified readonly materialization while checking exact file sizes.",
+            "kind": "runtime",
+            "references": [],
+            "summary": "Ported LTX native model materialization to the canonical schema-2 runtime contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "5294423c2e964dc1131d79da5f7a0d7755f2f3e21f2319566f6bfba697c605f2",
+        "released_at": "2026-09-06",
+        "upgrade_effect": "rebuild",
+        "version": "3.2.7"
+      },
+      {
+        "changes": [
+          {
             "details": "The LTX-2.3 upstream moved from 6b5a83e3 to 5948be4c with README metadata changes only; the checkpoint and required companion files are unchanged. Retain the exact executable snapshot because this drift does not alter runtime inputs.",
             "kind": "metadata",
             "references": [
@@ -662,8 +676,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "3.2.6"
+    "released_at": "2026-09-06",
+    "version": "3.2.7"
   },
   "runtime": {
     "arguments": [

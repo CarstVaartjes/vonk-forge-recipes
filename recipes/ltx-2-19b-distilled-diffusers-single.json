@@ -407,6 +407,20 @@
       {
         "changes": [
           {
+            "details": "The native runner now consumes only schema-2 selected-file identities, mount targets, and relative paths, relying on agent-verified readonly materialization while checking exact file sizes.",
+            "kind": "runtime",
+            "references": [],
+            "summary": "Ported LTX native model materialization to the canonical schema-2 runtime contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "e8292d87ae6ee06ade790459cab6320c036de8183010571675c7292d02aa843f",
+        "released_at": "2026-09-06",
+        "upgrade_effect": "rebuild",
+        "version": "3.1.6"
+      },
+      {
+        "changes": [
+          {
             "details": null,
             "kind": "metadata",
             "references": [],
@@ -636,8 +650,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "3.1.5"
+    "released_at": "2026-09-06",
+    "version": "3.1.6"
   },
   "runtime": {
     "arguments": [
