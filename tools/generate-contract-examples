@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+"""Generate small synthetic variants used for contract review."""
+from __future__ import annotations
+
+import copy
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
+
+
+def main() -> int:
+    image = json.loads((EXAMPLES / "recipe-image.json").read_text(encoding="utf-8"))
+    entry = image["models"][0]
+    if "files" not in entry or "kind" not in entry.get("model", {}):
+        old_model = entry.get("model", entry)
+        if "model" in old_model and "kind" not in old_model:
+            old_model = old_model["model"]
+        selector = {"id": "weights", "file_id": "weights", "roles": ["entrypoint"], "mount": {"target": "/models", "read_only": True}}
+        image["models"] = [{"id": "primary", "model": old_model, "files": [selector]}]
+    image.pop("model_files", None)
+    image["validation"].pop("validators", None)
+    build = copy.deepcopy(image)
+    build["identity"]["slug"] = "synthetic-tiny-build"
+    build["execution"] = {
+        "mode": "build",
+        "build": {
+            "base_image": {"repository": "registry.example/vonk/base", "digest": "f" * 64, "platform": "linux/arm64"},
+            "context": {"path": "context.tar"},
+            "dockerfile": "Dockerfile", "patches": [], "target": None, "arguments": [],
+            "network": {"mode": "none", "hosts": []},
+        },
+    }
+    job = copy.deepcopy(image)
+    job["identity"]["slug"] = "synthetic-image-job"
+    job["interfaces"] = [{"adapter": "image-job", "path": "/outputs", "input": None, "output": {"path": "/outputs", "max_total_bytes": 1048576, "slots": [{"id": "image", "label": "Image", "description": "PNG output", "media_types": ["image/png"], "extensions": [".png"], "min_files": 1, "max_files": 1, "max_file_bytes": 1048576, "max_total_bytes": 1048576}]}}]
+    job["validation"] = {"benchmarks": [], "serving": {"interface": "image-job", "checks": [{"name": "image", "kind": "image-job.output", "request": {"transport": "job", "fixture": "blank", "output_path": "/outputs", "output_slot": "image"}, "assertions": ["inference.completed", "artifact.output"]}]}}
+    job["settings"] = {"kind": "job", "knobs": {}}
+    job["runtime"]["engine"] = "image-job"
+    dual = copy.deepcopy(build)
+    dual["identity"]["slug"] = "synthetic-tiny-build-dual"
+    role = copy.deepcopy(dual["topology"]["roles"][0])
+    role.update(name="worker", endpoint_owner=False)
+    dual["topology"].update(node_count=2, roles=[dual["topology"]["roles"][0], role], parallelism={"world_size": 2, "tensor": 2, "pipeline": 1, "data": 1, "backend": "nccl"}, fabric={"connectivity": "connected", "minimum_bandwidth_mbps": 1000}, start_order=["worker", "entrypoint"], stop_order=["entrypoint", "worker"])
+    dual["models"][0]["files"][0]["roles"] = ["entrypoint", "worker"]
+    for name, document in (("recipe-image.json", image), ("recipe-source-build.json", build), ("recipe-job.json", job), ("recipe-dual.json", dual)):
+        (EXAMPLES / name).write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
