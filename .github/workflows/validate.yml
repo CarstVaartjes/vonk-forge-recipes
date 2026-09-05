@@ -5,12 +5,20 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      producer_only:
+        description: Run only producer-owned checks when called by publication
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
   validate:
+    if: ${{ !inputs.producer_only }}
     uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@bb75f09063c4580cfb139c8c1defeef09c7c03ed
     with:
       # Validate against the published Forge main authority.  Keeping this
@@ -20,16 +28,261 @@ jobs:
       platform_ref: 99ff2844d66622bfdf6b8bbf05a08a7ae187c1df
 
   catalog-index:
+    if: ${{ !inputs.producer_only }}
     name: Verify catalog index
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - name: Check out recipes
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Verify generated catalog index
-        run: python3 tools/build-catalog-index --check
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.1"
+          python-version: "3.12"
+          enable-cache: false
+
+      - name: Verify committed generated catalog index and package set
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_venv="$RUNNER_TEMP/catalog-test-venv"
+          uv venv --python 3.12 "$test_venv"
+          uv pip install --python "$test_venv/bin/python" -e contracts
+          "$test_venv/bin/python" tools/build-catalog-index --check
+
+  producer-contracts:
+    if: ${{ inputs.producer_only || github.event_name != 'workflow_call' }}
+    name: Validate producer contracts and packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out recipes
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.1"
+          python-version: "3.12"
+          enable-cache: false
+
+      - name: Install producer contract dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_venv="$RUNNER_TEMP/recipe-test-venv"
+          uv venv --python 3.12 "$test_venv"
+          uv pip install --python "$test_venv/bin/python" \
+            -e contracts \
+            'jsonschema>=4.24,<5' \
+            'pytest>=8,<9'
+          echo "RECIPE_TEST_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
+
+      - name: Verify committed package and index outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --check
+
+      - name: Run shared contract tests and example freshness checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" -m pytest -q \
+            tests/test_contracts.py \
+            tests/test_contract_examples.py
+          "$RECIPE_TEST_PYTHON" tools/generate-contract-schemas --check
+          "$RECIPE_TEST_PYTHON" tools/generate-contract-examples
+          if ! git diff --quiet -- contracts/src/vonk_forge_contracts/examples; then
+            echo 'Generated contract examples are stale; run tools/generate-contract-examples' >&2
+            git diff -- contracts/src/vonk_forge_contracts/examples
+            exit 1
+          fi
+
+      - name: Resolve the complete Model and Recipe catalog
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" - <<'PY'
+          from pathlib import Path
+
+          from vonk_forge_contracts import ModelDefinition, RecipeDefinition
+          from vonk_forge_contracts.resolver import validate_recipe_models
+
+          root = Path.cwd()
+          models = [
+              ModelDefinition.model_validate_json(path.read_text(encoding="utf-8"))
+              for path in sorted((root / "models").glob("*.json"))
+          ]
+          recipes = [
+              RecipeDefinition.model_validate_json(path.read_text(encoding="utf-8"))
+              for path in sorted((root / "recipes").glob("*.json"))
+          ]
+          model_keys = {(model.identity.publisher, model.identity.slug) for model in models}
+          if not models or len(model_keys) != len(models):
+              raise SystemExit("Model source set is empty or contains duplicate identities")
+          recipe_keys = {
+              (recipe.identity.publisher, recipe.identity.slug) for recipe in recipes
+          }
+          if not recipes or len(recipe_keys) != len(recipes):
+              raise SystemExit("Recipe source set is empty or contains duplicate identities")
+          for recipe in recipes:
+              validate_recipe_models(recipe, models)
+          print(f"Resolved {len(models)} Models and {len(recipes)} Recipes.")
+          PY
+
+      - name: Run source closure and archive tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" -m pytest -q \
+            tests/test_recipe_package_closure.py \
+            tests/test_recipe_packages.py \
+            tests/test_recipe_releases.py
+
+      - name: Run the full producer test suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" -m pytest -q
+
+      - name: Lint producer contracts and checks with pinned Ruff
+        shell: bash
+        run: |
+          set -euo pipefail
+          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" \
+            uvx --from ruff==0.16.1 ruff check \
+              contracts/src/vonk_forge_contracts \
+              tests/test_contracts.py \
+              tests/test_recipe_releases.py \
+              tools/generate-contract-schemas \
+              tools/generate-contract-examples
+
+      - name: Prove deterministic generated package and index artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" - <<'PY'
+          import json
+          import os
+          import runpy
+          import shutil
+          import subprocess
+          from pathlib import Path
+
+          tool = runpy.run_path("tools/build-catalog-index")
+          root = Path.cwd()
+          source_commit = tool["_recorded_source_commit"]()
+          first_dir = root / ".artifacts/recipe-packages-first"
+          second_dir = root / ".artifacts/recipe-packages-second"
+          artifact_dir = root / ".artifacts/recipe-library"
+          first_dir.mkdir(parents=True, exist_ok=True)
+          second_dir.mkdir(parents=True, exist_ok=True)
+          artifact_dir.mkdir(parents=True, exist_ok=True)
+          artifact_packages = artifact_dir / "packages"
+          artifact_qualification = artifact_dir / "qualification"
+          artifact_packages.mkdir(parents=True, exist_ok=True)
+          artifact_qualification.mkdir(parents=True, exist_ok=True)
+          first = tool["build"](package_dir=first_dir, source_commit=source_commit)
+          second = tool["build"](package_dir=second_dir, source_commit=source_commit)
+          if first != second:
+              raise SystemExit("recipe package/index generation is not deterministic")
+          expected_models = {
+              (entry["document"]["identity"]["publisher"], entry["document"]["identity"]["slug"])
+              for entry in first["catalog_entities"]
+          }
+          source_models = {
+              (json.loads(path.read_text(encoding="utf-8"))["identity"]["publisher"],
+               json.loads(path.read_text(encoding="utf-8"))["identity"]["slug"])
+              for path in sorted((root / "models").glob("*.json"))
+          }
+          if expected_models != source_models:
+              raise SystemExit("generated index Model identities do not match source files")
+          expected_recipes = {
+              (row["document"]["identity"]["publisher"], row["document"]["identity"]["slug"])
+              for row in first["recipes"]
+          }
+          source_recipes = {
+              (json.loads(path.read_text(encoding="utf-8"))["identity"]["publisher"],
+               json.loads(path.read_text(encoding="utf-8"))["identity"]["slug"])
+              for path in sorted((root / "recipes").glob("*.json"))
+          }
+          if expected_recipes != source_recipes:
+              raise SystemExit("generated index Recipe identities do not match source files")
+          expected_packages = {
+              Path(row["package"]["path"]).name for row in first["recipes"]
+          }
+          actual_packages = {path.name for path in first_dir.glob("*.tar.gz")}
+          if actual_packages != expected_packages:
+              raise SystemExit("generated package set does not match the generated index")
+          for name in sorted(actual_packages):
+              if (first_dir / name).read_bytes() != (second_dir / name).read_bytes():
+                  raise SystemExit(f"recipe package is not deterministic: {name}")
+              shutil.copy2(first_dir / name, artifact_packages / name)
+          (artifact_dir / "catalog-index.json").write_text(
+              tool["rendered"](first), encoding="utf-8"
+          )
+          (artifact_qualification / "qualification-index.json").write_text(
+              tool["rendered"](tool["qualification_index"](first)), encoding="utf-8"
+          )
+          print(
+              f"Generated deterministic artifacts for {len(source_models)} Models "
+              f"and {len(source_recipes)} Recipes."
+          )
+          PY
+
+      - name: Build and externally import the contracts wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+          wheel_dir="$RUNNER_TEMP/contracts-wheel"
+          consumer_venv="$RUNNER_TEMP/contracts-consumer-venv"
+          consumer_cwd="$RUNNER_TEMP/contracts-consumer"
+          uv build --wheel --out-dir "$wheel_dir" contracts
+          uv venv --python 3.12 "$consumer_venv"
+          uv pip install --python "$consumer_venv/bin/python" "$wheel_dir"/*.whl
+          mkdir -p "$consumer_cwd"
+          (
+            cd "$consumer_cwd"
+            "$consumer_venv/bin/python" - <<'PY'
+          from importlib.resources import files
+
+          from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256
+          from vonk_forge_contracts.resolver import validate_recipe_models
+
+          examples = files("vonk_forge_contracts").joinpath("examples")
+          model = ModelDefinition.model_validate_json(
+              examples.joinpath("model-definition.json").read_text()
+          )
+          for name in (
+              "recipe-image.json",
+              "recipe-source-build.json",
+              "recipe-job.json",
+              "recipe-dual.json",
+          ):
+              recipe = RecipeDefinition.model_validate_json(
+                  examples.joinpath(name).read_text()
+              )
+              validate_recipe_models(recipe, [model])
+          assert len(content_sha256(model)) == 64
+          print("External wheel import and four Recipe resolutions: OK")
+          PY
+          )
+
+      - name: Upload checked package and index artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: recipe-library-checked-${{ github.sha }}
+          if-no-files-found: error
+          path: |
+            .artifacts/recipe-library/catalog-index.json
+            .artifacts/recipe-library/qualification/qualification-index.json
+            .artifacts/recipe-library/packages/*.tar.gz
 
   public-contracts:
+    if: ${{ !inputs.producer_only }}
     name: Verify public contracts package
     runs-on: ubuntu-24.04
     timeout-minutes: 15
