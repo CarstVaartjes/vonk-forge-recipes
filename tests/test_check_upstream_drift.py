@@ -88,11 +88,29 @@ class SourceParsingTests(unittest.TestCase):
 class DiscoveryTests(unittest.TestCase):
     def test_catalog_sources_are_all_discoverable(self) -> None:
         defaults, overrides = drift.load_manifest(ROOT / "upstream-watch.json")
-        # The checked-in pre-conversion manifest intentionally contains stale
-        # entity kinds; discovery must fail closed instead of silently dropping
-        # those policies.
+        watches = drift.discover_watches(ROOT, defaults, overrides)
+        expected = set()
+        for directory, kind in (("models", "model"), ("recipes", "recipe")):
+            for path in (ROOT / directory).glob("*.json"):
+                document = json.loads(path.read_text())
+                identity = document["identity"]
+                source = (
+                    document.get("source")
+                    if kind == "model"
+                    else document.get("provenance", {}).get("source_reference")
+                )
+                if source:
+                    expected.add(f"{kind}/{identity['publisher']}/{identity['slug']}")
+        self.assertEqual({watch.entity for watch in watches}, expected)
+        self.assertEqual(len(watches), len(expected))
+        self.assertTrue(all(watch.policy != "manual" for watch in watches))
+
+    def test_rejects_watch_policy_for_an_absent_document(self) -> None:
+        defaults, _ = drift.load_manifest(ROOT / "upstream-watch.json")
         with self.assertRaisesRegex(drift.DriftInputError, "unknown entity"):
-            drift.discover_watches(ROOT, defaults, overrides)
+            drift.discover_watches(
+                ROOT, defaults, {"recipe/example/absent": {"policy": "default-branch"}}
+            )
 
     def test_discovers_entity_and_recipe_sources_with_manifest_policies(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -162,8 +180,8 @@ class DiscoveryTests(unittest.TestCase):
 class ObservationTests(unittest.TestCase):
     def watch(self, *, provider: str, policy: str) -> object:
         return drift.Watch(
-            entity="runtime-distribution/example/runtime",
-            source_path="runtime-distributions/runtime.json",
+            entity="recipe/example/runtime",
+            source_path="recipes/runtime.json",
             provider=provider,
             repository="example/runtime",
             pinned_revision=PINNED,
