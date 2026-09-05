@@ -43,7 +43,7 @@ or upstream-watch file is changed.
 
 - **Checked immutable refs:** consumed source `tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark@3eef46632c45ffb6c397de0716c23b3d2d594798`; current source `@050081dc41ce6edd4d3f15fa19dc3410ba4210e3`; target `drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45@80b6d18d77e3020f2384597081d405f19893f101`; DFlash2 `incoai/GLM-5.3-Flash-DFlash2@bf582e4eacc1810f76656d1811693ff6c6737d2a`; runtime image `ghcr.io/tonyd2wild/vllm-glm53-flash@sha256:4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6`.
 - **Evidence/decision:** upstream 050081dc changes the TP2 launcher KV allocation from 3 GiB to 6 GiB while retaining 262K context, DFlash2 K7, FP8 E4M3 KV, eager execution, and 8192 batched tokens. The target and companion Model revisions remain unchanged. Decision: **updated** to recipe release 1.0.5.
-- **Applied commit:** pending first corrected main57 commit.
+- **Applied commit:** `21ef2fb`.
 - **Blocker:** physical two-Spark acceptance remains pending; the consumed runtime source and image remain pinned.
 - **Sources:** [current source](https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark/tree/050081dc41ce6edd4d3f15fa19dc3410ba4210e3), [target](https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45/tree/80b6d18d77e3020f2384597081d405f19893f101), [DFlash2](https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/tree/bf582e4eacc1810f76656d1811693ff6c6737d2a).
 
