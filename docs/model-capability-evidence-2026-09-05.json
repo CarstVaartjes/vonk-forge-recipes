@@ -655,10 +655,10 @@
       ],
       "model_version": {
         "publisher": "openmoss",
-        "slug": "moss-vl-realtime-11b-bf16-06b06761"
+        "slug": "moss-vl-realtime-11b-bf16-25e81cb9"
       },
       "source": {
-        "revision": "06b067617677661194cf837970fe3a10f1a0e56d",
+        "revision": "25e81cb952d5f353a5690f2c1ea09a725815df80",
         "url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime"
       }
     },
