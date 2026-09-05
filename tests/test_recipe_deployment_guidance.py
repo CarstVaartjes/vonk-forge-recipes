@@ -102,8 +102,8 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
                 "2026-09-05",
                 "70b5a72ac7089b4e00ec6cd602532c36769d1577ea8d1b0cbd4bd1c27742537c",
             ),
-            "mova-360p-diffusers-single": ("2.0.8", "2026-09-05"),
-            "mova-720p-diffusers-single": ("2.0.8", "2026-09-05"),
+            "mova-360p-diffusers-single": ("2.0.9", "2026-09-05"),
+            "mova-720p-diffusers-single": ("2.0.9", "2026-09-05"),
             "muse-glimmer-30b-bf16-vllm-single": ("1.0.5", "2026-09-05"),
         }
         for slug, expected in versions.items():

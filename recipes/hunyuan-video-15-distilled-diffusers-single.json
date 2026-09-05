@@ -135,15 +135,16 @@
       {
         "changes": [
           {
-            "details": "Diffusers moved from a3608b51 to c5469b7c and includes runtime changes across pipelines and loading paths. The exact HunyuanVideo 1.5 distilled model and native adapter remain pinned until focused ARM64 build and serving checks cover the range.",
+            "details": "The current Diffusers compare range contains broad source and documentation changes, but this adapter installs the hash-locked diffusers==0.39.0 wheel rather than the git source. Updating only the image label would misdescribe the executable runtime, so the exact a3608b512 pin remains until the locked dependency and focused runtime checks move together.",
             "kind": "compatibility",
             "references": [
-              "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+              "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
+              "https://github.com/huggingface/diffusers/tree/a3608b512ed7248499a44c61d954965ed9bdae4d"
             ],
-            "summary": "Record Diffusers upstream drift; retain the HunyuanVideo source pin."
+            "summary": "Retained the HunyuanVideo 1.5 runtime pin pending a matching lockfile update."
           }
         ],
-        "prior_recipe_content_sha256": "c4bc6557fe58df2dbfdb3fcd77e15ca72f086ab5f0b45ed9dcb1c041e9b9d7cb",
+        "prior_recipe_content_sha256": "d3777bda8714ce5abf73b3ac6910771cad596d161fb7078f2010bcad8f1436de",
         "released_at": "2026-09-05",
         "upgrade_effect": "none",
         "version": "1.4.4"

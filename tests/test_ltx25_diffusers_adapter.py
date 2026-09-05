@@ -18,7 +18,7 @@ PREFLIGHT_PATH = ADAPTER_ROOT / "preflight.py"
 MODEL_VERSION = ROOT / "models/ltx-2-5-22b-distilled-bf16-diffusers.json"
 RECIPE = ROOT / "recipes/ltx-2-5-22b-distilled-bf16-diffusers-single.json"
 MODEL_REVISION = "426936f8b22dc28e4def61e515478b0b7e4a53cc"
-DIFFUSERS_REVISION = "d035dcd7cc7c88e0a154609b62887d50bba9fdc2"
+DIFFUSERS_REVISION = "c5469b7ceb606edd7ba6570dcd17d38590a18db6"
 
 
 def _document(path: Path) -> dict:

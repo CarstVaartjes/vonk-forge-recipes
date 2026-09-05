@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+DIFFUSERS_REVISION = "c5469b7ceb606edd7ba6570dcd17d38590a18db6"
 
 
 def _load(name: str, relative: str):
@@ -54,6 +55,20 @@ class _Layer:
 
 
 class ImageDiffusersAdapterTests(unittest.TestCase):
+    def test_all_image_adapters_bind_the_verified_current_diffusers_revision(self) -> None:
+        dockerfiles = (
+            "adapters/image/nvidia-qwen-image-flash-diffusers/Dockerfile",
+            "adapters/image/qwen-image-2512-diffusers/Dockerfile",
+            "adapters/image/qwen-image-edit-2511-diffusers/Dockerfile",
+            "adapters/image/qwen-image-layered-diffusers/Dockerfile",
+            "adapters/image/qwen-image-lightning-diffusers/Dockerfile",
+        )
+        for relative in dockerfiles:
+            with self.subTest(relative=relative):
+                source = (ROOT / relative).read_text(encoding="utf-8")
+                self.assertIn(DIFFUSERS_REVISION, source)
+                self.assertNotIn("d035dcd7cc7c88e0a154609b62887d50bba9fdc2", source)
+
     def test_generation_adapters_require_one_bounded_utf8_prompt_file(self) -> None:
         for adapter in (flash, generation):
             with (
