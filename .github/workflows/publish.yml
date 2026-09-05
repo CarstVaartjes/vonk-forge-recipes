@@ -13,11 +13,11 @@ permissions:
 
 jobs:
   validate:
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@cc8b5f4523b80dab7a3d60b6b58db6582efe3be1
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@0ab88b4fa0d95804bf9b3cce10a1c16a5e624eeb
     with:
       # Keep release validation on the same published Forge authority as PR
       # validation; recipe publication is independent of Forge release CI.
-      platform_ref: cc8b5f4523b80dab7a3d60b6b58db6582efe3be1
+      platform_ref: 0ab88b4fa0d95804bf9b3cce10a1c16a5e624eeb
 
   producer-contracts:
     name: Validate producer contracts and packages
@@ -32,6 +32,8 @@ jobs:
     steps:
       - name: Check out recipes
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       - name: Set up uv and Python
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
