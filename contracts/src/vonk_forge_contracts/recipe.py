@@ -233,14 +233,17 @@ RecipeSettings = Annotated[RecipeGenerationSettings | RecipeEmbeddingSettings | 
 
 
 class RecipeRuntimeArgument(_RecipeContract):
-    name: StrictStr = Field(min_length=1, max_length=64)
+    # This is an engine keyword, not a shell token or an exhaustive option
+    # enum.  Keep its shape structural so the compiler can form a flag safely;
+    # the pinned engine remains the authority for whether the name is known.
+    name: StrictStr = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z][A-Za-z0-9_-]{0,63}$")
     value: JsonValue | None = None
     setting: Identifier | None = None
 
-    @field_validator("name")
+    @field_validator("name", mode="before")
     @classmethod
-    def name_has_no_nul(cls, value: str) -> str:
-        return _reject_nul(value, label="runtime argument name")
+    def name_has_no_nul(cls, value: object) -> object:
+        return _reject_nul(value, label="runtime argument name") if isinstance(value, str) else value
 
     @field_validator("value")
     @classmethod

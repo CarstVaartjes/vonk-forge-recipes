@@ -81,11 +81,11 @@
   "runtime": {
     "arguments": [
       {
-        "name": "--unknown; $option",
+        "name": "unknown-option",
         "value": "value with spaces; $HOME/Δ and {json}"
       },
       {
-        "name": "--structured-option",
+        "name": "structured_option",
         "value": {
           "enabled": true,
           "items": ["a", 3, 0.25]

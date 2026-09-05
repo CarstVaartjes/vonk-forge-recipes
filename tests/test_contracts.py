@@ -149,9 +149,9 @@ def test_runtime_settings_are_checked_against_the_active_settings_variant() -> N
 
 def test_runtime_arguments_preserve_unfamiliar_names_values_and_order() -> None:
     arguments = [
-        {"name": "--unknown; $option", "value": "value with spaces; $HOME/Δ and {json}"},
-        {"name": "--structured-option", "value": {"enabled": True, "items": ["a", 3, 0.25]}},
-        {"name": "--another-option", "value": [False, {"nested": "unchanged"}]},
+        {"name": "unknown-option", "value": "value with spaces; $HOME/Δ and {json}"},
+        {"name": "structured_option", "value": {"enabled": True, "items": ["a", 3, 0.25]}},
+        {"name": "another-option", "value": [False, {"nested": "unchanged"}]},
     ]
     parsed = [RecipeRuntimeArgument.model_validate(argument) for argument in arguments]
     assert [argument.name for argument in parsed] == [argument["name"] for argument in arguments]
@@ -163,6 +163,9 @@ def test_runtime_arguments_preserve_unfamiliar_names_values_and_order() -> None:
 def test_runtime_arguments_reject_nul_nonfinite_and_unbounded_values() -> None:
     with pytest.raises(ValidationError, match="NUL"):
         RecipeRuntimeArgument.model_validate({"name": "--bad\x00name", "value": "ok"})
+    for name in ("unknown option", "unknown.option", "--unknown"):
+        with pytest.raises(ValidationError):
+            RecipeRuntimeArgument.model_validate({"name": name, "value": "ok"})
     with pytest.raises(ValidationError, match="NUL"):
         RecipeRuntimeArgument.model_validate({"name": "--bad", "value": {"key": "bad\x00value"}})
     with pytest.raises(ValidationError, match="finite"):
