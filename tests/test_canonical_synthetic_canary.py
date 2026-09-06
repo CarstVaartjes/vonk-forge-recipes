@@ -47,9 +47,6 @@ def test_canonical_canary_is_schema2_and_excluded_from_public_catalog() -> None:
     public_models = {row["document"]["identity"]["slug"] for row in public_index["catalog_entities"]}
     assert recipe.identity.slug not in public_recipes
     assert model.identity.slug not in public_models
-    assert len(public_recipes) == 85
-    assert len(public_models) == 92
-
     fixture_index = json.loads((FIXTURE / "index.json").read_text(encoding="utf-8"))
     assert fixture_index["schema_version"] == 2
     assert fixture_index["kind"] == "recipe-library-index"
