@@ -1,0 +1,221 @@
+{
+  "schema_version": 2,
+  "kind": "recipe",
+  "identity": {
+    "publisher": "vonk-forge-test",
+    "slug": "canonical-synthetic-canary"
+  },
+  "metadata": {
+    "title": "Canonical synthetic HTTP smoke canary",
+    "description": "Test-only schema2 source-build fixture for the deterministic Python HTTP smoke runtime.",
+    "tags": [
+      "test-only",
+      "synthetic",
+      "http",
+      "smoke"
+    ],
+    "alignment": "unspecified"
+  },
+  "models": [
+    {
+      "id": "primary",
+      "model": {
+        "kind": "model",
+        "publisher": "vonk-forge-test",
+        "slug": "canonical-synthetic-http-model-v1",
+        "content_sha256": "588959d6140ceb39ae6b9d2ba6d16c178cc89aecb530539801705107a9367ac7"
+      },
+      "files": [
+        {
+          "id": "primary-fixture",
+          "file_id": "fixture",
+          "roles": [
+            "entrypoint"
+          ],
+          "mount": {
+            "target": "/models",
+            "read_only": true
+          }
+        }
+      ]
+    }
+  ],
+  "execution": {
+    "mode": "build",
+    "build": {
+      "base_image": {
+        "repository": "docker.io/library/python",
+        "digest": "9bb659dc6d5218917236f3711e866a5634bb4c2f208de9d4533aa4863f57c1d3",
+        "platform": "linux/arm64"
+      },
+      "context": {
+        "path": "tests/fixtures/canonical-synthetic-canary/context"
+      },
+      "dockerfile": "tests/fixtures/canonical-synthetic-canary/context/Dockerfile",
+      "patches": [],
+      "target": null,
+      "arguments": [],
+      "network": {
+        "mode": "none",
+        "hosts": []
+      }
+    }
+  },
+  "runtime": {
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "arguments": [],
+    "environment": [],
+    "lifecycle": {
+      "pre_start": [],
+      "post_stop": [],
+      "stop_timeout_seconds": 10,
+      "failure": null
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "mode": "single",
+    "node_count": 1,
+    "roles": [
+      {
+        "name": "entrypoint",
+        "count": 1,
+        "endpoint_owner": true,
+        "resources": {
+          "memory": {
+            "kind": "host",
+            "startup_peak_bytes": 67108864,
+            "steady_state_bytes": 33554432,
+            "runtime_growth_bytes": 0,
+            "system_reserve_bytes": 16777216
+          },
+          "disk": {
+            "image_bytes": 268435456,
+            "artifact_bytes": 10,
+            "staging_bytes": 536870912,
+            "cache_bytes": 0,
+            "rollback_bytes": 0,
+            "safety_margin_bytes": 536870912
+          }
+        }
+      }
+    ],
+    "parallelism": {
+      "world_size": 1,
+      "tensor": 1,
+      "pipeline": 1,
+      "data": 1,
+      "backend": "local"
+    },
+    "fabric": {
+      "connectivity": "none",
+      "minimum_bandwidth_mbps": 0
+    },
+    "start_order": [
+      "entrypoint"
+    ],
+    "stop_order": [
+      "entrypoint"
+    ]
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "port": 8000,
+      "model_aliases": [
+        "canonical-synthetic-canary"
+      ],
+      "health_path": "/health"
+    }
+  ],
+  "validation": {
+    "benchmarks": [],
+    "serving": {
+      "interface": "openai",
+      "checks": [
+        {
+          "name": "health",
+          "kind": "openai.health",
+          "request": {
+            "transport": "http",
+            "method": "GET",
+            "path": "/health",
+            "body": null
+          },
+          "assertions": [
+            "endpoint.healthy"
+          ]
+        },
+        {
+          "name": "chat",
+          "kind": "openai.chat",
+          "request": {
+            "transport": "http",
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "body": {
+              "model": "$MODEL",
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "ping"
+                }
+              ],
+              "stream": false,
+              "max_tokens": 16
+            }
+          },
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ]
+        }
+      ]
+    }
+  },
+  "provenance": {
+    "source_kind": "local",
+    "source_reference": "https://github.com/CarstVaartjes/vonk-forge/tree/28409d59c72bac86f8668d9e38cc7a1f09847251/tests/fixtures/node-health/healthy",
+    "attribution": [
+      "Vonk Forge"
+    ]
+  },
+  "settings": {
+    "knobs": {},
+    "kind": "generation",
+    "context_tokens": {
+      "value": 128,
+      "change_effect": "restart"
+    },
+    "concurrency": {
+      "value": 1,
+      "change_effect": "restart"
+    },
+    "max_batch_tokens": null
+  },
+  "release": {
+    "version": "1.0.0",
+    "released_at": "2026-09-06",
+    "history": [
+      {
+        "version": "1.0.0",
+        "released_at": "2026-09-06",
+        "prior_recipe_content_sha256": null,
+        "upgrade_effect": "rebuild",
+        "changes": [
+          {
+            "kind": "initial",
+            "summary": "Added the canonical schema2 HTTP smoke canary fixture.",
+            "details": null,
+            "references": []
+          }
+        ]
+      }
+    ]
+  }
+}
