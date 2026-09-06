@@ -45319,7 +45319,7 @@
           "kind": "huggingface.file",
           "path": ".gitattributes",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "metadata"
           ],
@@ -45332,7 +45332,7 @@
           "kind": "huggingface.file",
           "path": ".quant_summary.txt",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "metadata"
           ],
@@ -45345,7 +45345,7 @@
           "kind": "huggingface.file",
           "path": ".sync_complete",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "metadata"
           ],
@@ -45358,7 +45358,7 @@
           "kind": "huggingface.file",
           "path": "README.md",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "metadata"
           ],
@@ -45371,7 +45371,7 @@
           "kind": "huggingface.file",
           "path": "assets/ornith_35b_eval.png",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "metadata"
           ],
@@ -45384,7 +45384,7 @@
           "kind": "huggingface.file",
           "path": "assets/ornith_logo.png",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "metadata"
           ],
@@ -45397,7 +45397,7 @@
           "kind": "huggingface.file",
           "path": "chat_template.jinja",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "tokenizer"
           ],
@@ -45410,7 +45410,7 @@
           "kind": "huggingface.file",
           "path": "config.json",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "configuration"
           ],
@@ -45423,7 +45423,7 @@
           "kind": "huggingface.file",
           "path": "generation_config.json",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "configuration"
           ],
@@ -45436,7 +45436,7 @@
           "kind": "huggingface.file",
           "path": "hf_quant_config.json",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "configuration"
           ],
@@ -45449,7 +45449,7 @@
           "kind": "huggingface.file",
           "path": "merges.txt",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "metadata"
           ],
@@ -45462,7 +45462,7 @@
           "kind": "huggingface.file",
           "path": "model-00001-of-00003.safetensors",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "weights"
           ],
@@ -45475,7 +45475,7 @@
           "kind": "huggingface.file",
           "path": "model-00002-of-00003.safetensors",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "weights"
           ],
@@ -45488,7 +45488,7 @@
           "kind": "huggingface.file",
           "path": "model-00003-of-00003.safetensors",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "weights"
           ],
@@ -45501,7 +45501,7 @@
           "kind": "huggingface.file",
           "path": "model.safetensors.index.json",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "configuration"
           ],
@@ -45514,7 +45514,7 @@
           "kind": "huggingface.file",
           "path": "preprocessor_config.json",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "configuration"
           ],
@@ -45527,7 +45527,7 @@
           "kind": "huggingface.file",
           "path": "processor_config.json",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "configuration"
           ],
@@ -45540,7 +45540,7 @@
           "kind": "huggingface.file",
           "path": "tokenizer.json",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "tokenizer"
           ],
@@ -45553,7 +45553,7 @@
           "kind": "huggingface.file",
           "path": "tokenizer_config.json",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "tokenizer"
           ],
@@ -45566,7 +45566,7 @@
           "kind": "huggingface.file",
           "path": "video_preprocessor_config.json",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "configuration"
           ],
@@ -45579,7 +45579,7 @@
           "kind": "huggingface.file",
           "path": "vocab.json",
           "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-          "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e",
+          "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
           "roles": [
             "tokenizer"
           ],
@@ -45594,7 +45594,7 @@
       "capability_status": "declared",
       "descriptive_evidence": [
         {
-          "document": "model-versions/ornith-1-5-35b-a3b-nvfp4-9660379a.json",
+          "document": "model-versions/ornith-1-5-35b-a3b-nvfp4-94e431d9.json",
           "document_sha256": "539e888b120dc0869e41142a175f7235df5310dfd9d80d5de1edca9b2f4cbd2d",
           "fields": {
             "metadata.description": "Exact public NVFP4 9660379a checkpoint.",
@@ -45649,9 +45649,9 @@
       },
       "identity": {
         "content_sha256": "539e888b120dc0869e41142a175f7235df5310dfd9d80d5de1edca9b2f4cbd2d",
-        "document": "model-versions/ornith-1-5-35b-a3b-nvfp4-9660379a.json",
+        "document": "model-versions/ornith-1-5-35b-a3b-nvfp4-94e431d9.json",
         "publisher": "ornith-ai",
-        "slug": "ornith-1-5-35b-a3b-nvfp4-9660379a"
+        "slug": "ornith-1-5-35b-a3b-nvfp4-94e431d9"
       },
       "model": {
         "content_sha256": "a9e899f34ce7f36486f38dda97e4dd621001acc8b6051db608c0bf2c2728d709",
@@ -45671,7 +45671,7 @@
       },
       "source": {
         "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
-        "revision": "9660379a2f2c429c465eeed2f3a0f2433fc4381e"
+        "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa"
       },
       "structured_evidence": {
         "limits": {

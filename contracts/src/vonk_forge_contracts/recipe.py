@@ -5,6 +5,8 @@ engine compatibility, and placement plans remain platform-owned concerns.
 """
 from __future__ import annotations
 
+import json
+import math
 from datetime import date
 from typing import Annotated, Literal
 
@@ -13,6 +15,7 @@ from pydantic import (
     ConfigDict,
     Field,
     StrictBool,
+    StrictFloat,
     StrictInt,
     StrictStr,
     field_validator,
@@ -31,14 +34,105 @@ Sha256 = Annotated[StrictStr, Field(pattern=r"^[a-f0-9]{64}$")]
 _SEGMENT = r"(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\.[A-Za-z0-9_-][A-Za-z0-9._-]*)"
 AbsolutePath = Annotated[StrictStr, Field(max_length=256, pattern=rf"^/{_SEGMENT}(?:/{_SEGMENT})*$")]
 RelativePath = Annotated[StrictStr, Field(max_length=256, pattern=rf"^{_SEGMENT}(?:/{_SEGMENT})*$")]
-Scalar = StrictStr | StrictInt | StrictBool
+Scalar = StrictStr | StrictInt | StrictBool | StrictFloat
 type JsonValue = Scalar | None | list[JsonValue] | dict[StrictStr, JsonValue]
+type RuntimeArgumentValue = Scalar | list[JsonValue] | dict[StrictStr, JsonValue]
 ChangeEffect = Literal["none", "restart", "reprepare", "rebuild"]
 ReleaseChangeKind = Literal[
     "initial", "model", "runtime", "performance", "fix", "security",
     "compatibility", "breaking", "metadata",
 ]
 ReleaseUpgradeEffect = Literal["none", "restart", "reprepare", "rebuild"]
+
+
+# Runtime options are trusted recipe data, but still cross a process boundary.
+# Keep that boundary bounded without trying to predict every engine's option
+# vocabulary or requiring shell syntax for argv tokens.
+MAX_RUNTIME_ARGUMENTS = 128
+MAX_RUNTIME_ARGV_TOKEN_BYTES = 65_536
+MAX_RUNTIME_ARGV_BYTES = 1_048_576
+_MAX_RUNTIME_ARGUMENT_DEPTH = 8
+_MAX_RUNTIME_ARGUMENT_ITEMS = 256
+
+
+def _reject_nul(value: str, *, label: str) -> str:
+    if "\x00" in value:
+        raise ValueError(f"{label} must not contain NUL")
+    return value
+
+
+def _validate_runtime_argument_value(value: RuntimeArgumentValue | None) -> RuntimeArgumentValue | None:
+    """Validate bounded JSON data without normalizing trusted engine options."""
+
+    if value is None:
+        return value
+
+    def visit(node: JsonValue, depth: int) -> None:
+        if depth > _MAX_RUNTIME_ARGUMENT_DEPTH:
+            raise ValueError("runtime argument value exceeds maximum nesting depth")
+        if isinstance(node, str):
+            _reject_nul(node, label="runtime argument value")
+            if len(node.encode("utf-8")) > MAX_RUNTIME_ARGV_TOKEN_BYTES:
+                raise ValueError("runtime argument value string exceeds maximum UTF-8 size")
+        elif type(node) is float and not math.isfinite(node):
+            raise ValueError("runtime argument value contains a non-finite number")
+        elif isinstance(node, list):
+            if len(node) > _MAX_RUNTIME_ARGUMENT_ITEMS:
+                raise ValueError("runtime argument value has too many items")
+            for item in node:
+                visit(item, depth + 1)
+        elif isinstance(node, dict):
+            if len(node) > _MAX_RUNTIME_ARGUMENT_ITEMS:
+                raise ValueError("runtime argument value has too many items")
+            for key, item in node.items():
+                _reject_nul(key, label="runtime argument object key")
+                if len(key.encode("utf-8")) > MAX_RUNTIME_ARGV_TOKEN_BYTES:
+                    raise ValueError("runtime argument object key exceeds maximum UTF-8 size")
+                visit(item, depth + 1)
+
+    visit(value, 0)
+    serialized = value if isinstance(value, str) else json.dumps(
+        value,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+        allow_nan=False,
+    )
+    try:
+        encoded = serialized.encode("utf-8")
+    except (TypeError, ValueError) as error:
+        raise ValueError("runtime argument value must be finite JSON") from error
+    if len(encoded) > MAX_RUNTIME_ARGV_TOKEN_BYTES:
+        raise ValueError("runtime argument value exceeds maximum UTF-8 size")
+    return value
+
+
+def _validate_argv(tokens: list[str]) -> list[str]:
+    for token in tokens:
+        _reject_nul(token, label="argv token")
+        if len(token.encode("utf-8")) > MAX_RUNTIME_ARGV_TOKEN_BYTES:
+            raise ValueError("argv token exceeds maximum UTF-8 size")
+    if sum(len(token.encode("utf-8")) for token in tokens) > MAX_RUNTIME_ARGV_BYTES:
+        raise ValueError("argv exceeds maximum rendered size")
+    return tokens
+
+
+def _serialize_runtime_argument_value(value: JsonValue) -> str:
+    if isinstance(value, str):
+        return value
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True, allow_nan=False)
+
+
+def _runtime_argument_tokens(argument: RecipeRuntimeArgument) -> list[str]:
+    """Render one argument without shell parsing or option-name rewriting."""
+
+    flag = f"--{argument.name}"
+    value = argument.value
+    if value is None:
+        return [flag]
+    if type(value) is bool:
+        return [flag] if value else []
+    return [flag, _serialize_runtime_argument_value(value)]
 
 
 class RecipeIdentity(_RecipeContract):
@@ -170,9 +264,29 @@ RecipeSettings = Annotated[RecipeGenerationSettings | RecipeEmbeddingSettings | 
 
 
 class RecipeRuntimeArgument(_RecipeContract):
-    name: StrictStr = Field(min_length=1, max_length=64)
-    value: Scalar | None = None
+    # This is an engine keyword, not a shell token or an exhaustive option
+    # enum.  Keep its shape structural so the compiler can form a flag safely;
+    # the pinned engine remains the authority for whether the name is known.
+    name: StrictStr = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z][A-Za-z0-9_-]{0,63}$")
+    value: RuntimeArgumentValue | None = Field(
+        default=None,
+        description="A literal process value; null is reserved for the setting-bound placeholder.",
+    )
     setting: Identifier | None = None
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def name_has_no_nul(cls, value: object) -> object:
+        if isinstance(value, str):
+            _reject_nul(value, label="runtime argument name")
+            if len(value.encode("utf-8")) > MAX_RUNTIME_ARGV_TOKEN_BYTES:
+                raise ValueError("runtime argument name exceeds maximum UTF-8 size")
+        return value
+
+    @field_validator("value")
+    @classmethod
+    def value_is_bounded_json(cls, value: RuntimeArgumentValue | None) -> RuntimeArgumentValue | None:
+        return _validate_runtime_argument_value(value)
 
     @model_validator(mode="after")
     def one_source(self) -> RecipeRuntimeArgument:
@@ -186,6 +300,16 @@ class RecipeRuntimeEnvironment(_RecipeContract):
     value: Scalar | None = None
     secret: StrictStr | None = None
 
+    @field_validator("name", "secret")
+    @classmethod
+    def names_have_no_nul(cls, value: str | None) -> str | None:
+        return None if value is None else _reject_nul(value, label="runtime environment field")
+
+    @field_validator("value")
+    @classmethod
+    def value_has_no_nul(cls, value: Scalar | None) -> Scalar | None:
+        return None if value is None else _validate_runtime_argument_value(value)
+
     @model_validator(mode="after")
     def one_source(self) -> RecipeRuntimeEnvironment:
         if (self.value is None) == (self.secret is None):
@@ -198,7 +322,10 @@ class RecipeFailurePolicy(_RecipeContract):
     recovery: Literal["restart-entrypoint", "restart-worker-then-entrypoint"]
 
 
-Argv = Annotated[list[Annotated[StrictStr, Field(min_length=1, max_length=4096)]], Field(min_length=1, max_length=64)]
+Argv = Annotated[
+    list[Annotated[StrictStr, Field(min_length=1, max_length=MAX_RUNTIME_ARGV_TOKEN_BYTES)]],
+    Field(min_length=1, max_length=64),
+]
 
 
 class RecipeLifecycle(_RecipeContract):
@@ -207,13 +334,31 @@ class RecipeLifecycle(_RecipeContract):
     stop_timeout_seconds: StrictInt = Field(ge=1, le=600)
     failure: RecipeFailurePolicy | None = None
 
+    @field_validator("pre_start", "post_stop")
+    @classmethod
+    def lifecycle_argv_has_no_nul(cls, value: list[list[str]]) -> list[list[str]]:
+        return [_validate_argv(tokens) for tokens in value]
+
 
 class RecipeRuntime(_RecipeContract):
     engine: Identifier
     entrypoint: Argv
-    arguments: list[RecipeRuntimeArgument] = Field(max_length=128)
+    arguments: list[RecipeRuntimeArgument] = Field(max_length=MAX_RUNTIME_ARGUMENTS)
     environment: list[RecipeRuntimeEnvironment] = Field(max_length=128)
     lifecycle: RecipeLifecycle
+
+    @field_validator("entrypoint")
+    @classmethod
+    def entrypoint_has_no_nul(cls, value: list[str]) -> list[str]:
+        return _validate_argv(value)
+
+    @model_validator(mode="after")
+    def rendered_argument_argv_is_bounded(self) -> RecipeRuntime:
+        tokens = list(self.entrypoint)
+        for argument in self.arguments:
+            tokens.extend(_runtime_argument_tokens(argument))
+        _validate_argv(tokens)
+        return self
 
 
 class RecipeMemoryResources(_RecipeContract):
