@@ -71,6 +71,37 @@ def test_canonical_canary_is_schema2_and_excluded_from_public_catalog() -> None:
     )
 
 
+def test_canonical_canary_huggingface_source_is_accepted_by_model_cache() -> None:
+    platform_root = Path(os.environ.get("VONK_FORGE_PLATFORM_ROOT", "/opt/vonk-forge"))
+    control_source = platform_root / "control/src"
+    if not control_source.is_dir():
+        pytest.skip("authoritative platform checkout is unavailable")
+    sys.path.insert(0, str(control_source))
+    try:
+        try:
+            from vonk_control.model_cache import _source_for_catalog_artifact
+        except ImportError:
+            pytest.skip("platform ModelCache dependencies are unavailable")
+        model_document, _, _ = _documents()
+        model = ModelDefinition.model_validate(model_document)
+        model_file = model.files[0]
+        source, revision = _source_for_catalog_artifact(
+            {
+                "kind": "huggingface.file",
+                "repository": model.source.repository,
+                "revision": model.source.revision,
+                "path": model_file.path,
+            }
+        )
+        assert source == (
+            "https://huggingface.co/Qwen/Qwen3.6-27B/resolve/"
+            "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9/configuration.json"
+        )
+        assert revision == model.source.revision
+    finally:
+        sys.path.remove(str(control_source))
+
+
 def test_canonical_canary_package_has_exact_source_and_model_closure() -> None:
     model_document, recipe_document, entities = _documents()
     payload, metadata = TOOL["recipe_package"](
