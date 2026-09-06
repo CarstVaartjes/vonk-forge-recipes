@@ -91,6 +91,22 @@
       {
         "changes": [
           {
+            "details": "The runtime argument names now match the immutable DS4 parser at f4d03f6cf9f11c1e7b630bcb160853acfba7c52a; no compiler-side option rewriting is used.",
+            "kind": "fix",
+            "references": [
+              "https://github.com/antirez/ds4/tree/f4d03f6cf9f11c1e7b630bcb160853acfba7c52a"
+            ],
+            "summary": "Use the pinned DS4 parser option names for context and batched session concurrency."
+          }
+        ],
+        "prior_recipe_content_sha256": "4123aec29b126d05ade3b09a0cd78ccb45e06d488d8282c0e7d6883ddefe034e",
+        "released_at": "2026-09-06",
+        "upgrade_effect": "reprepare",
+        "version": "2.1.2"
+      },
+      {
+        "changes": [
+          {
             "details": "The current antirez/deepseek-v4-gguf tree adds Vision artifacts but leaves the selected target byte-for-byte unchanged. Its SHA-256 value remains ca22ae2f838e14077c22bc1c1417b71b45b5e5a3687bd96c2ac6e17fdb6261c0.",
             "kind": "model",
             "references": [
@@ -244,8 +260,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "2.1.1"
+    "released_at": "2026-09-06",
+    "version": "2.1.2"
   },
   "runtime": {
     "arguments": [
@@ -255,12 +271,12 @@
         "value": "/models/DeepSeek-V4-Flash-IQ2XXS-w2Q2K-AProjQ8-SExpQ8-OutQ8-chat-v2-imatrix-0731.gguf"
       },
       {
-        "name": "ctx-size",
+        "name": "ctx",
         "setting": "context_tokens",
         "value": null
       },
       {
-        "name": "batch-size",
+        "name": "batched-session",
         "setting": "concurrency",
         "value": null
       }

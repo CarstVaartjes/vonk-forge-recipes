@@ -22,9 +22,17 @@ class DeepseekDs4RecipeTests(unittest.TestCase):
     def test_cuda_profile_describes_ordered_two_session_fallback(self) -> None:
         recipe = load(RECIPE)
         self.assertIn("two-session concurrency", recipe["metadata"]["title"])
-        self.assertEqual(next(a["setting"] for a in recipe["runtime"]["arguments"] if a["name"] == "batch-size"), "concurrency")
+        self.assertEqual(next(a["setting"] for a in recipe["runtime"]["arguments"] if a["name"] == "batched-session"), "concurrency")
         self.assertEqual(recipe["settings"]["kind"], "generation")
         self.assertEqual(recipe["topology"]["node_count"], 1)
+        names = [argument["name"] for argument in recipe["runtime"]["arguments"]]
+        self.assertEqual(names, ["model", "ctx", "batched-session"])
+
+    def test_dspark_uses_pinned_parser_option_names(self) -> None:
+        recipe = load(ROOT / "recipes/deepseek-v4-flash-0731-ds4-dspark-latency-single.json")
+        names = [argument["name"] for argument in recipe["runtime"]["arguments"]]
+        self.assertEqual(names, ["model", "mtp-model", "ctx"])
+        self.assertEqual(recipe["release"]["version"], "1.2.5")
 
     def test_release_binds_the_current_recipe_digest(self) -> None:
         recipe = load(RECIPE)
