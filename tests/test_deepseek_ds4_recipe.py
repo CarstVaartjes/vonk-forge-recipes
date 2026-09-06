@@ -95,7 +95,6 @@ class DeepseekDs4RecipeTests(unittest.TestCase):
                     self.assertIn("cannot open model", output)
 
     def test_release_binds_the_current_recipe_digest(self) -> None:
-        recipe = load(RECIPE)
         index = load(ROOT / "catalog-index.json")
         entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{RECIPE.name}")
         self.assertEqual(entry["package"]["recipe_content_sha256"], digest(RECIPE))
