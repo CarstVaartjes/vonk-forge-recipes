@@ -159,9 +159,6 @@ if str(MODEL_SOURCE) not in arguments:
     raise SystemExit("the immutable /models checkpoint argument is required")
 model_index = arguments.index(str(MODEL_SOURCE))
 arguments[model_index] = str(_prepare_model_view(MODEL_SOURCE, MODEL_VIEW))
-if "--attention-backend" not in arguments:
-    arguments.extend(("--attention-backend", "B12X_MLA_SPARSE"))
-
 if mechanism == "ray":
     _remove_option(arguments, "--nnodes")
     _remove_option(arguments, "--node-rank")

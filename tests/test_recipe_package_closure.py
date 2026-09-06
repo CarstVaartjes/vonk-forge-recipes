@@ -1,17 +1,15 @@
 from __future__ import annotations
 
-import io
-import json
 import gzip
 import hashlib
+import io
+import json
 import runpy
 import tarfile
 from pathlib import Path
 
 import pytest
-
 from vonk_forge_contracts import RecipeDefinition, content_sha256
-
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
@@ -20,6 +18,12 @@ TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
 def _job_row(tmp_path: Path) -> tuple[dict, bytes]:
     catalog = TOOL["build"](package_dir=tmp_path)
     row = next(row for row in catalog["recipes"] if row["document"]["interfaces"][0]["adapter"] != "openai")
+    return row, (tmp_path / Path(row["package"]["path"]).name).read_bytes()
+
+
+def _row_for_slug(tmp_path: Path, slug: str) -> tuple[dict, bytes]:
+    catalog = TOOL["build"](package_dir=tmp_path)
+    row = next(row for row in catalog["recipes"] if row["document"]["identity"]["slug"] == slug)
     return row, (tmp_path / Path(row["package"]["path"]).name).read_bytes()
 
 
@@ -36,13 +40,14 @@ def _rewrite(payload: bytes, names: list[tuple[str, bytes]], *, repair_manifest:
         ]
         names = [("manifest.json", json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()), *names]
     output = io.BytesIO()
-    with gzip.GzipFile(fileobj=output, mode="wb", mtime=0) as compressed:
-        with tarfile.open(fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT) as archive:
-            for name, body in names:
-                info = tarfile.TarInfo(name)
-                info.size = len(body)
-                info.mode = 0o644
-                archive.addfile(info, io.BytesIO(body))
+    with gzip.GzipFile(fileobj=output, mode="wb", mtime=0) as compressed, tarfile.open(
+        fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT
+    ) as archive:
+        for name, body in names:
+            info = tarfile.TarInfo(name)
+            info.size = len(body)
+            info.mode = 0o644
+            archive.addfile(info, io.BytesIO(body))
     return output.getvalue()
 
 
@@ -52,6 +57,54 @@ def test_archive_has_one_entrypoint_and_real_closure(tmp_path: Path) -> None:
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         names = [(member.name, archive.extractfile(member).read()) for member in archive.getmembers() if member.isfile()]
     assert [name for name, _ in names].count("recipe.json") == 1
+
+
+def test_archive_allows_bounded_recipe_owned_direction_tensor(tmp_path: Path) -> None:
+    row, payload = _row_for_slug(
+        tmp_path,
+        "glm-5-3-flash-exl3-dflash2-vllm-dual",
+    )
+    TOOL["validate_recipe_archive"](payload, row["document"])
+    with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
+        names = archive.getnames()
+    assert any(name.endswith("refusal_direction_glm53_bf_oproj.pt") for name in names)
+    assert any(name.endswith("refusal_direction_glm53_dealign_late.pt") for name in names)
+
+
+def test_archive_rejects_unselected_model_document_namespace(tmp_path: Path) -> None:
+    row, payload = _job_row(tmp_path)
+    with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
+        entries = [
+            (member.name, archive.extractfile(member).read())
+            for member in archive.getmembers()
+            if member.isreg()
+        ]
+    recipe_document = json.loads(next(body for name, body in entries if name == "recipe.json"))
+    reference = recipe_document["models"][0]["model"]
+    model_name = f"models/{reference['slug']}.json"
+    model_body = next(body for name, body in entries if name == model_name)
+    entries.append((f"models/{reference['slug']}-copy.json", model_body))
+    malformed = _rewrite(payload, entries, repair_manifest=True)
+    with pytest.raises(SystemExit, match="outside declared namespaces"):
+        TOOL["validate_recipe_archive"](malformed, row["document"])
+
+
+def test_archive_rejects_oversized_source_member(tmp_path: Path) -> None:
+    row, payload = _job_row(tmp_path)
+    with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
+        entries = [
+            (member.name, archive.extractfile(member).read())
+            for member in archive.getmembers()
+            if member.isreg()
+        ]
+    context = row["document"]["execution"]["build"]["context"]["path"]
+    entries.append((
+        f"{context}/oversized-source.pt",
+        b"x" * (TOOL["MAX_SOURCE_FILE_BYTES"] + 1),
+    ))
+    malformed = _rewrite(payload, entries, repair_manifest=True)
+    with pytest.raises(SystemExit, match="source file exceeds"):
+        TOOL["validate_recipe_archive"](malformed, row["document"])
 
 
 @pytest.mark.parametrize("mutation", ["duplicate", "traversal"])
@@ -91,20 +144,22 @@ def test_archive_rejects_missing_model_source_and_fixture(tmp_path: Path) -> Non
 
 def _rewrite_member(payload: bytes, target: str, *, member_type: bytes | None = None, body: bytes | None = None) -> bytes:
     output = io.BytesIO()
-    with gzip.GzipFile(fileobj=output, mode="wb", mtime=0) as compressed:
-        with tarfile.open(fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT) as archive:
-            with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as source:
-                for member in source.getmembers():
-                    data = source.extractfile(member).read() if member.isreg() else None
-                    if member.name == target and member_type is not None:
-                        member.type = member_type
-                        member.linkname = "recipe.json"
-                        member.size = 0
-                        data = None
-                    elif member.name == target and body is not None:
-                        data = body
-                        member.size = len(body)
-                    archive.addfile(member, io.BytesIO(data) if data is not None else None)
+    with (
+        gzip.GzipFile(fileobj=output, mode="wb", mtime=0) as compressed,
+        tarfile.open(fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT) as archive,
+        tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as source,
+    ):
+        for member in source.getmembers():
+            data = source.extractfile(member).read() if member.isreg() else None
+            if member.name == target and member_type is not None:
+                member.type = member_type
+                member.linkname = "recipe.json"
+                member.size = 0
+                data = None
+            elif member.name == target and body is not None:
+                data = body
+                member.size = len(body)
+            archive.addfile(member, io.BytesIO(data) if data is not None else None)
     return output.getvalue()
 
 

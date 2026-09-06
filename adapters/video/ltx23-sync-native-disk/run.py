@@ -5,6 +5,7 @@ import importlib
 import importlib.metadata
 import json
 import os
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -12,7 +13,7 @@ from pathlib import Path
 MODEL_ROOT = Path("/models")
 INPUT_ROOT = Path("/inputs")
 MAX_PROMPT_BYTES = 16 * 1024
-RUNTIME_SPEC = Path(os.environ.get("VONK_RUNTIME_SPEC", "/run/vonk/runtime.json"))
+RUNTIME_SPEC = Path("/run/vonk/runtime.json")
 GEMMA_FILES = {
     "text_encoder/config.json": "config.json",
     "text_encoder/generation_config.json": "generation_config.json",
@@ -72,104 +73,188 @@ def _verify_ltx_runtime_contract() -> None:
         raise SystemExit("LTX PipelineOutput contract changed")
 
 
-def _runtime_artifacts() -> list[dict[str, str]]:
+def _materialized_path(mount_target: str, relative_path: str) -> Path:
+    target = Path(mount_target)
+    try:
+        target_relative = target.relative_to(Path("/models"))
+    except ValueError as error:
+        raise SystemExit("Vonk model mount target escapes /models") from error
+    candidate = MODEL_ROOT / target_relative / relative_path
+    try:
+        candidate.relative_to(MODEL_ROOT)
+    except ValueError as error:
+        raise SystemExit("Vonk model file escapes the model root") from error
+    return candidate
+
+
+def _runtime_artifacts() -> list[dict[str, object]]:
     try:
         document = json.loads(RUNTIME_SPEC.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         raise SystemExit(f"invalid Vonk runtime contract: {error}") from error
+    if not isinstance(document, dict) or document.get("schema_version") != 2:
+        raise SystemExit("Vonk runtime contract must use schema version 2")
     artifacts = document.get("artifacts")
     if not isinstance(artifacts, list) or not artifacts:
         raise SystemExit("Vonk runtime contract has no artifacts")
-    result: list[dict[str, str]] = []
+    result: list[dict[str, object]] = []
+    identities: set[tuple[str, str]] = set()
+    materialized: set[Path] = set()
     for artifact in artifacts:
-        if not isinstance(artifact, dict) or any(
-            not isinstance(artifact.get(key), str)
-            for key in ("kind", "repository", "revision", "path")
-        ):
+        allowed = {
+            "id",
+            "selection_id",
+            "file_id",
+            "path",
+            "sha256",
+            "size_bytes",
+            "roles",
+            "mount",
+            "model",
+            "distribution_object",
+        }
+        if not isinstance(artifact, dict) or set(artifact) - allowed:
             raise SystemExit("Vonk runtime contract artifact is invalid")
-        path = Path(artifact["path"])
-        try:
-            relative = path.relative_to(MODEL_ROOT)
-        except ValueError as error:
-            raise SystemExit("Vonk runtime artifact escapes the model root") from error
-        digest = relative.parts[1] if len(relative.parts) == 2 else ""
+        required = (
+            "selection_id",
+            "file_id",
+            "path",
+            "sha256",
+            "size_bytes",
+            "roles",
+            "mount",
+            "model",
+            "distribution_object",
+        )
+        if any(key not in artifact for key in required):
+            raise SystemExit("Vonk runtime contract selected file is incomplete")
+        selection_id = artifact["selection_id"]
+        file_id = artifact["file_id"]
+        relative = artifact["path"]
+        digest = artifact["sha256"]
+        size = artifact["size_bytes"]
+        mount = artifact["mount"]
+        model = artifact["model"]
+        receipt = artifact["distribution_object"]
         if (
-            artifact["kind"] != "http.file"
-            or not artifact["revision"].startswith("sha256:")
-            or relative.parts[:1] != ("sha256",)
-            or len(digest) != 64
-            or any(character not in "0123456789abcdef" for character in digest)
+            not isinstance(selection_id, str)
+            or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,255}", selection_id) is None
+            or not isinstance(file_id, str)
+            or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,255}", file_id) is None
+            or not isinstance(relative, str)
+            or not relative
+            or relative.startswith("/")
+            or "\\" in relative
+            or any(part in {"", ".", ".."} for part in relative.split("/"))
+            or not isinstance(digest, str)
+            or re.fullmatch(r"[0-9a-f]{64}", digest) is None
+            or type(size) is not int
+            or size < 0
+            or not isinstance(mount, dict)
+            or not isinstance(mount.get("target"), str)
+            or mount.get("read_only") is not True
+            or set(mount) != {"target", "read_only"}
+            or not isinstance(model, dict)
+            or set(model) != {"publisher", "slug", "content_sha256"}
+            or not isinstance(model.get("content_sha256"), str)
+            or re.fullmatch(r"[0-9a-f]{64}", model["content_sha256"]) is None
+            or not isinstance(receipt, dict)
+            or set(receipt) != {"name", "sha256", "bytes", "kind"}
+            or receipt.get("kind") != "model"
+            or receipt.get("name") != relative
+            or receipt.get("sha256") != digest
+            or receipt.get("bytes") != size
         ):
-            raise SystemExit("Vonk runtime artifact authority is not immutable")
-        result.append(artifact)
+            raise SystemExit("Vonk runtime contract selected file is invalid")
+        target = mount["target"]
+        if (
+            not (target == "/models" or target.startswith("/models/"))
+            or "//" in target
+            or "\\" in target
+            or any(
+                part in {"", ".", ".."} for part in target.removeprefix("/").split("/")
+            )
+        ):
+            raise SystemExit("Vonk model mount target is invalid")
+        identity = (selection_id, file_id)
+        if identity in identities:
+            raise SystemExit("Vonk runtime contract repeats a selected file")
+        path = _materialized_path(target, relative)
+        try:
+            path.resolve(strict=True).relative_to(MODEL_ROOT.resolve())
+        except (FileNotFoundError, OSError, ValueError) as error:
+            raise SystemExit(
+                "Vonk selected model file escapes the model root"
+            ) from error
+        if path in materialized or not path.is_file() or path.is_symlink():
+            raise SystemExit("Vonk selected model file is not a regular file")
+        if path.stat().st_size != size:
+            raise SystemExit("Vonk selected model file size changed")
+        identities.add(identity)
+        materialized.add(path)
+        normalized = dict(artifact)
+        normalized["materialized_path"] = path
+        result.append(normalized)
     return result
 
 
-def _single_artifact(repository_suffix: str) -> Path:
+def _single_artifact(
+    relative_path: str, artifacts: list[dict[str, object]] | None = None
+) -> Path:
+    artifacts = _runtime_artifacts() if artifacts is None else artifacts
     matches = [
-        Path(artifact["path"])
-        for artifact in _runtime_artifacts()
-        if artifact["repository"].endswith(f"/{repository_suffix}")
+        artifact["materialized_path"]
+        for artifact in artifacts
+        if artifact["path"] == relative_path
     ]
     if len(matches) != 1:
         raise SystemExit(
-            f"artifact {repository_suffix!r} must occur exactly once; found {len(matches)}"
+            f"selected file {relative_path!r} must occur exactly once; found {len(matches)}"
         )
-    mount = matches[0]
-    if mount.is_file():
-        return mount
-    files = sorted(
-        path
-        for path in mount.rglob("*")
-        if path.is_file() and path.name != ".vonk-manifest.json"
-    )
-    if len(files) != 1:
-        raise SystemExit(
-            f"artifact {repository_suffix!r} must contain exactly one file; "
-            f"found {len(files)}"
-        )
-    return files[0]
+    return matches[0]
 
 
-def _target_checkpoint() -> Path:
+def _target_checkpoint(artifacts: list[dict[str, object]] | None = None) -> Path:
+    artifacts = _runtime_artifacts() if artifacts is None else artifacts
     matches = [
-        filename
-        for filename in TARGET_FILENAMES
-        if any(
-            artifact["repository"].endswith(f"/{filename}")
-            for artifact in _runtime_artifacts()
-        )
+        artifact["path"]
+        for artifact in artifacts
+        if Path(artifact["path"]).name in TARGET_FILENAMES
     ]
     if len(matches) != 1:
         raise SystemExit(
             "runtime contract must contain exactly one supported immutable LTX checkpoint"
         )
-    return _single_artifact(matches[0])
+    return _single_artifact(matches[0], artifacts)
 
 
-def _spatial_upscaler(target: Path) -> Path:
+def _spatial_upscaler(
+    target: Path, artifacts: list[dict[str, object]] | None = None
+) -> Path:
+    artifacts = _runtime_artifacts() if artifacts is None else artifacts
     prefix = (
         "ltx-2.3-spatial-upscaler-"
         if target.name.startswith("ltx-2.3-")
         else "ltx-2-spatial-upscaler-"
     )
     matches = [
-        artifact["repository"].rsplit("/", 1)[-1]
-        for artifact in _runtime_artifacts()
-        if artifact["repository"].rsplit("/", 1)[-1].startswith(prefix)
-        and artifact["repository"].endswith(".safetensors")
+        artifact["path"]
+        for artifact in artifacts
+        if Path(artifact["path"]).name.startswith(prefix)
+        and Path(artifact["path"]).name.endswith(".safetensors")
     ]
     if len(matches) != 1:
         raise SystemExit(
             f"checkpoint {target.name!r} requires exactly one {prefix!r} "
             f"artifact; found {len(matches)}"
         )
-    return _single_artifact(matches[0])
+    return _single_artifact(matches[0], artifacts)
 
 
-def _link_gemma(root: Path) -> None:
-    for repository_suffix, filename in GEMMA_FILES.items():
-        source = _single_artifact(repository_suffix)
+def _link_gemma(root: Path, artifacts: list[dict[str, object]] | None = None) -> None:
+    artifacts = _runtime_artifacts() if artifacts is None else artifacts
+    for relative_path, filename in GEMMA_FILES.items():
+        source = _single_artifact(relative_path, artifacts)
         (root / filename).symlink_to(source)
 
 
@@ -199,13 +284,19 @@ def _load_prompt() -> str:
 
 
 def _pipeline_command(
-    target: Path, gemma_root: Path, output: Path, seed: int, prompt: str
+    target: Path,
+    gemma_root: Path,
+    output: Path,
+    seed: int,
+    prompt: str,
+    artifacts: list[dict[str, object]] | None = None,
 ) -> list[str]:
+    artifacts = _runtime_artifacts() if artifacts is None else artifacts
     common = [
         "--gemma-root",
         str(gemma_root),
         "--spatial-upsampler-path",
-        str(_spatial_upscaler(target)),
+        str(_spatial_upscaler(target, artifacts)),
         "--prompt",
         prompt,
         "--output-path",
@@ -234,7 +325,9 @@ def _pipeline_command(
             "--checkpoint-path",
             str(target),
             "--distilled-lora",
-            str(_single_artifact("ltx-2-19b-distilled-lora-384.safetensors")),
+            str(
+                _single_artifact("ltx-2-19b-distilled-lora-384.safetensors", artifacts)
+            ),
             "0.8",
             *common,
         ]
@@ -343,12 +436,13 @@ def main() -> None:
 
     prompt = _load_prompt()
     _verify_ltx_runtime_contract()
+    artifacts = _runtime_artifacts()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     temporary = args.output_dir / ".ltx-synchronized.partial.mp4"
     destination = args.output_dir / "ltx-synchronized.mp4"
     with tempfile.TemporaryDirectory(prefix="vonk-ltx-gemma-") as gemma_dir:
         gemma_root = Path(gemma_dir)
-        _link_gemma(gemma_root)
+        _link_gemma(gemma_root, artifacts)
         env = os.environ.copy()
         env.update(
             {
@@ -357,10 +451,12 @@ def main() -> None:
                 "HF_HOME": "/tmp/vonk-hf",
             }
         )
-        target = _target_checkpoint()
+        target = _target_checkpoint(artifacts)
         try:
             subprocess.run(
-                _pipeline_command(target, gemma_root, temporary, args.seed, prompt),
+                _pipeline_command(
+                    target, gemma_root, temporary, args.seed, prompt, artifacts
+                ),
                 check=True,
                 env=env,
                 timeout=args.timeout_seconds,

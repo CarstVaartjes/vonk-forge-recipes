@@ -322,11 +322,19 @@ def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(
         package_path = tmp_path / Path(str(row["package"]["path"])).name
         with tarfile.open(package_path, mode="r:gz") as archive:
             names = archive.getnames()
+        build = row["document"]["execution"].get("build")
+        source_context = build["context"]["path"] if build is not None else None
         assert all(
             not any(name.endswith(suffix) for suffix in payload_suffixes)
             for name in names
+            if source_context is None or not name.startswith(f"{source_context}/")
         )
-        assert all(not name.startswith(("image/", "oci/")) for name in names)
+        assert all(
+            not name.startswith(
+                ("image/", "oci/", "weights/", "runtime-distributions/", "patch-bundles/", "execution-harnesses/")
+            )
+            for name in names
+        )
 
 
 def test_ds4_multistage_package_manifests_both_digest_pinned_base_images(tmp_path: Path) -> None:
