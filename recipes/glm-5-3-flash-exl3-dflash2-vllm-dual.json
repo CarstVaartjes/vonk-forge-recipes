@@ -1890,6 +1890,20 @@
       {
         "changes": [
           {
+            "details": "Extracts the inline Dockerfile Python scripts byte for byte into recipe-owned files so the Controller source scanner can inspect the build. Patch order, checks, upstream pins, and runtime arguments are unchanged.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Make runtime patch scripts explicit build inputs."
+          }
+        ],
+        "prior_recipe_content_sha256": "98066a8e94161343c51072abafaea802344dcdf6ffbcb75b088f781b118473d9",
+        "released_at": "2026-09-06",
+        "upgrade_effect": "rebuild",
+        "version": "1.4.2"
+      },
+      {
+        "changes": [
+          {
             "details": "The authored runtime now carries EXL3 quantization, the vendored multimodal chat template, and the source-backed CUDA graph capture sizes. The placement-only wrapper preserves these and all explicit or opaque engine arguments.",
             "kind": "runtime",
             "references": [
@@ -2039,7 +2053,7 @@
       }
     ],
     "released_at": "2026-09-06",
-    "version": "1.4.1"
+    "version": "1.4.2"
   },
   "runtime": {
     "arguments": [
