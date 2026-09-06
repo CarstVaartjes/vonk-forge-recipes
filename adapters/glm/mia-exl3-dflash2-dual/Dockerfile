@@ -88,9 +88,9 @@
 FROM docker.io/vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce
 
 RUN python3 - <<'PY'
-from pathlib import Path
+import pathlib
 
-target = Path(
+target = pathlib.Path(
     "/usr/local/lib/python3.12/dist-packages/vllm/v1/attention/backends/mla/"
     "flashinfer_mla_sparse_sm120.py"
 )
@@ -210,7 +210,7 @@ replace_once(
 
 target.write_text(source)
 
-site = Path("/usr/local/lib/python3.12/dist-packages/vllm")
+site = pathlib.Path("/usr/local/lib/python3.12/dist-packages/vllm")
 old_width = "buffer_width = topk_tokens + (kpool - 1 if kpool > 1 else 0)"
 for rel in ("models/glm5next/nvidia/model.py", "models/glm5next/nvidia/mtp.py"):
     path = site / rel
@@ -319,9 +319,9 @@ PY
 RUN python3 - <<'PY'
 import inspect
 
-from vllm.v1.attention.backends.mla.flashinfer_mla_sparse_sm120 import (
-    FlashInferMLASparseSM120Impl as impl,
-)
+import vllm.v1.attention.backends.mla.flashinfer_mla_sparse_sm120 as sm120
+
+impl = sm120.FlashInferMLASparseSM120Impl
 
 assert impl.supports_dense_mha_prefill is False
 assert "do_kv_cache_update" in impl.__dict__
@@ -336,9 +336,9 @@ assert "seq_lens=topk_lengths" in fwd_src
 assert "out.masked_fill_(empty_rows.view(-1, 1, 1), 0.0)" in fwd_src
 assert "attn_metadata.topk_tokens" not in fwd_src
 
-from pathlib import Path
+import pathlib
 
-site = Path("/usr/local/lib/python3.12/dist-packages/vllm")
+site = pathlib.Path("/usr/local/lib/python3.12/dist-packages/vllm")
 for rel in ("models/glm5next/nvidia/model.py", "models/glm5next/nvidia/mtp.py"):
     src = (site / rel).read_text()
     compile(src, rel, "exec")
@@ -348,9 +348,9 @@ kpool_src = (site / "model_executor/layers/sparse_attn_indexer_kpool.py").read_t
 compile(kpool_src, "sparse_attn_indexer_kpool.py", "exec")
 assert kpool_src.count("pool_ids[:, : select_k - 1]") == 2
 
-from vllm.v1.attention.backends.mla.flashinfer_mla_sparse import (
-    FlashInferMLASparseSM120Backend as sm120_backend,
-)
+import vllm.v1.attention.backends.mla.flashinfer_mla_sparse as sparse_mla
+
+sm120_backend = sparse_mla.FlashInferMLASparseSM120Backend
 
 assert sm120_backend.get_supported_kernel_block_sizes() == [64]
 align_src = (site / "platforms/cuda.py").read_text()
@@ -381,9 +381,9 @@ ENV CUDA_HOME=/usr/local/cuda
 ENV PATH=/usr/local/cuda/bin:${PATH}
 
 RUN python3 - <<'PY'
-from pathlib import Path
+import pathlib
 
-init = Path("/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/__init__.py")
+init = pathlib.Path("/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/__init__.py")
 text = init.read_text()
 old = 'QuantizationMethods = Literal[\n    "awq",\n'
 new = 'QuantizationMethods = Literal[\n    "exl3",\n    "awq",\n'
