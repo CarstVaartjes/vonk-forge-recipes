@@ -24,6 +24,9 @@ PACKAGE = FIXTURE / "package/canonical-synthetic-canary.tar.gz"
 
 def _documents() -> tuple[dict[str, object], dict[str, object], dict[str, dict[str, object]]]:
     model = json.loads((FIXTURE / "model.json").read_text(encoding="utf-8"))
+    model = ModelDefinition.model_validate(model).model_dump(
+        mode="json", exclude_unset=False, exclude_none=False
+    )
     recipe = json.loads((FIXTURE / "recipe.json").read_text(encoding="utf-8"))
     key = f"{model['identity']['publisher']}/{model['identity']['slug']}"
     return model, recipe, {key: model}
