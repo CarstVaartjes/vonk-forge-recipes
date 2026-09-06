@@ -42,7 +42,7 @@ def test_canonical_canary_is_schema2_and_excluded_from_public_catalog() -> None:
     assert recipe_document["models"][0]["model"]["content_sha256"] == content_sha256(model)
     assert recipe.execution.mode == "build"
     model_file = model.files[0]
-    assert model_file.path == "tests/fixtures/node-health/healthy/commands/hostname.txt"
+    assert model_file.path == "configuration.json"
     assert (
         f"{model.source.repository}/resolve/{model.source.revision}/{model_file.path}"
     ) == (
