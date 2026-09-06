@@ -119,7 +119,7 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
 
     def test_current_source_build_closure_is_vendored_and_uses_no_ssh(self) -> None:
         dockerfile = (ADAPTER / "Dockerfile").read_text()
-        self.assertIn("ARG BASE=vllm/vllm-openai:glm53-flash-arm64-cu130@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce", dockerfile)
+        self.assertIn("FROM docker.io/vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce", dockerfile)
         self.assertIn("COPY overlay/exl3.py", dockerfile)
         self.assertIn("COPY files/chat_template.jinja", dockerfile)
         self.assertTrue((ADAPTER / "upstream-LICENSE").is_file())
