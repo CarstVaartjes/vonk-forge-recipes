@@ -1,0 +1,108 @@
+{
+  "schema_version": 2,
+  "kind": "model",
+  "identity": {
+    "publisher": "vonk-forge-test",
+    "slug": "canonical-synthetic-http-model-v1",
+    "version": "1.0.0",
+    "variant": "http-smoke",
+    "family": {
+      "publisher": "vonk-forge-test",
+      "slug": "canonical-synthetic-http",
+      "title": "Canonical synthetic HTTP smoke"
+    },
+    "model": {
+      "publisher": "vonk-forge-test",
+      "slug": "canonical-synthetic-http",
+      "title": "Canonical synthetic HTTP smoke",
+      "architecture": "deterministic-http-service"
+    }
+  },
+  "metadata": {
+    "description": "Test-only immutable fixture identity for the schema2 HTTP smoke runtime.",
+    "tags": [
+      "test-only",
+      "synthetic",
+      "http"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "capabilities": {
+    "schema_version": 2,
+    "facts": [
+      {
+        "capability": "text-generation",
+        "support": "supported",
+        "evidence_status": "declared",
+        "evidence_digest": null
+      }
+    ],
+    "provenance": {
+      "source_url": "https://huggingface.co/Qwen/Qwen3.6-27B",
+      "source_revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9",
+      "evidence_digest": "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0"
+    }
+  },
+  "format": {
+    "container": "other",
+    "precision": "utf8",
+    "quantization": "none"
+  },
+  "parameters": {
+    "total": null,
+    "active": null
+  },
+  "limits": {
+    "context_tokens": 128
+  },
+  "files": [
+    {
+      "id": "fixture",
+      "path": "configuration.json",
+      "sha256": "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0",
+      "size_bytes": 51,
+      "roles": [
+        "fixture"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen3.6-27B/blob/6a9e13bd6fc8f0983b9b99948120bc37f49c13e9/LICENSE",
+    "attribution": [
+      "Qwen"
+    ],
+    "operator_acceptance_required": false
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "lineage": {
+    "publisher": "vonk-forge-test",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "vonk-forge-test",
+      "slug": "canonical-synthetic-http"
+    },
+    "derivation": "Deterministic test-only HTTP smoke fixture reusing Qwen configuration.json solely to exercise immutable Hugging Face artifact resolution; no model weights are bundled."
+  },
+  "provenance": {
+    "source_url": "https://huggingface.co/Qwen/Qwen3.6-27B/resolve/6a9e13bd6fc8f0983b9b99948120bc37f49c13e9/configuration.json",
+    "source_revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9",
+    "evidence_digest": "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0",
+    "attribution": [
+      "Qwen"
+    ]
+  },
+  "source": {
+    "repository": "https://huggingface.co/Qwen/Qwen3.6-27B",
+    "revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9"
+  },
+  "supersedes": null
+}

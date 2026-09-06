@@ -1,0 +1,5 @@
+{
+  "health": {"status": "ok", "service": "canonical-synthetic-canary", "model": "canonical-synthetic-canary", "healthy": true},
+  "request": {"model": "canonical-synthetic-canary", "messages": [{"role": "user", "content": "ping"}], "stream": false, "max_tokens": 16},
+  "response": {"id": "chatcmpl-canonical-synthetic-canary", "object": "chat.completion", "created": 1735689600, "model": "canonical-synthetic-canary", "choices": [{"index": 0, "message": {"role": "assistant", "content": "canonical synthetic ok"}, "finish_reason": "stop"}], "usage": {"prompt_tokens": 1, "completion_tokens": 3, "total_tokens": 4}}
+}
