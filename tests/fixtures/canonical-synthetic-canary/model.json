@@ -60,7 +60,7 @@
   "files": [
     {
       "id": "fixture",
-      "path": "hostname.txt",
+      "path": "tests/fixtures/node-health/healthy/commands/hostname.txt",
       "sha256": "8f9e3902c909d7698aac45b2d9195c4baea090ee35b11705f05ea10c856bd230",
       "size_bytes": 10,
       "roles": [
