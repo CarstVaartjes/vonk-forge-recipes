@@ -69,7 +69,7 @@ def test_canonical_canary_package_has_exact_source_and_model_closure() -> None:
         entity_documents=entities,
     )
     assert payload == PACKAGE.read_bytes()
-    assert metadata["sha256"] == "41a504c098b0e26cf27408cca586f2e7323d76c9c0d06d98639c11838a2e55fd"
+    assert metadata["sha256"] == "86c07a1e6065bd155459136732f3382d9853345f9ab2b09bd94cb32a3f1b9777"
     TOOL["validate_recipe_archive"](payload, recipe_document, entities)
 
     with tarfile.open(fileobj=BytesIO(payload), mode="r:gz") as archive:

@@ -8,7 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 MODEL = "canonical-synthetic-canary"
 HEALTH = {"status": "ok", "service": MODEL, "model": MODEL, "healthy": True}
-EXPECTED_REQUEST = {"model": MODEL, "messages": [{"role": "user", "content": "ping"}], "stream": False}
+EXPECTED_REQUEST = {"model": MODEL, "messages": [{"role": "user", "content": "ping"}], "stream": False, "max_tokens": 16}
 EXPECTED_RESPONSE = {"id": "chatcmpl-canonical-synthetic-canary", "object": "chat.completion", "created": 1735689600, "model": MODEL, "choices": [{"index": 0, "message": {"role": "assistant", "content": "canonical synthetic ok"}, "finish_reason": "stop"}], "usage": {"prompt_tokens": 1, "completion_tokens": 3, "total_tokens": 4}}
 class Handler(BaseHTTPRequestHandler):
     server_version = "canonical-synthetic-canary/1.0"
