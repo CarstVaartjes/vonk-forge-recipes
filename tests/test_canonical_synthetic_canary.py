@@ -1,11 +1,19 @@
 from __future__ import annotations
 
 import json
+import os
 import runpy
+import socket
+import subprocess
+import sys
 import tarfile
+import time
+import urllib.error
+import urllib.request
 from io import BytesIO
 from pathlib import Path
 
+import pytest
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -79,3 +87,42 @@ def test_canonical_canary_package_has_exact_source_and_model_closure() -> None:
         ).read().decode()
         assert "USER 10001:10001" in dockerfile
         assert "@sha256:9bb659dc6d5218917236f3711e866a5634bb4c2f208de9d4533aa4863f57c1d3" in dockerfile
+
+
+def test_canonical_canary_server_behaves_without_gpu() -> None:
+    with socket.socket() as listener:
+        try:
+            listener.bind(("127.0.0.1", 0))
+        except PermissionError:
+            pytest.skip("local sockets are unavailable in this sandbox")
+        port = listener.getsockname()[1]
+    environment = {**os.environ, "VONK_LISTEN_HOST": "127.0.0.1", "VONK_LISTEN_PORT": str(port)}
+    process = subprocess.Popen(
+        [sys.executable, str(FIXTURE / "context/server.py")],
+        env=environment,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    base_url = f"http://127.0.0.1:{port}"
+    try:
+        deadline = time.monotonic() + 5
+        while True:
+            try:
+                with urllib.request.urlopen(f"{base_url}/health", timeout=0.2) as response:
+                    assert json.load(response) == json.loads((FIXTURE / "expected.json").read_text())["health"]
+                break
+            except (OSError, urllib.error.URLError):
+                if time.monotonic() >= deadline:
+                    raise
+                time.sleep(0.02)
+        request = urllib.request.Request(
+            f"{base_url}/v1/chat/completions",
+            data=json.dumps(json.loads((FIXTURE / "expected.json").read_text())["request"]).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(request, timeout=2) as response:
+            assert json.load(response) == json.loads((FIXTURE / "expected.json").read_text())["response"]
+    finally:
+        process.terminate()
+        process.wait(timeout=5)

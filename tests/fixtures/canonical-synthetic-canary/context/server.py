@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Deterministic OpenAI-shaped HTTP smoke service for contract tests."""
 from __future__ import annotations
+
 import json
 import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
 MODEL = "canonical-synthetic-canary"
 HEALTH = {"status": "ok", "service": MODEL, "model": MODEL, "healthy": True}
 EXPECTED_REQUEST = {"model": MODEL, "messages": [{"role": "user", "content": "ping"}], "stream": False}
