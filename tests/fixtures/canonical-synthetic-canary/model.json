@@ -1,0 +1,108 @@
+{
+  "schema_version": 2,
+  "kind": "model",
+  "identity": {
+    "publisher": "vonk-forge-test",
+    "slug": "canonical-synthetic-http-model-v1",
+    "version": "1.0.0",
+    "variant": "http-smoke",
+    "family": {
+      "publisher": "vonk-forge-test",
+      "slug": "canonical-synthetic-http",
+      "title": "Canonical synthetic HTTP smoke"
+    },
+    "model": {
+      "publisher": "vonk-forge-test",
+      "slug": "canonical-synthetic-http",
+      "title": "Canonical synthetic HTTP smoke",
+      "architecture": "deterministic-http-service"
+    }
+  },
+  "metadata": {
+    "description": "Test-only immutable fixture identity for the schema2 HTTP smoke runtime.",
+    "tags": [
+      "test-only",
+      "synthetic",
+      "http"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "capabilities": {
+    "schema_version": 2,
+    "facts": [
+      {
+        "capability": "text-generation",
+        "support": "supported",
+        "evidence_status": "tested",
+        "evidence_digest": "8f9e3902c909d7698aac45b2d9195c4baea090ee35b11705f05ea10c856bd230"
+      }
+    ],
+    "provenance": {
+      "source_url": "https://github.com/CarstVaartjes/vonk-forge/blob/28409d59c72bac86f8668d9e38cc7a1f09847251/tests/fixtures/node-health/healthy/commands/hostname.txt",
+      "source_revision": "28409d59c72bac86f8668d9e38cc7a1f09847251",
+      "evidence_digest": "8f9e3902c909d7698aac45b2d9195c4baea090ee35b11705f05ea10c856bd230"
+    }
+  },
+  "format": {
+    "container": "other",
+    "precision": "utf8",
+    "quantization": "none"
+  },
+  "parameters": {
+    "total": null,
+    "active": null
+  },
+  "limits": {
+    "context_tokens": 128
+  },
+  "files": [
+    {
+      "id": "fixture",
+      "path": "hostname.txt",
+      "sha256": "8f9e3902c909d7698aac45b2d9195c4baea090ee35b11705f05ea10c856bd230",
+      "size_bytes": 10,
+      "roles": [
+        "fixture"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0",
+    "attribution": [
+      "Vonk Forge"
+    ],
+    "operator_acceptance_required": false
+  },
+  "access": {
+    "visibility": "public",
+    "gated": false,
+    "authentication": "none"
+  },
+  "lineage": {
+    "publisher": "vonk-forge-test",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "vonk-forge-test",
+      "slug": "canonical-synthetic-http"
+    },
+    "derivation": "Deterministic test-only HTTP smoke fixture; no model weights are bundled."
+  },
+  "provenance": {
+    "source_url": "https://github.com/CarstVaartjes/vonk-forge/blob/28409d59c72bac86f8668d9e38cc7a1f09847251/tests/fixtures/node-health/healthy/commands/hostname.txt",
+    "source_revision": "28409d59c72bac86f8668d9e38cc7a1f09847251",
+    "evidence_digest": "8f9e3902c909d7698aac45b2d9195c4baea090ee35b11705f05ea10c856bd230",
+    "attribution": [
+      "Vonk Forge"
+    ]
+  },
+  "source": {
+    "repository": "https://github.com/CarstVaartjes/vonk-forge",
+    "revision": "28409d59c72bac86f8668d9e38cc7a1f09847251"
+  },
+  "supersedes": null
+}
