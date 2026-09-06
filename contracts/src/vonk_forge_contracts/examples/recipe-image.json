@@ -88,7 +88,11 @@
         "name": "structured_option",
         "value": {
           "enabled": true,
-          "items": ["a", 3, 0.25]
+          "items": [
+            "a",
+            3,
+            0.25
+          ]
         }
       }
     ],
