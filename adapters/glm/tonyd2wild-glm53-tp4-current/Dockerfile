@@ -11,62 +11,8 @@ LABEL ai.vonkforge.runtime-interface="v1"
 # GLM's real shape (32 heads/rank, ckv 512, kpe 0, page_size 1). Extend it to
 # capability 12, select FA2 off-Hopper, and scope the FlashInfer>=0.6.18
 # feature gate to the fp8-cache path it actually protects.
-RUN python3 - <<'PY'
-import pathlib
-
-base = pathlib.Path("/usr/local/lib/python3.12/dist-packages/vllm")
-
-p = base / "platforms/cuda.py"
-s = p.read_text()
-old = """        elif device_capability.major == 12:
-            return [
-                AttentionBackendEnum.TRITON_MLA,
-                AttentionBackendEnum.FLASHINFER_MLA_SPARSE_SM120,
-            ]"""
-new = """        elif device_capability.major == 12:
-            return [
-                AttentionBackendEnum.TRITON_MLA,
-                AttentionBackendEnum.FLASHINFER_MLA_SPARSE_SM90,
-                AttentionBackendEnum.FLASHINFER_MLA_SPARSE_SM120,
-            ]"""
-if s.count(old) != 1:
-    raise SystemExit("unexpected cuda.py capability-12 MLA candidate list; refusing to patch")
-p.write_text(s.replace(old, new))
-
-p = base / "v1/attention/backends/mla/flashinfer_mla_sparse_sm90.py"
-s = p.read_text()
-
-old = "    def supports_compute_capability(cls, capability: DeviceCapability) -> bool:\n        return capability.major == 9\n"
-new = "    def supports_compute_capability(cls, capability: DeviceCapability) -> bool:\n        return capability.major in (9, 12)\n"
-if s.count(old) != 1:
-    raise SystemExit("unexpected sm90 capability gate; refusing to patch")
-s = s.replace(old, new)
-
-old = '            backend="fa3",\n'
-new = '            backend=("fa3" if torch.cuda.get_device_capability()[0] == 9 else "fa2"),\n'
-if s.count(old) != 1:
-    raise SystemExit("unexpected sm90 wrapper backend literal; refusing to patch")
-s = s.replace(old, new)
-
-old = """        if not has_flashinfer_sm90_nope_mla():
-            return (
-                "FLASHINFER_MLA_SPARSE_SM90 requires FlashInfer with SM90 "
-                "MLA support (ckv_scale_arr in "
-                "BatchMLAPagedAttentionWrapper.run, FlashInfer >= 0.6.18)"
-            )"""
-new = """        if kv_cache_dtype in ("fp8", "fp8_e4m3") and not has_flashinfer_sm90_nope_mla():
-            return (
-                "FLASHINFER_MLA_SPARSE_SM90 fp8 KV requires FlashInfer with "
-                "SM90 MLA support (ckv_scale_arr in "
-                "BatchMLAPagedAttentionWrapper.run, FlashInfer >= 0.6.18)"
-            )"""
-if s.count(old) != 1:
-    raise SystemExit("unexpected sm90 flashinfer version gate; refusing to patch")
-s = s.replace(old, new)
-
-p.write_text(s)
-print("sm121 NoPE MLA patches applied")
-PY
+COPY patch_sm121_nope_mla.py /tmp/patch_sm121_nope_mla.py
+RUN python3 /tmp/patch_sm121_nope_mla.py && rm /tmp/patch_sm121_nope_mla.py
 
 # Exact upstream v3-v5 dependency corrections, kept in the source build rather
 # than relying on an intermediate radixark image: FlashInfer 0.6.18 nightly,
@@ -84,34 +30,8 @@ RUN pip install -q --pre \
 # Continue the public current v1 -> v8 source stack.  These are the exact
 # upstream v6/v7/v8 transformations, rebased onto the digest-pinned day-0
 # image above so the Controller owns the complete build closure.
-RUN python3 - <<'PY'
-import pathlib
-
-p = pathlib.Path("/usr/local/lib/python3.12/dist-packages/vllm/platforms/cuda.py")
-s = p.read_text()
-old = """    @classmethod
-    def is_arch_support_pdl(cls) -> bool:
-        try:
-            device = torch.cuda.current_device()
-            major, _ = torch.cuda.get_device_capability(device)
-        except Exception:
-            return False
-        return major >= 9
-"""
-new = """    @classmethod
-    def is_arch_support_pdl(cls) -> bool:
-        try:
-            device = torch.cuda.current_device()
-            major, _ = torch.cuda.get_device_capability(device)
-        except Exception:
-            return False
-        # Exact upstream v6 safety gate: PDL races KDA state kernels on SM12x.
-        return major in (9, 10)
-"""
-if s.count(old) != 1:
-    raise SystemExit("unexpected is_arch_support_pdl source; refusing to patch")
-p.write_text(s.replace(old, new))
-PY
+COPY patch_sm121_pdl.py /tmp/patch_sm121_pdl.py
+RUN python3 /tmp/patch_sm121_pdl.py && rm /tmp/patch_sm121_pdl.py
 
 COPY patch_v7.py /tmp/patch_v7.py
 RUN python3 /tmp/patch_v7.py && rm /tmp/patch_v7.py

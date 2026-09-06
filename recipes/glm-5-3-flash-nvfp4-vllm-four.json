@@ -1730,6 +1730,20 @@
       {
         "changes": [
           {
+            "details": "Extracts the inline Dockerfile Python scripts byte for byte into recipe-owned files so the Controller source scanner can inspect the build. Patch order, checks, upstream pins, and runtime arguments are unchanged.",
+            "kind": "compatibility",
+            "references": [],
+            "summary": "Make runtime patch scripts explicit build inputs."
+          }
+        ],
+        "prior_recipe_content_sha256": "fa8d5144d8c1cacc2fa923813d42cd75958fcdb8193c9e4c59c5f261ae99727e",
+        "released_at": "2026-09-06",
+        "upgrade_effect": "rebuild",
+        "version": "1.3.1"
+      },
+      {
+        "changes": [
+          {
             "details": "Rebuilds from tonyd2wild 8fd2fcd's public v1-v8 SM121 source stack and DFlash2 overlay on the digest-pinned vLLM CUDA 13 base. The Controller wrapper translates the current four-rank worker-first launch without SSH or host bind mounts: 1,048,576 context, max-num-seqs 64, 16,384 batched tokens, 24 GiB FP8 E4M3 KV, FULL_AND_PIECEWISE CUDA graphs, Marlin, and DFlash2 K7.",
             "kind": "compatibility",
             "references": [
@@ -1854,7 +1868,7 @@
       }
     ],
     "released_at": "2026-09-06",
-    "version": "1.3.0"
+    "version": "1.3.1"
   },
   "runtime": {
     "arguments": [
