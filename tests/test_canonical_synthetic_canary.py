@@ -44,13 +44,13 @@ def test_canonical_canary_is_schema2_and_excluded_from_public_catalog() -> None:
     model_file = model.files[0]
     assert model_file.path == "tests/fixtures/node-health/healthy/commands/hostname.txt"
     assert (
-        f"https://raw.githubusercontent.com/CarstVaartjes/vonk-forge/{model.source.revision}/"
-        f"{model_file.path}"
+        f"{model.source.repository}/resolve/{model.source.revision}/{model_file.path}"
     ) == (
-        "https://raw.githubusercontent.com/CarstVaartjes/vonk-forge/"
-        "28409d59c72bac86f8668d9e38cc7a1f09847251/"
-        "tests/fixtures/node-health/healthy/commands/hostname.txt"
+        "https://huggingface.co/Qwen/Qwen3.6-27B/resolve/"
+        "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9/configuration.json"
     )
+    assert model_file.sha256 == "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0"
+    assert model_file.size_bytes == 51
     assert recipe.execution.build.base_image.platform == "linux/arm64"
     assert recipe.execution.build.base_image.digest != "0" * 64
     assert recipe.execution.build.base_image.digest != "f" * 64

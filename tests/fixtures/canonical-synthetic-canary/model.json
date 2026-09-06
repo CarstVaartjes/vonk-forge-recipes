@@ -35,14 +35,14 @@
       {
         "capability": "text-generation",
         "support": "supported",
-        "evidence_status": "tested",
-        "evidence_digest": "8f9e3902c909d7698aac45b2d9195c4baea090ee35b11705f05ea10c856bd230"
+        "evidence_status": "declared",
+        "evidence_digest": null
       }
     ],
     "provenance": {
-      "source_url": "https://github.com/CarstVaartjes/vonk-forge/blob/28409d59c72bac86f8668d9e38cc7a1f09847251/tests/fixtures/node-health/healthy/commands/hostname.txt",
-      "source_revision": "28409d59c72bac86f8668d9e38cc7a1f09847251",
-      "evidence_digest": "8f9e3902c909d7698aac45b2d9195c4baea090ee35b11705f05ea10c856bd230"
+      "source_url": "https://huggingface.co/Qwen/Qwen3.6-27B",
+      "source_revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9",
+      "evidence_digest": "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0"
     }
   },
   "format": {
@@ -60,9 +60,9 @@
   "files": [
     {
       "id": "fixture",
-      "path": "tests/fixtures/node-health/healthy/commands/hostname.txt",
-      "sha256": "8f9e3902c909d7698aac45b2d9195c4baea090ee35b11705f05ea10c856bd230",
-      "size_bytes": 10,
+      "path": "configuration.json",
+      "sha256": "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0",
+      "size_bytes": 51,
       "roles": [
         "fixture"
       ]
@@ -71,9 +71,9 @@
   "dependencies": [],
   "license": {
     "spdx": "Apache-2.0",
-    "url": "https://www.apache.org/licenses/LICENSE-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen3.6-27B/blob/6a9e13bd6fc8f0983b9b99948120bc37f49c13e9/LICENSE",
     "attribution": [
-      "Vonk Forge"
+      "Qwen"
     ],
     "operator_acceptance_required": false
   },
@@ -90,19 +90,19 @@
       "publisher": "vonk-forge-test",
       "slug": "canonical-synthetic-http"
     },
-    "derivation": "Deterministic test-only HTTP smoke fixture; no model weights are bundled."
+    "derivation": "Deterministic test-only HTTP smoke fixture reusing Qwen configuration.json solely to exercise immutable Hugging Face artifact resolution; no model weights are bundled."
   },
   "provenance": {
-    "source_url": "https://github.com/CarstVaartjes/vonk-forge/blob/28409d59c72bac86f8668d9e38cc7a1f09847251/tests/fixtures/node-health/healthy/commands/hostname.txt",
-    "source_revision": "28409d59c72bac86f8668d9e38cc7a1f09847251",
-    "evidence_digest": "8f9e3902c909d7698aac45b2d9195c4baea090ee35b11705f05ea10c856bd230",
+    "source_url": "https://huggingface.co/Qwen/Qwen3.6-27B/resolve/6a9e13bd6fc8f0983b9b99948120bc37f49c13e9/configuration.json",
+    "source_revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9",
+    "evidence_digest": "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0",
     "attribution": [
-      "Vonk Forge"
+      "Qwen"
     ]
   },
   "source": {
-    "repository": "https://github.com/CarstVaartjes/vonk-forge",
-    "revision": "28409d59c72bac86f8668d9e38cc7a1f09847251"
+    "repository": "https://huggingface.co/Qwen/Qwen3.6-27B",
+    "revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9"
   },
   "supersedes": null
 }
