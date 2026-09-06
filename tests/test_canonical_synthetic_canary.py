@@ -38,6 +38,16 @@ def test_canonical_canary_is_schema2_and_excluded_from_public_catalog() -> None:
     assert recipe.identity.slug == "canonical-synthetic-canary"
     assert recipe_document["models"][0]["model"]["content_sha256"] == content_sha256(model)
     assert recipe.execution.mode == "build"
+    model_file = model.files[0]
+    assert model_file.path == "tests/fixtures/node-health/healthy/commands/hostname.txt"
+    assert (
+        f"https://raw.githubusercontent.com/CarstVaartjes/vonk-forge/{model.source.revision}/"
+        f"{model_file.path}"
+    ) == (
+        "https://raw.githubusercontent.com/CarstVaartjes/vonk-forge/"
+        "28409d59c72bac86f8668d9e38cc7a1f09847251/"
+        "tests/fixtures/node-health/healthy/commands/hostname.txt"
+    )
     assert recipe.execution.build.base_image.platform == "linux/arm64"
     assert recipe.execution.build.base_image.digest != "0" * 64
     assert recipe.execution.build.base_image.digest != "f" * 64
@@ -66,7 +76,8 @@ def test_canonical_canary_package_has_exact_source_and_model_closure() -> None:
         entity_documents=entities,
     )
     assert payload == PACKAGE.read_bytes()
-    assert metadata["sha256"] == "07cf4d19fd1477229faf28f8815332a470c62e4e20b6236536993624ad9613b2"
+    fixture_index = json.loads((FIXTURE / "index.json").read_text(encoding="utf-8"))
+    assert metadata["sha256"] == fixture_index["recipes"][0]["package"]["sha256"]
     TOOL["validate_recipe_archive"](payload, recipe_document, entities)
 
     with tarfile.open(fileobj=BytesIO(payload), mode="r:gz") as archive:
