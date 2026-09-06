@@ -207,7 +207,13 @@ def _recipe_closure(recipe: dict[str, object], recipe_path: Path, entities: dict
             raise SystemExit(f"package source context is missing: {context.relative_to(ROOT)}")
         for path in sorted(context.rglob("*"), key=lambda item: item.relative_to(ROOT).as_posix()):
             if _safe_file(path):
-                files[path.relative_to(ROOT).as_posix()] = path.read_bytes()
+                content = path.read_bytes()
+                if len(content) > MAX_SOURCE_FILE_BYTES:
+                    raise SystemExit(
+                        "package source file exceeds the Git blob hydration limit: "
+                        f"{path.relative_to(ROOT)}"
+                    )
+                files[path.relative_to(ROOT).as_posix()] = content
         for name in (build["dockerfile"], *(patch["path"] for patch in build["patches"])):  # type: ignore[index]
             source = ROOT / name
             if not _safe_file(source):
@@ -290,6 +296,15 @@ def validate_recipe_archive(payload: bytes, recipe: dict[str, object], entities:
     expected_recipe = RecipeDefinition.model_validate(recipe)
     validate_model_references([ModelDefinition.model_validate(document) for document in entities.values()])
     expected_recipe_document = expected_recipe.model_dump(mode="json", exclude_unset=False, exclude_none=False)
+    execution = expected_recipe_document["execution"]
+    source_context: PurePosixPath | None = None
+    if execution["mode"] == "build":  # type: ignore[index]
+        source_context = PurePosixPath(str(execution["build"]["context"]["path"]))  # type: ignore[index]
+
+    def is_source_member(name: str) -> bool:
+        path = PurePosixPath(name)
+        return source_context is not None and source_context in path.parents
+
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         members = archive.getmembers()
         names = [member.name for member in members]
@@ -297,11 +312,21 @@ def validate_recipe_archive(payload: bytes, recipe: dict[str, object], entities:
             raise SystemExit("recipe package contains duplicate paths")
         if any(not member.isreg() for member in members):
             raise SystemExit("recipe package contains a non-regular archive member")
-        for name in names:
+        for member in members:
+            name = member.name
             path = PurePosixPath(name)
             if path.is_absolute() or any(part in {"", ".", ".."} for part in path.parts):
                 raise SystemExit(f"recipe package contains unsafe path: {name}")
-            if name.startswith(("image/", "oci/", "weights/", "runtime-distributions/", "patch-bundles/", "execution-harnesses/")) or name.endswith((".safetensors", ".bin", ".pt", ".pth", ".ckpt", ".onnx")):
+            source_member = is_source_member(name)
+            if source_member and member.size > MAX_SOURCE_FILE_BYTES:
+                raise SystemExit(
+                    "recipe package source file exceeds the Git blob hydration limit: "
+                    f"{name}"
+                )
+            if name.startswith(("image/", "oci/", "weights/", "runtime-distributions/", "patch-bundles/", "execution-harnesses/")) or (
+                not source_member
+                and name.endswith((".safetensors", ".bin", ".pt", ".pth", ".ckpt", ".onnx"))
+            ):
                 raise SystemExit(f"recipe package contains model or OCI payload: {name}")
         recipe_entries = [name for name in names if PurePosixPath(name).name == "recipe.json"]
         if recipe_entries != ["recipe.json"]:
@@ -349,6 +374,7 @@ def validate_recipe_archive(payload: bytes, recipe: dict[str, object], entities:
             raise SystemExit("recipe package recipe digest is stale")
         pending_models = [selection.model for selection in expected_recipe.models]
         seen_model_keys: set[tuple[str, str]] = set()
+        model_file_fingerprints: dict[tuple[str, int, str], tuple[str, str]] = {}
         while pending_models:
             reference = pending_models.pop(0)
             model_key = (reference.publisher, reference.slug)
@@ -365,11 +391,34 @@ def validate_recipe_archive(payload: bytes, recipe: dict[str, object], entities:
                 raise SystemExit(f"recipe package Model snapshot is invalid: {model_path}") from error
             if model is None or content_sha256(model) != reference.content_sha256:
                 raise SystemExit(f"recipe package Model snapshot digest is stale: {model_path}")
+            for model_file in model.files:
+                if not isinstance(model_file.path, str):
+                    continue
+                model_file_fingerprints[(
+                    PurePosixPath(model_file.path).name,
+                    model_file.size_bytes,
+                    model_file.sha256,
+                )] = (f"{model_key[0]}/{model_key[1]}", model_file.path)
             pending_models.extend(model.dependencies)
             if model.supersedes is not None:
                 pending_models.append(model.supersedes)
+        if source_context is not None:
+            for name, entry in declared.items():
+                if not is_source_member(name):
+                    continue
+                fingerprint = (
+                    PurePosixPath(name).name,
+                    int(entry["size"]),
+                    str(entry["sha256"]),
+                )
+                model_identity = model_file_fingerprints.get(fingerprint)
+                if model_identity is not None:
+                    model_key, model_path = model_identity
+                    raise SystemExit(
+                        "recipe package source member matches selected Model artifact: "
+                        f"{name} matches {model_key}:{model_path}"
+                    )
         paths = set(names)
-        execution = expected_recipe_document["execution"]
         if execution["mode"] == "build":  # type: ignore[index]
             build = execution["build"]  # type: ignore[index]
             context = build["context"]["path"]  # type: ignore[index]
