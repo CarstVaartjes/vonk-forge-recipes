@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import runpy
 import tempfile
 import unittest
@@ -65,6 +66,45 @@ def canonical_runtime_fixture(
 
 
 class LtxSparkFitTests(unittest.TestCase):
+    def test_schema2_fixture_matches_supplied_platform_emission(self) -> None:
+        platform_root = os.environ.get("VONK_FORGE_PLATFORM_ROOT")
+        if not platform_root:
+            self.skipTest("VONK_FORGE_PLATFORM_ROOT is not supplied")
+        platform_fixture = (
+            Path(platform_root) / "control/tests/fixtures/compiled_workload_v2.json"
+        )
+        self.assertTrue(platform_fixture.is_file(), platform_fixture)
+        self.assertEqual(
+            (ROOT / "tests/fixtures/compiled_workload_v2.json").read_bytes(),
+            platform_fixture.read_bytes(),
+            "recipe fixture drifted from the platform's emitted schema-2 envelope",
+        )
+
+    def test_both_sync_adapters_accept_schema2_nested_materialization(self) -> None:
+        for adapter in ("ltx2-sync-native", "ltx23-sync-native-disk"):
+            with self.subTest(adapter=adapter), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                model_root, runtime_spec = canonical_runtime_fixture(
+                    root,
+                    [
+                        (
+                            "target",
+                            "nested/ltx-2.3-22b-distilled-1.1.safetensors",
+                            "target",
+                        )
+                    ],
+                )
+                namespace = runpy.run_path(
+                    str(ROOT / f"adapters/video/{adapter}/run.py")
+                )
+                globals_ = namespace["_target_checkpoint"].__globals__
+                globals_["MODEL_ROOT"] = model_root
+                globals_["RUNTIME_SPEC"] = runtime_spec
+                self.assertEqual(
+                    namespace["_target_checkpoint"](),
+                    model_root / "target/nested/ltx-2.3-22b-distilled-1.1.safetensors",
+                )
+
     def test_schema2_selected_file_materialization_checks_nested_path_and_size(
         self,
     ) -> None:
