@@ -12,9 +12,9 @@ LABEL ai.vonkforge.runtime-interface="v1"
 # capability 12, select FA2 off-Hopper, and scope the FlashInfer>=0.6.18
 # feature gate to the fp8-cache path it actually protects.
 RUN python3 - <<'PY'
-from pathlib import Path
+import pathlib
 
-base = Path("/usr/local/lib/python3.12/dist-packages/vllm")
+base = pathlib.Path("/usr/local/lib/python3.12/dist-packages/vllm")
 
 p = base / "platforms/cuda.py"
 s = p.read_text()
@@ -85,9 +85,9 @@ RUN pip install -q --pre \
 # upstream v6/v7/v8 transformations, rebased onto the digest-pinned day-0
 # image above so the Controller owns the complete build closure.
 RUN python3 - <<'PY'
-from pathlib import Path
+import pathlib
 
-p = Path("/usr/local/lib/python3.12/dist-packages/vllm/platforms/cuda.py")
+p = pathlib.Path("/usr/local/lib/python3.12/dist-packages/vllm/platforms/cuda.py")
 s = p.read_text()
 old = """    @classmethod
     def is_arch_support_pdl(cls) -> bool:
