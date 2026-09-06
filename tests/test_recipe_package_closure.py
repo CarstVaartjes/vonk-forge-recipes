@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256
+from vonk_forge_contracts import RecipeDefinition, content_sha256
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -72,60 +72,22 @@ def test_archive_allows_bounded_recipe_owned_direction_tensor(tmp_path: Path) ->
     assert any(name.endswith("refusal_direction_glm53_dealign_late.pt") for name in names)
 
 
-def test_archive_rejects_exact_selected_model_artifact_in_source_context(tmp_path: Path) -> None:
-    _row, payload = _job_row(tmp_path)
+def test_archive_rejects_unselected_model_document_namespace(tmp_path: Path) -> None:
+    row, payload = _job_row(tmp_path)
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         entries = [
             (member.name, archive.extractfile(member).read())
             for member in archive.getmembers()
             if member.isreg()
         ]
-    recipe_body = next(body for name, body in entries if name == "recipe.json")
-    recipe_document = json.loads(recipe_body)
+    recipe_document = json.loads(next(body for name, body in entries if name == "recipe.json"))
     reference = recipe_document["models"][0]["model"]
     model_name = f"models/{reference['slug']}.json"
     model_body = next(body for name, body in entries if name == model_name)
-    model_document = json.loads(model_body)
-    embedded = {
-        "id": "embedded-model-document",
-        "path": "embedded-model.json",
-        "roles": ["runtime"],
-        "sha256": hashlib.sha256(model_body).hexdigest(),
-        "size_bytes": len(model_body),
-    }
-    model_document["files"].append(embedded)
-    updated_model = ModelDefinition.model_validate(model_document)
-    updated_model_body = json.dumps(
-        updated_model.model_dump(mode="json", exclude_unset=False, exclude_none=False),
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode()
-    recipe_document["models"][0]["model"]["content_sha256"] = content_sha256(updated_model)
-    context = recipe_document["execution"]["build"]["context"]["path"]
-    entries = [
-        (name, updated_model_body if name == model_name else body)
-        for name, body in entries
-    ]
-    entries.append((f"{context}/embedded-model.json", model_body))
-    recipe_body = json.dumps(
-        recipe_document,
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode()
-    entries = [(name, recipe_body if name == "recipe.json" else body) for name, body in entries]
-    repaired = _rewrite(payload, entries, repair_manifest=True)
-    with tarfile.open(fileobj=io.BytesIO(repaired), mode="r:gz") as archive:
-        manifest = json.load(archive.extractfile("manifest.json"))
-    manifest["recipe_content_sha256"] = content_sha256(RecipeDefinition.model_validate(recipe_document))
-    repaired = _rewrite_member(
-        repaired,
-        "manifest.json",
-        body=json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode(),
-    )
-    with pytest.raises(SystemExit, match="matches selected Model artifact"):
-        TOOL["validate_recipe_archive"](repaired, recipe_document)
+    entries.append((f"models/{reference['slug']}-copy.json", model_body))
+    malformed = _rewrite(payload, entries, repair_manifest=True)
+    with pytest.raises(SystemExit, match="outside declared namespaces"):
+        TOOL["validate_recipe_archive"](malformed, row["document"])
 
 
 def test_archive_rejects_oversized_source_member(tmp_path: Path) -> None:

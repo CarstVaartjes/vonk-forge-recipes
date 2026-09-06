@@ -305,6 +305,33 @@ def validate_recipe_archive(payload: bytes, recipe: dict[str, object], entities:
         path = PurePosixPath(name)
         return source_context is not None and source_context in path.parents
 
+    expected_model_paths: set[str] = set()
+    pending_models = [selection.model for selection in expected_recipe.models]
+    seen_model_keys: set[tuple[str, str]] = set()
+    while pending_models:
+        reference = pending_models.pop(0)
+        model_key = (reference.publisher, reference.slug)
+        if model_key in seen_model_keys:
+            continue
+        seen_model_keys.add(model_key)
+        expected_model_paths.add(f"models/{reference.slug}.json")
+        model_document = entities.get(f"{reference.publisher}/{reference.slug}")
+        if model_document is None:
+            raise SystemExit(f"selected Model document is missing: {reference.publisher}/{reference.slug}")
+        pending_models.extend(
+            ModelDefinition.model_validate(model_document).dependencies
+        )
+        supersedes = ModelDefinition.model_validate(model_document).supersedes
+        if supersedes is not None:
+            pending_models.append(supersedes)
+
+    expected_fixture_paths: set[str] = set()
+    for check in expected_recipe.validation.serving.checks:
+        request = check.request
+        if request.transport == "job":
+            expected_fixture_paths.add(request.fixture)
+            expected_fixture_paths.update(request.input_slots.values())
+
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         members = archive.getmembers()
         names = [member.name for member in members]
@@ -323,10 +350,7 @@ def validate_recipe_archive(payload: bytes, recipe: dict[str, object], entities:
                     "recipe package source file exceeds the Git blob hydration limit: "
                     f"{name}"
                 )
-            if name.startswith(("image/", "oci/", "weights/", "runtime-distributions/", "patch-bundles/", "execution-harnesses/")) or (
-                not source_member
-                and name.endswith((".safetensors", ".bin", ".pt", ".pth", ".ckpt", ".onnx"))
-            ):
+            if name.startswith(("image/", "oci/", "weights/", "runtime-distributions/", "patch-bundles/", "execution-harnesses/")):
                 raise SystemExit(f"recipe package contains model or OCI payload: {name}")
         recipe_entries = [name for name in names if PurePosixPath(name).name == "recipe.json"]
         if recipe_entries != ["recipe.json"]:
@@ -360,6 +384,12 @@ def validate_recipe_archive(payload: bytes, recipe: dict[str, object], entities:
             content = member.read() if member is not None else None
             if content is None or len(content) != entry["size"] or hashlib.sha256(content).hexdigest() != entry["sha256"]:
                 raise SystemExit(f"recipe package manifest digest is stale: {name}")
+        for name in names:
+            if name == "manifest.json" or name == "recipe.json" or name in expected_model_paths:
+                continue
+            if is_source_member(name) or name in expected_fixture_paths:
+                continue
+            raise SystemExit(f"recipe package member is outside declared namespaces: {name}")
         recipe_member = archive.extractfile("recipe.json")
         if recipe_member is None:
             raise SystemExit("recipe package recipe entrypoint is missing")
@@ -373,8 +403,7 @@ def validate_recipe_archive(payload: bytes, recipe: dict[str, object], entities:
         if manifest.get("recipe_content_sha256") != recipe_digest:
             raise SystemExit("recipe package recipe digest is stale")
         pending_models = [selection.model for selection in expected_recipe.models]
-        seen_model_keys: set[tuple[str, str]] = set()
-        model_file_fingerprints: dict[tuple[str, int, str], tuple[str, str]] = {}
+        seen_model_keys = set()
         while pending_models:
             reference = pending_models.pop(0)
             model_key = (reference.publisher, reference.slug)
@@ -391,33 +420,9 @@ def validate_recipe_archive(payload: bytes, recipe: dict[str, object], entities:
                 raise SystemExit(f"recipe package Model snapshot is invalid: {model_path}") from error
             if model is None or content_sha256(model) != reference.content_sha256:
                 raise SystemExit(f"recipe package Model snapshot digest is stale: {model_path}")
-            for model_file in model.files:
-                if not isinstance(model_file.path, str):
-                    continue
-                model_file_fingerprints[(
-                    PurePosixPath(model_file.path).name,
-                    model_file.size_bytes,
-                    model_file.sha256,
-                )] = (f"{model_key[0]}/{model_key[1]}", model_file.path)
             pending_models.extend(model.dependencies)
             if model.supersedes is not None:
                 pending_models.append(model.supersedes)
-        if source_context is not None:
-            for name, entry in declared.items():
-                if not is_source_member(name):
-                    continue
-                fingerprint = (
-                    PurePosixPath(name).name,
-                    int(entry["size"]),
-                    str(entry["sha256"]),
-                )
-                model_identity = model_file_fingerprints.get(fingerprint)
-                if model_identity is not None:
-                    model_key, model_path = model_identity
-                    raise SystemExit(
-                        "recipe package source member matches selected Model artifact: "
-                        f"{name} matches {model_key}:{model_path}"
-                    )
         paths = set(names)
         if execution["mode"] == "build":  # type: ignore[index]
             build = execution["build"]  # type: ignore[index]
