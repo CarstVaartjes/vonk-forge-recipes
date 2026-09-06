@@ -85,8 +85,7 @@
 # Build (context = repo root, aarch64 host):
 #   docker build -t glm53-flash-sm121:local .
 
-ARG BASE=vllm/vllm-openai:glm53-flash-arm64-cu130@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce
-FROM ${BASE}
+FROM docker.io/vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce
 
 RUN python3 - <<'PY'
 from pathlib import Path
