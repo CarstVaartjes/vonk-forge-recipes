@@ -8,14 +8,15 @@
         "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
-        "path": "adapters/glm/glm53-sm121"
+        "path": "adapters/glm/tonyd2wild-glm53-tp4-current"
       },
-      "dockerfile": "adapters/glm/glm53-sm121/Dockerfile",
+      "dockerfile": "adapters/glm/tonyd2wild-glm53-tp4-current/Dockerfile",
       "network": {
         "hosts": [
           "docker.io",
           "files.pythonhosted.org",
-          "flashinfer.ai"
+          "flashinfer.ai",
+          "pypi.org"
         ],
         "mode": "public"
       },
@@ -41,7 +42,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate native TP4 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint. Its exact four-rank topology is unsupported on Vonk's current one- or two-Spark configuration and remains installable only for a future scale canary. The pin includes calibrated per-projection input scales that prevent FP8 block-scale underflow and long-context repetition. Upstream proves the same model family at TP2, but glm-5-3-flash-nvfp4-vllm-dual has a conservative 132 GB Controller admission envelope and does not fit the present about-126.9 GB inventory; glm-5-3-flash-exl3-dflash2-vllm-dual is the current 126 GB-envelope fleet Candidate. This contract keeps Tech2Wild's stable v8 profile and excludes experimental v9 InstantTensor.",
+    "description": "Executable Candidate native TP4 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint, built from tonyd2wild's current public 8fd2fcd v1-v8 SM121 and DFlash2 source stack on the digest-pinned vLLM CUDA 13 base. Its exact four-rank topology is unsupported on Vonk's current one- or two-Spark configuration and remains installable only for a future scale canary; the source profile is 1M context, 64 sequences, 16K batched tokens, 24 GiB FP8 E4M3 KV, Marlin, DFlash2 K7, and FULL_AND_PIECEWISE graphs. The LibertAI Model remains distinct from the upstream README's RedHatAI default.",
     "tags": [
       "executable",
       "candidate",
@@ -65,7 +66,7 @@
           "id": "primary-metadata-d1a8f4a1d2e3-618cd5b83d",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -77,7 +78,7 @@
           "id": "primary-license-30b85b6b9659-c693279643",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -89,7 +90,7 @@
           "id": "primary-readme-6948c0c9ed7d-b335630551",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -101,7 +102,7 @@
           "id": "primary-chat-template-34d5ee66b12f-00824420d1",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -113,7 +114,7 @@
           "id": "primary-config-5db46f44956e-587cb980af",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -125,7 +126,7 @@
           "id": "primary-generation-config-230c30609ecb-97dd3d578b",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -137,7 +138,7 @@
           "id": "primary-model-00001-of-00120-ba0214261ab7-12435431a4",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -149,7 +150,7 @@
           "id": "primary-model-00002-of-00120-f404f05a6f5b-6e0fdf1ed7",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -161,7 +162,7 @@
           "id": "primary-model-00003-of-00120-a438f009135f-65e4a549ff",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -173,7 +174,7 @@
           "id": "primary-model-00004-of-00120-6e05c705f6f1-bc903b840f",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -185,7 +186,7 @@
           "id": "primary-model-00005-of-00120-ea66c59afe17-f881474d38",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -197,7 +198,7 @@
           "id": "primary-model-00006-of-00120-3540b4ddcf68-267cd49bdd",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -209,7 +210,7 @@
           "id": "primary-model-00007-of-00120-6b8b85bee36a-83d3802361",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -221,7 +222,7 @@
           "id": "primary-model-00008-of-00120-9ac970e30b79-7450bccdde",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -233,7 +234,7 @@
           "id": "primary-model-00009-of-00120-2eeec9d441e3-fccc730405",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -245,7 +246,7 @@
           "id": "primary-model-00010-of-00120-c75c05b57495-e805fb3830",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -257,7 +258,7 @@
           "id": "primary-model-00011-of-00120-283449abb3f4-80b44e5aed",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -269,7 +270,7 @@
           "id": "primary-model-00012-of-00120-74c5517673ba-459b46eb61",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -281,7 +282,7 @@
           "id": "primary-model-00013-of-00120-79fe00fa87d1-566b83c847",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -293,7 +294,7 @@
           "id": "primary-model-00014-of-00120-5183a890fc15-0614f5f141",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -305,7 +306,7 @@
           "id": "primary-model-00015-of-00120-40de9bd08016-16baedfbbf",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -317,7 +318,7 @@
           "id": "primary-model-00016-of-00120-43597aecb53e-4b1f2761e8",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -329,7 +330,7 @@
           "id": "primary-model-00017-of-00120-36b3c2211b96-5707f9098c",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -341,7 +342,7 @@
           "id": "primary-model-00018-of-00120-34999c1fc196-e9e19650df",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -353,7 +354,7 @@
           "id": "primary-model-00019-of-00120-3220b4014577-6f6796f688",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -365,7 +366,7 @@
           "id": "primary-model-00020-of-00120-545979216168-f6aa6660e2",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -377,7 +378,7 @@
           "id": "primary-model-00021-of-00120-c289513f948e-0d2dd07b36",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -389,7 +390,7 @@
           "id": "primary-model-00022-of-00120-734d114bb8af-c45d9c4641",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -401,7 +402,7 @@
           "id": "primary-model-00023-of-00120-7f5fc5369fd9-ccfadcc7f3",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -413,7 +414,7 @@
           "id": "primary-model-00024-of-00120-d726f81df4f9-7442c3427d",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -425,7 +426,7 @@
           "id": "primary-model-00025-of-00120-59a808016dd3-8ed483bed0",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -437,7 +438,7 @@
           "id": "primary-model-00026-of-00120-bed4bd4fb372-5d97013772",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -449,7 +450,7 @@
           "id": "primary-model-00027-of-00120-ef6dd6eea7a6-02b1d50bd1",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -461,7 +462,7 @@
           "id": "primary-model-00028-of-00120-2dceecdd9e84-a8cf91ef44",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -473,7 +474,7 @@
           "id": "primary-model-00029-of-00120-08d127a0f613-559d0bdebf",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -485,7 +486,7 @@
           "id": "primary-model-00030-of-00120-8129f6489360-8f79d9498d",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -497,7 +498,7 @@
           "id": "primary-model-00031-of-00120-90c90fc98dca-e39e3b7f41",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -509,7 +510,7 @@
           "id": "primary-model-00032-of-00120-ba85eda5e184-da4be29488",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -521,7 +522,7 @@
           "id": "primary-model-00033-of-00120-f7e964705e3a-778b1be96b",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -533,7 +534,7 @@
           "id": "primary-model-00034-of-00120-fe7d9ff998e3-4afb689532",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -545,7 +546,7 @@
           "id": "primary-model-00035-of-00120-67d19fbeb683-3f5f6d5470",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -557,7 +558,7 @@
           "id": "primary-model-00036-of-00120-52edae2448a6-ab57214a17",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -569,7 +570,7 @@
           "id": "primary-model-00037-of-00120-2fc8290f3366-ba8c769702",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -581,7 +582,7 @@
           "id": "primary-model-00038-of-00120-86953ac612bb-a1229f7aa6",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -593,7 +594,7 @@
           "id": "primary-model-00039-of-00120-0f0d3ce38f4d-465f1fc086",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -605,7 +606,7 @@
           "id": "primary-model-00040-of-00120-08192bd35dd9-35b9241c1d",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -617,7 +618,7 @@
           "id": "primary-model-00041-of-00120-07cbf141b3f2-83db938c1b",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -629,7 +630,7 @@
           "id": "primary-model-00042-of-00120-7f319150371c-ddde0f96a9",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -641,7 +642,7 @@
           "id": "primary-model-00043-of-00120-47c9e028e6e9-a0911e015c",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -653,7 +654,7 @@
           "id": "primary-model-00044-of-00120-52fdecfa398b-eacbd9bde9",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -665,7 +666,7 @@
           "id": "primary-model-00045-of-00120-b3a2aac00cc0-9e2ccf9390",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -677,7 +678,7 @@
           "id": "primary-model-00046-of-00120-c7ee6047098c-39452e9f1d",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -689,7 +690,7 @@
           "id": "primary-model-00047-of-00120-9994abbb097b-9dbed1f52d",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -701,7 +702,7 @@
           "id": "primary-model-00048-of-00120-8582d51fe0c9-6ba4e39a5f",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -713,7 +714,7 @@
           "id": "primary-model-00049-of-00120-30613af110d7-9b2445d3f8",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -725,7 +726,7 @@
           "id": "primary-model-00050-of-00120-f11de59e684b-8113571b37",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -737,7 +738,7 @@
           "id": "primary-model-00051-of-00120-205f960f6528-ccadd3fbd6",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -749,7 +750,7 @@
           "id": "primary-model-00052-of-00120-0763040f70b9-a50b27ab98",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -761,7 +762,7 @@
           "id": "primary-model-00053-of-00120-698409ed384f-2a720032ef",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -773,7 +774,7 @@
           "id": "primary-model-00054-of-00120-311e159e1b51-81acda5e32",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -785,7 +786,7 @@
           "id": "primary-model-00055-of-00120-fc052b559be8-8545c387ba",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -797,7 +798,7 @@
           "id": "primary-model-00056-of-00120-b410973388d8-e79a0dea97",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -809,7 +810,7 @@
           "id": "primary-model-00057-of-00120-0c289d11e1b1-1e00c90a13",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -821,7 +822,7 @@
           "id": "primary-model-00058-of-00120-84f634dff927-e1274be091",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -833,7 +834,7 @@
           "id": "primary-model-00059-of-00120-41e8d976cb2a-0cd8b27563",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -845,7 +846,7 @@
           "id": "primary-model-00060-of-00120-985f53471c85-8e37dd27e8",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -857,7 +858,7 @@
           "id": "primary-model-00061-of-00120-8f965b618e0b-1edadcbc6d",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -869,7 +870,7 @@
           "id": "primary-model-00062-of-00120-48198d608c46-af5b3b5a00",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -881,7 +882,7 @@
           "id": "primary-model-00063-of-00120-c7259d8dcbd7-b274f2500a",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -893,7 +894,7 @@
           "id": "primary-model-00064-of-00120-ea72f728e524-45e5d1381b",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -905,7 +906,7 @@
           "id": "primary-model-00065-of-00120-ed91674312c8-0853f85c3d",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -917,7 +918,7 @@
           "id": "primary-model-00066-of-00120-44c01116db9d-db56e63edc",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -929,7 +930,7 @@
           "id": "primary-model-00067-of-00120-0bfe16059809-c67af1c565",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -941,7 +942,7 @@
           "id": "primary-model-00068-of-00120-b2d8805a6be8-b7b1187949",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -953,7 +954,7 @@
           "id": "primary-model-00069-of-00120-0c0abe4d485c-87f0277a07",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -965,7 +966,7 @@
           "id": "primary-model-00070-of-00120-6fe8d6343dd3-34719a0903",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -977,7 +978,7 @@
           "id": "primary-model-00071-of-00120-865691279f20-18d38f84b3",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -989,7 +990,7 @@
           "id": "primary-model-00072-of-00120-63b6dc183803-4256eae072",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1001,7 +1002,7 @@
           "id": "primary-model-00073-of-00120-471068d033f4-b71881032c",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1013,7 +1014,7 @@
           "id": "primary-model-00074-of-00120-8e511e565bf0-f7ab128788",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1025,7 +1026,7 @@
           "id": "primary-model-00075-of-00120-ecd469228851-79ed5c6d99",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1037,7 +1038,7 @@
           "id": "primary-model-00076-of-00120-a53e96b50bd5-f975c5d2a8",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1049,7 +1050,7 @@
           "id": "primary-model-00077-of-00120-a64f0acfec57-d5415f7104",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1061,7 +1062,7 @@
           "id": "primary-model-00078-of-00120-0e9a57566971-1002291158",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1073,7 +1074,7 @@
           "id": "primary-model-00079-of-00120-03aee2f47cfd-8a356bb7e9",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1085,7 +1086,7 @@
           "id": "primary-model-00080-of-00120-56026b4b63d9-650a4f1960",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1097,7 +1098,7 @@
           "id": "primary-model-00081-of-00120-37df0643efdd-f479bc5b9a",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1109,7 +1110,7 @@
           "id": "primary-model-00082-of-00120-6d69a2f9b3b2-317eacdbe4",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1121,7 +1122,7 @@
           "id": "primary-model-00083-of-00120-a7946bb39803-90673ca661",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1133,7 +1134,7 @@
           "id": "primary-model-00084-of-00120-7243c06bc776-3b618208d5",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1145,7 +1146,7 @@
           "id": "primary-model-00085-of-00120-60cc7eb3bb56-0853d5e2c5",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1157,7 +1158,7 @@
           "id": "primary-model-00086-of-00120-4cd3a8428888-1912454f20",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1169,7 +1170,7 @@
           "id": "primary-model-00087-of-00120-bd5d4921bb31-dff6b21639",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1181,7 +1182,7 @@
           "id": "primary-model-00088-of-00120-4e28f51959ea-33ad7c9c7b",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1193,7 +1194,7 @@
           "id": "primary-model-00089-of-00120-7866898f4ddb-642aae040e",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1205,7 +1206,7 @@
           "id": "primary-model-00090-of-00120-2aeac301d205-02a4fd20ee",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1217,7 +1218,7 @@
           "id": "primary-model-00091-of-00120-57c641457fe6-35b959e7cc",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1229,7 +1230,7 @@
           "id": "primary-model-00092-of-00120-325f1d7ba9da-4b66476b42",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1241,7 +1242,7 @@
           "id": "primary-model-00093-of-00120-0d62a3ebbf7e-3d8663285c",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1253,7 +1254,7 @@
           "id": "primary-model-00094-of-00120-bc69acd667e8-e8e5e16a67",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1265,7 +1266,7 @@
           "id": "primary-model-00095-of-00120-764a46e7dc11-f65795c4dc",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1277,7 +1278,7 @@
           "id": "primary-model-00096-of-00120-2f43b5c6d76a-98d23f1599",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1289,7 +1290,7 @@
           "id": "primary-model-00097-of-00120-47ad84eade13-69cdd7375e",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1301,7 +1302,7 @@
           "id": "primary-model-00098-of-00120-c3c03b7f5347-7f7b33ad93",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1313,7 +1314,7 @@
           "id": "primary-model-00099-of-00120-ca081f64de0d-d3c07d5408",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1325,7 +1326,7 @@
           "id": "primary-model-00100-of-00120-aabf0de08b02-837f48f967",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1337,7 +1338,7 @@
           "id": "primary-model-00101-of-00120-b333b9b6a0bf-161f149d02",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1349,7 +1350,7 @@
           "id": "primary-model-00102-of-00120-e13f3cd1f662-b678e0095f",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1361,7 +1362,7 @@
           "id": "primary-model-00103-of-00120-41b5858d446c-2745b60dfe",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1373,7 +1374,7 @@
           "id": "primary-model-00104-of-00120-6dbf5568a3d1-48ccc4ff2a",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1385,7 +1386,7 @@
           "id": "primary-model-00105-of-00120-54039eb3b562-903301ab4f",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1397,7 +1398,7 @@
           "id": "primary-model-00106-of-00120-697293e8f63d-0166354ffc",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1409,7 +1410,7 @@
           "id": "primary-model-00107-of-00120-b4bec4aeeeba-1b8280fd52",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1421,7 +1422,7 @@
           "id": "primary-model-00108-of-00120-8477f32dfb1e-973e69f3df",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1433,7 +1434,7 @@
           "id": "primary-model-00109-of-00120-3528407c70e3-49a0a4a8cc",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1445,7 +1446,7 @@
           "id": "primary-model-00110-of-00120-ce4d13d4e740-fec51613af",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1457,7 +1458,7 @@
           "id": "primary-model-00111-of-00120-cfc769592a7f-43ea98efe2",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1469,7 +1470,7 @@
           "id": "primary-model-00112-of-00120-77e69e80667c-ec0c9f3e6f",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1481,7 +1482,7 @@
           "id": "primary-model-00113-of-00120-8167de603ca7-58771aaa44",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1493,7 +1494,7 @@
           "id": "primary-model-00114-of-00120-28fd9f409fd9-6567bafe78",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1505,7 +1506,7 @@
           "id": "primary-model-00115-of-00120-60948dc927c3-c4d9887778",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1517,7 +1518,7 @@
           "id": "primary-model-00116-of-00120-e5d2dda2a124-298b0030ef",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1529,7 +1530,7 @@
           "id": "primary-model-00117-of-00120-739833ee3bcd-f549a4dbfa",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1541,7 +1542,7 @@
           "id": "primary-model-00118-of-00120-b2364542e7c9-7535a97079",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1553,7 +1554,7 @@
           "id": "primary-model-00119-of-00120-efd9da4b7d2d-16500d7d3f",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1565,7 +1566,7 @@
           "id": "primary-model-00120-of-00120-a8b8a9753bbb-0ba76d8e7c",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1577,7 +1578,7 @@
           "id": "primary-model-input-scales-b812b4d7df15-97f927cc40",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1589,7 +1590,7 @@
           "id": "primary-model-safetensors-index-0a5cb10ccc9b-0a05be8238",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1601,7 +1602,7 @@
           "id": "primary-processor-config-aae38374c94b-27f0cb76af",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1613,7 +1614,7 @@
           "id": "primary-tokenizer-19e773648cb4-224931eb13",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1625,7 +1626,7 @@
           "id": "primary-tokenizer-config-98b1271574f4-94d5c6ba8f",
           "mount": {
             "read_only": true,
-            "target": "/models"
+            "target": "/models/target"
           },
           "roles": [
             "entrypoint",
@@ -1640,6 +1641,77 @@
         "publisher": "libertaidai",
         "slug": "glm-5-3-flash-nvfp4-caca4e6a"
       }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-70e0ed421d65-618cd5b83d",
+          "id": "drafter-metadata-70e0ed421d65-618cd5b83d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-2014434d3e36-b335630551",
+          "id": "drafter-readme-2014434d3e36-b335630551",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "dflash2-figure-6d8dcc9a9472-e520c8f797",
+          "id": "drafter-dflash2-figure-6d8dcc9a9472-e520c8f797",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "config-c4aeac010119-587cb980af",
+          "id": "drafter-config-c4aeac010119-587cb980af",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-b038e1d9d1e7-9d75c1098f",
+          "id": "drafter-model-b038e1d9d1e7-9d75c1098f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "dependency-glm-5-3-flash-dflash2-bf582e4e",
+      "model": {
+        "content_sha256": "ff9a00c5ea74761b0417e90e63211fde544e4b37fec85030c7174ac25f444cd7",
+        "kind": "model",
+        "publisher": "incoai",
+        "slug": "glm-5-3-flash-dflash2-bf582e4e"
+      }
     }
   ],
   "provenance": {
@@ -1651,10 +1723,26 @@
       "vLLM contributors"
     ],
     "source_kind": "global",
-    "source_reference": "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/tree/98fc5d8fd48e7d1e2e95499f93cf90ceef14faf4"
+    "source_reference": "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/tree/8fd2fcd27c04c7fa93e770000b818657f338875d"
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "Rebuilds from tonyd2wild 8fd2fcd's public v1-v8 SM121 source stack and DFlash2 overlay on the digest-pinned vLLM CUDA 13 base. The Controller wrapper translates the current four-rank worker-first launch without SSH or host bind mounts: 1,048,576 context, max-num-seqs 64, 16,384 batched tokens, 24 GiB FP8 E4M3 KV, FULL_AND_PIECEWISE CUDA graphs, Marlin, and DFlash2 K7.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/tree/8fd2fcd27c04c7fa93e770000b818657f338875d"
+            ],
+            "summary": "Ported the current public TP4 v1-v8 plus DFlash2 source build."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-06",
+        "upgrade_effect": "rebuild",
+        "version": "1.3.0"
+      },
       {
         "changes": [
           {
@@ -1765,8 +1853,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "1.2.2"
+    "released_at": "2026-09-06",
+    "version": "1.3.0"
   },
   "runtime": {
     "arguments": [
@@ -1797,13 +1885,18 @@
       },
       {
         "name": "max-model-len",
-        "setting": "context_tokens",
-        "value": null
+        "setting": null,
+        "value": 1048576
       },
       {
         "name": "max-num-seqs",
-        "setting": "concurrency",
-        "value": null
+        "setting": null,
+        "value": 64
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 16384
       },
       {
         "name": "block-size",
@@ -1818,7 +1911,7 @@
       {
         "name": "speculative-config",
         "setting": null,
-        "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":4}"
+        "value": "{\"method\":\"dflash\",\"model\":\"/models/drafter\",\"num_speculative_tokens\":7}"
       },
       {
         "name": "kv-cache-dtype",
@@ -1828,12 +1921,17 @@
       {
         "name": "kv-cache-memory",
         "setting": null,
-        "value": 9663676416
+        "value": 25769803776
       },
       {
         "name": "enforce-eager",
         "setting": null,
-        "value": true
+        "value": false
+      },
+      {
+        "name": "compilation-config",
+        "setting": null,
+        "value": "{\"cudagraph_mode\":\"FULL_AND_PIECEWISE\"}"
       },
       {
         "name": "skip-mm-profiling",
@@ -1856,6 +1954,11 @@
         "value": "/opt/vonk/templates/glm53-chat-template-mm.jinja"
       },
       {
+        "name": "default-chat-template-kwargs",
+        "setting": null,
+        "value": "{\"enable_thinking\":false}"
+      },
+      {
         "name": "tool-call-parser",
         "setting": null,
         "value": "glm47"
@@ -1875,7 +1978,7 @@
     "entrypoint": [
       "/opt/vonk/bin/vllm",
       "serve",
-      "/models"
+      "/models/target"
     ],
     "environment": [
       {
@@ -1995,7 +2098,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 194701812547,
+            "artifact_bytes": 197044273244,
             "cache_bytes": 40000000000,
             "image_bytes": 30000000000,
             "rollback_bytes": 0,
@@ -2017,7 +2120,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 194701812547,
+            "artifact_bytes": 197044273244,
             "cache_bytes": 40000000000,
             "image_bytes": 30000000000,
             "rollback_bytes": 0,

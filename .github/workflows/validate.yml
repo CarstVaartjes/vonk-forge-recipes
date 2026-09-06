@@ -19,13 +19,12 @@ permissions:
 jobs:
   validate:
     if: ${{ !inputs.producer_only }}
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@0ab88b4fa0d95804bf9b3cce10a1c16a5e624eeb
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@26a2dfa804d80a02a39cd42e6deae5f3b0ecc529
     with:
-      # Validate against the published Forge main authority.  Keeping this
-      # independent from a recipe PR's historical base prevents new runtime
-      # contracts (such as verified vLLM-Ray) from being judged by an older
-      # harness implementation.
-      platform_ref: 0ab88b4fa0d95804bf9b3cce10a1c16a5e624eeb
+      # Use the reviewed Forge validator for this launch contract. Its exact
+      # published commit verifies declared source namespaces, Model payload
+      # separation and archive identities independently of this recipe PR.
+      platform_ref: 26a2dfa804d80a02a39cd42e6deae5f3b0ecc529
 
   catalog-index:
     if: ${{ !inputs.producer_only }}

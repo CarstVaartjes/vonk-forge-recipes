@@ -3,17 +3,24 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "9bb1557a4234fce63d59599e44d10747eabd742beb337eebf9e7070be8a0fd58",
+        "digest": "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce",
         "platform": "linux/arm64",
-        "repository": "ghcr.io/miaai-lab/glm-5.3-flash-2x-dgx-sparks"
+        "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
         "path": "adapters/glm/mia-exl3-dflash2-dual"
       },
       "dockerfile": "adapters/glm/mia-exl3-dflash2-dual/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": [
+          "docker.io",
+          "files.pythonhosted.org",
+          "flashinfer.ai",
+          "github.com",
+          "codeload.github.com",
+          "pypi.org"
+        ],
+        "mode": "public"
       },
       "patches": [],
       "target": null
@@ -37,7 +44,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Directly installable Candidate reproducing MiaAI-Lab's current 2x DGX Spark EXL3/TR3 4 bpw target with the bf582e4e DFlash2 K7 checkpoint, native-mp TP2, 1M context, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. Exact source, image, target, drafter, licenses, and measured resource envelope are pinned; Vonk physical acceptance and checkpoint requalification remain pending.",
+    "description": "Directly installable Candidate built from MiaAI-Lab's current public 3021f24 EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its 2x DGX Spark EXL3/TR3 4 bpw target with the bf582e4e DFlash2 K7 checkpoint, native-mp TP2, 1M context, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. Vonk physical acceptance and checkpoint requalification remain pending.",
     "tags": [
       "candidate",
       "dflash2",
@@ -130,8 +137,8 @@
           ]
         },
         {
-          "file_id": "readme-ae6b1e1a8eac-b335630551",
-          "id": "primary-readme-ae6b1e1a8eac-b335630551",
+          "file_id": "readme-ad818d1fb7c0-b335630551",
+          "id": "primary-readme-ad818d1fb7c0-b335630551",
           "mount": {
             "read_only": true,
             "target": "/models/target"
@@ -1788,10 +1795,81 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "bc37e7f6a352e3a665436d548f3c1f992ec04c96841f0f49ff8c8031604e8c56",
+        "content_sha256": "7cbdbeba4e0779aabd54af3114bb909c11fdc0a50de6b0719384e24bf045fa6b",
         "kind": "model",
         "publisher": "mia-ai-lab",
-        "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-024db9f7"
+        "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-25a44fdb"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-70e0ed421d65-618cd5b83d",
+          "id": "drafter-metadata-70e0ed421d65-618cd5b83d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-2014434d3e36-b335630551",
+          "id": "drafter-readme-2014434d3e36-b335630551",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "dflash2-figure-6d8dcc9a9472-e520c8f797",
+          "id": "drafter-dflash2-figure-6d8dcc9a9472-e520c8f797",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "config-c4aeac010119-587cb980af",
+          "id": "drafter-config-c4aeac010119-587cb980af",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-b038e1d9d1e7-9d75c1098f",
+          "id": "drafter-model-b038e1d9d1e7-9d75c1098f",
+          "mount": {
+            "read_only": true,
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "dependency-glm-5-3-flash-dflash2-bf582e4e",
+      "model": {
+        "content_sha256": "ff9a00c5ea74761b0417e90e63211fde544e4b37fec85030c7174ac25f444cd7",
+        "kind": "model",
+        "publisher": "incoai",
+        "slug": "glm-5-3-flash-dflash2-bf582e4e"
       }
     }
   ],
@@ -1805,10 +1883,42 @@
       "vLLM contributors"
     ],
     "source_kind": "global",
-    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/493cb88fc69f8ba73ac87404f429d763e2739d89"
+    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/3021f24c88a0904c768c46ff22a508407e31360a"
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "The authored runtime now carries EXL3 quantization, the vendored multimodal chat template, and the source-backed CUDA graph capture sizes. The placement-only wrapper preserves these and all explicit or opaque engine arguments.",
+            "kind": "runtime",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/3021f24c88a0904c768c46ff22a508407e31360a"
+            ],
+            "summary": "Move EXL3 engine defaults into the authored Recipe."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-06",
+        "upgrade_effect": "restart",
+        "version": "1.4.1"
+      },
+      {
+        "changes": [
+          {
+            "details": "Rebuilds from MiaAI-Lab's complete public 3021f24 Dockerfile, overlay, test, launcher, and license source on the digest-pinned vLLM CUDA 13 base. The Controller wrapper translates the current two-rank worker-first launch without SSH: 1M context, max-num-seqs 4, 7168 batched tokens, FP8 sparse-MLA KV, CUDA graphs, and DFlash2 K7.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/3021f24c88a0904c768c46ff22a508407e31360a"
+            ],
+            "summary": "Ported the current public EXL3 source build and launcher profile."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-06",
+        "upgrade_effect": "rebuild",
+        "version": "1.4.0"
+      },
       {
         "changes": [
           {
@@ -1928,8 +2038,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "1.3.2"
+    "released_at": "2026-09-06",
+    "version": "1.4.1"
   },
   "runtime": {
     "arguments": [
@@ -1947,6 +2057,16 @@
         "name": "tensor-parallel-size",
         "setting": null,
         "value": 2
+      },
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "exl3"
+      },
+      {
+        "name": "chat-template",
+        "setting": null,
+        "value": "/opt/glm53/chat_template.jinja"
       },
       {
         "name": "pipeline-parallel-size",
@@ -1971,12 +2091,17 @@
       {
         "name": "max-num-batched-tokens",
         "setting": null,
-        "value": 2048
+        "value": 7168
       },
       {
         "name": "kv-cache-dtype",
         "setting": null,
         "value": "fp8"
+      },
+      {
+        "name": "compilation-config",
+        "setting": null,
+        "value": "{\"cudagraph_capture_sizes\":[1,2,4,8,16,24,32]}"
       },
       {
         "name": "speculative-config",
@@ -2203,7 +2328,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 178058315451,
+            "artifact_bytes": 180400776148,
             "cache_bytes": 40000000000,
             "image_bytes": 30000000000,
             "rollback_bytes": 0,
@@ -2225,7 +2350,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 178058315451,
+            "artifact_bytes": 180400776148,
             "cache_bytes": 40000000000,
             "image_bytes": 30000000000,
             "rollback_bytes": 0,

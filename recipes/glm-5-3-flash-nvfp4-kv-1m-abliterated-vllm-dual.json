@@ -1598,6 +1598,22 @@
       {
         "changes": [
           {
+            "details": "The B12X attention backend is now authored by the Recipe while the placement-only wrapper preserves explicit engine and opaque arguments.",
+            "kind": "runtime",
+            "references": [
+              "https://github.com/drowzeys/keys-vllm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated/tree/c36b5958412158a69629e7fbed321312e6d0761d"
+            ],
+            "summary": "Move the B12X runtime default into the authored Recipe."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-06",
+        "upgrade_effect": "restart",
+        "version": "1.1.5"
+      },
+      {
+        "changes": [
+          {
             "details": "The current Drowzeys weight page identifies keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45 as the replacement/redirect destination for earlier IDs. This specialized recipe deliberately retains d7f8afa81e62c156446fda43304d704563622590 and its f722ec19d8260833e948d5bf46949d9ac574841860060caa24213cf550d1a41 base: the retained artifact is the withdrawn, inventory-incomplete L15-45 NVFP4-KV B12X 1M profile, while the replacement is a complete compressed-tensors L15-43/MTP-L45 checkpoint with a different 32-file layout and 262K context. Replacing the model would therefore be a runtime and artifact change, not a weight-ID-only rename; the authenticated 13-file inventory and a dedicated 1M KV canary are still required.",
             "kind": "compatibility",
             "references": [
@@ -1702,8 +1718,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.1.4"
+    "released_at": "2026-09-06",
+    "version": "1.1.5"
   },
   "runtime": {
     "arguments": [
@@ -1771,6 +1787,11 @@
         "name": "moe-backend",
         "setting": null,
         "value": "marlin"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "B12X_MLA_SPARSE"
       },
       {
         "name": "speculative-config",

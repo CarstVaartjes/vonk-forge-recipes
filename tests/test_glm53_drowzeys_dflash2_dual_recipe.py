@@ -22,9 +22,28 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
         recipe = load(RECIPE)
         self.assertEqual(recipe["topology"]["node_count"], 2)
         self.assertEqual(recipe["topology"]["parallelism"]["backend"], "mp")
-        self.assertEqual(len(recipe["models"]), 1)
+        self.assertEqual(len(recipe["models"]), 2)
         self.assertTrue({"candidate", "executable"} <= set(recipe["metadata"]["tags"]))
         self.assertNotIn("accepted", recipe["metadata"]["tags"])
+        drafter = next(
+            selection
+            for selection in recipe["models"]
+            if selection["id"] == "dependency-glm-5-3-flash-dflash2-bf582e4e"
+        )
+        self.assertEqual(
+            {file["file_id"] for file in drafter["files"]},
+            {
+                "metadata-70e0ed421d65-618cd5b83d",
+                "readme-2014434d3e36-b335630551",
+                "dflash2-figure-6d8dcc9a9472-e520c8f797",
+                "config-c4aeac010119-587cb980af",
+                "model-b038e1d9d1e7-9d75c1098f",
+            },
+        )
+        self.assertEqual(
+            {file["mount"]["target"] for file in drafter["files"]},
+            {"/models/drafter"},
+        )
 
     def test_exact_serving_profile_and_thinking_off_contract(self) -> None:
         recipe = load(RECIPE)
@@ -41,7 +60,7 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
         self.assertEqual(build["base_image"]["digest"], "4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6")
         self.assertEqual(build["context"]["path"], "adapters/glm/tonyd2wild-dflash2-dual")
         for role in recipe["topology"]["roles"]:
-            self.assertEqual(role["resources"]["disk"]["artifact_bytes"], 200_223_714_003)
+            self.assertEqual(role["resources"]["disk"]["artifact_bytes"], 202_566_174_700)
             self.assertEqual(role["resources"]["memory"]["startup_peak_bytes"], 126_000_000_000)
         dockerfile = (ADAPTER / "Dockerfile").read_text()
         self.assertIn('org.opencontainers.image.revision="3eef46632c45ffb6c397de0716c23b3d2d594798"', dockerfile)
@@ -68,7 +87,7 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
 
     def test_runtime_refresh_is_bound_to_current_upstream_profile(self) -> None:
         recipe = load(RECIPE)
-        self.assertEqual(recipe["release"]["version"], "1.0.5")
+        self.assertEqual(recipe["release"]["version"], "1.0.6")
         self.assertEqual(recipe["release"]["history"][0]["upgrade_effect"], "restart")
         self.assertIn(
             "050081dc41ce6edd4d3f15fa19dc3410ba4210e3",

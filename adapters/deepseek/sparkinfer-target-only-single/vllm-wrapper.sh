@@ -14,6 +14,7 @@ require_value() {
 [[ $# -ge 2 ]] || die "expected the hydrated model path"
 model_source=$2
 shift 2
+authored_args=("$@")
 
 served_model_name=
 host=
@@ -49,7 +50,8 @@ while (($#)); do
     --enable-prefix-caching)
       prefix_cache=1; shift ;;
     *)
-      die "unsupported harness argument: $1" ;;
+      # Profile validation is separate from the exact argv forwarded below.
+      shift ;;
   esac
 done
 
@@ -127,4 +129,4 @@ export VLLM_NO_USAGE_STATS=1
 export VLLM_USE_BREAKABLE_CUDAGRAPH=0
 export XDG_CACHE_HOME=${cache_dir}
 
-exec /opt/vllm/serve-ds4-flash.sh
+exec /opt/vllm/serve-ds4-flash.sh "${authored_args[@]}"

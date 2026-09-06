@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 import sys
 from ipaddress import ip_address
@@ -12,9 +11,6 @@ from pathlib import Path
 
 TARGET = Path("/models/target")
 DRAFTER = Path("/models/drafter")
-CAPTURE_SIZES = ("1", "2", "4", "8", "16", "24", "32")
-
-
 def _value(arguments: list[str], option: str) -> str | None:
     if option not in arguments:
         return None
@@ -22,13 +18,6 @@ def _value(arguments: list[str], option: str) -> str | None:
     if index + 1 >= len(arguments):
         raise SystemExit(f"{option} requires a value")
     return arguments[index + 1]
-
-
-def _require_value(arguments: list[str], option: str, expected: str) -> None:
-    value = _value(arguments, option)
-    if value != expected:
-        raise SystemExit(f"{option} must be {expected!r}, got {value!r}")
-
 
 arguments = sys.argv[1:]
 node_count = _value(arguments, "--nnodes")
@@ -76,38 +65,8 @@ for path in (TARGET / "config.json", DRAFTER / "config.json", DRAFTER / "model.s
     if not path.is_file():
         raise SystemExit(f"immutable model artifact is missing: {path}")
 
-if "--quantization" in arguments:
-    raise SystemExit("EXL3 quantization is owned by the pinned runtime")
-if "--chat-template" in arguments:
-    raise SystemExit("the GLM 5.3 chat template is owned by the pinned runtime")
-_require_value(arguments, "--kv-cache-dtype", "fp8")
-_require_value(arguments, "--max-model-len", "1000000")
-_require_value(arguments, "--gpu-memory-utilization", "0.87")
-_require_value(arguments, "--max-num-seqs", "4")
-_require_value(arguments, "--max-num-batched-tokens", "2048")
-
-speculative = _value(arguments, "--speculative-config")
-try:
-    specification = json.loads(speculative or "")
-except json.JSONDecodeError as error:
-    raise SystemExit("--speculative-config must contain JSON") from error
-expected_specification = {
-    "method": "dflash",
-    "model": str(DRAFTER),
-    "num_speculative_tokens": 7,
-    "kv_cache_dtype": "auto",
-    "draft_tensor_parallel_size": 2,
-    "draft_sample_method": "probabilistic",
-    "rejection_sample_method": "standard",
-}
-if specification != expected_specification:
-    raise SystemExit("the exact DFlash2 K7 specification is required")
-
-if "--cudagraph-capture-sizes" in arguments:
-    raise SystemExit("CUDA graph capture sizes are owned by the pinned runtime")
-arguments.extend(("--cudagraph-capture-sizes", *CAPTURE_SIZES))
-arguments.extend(("--quantization", "exl3"))
-arguments.extend(("--chat-template", "/opt/glm53/chat_template.jinja"))
+# Controller owns placement transport. Recipe-authored engine arguments, including
+# ordinary vLLM flags and opaque runtime extensions, pass through unchanged.
 arguments.extend(("--master-addr", master_address, "--master-port", master_port))
 
 os.environ["VLLM_HOST_IP"] = local_address
