@@ -82,12 +82,20 @@ class GlmWrapperArgvTests(unittest.TestCase):
                 authored_engine = authored_engine[:placement_start] + authored_engine[placement_start + 6 :]
                 captured: list[tuple[str, ...]] = []
 
-                def fake_execv(path: str, argv: tuple[str, ...]) -> None:
+                def fake_execv(
+                    path: str, argv: tuple[str, ...], captured: list[tuple[str, ...]] = captured
+                ) -> None:
                     captured.append(argv)
                     raise StopExec
 
-                def fake_run(*args: object, **kwargs: object) -> subprocess.CompletedProcess[str]:
-                    return subprocess.CompletedProcess(args, 0, stdout=f"VONK_ALIVE={recipe['topology']['node_count']}\n")
+                def fake_run(
+                    *args: object,
+                    _recipe: dict = recipe,
+                    **kwargs: object,
+                ) -> subprocess.CompletedProcess[str]:
+                    return subprocess.CompletedProcess(
+                        args, 0, stdout=f"VONK_ALIVE={_recipe['topology']['node_count']}\n"
+                    )
 
                 env = {
                     "VONK_LOCAL_ADDR": "10.0.0.1",
@@ -105,21 +113,22 @@ class GlmWrapperArgvTests(unittest.TestCase):
                         return '{"text_config":{"index_topk":2048}}'
                     return ""
 
-                with patch.object(sys, "argv", [wrapper, *authored]), patch.dict(
-                    os.environ, env, clear=False
-                ), patch("os.execv", side_effect=fake_execv), patch(
-                    "os.path.isfile", return_value=True
-                ), patch("pathlib.Path.is_file", return_value=True), patch(
-                    "os.access", return_value=True
-                ), patch("subprocess.run", side_effect=fake_run), patch.object(
-                    Path, "rglob", return_value=[]
-                ), patch.object(Path, "mkdir"), patch.object(
-                    Path, "write_text"
-                ), patch.object(Path, "replace"), patch.object(
-                    Path, "read_text", new=fake_read_text
+                with (
+                    patch.object(sys, "argv", [wrapper, *authored]),
+                    patch.dict(os.environ, env, clear=False),
+                    patch("os.execv", side_effect=fake_execv),
+                    patch("os.path.isfile", return_value=True),
+                    patch("pathlib.Path.is_file", return_value=True),
+                    patch("os.access", return_value=True),
+                    patch("subprocess.run", side_effect=fake_run),
+                    patch.object(Path, "rglob", return_value=[]),
+                    patch.object(Path, "mkdir"),
+                    patch.object(Path, "write_text"),
+                    patch.object(Path, "replace"),
+                    patch.object(Path, "read_text", new=fake_read_text),
+                    self.assertRaises(StopExec),
                 ):
-                    with self.assertRaises(StopExec):
-                        runpy.run_path(str(ROOT / wrapper))
+                    runpy.run_path(str(ROOT / wrapper))
 
                 self.assertEqual(len(captured), 1)
                 final = list(captured[0][1:])

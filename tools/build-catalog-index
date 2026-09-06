@@ -4,18 +4,16 @@
 from __future__ import annotations
 
 import argparse
-import base64
 import gzip
 import hashlib
 import io
 import json
 import re
-import sys
 import subprocess
-import tempfile
+import sys
 import tarfile
-from pathlib import Path
-from pathlib import PurePosixPath
+import tempfile
+from pathlib import Path, PurePosixPath
 
 REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 ROOT = Path(__file__).resolve().parents[1]
@@ -149,7 +147,11 @@ def _recorded_source_commit() -> str:
     if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{40}", value):
         raise SystemExit("catalog-index.json does not record a full source commit")
     try:
-        result = subprocess.run(["git", "merge-base", "--is-ancestor", value, "HEAD"], cwd=ROOT)
+        result = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", value, "HEAD"],
+            cwd=ROOT,
+            check=False,
+        )
     except (OSError, subprocess.CalledProcessError) as error:
         raise SystemExit("catalog source commit is not an ancestor of the current checkout") from error
     if result.returncode != 0:
@@ -234,16 +236,17 @@ def _recipe_closure(recipe: dict[str, object], recipe_path: Path, entities: dict
 
 def _archive(files: list[tuple[str, bytes]]) -> bytes:
     stream = io.BytesIO()
-    with gzip.GzipFile(fileobj=stream, mode="wb", mtime=0) as compressed:
-        with tarfile.open(fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT) as archive:
-            for name, payload in files:
-                member = tarfile.TarInfo(name)
-                member.size = len(payload)
-                member.mode = 0o644
-                member.uid = member.gid = 0
-                member.uname = member.gname = ""
-                member.mtime = 0
-                archive.addfile(member, io.BytesIO(payload))
+    with gzip.GzipFile(fileobj=stream, mode="wb", mtime=0) as compressed, tarfile.open(
+        fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT
+    ) as archive:
+        for name, payload in files:
+            member = tarfile.TarInfo(name)
+            member.size = len(payload)
+            member.mode = 0o644
+            member.uid = member.gid = 0
+            member.uname = member.gname = ""
+            member.mtime = 0
+            archive.addfile(member, io.BytesIO(payload))
     return stream.getvalue()
 
 

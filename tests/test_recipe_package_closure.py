@@ -1,17 +1,15 @@
 from __future__ import annotations
 
-import io
-import json
 import gzip
 import hashlib
+import io
+import json
 import runpy
 import tarfile
 from pathlib import Path
 
 import pytest
-
 from vonk_forge_contracts import RecipeDefinition, content_sha256
-
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
@@ -42,13 +40,14 @@ def _rewrite(payload: bytes, names: list[tuple[str, bytes]], *, repair_manifest:
         ]
         names = [("manifest.json", json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()), *names]
     output = io.BytesIO()
-    with gzip.GzipFile(fileobj=output, mode="wb", mtime=0) as compressed:
-        with tarfile.open(fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT) as archive:
-            for name, body in names:
-                info = tarfile.TarInfo(name)
-                info.size = len(body)
-                info.mode = 0o644
-                archive.addfile(info, io.BytesIO(body))
+    with gzip.GzipFile(fileobj=output, mode="wb", mtime=0) as compressed, tarfile.open(
+        fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT
+    ) as archive:
+        for name, body in names:
+            info = tarfile.TarInfo(name)
+            info.size = len(body)
+            info.mode = 0o644
+            archive.addfile(info, io.BytesIO(body))
     return output.getvalue()
 
 
@@ -145,20 +144,22 @@ def test_archive_rejects_missing_model_source_and_fixture(tmp_path: Path) -> Non
 
 def _rewrite_member(payload: bytes, target: str, *, member_type: bytes | None = None, body: bytes | None = None) -> bytes:
     output = io.BytesIO()
-    with gzip.GzipFile(fileobj=output, mode="wb", mtime=0) as compressed:
-        with tarfile.open(fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT) as archive:
-            with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as source:
-                for member in source.getmembers():
-                    data = source.extractfile(member).read() if member.isreg() else None
-                    if member.name == target and member_type is not None:
-                        member.type = member_type
-                        member.linkname = "recipe.json"
-                        member.size = 0
-                        data = None
-                    elif member.name == target and body is not None:
-                        data = body
-                        member.size = len(body)
-                    archive.addfile(member, io.BytesIO(data) if data is not None else None)
+    with (
+        gzip.GzipFile(fileobj=output, mode="wb", mtime=0) as compressed,
+        tarfile.open(fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT) as archive,
+        tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as source,
+    ):
+        for member in source.getmembers():
+            data = source.extractfile(member).read() if member.isreg() else None
+            if member.name == target and member_type is not None:
+                member.type = member_type
+                member.linkname = "recipe.json"
+                member.size = 0
+                data = None
+            elif member.name == target and body is not None:
+                data = body
+                member.size = len(body)
+            archive.addfile(member, io.BytesIO(data) if data is not None else None)
     return output.getvalue()
 
 
