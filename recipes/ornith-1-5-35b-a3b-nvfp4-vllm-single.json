@@ -37,7 +37,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate single-Spark vLLM profile for Ornith 1.5 35B-A3B NVFP4. It binds the exact quantized checkpoint, official vLLM 0.27.1 ARM64 runtime, ModelOpt mixed NVFP4/FP8 execution, MTP-3 speculative decoding, 262K context, and OpenAI reasoning/tool parsing; physical Spark acceptance remains pending.",
+    "description": "Executable Candidate single-Spark vLLM profile for Ornith 1.5 35B-A3B NVFP4. It binds the exact quantized 94e431d9 checkpoint, official vLLM 0.27.1 ARM64 runtime, ModelOpt mixed NVFP4/FP8 execution, MTP-3 speculative decoding, 262K context, and OpenAI reasoning/tool parsing; physical Spark acceptance remains pending.",
     "tags": [
       "executable",
       "candidate",
@@ -59,8 +59,8 @@
     {
       "files": [
         {
-          "file_id": "metadata-8342fc1e4d71-618cd5b83d",
-          "id": "primary-metadata-8342fc1e4d71-618cd5b83d",
+          "file_id": "file--c72cd14e9557-618cd5b83d",
+          "id": "primary-file--c72cd14e9557-618cd5b83d",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -70,8 +70,8 @@
           ]
         },
         {
-          "file_id": "file--quant-summary-9660f36ad241-e17ab81a0d",
-          "id": "primary-file--quant-summary-9660f36ad241-e17ab81a0d",
+          "file_id": "file--quant-summary-53ad6a368188-e17ab81a0d",
+          "id": "primary-file--quant-summary-53ad6a368188-e17ab81a0d",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -81,8 +81,8 @@
           ]
         },
         {
-          "file_id": "metadata-d790a1d453a7-04dcd99eb1",
-          "id": "primary-metadata-d790a1d453a7-04dcd99eb1",
+          "file_id": "file--d790a1d453a7-04dcd99eb1",
+          "id": "primary-file--d790a1d453a7-04dcd99eb1",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -92,8 +92,8 @@
           ]
         },
         {
-          "file_id": "readme-072ccf0efbf7-b335630551",
-          "id": "primary-readme-072ccf0efbf7-b335630551",
+          "file_id": "readme-a4f67cd2a7b7-b335630551",
+          "id": "primary-readme-a4f67cd2a7b7-b335630551",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -136,8 +136,8 @@
           ]
         },
         {
-          "file_id": "config-4b12527ba7cc-587cb980af",
-          "id": "primary-config-4b12527ba7cc-587cb980af",
+          "file_id": "config-319ee1293a27-587cb980af",
+          "id": "primary-config-319ee1293a27-587cb980af",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -180,8 +180,8 @@
           ]
         },
         {
-          "file_id": "model-00001-of-00003-3fd2238ccda4-5ad6951325",
-          "id": "primary-model-00001-of-00003-3fd2238ccda4-5ad6951325",
+          "file_id": "model-00001-of-00003-648fe8317148-5ad6951325",
+          "id": "primary-model-00001-of-00003-648fe8317148-5ad6951325",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -191,8 +191,8 @@
           ]
         },
         {
-          "file_id": "model-00002-of-00003-e66cc8cc37c4-b421ec05d0",
-          "id": "primary-model-00002-of-00003-e66cc8cc37c4-b421ec05d0",
+          "file_id": "model-00002-of-00003-cb5c5978721a-b421ec05d0",
+          "id": "primary-model-00002-of-00003-cb5c5978721a-b421ec05d0",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -202,8 +202,8 @@
           ]
         },
         {
-          "file_id": "model-00003-of-00003-5724de7de4b8-c5bdb3d6ec",
-          "id": "primary-model-00003-of-00003-5724de7de4b8-c5bdb3d6ec",
+          "file_id": "model-00003-of-00003-8303cef7d375-c5bdb3d6ec",
+          "id": "primary-model-00003-of-00003-8303cef7d375-c5bdb3d6ec",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -213,8 +213,8 @@
           ]
         },
         {
-          "file_id": "model-safetensors-index-c9bfd574cc1d-0a05be8238",
-          "id": "primary-model-safetensors-index-c9bfd574cc1d-0a05be8238",
+          "file_id": "model-safetensors-index-52af7e400d01-0a05be8238",
+          "id": "primary-model-safetensors-index-52af7e400d01-0a05be8238",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -292,10 +292,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "8591882c4af50b7a01d82cb34f8f5057b2bd29ab62bf72e0a7d2b40ec907f43b",
+        "content_sha256": "6f84dcc0210d3010bb0f5342bc1509911a865a07ba9164109a9234a27de6aae7",
         "kind": "model",
         "publisher": "ornith-ai",
-        "slug": "ornith-1-5-35b-a3b-nvfp4-9660379a"
+        "slug": "ornith-1-5-35b-a3b-nvfp4-94e431d9"
       }
     }
   ],
@@ -304,10 +304,26 @@
       "ornith-ai"
     ],
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4/tree/9660379a2f2c429c465eeed2f3a0f2433fc4381e"
+    "source_reference": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4/tree/94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa"
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "Updated the immutable model snapshot from 9660379a2f2c429c465eeed2f3a0f2433fc4381e to 94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa; refreshed every selected file hash and size from the complete public HF tree, including the three NVFP4 shards and runtime configuration files.",
+            "kind": "runtime",
+            "references": [
+              "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4/tree/94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa"
+            ],
+            "summary": "Refresh the Ornith NVFP4 checkpoint to the current upstream snapshot."
+          }
+        ],
+        "prior_recipe_content_sha256": "68b547e750c540eef19be7a0270d49b46c2e769e84728080e9ec6cfe04c84715",
+        "released_at": "2026-09-05",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.2"
+      },
       {
         "changes": [
           {
@@ -337,8 +353,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "1.0.1"
+    "released_at": "2026-09-05",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [

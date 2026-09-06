@@ -22,6 +22,9 @@
             },
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             }
           ],
           "title": "Value"
@@ -105,6 +108,9 @@
           "type": "boolean"
         },
         {
+          "type": "number"
+        },
+        {
           "items": {
             "$ref": "#/$defs/JsonValue"
           },
@@ -183,6 +189,9 @@
               },
               {
                 "type": "boolean"
+              },
+              {
+                "type": "number"
               }
             ]
           },
@@ -942,7 +951,7 @@
         "pre_start": {
           "items": {
             "items": {
-              "maxLength": 4096,
+              "maxLength": 65536,
               "minLength": 1,
               "type": "string"
             },
@@ -957,7 +966,7 @@
         "post_stop": {
           "items": {
             "items": {
-              "maxLength": 4096,
+              "maxLength": 65536,
               "minLength": 1,
               "type": "string"
             },
@@ -1556,7 +1565,7 @@
         },
         "entrypoint": {
           "items": {
-            "maxLength": 4096,
+            "maxLength": 65536,
             "minLength": 1,
             "type": "string"
           },
@@ -1601,26 +1610,21 @@
         "name": {
           "maxLength": 64,
           "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
           "title": "Name",
           "type": "string"
         },
         "value": {
           "anyOf": [
             {
-              "type": "string"
-            },
-            {
-              "type": "integer"
-            },
-            {
-              "type": "boolean"
+              "$ref": "#/$defs/RuntimeArgumentValue"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "title": "Value"
+          "description": "A literal process value; null is reserved for the setting-bound placeholder."
         },
         "setting": {
           "anyOf": [
@@ -1663,6 +1667,9 @@
             },
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             },
             {
               "type": "null"
@@ -1735,6 +1742,9 @@
             },
             {
               "type": "boolean"
+            },
+            {
+              "type": "number"
             }
           ],
           "title": "Value"
@@ -1959,6 +1969,34 @@
       ],
       "title": "RecipeValidationCheck",
       "type": "object"
+    },
+    "RuntimeArgumentValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        }
+      ]
     }
   },
   "additionalProperties": false,

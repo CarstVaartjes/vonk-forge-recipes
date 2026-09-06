@@ -1,0 +1,12 @@
+Qwen3.8-Flash-Next-Dual-DGX-Sparks adapter attribution
+
+Upstream source: https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks
+Revision: c2325b22602b51a5faf55fc2bebccc34f3f80b9f
+License: GNU Affero General Public License, version 3 or later (see LICENSE.upstream).
+The upstream LICENSE blob is be3f7b28e564e7dd05eaf59d64adba1a4065ac0e.
+
+The vendored compatibility sources preserve the upstream MiaAI-Lab attribution
+and the source-specific third-party credit in patch_qsa_fp8_kv.py. The QSA
+FP8-KV approach is credited there to lancelind/qwen3.8-Flash-DGX under
+Apache-2.0. The base vLLM OCI image and the referenced model have separate
+license terms recorded by their publishers and in the Recipe/Model metadata.

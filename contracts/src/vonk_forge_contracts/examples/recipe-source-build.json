@@ -92,7 +92,23 @@
     "version": "1.0.0"
   },
   "runtime": {
-    "arguments": [],
+    "arguments": [
+      {
+        "name": "unknown-option",
+        "value": "value with spaces; $HOME/Δ and {json}"
+      },
+      {
+        "name": "structured_option",
+        "value": {
+          "enabled": true,
+          "items": [
+            "a",
+            3,
+            0.25
+          ]
+        }
+      }
+    ],
     "engine": "vllm",
     "entrypoint": [
       "vllm",

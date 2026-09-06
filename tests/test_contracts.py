@@ -21,7 +21,14 @@ from vonk_forge_contracts import (
     model_json_schema,
     recipe_json_schema,
 )
-from vonk_forge_contracts.recipe import RecipeJobServingRequest
+from vonk_forge_contracts.recipe import (
+    MAX_RUNTIME_ARGV_TOKEN_BYTES,
+    RecipeJobServingRequest,
+    RecipeLifecycle,
+    RecipeRuntime,
+    RecipeRuntimeArgument,
+    _runtime_argument_tokens,
+)
 from vonk_forge_contracts.resolver import (
     validate_model_references,
     validate_recipe_models,
@@ -141,6 +148,99 @@ def test_runtime_settings_are_checked_against_the_active_settings_variant() -> N
     job["runtime"]["arguments"] = [{"name": "context", "setting": "context_tokens"}]
     with pytest.raises(ValidationError, match="unknown setting"):
         RecipeDefinition.model_validate(job)
+
+
+def test_runtime_arguments_preserve_unfamiliar_names_values_and_order() -> None:
+    arguments = [
+        {"name": "unknown-option", "value": "value with spaces; $HOME/Δ and {json}"},
+        {"name": "unknown-option", "value": "second occurrence"},
+        {"name": "structured_option", "value": {"enabled": True, "items": ["a", 3, 0.25]}},
+        {"name": "another-option", "value": [False, {"nested": "unchanged"}]},
+    ]
+    parsed = [RecipeRuntimeArgument.model_validate(argument) for argument in arguments]
+    assert [argument.name for argument in parsed] == [argument["name"] for argument in arguments]
+    assert [argument.model_dump(mode="json") for argument in parsed] == [
+        {**argument, "setting": None} for argument in arguments
+    ]
+
+
+def test_runtime_arguments_reject_nul_nonfinite_and_unbounded_values() -> None:
+    with pytest.raises(ValidationError, match="NUL"):
+        RecipeRuntimeArgument.model_validate({"name": "--bad\x00name", "value": "ok"})
+    for name in ("unknown option", "unknown.option", "--unknown"):
+        with pytest.raises(ValidationError):
+            RecipeRuntimeArgument.model_validate({"name": name, "value": "ok"})
+    with pytest.raises(ValidationError, match="NUL"):
+        RecipeRuntimeArgument.model_validate({"name": "--bad", "value": {"key": "bad\x00value"}})
+    with pytest.raises(ValidationError, match="finite"):
+        RecipeRuntimeArgument.model_validate({"name": "--bad", "value": float("inf")})
+    with pytest.raises(ValidationError, match="maximum nesting"):
+        RecipeRuntimeArgument.model_validate({"name": "--bad", "value": [[[[[[[[["deep"]]]]]]]]]})
+    with pytest.raises(ValidationError, match="maximum UTF-8 size"):
+        RecipeRuntimeArgument.model_validate({"name": "--bad", "value": ["x" * 4096] * 20})
+
+
+def test_runtime_argument_null_placeholder_and_boolean_or_empty_rendering() -> None:
+    with pytest.raises(ValidationError, match="exactly one"):
+        RecipeRuntimeArgument.model_validate({"name": "literal-null", "value": None})
+    setting = RecipeRuntimeArgument.model_validate(
+        {"name": "context", "value": None, "setting": "context_tokens"}
+    )
+    assert _runtime_argument_tokens(setting) == ["--context"]
+    assert _runtime_argument_tokens(RecipeRuntimeArgument.model_validate({"name": "enabled", "value": True})) == ["--enabled"]
+    assert _runtime_argument_tokens(RecipeRuntimeArgument.model_validate({"name": "disabled", "value": False})) == []
+    assert _runtime_argument_tokens(RecipeRuntimeArgument.model_validate({"name": "empty", "value": ""})) == ["--empty", ""]
+    assert _runtime_argument_tokens(
+        RecipeRuntimeArgument.model_validate({"name": "json", "value": {"z": 1, "a": "x"}})
+    ) == ["--json", '{"a":"x","z":1}']
+
+
+def test_runtime_argument_utf8_and_rendered_argv_boundaries() -> None:
+    exact = "é" * (MAX_RUNTIME_ARGV_TOKEN_BYTES // len("é".encode()))
+    assert len(exact.encode("utf-8")) == MAX_RUNTIME_ARGV_TOKEN_BYTES
+    assert RecipeRuntimeArgument.model_validate({"name": "utf8", "value": exact}).value == exact
+    with pytest.raises(ValidationError, match="maximum UTF-8 size"):
+        RecipeRuntimeArgument.model_validate({"name": "utf8", "value": exact + "é"})
+
+    arguments = [
+        {"name": f"option-{index}", "value": "x" * MAX_RUNTIME_ARGV_TOKEN_BYTES}
+        for index in range(15)
+    ]
+    runtime = RecipeRuntime.model_validate(
+        {
+            "engine": "engine",
+            "entrypoint": ["launcher"],
+            "arguments": arguments,
+            "environment": [],
+            "lifecycle": {"pre_start": [], "post_stop": [], "stop_timeout_seconds": 1},
+        }
+    )
+    assert len(runtime.arguments) == 15
+    with pytest.raises(ValidationError, match="maximum rendered size"):
+        RecipeRuntime.model_validate(
+            {
+                "engine": "engine",
+                "entrypoint": ["launcher"],
+                "arguments": [*arguments, {"name": "last", "value": "x" * MAX_RUNTIME_ARGV_TOKEN_BYTES}],
+                "environment": [],
+                "lifecycle": {"pre_start": [], "post_stop": [], "stop_timeout_seconds": 1},
+            }
+        )
+
+
+def test_runtime_argv_allows_shell_punctuation_and_rejects_nul() -> None:
+    lifecycle = RecipeLifecycle.model_validate(
+        {
+            "pre_start": [["launcher", "value with spaces; $HOME/Δ", '{"json": true}']],
+            "post_stop": [],
+            "stop_timeout_seconds": 1,
+        }
+    )
+    assert lifecycle.pre_start == [["launcher", "value with spaces; $HOME/Δ", '{"json": true}']]
+    with pytest.raises(ValidationError, match="NUL"):
+        RecipeLifecycle.model_validate(
+            {"pre_start": [["launcher", "bad\x00value"]], "post_stop": [], "stop_timeout_seconds": 1}
+        )
 
 
 def test_output_cap_requires_a_positive_integer() -> None:
