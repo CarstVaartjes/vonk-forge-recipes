@@ -42,6 +42,16 @@ def test_canonical_canary_is_schema2_and_excluded_from_public_catalog() -> None:
     assert len(public_recipes) == 85
     assert len(public_models) == 92
 
+    fixture_index = json.loads((FIXTURE / "index.json").read_text(encoding="utf-8"))
+    assert fixture_index["schema_version"] == 2
+    assert fixture_index["kind"] == "recipe-library-index"
+    assert len(fixture_index["recipes"]) == 1
+    assert len(fixture_index["catalog_entities"]) == 1
+    assert fixture_index["recipes"][0]["document"]["identity"]["slug"] == recipe.identity.slug
+    assert fixture_index["recipes"][0]["package"]["path"] == (
+        "tests/fixtures/canonical-synthetic-canary/package/canonical-synthetic-canary.tar.gz"
+    )
+
 
 def test_canonical_canary_package_has_exact_source_and_model_closure() -> None:
     model_document, recipe_document, entities = _documents()
