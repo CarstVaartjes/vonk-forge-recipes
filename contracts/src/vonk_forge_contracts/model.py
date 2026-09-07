@@ -21,6 +21,8 @@ from pydantic import (
     model_validator,
 )
 
+from ._schema_version import SchemaVersion
+
 _SLUG = r"^[a-z0-9][a-z0-9-]{1,62}$"
 _TOKEN = r"^[a-z0-9][a-z0-9_-]{0,127}$"
 _SHA256 = r"^[a-f0-9]{64}$"
@@ -245,7 +247,7 @@ class ModelCapabilityProvenance(_ModelContract):
 
 
 class ModelCapabilities(_ModelContract):
-    schema_version: Literal[2] = 2
+    schema_version: SchemaVersion = 2
     facts: list[ModelCapabilityFact] = Field(max_length=64)
     provenance: ModelCapabilityProvenance
 
@@ -273,7 +275,7 @@ class ModelProvenance(_ModelContract):
 class ModelDefinition(_ModelContract):
     """One exact model version and variant, including its complete manifest."""
 
-    schema_version: Literal[2] = 2
+    schema_version: SchemaVersion = 2
     kind: Literal["model"] = "model"
     identity: ModelIdentity
     metadata: ModelMetadata
