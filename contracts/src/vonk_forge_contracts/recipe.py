@@ -22,6 +22,7 @@ from pydantic import (
     model_validator,
 )
 
+from ._schema_version import SchemaVersion
 from .model import ModelReference
 
 
@@ -678,7 +679,7 @@ class RecipeRelease(_RecipeContract):
 class RecipeDefinition(_RecipeContract):
     """The sole public recipe authoring contract."""
 
-    schema_version: Literal[2] = 2
+    schema_version: SchemaVersion = 2
     kind: Literal["recipe"] = "recipe"
     identity: RecipeIdentity
     metadata: RecipeMetadata

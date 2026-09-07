@@ -109,13 +109,48 @@ def test_capability_facts_are_set_semantics_and_normalized() -> None:
 
 def test_model_and_recipe_are_strict_and_reject_wrong_types_or_extra_fields() -> None:
     model = load("model-definition.json")
-    model["schema_version"] = True
-    with pytest.raises(ValidationError):
-        ModelDefinition.model_validate(model)
+    for value in (True, 2.0):
+        model["schema_version"] = value
+        with pytest.raises(ValidationError):
+            ModelDefinition.model_validate(model)
+    model["schema_version"] = 2
+    ModelDefinition.model_validate(model)
     recipe = load("recipe-image.json")
+    for value in (True, 2.0):
+        recipe["schema_version"] = value
+        with pytest.raises(ValidationError):
+            RecipeDefinition.model_validate(recipe)
+    recipe["schema_version"] = 2
+    RecipeDefinition.model_validate(recipe)
     recipe["unexpected"] = "field"
     with pytest.raises(ValidationError):
         RecipeDefinition.model_validate(recipe)
+
+
+def test_nested_capability_schema_version_is_strict() -> None:
+    model = load("model-definition.json")
+    for value in (True, 2.0):
+        model["capabilities"]["schema_version"] = value
+        with pytest.raises(ValidationError):
+            ModelDefinition.model_validate(model)
+    model["capabilities"]["schema_version"] = 2
+    ModelDefinition.model_validate(model)
+
+
+def test_schema_version_is_strict_for_json_numbers_and_booleans() -> None:
+    model = load("model-definition.json")
+    recipe = load("recipe-image.json")
+    for document, contract in ((model, ModelDefinition), (recipe, RecipeDefinition)):
+        for value in (True, 2.0):
+            document["schema_version"] = value
+            with pytest.raises(ValidationError):
+                contract.model_validate_json(json.dumps(document))
+        document["schema_version"] = 2
+        contract.model_validate_json(json.dumps(document))
+
+    model["capabilities"]["schema_version"] = 2.0
+    with pytest.raises(ValidationError):
+        ModelDefinition.model_validate_json(json.dumps(model))
 
 
 def _build_execution() -> dict[str, object]:
