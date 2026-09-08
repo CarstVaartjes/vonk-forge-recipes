@@ -3,19 +3,15 @@ from __future__ import annotations
 import base64
 import copy
 import hashlib
-import struct
 import io
 import json
-import os
 import runpy
+import struct
 import tarfile
-from unittest import SkipTest
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
-PLATFORM_ROOT = Path(os.environ.get("VONK_FORGE_PLATFORM_ROOT", "/opt/vonk-forge"))
 PLATFORM_OWNED_ENVIRONMENT = {
     "FLASHINFER_WORKSPACE_BASE",
     "TILELANG_CACHE_DIR",
@@ -26,18 +22,11 @@ PLATFORM_OWNED_ENVIRONMENT = {
 }
 
 
-def _platform_root() -> Path:
-    if not (PLATFORM_ROOT / "config" / "execution-harnesses").is_dir():
-        raise SkipTest("authoritative Vonk Forge platform checkout is unavailable")
-    return PLATFORM_ROOT
-
-
 def test_full_catalog_packages_are_self_contained_and_deterministic(tmp_path: Path) -> None:
     first_dir = tmp_path / "first"
     second_dir = tmp_path / "second"
-    platform_root = _platform_root()
-    first = TOOL["build"](package_dir=first_dir, platform_root=platform_root)
-    second = TOOL["build"](package_dir=second_dir, platform_root=platform_root)
+    first = TOOL["build"](package_dir=first_dir)
+    second = TOOL["build"](package_dir=second_dir)
     assert first["kind"] == second["kind"] == "recipe-library-index"
     assert first["schema_version"] == second["schema_version"] == 2
     source_models = {
@@ -141,8 +130,7 @@ def test_source_bundle_ignores_generated_python_cache_files(tmp_path: Path) -> N
 
 
 def test_editing_one_recipe_changes_only_that_package(tmp_path: Path) -> None:
-    platform_root = _platform_root()
-    catalog = TOOL["build"](package_dir=tmp_path, platform_root=platform_root)
+    catalog = TOOL["build"](package_dir=tmp_path)
     rows = catalog["recipes"]
     original = {
         Path(str(row["package"]["path"])).name: (
@@ -154,7 +142,6 @@ def test_editing_one_recipe_changes_only_that_package(tmp_path: Path) -> None:
     edited = copy.deepcopy(target["document"])
     edited["metadata"]["description"] += " edited"
     entities = TOOL["_catalog_entity_documents"]()
-    entities.update(TOOL["_platform_harness_documents"](platform_root))
     package_bytes, package = TOOL["recipe_package"](
         edited,
         recipe_path=ROOT / str(target["source_path"]),
@@ -168,17 +155,18 @@ def test_editing_one_recipe_changes_only_that_package(tmp_path: Path) -> None:
 
 
 def test_supplied_source_commit_only_changes_index_metadata(tmp_path: Path) -> None:
-    platform_root = _platform_root()
+    # This field records Git provenance only; package contents do not consume
+    # platform harness files. Use this checkout to exercise revision lookup.
     first_dir = tmp_path / "first"
     second_dir = tmp_path / "second"
     first = TOOL["build"](
         package_dir=first_dir,
-        platform_root=platform_root,
+        platform_root=ROOT,
         source_commit="a" * 40,
     )
     second = TOOL["build"](
         package_dir=second_dir,
-        platform_root=platform_root,
+        platform_root=ROOT,
         source_commit="b" * 40,
     )
     assert first["source_commit"] == "a" * 40
@@ -305,10 +293,7 @@ def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(
 ) -> None:
     """Model weights and image layers remain separately cached artifacts."""
 
-    catalog = TOOL["build"](
-        package_dir=tmp_path,
-        platform_root=_platform_root(),
-    )
+    catalog = TOOL["build"](package_dir=tmp_path)
     payload_suffixes = {
         ".safetensors",
         ".safetensors.index.json",
@@ -338,7 +323,7 @@ def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(
 
 
 def test_ds4_multistage_package_manifests_both_digest_pinned_base_images(tmp_path: Path) -> None:
-    catalog = TOOL["build"](package_dir=tmp_path, platform_root=_platform_root())
+    catalog = TOOL["build"](package_dir=tmp_path)
     row = next(item for item in catalog["recipes"] if item["document"]["identity"]["slug"] == "deepseek-v4-flash-0731-ds4-single")
     with tarfile.open(tmp_path / Path(str(row["package"]["path"])).name, mode="r:gz") as archive:
         manifest = json.load(archive.extractfile("manifest.json"))

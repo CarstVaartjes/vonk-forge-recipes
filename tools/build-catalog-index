@@ -173,13 +173,6 @@ def _catalog_entity_documents() -> dict[str, dict[str, object]]:
     return result
 
 
-def _platform_harness_documents(_platform_root: Path) -> dict[str, dict[str, object]]:
-    # Runtime distributions and harness documents are platform-owned.  They
-    # are intentionally resolved into recipe execution fields and never copied
-    # into an author package.
-    return {}
-
-
 def _safe_file(path: Path) -> bool:
     return path.is_file() and not path.is_symlink() and "__pycache__" not in path.parts and path.suffix != ".pyc"
 
