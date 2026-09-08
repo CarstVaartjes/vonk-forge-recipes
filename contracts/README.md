@@ -54,6 +54,16 @@ Validation has distinct responsibilities:
 
 Generated JSON Schema supports editors and non-Python consumers. It is not a replacement for semantic resolution or running a model. Passing a structural example does not establish physical Spark acceptance.
 
+Optional fields with a `None` default accept omission or explicit `null`;
+omit unused optional fields when sending or authoring a document. Required
+fields must always be present, including `null` when their type allows it.
+Preserve meaningful false, zero, empty values and engine-owned JSON values.
+Use the shared model and canonical serialization helpers for identities, not
+an independent null-removal pass. The platform's wire chain is Pydantic → JSON
+Schema → typify → Rust, with the same model-aware normalization before signing
+or hashing on each side. Round-trip tests must verify actual serialized bytes
+and signatures as well as structural acceptance.
+
 OpenAI checks declare an HTTP request. Container jobs declare filesystem fixture and output-slot bindings; `/outputs` is a directory, not an HTTP endpoint. Tests must exercise representative inference. Health alone is insufficient. Unknown assertions must fail validation, and accepted assertions must be enforced by the executor. Restart and cache reuse belong to the maintainer qualification run.
 
 The examples use synthetic sources and image identities to illustrate the contract; they are not runnable model recommendations.
