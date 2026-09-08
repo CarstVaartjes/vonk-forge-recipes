@@ -14,15 +14,21 @@ from io import BytesIO
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests/fixtures/canonical-synthetic-canary"
 TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
 PACKAGE = FIXTURE / "package/canonical-synthetic-canary.tar.gz"
+ChatRequest = runpy.run_path(str(FIXTURE / "context/request_contract.py"))[
+    "ChatRequest"
+]
 
 
-def _documents() -> tuple[dict[str, object], dict[str, object], dict[str, dict[str, object]]]:
+def _documents() -> tuple[
+    dict[str, object], dict[str, object], dict[str, dict[str, object]]
+]:
     model = json.loads((FIXTURE / "model.json").read_text(encoding="utf-8"))
     model = ModelDefinition.model_validate(model).model_dump(
         mode="json", exclude_unset=False, exclude_none=False
@@ -39,7 +45,9 @@ def test_canonical_canary_is_schema2_and_excluded_from_public_catalog() -> None:
 
     assert model.identity.publisher == recipe.identity.publisher == "vonk-forge-test"
     assert recipe.identity.slug == "canonical-synthetic-canary"
-    assert recipe_document["models"][0]["model"]["content_sha256"] == content_sha256(model)
+    assert recipe_document["models"][0]["model"]["content_sha256"] == content_sha256(
+        model
+    )
     assert recipe.execution.mode == "build"
     model_file = model.files[0]
     assert model_file.path == "configuration.json"
@@ -49,15 +57,22 @@ def test_canonical_canary_is_schema2_and_excluded_from_public_catalog() -> None:
         "https://huggingface.co/Qwen/Qwen3.6-27B/resolve/"
         "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9/configuration.json"
     )
-    assert model_file.sha256 == "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0"
+    assert (
+        model_file.sha256
+        == "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0"
+    )
     assert model_file.size_bytes == 51
     assert recipe.execution.build.base_image.platform == "linux/arm64"
     assert recipe.execution.build.base_image.digest != "0" * 64
     assert recipe.execution.build.base_image.digest != "f" * 64
 
     public_index = json.loads((ROOT / "catalog-index.json").read_text(encoding="utf-8"))
-    public_recipes = {row["document"]["identity"]["slug"] for row in public_index["recipes"]}
-    public_models = {row["document"]["identity"]["slug"] for row in public_index["catalog_entities"]}
+    public_recipes = {
+        row["document"]["identity"]["slug"] for row in public_index["recipes"]
+    }
+    public_models = {
+        row["document"]["identity"]["slug"] for row in public_index["catalog_entities"]
+    }
     assert recipe.identity.slug not in public_recipes
     assert model.identity.slug not in public_models
     fixture_index = json.loads((FIXTURE / "index.json").read_text(encoding="utf-8"))
@@ -65,7 +80,10 @@ def test_canonical_canary_is_schema2_and_excluded_from_public_catalog() -> None:
     assert fixture_index["kind"] == "recipe-library-index"
     assert len(fixture_index["recipes"]) == 1
     assert len(fixture_index["catalog_entities"]) == 1
-    assert fixture_index["recipes"][0]["document"]["identity"]["slug"] == recipe.identity.slug
+    assert (
+        fixture_index["recipes"][0]["document"]["identity"]["slug"]
+        == recipe.identity.slug
+    )
     assert fixture_index["recipes"][0]["package"]["path"] == (
         "tests/fixtures/canonical-synthetic-canary/package/canonical-synthetic-canary.tar.gz"
     )
@@ -123,12 +141,24 @@ def test_canonical_canary_package_has_exact_source_and_model_closure() -> None:
             recipe_name,
             "tests/fixtures/canonical-synthetic-canary/context/Dockerfile",
             "tests/fixtures/canonical-synthetic-canary/context/server.py",
+            "tests/fixtures/canonical-synthetic-canary/context/request_contract.py",
+            "tests/fixtures/canonical-synthetic-canary/context/requirements.txt",
+        } | {
+            path.relative_to(ROOT).as_posix()
+            for path in (FIXTURE / "context/wheels").glob("*.whl")
         }
-        dockerfile = archive.extractfile(
-            "tests/fixtures/canonical-synthetic-canary/context/Dockerfile"
-        ).read().decode()
+        dockerfile = (
+            archive.extractfile(
+                "tests/fixtures/canonical-synthetic-canary/context/Dockerfile"
+            )
+            .read()
+            .decode()
+        )
         assert "USER 10001:10001" in dockerfile
-        assert "@sha256:9bb659dc6d5218917236f3711e866a5634bb4c2f208de9d4533aa4863f57c1d3" in dockerfile
+        assert (
+            "@sha256:9bb659dc6d5218917236f3711e866a5634bb4c2f208de9d4533aa4863f57c1d3"
+            in dockerfile
+        )
 
 
 def test_canonical_canary_server_behaves_without_gpu() -> None:
@@ -138,7 +168,11 @@ def test_canonical_canary_server_behaves_without_gpu() -> None:
         except PermissionError:
             pytest.skip("local sockets are unavailable in this sandbox")
         port = listener.getsockname()[1]
-    environment = {**os.environ, "VONK_LISTEN_HOST": "127.0.0.1", "VONK_LISTEN_PORT": str(port)}
+    environment = {
+        **os.environ,
+        "VONK_LISTEN_HOST": "127.0.0.1",
+        "VONK_LISTEN_PORT": str(port),
+    }
     process = subprocess.Popen(
         [sys.executable, str(FIXTURE / "context/server.py")],
         env=environment,
@@ -150,8 +184,13 @@ def test_canonical_canary_server_behaves_without_gpu() -> None:
         deadline = time.monotonic() + 5
         while True:
             try:
-                with urllib.request.urlopen(f"{base_url}/health", timeout=0.2) as response:
-                    assert json.load(response) == json.loads((FIXTURE / "expected.json").read_text())["health"]
+                with urllib.request.urlopen(
+                    f"{base_url}/health", timeout=0.2
+                ) as response:
+                    assert (
+                        json.load(response)
+                        == json.loads((FIXTURE / "expected.json").read_text())["health"]
+                    )
                 break
             except (OSError, urllib.error.URLError):
                 if time.monotonic() >= deadline:
@@ -160,31 +199,104 @@ def test_canonical_canary_server_behaves_without_gpu() -> None:
         expected = json.loads((FIXTURE / "expected.json").read_text())
         explicit = expected["request"]
         omitted = {key: value for key, value in explicit.items() if key != "stream"}
+        accepted = [
+            explicit,
+            omitted,
+            {**explicit, "stream": None},
+            {**omitted, "max_tokens": None},
+            {key: value for key, value in omitted.items() if key != "max_tokens"},
+            {**explicit, "provider_options": {"future_option": None}},
+        ]
         invalid = [
-            None, [],
-            *({**explicit, "stream": value} for value in (True, None, 0, "false")),
+            None,
+            [],
+            *({**explicit, "stream": value} for value in (0, "false")),
             *({**explicit, "max_tokens": value} for value in (16.0, True, 15, "16")),
             {**explicit, "model": "another-model"},
             {**explicit, "messages": [{"role": "user", "content": "other"}]},
             {**explicit, "messages": [{"role": "assistant", "content": "ping"}]},
             {key: value for key, value in explicit.items() if key != "messages"},
-            {**explicit, "unexpected": None},
         ]
-        for body in (explicit, omitted, *invalid):
+        for body, success in [
+            *((body, True) for body in accepted),
+            *((body, False) for body in invalid),
+        ]:
             request = urllib.request.Request(
                 f"{base_url}/v1/chat/completions",
                 data=json.dumps(body).encode(),
                 headers={"Content-Type": "application/json"},
                 method="POST",
             )
-            if body is explicit or body is omitted:
+            if success:
+                ChatRequest.model_validate(body)
                 with urllib.request.urlopen(request, timeout=2) as response:
                     assert json.load(response) == expected["response"]
             else:
                 with pytest.raises(urllib.error.HTTPError) as rejected:
                     urllib.request.urlopen(request, timeout=2)
                 assert rejected.value.code == 400
-                assert json.load(rejected.value)["error"]["type"] == "invalid_request_error"
+                assert (
+                    json.load(rejected.value)["error"]["type"]
+                    == "invalid_request_error"
+                )
+        stream_request = ChatRequest.model_validate({**explicit, "stream": True})
+        request = urllib.request.Request(
+            f"{base_url}/v1/chat/completions",
+            data=stream_request.model_dump_json().encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(request, timeout=2) as response:
+            assert response.headers.get_content_type() == "text/event-stream"
+            events = [
+                event.removeprefix("data: ")
+                for event in response.read().decode().strip().split("\n\n")
+            ]
+        assert events[-1] == "[DONE]"
+        chunks = [json.loads(event) for event in events[:-1]]
+        assert all(
+            chunk["object"] == "chat.completion.chunk"
+            and chunk["model"] == stream_request.model
+            for chunk in chunks
+        )
+        assert (
+            "".join(chunk["choices"][0]["delta"].get("content", "") for chunk in chunks)
+            == expected["response"]["choices"][0]["message"]["content"]
+        )
+        assert chunks[-1]["choices"][0]["finish_reason"] == "stop"
     finally:
         process.terminate()
         process.wait(timeout=5)
+
+
+def test_request_contract_preserves_extensions_and_separates_structure_from_fixture_content() -> (
+    None
+):
+    body = {
+        "model": "another-model",
+        "messages": [
+            {
+                "role": "assistant",
+                "content": None,
+                "future_message_option": {"value": None},
+            }
+        ],
+        "provider_options": {"custom": True},
+    }
+    request = ChatRequest.model_validate(body)
+    assert request.model_dump()["provider_options"] == body["provider_options"]
+    assert request.messages[0].model_dump()["future_message_option"] == {"value": None}
+    assert request.stream is False and request.max_tokens is None
+    assert ChatRequest.model_validate({**body, "stream": None}).stream is None
+    for invalid in [
+        {"messages": body["messages"]},
+        {"model": body["model"]},
+        {**body, "messages": [{"role": "user"}]},
+        {**body, "messages": [{"role": "user", "content": 1}]},
+        {**body, "messages": "ping"},
+        {**body, "stream": 0},
+        {**body, "max_tokens": True},
+        {**body, "max_tokens": 16.0},
+    ]:
+        with pytest.raises(ValidationError):
+            ChatRequest.model_validate(invalid)
