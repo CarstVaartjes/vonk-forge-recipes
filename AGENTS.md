@@ -44,6 +44,11 @@ keeping old formats usable alongside it.
   user. Do not require location configuration or deny download, installation,
   or execution based on territory. Provider-required access credentials remain
   technical requirements; license decisions belong to the user.
+- Test HTTP fixtures must share typed request definitions between handlers and
+  tests, including explicit required, optional, nullable and extension fields.
+  Do not use raw dictionary equality as a parser. Preserve supported defaults
+  and extensions; keep deterministic test-content assertions separate from
+  structure, and exercise both streaming and non-streaming paths.
 - Run the current producer checks and inspect `git diff --check` before
   committing. Source pins, canonical documents, package contents, digests, and
   generated indexes must agree. Do not omit failing recipes to get a green run.
