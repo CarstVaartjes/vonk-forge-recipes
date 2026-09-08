@@ -5,10 +5,13 @@ import importlib
 import importlib.metadata
 import json
 import os
-import re
 import subprocess
 import tempfile
 from pathlib import Path
+
+from pydantic import ValidationError
+from vonk_agent_protocol.compiled_execution_plan import CompiledExecutionPlan
+from vonk_agent_protocol.job_inputs import RecipeJobInputManifest
 
 MODEL_ROOT = Path("/models")
 INPUT_ROOT = Path("/inputs")
@@ -89,110 +92,25 @@ def _materialized_path(mount_target: str, relative_path: str) -> Path:
 
 def _runtime_artifacts() -> list[dict[str, object]]:
     try:
-        document = json.loads(RUNTIME_SPEC.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
-        raise SystemExit(f"invalid Vonk runtime contract: {error}") from error
-    if not isinstance(document, dict) or document.get("schema_version") != 2:
-        raise SystemExit("Vonk runtime contract must use schema version 2")
-    artifacts = document.get("artifacts")
-    if not isinstance(artifacts, list) or not artifacts:
-        raise SystemExit("Vonk runtime contract has no artifacts")
-    result: list[dict[str, object]] = []
-    identities: set[tuple[str, str]] = set()
-    materialized: set[Path] = set()
-    for artifact in artifacts:
-        allowed = {
-            "id",
-            "selection_id",
-            "file_id",
-            "path",
-            "sha256",
-            "size_bytes",
-            "roles",
-            "mount",
-            "model",
-            "distribution_object",
-        }
-        if not isinstance(artifact, dict) or set(artifact) - allowed:
-            raise SystemExit("Vonk runtime contract artifact is invalid")
-        required = (
-            "selection_id",
-            "file_id",
-            "path",
-            "sha256",
-            "size_bytes",
-            "roles",
-            "mount",
-            "model",
-            "distribution_object",
+        plan = CompiledExecutionPlan.model_validate_json(
+            RUNTIME_SPEC.read_text(encoding="utf-8")
         )
-        if any(key not in artifact for key in required):
-            raise SystemExit("Vonk runtime contract selected file is incomplete")
-        selection_id = artifact["selection_id"]
-        file_id = artifact["file_id"]
-        relative = artifact["path"]
-        digest = artifact["sha256"]
-        size = artifact["size_bytes"]
-        mount = artifact["mount"]
-        model = artifact["model"]
-        receipt = artifact["distribution_object"]
-        if (
-            not isinstance(selection_id, str)
-            or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,255}", selection_id) is None
-            or not isinstance(file_id, str)
-            or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,255}", file_id) is None
-            or not isinstance(relative, str)
-            or not relative
-            or relative.startswith("/")
-            or "\\" in relative
-            or any(part in {"", ".", ".."} for part in relative.split("/"))
-            or not isinstance(digest, str)
-            or re.fullmatch(r"[0-9a-f]{64}", digest) is None
-            or type(size) is not int
-            or size < 0
-            or not isinstance(mount, dict)
-            or not isinstance(mount.get("target"), str)
-            or mount.get("read_only") is not True
-            or set(mount) != {"target", "read_only"}
-            or not isinstance(model, dict)
-            or set(model) != {"publisher", "slug", "content_sha256"}
-            or not isinstance(model.get("content_sha256"), str)
-            or re.fullmatch(r"[0-9a-f]{64}", model["content_sha256"]) is None
-            or not isinstance(receipt, dict)
-            or set(receipt) != {"name", "sha256", "bytes", "kind"}
-            or receipt.get("kind") != "model"
-            or receipt.get("name") != relative
-            or receipt.get("sha256") != digest
-            or receipt.get("bytes") != size
-        ):
-            raise SystemExit("Vonk runtime contract selected file is invalid")
-        target = mount["target"]
-        if (
-            not (target == "/models" or target.startswith("/models/"))
-            or "//" in target
-            or "\\" in target
-            or any(
-                part in {"", ".", ".."} for part in target.removeprefix("/").split("/")
-            )
-        ):
-            raise SystemExit("Vonk model mount target is invalid")
-        identity = (selection_id, file_id)
-        if identity in identities:
-            raise SystemExit("Vonk runtime contract repeats a selected file")
-        path = _materialized_path(target, relative)
+    except (OSError, ValidationError) as error:
+        raise SystemExit(f"invalid Vonk runtime contract: {error}") from error
+    result: list[dict[str, object]] = []
+    for artifact in plan.artifacts:
+        path = _materialized_path(artifact.mount.target, artifact.path)
         try:
             path.resolve(strict=True).relative_to(MODEL_ROOT.resolve())
         except (FileNotFoundError, OSError, ValueError) as error:
             raise SystemExit(
                 "Vonk selected model file escapes the model root"
             ) from error
-        if path in materialized or not path.is_file() or path.is_symlink():
+        if not path.is_file() or path.is_symlink():
             raise SystemExit("Vonk selected model file is not a regular file")
-        if path.stat().st_size != size:
+        if path.stat().st_size != artifact.size_bytes:
             raise SystemExit("Vonk selected model file size changed")
-        identities.add(identity)
-        materialized.add(path)
-        normalized = dict(artifact)
+        normalized = artifact.model_dump(mode="json")
         normalized["materialized_path"] = path
         result.append(normalized)
     return result
@@ -261,10 +179,22 @@ def _link_gemma(root: Path, artifacts: list[dict[str, object]] | None = None) ->
 def _load_prompt() -> str:
     if not INPUT_ROOT.is_dir() or INPUT_ROOT.is_symlink():
         raise SystemExit("/inputs must be a directory containing prompt.txt")
-    entries = list(INPUT_ROOT.iterdir())
-    if len(entries) != 1:
-        raise SystemExit("exactly one regular UTF-8 .txt prompt file is required")
-    prompt_path = entries[0]
+    manifest_path = INPUT_ROOT / "manifest.json"
+    if manifest_path.is_symlink() or not manifest_path.is_file():
+        raise SystemExit("a regular Vonk job input manifest is required")
+    try:
+        manifest = RecipeJobInputManifest.model_validate_json(manifest_path.read_bytes())
+    except (OSError, ValidationError) as error:
+        raise SystemExit(f"invalid Vonk job input manifest: {error}") from error
+    if len(manifest.files) != 1:
+        raise SystemExit("exactly one declared UTF-8 prompt file is required")
+    prompt = manifest.files[0]
+    if prompt.slot != "prompt" or prompt.media_type != "text/plain":
+        raise SystemExit("the prompt slot requires a text/plain input")
+    declared = {prompt.name, "manifest.json"}
+    if {path.name for path in INPUT_ROOT.iterdir()} != declared:
+        raise SystemExit("job input files do not match the manifest")
+    prompt_path = INPUT_ROOT / prompt.name
     if (
         prompt_path.suffix.lower() != ".txt"
         or prompt_path.is_symlink()
@@ -272,6 +202,8 @@ def _load_prompt() -> str:
     ):
         raise SystemExit("exactly one regular UTF-8 .txt prompt file is required")
     size = prompt_path.stat().st_size
+    if size != prompt.size_bytes:
+        raise SystemExit("prompt file size does not match the job manifest")
     if not 1 <= size <= MAX_PROMPT_BYTES:
         raise SystemExit("prompt.txt must contain 1..16384 UTF-8 bytes")
     try:
