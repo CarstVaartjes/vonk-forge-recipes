@@ -43,6 +43,19 @@ EXPECTED_RESPONSE = {
 }
 
 
+def valid_request(payload: object) -> bool:
+    if not isinstance(payload, dict):
+        return False
+    # OpenAI clients may omit the default false streaming flag. All meaningful
+    # fixture inputs remain exact, including JSON integer and boolean types.
+    return (
+        set(payload) in (set(EXPECTED_REQUEST), set(EXPECTED_REQUEST) - {"stream"})
+        and payload.get("stream", False) is False
+        and type(payload.get("max_tokens")) is int
+        and {**payload, "stream": False} == EXPECTED_REQUEST
+    )
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "canonical-synthetic-canary/1.0"
 
@@ -62,7 +75,7 @@ class Handler(BaseHTTPRequestHandler):
             )
         except (ValueError, json.JSONDecodeError):
             payload = None
-        if payload != EXPECTED_REQUEST:
+        if not valid_request(payload):
             self._write_json(
                 400,
                 {
