@@ -4,6 +4,7 @@ WORKDIR /app
 COPY wheels /opt/vonk/wheels
 COPY requirements.txt /opt/vonk/requirements.txt
 RUN python -m pip install --no-index --no-cache-dir --require-hashes --find-links=/opt/vonk/wheels -r /opt/vonk/requirements.txt
+RUN install -d -m 0755 /opt/vonk/bin
 COPY --chmod=0444 request_contract.py /opt/vonk/bin/request_contract.py
 COPY --chmod=0555 server.py /opt/vonk/bin/vllm
 USER 10001:10001
