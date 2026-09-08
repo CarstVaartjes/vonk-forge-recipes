@@ -157,14 +157,34 @@ def test_canonical_canary_server_behaves_without_gpu() -> None:
                 if time.monotonic() >= deadline:
                     raise
                 time.sleep(0.02)
-        request = urllib.request.Request(
-            f"{base_url}/v1/chat/completions",
-            data=json.dumps(json.loads((FIXTURE / "expected.json").read_text())["request"]).encode(),
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        with urllib.request.urlopen(request, timeout=2) as response:
-            assert json.load(response) == json.loads((FIXTURE / "expected.json").read_text())["response"]
+        expected = json.loads((FIXTURE / "expected.json").read_text())
+        explicit = expected["request"]
+        omitted = {key: value for key, value in explicit.items() if key != "stream"}
+        invalid = [
+            None, [],
+            *({**explicit, "stream": value} for value in (True, None, 0, "false")),
+            *({**explicit, "max_tokens": value} for value in (16.0, True, 15, "16")),
+            {**explicit, "model": "another-model"},
+            {**explicit, "messages": [{"role": "user", "content": "other"}]},
+            {**explicit, "messages": [{"role": "assistant", "content": "ping"}]},
+            {key: value for key, value in explicit.items() if key != "messages"},
+            {**explicit, "unexpected": None},
+        ]
+        for body in (explicit, omitted, *invalid):
+            request = urllib.request.Request(
+                f"{base_url}/v1/chat/completions",
+                data=json.dumps(body).encode(),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            if body is explicit or body is omitted:
+                with urllib.request.urlopen(request, timeout=2) as response:
+                    assert json.load(response) == expected["response"]
+            else:
+                with pytest.raises(urllib.error.HTTPError) as rejected:
+                    urllib.request.urlopen(request, timeout=2)
+                assert rejected.value.code == 400
+                assert json.load(rejected.value)["error"]["type"] == "invalid_request_error"
     finally:
         process.terminate()
         process.wait(timeout=5)
