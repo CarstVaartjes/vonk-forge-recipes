@@ -149,6 +149,12 @@ images, although the document/package content digest will change.
 
 ## 5. Validate and exercise the result
 
+HTTP fixtures use the same typed request models in their handlers and tests.
+Declare required, optional, nullable and extension fields explicitly, preserve
+supported defaults and extensions, and keep deterministic content assertions
+separate from structural validation. Raw dictionary equality is not a request
+parser. Exercise both streaming and non-streaming behavior when supported.
+
 Use the current [producer validation workflow](../.github/workflows/validate.yml)
 for the exact commands and dependencies. Use a writable task-specific cache
 for `uv`. Never fall back to older schemas to make a consumer or test pass.
