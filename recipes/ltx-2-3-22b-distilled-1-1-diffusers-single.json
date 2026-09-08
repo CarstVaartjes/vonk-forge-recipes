@@ -408,6 +408,20 @@
       {
         "changes": [
           {
+            "details": "The native adapter validates the compiled runtime plan and job input manifest with the bundled authoritative Pydantic protocol package, then reads only the declared prompt file. This repairs job input handling and removes duplicate runtime parsing; model weights and upstream engine pins are unchanged.",
+            "kind": "runtime",
+            "references": [],
+            "summary": "Read declared prompt inputs through the shared platform contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "9fbecd06cd1c9b3c4f953b35d8a02d5ee8a4d5d825fadb0de380d47d5dbdcffb",
+        "released_at": "2026-09-08",
+        "upgrade_effect": "rebuild",
+        "version": "3.2.8"
+      },
+      {
+        "changes": [
+          {
             "details": "The native runner now consumes only schema-2 selected-file identities, mount targets, and relative paths, relying on agent-verified readonly materialization while checking exact file sizes.",
             "kind": "runtime",
             "references": [],
@@ -676,8 +690,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-06",
-    "version": "3.2.7"
+    "released_at": "2026-09-08",
+    "version": "3.2.8"
   },
   "runtime": {
     "arguments": [

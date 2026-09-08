@@ -88,6 +88,13 @@ Choose either a pinned final image or a recipe-owned source build. Include all
 required local build inputs, patches, entrypoints, wrappers, and test fixtures.
 Model weights and container image bytes stay outside the recipe package.
 
+Leave out unused optional fields. For optional fields with a `None` default,
+explicit `null` and omission have the same meaning; required nullable fields
+must still be written, even when their value is `null`. Do not remove false,
+zero, empty values or engine-owned JSON nulls as if they were absent. Use the
+shared canonical serializer for identities rather than changing raw payloads
+independently of their model.
+
 Preserve launch behavior: executable, ordered arguments, environment, topology,
 ports, model aliases, resource envelope, and lifecycle intent. Bind tunable
 arguments to the corresponding declared settings instead of maintaining two
@@ -108,6 +115,16 @@ the runtime UID/GID. Recipes must not duplicate or override those defaults.
 Keep non-root execution, a read-only root, and declared writable volumes. If an
 engine needs an additional invariant, fix the central engine implementation
 and exercise actual writes and cache reuse; do not scatter recipe workarounds.
+
+Artifact jobs receive their declared files plus `/inputs/manifest.json`. Read
+the manifest with the platform's `RecipeJobInputManifest` Pydantic model and
+select files by their declared slot. Do not assume the input directory contains
+only the prompt. Reject undeclared files and unsafe paths; preserve valid file
+names, including uppercase names. The two native LTX adapters bundle the same
+`vonk-agent-protocol` wheel as the Controller and install it in the image. When
+changing this shared contract, rebuild that wheel from the platform's
+`agent_protocol` source, replace both adapter copies, and run the actual
+manifest-producer-to-adapter tests before rebuilding the catalog.
 
 ## 4. Explain what changed
 

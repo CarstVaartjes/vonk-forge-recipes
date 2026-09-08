@@ -19,12 +19,12 @@ permissions:
 jobs:
   validate:
     if: ${{ !inputs.producer_only }}
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@26a2dfa804d80a02a39cd42e6deae5f3b0ecc529
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@8764e5c2086eb6922ca0461fa1207fdf7dc1838e
     with:
       # Use the reviewed Forge validator for this launch contract. Its exact
       # published commit verifies declared source namespaces, Model payload
       # separation and archive identities independently of this recipe PR.
-      platform_ref: 26a2dfa804d80a02a39cd42e6deae5f3b0ecc529
+      platform_ref: 8764e5c2086eb6922ca0461fa1207fdf7dc1838e
 
   catalog-index:
     if: ${{ !inputs.producer_only }}
@@ -79,6 +79,7 @@ jobs:
           uv venv --python 3.12 "$test_venv"
           uv pip install --python "$test_venv/bin/python" \
             -e contracts \
+            adapters/video/ltx2-sync-native/vonk_agent_protocol-2.2.0-py3-none-any.whl \
             'jsonschema>=4.24,<5' \
             'pytest>=8,<9'
           echo "RECIPE_TEST_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
