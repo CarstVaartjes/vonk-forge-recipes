@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import runpy
 import tempfile
@@ -7,6 +8,8 @@ import types
 import unittest
 from pathlib import Path
 from unittest import mock
+
+from vonk_agent_protocol.recipe_jobs import RecipeJobInputFile, manifest_document
 
 ROOT = Path(__file__).resolve().parents[1]
 RECIPE_SLUGS = ("ltx-2-19b-dev-bf16-diffusers-single", "ltx-2-19b-distilled-diffusers-single")
@@ -66,9 +69,20 @@ class LtxSyncAuthorityTests(unittest.TestCase):
         module = runpy.run_path(str(ROOT / "adapters/video/ltx23-sync-native-disk/run.py"))
         with tempfile.TemporaryDirectory() as directory:
             module["_load_prompt"].__globals__["INPUT_ROOT"] = Path(directory)
-            (Path(directory) / "prompt.txt").write_text("  bounded prompt  ")
+            def stage_prompt(text: str) -> None:
+                payload = text.encode("utf-8")
+                (Path(directory) / "prompt.txt").write_bytes(payload)
+                item = RecipeJobInputFile(
+                    slot="prompt", name="prompt.txt", media_type="text/plain",
+                    size_bytes=len(payload), sha256=hashlib.sha256(payload).hexdigest(),
+                )
+                (Path(directory) / "manifest.json").write_text(
+                    json.dumps(manifest_document((item,)))
+                )
+
+            stage_prompt("  bounded prompt  ")
             self.assertEqual(module["_load_prompt"](), "bounded prompt")
-            (Path(directory) / "prompt.txt").write_text("x" * 4097)
+            stage_prompt("x" * 4097)
             with self.assertRaisesRegex(SystemExit, "1..4096"):
                 module["_load_prompt"]()
         self.assertEqual(len(module["GEMMA_FILES"]), 22)

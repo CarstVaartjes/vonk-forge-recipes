@@ -47,6 +47,10 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
     && python3 -m pip install --break-system-packages --no-cache-dir \
         --no-build-isolation --no-deps /opt/vonk/source/ltx2/packages/ltx-pipelines
 
+COPY vonk_agent_protocol-2.2.0-py3-none-any.whl /opt/vonk/source/vonk_agent_protocol-2.2.0-py3-none-any.whl
+RUN python3 -m pip install --break-system-packages --no-cache-dir --no-deps \
+        /opt/vonk/source/vonk_agent_protocol-2.2.0-py3-none-any.whl
+
 COPY run.py /opt/vonk/source/run.py
 
 RUN install --directory --mode=0755 /opt/vonk/bin \

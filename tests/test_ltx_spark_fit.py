@@ -9,6 +9,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from vonk_agent_protocol.compiled_execution_plan import CompiledExecutionPlan
+
 ROOT = Path(__file__).resolve().parents[1]
 LTX23_SLUG = "ltx-2-3-22b-distilled-1-1-diffusers-single"
 FP4_SLUG = "ltx-2-19b-dev-fp4-pytorch-single"
@@ -35,7 +37,7 @@ def canonical_runtime_fixture(
         digest = hashlib.sha256(payload).hexdigest()
         artifact.update(
             {
-                "selection_id": "primary",
+                "selection_id": mount_name,
                 "file_id": file_id,
                 "path": relative_path,
                 "sha256": digest,
@@ -60,6 +62,10 @@ def canonical_runtime_fixture(
         )
         artifacts.append(artifact)
     document["artifacts"] = artifacts
+    document["identity"]["model_artifact_bytes"] = sum(
+        {item["sha256"]: item["size_bytes"] for item in artifacts}.values()
+    )
+    CompiledExecutionPlan.model_validate(document)
     runtime_spec = root / "runtime.json"
     runtime_spec.write_text(json.dumps(document), encoding="utf-8")
     return model_root, runtime_spec
@@ -169,6 +175,8 @@ class LtxSparkFitTests(unittest.TestCase):
             document["artifacts"][1]["distribution_object"].update(
                 {"sha256": digest, "bytes": first.stat().st_size}
             )
+            document["identity"]["model_artifact_bytes"] = first.stat().st_size
+            CompiledExecutionPlan.model_validate(document)
             runtime_spec.write_text(json.dumps(document), encoding="utf-8")
             globals_ = namespace["_target_checkpoint"].__globals__
             globals_["MODEL_ROOT"] = model_root
@@ -193,7 +201,7 @@ class LtxSparkFitTests(unittest.TestCase):
             globals_ = namespace["_runtime_artifacts"].__globals__
             globals_["MODEL_ROOT"] = model_root
             globals_["RUNTIME_SPEC"] = runtime_spec
-            with self.assertRaisesRegex(SystemExit, "artifact is invalid"):
+            with self.assertRaisesRegex(SystemExit, "invalid Vonk runtime contract"):
                 namespace["_runtime_artifacts"]()
 
     def test_pipeline_command_reuses_one_parsed_runtime_plan(self) -> None:
