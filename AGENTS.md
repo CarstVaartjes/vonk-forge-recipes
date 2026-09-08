@@ -19,6 +19,14 @@ keeping old formats usable alongside it.
   two authored catalog document kinds: `models/*.json` and `recipes/*.json`.
   Do not restore runtime-distribution documents, shared recipe packages, or
   old schema readers. Supporting Dockerfiles, patches, and fixtures are allowed.
+- Omit unused optional fields when authoring or sending documents. For a field
+  with a declared `None` default, missing and explicit `null` are equivalent.
+  Required fields must always be present, even when `null` is an allowed value.
+  Preserve meaningful false/zero/empty values and engine-owned JSON nulls.
+  Use the authoritative model and canonical serialization helpers for document
+  identities; never strip nulls blindly from arbitrary dictionaries. Platform
+  wire consumers must use the Pydantic → JSON Schema → typify Rust chain and
+  test real serialized producer/consumer handoffs, including signed bytes.
 - For an upstream refresh, check the actual source repositories and record
   old/new pins and retained-version reasons. Preserve specialized forks when
   their implementation is required. A structural edit alone is not a refresh.
