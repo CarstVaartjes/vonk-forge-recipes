@@ -141,7 +141,7 @@ RUN set -eux; \
 RUN python3 /opt/glm53/build_exl3_fat_moe_ext.py \
         --src /opt/glm53/exl3-fat-kernel --out /tmp/e3build \
         --install /usr/local/lib/python3.12/dist-packages \
-    && python3 -c "import exl3_fat_moe_ext as m; required = ('exl3_fat_moe_gather', 'exl3_fat_moe_gateup', 'exl3_fat_moe_down', 'exl3_fat_moe_tile_rows_gateup', 'exl3_fat_moe_tile_rows_down'); assert all(hasattr(m, name) for name in required); print('exl3_fat_moe_ext OK')" \
+    && python3 -c "import torch; import exl3_fat_moe_ext as m; required = ('exl3_fat_moe_gather', 'exl3_fat_moe_gateup', 'exl3_fat_moe_down', 'exl3_fat_moe_tile_rows_gateup', 'exl3_fat_moe_tile_rows_down'); assert all(hasattr(m, name) for name in required); print('exl3_fat_moe_ext OK')" \
     && rm -rf /tmp/e3build
 
 # Keep this AFTER the CUDA compile layer so Python-only hook edits do not

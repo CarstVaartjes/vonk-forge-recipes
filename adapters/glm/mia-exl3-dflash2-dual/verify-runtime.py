@@ -29,6 +29,7 @@ missing = [path for path in required if not Path(path).is_file()]
 if missing:
     raise SystemExit(f"incomplete Mia EXL3 runtime: {missing}")
 try:
+    import torch  # noqa: F401  (load libc10/libtorch before the CUDA extension)
     import exl3_fat_moe_ext
 except Exception as exc:  # pragma: no cover - exercised by image build
     raise SystemExit(f"incomplete E3 grouped runtime: {exc}") from exc
