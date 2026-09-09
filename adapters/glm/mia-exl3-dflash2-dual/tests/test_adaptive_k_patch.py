@@ -11,7 +11,10 @@ import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-PATCH = HERE.parent / "overlay" / "patch_adaptive_k.py"
+PATCH = next(
+    p for p in (HERE / "patch_adaptive_k.py", HERE.parent / "overlay" / "patch_adaptive_k.py")
+    if p.is_file()
+)
 SITE = Path("/usr/local/lib/python3.12/dist-packages/vllm")
 SCHED_SRC = Path(os.environ.get("GLM53_SCHEDULER_PY_SRC", SITE / "v1/core/sched/scheduler.py"))
 CG_SRC = Path(os.environ.get("GLM53_CUDAGRAPH_UTILS_PY_SRC", SITE / "v1/worker/gpu/cudagraph_utils.py"))
