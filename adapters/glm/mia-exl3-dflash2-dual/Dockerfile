@@ -100,6 +100,12 @@ COPY overlay/patch_exl3_ext_aarch64.py /opt/glm53/patch_exl3_ext_aarch64.py
 COPY overlay/patch_exl3_fat_kernel.py /opt/glm53/patch_exl3_fat_kernel.py
 COPY overlay/exl3_fat_gemm.cu /opt/glm53/exl3-fat-kernel/exl3_fat_gemm.cu
 COPY overlay/exl3_fat_gemm.cuh /opt/glm53/exl3-fat-kernel/exl3_fat_gemm.cuh
+# E3 grouped fat-expert kernels. The additive build below is the validated
+# path: it compiles without exllamav3's --use_fast_math so its activation
+# rounding matches the E2/reference path.
+COPY overlay/build_exl3_fat_moe_ext.py /opt/glm53/build_exl3_fat_moe_ext.py
+COPY overlay/exl3_fat_moe.cu /opt/glm53/exl3-fat-kernel/exl3_fat_moe.cu
+COPY overlay/exl3_fat_moe.cuh /opt/glm53/exl3-fat-kernel/exl3_fat_moe.cuh
 
 ARG EXLLAMAV3_COMMIT=c5d9c657966ffeeaa9353f0cc899f18629da4a13
 ENV TORCH_CUDA_ARCH_LIST=12.1a
@@ -130,10 +136,23 @@ RUN set -eux; \
     python3 -c "import torch; import exllamav3_ext; assert hasattr(exllamav3_ext, 'exl3_moe'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_gemm'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_gemm_scatter'), dir(exllamav3_ext); print('exllamav3_ext', exllamav3_ext.__file__, 'exl3_moe=yes fat_gemm=yes')"; \
     rm -rf /tmp/exllamav3 /root/.cache/pip
 
+# Build E3 as an additive translation unit. This preserves the tested
+# no-fast-math build even though the full extension above carries the E2 path.
+RUN python3 /opt/glm53/build_exl3_fat_moe_ext.py \
+        --src /opt/glm53/exl3-fat-kernel --out /tmp/e3build \
+        --install /usr/local/lib/python3.12/dist-packages \
+    && python3 -c "import exl3_fat_moe_ext as m; required = ('exl3_fat_moe_gather', 'exl3_fat_moe_gateup', 'exl3_fat_moe_down', 'exl3_fat_moe_tile_rows_gateup', 'exl3_fat_moe_tile_rows_down'); assert all(hasattr(m, name) for name in required); print('exl3_fat_moe_ext OK')" \
+    && rm -rf /tmp/e3build
+
 # Keep this AFTER the CUDA compile layer so Python-only hook edits do not
 # rebuild exllamav3_ext. Exl3Config.override_quantization_method requires
 # "exl3" in ModelConfig's ordered overrides list.
 COPY overlay/exl3.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3.py
+COPY overlay/exl3.py /opt/glm53/exl3.py
+COPY overlay/patch_adaptive_k.py /opt/glm53/patch_adaptive_k.py
+COPY overlay/patch_dense_fp8.py /opt/glm53/patch_dense_fp8.py
+COPY tests/test_adaptive_k_patch.py /opt/glm53/test_adaptive_k_patch.py
+COPY tests/test_dense_fp8_patch.py /opt/glm53/test_dense_fp8_patch.py
 COPY overlay/patch_model_overrides.py /opt/glm53/patch_model_overrides.py
 COPY overlay/qwen3_dflash2.py /opt/glm53/qwen3_dflash2.py
 COPY overlay/dflash2_speculator.py /opt/glm53/dflash2_speculator.py
@@ -175,8 +194,12 @@ RUN python3 /opt/glm53/patch_kpool_tail_slotmap.py
 RUN python3 /opt/glm53/patch_indexer_workspace.py
 RUN python3 /opt/glm53/patch_spinwait.py --preflight
 RUN python3 /opt/glm53/patch_ablit.py
+RUN python3 /opt/glm53/patch_adaptive_k.py
+RUN GLM53_DENSE_FP8=off python3 /opt/glm53/patch_dense_fp8.py
 
 RUN EXL3_SELFCHECK_GPU=0 python3 /opt/glm53/test_exl3_overlay.py \
+    && python3 /opt/glm53/test_adaptive_k_patch.py \
+    && python3 /opt/glm53/test_dense_fp8_patch.py \
     && python3 /opt/glm53/test_suppress_stops.py \
     && python3 /opt/glm53/test_scheduler_decode_floor.py \
     && python3 /opt/glm53/test_hybrid_prefix_hit.py \
@@ -212,7 +235,11 @@ ENV HF_HUB_OFFLINE=1 \
     XDG_CACHE_HOME=/outputs/cache \
     VLLM_CACHE_ROOT=/outputs/cache \
     TRITON_CACHE_DIR=/outputs/cache/triton \
-    TILELANG_CACHE_DIR=/outputs/cache/tilelang
+    TILELANG_CACHE_DIR=/outputs/cache/tilelang \
+    EXL3_FAT_GROUPED=1 \
+    EXL3_TEMP_ROWS_FUSED=32 \
+    GLM53_ADAPTIVE_K=off \
+    GLM53_DENSE_FP8=off
 
 WORKDIR /state
 USER 10001:10001
