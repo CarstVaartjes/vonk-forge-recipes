@@ -57,9 +57,11 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         arguments = {item["name"]: item for item in recipe["runtime"]["arguments"]}
         self.assertEqual(
             recipe["provenance"]["source_reference"],
-            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/3021f24c88a0904c768c46ff22a508407e31360a",
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/9c0794b68d7fc124f79104409ab434769503fb31",
         )
         self.assertEqual(recipe["execution"]["build"]["base_image"]["digest"], "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce")
+        self.assertEqual(arguments["gpu-memory-utilization"]["value"], "0.85")
+        self.assertEqual(recipe["settings"]["context_tokens"]["value"], 850000)
         self.assertEqual(arguments["max-num-batched-tokens"]["value"], 7168)
         self.assertEqual(arguments["kv-cache-dtype"]["value"], "fp8")
         self.assertEqual(arguments["quantization"]["value"], "exl3")
@@ -123,9 +125,26 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertIn("COPY overlay/exl3.py", dockerfile)
         self.assertIn("COPY files/chat_template.jinja", dockerfile)
         self.assertTrue((ADAPTER / "upstream-LICENSE").is_file())
+        self.assertTrue((ADAPTER / "upstream-LICENSE-MIT").is_file())
         self.assertTrue((ADAPTER / "upstream-start.sh").is_file())
+        self.assertIn("overlay/exl3_fat_moe.cu", dockerfile)
+        self.assertIn("build_exl3_fat_moe_ext.py", dockerfile)
+        self.assertIn("patch_adaptive_k.py", dockerfile)
+        self.assertIn("patch_dense_fp8.py", dockerfile)
+        self.assertIn("EXL3_FAT_GROUPED=1", dockerfile)
         text = "\n".join((ADAPTER / name).read_text(errors="ignore") for name in ("Dockerfile", "vllm-wrapper.py", "verify-runtime.py"))
         self.assertNotIn("ssh -", text.lower())
+
+    def test_current_defaults_and_source_license_are_declared(self) -> None:
+        recipe = load(RECIPE)
+        environment = {item["name"]: item["value"] for item in recipe["runtime"]["environment"]}
+        self.assertEqual(environment["EXL3_FAT_GROUPED"], "1")
+        self.assertEqual(environment["EXL3_TEMP_ROWS_FUSED"], "32")
+        self.assertEqual(environment["GLM53_INDEXER_WORKSPACE"], "rightsize")
+        self.assertEqual(environment["GLM53_ADAPTIVE_K"], "off")
+        self.assertEqual(environment["GLM53_DENSE_FP8"], "off")
+        self.assertIn("AGPL-3.0", recipe["metadata"]["description"])
+        self.assertIn("AGPL-3.0", recipe["provenance"]["attribution"][-4])
 
     def test_adapter_bundle_is_pinned(self) -> None:
         import runpy
