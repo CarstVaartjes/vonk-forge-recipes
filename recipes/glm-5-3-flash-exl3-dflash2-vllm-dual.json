@@ -44,7 +44,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Directly installable Candidate built from MiaAI-Lab's current public 3021f24 EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its 2x DGX Spark EXL3/TR3 4 bpw target with the bf582e4e DFlash2 K7 checkpoint, native-mp TP2, 1M context, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. Vonk physical acceptance and checkpoint requalification remain pending.",
+    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public 9c0794b EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its tested 2x DGX Spark EXL3/TR3 4 bpw target with the retained bf582e4e DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 850k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. Vonk physical acceptance and checkpoint requalification remain pending.",
     "tags": [
       "candidate",
       "dflash2",
@@ -1877,16 +1877,34 @@
     "attribution": [
       "Z.AI",
       "Brandon M. Music",
-      "MiaAI-Lab",
+      "MiaAI-Lab (AGPL-3.0; prior MIT contributions retained in upstream-LICENSE-MIT)",
       "IncoAI",
       "Turboderp",
       "vLLM contributors"
     ],
     "source_kind": "global",
-    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/3021f24c88a0904c768c46ff22a508407e31360a"
+    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/9c0794b68d7fc124f79104409ab434769503fb31"
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "Refreshes the vendored MiaAI-Lab source to 9c0794b, including the tested no-fast-math E3 additive grouped-expert extension, current launcher defaults (EXL3_FAT_GROUPED=1, rightsize, 0.85 GPU budget, 850k context), and optional adaptive-K/dense-FP8 patch inputs disabled by default. Updates the source license to AGPL-3.0 and retains pre-2026-09-07 MIT attribution in upstream-LICENSE-MIT. The EXL3 and DFlash2 weight revisions remain unchanged after comparison with the refreshed launcher and source records.",
+            "kind": "compatibility",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/9c0794b68d7fc124f79104409ab434769503fb31",
+              "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/tree/25a44fdbf16862a46b7cc9921142c6c81350af2f",
+              "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/tree/bf582e4eacc1810f76656d1811693ff6c6737d2a"
+            ],
+            "summary": "Refresh Mia GLM 5.3 EXL3 DFlash2 source and E3 runtime."
+          }
+        ],
+        "prior_recipe_content_sha256": null,
+        "released_at": "2026-09-09",
+        "upgrade_effect": "rebuild",
+        "version": "1.5.0"
+      },
       {
         "changes": [
           {
@@ -2052,8 +2070,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-06",
-    "version": "1.4.2"
+    "released_at": "2026-09-09",
+    "version": "1.5.0"
   },
   "runtime": {
     "arguments": [
@@ -2090,7 +2108,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.87"
+        "value": "0.85"
       },
       {
         "name": "max-model-len",
@@ -2223,7 +2241,27 @@
       {
         "name": "EXL3_TEMP_ROWS_FUSED",
         "secret": null,
-        "value": "128"
+        "value": "32"
+      },
+      {
+        "name": "EXL3_FAT_GROUPED",
+        "secret": null,
+        "value": "1"
+      },
+      {
+        "name": "GLM53_INDEXER_WORKSPACE",
+        "secret": null,
+        "value": "rightsize"
+      },
+      {
+        "name": "GLM53_ADAPTIVE_K",
+        "secret": null,
+        "value": "off"
+      },
+      {
+        "name": "GLM53_DENSE_FP8",
+        "secret": null,
+        "value": "off"
       },
       {
         "name": "TORCH_CUDA_ARCH_LIST",
@@ -2314,7 +2352,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 1000000
+      "value": 850000
     },
     "kind": "generation",
     "knobs": {},
