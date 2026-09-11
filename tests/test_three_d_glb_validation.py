@@ -20,7 +20,7 @@ CONTEXTS = (
     "triposg",
     "skintokens",
 )
-VALIDATOR_SHA256 = "56ce07a1bea9b97a5fb5d73b574d53ec0f3dbf19dd563f2151e45042f759d08a"
+VALIDATOR_SHA256 = "10e31294146186d3b2b5cf935dbac2eb1416dae07b379c2815b1deaf9cdb6f75"
 
 
 class Glb:
