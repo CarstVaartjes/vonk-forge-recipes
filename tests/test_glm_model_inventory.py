@@ -18,6 +18,18 @@ def digest(model: dict) -> str:
 
 
 class GlmModelInventoryTests(unittest.TestCase):
+    def test_mia_catalog_does_not_offer_an_unused_readme_only_model_revision(self) -> None:
+        recipe = load("recipes/glm-5-3-flash-exl3-dflash2-vllm-dual.json")
+        primary = next(selection["model"] for selection in recipe["models"] if selection["id"] == "primary")
+        selected = load(f"models/{primary['slug']}.json")
+        payload = {item["path"]: item["sha256"] for item in selected["files"] if item["roles"] != ["metadata"]}
+        for path in (ROOT / "models").glob("*.json"):
+            candidate = load(str(path.relative_to(ROOT)))
+            if candidate["identity"]["model"] != selected["identity"]["model"] or candidate["identity"]["slug"] == primary["slug"]:
+                continue
+            other_payload = {item["path"]: item["sha256"] for item in candidate["files"] if item["roles"] != ["metadata"]}
+            self.assertNotEqual(payload, other_payload, f"{path.name} duplicates the recipe's model payload")
+
     def test_current_inventory_and_recipe_select_the_calibrated_snapshot(self) -> None:
         model = load("models/glm-5-3-flash-nvfp4-caca4e6a.json")
         recipe = load("recipes/glm-5-3-flash-nvfp4-vllm-dual.json")
