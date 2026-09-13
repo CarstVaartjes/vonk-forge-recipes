@@ -1888,6 +1888,22 @@
   "release": {
     "history": [
       {
+        "version": "1.5.1",
+        "released_at": "2026-09-13",
+        "upgrade_effect": "reprepare",
+        "prior_recipe_content_sha256": "4d358240b89a6f6e37404ea5bef5b0da1f857d04db11f4c6640482484c895ce2",
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Aligned the declared memory envelope with the current 0.85 GPU budget.",
+            "details": "The prior 124 GB workload envelope was retained from the 0.87 GPU budget. Mia documents about 1.2 GiB more host headroom per 0.01 reduction; the current 0.85 default therefore supports a conservative 2 GB reduction to a declared 122 GB peak, while retaining 2.5 GB runtime growth and the Controller 4 GB free-memory floor. This is a source-derived estimate, not a new physical memory measurement. Model files, runtime source, 850K context and serving options are unchanged. Physical startup and inference remain to be verified.",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/blob/9c0794b68d7fc124f79104409ab434769503fb31/README.md#env"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": "Refreshes the vendored MiaAI-Lab source to 9c0794b, including the tested no-fast-math E3 additive grouped-expert extension, current launcher defaults (EXL3_FAT_GROUPED=1, rightsize, 0.85 GPU budget, 850k context), and optional adaptive-K/dense-FP8 patch inputs disabled by default. Updates the source license to AGPL-3.0 and retains pre-2026-09-07 MIT attribution in upstream-LICENSE-MIT. The EXL3 and DFlash2 weight revisions remain unchanged after comparison with the refreshed launcher and source records.",
@@ -2070,8 +2086,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-09",
-    "version": "1.5.0"
+    "released_at": "2026-09-13",
+    "version": "1.5.1"
   },
   "runtime": {
     "arguments": [
@@ -2390,8 +2406,8 @@
           "memory": {
             "kind": "unified",
             "runtime_growth_bytes": 2500000000,
-            "startup_peak_bytes": 124000000000,
-            "steady_state_bytes": 121500000000,
+            "startup_peak_bytes": 122000000000,
+            "steady_state_bytes": 119500000000,
             "system_reserve_bytes": 2000000000
           }
         }
@@ -2412,8 +2428,8 @@
           "memory": {
             "kind": "unified",
             "runtime_growth_bytes": 2500000000,
-            "startup_peak_bytes": 124000000000,
-            "steady_state_bytes": 121500000000,
+            "startup_peak_bytes": 122000000000,
+            "steady_state_bytes": 119500000000,
             "system_reserve_bytes": 2000000000
           }
         }
