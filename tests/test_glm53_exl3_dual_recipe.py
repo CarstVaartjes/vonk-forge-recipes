@@ -137,9 +137,8 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
             os.environ, env, clear=False
         ), patch("pathlib.Path.is_file", return_value=True), patch("os.access", return_value=True), patch(
             "os.execv", side_effect=fake_execv
-        ):
-            with self.assertRaisesRegex(RuntimeError, "captured"):
-                runpy.run_path(str(ADAPTER / "vllm-wrapper.py"))
+        ), self.assertRaisesRegex(RuntimeError, "captured"):
+            runpy.run_path(str(ADAPTER / "vllm-wrapper.py"))
 
         self.assertEqual(len(captured), 1)
         self.assertEqual(captured[0][1 : 1 + len(original)], tuple(original))
