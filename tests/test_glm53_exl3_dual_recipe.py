@@ -52,6 +52,32 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertEqual(specification["num_speculative_tokens"], 7)
         self.assertEqual(load(RECIPE)["topology"]["start_order"], ["worker", "entrypoint"])
 
+    def test_current_profile_fits_idle_sparks_with_controller_headroom(self) -> None:
+        recipe = load(RECIPE)
+        # Both physical Sparks reported over 126 GB MemAvailable on 2026-09-13.
+        # Keep the Controller's 4 GB floor; the former 0.87 budget blocked the
+        # current 0.85 launch even on these otherwise idle nodes.
+        available_bytes = 126_000_000_000
+        controller_floor_bytes = 4_000_000_000
+        utilization = float(next(
+            item["value"] for item in recipe["runtime"]["arguments"]
+            if item["name"] == "gpu-memory-utilization"
+        ))
+        # Upstream documents roughly 9 GiB of initialization outside vLLM's
+        # utilization budget. Admission must also cover that lower bound.
+        estimated_startup_bytes = 130_663_235_584 * utilization + 9 * 1024**3
+        for role in recipe["topology"]["roles"]:
+            memory = role["resources"]["memory"]
+            demand = max(
+                memory["startup_peak_bytes"],
+                memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
+            )
+            self.assertGreaterEqual(memory["startup_peak_bytes"], estimated_startup_bytes)
+            self.assertGreaterEqual(
+                available_bytes - demand,
+                max(controller_floor_bytes, memory["system_reserve_bytes"]),
+            )
+
     def test_runtime_tracks_current_upstream_defaults(self) -> None:
         recipe = load(RECIPE)
         arguments = {item["name"]: item for item in recipe["runtime"]["arguments"]}
@@ -111,9 +137,8 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
             os.environ, env, clear=False
         ), patch("pathlib.Path.is_file", return_value=True), patch("os.access", return_value=True), patch(
             "os.execv", side_effect=fake_execv
-        ):
-            with self.assertRaisesRegex(RuntimeError, "captured"):
-                runpy.run_path(str(ADAPTER / "vllm-wrapper.py"))
+        ), self.assertRaisesRegex(RuntimeError, "captured"):
+            runpy.run_path(str(ADAPTER / "vllm-wrapper.py"))
 
         self.assertEqual(len(captured), 1)
         self.assertEqual(captured[0][1 : 1 + len(original)], tuple(original))
