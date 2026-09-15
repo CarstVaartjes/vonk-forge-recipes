@@ -19,8 +19,7 @@ from typing import TYPE_CHECKING, Any, Literal, TypeVar, get_args
 
 import torch
 from pydantic import ConfigDict, Field, model_validator
-
-import vllm.envs as envs
+from vllm import envs
 from vllm.logger import enable_trace_function_call, init_logger
 from vllm.transformers_utils.runai_utils import is_runai_obj_uri
 from vllm.triton_utils import HAS_TRITON
@@ -54,7 +53,6 @@ from .weight_transfer import WeightTransferConfig
 
 if TYPE_CHECKING:
     from transformers import PretrainedConfig
-
     from vllm.model_executor.layers.quantization.base_config import QuantizationConfig
     from vllm.v1.kv_cache_interface import KVCacheConfig
 else:
@@ -762,7 +760,7 @@ class VllmConfig:
             tmp_dir = os.path.join(tmp_dir, getpass.getuser())
             filename = (
                 f"VLLM_TRACE_FUNCTION_for_process_{os.getpid()}"
-                f"_thread_{threading.get_ident()}_at_{datetime.now()}.log"
+                f"_thread_{threading.get_ident()}_at_{datetime.now()}.log"  # noqa: DTZ005  (trace filename keeps upstream naive local time)
             ).replace(" ", "_")
             log_path = os.path.join(
                 tmp_dir,
@@ -1638,7 +1636,7 @@ class VllmConfig:
                 self.compilation_config.cudagraph_mode.has_full_cudagraphs()
                 and self.model_config is not None
                 and not self.model_config.disable_cascade_attn
-                and not self.compilation_config.cudagraph_mode.has_piecewise_cudagraphs()  # noqa: E501
+                and not self.compilation_config.cudagraph_mode.has_piecewise_cudagraphs()
             ):
                 logger.warning_once(
                     "No piecewise cudagraph for executing cascade attention. "
@@ -2056,7 +2054,7 @@ class VllmConfig:
 
             max_size: int | None = None
             if rocm_aiter_ops.is_custom_all_reduce_enabled():
-                from vllm.distributed.device_communicators.aiter_custom_all_reduce import (  # noqa: E501
+                from vllm.distributed.device_communicators.aiter_custom_all_reduce import (
                     AiterCustomAllreduce,
                 )
 
@@ -2235,16 +2233,16 @@ class VllmConfig:
             f"max_seq_len={self.model_config.max_model_len}, "
             f"download_dir={self.load_config.download_dir!r}, "
             f"load_format={self.load_config.load_format}, "
-            f"tensor_parallel_size={self.parallel_config.tensor_parallel_size}, "  # noqa
-            f"pipeline_parallel_size={self.parallel_config.pipeline_parallel_size}, "  # noqa
-            f"data_parallel_size={self.parallel_config.data_parallel_size}, "  # noqa
-            f"decode_context_parallel_size={self.parallel_config.decode_context_parallel_size}, "  # noqa
-            f"dcp_comm_backend={self.parallel_config.dcp_comm_backend}, "  # noqa
-            f"disable_custom_all_reduce={self.parallel_config.disable_custom_all_reduce}, "  # noqa
+            f"tensor_parallel_size={self.parallel_config.tensor_parallel_size}, "
+            f"pipeline_parallel_size={self.parallel_config.pipeline_parallel_size}, "
+            f"data_parallel_size={self.parallel_config.data_parallel_size}, "
+            f"decode_context_parallel_size={self.parallel_config.decode_context_parallel_size}, "
+            f"dcp_comm_backend={self.parallel_config.dcp_comm_backend}, "
+            f"disable_custom_all_reduce={self.parallel_config.disable_custom_all_reduce}, "
             f"quantization={self.model_config.quantization}, "
-            f"quantization_config={self.model_config.quantization_config}, "  # noqa
+            f"quantization_config={self.model_config.quantization_config}, "
             f"enforce_eager={self.model_config.enforce_eager}, "
-            f"enable_return_routed_experts={self.model_config.enable_return_routed_experts}, "  # noqa
+            f"enable_return_routed_experts={self.model_config.enable_return_routed_experts}, "
             f"kv_cache_dtype={self.cache_config.cache_dtype}, "
             f"device_config={self.device_config.device}, "
             f"structured_outputs_config={self.structured_outputs_config!r}, "
@@ -2252,7 +2250,7 @@ class VllmConfig:
             f"seed={self.model_config.seed}, "
             f"served_model_name={self.model_config.served_model_name}, "
             f"enable_prefix_caching={self.cache_config.enable_prefix_caching}, "
-            f"enable_chunked_prefill={self.scheduler_config.enable_chunked_prefill}, "  # noqa
+            f"enable_chunked_prefill={self.scheduler_config.enable_chunked_prefill}, "
             f"pooler_config={self.model_config.pooler_config!r}, "
             f"compilation_config={self.compilation_config!r}, "
             f"kernel_config={self.kernel_config!r}"
@@ -2518,7 +2516,8 @@ class VllmConfig:
             return self
         if (
             self.cache_config.cache_dtype.startswith("nvfp4")
-            and self.cache_config.cache_dtype != "nvfp4_ds_mla"  # glm53 nvfp4 port: packed MLA record is MLA-native
+            and self.cache_config.cache_dtype
+            != "nvfp4_ds_mla"  # glm53 nvfp4 port: packed MLA record is MLA-native
             and self.model_config.use_mla
         ):
             raise ValueError(
@@ -2604,9 +2603,10 @@ def set_current_vllm_config(
         _current_vllm_config = vllm_config
         _current_prefix = prefix
         yield
-    except Exception:
-        raise
-    else:
+
+        # An exception raised by the with-body is thrown into the generator
+        # at the yield above, so it skips the rest of this try block exactly
+        # as the former ``except Exception: raise``/``else`` pair did.
         if check_compile:
             vllm_config.compilation_config.custom_op_log_check()
 
@@ -2659,7 +2659,7 @@ def get_current_vllm_config_or_none() -> VllmConfig | None:
 T = TypeVar("T")
 
 
-def get_layers_from_vllm_config(
+def get_layers_from_vllm_config[T](
     vllm_config: VllmConfig,
     layer_type: type[T],
     layer_names: Iterable[str] | None = None,

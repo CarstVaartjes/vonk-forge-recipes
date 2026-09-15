@@ -37,7 +37,11 @@ from vonk_forge_contracts.resolver import (
 
 
 def load(name: str) -> dict[str, object]:
-    return json.loads((ROOT / "contracts" / "src" / "vonk_forge_contracts" / "examples" / name).read_text())
+    return json.loads(
+        (
+            ROOT / "contracts" / "src" / "vonk_forge_contracts" / "examples" / name
+        ).read_text()
+    )
 
 
 def test_examples_validate_against_the_two_roots_and_generated_schemas() -> None:
@@ -45,18 +49,30 @@ def test_examples_validate_against_the_two_roots_and_generated_schemas() -> None
     recipe = load("recipe-image.json")
     parsed_model = ModelDefinition.model_validate(model)
     parsed_recipe = RecipeDefinition.model_validate(recipe)
-    for name in ("recipe-image.json", "recipe-source-build.json", "recipe-job.json", "recipe-dual.json"):
-        validate_recipe_models(RecipeDefinition.model_validate(load(name)), [parsed_model])
+    for name in (
+        "recipe-image.json",
+        "recipe-source-build.json",
+        "recipe-job.json",
+        "recipe-dual.json",
+    ):
+        validate_recipe_models(
+            RecipeDefinition.model_validate(load(name)), [parsed_model]
+        )
     Draft202012Validator(model_json_schema()).validate(model)
     Draft202012Validator(recipe_json_schema()).validate(recipe)
     assert parsed_model.kind == "model"
     assert parsed_model.modalities == ["image", "text"]
-    assert [fact.capability for fact in parsed_model.capabilities.facts] == ["image-generation", "text-generation"]
+    assert [fact.capability for fact in parsed_model.capabilities.facts] == [
+        "image-generation",
+        "text-generation",
+    ]
     assert parsed_model.download_bytes == parsed_model.installed_bytes == 1024
     assert parsed_recipe.identity.slug == "synthetic-tiny-image"
 
 
-def test_model_manifest_deduplicates_download_projection_and_rejects_conflicting_size() -> None:
+def test_model_manifest_deduplicates_download_projection_and_rejects_conflicting_size() -> (
+    None
+):
     document = load("model-definition.json")
     document["files"] = [
         *document["files"],
@@ -76,7 +92,13 @@ def test_model_manifest_deduplicates_download_projection_and_rejects_conflicting
 
 def test_zero_byte_model_file_requires_the_empty_content_digest() -> None:
     document = load("model-definition.json")
-    document["files"] = [{**document["files"][0], "size_bytes": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}]
+    document["files"] = [
+        {
+            **document["files"][0],
+            "size_bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        }
+    ]
     ModelDefinition.model_validate(document)
     document["files"][0]["sha256"] = "0" * 64
     with pytest.raises(ValidationError, match="zero-byte"):
@@ -86,11 +108,17 @@ def test_zero_byte_model_file_requires_the_empty_content_digest() -> None:
 def test_model_selection_accepts_large_but_bounded_shard_manifests() -> None:
     recipe = load("recipe-image.json")
     recipe["models"][0]["files"] = [
-        {**recipe["models"][0]["files"][0], "id": f"file-{index}", "file_id": f"file-{index}"}
+        {
+            **recipe["models"][0]["files"][0],
+            "id": f"file-{index}",
+            "file_id": f"file-{index}",
+        }
         for index in range(4096)
     ]
     RecipeDefinition.model_validate(recipe)
-    recipe["models"][0]["files"].append({**recipe["models"][0]["files"][0], "id": "overflow", "file_id": "overflow"})
+    recipe["models"][0]["files"].append(
+        {**recipe["models"][0]["files"][0], "id": "overflow", "file_id": "overflow"}
+    )
     with pytest.raises(ValidationError, match="at most 4096"):
         RecipeDefinition.model_validate(recipe)
 
@@ -98,11 +126,29 @@ def test_model_selection_accepts_large_but_bounded_shard_manifests() -> None:
 def test_capability_facts_are_set_semantics_and_normalized() -> None:
     document = load("model-definition.json")
     facts = document["capabilities"]["facts"]
-    facts.append({"capability": "chat", "support": "unknown", "evidence_status": "unknown", "evidence_digest": None})
+    facts.append(
+        {
+            "capability": "chat",
+            "support": "unknown",
+            "evidence_status": "unknown",
+            "evidence_digest": None,
+        }
+    )
     facts.reverse()
     parsed = ModelDefinition.model_validate(document)
-    assert [fact.capability for fact in parsed.capabilities.facts] == ["chat", "image-generation", "text-generation"]
-    document["capabilities"]["facts"].append({"capability": "chat", "support": "supported", "evidence_status": "declared", "evidence_digest": None})
+    assert [fact.capability for fact in parsed.capabilities.facts] == [
+        "chat",
+        "image-generation",
+        "text-generation",
+    ]
+    document["capabilities"]["facts"].append(
+        {
+            "capability": "chat",
+            "support": "supported",
+            "evidence_status": "declared",
+            "evidence_digest": None,
+        }
+    )
     with pytest.raises(ValidationError, match="duplicate or contradict"):
         ModelDefinition.model_validate(document)
 
@@ -157,7 +203,11 @@ def _build_execution() -> dict[str, object]:
     return {
         "mode": "build",
         "build": {
-            "base_image": {"repository": "registry.example/vonk/base", "digest": "f" * 64, "platform": "linux/arm64"},
+            "base_image": {
+                "repository": "registry.example/vonk/base",
+                "digest": "f" * 64,
+                "platform": "linux/arm64",
+            },
             "context": {"path": "context.tar"},
             "dockerfile": "Dockerfile",
             "patches": [],
@@ -179,7 +229,11 @@ def test_image_and_source_build_are_mutually_exclusive() -> None:
 
 
 def test_runtime_settings_are_checked_against_the_active_settings_variant() -> None:
-    job = json.loads((ROOT / "contracts/src/vonk_forge_contracts/examples/recipe-job.json").read_text())
+    job = json.loads(
+        (
+            ROOT / "contracts/src/vonk_forge_contracts/examples/recipe-job.json"
+        ).read_text()
+    )
     job["runtime"]["arguments"] = [{"name": "context", "setting": "context_tokens"}]
     with pytest.raises(ValidationError, match="unknown setting"):
         RecipeDefinition.model_validate(job)
@@ -189,11 +243,16 @@ def test_runtime_arguments_preserve_unfamiliar_names_values_and_order() -> None:
     arguments = [
         {"name": "unknown-option", "value": "value with spaces; $HOME/Δ and {json}"},
         {"name": "unknown-option", "value": "second occurrence"},
-        {"name": "structured_option", "value": {"enabled": True, "items": ["a", 3, 0.25]}},
+        {
+            "name": "structured_option",
+            "value": {"enabled": True, "items": ["a", 3, 0.25]},
+        },
         {"name": "another-option", "value": [False, {"nested": "unchanged"}]},
     ]
     parsed = [RecipeRuntimeArgument.model_validate(argument) for argument in arguments]
-    assert [argument.name for argument in parsed] == [argument["name"] for argument in arguments]
+    assert [argument.name for argument in parsed] == [
+        argument["name"] for argument in arguments
+    ]
     assert [argument.model_dump(mode="json") for argument in parsed] == [
         {**argument, "setting": None} for argument in arguments
     ]
@@ -206,13 +265,19 @@ def test_runtime_arguments_reject_nul_nonfinite_and_unbounded_values() -> None:
         with pytest.raises(ValidationError):
             RecipeRuntimeArgument.model_validate({"name": name, "value": "ok"})
     with pytest.raises(ValidationError, match="NUL"):
-        RecipeRuntimeArgument.model_validate({"name": "--bad", "value": {"key": "bad\x00value"}})
+        RecipeRuntimeArgument.model_validate(
+            {"name": "--bad", "value": {"key": "bad\x00value"}}
+        )
     with pytest.raises(ValidationError, match="finite"):
         RecipeRuntimeArgument.model_validate({"name": "--bad", "value": float("inf")})
     with pytest.raises(ValidationError, match="maximum nesting"):
-        RecipeRuntimeArgument.model_validate({"name": "--bad", "value": [[[[[[[[["deep"]]]]]]]]]})
+        RecipeRuntimeArgument.model_validate(
+            {"name": "--bad", "value": [[[[[[[[["deep"]]]]]]]]]}
+        )
     with pytest.raises(ValidationError, match="maximum UTF-8 size"):
-        RecipeRuntimeArgument.model_validate({"name": "--bad", "value": ["x" * 4096] * 20})
+        RecipeRuntimeArgument.model_validate(
+            {"name": "--bad", "value": ["x" * 4096] * 20}
+        )
 
 
 def test_runtime_argument_null_placeholder_and_boolean_or_empty_rendering() -> None:
@@ -222,18 +287,32 @@ def test_runtime_argument_null_placeholder_and_boolean_or_empty_rendering() -> N
         {"name": "context", "value": None, "setting": "context_tokens"}
     )
     assert _runtime_argument_tokens(setting) == ["--context"]
-    assert _runtime_argument_tokens(RecipeRuntimeArgument.model_validate({"name": "enabled", "value": True})) == ["--enabled"]
-    assert _runtime_argument_tokens(RecipeRuntimeArgument.model_validate({"name": "disabled", "value": False})) == []
-    assert _runtime_argument_tokens(RecipeRuntimeArgument.model_validate({"name": "empty", "value": ""})) == ["--empty", ""]
     assert _runtime_argument_tokens(
-        RecipeRuntimeArgument.model_validate({"name": "json", "value": {"z": 1, "a": "x"}})
+        RecipeRuntimeArgument.model_validate({"name": "enabled", "value": True})
+    ) == ["--enabled"]
+    assert (
+        _runtime_argument_tokens(
+            RecipeRuntimeArgument.model_validate({"name": "disabled", "value": False})
+        )
+        == []
+    )
+    assert _runtime_argument_tokens(
+        RecipeRuntimeArgument.model_validate({"name": "empty", "value": ""})
+    ) == ["--empty", ""]
+    assert _runtime_argument_tokens(
+        RecipeRuntimeArgument.model_validate(
+            {"name": "json", "value": {"z": 1, "a": "x"}}
+        )
     ) == ["--json", '{"a":"x","z":1}']
 
 
 def test_runtime_argument_utf8_and_rendered_argv_boundaries() -> None:
     exact = "é" * (MAX_RUNTIME_ARGV_TOKEN_BYTES // len("é".encode()))
     assert len(exact.encode("utf-8")) == MAX_RUNTIME_ARGV_TOKEN_BYTES
-    assert RecipeRuntimeArgument.model_validate({"name": "utf8", "value": exact}).value == exact
+    assert (
+        RecipeRuntimeArgument.model_validate({"name": "utf8", "value": exact}).value
+        == exact
+    )
     with pytest.raises(ValidationError, match="maximum UTF-8 size"):
         RecipeRuntimeArgument.model_validate({"name": "utf8", "value": exact + "é"})
 
@@ -256,9 +335,16 @@ def test_runtime_argument_utf8_and_rendered_argv_boundaries() -> None:
             {
                 "engine": "engine",
                 "entrypoint": ["launcher"],
-                "arguments": [*arguments, {"name": "last", "value": "x" * MAX_RUNTIME_ARGV_TOKEN_BYTES}],
+                "arguments": [
+                    *arguments,
+                    {"name": "last", "value": "x" * MAX_RUNTIME_ARGV_TOKEN_BYTES},
+                ],
                 "environment": [],
-                "lifecycle": {"pre_start": [], "post_stop": [], "stop_timeout_seconds": 1},
+                "lifecycle": {
+                    "pre_start": [],
+                    "post_stop": [],
+                    "stop_timeout_seconds": 1,
+                },
             }
         )
 
@@ -271,10 +357,16 @@ def test_runtime_argv_allows_shell_punctuation_and_rejects_nul() -> None:
             "stop_timeout_seconds": 1,
         }
     )
-    assert lifecycle.pre_start == [["launcher", "value with spaces; $HOME/Δ", '{"json": true}']]
+    assert lifecycle.pre_start == [
+        ["launcher", "value with spaces; $HOME/Δ", '{"json": true}']
+    ]
     with pytest.raises(ValidationError, match="NUL"):
         RecipeLifecycle.model_validate(
-            {"pre_start": [["launcher", "bad\x00value"]], "post_stop": [], "stop_timeout_seconds": 1}
+            {
+                "pre_start": [["launcher", "bad\x00value"]],
+                "post_stop": [],
+                "stop_timeout_seconds": 1,
+            }
         )
 
 
@@ -287,17 +379,33 @@ def test_output_cap_requires_a_positive_integer() -> None:
 
 def test_job_serving_request_is_filesystem_fixture_binding() -> None:
     request = RecipeJobServingRequest.model_validate(
-        {"transport": "job", "fixture": "prompt", "output_path": "/outputs", "output_slot": "image"}
+        {
+            "transport": "job",
+            "fixture": "prompt",
+            "output_path": "/outputs",
+            "output_slot": "image",
+        }
     )
     assert request.input_path is None
     assert request.output_path == "/outputs"
     with pytest.raises(ValidationError, match="input_path"):
         RecipeJobServingRequest.model_validate(
-            {"transport": "job", "fixture": "prompt", "input_slots": {"prompt": "prompt"}, "output_path": "/outputs", "output_slot": "image"}
+            {
+                "transport": "job",
+                "fixture": "prompt",
+                "input_slots": {"prompt": "prompt"},
+                "output_path": "/outputs",
+                "output_slot": "image",
+            }
         )
     with pytest.raises(ValidationError):
         RecipeJobServingRequest.model_validate(
-            {"transport": "job", "fixture": "../secret", "output_path": "/outputs", "output_slot": "image"}
+            {
+                "transport": "job",
+                "fixture": "../secret",
+                "output_path": "/outputs",
+                "output_slot": "image",
+            }
         )
 
 
@@ -342,12 +450,16 @@ def test_job_serving_bindings_match_declared_interface_slots() -> None:
 def test_vision_checks_require_image_content_and_applicable_assertions() -> None:
     recipe = load("recipe-image.json")
     RecipeDefinition.model_validate(recipe)
-    recipe["validation"]["serving"]["checks"][0]["request"]["body"]["messages"][0]["content"] = "text only"
+    recipe["validation"]["serving"]["checks"][0]["request"]["body"]["messages"][0][
+        "content"
+    ] = "text only"
     with pytest.raises(ValidationError, match="image_url"):
         RecipeDefinition.model_validate(recipe)
 
     recipe = load("recipe-image.json")
-    recipe["validation"]["serving"]["checks"][0]["assertions"].append("completion.nonempty")
+    recipe["validation"]["serving"]["checks"][0]["assertions"].append(
+        "completion.nonempty"
+    )
     with pytest.raises(ValidationError, match="applicable"):
         RecipeDefinition.model_validate(recipe)
 
@@ -364,14 +476,27 @@ def test_build_network_hosts_match_network_mode() -> None:
 
 
 def test_job_fixture_is_required_to_be_in_the_self_contained_package() -> None:
-    recipe = RecipeDefinition.model_validate(json.loads((ROOT / "contracts/src/vonk_forge_contracts/examples/recipe-job.json").read_text()))
+    recipe = RecipeDefinition.model_validate(
+        json.loads(
+            (
+                ROOT / "contracts/src/vonk_forge_contracts/examples/recipe-job.json"
+            ).read_text()
+        )
+    )
     validate_recipe_package_paths(recipe, ["blank"])
     with pytest.raises(ValueError, match="missing"):
         validate_recipe_package_paths(recipe, [])
 
 
 def test_source_build_closure_requires_context_dockerfile_and_patches() -> None:
-    recipe = RecipeDefinition.model_validate(json.loads((ROOT / "contracts/src/vonk_forge_contracts/examples/recipe-source-build.json").read_text()))
+    recipe = RecipeDefinition.model_validate(
+        json.loads(
+            (
+                ROOT
+                / "contracts/src/vonk_forge_contracts/examples/recipe-source-build.json"
+            ).read_text()
+        )
+    )
     validate_recipe_package_paths(recipe, ["context.tar", "Dockerfile"])
     with pytest.raises(ValueError, match="context.tar"):
         validate_recipe_package_paths(recipe, ["Dockerfile"])
@@ -410,21 +535,49 @@ def test_content_digest_normalizes_defaults_and_rejects_raw_dicts() -> None:
     omitted["settings"].pop("knobs")
     normalized = RecipeDefinition.model_validate(omitted)
     assert content_sha256(recipe) == content_sha256(normalized)
-    assert content_sha256(recipe) == content_sha256(RecipeDefinition.model_validate(recipe.model_dump()))
+    assert content_sha256(recipe) == content_sha256(
+        RecipeDefinition.model_validate(recipe.model_dump())
+    )
     with pytest.raises(TypeError, match="validated"):
         content_sha256(document)  # type: ignore[arg-type]
 
 
 def test_checked_in_schemas_are_generated_from_the_same_models() -> None:
-    assert json.loads((ROOT / "contracts/src/vonk_forge_contracts/schema/model-definition-v2.schema.json").read_text()) == model_json_schema()
-    assert json.loads((ROOT / "contracts/src/vonk_forge_contracts/schema/recipe-definition-v2.schema.json").read_text()) == recipe_json_schema()
-    result = subprocess.run([sys.executable, "tools/generate-contract-schemas", "--check"], cwd=ROOT, capture_output=True, text=True, check=False)
+    assert (
+        json.loads(
+            (
+                ROOT
+                / "contracts/src/vonk_forge_contracts/schema/model-definition-v2.schema.json"
+            ).read_text()
+        )
+        == model_json_schema()
+    )
+    assert (
+        json.loads(
+            (
+                ROOT
+                / "contracts/src/vonk_forge_contracts/schema/recipe-definition-v2.schema.json"
+            ).read_text()
+        )
+        == recipe_json_schema()
+    )
+    result = subprocess.run(
+        [sys.executable, "tools/generate-contract-schemas", "--check"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
     assert result.returncode == 0, result.stderr
 
 
 def test_model_access_requires_consistent_visibility_and_authentication() -> None:
     document = load("model-definition.json")
-    document["access"] = {"visibility": "restricted", "gated": True, "authentication": "token"}
+    document["access"] = {
+        "visibility": "restricted",
+        "gated": True,
+        "authentication": "token",
+    }
     ModelDefinition.model_validate(document)
     for access in (
         {"visibility": "public", "gated": True, "authentication": "none"},
@@ -444,17 +597,21 @@ def test_model_references_resolve_and_reject_swapped_digest() -> None:
     target_document["lineage"]["source_model"]["slug"] = "synthetic-target"
     target = ModelDefinition.model_validate(target_document)
     source_document = source.model_dump(mode="json")
-    source_document["dependencies"] = [{
-        "kind": "model",
-        "publisher": target.identity.publisher,
-        "slug": target.identity.slug,
-        "content_sha256": content_sha256(target),
-    }]
+    source_document["dependencies"] = [
+        {
+            "kind": "model",
+            "publisher": target.identity.publisher,
+            "slug": target.identity.slug,
+            "content_sha256": content_sha256(target),
+        }
+    ]
     source = ModelDefinition.model_validate(source_document)
     validate_model_references([source, target])
     source_document["dependencies"][0]["content_sha256"] = "0" * 64
     with pytest.raises(ValueError, match="digest does not match"):
-        validate_model_references([ModelDefinition.model_validate(source_document), target])
+        validate_model_references(
+            [ModelDefinition.model_validate(source_document), target]
+        )
 
 
 def test_model_license_accepts_typed_territorial_restrictions() -> None:
@@ -465,7 +622,11 @@ def test_model_license_accepts_typed_territorial_restrictions() -> None:
     }
     parsed = ModelDefinition.model_validate(document)
     assert parsed.license.territorial_restrictions is not None
-    assert parsed.license.territorial_restrictions.denied_jurisdictions == ["EU", "GB", "KR"]
+    assert parsed.license.territorial_restrictions.denied_jurisdictions == [
+        "EU",
+        "GB",
+        "KR",
+    ]
 
 
 def test_model_license_rejects_duplicate_territories() -> None:
@@ -481,8 +642,14 @@ def test_model_license_rejects_duplicate_territories() -> None:
 @pytest.mark.parametrize(
     "restrictions, message",
     [
-        ({"denied_jurisdictions": ["e1"], "notice": "Invalid code."}, "string_pattern_mismatch"),
-        ({"denied_jurisdictions": ["EU"], "notice": ""}, "String should have at least 1 character"),
+        (
+            {"denied_jurisdictions": ["e1"], "notice": "Invalid code."},
+            "string_pattern_mismatch",
+        ),
+        (
+            {"denied_jurisdictions": ["EU"], "notice": ""},
+            "String should have at least 1 character",
+        ),
     ],
 )
 def test_model_license_rejects_invalid_territorial_restrictions(

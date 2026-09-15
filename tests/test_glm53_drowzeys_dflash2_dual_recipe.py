@@ -50,20 +50,35 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
         arguments = {item["name"]: item for item in recipe["runtime"]["arguments"]}
         self.assertEqual(arguments["gpu-memory-utilization"]["value"], "0.85")
         self.assertEqual(arguments["kv-cache-memory"]["value"], 6_442_450_944)
-        self.assertEqual(json.loads(arguments["default-chat-template-kwargs"]["value"]), {"enable_thinking": False})
+        self.assertEqual(
+            json.loads(arguments["default-chat-template-kwargs"]["value"]),
+            {"enable_thinking": False},
+        )
         self.assertEqual(recipe["topology"]["start_order"], ["worker", "entrypoint"])
 
     def test_source_security_and_controller_resource_envelope_are_exact(self) -> None:
         recipe = load(RECIPE)
         build = recipe["execution"]["build"]
         self.assertEqual(build["network"], {"mode": "none", "hosts": []})
-        self.assertEqual(build["base_image"]["digest"], "4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6")
-        self.assertEqual(build["context"]["path"], "adapters/glm/tonyd2wild-dflash2-dual")
+        self.assertEqual(
+            build["base_image"]["digest"],
+            "4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6",
+        )
+        self.assertEqual(
+            build["context"]["path"], "adapters/glm/tonyd2wild-dflash2-dual"
+        )
         for role in recipe["topology"]["roles"]:
-            self.assertEqual(role["resources"]["disk"]["artifact_bytes"], 202_566_174_700)
-            self.assertEqual(role["resources"]["memory"]["startup_peak_bytes"], 126_000_000_000)
+            self.assertEqual(
+                role["resources"]["disk"]["artifact_bytes"], 202_566_174_700
+            )
+            self.assertEqual(
+                role["resources"]["memory"]["startup_peak_bytes"], 126_000_000_000
+            )
         dockerfile = (ADAPTER / "Dockerfile").read_text()
-        self.assertIn('org.opencontainers.image.revision="3eef46632c45ffb6c397de0716c23b3d2d594798"', dockerfile)
+        self.assertIn(
+            'org.opencontainers.image.revision="3eef46632c45ffb6c397de0716c23b3d2d594798"',
+            dockerfile,
+        )
         self.assertIn("USER 10001:10001", dockerfile)
         self.assertIn("HF_HUB_OFFLINE=1", dockerfile)
 
@@ -71,7 +86,14 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
         tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         _, _, bundle_digest = tool["source_bundle"](ADAPTER)
         self.assertTrue(bundle_digest)
-        self.assertNotIn("ssh", "\n".join(path.read_text(errors="ignore") for path in ADAPTER.iterdir() if path.is_file()).lower())
+        self.assertNotIn(
+            "ssh",
+            "\n".join(
+                path.read_text(errors="ignore")
+                for path in ADAPTER.iterdir()
+                if path.is_file()
+            ).lower(),
+        )
 
     def test_wrapper_rejects_unbound_invocation(self) -> None:
         result = subprocess.run(
@@ -95,4 +117,5 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
         )
 
 
-if __name__ == "__main__": unittest.main()
+if __name__ == "__main__":
+    unittest.main()

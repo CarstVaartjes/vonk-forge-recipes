@@ -23,7 +23,6 @@ import torch
 from safetensors import safe_open
 from safetensors.torch import load_file, save_file
 
-
 RANKED_EXL3_KEY = re.compile(
     r"^(?P<prefix>.+\.(?P<projection>gate_proj|up_proj|down_proj|w1|w2|w3))"
     r"\.rank(?P<rank>\d+)\.(?P<field>trellis|suh|svh|mcg|mul1)$"
@@ -246,7 +245,9 @@ def coalesce_family(
         for key, tensor in payload.items():
             match = RANKED_EXL3_KEY.match(key)
             if match is None:
-                raise ValueError(f"unexpected non-EXL3 tensor in {rank_files[rank]}: {key}")
+                raise ValueError(
+                    f"unexpected non-EXL3 tensor in {rank_files[rank]}: {key}"
+                )
             tensor_rank = int(match.group("rank"))
             if tensor_rank != rank:
                 raise ValueError(
@@ -302,7 +303,9 @@ def coalesce_family_item(
     if reuse_complete and output.is_file():
         expected_keys: set[str] = set()
         for rank, filename in sorted(rank_files.items()):
-            with safe_open(input_dir / filename, framework="pt", device="cpu") as handle:
+            with safe_open(
+                input_dir / filename, framework="pt", device="cpu"
+            ) as handle:
                 for key in handle.keys():  # noqa: SIM118
                     match = RANKED_EXL3_KEY.match(key)
                     if match is None or int(match.group("rank")) != rank:

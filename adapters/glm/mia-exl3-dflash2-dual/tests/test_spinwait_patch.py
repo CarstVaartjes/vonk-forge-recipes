@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Focused host checks for the numeric SpinCondition patch."""
+
 from __future__ import annotations
 
 import importlib.util
@@ -88,7 +89,9 @@ def test_drift_and_ambiguity_fail_closed() -> None:
             raise AssertionError("drifted source was accepted")
 
 
-def _run(target: Path, value: str | None, *args: str) -> subprocess.CompletedProcess[str]:
+def _run(
+    target: Path, value: str | None, *args: str
+) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     env["GLM53_SPINWAIT_TARGET"] = str(target)
     env.pop(patch.ENV_NAME, None)
@@ -159,9 +162,9 @@ def test_recipe_wiring() -> None:
         'SPINWAIT_PATCH_HOST="${SPINWAIT_PATCH_HOST:-$SCRIPT_DIR/overlay/patch_spinwait.py}"',
         'GLM53_SPINWAIT_MS="${GLM53_SPINWAIT_MS-stock}"',
         "_glm53_validate_spinwait_ms",
-        'python3 /opt/glm53/patch_spinwait.py',
+        "python3 /opt/glm53/patch_spinwait.py",
         '"GLM53_SPINWAIT_MS=$GLM53_SPINWAIT_MS"',
-        '/opt/glm53/patch_spinwait.py:ro',
+        "/opt/glm53/patch_spinwait.py:ro",
     )
     for needle in required_start:
         assert needle in start, needle
@@ -174,7 +177,9 @@ def test_recipe_wiring() -> None:
 
 
 def main() -> int:
-    tests = [value for name, value in sorted(globals().items()) if name.startswith("test_")]
+    tests = [
+        value for name, value in sorted(globals().items()) if name.startswith("test_")
+    ]
     for test in tests:
         test()
     print(f"numeric spinwait patch OK ({len(tests)} tests)")

@@ -8,7 +8,6 @@ import shutil
 import subprocess
 from pathlib import Path
 
-
 BUILD = Path(__file__).resolve().parent
 SITE = Path("/usr/local/lib/python3.12/dist-packages/vllm")
 QWEN = SITE / "models/qwen3_8_flash_next/nvidia"
@@ -34,7 +33,8 @@ def main() -> None:
         "ple_layer.py": QWEN / "ple_layer.py",
         "qsa_ops_patched.py.orig": QWEN / "ops/qsa.py",
         "qsa_nvidia_patched.py.orig": QWEN / "qsa.py",
-        "modelopt_patched.py.orig": SITE / "model_executor/layers/quantization/modelopt.py",
+        "modelopt_patched.py.orig": SITE
+        / "model_executor/layers/quantization/modelopt.py",
     }
     for name, source in required.items():
         if not source.is_file():
@@ -50,7 +50,9 @@ def main() -> None:
     run("patch_qsa_fp8_kv.py")
 
     install_checked("ple_layer_patched.py", QWEN / "ple_layer.py")
-    install_checked("modelopt_patched.py", SITE / "model_executor/layers/quantization/modelopt.py")
+    install_checked(
+        "modelopt_patched.py", SITE / "model_executor/layers/quantization/modelopt.py"
+    )
     install_checked("qsa_ops_patched.py", QWEN / "ops/qsa.py")
     install_checked("qsa_nvidia_patched.py", QWEN / "qsa.py")
     print("Qwen3.8 vLLM compatibility patches baked into the image")

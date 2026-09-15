@@ -16,6 +16,7 @@ the marker so a stop in that tail cannot fire.
 Opt-out: ``GLM53_SUPPRESS_STOPS_IN_REASONING=0`` or
 ``VLLM_SUPPRESS_STOPS_IN_REASONING=0``.
 """
+
 from __future__ import annotations
 
 import sys
@@ -24,15 +25,8 @@ from pathlib import Path
 P = Path("/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/detokenizer.py")
 MARK = "# [suppress-stops-in-reasoning]"
 
-IMPORT_OLD = (
-    "import sys\n"
-    "from abc import ABC, abstractmethod\n"
-)
-IMPORT_NEW = (
-    "import os\n"
-    "import sys\n"
-    "from abc import ABC, abstractmethod\n"
-)
+IMPORT_OLD = "import sys\nfrom abc import ABC, abstractmethod\n"
+IMPORT_NEW = "import os\nimport sys\nfrom abc import ABC, abstractmethod\n"
 
 FACTORY_OLD = """        if USE_FAST_DETOKENIZER and isinstance(tokenizer, TokenizersBackend):
             # Fast tokenizer => use tokenizers library DecodeStream.
@@ -195,7 +189,9 @@ def main(argv: list[str]) -> int:
     if len(argv) > 1 and argv[1] == "--status":
         target = Path(argv[2]) if len(argv) > 2 else P
         applied = target.is_file() and MARK in target.read_text()
-        print("suppress-stops-in-reasoning    :", "APPLIED" if applied else "NOT APPLIED")
+        print(
+            "suppress-stops-in-reasoning    :", "APPLIED" if applied else "NOT APPLIED"
+        )
         return 0
     target = Path(argv[1]) if len(argv) > 1 else P
     if not target.is_file():

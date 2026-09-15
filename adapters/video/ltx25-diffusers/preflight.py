@@ -51,21 +51,35 @@ def _token_from_file(path: Path) -> str:
     try:
         metadata = path.lstat()
     except OSError as error:
-        raise PreflightError(f"cannot read token file {path}: {error.strerror}") from error
+        raise PreflightError(
+            f"cannot read token file {path}: {error.strerror}"
+        ) from error
     if not stat.S_ISREG(metadata.st_mode) or path.is_symlink():
-        raise PreflightError("token file must be a regular file and not a symbolic link")
+        raise PreflightError(
+            "token file must be a regular file and not a symbolic link"
+        )
     if metadata.st_uid != os.geteuid():
-        raise PreflightError("token file must be owned by the user running the preflight")
+        raise PreflightError(
+            "token file must be owned by the user running the preflight"
+        )
     if stat.S_IMODE(metadata.st_mode) & 0o077:
-        raise PreflightError("token file permissions must deny group and other access (mode 0600)")
+        raise PreflightError(
+            "token file permissions must deny group and other access (mode 0600)"
+        )
     if metadata.st_size <= 0 or metadata.st_size > 4096:
-        raise PreflightError("token file must contain one non-empty token and be at most 4096 bytes")
+        raise PreflightError(
+            "token file must contain one non-empty token and be at most 4096 bytes"
+        )
     try:
         token = path.read_text(encoding="ascii").strip()
     except (OSError, UnicodeError) as error:
-        raise PreflightError("token file must contain one ASCII Hugging Face token") from error
+        raise PreflightError(
+            "token file must contain one ASCII Hugging Face token"
+        ) from error
     if not token.startswith("hf_") or any(character.isspace() for character in token):
-        raise PreflightError("token file must contain one Hugging Face token beginning with hf_")
+        raise PreflightError(
+            "token file must contain one Hugging Face token beginning with hf_"
+        )
     return token
 
 

@@ -69,7 +69,7 @@ def main() -> None:
         "                continue\n"
         "            # Mid-stack mHC defers hc_post; materialize then contract\n"
         "            # 4 streams -> [tokens, hidden] (deepseek_v4 eagle3 pattern).\n"
-        "            if post is not None and hasattr(layer, \"hc_post\"):\n"
+        '            if post is not None and hasattr(layer, "hc_post"):\n'
         "                value = hc_contract(\n"
         "                    layer.hc_post(hidden_states, residual, post, comb),\n"
         "                    layer.n,\n"
@@ -80,7 +80,7 @@ def main() -> None:
         "                    value = value.mean(dim=1)\n"
         "            if self.is_sequence_parallel:\n"
         "                value = sp_all_gather(value)[:full_num_tokens]\n"
-        "            aux_hidden_states.append(value)\n"
+        "            aux_hidden_states.append(value)\n",
     )
     replace_once(
         "        hidden_states = self.norm(hidden_states)\n"

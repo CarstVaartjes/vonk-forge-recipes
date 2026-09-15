@@ -29,6 +29,7 @@ copies in the container, so the HF cache is never modified.
 Usage: patch_checkpoint_config.py <snapshot dir> <output dir>
 Prints the space-separated basenames that needed patching (empty if none).
 """
+
 import json
 import os
 import re
@@ -105,7 +106,9 @@ def mtp_moe_algo(snapshot_dir: str) -> str:
 def main(snapshot_dir: str, out_dir: str) -> None:
     config_path = os.path.join(snapshot_dir, "config.json")
     if not os.path.isfile(config_path):
-        print(f"patch_checkpoint_config: no config.json at {config_path}", file=sys.stderr)
+        print(
+            f"patch_checkpoint_config: no config.json at {config_path}", file=sys.stderr
+        )
         sys.exit(1)
     with open(config_path) as fh:
         config = json.load(fh)

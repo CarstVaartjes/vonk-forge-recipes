@@ -3,10 +3,7 @@
 
 from pathlib import Path
 
-
-TARGET = Path(
-    "/usr/local/lib/python3.12/dist-packages/vllm/tokenizers/deepseek_v4.py"
-)
+TARGET = Path("/usr/local/lib/python3.12/dist-packages/vllm/tokenizers/deepseek_v4.py")
 OLD = '''elif reasoning_effort in ("max", "xhigh"):
                 reasoning_effort = "max"
             else:

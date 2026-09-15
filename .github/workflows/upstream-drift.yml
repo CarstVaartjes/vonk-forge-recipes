@@ -25,7 +25,7 @@ jobs:
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.12.1"
-          python-version: "3.12"
+          python-version: "3.14"
           enable-cache: false
 
       - name: Install the shared Model and Recipe contracts
@@ -33,7 +33,7 @@ jobs:
         run: |
           set -euo pipefail
           audit_venv="$RUNNER_TEMP/upstream-audit-venv"
-          uv venv --python 3.12 "$audit_venv"
+          uv venv --python 3.14 "$audit_venv"
           uv pip install --python "$audit_venv/bin/python" -e contracts
           echo "UPSTREAM_AUDIT_PYTHON=$audit_venv/bin/python" >> "$GITHUB_ENV"
 

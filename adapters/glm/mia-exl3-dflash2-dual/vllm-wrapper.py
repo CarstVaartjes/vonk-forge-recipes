@@ -8,9 +8,10 @@ import sys
 from ipaddress import ip_address
 from pathlib import Path
 
-
 TARGET = Path("/models/target")
 DRAFTER = Path("/models/drafter")
+
+
 def _value(arguments: list[str], option: str) -> str | None:
     if option not in arguments:
         return None
@@ -18,6 +19,7 @@ def _value(arguments: list[str], option: str) -> str | None:
     if index + 1 >= len(arguments):
         raise SystemExit(f"{option} requires a value")
     return arguments[index + 1]
+
 
 arguments = sys.argv[1:]
 node_count = _value(arguments, "--nnodes")
@@ -61,7 +63,11 @@ except ValueError:
 
 if str(TARGET) not in arguments:
     raise SystemExit("the immutable /models/target checkpoint argument is required")
-for path in (TARGET / "config.json", DRAFTER / "config.json", DRAFTER / "model.safetensors"):
+for path in (
+    TARGET / "config.json",
+    DRAFTER / "config.json",
+    DRAFTER / "model.safetensors",
+):
     if not path.is_file():
         raise SystemExit(f"immutable model artifact is missing: {path}")
 

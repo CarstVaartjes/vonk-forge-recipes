@@ -2,6 +2,7 @@
 
 Images only. The checkpoint has no video encoder; GIF is a still frame via PIL.
 """
+
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
@@ -9,7 +10,6 @@ from typing import Any
 
 import torch
 from transformers.feature_extraction_utils import BatchFeature
-
 from vllm.inputs import MultiModalDataDict
 from vllm.multimodal import MULTIMODAL_REGISTRY
 from vllm.multimodal.inputs import MultiModalFieldConfig
@@ -39,9 +39,11 @@ def _image_token_id(tokenizer) -> int:
     convert = getattr(tokenizer, "convert_tokens_to_ids", None)
     if convert is not None:
         token_id = convert(IMAGE_PLACEHOLDER)
-        if token_id is not None and token_id != getattr(tokenizer, "unk_token_id", None):
+        if token_id is not None and token_id != getattr(
+            tokenizer, "unk_token_id", None
+        ):
             return int(token_id)
-    vocab = getattr(tokenizer, "get_vocab", lambda: {})()
+    vocab = getattr(tokenizer, "get_vocab", dict)()
     if IMAGE_PLACEHOLDER in vocab:
         return int(vocab[IMAGE_PLACEHOLDER])
     return IMAGE_TOKEN_ID
@@ -60,13 +62,13 @@ def _salt_image_mm_hashes(hashes: Any, mm_kwargs: Any) -> Any:
         return hashes
     try:
         items = mm_kwargs["image"]
-    except Exception:
+    except Exception:  # noqa: BLE001 - tolerate any upstream multimodal-kwargs shape change
         return hashes
     salted = []
     for i, digest in enumerate(hashes["image"]):
         try:
             ntok = _as_int(items[i]["num_tokens"])
-        except Exception:
+        except Exception:  # noqa: BLE001 - tolerate any missing/odd per-image token field
             salted.append(digest)
             continue
         salted.append(salt_mm_image_hash(str(digest), ntok))
@@ -258,14 +260,14 @@ class DeepseekV4VisionExpMultiModalProcessor(
         hf_inputs: BatchFeature,
         hf_processor_mm_kwargs: Mapping[str, object],
     ) -> Mapping[str, MultiModalFieldConfig]:
-        return dict(
-            pixel_values=MultiModalFieldConfig.batched("image"),
-            n_vit_h=MultiModalFieldConfig.batched("image"),
-            n_vit_w=MultiModalFieldConfig.batched("image"),
-            types=MultiModalFieldConfig.batched("image"),
-            perm=MultiModalFieldConfig.batched("image"),
-            num_tokens=MultiModalFieldConfig.batched("image"),
-        )
+        return {
+            "pixel_values": MultiModalFieldConfig.batched("image"),
+            "n_vit_h": MultiModalFieldConfig.batched("image"),
+            "n_vit_w": MultiModalFieldConfig.batched("image"),
+            "types": MultiModalFieldConfig.batched("image"),
+            "perm": MultiModalFieldConfig.batched("image"),
+            "num_tokens": MultiModalFieldConfig.batched("image"),
+        }
 
     def _get_prompt_updates(
         self,

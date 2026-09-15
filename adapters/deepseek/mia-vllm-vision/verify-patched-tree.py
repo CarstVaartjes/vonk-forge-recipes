@@ -55,5 +55,7 @@ if len(sys.argv) != 3:
     raise SystemExit("usage: verify-patched-tree.py ROOT EXPECTED_SHA256")
 actual = digest(Path(sys.argv[1]))
 if actual != sys.argv[2]:
-    raise SystemExit(f"patched vLLM tree mismatch: expected {sys.argv[2]}, got {actual}")
+    raise SystemExit(
+        f"patched vLLM tree mismatch: expected {sys.argv[2]}, got {actual}"
+    )
 print(actual)

@@ -6,7 +6,6 @@ import hashlib
 import os
 from pathlib import Path
 
-
 SITE = Path("/usr/local/lib/python3.12/dist-packages")
 INDEXER = SITE / "vllm/model_executor/layers/sparse_attn_indexer_kpool.py"
 KPOOL = SITE / "vllm/models/glm5next/nvidia/ops/kpool_compress.py"

@@ -34,7 +34,9 @@ MEDIA_IMAGE_IDS = (
 )
 
 COMFY_REVISION = "250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
-COMFY_ARCHIVE_SHA256 = "40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee"
+COMFY_ARCHIVE_SHA256 = (
+    "40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee"
+)
 DIFFUSERS_REVISION = "c5469b7ceb606edd7ba6570dcd17d38590a18db6"
 HUNYUAN_REVISION = "a3608b512ed7248499a44c61d954965ed9bdae4d"
 MINIMAX_REVISION = "efabd60d61c2b7aabf9f182bee6b5b6058980304"
@@ -73,7 +75,9 @@ class MediaImageCoverageTests(unittest.TestCase):
         self.assertEqual(report["scope"], "media_image")
         self.assertEqual(report["coverage_count"], len(MEDIA_IMAGE_IDS))
         self.assertEqual([row["recipe_id"] for row in rows], list(MEDIA_IMAGE_IDS))
-        self.assertEqual(report["review_inputs"]["source_refresh_commit"], SOURCE_REFRESH_COMMIT)
+        self.assertEqual(
+            report["review_inputs"]["source_refresh_commit"], SOURCE_REFRESH_COMMIT
+        )
 
     def test_every_row_binds_current_source_and_recipe_closure(self) -> None:
         report = load(REPORT)
@@ -81,7 +85,10 @@ class MediaImageCoverageTests(unittest.TestCase):
             with self.subTest(recipe=row["recipe_id"]):
                 recipe_path = ROOT / row["source_path"]
                 recipe = load(recipe_path)
-                self.assertEqual(recipe["identity"]["publisher"] + "/" + recipe["identity"]["slug"], row["recipe_id"])
+                self.assertEqual(
+                    recipe["identity"]["publisher"] + "/" + recipe["identity"]["slug"],
+                    row["recipe_id"],
+                )
                 self.assertEqual(row["implementation_commit"], SOURCE_REFRESH_COMMIT)
                 self.assertTrue(row["checked_at"].startswith("2026-09-05T"))
                 self.assertTrue(row["source_evidence"])
@@ -97,16 +104,29 @@ class MediaImageCoverageTests(unittest.TestCase):
                 elif runtime["family"] == "Diffusers/HunyuanVideo native adapter":
                     self.assertEqual(runtime["pinned_revision"], HUNYUAN_REVISION)
                     self.assertIn(HUNYUAN_REVISION, dockerfile)
-                    self.assertIn("diffusers==0.39.0", (ROOT / runtime["context"] / "requirements.lock").read_text())
+                    self.assertIn(
+                        "diffusers==0.39.0",
+                        (ROOT / runtime["context"] / "requirements.lock").read_text(),
+                    )
                     self.assertEqual(row["decision"], "retained_intentional_variant")
                     self.assertIsNone(row["named_blocker"])
                     review = row["compatibility_review"]
-                    self.assertEqual(review["verdict"], "retained_compatible_pinned_wheel")
-                    self.assertIn("neither timesteps nor sigmas", review["adapter_call_contract"])
+                    self.assertEqual(
+                        review["verdict"], "retained_compatible_pinned_wheel"
+                    )
+                    self.assertIn(
+                        "neither timesteps nor sigmas", review["adapter_call_contract"]
+                    )
                     self.assertTrue(review["unchanged_relevant_files"])
-                    changed = {item["path"]: item for item in review["changed_relevant_files"]}
-                    scheduler = changed["src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py"]
-                    self.assertNotEqual(scheduler["sha256_pinned"], scheduler["sha256_current"])
+                    changed = {
+                        item["path"]: item for item in review["changed_relevant_files"]
+                    }
+                    scheduler = changed[
+                        "src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py"
+                    ]
+                    self.assertNotEqual(
+                        scheduler["sha256_pinned"], scheduler["sha256_current"]
+                    )
                     self.assertIn("explicit timesteps", scheduler["change"])
                     self.assertTrue(review["wheel_matches_pinned_source_for_scheduler"])
                     self.assertTrue(review["current_tree_requires_new_wheel"])
@@ -135,7 +155,10 @@ class MediaImageCoverageTests(unittest.TestCase):
                     len(recipe_model_slugs),
                 )
                 for model_ref in row["models"]:
-                    self.assertIn(model_ref["status"], {"already_current", "retained_exact_variant"})
+                    self.assertIn(
+                        model_ref["status"],
+                        {"already_current", "retained_exact_variant"},
+                    )
                     model_path = next(
                         path
                         for path in (ROOT / "models").glob("*.json")
@@ -148,7 +171,12 @@ class MediaImageCoverageTests(unittest.TestCase):
                     )
                     model = load(model_path)
                     self.assertEqual(model["source"]["revision"], model_ref["revision"])
-                    self.assertEqual(model["source"]["repository"].removeprefix("https://huggingface.co/"), model_ref["repository"])
+                    self.assertEqual(
+                        model["source"]["repository"].removeprefix(
+                            "https://huggingface.co/"
+                        ),
+                        model_ref["repository"],
+                    )
                     self.assertIn(model_ref["revision"], model_ref["source_url"])
 
     def test_exact_qwen_edit_variants_are_recorded_as_retained_artifacts(self) -> None:
@@ -161,13 +189,16 @@ class MediaImageCoverageTests(unittest.TestCase):
         }
         self.assertEqual(len(rows), 3)
         for row in rows.values():
-            pinned_revision, selected_path, selected_sha, selected_size = QWEN_EDIT_ARTIFACTS[
-                row["recipe_id"]
-            ]
+            pinned_revision, selected_path, selected_sha, selected_size = (
+                QWEN_EDIT_ARTIFACTS[row["recipe_id"]]
+            )
             model = row["models"][0]
             self.assertEqual(model["repository"], "Comfy-Org/Qwen-Image-Edit_ComfyUI")
             self.assertEqual(model["status"], "retained_exact_variant")
-            self.assertEqual(model["observed_current_head"], "984166f60a9b1fcede5e9b9287b7a7aebc050010")
+            self.assertEqual(
+                model["observed_current_head"],
+                "984166f60a9b1fcede5e9b9287b7a7aebc050010",
+            )
             comparison = row["artifact_comparison"]
             self.assertEqual(comparison["pinned_commit"], pinned_revision)
             self.assertEqual(comparison["selected_path"], selected_path)

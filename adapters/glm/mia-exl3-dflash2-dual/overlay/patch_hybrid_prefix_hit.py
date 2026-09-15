@@ -25,6 +25,7 @@ fatal — we do not touch KpoolTailManager.
 
 Fail closed if the vLLM coordinator anchors drift.
 """
+
 from __future__ import annotations
 
 import os
@@ -163,7 +164,9 @@ def main() -> int:
     text = replace_once(text, MIN_OLD, MIN_NEW, "hybrid-min")
     text = replace_once(text, LOG_OLD, LOG_NEW, "group-log")
     P.write_text(text)
-    print(f"patched {P.name} (hybrid APC: drafter SWA skipped in min, eagle on SWA only)")
+    print(
+        f"patched {P.name} (hybrid APC: drafter SWA skipped in min, eagle on SWA only)"
+    )
     return 0
 
 

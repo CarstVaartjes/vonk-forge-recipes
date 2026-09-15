@@ -27,13 +27,13 @@ Only the exact upstream behavior is changed.  The patch is idempotent and
 preflights both files before writing, failing closed if a pinned anchor drifts
 or a partial patch is found.
 """
+
 from __future__ import annotations
 
 import os
 import stat
 import sys
 from pathlib import Path
-
 
 BACKEND_TARGET = Path(
     os.environ.get(
@@ -45,8 +45,7 @@ BACKEND_TARGET = Path(
 MANAGER_TARGET = Path(
     os.environ.get(
         "GLM53_XGRAMMAR_MANAGER_PY",
-        "/usr/local/lib/python3.12/dist-packages/vllm/v1/structured_output/"
-        "__init__.py",
+        "/usr/local/lib/python3.12/dist-packages/vllm/v1/structured_output/__init__.py",
     )
 )
 BACKEND_MARK = (
@@ -145,18 +144,18 @@ VALIDATE_UPSTREAM = '''    def validate_tokens(self, tokens: list[int]) -> list[
         return accepted_tokens
 '''
 
-RESET_OLD = '''    def reset(self):
+RESET_OLD = """    def reset(self):
         self.num_processed_tokens = 0
         self.matcher.reset()
-'''
+"""
 
-RESET_UPSTREAM = '''    def reset(self):
+RESET_UPSTREAM = """    def reset(self):
         self.matcher.reset()
         self.num_processed_tokens = 0
         self._is_terminated = False
-'''
+"""
 
-MANAGER_OLD = '''                    if advance_grammar and not grammar.is_terminated():
+MANAGER_OLD = """                    if advance_grammar and not grammar.is_terminated():
                         accepted = grammar.accept_tokens(req_id, [token])
                         if accepted:
                             state_advancements += 1
@@ -164,9 +163,9 @@ MANAGER_OLD = '''                    if advance_grammar and not grammar.is_termi
                             raise AssertionError(
                                 (token, req_id, scheduled_spec_decode_tokens)
                             )
-'''
+"""
 
-MANAGER_UPSTREAM = '''                    if advance_grammar and not grammar.is_terminated():
+MANAGER_UPSTREAM = """                    if advance_grammar and not grammar.is_terminated():
                         if post_reasoning_end_in_window:
                             accepted = bool(grammar.validate_tokens([token]))
                             if accepted:
@@ -179,7 +178,7 @@ MANAGER_UPSTREAM = '''                    if advance_grammar and not grammar.is_
                             raise AssertionError(
                                 (token, req_id, scheduled_spec_decode_tokens)
                             )
-'''
+"""
 
 
 def backend_counts(text: str) -> tuple[list[int], list[int]]:
@@ -215,8 +214,7 @@ def prepare_backend(source: str) -> tuple[str, str]:
         return source, "already upstream"
     if old != [1, 1, 1] or new != [0, 0, 0]:
         raise ValueError(
-            "pinned xgrammar termination anchors drifted "
-            f"(old={old}, new={new})"
+            f"pinned xgrammar termination anchors drifted (old={old}, new={new})"
         )
     patched = source.replace(ACCEPT_OLD, BACKEND_MARK + ACCEPT_UPSTREAM, 1)
     patched = patched.replace(VALIDATE_OLD, VALIDATE_UPSTREAM, 1)
@@ -241,8 +239,7 @@ def prepare_manager(source: str) -> tuple[str, str]:
         return source, "already upstream"
     if old != 1 or new != 0:
         raise ValueError(
-            "pinned xgrammar reasoning anchor drifted "
-            f"(old={old}, new={new})"
+            f"pinned xgrammar reasoning anchor drifted (old={old}, new={new})"
         )
     patched = source.replace(MANAGER_OLD, MANAGER_MARK + MANAGER_UPSTREAM, 1)
     if not verified_manager_state(patched) or patched.count(MANAGER_MARK) != 1:

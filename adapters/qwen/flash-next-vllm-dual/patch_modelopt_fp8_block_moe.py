@@ -21,6 +21,7 @@ is exactly what the checkpoint stores. This patch only wires the dispatch.
 Operates in place on files/modelopt_patched.py (the output of
 patch_modelopt_mxfp8.py), so both patches stack.
 """
+
 import os
 import sys
 
@@ -105,18 +106,23 @@ def _replace_once(src: str, old: str, new: str, what: str) -> str:
 
 
 def patch() -> None:
-    src = open(TARGET).read()
+    with open(TARGET) as f:
+        src = f.read()
     if "FP8_BLOCK_SCALES" in src:
         print("already patched", TARGET)
         return
     src = _replace_once(src, ANCHOR_HELPER, HELPER + ANCHOR_HELPER, "helper")
     src = _replace_once(src, ANCHOR_DISPATCH, DISPATCH, "moe dispatch")
-    open(TARGET, "w").write(src)
+    with open(TARGET, "w") as f:
+        f.write(src)
     print("ok", TARGET)
 
 
 if __name__ == "__main__":
     if not os.path.isfile(TARGET):
-        print(f"ERROR: missing {TARGET} (run patch_modelopt_mxfp8.py first)", file=sys.stderr)
+        print(
+            f"ERROR: missing {TARGET} (run patch_modelopt_mxfp8.py first)",
+            file=sys.stderr,
+        )
         sys.exit(1)
     patch()

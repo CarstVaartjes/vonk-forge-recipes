@@ -7,13 +7,16 @@ GLM53_DENSE_FP8=off (default): only the module file is refreshed (its new code
 is unreachable: get_quant_method returns UnquantizedLinearMethod for every
 LinearBase, exactly as before). Anything else: also patch kda.py / model.py.
 """
+
 from __future__ import annotations
 
 import os
 import sys
 from pathlib import Path
 
-SITE = Path(os.environ.get("GLM53_SITE", "/usr/local/lib/python3.12/dist-packages/vllm"))
+SITE = Path(
+    os.environ.get("GLM53_SITE", "/usr/local/lib/python3.12/dist-packages/vllm")
+)
 OPT = Path(os.environ.get("GLM53_OPT", "/opt/glm53"))
 MARK = "# [glm53-dense-fp8]"
 

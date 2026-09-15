@@ -31,7 +31,9 @@ def _input_files(suffixes: frozenset[str]) -> list[Path]:
 def _prompt() -> str:
     prompt_files = _input_files(_PROMPT_SUFFIXES)
     if len(prompt_files) != 1:
-        raise SystemExit("exactly one UTF-8 text prompt input (.txt or .text) is required")
+        raise SystemExit(
+            "exactly one UTF-8 text prompt input (.txt or .text) is required"
+        )
     raw = prompt_files[0].read_bytes()
     if not raw or len(raw) > _MAX_PROMPT_BYTES:
         raise SystemExit("the text prompt must contain 1..16384 UTF-8 bytes")
@@ -93,9 +95,7 @@ def _pipeline(pipeline_name: str):
         local_files_only=True,
     )
     lora_name = (
-        _TEXT_TO_IMAGE_LORA
-        if pipeline_name == "text-to-image"
-        else _IMAGE_EDIT_LORA
+        _TEXT_TO_IMAGE_LORA if pipeline_name == "text-to-image" else _IMAGE_EDIT_LORA
     )
     lora_path = _LORA_DIR / lora_name
     if not lora_path.is_file():
@@ -106,7 +106,9 @@ def _pipeline(pipeline_name: str):
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pipeline", choices=("text-to-image", "image-to-image"), required=True)
+    parser.add_argument(
+        "--pipeline", choices=("text-to-image", "image-to-image"), required=True
+    )
     parser.add_argument("--output-mime", required=True)
     parser.add_argument("--num-inference-steps", type=int, default=4)
     parser.add_argument("--true-cfg-scale", type=float, default=1.0)
@@ -119,7 +121,9 @@ def main() -> None:
     if args.output_mime != "image/png":
         raise SystemExit("Qwen Image Lightning emits image/png only")
     if args.num_inference_steps != 4:
-        raise SystemExit("the selected Lightning LoRA requires exactly four inference steps")
+        raise SystemExit(
+            "the selected Lightning LoRA requires exactly four inference steps"
+        )
     if args.true_cfg_scale != 1.0:
         raise SystemExit("the selected Lightning LoRA requires true CFG 1.0")
     if args.width % 16 or args.height % 16:

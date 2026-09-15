@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar
 
 import torch
-
 from vllm import envs
 from vllm.config import VllmConfig
 from vllm.config.cache import CacheDType

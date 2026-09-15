@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Regression tests for the vLLM #52805/#53046 XGrammar backports."""
+
 from __future__ import annotations
 
 import os
@@ -7,7 +8,6 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -24,15 +24,10 @@ INSTALLED_BACKEND = Path(
     "backend_xgrammar.py"
 )
 INSTALLED_MANAGER = Path(
-    "/usr/local/lib/python3.12/dist-packages/vllm/v1/structured_output/"
-    "__init__.py"
+    "/usr/local/lib/python3.12/dist-packages/vllm/v1/structured_output/__init__.py"
 )
-BACKEND_MARK = (
-    "# [glm53-xgrammar-termination] Source-exact vLLM 12f64b39 backport."
-)
-MANAGER_MARK = (
-    "# [glm53-xgrammar-reasoning] Source-exact vLLM c6e19b3 backport."
-)
+BACKEND_MARK = "# [glm53-xgrammar-termination] Source-exact vLLM 12f64b39 backport."
+MANAGER_MARK = "# [glm53-xgrammar-reasoning] Source-exact vLLM c6e19b3 backport."
 
 # Exact vLLM 487ecf187 patch anchors, embedded in a dependency-free harness.
 PINNED_BACKEND_FIXTURE = '''class _Logger:
@@ -103,7 +98,7 @@ class XgrammarGrammar:
         self.matcher.reset()
 '''
 
-PINNED_MANAGER_FIXTURE = '''class StructuredOutputManager:
+PINNED_MANAGER_FIXTURE = """class StructuredOutputManager:
     def advance_speculative_draft(
         self,
         grammar,
@@ -126,7 +121,7 @@ PINNED_MANAGER_FIXTURE = '''class StructuredOutputManager:
                                 (token, req_id, scheduled_spec_decode_tokens)
                             )
         return state_advancements
-'''
+"""
 
 
 class FakeMatcher:
@@ -194,8 +189,7 @@ def run_patch(
         [sys.executable, str(PATCH)],
         env=env,
         text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         check=False,
     )
     if ok and proc.returncode != 0:
@@ -207,7 +201,7 @@ def run_patch(
 
 def assert_backend_behavior(source: str) -> None:
     namespace: dict[str, object] = {}
-    exec(compile(source, "patched_backend_fixture.py", "exec"), namespace)
+    exec(compile(source, "patched_backend_fixture.py", "exec"), namespace)  # noqa: S102  (exec runs the extracted patched source under test)
     grammar_cls = namespace["XgrammarGrammar"]
 
     matcher = FakeMatcher()
@@ -238,7 +232,7 @@ def assert_backend_behavior(source: str) -> None:
 
 def assert_manager_behavior(source: str) -> None:
     namespace: dict[str, object] = {}
-    exec(compile(source, "patched_manager_fixture.py", "exec"), namespace)
+    exec(compile(source, "patched_manager_fixture.py", "exec"), namespace)  # noqa: S102  (exec runs the extracted patched source under test)
     manager = namespace["StructuredOutputManager"]()
 
     grammar = FakeGrammar(valid_token=7)
@@ -287,9 +281,7 @@ def test_fixture() -> None:
         assert manager.read_text() == patched_manager
 
         # Exact merged behavior is accepted when a newer image already has it.
-        backend.write_text(
-            patched_backend.replace(f"    {BACKEND_MARK}\n", "", 1)
-        )
+        backend.write_text(patched_backend.replace(f"    {BACKEND_MARK}\n", "", 1))
         manager.write_text(
             patched_manager.replace(f"                    {MANAGER_MARK}\n", "", 1)
         )
@@ -394,7 +386,7 @@ def test_recipe_wiring_if_present() -> None:
         '-v "$XGRAMMAR_PATCH_HOST:'
         '/opt/glm53/patch_xgrammar_termination.py:ro"' in launcher
     )
-    assert "scp -q -o BatchMode=yes \"$XGRAMMAR_PATCH_HOST\"" in launcher
+    assert 'scp -q -o BatchMode=yes "$XGRAMMAR_PATCH_HOST"' in launcher
     assert "COPY overlay/patch_xgrammar_termination.py" in image
     assert "RUN python3 /opt/glm53/patch_xgrammar_termination.py" in image
     assert "python3 /opt/glm53/test_xgrammar_termination.py" in image

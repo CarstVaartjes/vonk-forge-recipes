@@ -22,7 +22,10 @@ def load(path: Path) -> dict:
 def adapter_module():
     module = types.ModuleType("hunyuanocr_adapter")
     module.__file__ = str(ADAPTER_PATH)
-    exec(compile(ADAPTER_PATH.read_text(encoding="utf-8"), str(ADAPTER_PATH), "exec"), module.__dict__)
+    exec(  # noqa: S102 - load the adapter source without importing heavy dependencies.
+        compile(ADAPTER_PATH.read_text(encoding="utf-8"), str(ADAPTER_PATH), "exec"),
+        module.__dict__,
+    )
     return module
 
 
@@ -31,19 +34,49 @@ class HunyuanOCRAuthorityTests(unittest.TestCase):
         model, recipe = map(load, (MODEL_PATH, RECIPE_PATH))
         reference = recipe["models"][0]["model"]
         from vonk_forge_contracts import ModelDefinition
-        model_digest = __import__("hashlib").sha256(json.dumps(ModelDefinition.model_validate(model).model_dump(mode="json"), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+        model_digest = (
+            __import__("hashlib")
+            .sha256(
+                json.dumps(
+                    ModelDefinition.model_validate(model).model_dump(mode="json"),
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode()
+            )
+            .hexdigest()
+        )
         self.assertEqual(reference["content_sha256"], model_digest)
-        self.assertEqual(model["source"]["revision"], "47644ecc4fc854efa4f505155158831f36773ee4")
+        self.assertEqual(
+            model["source"]["revision"], "47644ecc4fc854efa4f505155158831f36773ee4"
+        )
         self.assertEqual(recipe["topology"]["node_count"], 1)
         self.assertEqual(recipe["interfaces"][0]["adapter"], "artifact-job")
         index = load(ROOT / "catalog-index.json")
-        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{RECIPE_PATH.name}")
-        self.assertEqual(entry["package"]["recipe_content_sha256"], __import__("hashlib").sha256(json.dumps(recipe, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest())
+        entry = next(
+            item
+            for item in index["recipes"]
+            if item["source_path"] == f"recipes/{RECIPE_PATH.name}"
+        )
+        self.assertEqual(
+            entry["package"]["recipe_content_sha256"],
+            __import__("hashlib")
+            .sha256(
+                json.dumps(
+                    recipe, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+                ).encode()
+            )
+            .hexdigest(),
+        )
 
     def test_model_inventory_license_and_runtime_source_are_closed(self) -> None:
         model, recipe = load(MODEL_PATH), load(RECIPE_PATH)
         paths = {item["path"] for item in model["files"]}
-        for required in ("model.safetensors", "dflash/model.safetensors", "dflash/dflash.py"):
+        for required in (
+            "model.safetensors",
+            "dflash/model.safetensors",
+            "dflash/dflash.py",
+        ):
             self.assertIn(required, paths)
         self.assertTrue(model["license"]["operator_acceptance_required"])
         restrictions = model["license"]["territorial_restrictions"]
@@ -51,10 +84,14 @@ class HunyuanOCRAuthorityTests(unittest.TestCase):
         self.assertIn("Tencent Hunyuan Community License", restrictions["notice"])
         self.assertEqual(recipe["runtime"]["engine"], "pytorch-pipeline")
         selected = {item["file_id"] for item in recipe["models"][0]["files"]}
-        selected_paths = {item["path"] for item in model["files"] if item["id"] in selected}
+        selected_paths = {
+            item["path"] for item in model["files"] if item["id"] in selected
+        }
         self.assertTrue(selected_paths)
         self.assertFalse(any(path.startswith("v1.0/") for path in selected_paths))
-        self.assertEqual(len({item["id"] for item in model["files"]}), len(model["files"]))
+        self.assertEqual(
+            len({item["id"] for item in model["files"]}), len(model["files"])
+        )
         self.assertTrue(all(len(item["sha256"]) == 64 for item in model["files"]))
 
     def test_signed_source_bundle_matches_recipe(self) -> None:
@@ -69,7 +106,11 @@ class HunyuanOCRAuthorityTests(unittest.TestCase):
 
     def test_wrapper_keeps_official_dflash_serving_contract(self) -> None:
         source = ADAPTER_PATH.read_text(encoding="utf-8")
-        for fixed_flag in ('"--no-enable-prefix-caching"', '"--limit-mm-per-prompt"', '"--speculative-config"'):
+        for fixed_flag in (
+            '"--no-enable-prefix-caching"',
+            '"--limit-mm-per-prompt"',
+            '"--speculative-config"',
+        ):
             self.assertIn(fixed_flag, source)
         self.assertNotIn("huggingface.co/", source)
 
@@ -82,17 +123,32 @@ class HunyuanOCRInputTests(unittest.TestCase):
         self.module.INPUTS = Path(self.temporary.name)
 
     def manifest(self, files: list[dict[str, object]]) -> None:
-        (self.module.INPUTS / "manifest.json").write_text(json.dumps({"schema_version": 1, "total_bytes": 0, "files": files}))
+        (self.module.INPUTS / "manifest.json").write_text(
+            json.dumps({"schema_version": 1, "total_bytes": 0, "files": files})
+        )
 
     def test_manifest_selects_bounded_official_tasks(self) -> None:
         image = self.module.INPUTS / "page.png"
         image.write_bytes(b"fixture")
-        (self.module.INPUTS / "job.json").write_text(json.dumps({"images": ["page.png"], "task_type": "table", "max_tokens": 2048}))
-        self.manifest([{"slot": "document", "name": "page.png"}, {"slot": "config", "name": "job.json"}])
+        (self.module.INPUTS / "job.json").write_text(
+            json.dumps(
+                {"images": ["page.png"], "task_type": "table", "max_tokens": 2048}
+            )
+        )
+        self.manifest(
+            [
+                {"slot": "document", "name": "page.png"},
+                {"slot": "config", "name": "job.json"},
+            ]
+        )
         images, task_type, max_tokens = self.module.read_job()
-        self.assertEqual(images, [image]); self.assertEqual(task_type, "table"); self.assertEqual(max_tokens, 2048)
+        self.assertEqual(images, [image])
+        self.assertEqual(task_type, "table")
+        self.assertEqual(max_tokens, 2048)
 
-        (self.module.INPUTS / "job.json").write_text(json.dumps({"images": ["page.png"], "task_type": "free_prompt"}))
+        (self.module.INPUTS / "job.json").write_text(
+            json.dumps({"images": ["page.png"], "task_type": "free_prompt"})
+        )
         with self.assertRaisesRegex(SystemExit, "official task_type"):
             self.module.read_job()
 
@@ -102,25 +158,47 @@ class HunyuanOCRInputTests(unittest.TestCase):
             self.module.read_job()
         image = self.module.INPUTS / "page.png"
         image.write_bytes(b"fixture")
-        (self.module.INPUTS / "job.json").write_text(json.dumps({"images": ["page.png"], "prompt": "override"}))
-        self.manifest([{"slot": "document", "name": "page.png"}, {"slot": "config", "name": "job.json"}])
+        (self.module.INPUTS / "job.json").write_text(
+            json.dumps({"images": ["page.png"], "prompt": "override"})
+        )
+        self.manifest(
+            [
+                {"slot": "document", "name": "page.png"},
+                {"slot": "config", "name": "job.json"},
+            ]
+        )
         with self.assertRaisesRegex(SystemExit, "unsupported fields"):
             self.module.read_job()
 
-        (self.module.INPUTS / "job.json").write_text(json.dumps({"images": ["page.txt"], "task_type": "table"}))
+        (self.module.INPUTS / "job.json").write_text(
+            json.dumps({"images": ["page.txt"], "task_type": "table"})
+        )
         (self.module.INPUTS / "page.txt").write_bytes(b"fixture")
-        self.manifest([{"slot": "document", "name": "page.txt"}, {"slot": "config", "name": "job.json"}])
-        with self.assertRaisesRegex(SystemExit, "unsupported or missing document image"):
+        self.manifest(
+            [
+                {"slot": "document", "name": "page.txt"},
+                {"slot": "config", "name": "job.json"},
+            ]
+        )
+        with self.assertRaisesRegex(
+            SystemExit, "unsupported or missing document image"
+        ):
             self.module.read_job()
 
     def test_output_bundle_contains_results_and_provenance(self) -> None:
-        source = self.module.INPUTS / "page.png"; source.write_bytes(b"fixture")
+        source = self.module.INPUTS / "page.png"
+        source.write_bytes(b"fixture")
         with tempfile.TemporaryDirectory() as output:
-            target = self.module.write_bundle(Path(output), [(source, "# Parsed\n", False)], "doc_parse")
+            target = self.module.write_bundle(
+                Path(output), [(source, "# Parsed\n", False)], "doc_parse"
+            )
             with zipfile.ZipFile(target) as archive:
                 manifest = json.loads(archive.read("manifest.json"))
                 self.assertEqual(manifest["inference"], "vllm-dflash")
-                self.assertEqual(manifest["model_revision"], "47644ecc4fc854efa4f505155158831f36773ee4")
+                self.assertEqual(
+                    manifest["model_revision"],
+                    "47644ecc4fc854efa4f505155158831f36773ee4",
+                )
                 self.assertEqual(archive.read("documents/001-page.md"), b"# Parsed\n")
 
 

@@ -1,4 +1,5 @@
 """Canonical content identity for validated public contract documents."""
+
 from __future__ import annotations
 
 import hashlib
@@ -20,7 +21,13 @@ def content_sha256(document: ModelDefinition | RecipeDefinition) -> str:
     """
 
     if not isinstance(document, (ModelDefinition, RecipeDefinition)):
-        raise TypeError("content_sha256 requires a validated ModelDefinition or RecipeDefinition")
-    normalized = document.model_dump(mode="json", exclude_unset=False, exclude_none=False)
-    payload = json.dumps(normalized, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        raise TypeError(
+            "content_sha256 requires a validated ModelDefinition or RecipeDefinition"
+        )
+    normalized = document.model_dump(
+        mode="json", exclude_unset=False, exclude_none=False
+    )
+    payload = json.dumps(
+        normalized, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()

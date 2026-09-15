@@ -6,7 +6,6 @@ from dataclasses import field
 from typing import Any, ClassVar, Literal
 
 from pydantic import Field, field_validator, model_validator
-
 from vllm.config.utils import config
 from vllm.logger import init_logger
 from vllm.utils.torch_utils import (

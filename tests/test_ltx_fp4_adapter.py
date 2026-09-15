@@ -249,10 +249,17 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             "source_bundle"
         ]
         archive, _, digest = source_bundle(ADAPTER_ROOT)
-        self.assertEqual(recipe["execution"]["build"]["context"]["path"], "adapters/video/ltx2-pytorch")
+        self.assertEqual(
+            recipe["execution"]["build"]["context"]["path"],
+            "adapters/video/ltx2-pytorch",
+        )
         self.assertTrue(digest and archive)
         index = _document(ROOT / "catalog-index.json")
-        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{RECIPE.name}")
+        entry = next(
+            item
+            for item in index["recipes"]
+            if item["source_path"] == f"recipes/{RECIPE.name}"
+        )
         self.assertEqual(entry["package"]["recipe_content_sha256"], _digest(RECIPE))
 
 

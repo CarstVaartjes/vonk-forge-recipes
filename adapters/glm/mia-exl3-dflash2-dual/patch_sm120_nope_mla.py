@@ -165,18 +165,24 @@ indexer = site / "model_executor/layers/sparse_attn_indexer_kpool.py"
 text = indexer.read_text()
 for old, new in (
     (
-        "                    expanded = expand_pools_and_append_tail(\n"
-        "                        pool_ids, q_seq, index_kpool\n"
-        "                    )\n",
-        "                    expanded = expand_pools_and_append_tail(\n"
-        "                        pool_ids[:, : select_k - 1], q_seq, index_kpool\n"
-        "                    )\n",
+        (
+            "                    expanded = expand_pools_and_append_tail(\n"
+            "                        pool_ids, q_seq, index_kpool\n"
+            "                    )\n"
+        ),
+        (
+            "                    expanded = expand_pools_and_append_tail(\n"
+            "                        pool_ids[:, : select_k - 1], q_seq, index_kpool\n"
+            "                    )\n"
+        ),
     ),
     (
         "            out = expand_pools_and_append_tail(pool_ids, dec_seq, index_kpool)\n",
-        "            out = expand_pools_and_append_tail(\n"
-        "                pool_ids[:, : select_k - 1], dec_seq, index_kpool\n"
-        "            )\n",
+        (
+            "            out = expand_pools_and_append_tail(\n"
+            "                pool_ids[:, : select_k - 1], dec_seq, index_kpool\n"
+            "            )\n"
+        ),
     ),
 ):
     if text.count(old) != 1:
@@ -197,12 +203,14 @@ text = text.replace(
     "    # GLM53_SKIP_FI_SPARSE_WARMUP: SM120 autotune wedges rank 0 on GB10.\n"
     "    deepseek_v4_sparse_mla_attention_warmup(worker)\n",
 )
-old_autotune = "    from flashinfer.autotuner import AutoTuner, set_autotune_process_group\n"
+old_autotune = (
+    "    from flashinfer.autotuner import AutoTuner, set_autotune_process_group\n"
+)
 if text.count(old_autotune) != 1:
     raise RuntimeError("expected one FlashInfer autotuner import")
 text = text.replace(
     old_autotune,
-    "    logger.info_once(\"Skipping FlashInfer autotune on SM121\")\n"
+    '    logger.info_once("Skipping FlashInfer autotune on SM121")\n'
     "    return\n"
     "    from flashinfer.autotuner import AutoTuner, set_autotune_process_group\n",
 )
@@ -210,10 +218,7 @@ warmup.write_text(text)
 
 platform = site / "platforms/cuda.py"
 text = platform.read_text()
-old_pdl = (
-    "            return False\n"
-    "        return major >= 9\n"
-)
+old_pdl = "            return False\n        return major >= 9\n"
 if text.count(old_pdl) != 1:
     raise RuntimeError("expected one PDL capability gate")
 platform.write_text(

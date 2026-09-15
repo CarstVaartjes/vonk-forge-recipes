@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-
 SITE = Path("/usr/local/lib/python3.12/dist-packages")
 REQUIRED = (
     SITE / "vllm/platforms/cuda.py",

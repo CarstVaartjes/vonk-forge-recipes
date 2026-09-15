@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import sys
 import unittest
@@ -8,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, content_sha256  # noqa: E402
+from vonk_forge_contracts import ModelDefinition, content_sha256
 
 
 def read(path: Path) -> dict[str, object]:
@@ -26,7 +25,9 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
     def test_exact_fp8mixed_model_and_selected_file(self) -> None:
         recipe = read(self.path)
         model = model_for(recipe)
-        self.assertEqual(model["source"]["revision"], "4c7c4ea236326cbae56d403d22a03c6cd86ad9a0")
+        self.assertEqual(
+            model["source"]["revision"], "4c7c4ea236326cbae56d403d22a03c6cd86ad9a0"
+        )
         self.assertEqual(model["format"]["quantization"], "fp8mixed")
         self.assertEqual(len(recipe["models"]), 1)
         self.assertEqual(len(recipe["models"][0]["files"]), 1)  # type: ignore[index]
@@ -35,12 +36,20 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
 
     def test_comfy_workflow_is_pinned_and_offline(self) -> None:
         recipe = read(self.path)
-        args = {item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]}  # type: ignore[index]
+        args = {
+            item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]
+        }  # type: ignore[index]
         self.assertTrue(args["workflow"].endswith("qwen-image-edit-2511-fp8mixed.json"))
         self.assertEqual(len(args["workflow-sha256"]), 64)
-        self.assertIn(recipe["execution"]["build"]["network"]["mode"], {"none", "public"})  # type: ignore[index]
+        self.assertIn(
+            recipe["execution"]["build"]["network"]["mode"], {"none", "public"}
+        )  # type: ignore[index]
         resources = recipe["topology"]["roles"][0]["resources"]  # type: ignore[index]
-        self.assertLessEqual(resources["memory"]["startup_peak_bytes"] + resources["memory"]["system_reserve_bytes"], 128_000_000_000)
+        self.assertLessEqual(
+            resources["memory"]["startup_peak_bytes"]
+            + resources["memory"]["system_reserve_bytes"],
+            128_000_000_000,
+        )
 
     def test_shared_comfyui_recipes_have_self_contained_model_selections(self) -> None:
         for path in sorted((ROOT / "recipes").glob("*-comfyui-single.json")):

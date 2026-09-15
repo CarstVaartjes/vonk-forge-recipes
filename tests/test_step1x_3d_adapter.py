@@ -34,8 +34,7 @@ class Step1XUpstreamPatchTests(unittest.TestCase):
 
     def test_pipeline_import_does_not_require_pymeshlab(self) -> None:
         pipeline_path = (
-            self.root
-            / "step1x3d_geometry/models/pipelines/pipeline_utils.py"
+            self.root / "step1x3d_geometry/models/pipelines/pipeline_utils.py"
         )
         pipeline_path.parent.mkdir(parents=True)
         pipeline_path.write_text(
@@ -90,12 +89,11 @@ def remove_degenerate_face(mesh):
 
     def test_sharp_and_normal_select_different_geometry_embeddings(self) -> None:
         encoder_path = (
-            self.root
-            / "step1x3d_geometry/models/conditional_encoders/label_encoder.py"
+            self.root / "step1x3d_geometry/models/conditional_encoders/label_encoder.py"
         )
         encoder_path.parent.mkdir(parents=True)
         encoder_path.write_text(
-            '''GEOMETRY_QUALITY_MAPPING = {"normal": 0, "smooth": 1, "sharp": 2}
+            """GEOMETRY_QUALITY_MAPPING = {"normal": 0, "smooth": 1, "sharp": 2}
 
 class LabelEncoder:
     embedding_table_geometry_quality = (
@@ -108,7 +106,7 @@ class LabelEncoder:
         return self.embedding_table_geometry_quality[
             GEOMETRY_QUALITY_MAPPING[label["geometry_type"][0]]
         ]
-''',
+""",
             encoding="utf-8",
         )
 
@@ -150,7 +148,10 @@ class LabelEncoder:
             dockerfile,
         )
 
-        self.assertIn('org.opencontainers.image.revision="cb5ac944709c6c913109070c7b90c3447f57f3d4"', dockerfile)
+        self.assertIn(
+            'org.opencontainers.image.revision="cb5ac944709c6c913109070c7b90c3447f57f3d4"',
+            dockerfile,
+        )
 
     def test_triposg_diso_license_matches_pypi_metadata(self) -> None:
         recipe = json.loads((ROOT / "recipes/triposg-pytorch-single.json").read_text())
@@ -164,7 +165,9 @@ class LabelEncoder:
         upstream_import = source.index(
             "from step1x3d_texture.pipelines.step1x_3d_texture_synthesis_pipeline import"
         )
-        pipeline_construction = source.index("pipeline = Step1X3DTexturePipeline(config)")
+        pipeline_construction = source.index(
+            "pipeline = Step1X3DTexturePipeline(config)"
+        )
 
         self.assertLess(validation, upstream_import)
         self.assertLess(validation, pipeline_construction)

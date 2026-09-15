@@ -10,6 +10,7 @@ so alignment specialization does not vectorize them.
 This startup patch matches the overlay in recipe/overlay/.../cache_utils.py
 against the Anemll 0.1.1 kernel signature (no num_blocks bound).
 """
+
 from __future__ import annotations
 
 import sys
@@ -37,7 +38,8 @@ def _compute_global_topk_indices_and_lens_kernel(
 ):
 """
 
-NEW = """@triton.jit(
+NEW = (
+    """@triton.jit(
     do_not_specialize_on_alignment=[
         "token_to_req_indices_ptr",
         "is_valid_token_ptr",
@@ -57,7 +59,10 @@ def _compute_global_topk_indices_and_lens_kernel(
     is_valid_token_ptr,
     TRITON_BLOCK_SIZE: tl.constexpr,
 ):
-""" + MARK + "\n"
+"""
+    + MARK
+    + "\n"
+)
 
 
 def patch_text(source: str) -> tuple[str, str]:

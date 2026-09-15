@@ -34,15 +34,18 @@ Patches /usr/local/lib/python3.12/dist-packages/vllm/v1/core/sched/scheduler.py
 in-place inside the container (called from the compose entrypoint before
 ``exec vllm serve``).
 """
-from pathlib import Path
+
 import sys
+from pathlib import Path
 
 P = Path("/usr/local/lib/python3.12/dist-packages/vllm/v1/core/sched/scheduler.py")
 MARK = "# [issue27-hotfix] enforce max_num_partial_prefills on admission"
 if len(sys.argv) > 1 and sys.argv[1] == "--status":
     status_src = P.read_text() if P.is_file() else ""
-    print("issue27 partial-prefill cap        :",
-          "APPLIED" if MARK in status_src else "NOT APPLIED")
+    print(
+        "issue27 partial-prefill cap        :",
+        "APPLIED" if MARK in status_src else "NOT APPLIED",
+    )
     raise SystemExit(0)
 src = P.read_text()
 if MARK in src:

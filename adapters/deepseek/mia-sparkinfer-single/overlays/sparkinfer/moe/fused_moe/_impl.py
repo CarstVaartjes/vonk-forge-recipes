@@ -2,30 +2,39 @@
 
 from __future__ import annotations
 
-import os
 import logging
+import os
 import time
 from collections.abc import Mapping, Sequence
 from contextlib import contextmanager, suppress
 from dataclasses import dataclass, field, replace
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import cuda.bindings.driver as cuda
 import cutlass
-import cutlass.cute as cute
-import triton
-import triton.language as tl
 import torch
 import torch.nn.functional as F
-from torch.profiler import record_function
-
+import triton
+import triton.language as tl
+from cutlass import cute
+from cutlass.cutlass_dsl import Int32
 from sparkinfer._lib.compiler import (
     KernelCompileSpec,
+)
+from sparkinfer._lib.compiler import (
     compile as sparkinfer_compile,
 )
 from sparkinfer._lib.intrinsics import (
     align_up,
     as_grouped_scale_view,
+)
+from sparkinfer._lib.runtime_control import (
+    raise_if_kernel_resolution_frozen,
+)
+from sparkinfer._lib.scratch import (
+    ScratchBufferSpec,
+    scratch_buffer_spec,
+    scratch_tensor,
 )
 from sparkinfer._lib.utils import (
     current_cuda_stream,
@@ -33,9 +42,35 @@ from sparkinfer._lib.utils import (
     get_num_sm,
     make_ptr,
 )
-from cutlass.cutlass_dsl import Int32
-from sparkinfer.moe._shared.routing import (
-    route_topk as triton_route_topk,
+from sparkinfer.moe._shared.execution import (
+    MoEExecutionPlan,
+    MoERegime,
+    MoESpec,
+    MoEWeightPreparationPlan,
+    OutputReduction,
+    PreparedWeightLayout,
+    WeightPreparationTransform,
+    WorkScheduler,
+    lower_moe_execution,
+    make_moe_spec,
+    plan_moe_weight_preparation,
+)
+from sparkinfer.moe._shared.kernels.activations import (
+    SITU,
+    SWIGLUOAI_UNINTERLEAVE,
+    is_gated_moe_activation,
+    moe_activation_w1_rows,
+    normalize_moe_activation,
+    normalize_swiglu_alpha_for_activation,
+    normalize_swiglu_beta_for_activation,
+    normalize_swiglu_limit_for_activation,
+)
+from sparkinfer.moe._shared.kernels.micro import (
+    _BLOCK_DIM as _DIRECT_MICRO_BLOCK_DIM,
+)
+from sparkinfer.moe._shared.kernels.micro import (
+    _direct_k_segments_for_k,
+    _direct_k_segments_supported,
 )
 from sparkinfer.moe._shared.kernels.relu2 import (
     MoEDynamicKernelRelu2,
@@ -51,43 +86,11 @@ from sparkinfer.moe._shared.kernels.situ import (
     MoEDynamicKernelSitu,
     MoEMicroKernelSitu,
 )
-from sparkinfer.moe._shared.kernels.activations import (
-    SITU,
-    SWIGLUOAI_UNINTERLEAVE,
-    is_gated_moe_activation,
-    moe_activation_w1_rows,
-    normalize_moe_activation,
-    normalize_swiglu_alpha_for_activation,
-    normalize_swiglu_beta_for_activation,
-    normalize_swiglu_limit_for_activation,
-)
-from sparkinfer.moe._shared.kernels.micro import (
-    _BLOCK_DIM as _DIRECT_MICRO_BLOCK_DIM,
-    _direct_k_segments_for_k,
-    _direct_k_segments_supported,
-)
-from sparkinfer.moe._shared.execution import (
-    MoEExecutionPlan,
-    MoERegime,
-    MoESpec,
-    MoEWeightPreparationPlan,
-    OutputReduction,
-    PreparedWeightLayout,
-    WeightPreparationTransform,
-    WorkScheduler,
-    lower_moe_execution,
-    make_moe_spec,
-    plan_moe_weight_preparation,
+from sparkinfer.moe._shared.routing import (
+    route_topk as triton_route_topk,
 )
 from sparkinfer.moe._shared.tuning import lookup_max_active_clusters
-from sparkinfer._lib.runtime_control import (
-    raise_if_kernel_resolution_frozen,
-)
-from sparkinfer._lib.scratch import (
-    ScratchBufferSpec,
-    scratch_buffer_spec,
-    scratch_tensor,
-)
+from torch.profiler import record_function
 
 logger = logging.getLogger(__name__)
 _SPARKINFER_TIMING = (
@@ -190,16 +193,16 @@ class TPMoEWorkspace:
     packed_a_flat: torch.Tensor | None = None
     scale_flat: torch.Tensor | None = None
     packed_a_storage_ptr: object = None
-    route_workspace: "_TPRouteWorkspace | None" = None
+    route_workspace: _TPRouteWorkspace | None = None
     volatile_launch_state: bool = False
 
-    def bind_fp4(self, **kwargs) -> "TPMoEFP4Binding":
+    def bind_fp4(self, **kwargs) -> TPMoEFP4Binding:
         return build_tp_moe_fp4_binding(scratch=self, **kwargs)
 
-    def bind_route(self, **kwargs) -> "TPMoERouteBinding":
+    def bind_route(self, **kwargs) -> TPMoERouteBinding:
         return build_tp_moe_route_binding(scratch=self, **kwargs)
 
-    def bind_sparse_fp4(self, **kwargs) -> "TPMoESparseFP4Binding":
+    def bind_sparse_fp4(self, **kwargs) -> TPMoESparseFP4Binding:
         return build_tp_moe_sparse_fp4_binding(scratch=self, **kwargs)
 
 
@@ -288,16 +291,16 @@ class TPW4A16Workspace:
     # TC-decode fused-sum launches, keyed by exact token count (only the small-M
     # decode sizes in TC-decode's supported set, packed layout only).
     planned_tc_decode_launches: dict[int, object] = field(default_factory=dict)
-    route_workspace: "_TPRouteWorkspace | None" = None
+    route_workspace: _TPRouteWorkspace | None = None
     volatile_launch_state: bool = False
 
-    def bind_fp4(self, **kwargs) -> "TPMoEFP4Binding":
+    def bind_fp4(self, **kwargs) -> TPMoEFP4Binding:
         return build_tp_moe_fp4_binding(scratch=self, **kwargs)
 
-    def bind_route(self, **kwargs) -> "TPMoERouteBinding":
+    def bind_route(self, **kwargs) -> TPMoERouteBinding:
         return build_tp_moe_route_binding(scratch=self, **kwargs)
 
-    def bind_sparse_fp4(self, **kwargs) -> "TPMoESparseFP4Binding":
+    def bind_sparse_fp4(self, **kwargs) -> TPMoESparseFP4Binding:
         return build_tp_moe_sparse_fp4_binding(scratch=self, **kwargs)
 
 
@@ -310,9 +313,9 @@ class TPMoEWorkspacePool:
     the lane pool and therefore the same scratch arena.
     """
 
-    workspaces: Dict[Tuple, object] = field(default_factory=dict)
-    route_workspaces: Dict[Tuple, "_TPRouteWorkspace"] = field(default_factory=dict)
-    core_arenas: Dict[Tuple, "_TPCoreArena"] = field(default_factory=dict)
+    workspaces: dict[tuple, object] = field(default_factory=dict)
+    route_workspaces: dict[tuple, _TPRouteWorkspace] = field(default_factory=dict)
+    core_arenas: dict[tuple, _TPCoreArena] = field(default_factory=dict)
     shared_arena: torch.Tensor | None = None
     shared_arena_nbytes: int = 0
     route_workspace_nbytes: int = 0
@@ -352,13 +355,13 @@ class TPMoEWorkspacePool:
         self.core_arena_nbytes = core_workspace_nbytes
         self.frozen = bool(frozen)
 
-    def bind_fp4(self, **kwargs) -> "TPMoEFP4Binding":
+    def bind_fp4(self, **kwargs) -> TPMoEFP4Binding:
         return build_tp_moe_fp4_binding(scratch=self, **kwargs)
 
-    def bind_route(self, **kwargs) -> "TPMoERouteBinding":
+    def bind_route(self, **kwargs) -> TPMoERouteBinding:
         return build_tp_moe_route_binding(scratch=self, **kwargs)
 
-    def bind_sparse_fp4(self, **kwargs) -> "TPMoESparseFP4Binding":
+    def bind_sparse_fp4(self, **kwargs) -> TPMoESparseFP4Binding:
         return build_tp_moe_sparse_fp4_binding(scratch=self, **kwargs)
 
 
@@ -661,7 +664,7 @@ class _TPRouteWorkspace:
 @dataclass(frozen=True)
 class _TensorAllocSpec:
     name: str
-    shape: Tuple[int, ...]
+    shape: tuple[int, ...]
     dtype: torch.dtype
     init: str = "empty"
 
@@ -691,14 +694,14 @@ class _TPCoreWorkspacePlan:
     trellis_bits: int = 3
     trellis_tile_config: tuple[int, int, int, int] | None = None
     route_block_size_m: int | None = None
-    tensor_specs: Tuple[_TensorAllocSpec, ...] = ()
+    tensor_specs: tuple[_TensorAllocSpec, ...] = ()
 
 
 @dataclass
 class _TPCoreArena:
     plan: _TPCoreWorkspacePlan
     shared_arena: torch.Tensor
-    tensors: Dict[str, torch.Tensor]
+    tensors: dict[str, torch.Tensor]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -896,7 +899,7 @@ class TPMoEScratchPlan:
         layer_idx: int | None = None,
         route_expert_map: torch.Tensor | None = None,
         output_expert_map: torch.Tensor | None = None,
-    ) -> "TPMoEFP4Binding":
+    ) -> TPMoEFP4Binding:
         if not isinstance(experts, SPARKINFERFP4ExpertWeights):
             raise TypeError("experts must come from prepare_sparkinfer_fp4_moe_weights")
         if experts.plan != self.caps.weight_plan:
@@ -1472,10 +1475,10 @@ def _activation_w1_rows(activation: str, n: int) -> int:
 # Override for the dynamic-kernel MMA tile (tile_m, tile_n). Set via the env
 # SPARKINFER_DYNAMIC_TILE_MN="64x128" or programmatically (tp_moe._DYNAMIC_TILE_MN_OVERRIDE).
 # Used to specialize/benchmark dynamic across the tile set it should cover.
-_DYNAMIC_TILE_MN_OVERRIDE: Tuple[int, int] | None = None
+_DYNAMIC_TILE_MN_OVERRIDE: tuple[int, int] | None = None
 
 
-def _dynamic_tile_mn_override() -> Tuple[int, int] | None:
+def _dynamic_tile_mn_override() -> tuple[int, int] | None:
     env = os.environ.get("SPARKINFER_DYNAMIC_TILE_MN")
     if env:
         m, n = (int(x) for x in env.split("x"))
@@ -1503,7 +1506,7 @@ def _select_dynamic_tile_mn(
     num_experts: int,
     activation: str = "silu",
     compute_capability: tuple[int, int] | None = None,
-) -> Tuple[int, int]:
+) -> tuple[int, int]:
     """Tile planner for the dynamic kernel.
 
     Generally keyed on average routed rows per expert, with narrowly measured
@@ -1792,10 +1795,10 @@ def _w4a8_dynamic_materialized_enabled(
     )
 
 
-_WEIGHT_CACHE: Dict[Tuple[int, int, int], _WeightViews] = {}
-_MICRO_KERNEL_CACHE: Dict[Tuple, object] = {}
-_DYNAMIC_KERNEL_CACHE: Dict[Tuple, object] = {}
-_MAC_CACHE: Dict[Tuple[int, str], int] = {}  # (device_idx, impl) → max_active_clusters
+_WEIGHT_CACHE: dict[tuple[int, int, int], _WeightViews] = {}
+_MICRO_KERNEL_CACHE: dict[tuple, object] = {}
+_DYNAMIC_KERNEL_CACHE: dict[tuple, object] = {}
+_MAC_CACHE: dict[tuple[int, str], int] = {}  # (device_idx, impl) → max_active_clusters
 # Micro owns the tiny tail below this routed-row cutover; dynamic owns the rest.
 # The measured GLM crossover under CUDA graph replay is 64 routed rows.
 _MICRO_DYNAMIC_CUTOVER_PAIRS_DEFAULT = 64
@@ -1806,12 +1809,12 @@ _MICRO_MAX_TOKENS = 8
 # pair-direct routing wins through M=4 for the common top-k=8 regime.
 _W4A8_DECODE_MAX_ROUTED_ROWS = 64
 _DIRECT_ROUTING_MAX_ROUTED_ROWS = 32
-_MICRO_DYNAMIC_CUTOVER_PAIRS_CACHE: Dict[str, int] = {}
+_MICRO_DYNAMIC_CUTOVER_PAIRS_CACHE: dict[str, int] = {}
 _DYNAMIC_MULTICTA_CACHE: bool | None = None
 _DYNAMIC_DOWN_SCALE_CACHE: bool | None = None
-_LAST_WEIGHTS: Tuple = (None, None)  # (cache_key, views)
-_LAST_KERNEL: Tuple = (None, None)  # (cache_key, (compiled, mac))
-_MICRO_DIRECT_LAUNCH_CAP_CACHE: Dict[Tuple[int, int], bool] = {}
+_LAST_WEIGHTS: tuple = (None, None)  # (cache_key, views)
+_LAST_KERNEL: tuple = (None, None)  # (cache_key, (compiled, mac))
+_MICRO_DIRECT_LAUNCH_CAP_CACHE: dict[tuple[int, int], bool] = {}
 _CURRENT_DISPATCH_STAGE: str | None = None
 _DIRECT_MICRO_SHAPE_ATTR = "_sparkinfer_direct_micro_shape"
 
@@ -1848,7 +1851,6 @@ def clear_tp_moe_caches() -> None:
 
     global _LAST_WEIGHTS
     global _LAST_KERNEL
-    global _MICRO_DYNAMIC_CUTOVER_PAIRS_CACHE
     global _DYNAMIC_MULTICTA_CACHE
     global _DYNAMIC_DOWN_SCALE_CACHE
     _WEIGHT_CACHE.clear()
@@ -2189,7 +2191,7 @@ def _finalize_workspace_views(workspace: TPMoEWorkspace) -> None:
 def _build_tp_moe_fp4_binding_from_views(
     *,
     plan: _TPCoreWorkspacePlan,
-    tensors: Dict[str, torch.Tensor],
+    tensors: dict[str, torch.Tensor],
     a: torch.Tensor,
     experts: SPARKINFERFP4ExpertWeights,
     topk_weights: torch.Tensor,
@@ -2352,33 +2354,33 @@ def _build_tp_moe_fp4_binding_from_views(
         # capture the initialization is replayed with the graph as required.
         tensors["kernel_workspace"].zero_()
 
-    common_kwargs = dict(
-        a=a,
-        experts=experts,
-        topk_weights=topk_weights,
-        topk_ids=topk_ids,
-        implementation=plan.implementation,
-        state_E=plan.state_E,
-        weight_E=plan.weight_E,
-        max_rows=plan.max_rows,
-        k=plan.k,
-        n=plan.n,
-        num_topk=plan.num_topk,
-        device=plan.device,
-        dtype=plan.dtype,
-        apply_router_weight_on_input=bool(apply_router_weight_on_input),
-        output=output,
-        input_scales_static=bool(input_scales_static),
-        fast_math=fast_math,
-        quant_mode=quant_mode,
-        deterministic_output=plan.deterministic_output,
-        unit_scale_contract=unit_scale_contract,
-        swiglu_limit=swiglu_limit,
-        swiglu_alpha=swiglu_alpha,
-        swiglu_beta=swiglu_beta,
-        activation_amax=activation_amax,
-        layer_idx=layer_idx,
-    )
+    common_kwargs = {
+        "a": a,
+        "experts": experts,
+        "topk_weights": topk_weights,
+        "topk_ids": topk_ids,
+        "implementation": plan.implementation,
+        "state_E": plan.state_E,
+        "weight_E": plan.weight_E,
+        "max_rows": plan.max_rows,
+        "k": plan.k,
+        "n": plan.n,
+        "num_topk": plan.num_topk,
+        "device": plan.device,
+        "dtype": plan.dtype,
+        "apply_router_weight_on_input": bool(apply_router_weight_on_input),
+        "output": output,
+        "input_scales_static": bool(input_scales_static),
+        "fast_math": fast_math,
+        "quant_mode": quant_mode,
+        "deterministic_output": plan.deterministic_output,
+        "unit_scale_contract": unit_scale_contract,
+        "swiglu_limit": swiglu_limit,
+        "swiglu_alpha": swiglu_alpha,
+        "swiglu_beta": swiglu_beta,
+        "activation_amax": activation_amax,
+        "layer_idx": layer_idx,
+    }
     if plan.implementation == "w4a16":
         return TPMoEFP4Binding(
             **common_kwargs,
@@ -2484,7 +2486,7 @@ def _dtype_nbytes(dtype: torch.dtype) -> int:
     return torch.empty((), dtype=dtype).element_size()
 
 
-def _tensor_numel(shape: Tuple[int, ...]) -> int:
+def _tensor_numel(shape: tuple[int, ...]) -> int:
     numel = 1
     for dim in shape:
         numel *= dim
@@ -3092,7 +3094,7 @@ def _map_core_workspace_views(
     offset_bytes: int = 0,
     capacity_nbytes: int | None = None,
     do_init: bool = True,
-) -> Dict[str, torch.Tensor]:
+) -> dict[str, torch.Tensor]:
     """Map caller-owned scratch into the per-spec kernel-arg views (no arena/workspace
     object). With do_init=False this is the vLLM eager-bind primitive: pure
     narrow()+view() at computed offsets, zero allocation, zero init writes."""
@@ -3105,7 +3107,7 @@ def _map_core_workspace_views(
             f"MoE core arena requires {arena_nbytes} bytes, but only {capacity_nbytes} are available"
         )
     relative_offset = 0
-    tensors: Dict[str, torch.Tensor] = {}
+    tensors: dict[str, torch.Tensor] = {}
     for spec in plan.tensor_specs:
         tensor, absolute_next = _allocate_arena_tensor(
             shared_arena,
@@ -3205,22 +3207,22 @@ def _materialize_workspace_from_core_arena(
     if a1_gscale is None or a2_gscale is None:
         raise ValueError("NVFP4 workspace materialization requires input scale tensors")
 
-    common_kwargs = dict(
-        implementation=plan.implementation,
-        quant_mode=plan.quant_mode,
-        state_E=plan.state_E,
-        weight_E=plan.weight_E,
-        max_rows=plan.max_rows,
-        k=plan.k,
-        n=plan.n,
-        num_topk=plan.num_topk,
-        device=plan.device,
-        dtype=plan.dtype,
-        row_counts=tensors["row_counts"],
-        barrier_count=tensors["barrier_count"],
-        barrier_epoch=tensors["barrier_epoch"],
-        volatile_launch_state=bool(volatile_launch_state),
-    )
+    common_kwargs = {
+        "implementation": plan.implementation,
+        "quant_mode": plan.quant_mode,
+        "state_E": plan.state_E,
+        "weight_E": plan.weight_E,
+        "max_rows": plan.max_rows,
+        "k": plan.k,
+        "n": plan.n,
+        "num_topk": plan.num_topk,
+        "device": plan.device,
+        "dtype": plan.dtype,
+        "row_counts": tensors["row_counts"],
+        "barrier_count": tensors["barrier_count"],
+        "barrier_epoch": tensors["barrier_epoch"],
+        "volatile_launch_state": bool(volatile_launch_state),
+    }
     if plan.implementation == "micro":
         workspace = TPMicroWorkspace(
             **common_kwargs,
@@ -4127,7 +4129,7 @@ def _e8m0_scale_to_w4a8_sfb_inplace(
     k_dim = int(k_dim)
     scale_cols = k_dim // 32
     scale_u8 = scale.view(torch.uint8)
-    is_logical, is_packed = _validate_e8m0_scale_w4a8_convertible(
+    is_logical, _is_packed = _validate_e8m0_scale_w4a8_convertible(
         scale_u8,
         weight_E=weight_E,
         rows=rows,
@@ -4298,7 +4300,7 @@ def _swap_w13_scale_halves_inplace(
 # data_ptr. Values hold the tensors so the allocator cannot recycle a
 # registered address (a recycled data_ptr would skip the flip for new weights);
 # deliberately NOT cleared with the view caches — the storage stays normalized.
-_W13_NORMALIZED_STORAGES: Dict[Tuple[int, int], Tuple[torch.Tensor, torch.Tensor]] = {}
+_W13_NORMALIZED_STORAGES: dict[tuple[int, int], tuple[torch.Tensor, torch.Tensor]] = {}
 
 
 def _ensure_w13_kernel_order_inplace(
@@ -6631,9 +6633,9 @@ def _prewarm_w4a16_planned_launches(
     )
     from sparkinfer.moe._shared.kernels.w4a16.kernel import (
         _DEFAULT_MAX_SHARED_MEM,
-        _rot_scales_dummy,
         _TC_DECODE_MAX_M,
         _W4A16_SMALL_M_DIRECT_MAX_M,
+        _rot_scales_dummy,
         compile_w4a16_fused_moe,
         compile_w4a16_topk_sum,
         pack_topk_routes_by_expert,
@@ -6780,7 +6782,7 @@ def _prewarm_w4a16_planned_launches(
                 int(token_count) * int(workspace.num_topk),
                 int(block_size_m),
                 int(workspace.route_E),
-                bool(False),
+                False,
             )
             if route_pack_key in _W4A16_ROUTE_PACK_PREWARMED:
                 if _SPARKINFER_TIMING:
@@ -7324,26 +7326,26 @@ def build_tp_moe_fp4_binding(
                 f"expected at least {m * num_topk * k} elements, got "
                 f"{workspace.route_output.numel()}"
             )
-    common_kwargs = dict(
-        a=a,
-        experts=experts,
-        topk_weights=topk_weights,
-        topk_ids=topk_ids,
-        apply_router_weight_on_input=bool(apply_router_weight_on_input),
-        output=output,
-        input_scales_static=bool(input_scales_static),
-        fast_math=fast_math,
-        quant_mode=quant_mode,
-        deterministic_output=deterministic_output,
-        unit_scale_contract=unit_scale_contract,
-        swiglu_limit=swiglu_limit,
-        swiglu_alpha=swiglu_alpha,
-        swiglu_beta=swiglu_beta,
-        activation_amax=activation_amax,
-        layer_idx=layer_idx,
-        route_expert_map=route_expert_map,
-        output_expert_map=output_expert_map,
-    )
+    common_kwargs = {
+        "a": a,
+        "experts": experts,
+        "topk_weights": topk_weights,
+        "topk_ids": topk_ids,
+        "apply_router_weight_on_input": bool(apply_router_weight_on_input),
+        "output": output,
+        "input_scales_static": bool(input_scales_static),
+        "fast_math": fast_math,
+        "quant_mode": quant_mode,
+        "deterministic_output": deterministic_output,
+        "unit_scale_contract": unit_scale_contract,
+        "swiglu_limit": swiglu_limit,
+        "swiglu_alpha": swiglu_alpha,
+        "swiglu_beta": swiglu_beta,
+        "activation_amax": activation_amax,
+        "layer_idx": layer_idx,
+        "route_expert_map": route_expert_map,
+        "output_expert_map": output_expert_map,
+    }
     if isinstance(workspace, TPW4A16Workspace):
         if quant_mode != "w4a16":
             raise ValueError(
@@ -7662,7 +7664,7 @@ def build_tp_moe_sparse_fp4_binding(
     )
 
 
-def _get_kernel_cache(impl: str) -> Dict[Tuple, Tuple]:
+def _get_kernel_cache(impl: str) -> dict[tuple, tuple]:
     if impl == "micro":
         return _MICRO_KERNEL_CACHE
     if impl == "dynamic":
@@ -7757,22 +7759,22 @@ def _get_micro_kernel(
     e8m0_scale_layout = _micro_e8m0_scale_layout_for_quant_mode(quant_mode)
     dynamic_down_scale = _dynamic_down_scale_enabled() and not is_w4a8
 
-    micro_kwargs = dict(
-        sf_vec_size=16,
-        mma_tiler_mn=(64, 128),
-        output_tile_count_n=1,
-        fast_math=fast_math,
-        share_input_across_experts=share_input_across_experts and not is_w4a8,
-        share_expert_scales=share_expert_scales,
-        single_token=single_token,
-        dynamic_down_scale=dynamic_down_scale,
-        a8_mx_mode=is_w4a8,
-        scale_format=scale_format,
-        e8m0_scale_layout=e8m0_scale_layout,
-        swiglu_limit=swiglu_limit,
-        swiglu_alpha=swiglu_alpha,
-        swiglu_beta=swiglu_beta,
-    )
+    micro_kwargs = {
+        "sf_vec_size": 16,
+        "mma_tiler_mn": (64, 128),
+        "output_tile_count_n": 1,
+        "fast_math": fast_math,
+        "share_input_across_experts": share_input_across_experts and not is_w4a8,
+        "share_expert_scales": share_expert_scales,
+        "single_token": single_token,
+        "dynamic_down_scale": dynamic_down_scale,
+        "a8_mx_mode": is_w4a8,
+        "scale_format": scale_format,
+        "e8m0_scale_layout": e8m0_scale_layout,
+        "swiglu_limit": swiglu_limit,
+        "swiglu_alpha": swiglu_alpha,
+        "swiglu_beta": swiglu_beta,
+    }
     # The native NVFP4 split is currently a GLM SiLU decode specialization.
     # Keep existing activation wrappers untouched for the normal fused phase.
     if compile_time_phase:
@@ -7910,7 +7912,7 @@ def _compiled_direct_micro_accepts_block_dim(compiled, block_dim: int) -> bool:
         if err != driver.CUresult.CUDA_SUCCESS:
             raise RuntimeError(f"cuKernelGetAttribute failed with {err}")
         accepted = int(max_threads) >= int(block_dim)
-    except Exception:
+    except Exception:  # noqa: BLE001 - CUDA driver probe must degrade to "not launchable"
         accepted = False
 
     _MICRO_DIRECT_LAUNCH_CAP_CACHE[cache_key] = accepted
@@ -8487,12 +8489,12 @@ def _get_dynamic_kernel(
     a_dtype = cutlass.BFloat16
     alpha_dtype = cutlass.Float32
 
-    kernel_kwargs = dict(
-        sf_vec_size=sf_vec_size,
-        mma_tiler_mn=mma_tiler_mn,
-        fast_math=fast_math,
-        dynamic_down_scale=dynamic_down_scale,
-    )
+    kernel_kwargs = {
+        "sf_vec_size": sf_vec_size,
+        "mma_tiler_mn": mma_tiler_mn,
+        "fast_math": fast_math,
+        "dynamic_down_scale": dynamic_down_scale,
+    }
     kernel_kwargs["share_input_across_experts"] = share_input_across_experts
     kernel_kwargs["deterministic_output"] = bool(deterministic_output)
     kernel_kwargs["num_topk"] = int(num_topk)
@@ -10673,7 +10675,7 @@ def _materialize_route_workspace(
         logits_dtype=logits_dtype,
     )
     offset = int(offset_bytes)
-    tensors: Dict[str, torch.Tensor] = {}
+    tensors: dict[str, torch.Tensor] = {}
     for spec in _route_workspace_specs(
         num_tokens=num_tokens,
         num_experts=num_experts,

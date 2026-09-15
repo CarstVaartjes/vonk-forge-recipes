@@ -24,7 +24,9 @@ def one_input(input_dir: Path) -> Path:
         and path.suffix.lower() in SUPPORTED_SUFFIXES
     )
     if len(candidates) != 1:
-        raise SystemExit(f"expected exactly one JPEG, PNG, or WebP input; found {len(candidates)}")
+        raise SystemExit(
+            f"expected exactly one JPEG, PNG, or WebP input; found {len(candidates)}"
+        )
     candidate = candidates[0]
     size = candidate.stat().st_size
     if not 1 <= size <= MAX_INPUT_BYTES:
@@ -51,14 +53,14 @@ def local_model_root(target: Path, decoder_config: Path, decoder_weights: Path) 
             (root / item.name).symlink_to(item, target_is_directory=item.is_dir())
     decoder = root / "companion" / "ss_dec_conv3d_16l8_fp16"
     decoder.parent.mkdir(parents=True)
-    decoder.with_suffix(".json").symlink_to(decoder_config / "ss_dec_conv3d_16l8_fp16.json")
+    decoder.with_suffix(".json").symlink_to(
+        decoder_config / "ss_dec_conv3d_16l8_fp16.json"
+    )
     decoder.with_suffix(".safetensors").symlink_to(
         decoder_weights / "ss_dec_conv3d_16l8_fp16.safetensors"
     )
     config = json.loads((target / "pipeline.json").read_text())
-    config["args"]["models"]["sparse_structure_decoder"] = str(
-        decoder
-    )
+    config["args"]["models"]["sparse_structure_decoder"] = str(decoder)
     config["args"]["image_cond_model"]["args"]["model_name"] = "/models/dino"
     (root / "pipeline.json").write_text(json.dumps(config))
     return root
@@ -71,9 +73,15 @@ def main() -> None:
     parser.add_argument("--input-dir", type=Path, default=Path("/inputs"))
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--pipeline-resolution", choices=("512", "1024", "1024_cascade"), default="1024_cascade")
+    parser.add_argument(
+        "--pipeline-resolution",
+        choices=("512", "1024", "1024_cascade"),
+        default="1024_cascade",
+    )
     parser.add_argument("--decimation-target", type=int, default=1_000_000)
-    parser.add_argument("--texture-size", type=int, choices=(1024, 2048, 4096), default=2048)
+    parser.add_argument(
+        "--texture-size", type=int, choices=(1024, 2048, 4096), default=2048
+    )
     parser.add_argument("--timeout-seconds", type=int, default=3600)
     args = parser.parse_args()
     if args.entrypoint != "/opt/vonk/source/trellis2_job.py":
@@ -141,7 +149,9 @@ def main() -> None:
             validate_mesh_glb(temporary, profile="textured-pbr")
         except ValueError as exc:
             temporary.unlink(missing_ok=True)
-            raise SystemExit(f"TRELLIS.2 produced an invalid GLB artifact: {exc}") from exc
+            raise SystemExit(
+                f"TRELLIS.2 produced an invalid GLB artifact: {exc}"
+            ) from exc
         os.replace(temporary, args.output_dir / "output.glb")
     finally:
         shutil.rmtree(model_root, ignore_errors=True)

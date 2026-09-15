@@ -88,7 +88,10 @@ class LtxSparkFitTests(unittest.TestCase):
 
     def test_both_sync_adapters_accept_schema2_nested_materialization(self) -> None:
         for adapter in ("ltx2-sync-native", "ltx23-sync-native-disk"):
-            with self.subTest(adapter=adapter), tempfile.TemporaryDirectory() as temporary:
+            with (
+                self.subTest(adapter=adapter),
+                tempfile.TemporaryDirectory() as temporary,
+            ):
                 root = Path(temporary)
                 model_root, runtime_spec = canonical_runtime_fixture(
                     root,

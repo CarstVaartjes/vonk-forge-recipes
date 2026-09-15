@@ -15,6 +15,7 @@ Usage:
   build_exl3_fat_moe_ext.py --src <dir with exl3_fat_moe.cu/.cuh> --out <build dir>
                             [--install <site-packages dir>] [--arch 121a]
 """
+
 from __future__ import annotations
 
 import argparse
@@ -58,7 +59,9 @@ def main() -> int:
     tree = out / "ext"
     if tree.is_dir():
         shutil.rmtree(tree)
-    shutil.copytree(args.ext, tree, ignore=shutil.ignore_patterns("*.so", "__pycache__"))
+    shutil.copytree(
+        args.ext, tree, ignore=shutil.ignore_patterns("*.so", "__pycache__")
+    )
     for name in ("exl3_fat_moe.cu", "exl3_fat_moe.cuh"):
         source = src / name
         if not source.is_file():
@@ -77,8 +80,10 @@ def main() -> int:
             "-O3",
             "-lineinfo",
             f"-gencode=arch=compute_{args.arch},code=sm_{args.arch}",
-            "-Xcudafe", "--diag_suppress=177",
-            "-Xcudafe", "--diag_suppress=20012",
+            "-Xcudafe",
+            "--diag_suppress=177",
+            "-Xcudafe",
+            "--diag_suppress=20012",
         ],
         extra_include_paths=[str(tree)],
         build_directory=str(out),

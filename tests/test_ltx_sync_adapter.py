@@ -12,7 +12,10 @@ from unittest import mock
 from vonk_agent_protocol.recipe_jobs import RecipeJobInputFile, manifest_document
 
 ROOT = Path(__file__).resolve().parents[1]
-RECIPE_SLUGS = ("ltx-2-19b-dev-bf16-diffusers-single", "ltx-2-19b-distilled-diffusers-single")
+RECIPE_SLUGS = (
+    "ltx-2-19b-dev-bf16-diffusers-single",
+    "ltx-2-19b-distilled-diffusers-single",
+)
 
 
 def load(path: Path) -> dict:
@@ -27,13 +30,27 @@ class LtxSyncAuthorityTests(unittest.TestCase):
             self.assertEqual(recipe["runtime"]["engine"], "pytorch-pipeline")
             self.assertEqual(recipe["interfaces"][0]["adapter"], "video-job")
             self.assertEqual(recipe["topology"]["node_count"], 1)
-            self.assertTrue(all(file["mount"]["read_only"] for model in recipe["models"] for file in model["files"]))
+            self.assertTrue(
+                all(
+                    file["mount"]["read_only"]
+                    for model in recipe["models"]
+                    for file in model["files"]
+                )
+            )
 
     def test_container_is_pinned_and_runtime_is_offline(self) -> None:
-        for path in (ROOT / "adapters/video/ltx23-sync-native-disk/Dockerfile", ROOT / "adapters/video/ltx2-sync-native/Dockerfile"):
+        for path in (
+            ROOT / "adapters/video/ltx23-sync-native-disk/Dockerfile",
+            ROOT / "adapters/video/ltx2-sync-native/Dockerfile",
+        ):
             self.assertIn("@sha256:", path.read_text())
         for slug in RECIPE_SLUGS:
-            environment = {item["name"] for item in load(ROOT / "recipes" / f"{slug}.json")["runtime"]["environment"]}
+            environment = {
+                item["name"]
+                for item in load(ROOT / "recipes" / f"{slug}.json")["runtime"][
+                    "environment"
+                ]
+            }
             self.assertIn("HF_HUB_OFFLINE", environment)
 
     def test_signed_source_bundle_matches_each_recipe_context(self) -> None:
@@ -44,37 +61,80 @@ class LtxSyncAuthorityTests(unittest.TestCase):
             _, _, digest = tool["source_bundle"](ROOT / context["path"])
             self.assertTrue(digest)
 
-    def test_runtime_output_contract_rejects_wrong_streams_and_keeps_atomic_publish(self) -> None:
-        module = runpy.run_path(str(ROOT / "adapters/video/ltx23-sync-native-disk/run.py"))
+    def test_runtime_output_contract_rejects_wrong_streams_and_keeps_atomic_publish(
+        self,
+    ) -> None:
+        module = runpy.run_path(
+            str(ROOT / "adapters/video/ltx23-sync-native-disk/run.py")
+        )
         probe = {
             "format": {"format_name": "mov,mp4,m4a,3gp,3g2,mj2"},
             "streams": [
-                {"codec_type": "video", "codec_name": "h264", "width": 768, "height": 512, "avg_frame_rate": "24/1", "nb_read_frames": "65", "duration": "2.708333"},
-                {"codec_type": "audio", "codec_name": "aac", "sample_rate": "24000", "channels": 2, "duration": "2.708333"},
+                {
+                    "codec_type": "video",
+                    "codec_name": "h264",
+                    "width": 768,
+                    "height": 512,
+                    "avg_frame_rate": "24/1",
+                    "nb_read_frames": "65",
+                    "duration": "2.708333",
+                },
+                {
+                    "codec_type": "audio",
+                    "codec_name": "aac",
+                    "sample_rate": "24000",
+                    "channels": 2,
+                    "duration": "2.708333",
+                },
             ],
         }
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "output.mp4"
             output.write_bytes(b"fixture")
-            with mock.patch.object(module["subprocess"], "run", return_value=types.SimpleNamespace(stdout=json.dumps(probe))):
-                module["_verify_synchronized_mp4"](output, 3600, audio_sample_rate=24_000)
+            with mock.patch.object(
+                module["subprocess"],
+                "run",
+                return_value=types.SimpleNamespace(stdout=json.dumps(probe)),
+            ):
+                module["_verify_synchronized_mp4"](
+                    output, 3600, audio_sample_rate=24_000
+                )
             probe["streams"][0]["codec_name"] = "hevc"
-            with mock.patch.object(module["subprocess"], "run", return_value=types.SimpleNamespace(stdout=json.dumps(probe))), self.assertRaisesRegex(SystemExit, "video properties changed"):
-                module["_verify_synchronized_mp4"](output, 3600, audio_sample_rate=24_000)
+            with (
+                mock.patch.object(
+                    module["subprocess"],
+                    "run",
+                    return_value=types.SimpleNamespace(stdout=json.dumps(probe)),
+                ),
+                self.assertRaisesRegex(SystemExit, "video properties changed"),
+            ):
+                module["_verify_synchronized_mp4"](
+                    output, 3600, audio_sample_rate=24_000
+                )
         source = (ROOT / "adapters/video/ltx23-sync-native-disk/run.py").read_text()
-        self.assertLess(source.index("_verify_synchronized_mp4("), source.index("os.replace("))
+        self.assertLess(
+            source.index("_verify_synchronized_mp4("), source.index("os.replace(")
+        )
         self.assertIn(".ltx-synchronized.partial.mp4", source)
 
-    def test_prompt_is_bounded_before_runtime_and_gemma_reassembly_is_explicit(self) -> None:
-        module = runpy.run_path(str(ROOT / "adapters/video/ltx23-sync-native-disk/run.py"))
+    def test_prompt_is_bounded_before_runtime_and_gemma_reassembly_is_explicit(
+        self,
+    ) -> None:
+        module = runpy.run_path(
+            str(ROOT / "adapters/video/ltx23-sync-native-disk/run.py")
+        )
         with tempfile.TemporaryDirectory() as directory:
             module["_load_prompt"].__globals__["INPUT_ROOT"] = Path(directory)
+
             def stage_prompt(text: str) -> None:
                 payload = text.encode("utf-8")
                 (Path(directory) / "prompt.txt").write_bytes(payload)
                 item = RecipeJobInputFile(
-                    slot="prompt", name="prompt.txt", media_type="text/plain",
-                    size_bytes=len(payload), sha256=hashlib.sha256(payload).hexdigest(),
+                    slot="prompt",
+                    name="prompt.txt",
+                    media_type="text/plain",
+                    size_bytes=len(payload),
+                    sha256=hashlib.sha256(payload).hexdigest(),
                 )
                 (Path(directory) / "manifest.json").write_text(
                     json.dumps(manifest_document((item,)))
@@ -88,4 +148,5 @@ class LtxSyncAuthorityTests(unittest.TestCase):
         self.assertEqual(len(module["GEMMA_FILES"]), 22)
 
 
-if __name__ == "__main__": unittest.main()
+if __name__ == "__main__":
+    unittest.main()

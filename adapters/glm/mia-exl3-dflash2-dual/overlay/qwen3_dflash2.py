@@ -10,7 +10,6 @@ logits + `torch.topk` instead.
 import torch
 import torch.nn.functional as F
 from torch import nn
-
 from vllm.compilation.backends import set_model_tag
 from vllm.compilation.decorators import support_torch_compile
 from vllm.config import CacheConfig, VllmConfig
@@ -129,14 +128,14 @@ class DFlash2Qwen3DecoderLayer(DFlashQwen3DecoderLayer):
         draft_config = config.dflash_config
         speculative_config = vllm_config.speculative_config
         assert speculative_config is not None
-        conv_args = dict(
-            hidden_size=config.hidden_size,
-            taps=int(draft_config["conv_kernel_size"]),
-            group_size=int(draft_config["conv_group_size"]),
+        conv_args = {
+            "hidden_size": config.hidden_size,
+            "taps": int(draft_config["conv_kernel_size"]),
+            "group_size": int(draft_config["conv_group_size"]),
             # Query tokens per request: the bonus token plus the mask tokens.
-            block_size=1 + speculative_config.num_speculative_tokens,
-            params_dtype=vllm_config.model_config.dtype,
-        )
+            "block_size": 1 + speculative_config.num_speculative_tokens,
+            "params_dtype": vllm_config.model_config.dtype,
+        }
         self.attention_conv = DFlashGroupedConv(
             **conv_args, prefix=maybe_prefix(prefix, "attention_conv")
         )

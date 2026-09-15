@@ -8,19 +8,27 @@ import sys
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256  # noqa: E402
+from vonk_forge_contracts import (
+    ModelDefinition,
+    RecipeDefinition,
+    content_sha256,
+)
+
 ADAPTER_ROOT = ROOT / "adapters/deepseek/sparkinfer-target-only-single"
 MODEL_PATH = ROOT / "models/deepseek-v4-flash-0731-sparkinfer-exl3-k216.json"
 ORIGINAL_RECIPE_PATH = ROOT / "recipes/deepseek-v4-flash-0731-sparkinfer-single.json"
-RECIPE_PATH = ROOT / "recipes/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single.json"
+RECIPE_PATH = (
+    ROOT / "recipes/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single.json"
+)
 MODEL_REVISION = "ce5ff0f1efb2e184aafc759d281bfae47d3a359c"
 EXECUTABLE_PAYLOAD_REVISION = "22f28d32b9b29b4352eaa380ff8c2c170b2847ab"
 RUNTIME_REVISION = "590d2172394dd83c1f36ff29f0dc9ec6032ea9e2"
 IMAGE_DIGEST = "2e077489a83a0360952828051fe7f7a32c1801e5ce8436d85f7267583d614ff4"
-SOURCE_BUNDLE_DIGEST = "3dce433c20254af566bf5e11044ca81f1aa0f03d0f8ed4296533b49c98ea3d42"
+SOURCE_BUNDLE_DIGEST = (
+    "3dce433c20254af566bf5e11044ca81f1aa0f03d0f8ed4296533b49c98ea3d42"
+)
 LOWER_SPARK_BASELINE_BYTES = 126_946_283_520
 
 
@@ -36,7 +44,8 @@ def _canonical_digest(path: Path) -> str:
 def _catalog_entry(slug: str) -> dict[str, object]:
     catalog = _document(ROOT / "catalog-index.json")
     return next(
-        item for item in catalog["recipes"]
+        item
+        for item in catalog["recipes"]
         if item["document"]["identity"]["slug"] == slug
     )
 
@@ -56,14 +65,19 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
     def test_exact_target_only_contract_and_authority_closure(self) -> None:
         recipe = _document(RECIPE_PATH)
         model = _document(MODEL_PATH)
-        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], _canonical_digest(MODEL_PATH))
+        self.assertEqual(
+            recipe["models"][0]["model"]["content_sha256"],
+            _canonical_digest(MODEL_PATH),
+        )
         self.assertEqual(model["source"]["revision"], MODEL_REVISION)
         self.assertEqual(len(model["files"]), 190)
 
         arguments = {
             item["name"]: item["value"] for item in recipe["runtime"]["arguments"]
         }
-        self.assertEqual(_document(RECIPE_PATH)["settings"]["context_tokens"]["value"], 262_144)
+        self.assertEqual(
+            _document(RECIPE_PATH)["settings"]["context_tokens"]["value"], 262_144
+        )
         self.assertEqual(_document(RECIPE_PATH)["settings"]["concurrency"]["value"], 4)
         self.assertEqual(arguments["max-num-batched-tokens"], 8_192)
         self.assertEqual(arguments["max-cudagraph-capture-size"], 4)
@@ -89,7 +103,9 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
         wrapper = (ADAPTER_ROOT / "vllm-wrapper.sh").read_text(encoding="utf-8")
 
         self.assertIn(f"@sha256:{IMAGE_DIGEST}", dockerfile)
-        self.assertIn(f'org.opencontainers.image.revision="{RUNTIME_REVISION}"', dockerfile)
+        self.assertIn(
+            f'org.opencontainers.image.revision="{RUNTIME_REVISION}"', dockerfile
+        )
         self.assertIn("ENTRYPOINT []", dockerfile)
         self.assertIn(
             f"readonly executable_payload_revision={EXECUTABLE_PAYLOAD_REVISION}",
@@ -142,7 +158,9 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
         index_tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         _archive, _files, source_digest = index_tool["source_bundle"](ADAPTER_ROOT)
         context = recipe["execution"]["build"]["context"]
-        self.assertEqual(context["path"], "adapters/deepseek/sparkinfer-target-only-single")
+        self.assertEqual(
+            context["path"], "adapters/deepseek/sparkinfer-target-only-single"
+        )
         self.assertEqual(source_digest, SOURCE_BUNDLE_DIGEST)
         recipe_digest = _canonical_digest(RECIPE_PATH)
         entry = _catalog_entry(recipe["identity"]["slug"])

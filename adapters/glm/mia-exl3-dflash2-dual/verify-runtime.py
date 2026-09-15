@@ -3,7 +3,6 @@
 
 from pathlib import Path
 
-
 required = (
     "/opt/glm53/chat_template.jinja",
     "/opt/glm53/dflash2_speculator.py",
@@ -29,8 +28,8 @@ missing = [path for path in required if not Path(path).is_file()]
 if missing:
     raise SystemExit(f"incomplete Mia EXL3 runtime: {missing}")
 try:
-    import torch  # noqa: F401  (load libc10/libtorch before the CUDA extension)
     import exl3_fat_moe_ext
+    import torch  # noqa: F401  (load libc10/libtorch before the CUDA extension)
 except Exception as exc:  # pragma: no cover - exercised by image build
     raise SystemExit(f"incomplete E3 grouped runtime: {exc}") from exc
 required_symbols = (
@@ -40,7 +39,9 @@ required_symbols = (
     "exl3_fat_moe_tile_rows_gateup",
     "exl3_fat_moe_tile_rows_down",
 )
-missing_symbols = [name for name in required_symbols if not hasattr(exl3_fat_moe_ext, name)]
+missing_symbols = [
+    name for name in required_symbols if not hasattr(exl3_fat_moe_ext, name)
+]
 if missing_symbols:
     raise SystemExit(f"incomplete E3 grouped runtime symbols: {missing_symbols}")
 print("Mia GLM 5.3 EXL3 DFlash2 runtime contract OK")

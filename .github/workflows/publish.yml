@@ -39,7 +39,7 @@ jobs:
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.12.1"
-          python-version: "3.12"
+          python-version: "3.14"
           enable-cache: false
 
       - name: Verify committed generated catalog index and package set
@@ -47,7 +47,7 @@ jobs:
         run: |
           set -euo pipefail
           test_venv="$RUNNER_TEMP/catalog-test-venv"
-          uv venv --python 3.12 "$test_venv"
+          uv venv --python 3.14 "$test_venv"
           uv pip install --python "$test_venv/bin/python" -e contracts
           "$test_venv/bin/python" tools/build-catalog-index --check
 
@@ -67,7 +67,7 @@ jobs:
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.12.1"
-          python-version: "3.12"
+          python-version: "3.14"
           enable-cache: false
 
       - name: Install producer contract dependencies
@@ -75,7 +75,7 @@ jobs:
         run: |
           set -euo pipefail
           test_venv="$RUNNER_TEMP/release-test-venv"
-          uv venv --python 3.12 "$test_venv"
+          uv venv --python 3.14 "$test_venv"
           uv pip install --python "$test_venv/bin/python" -e contracts
           echo "RELEASE_TEST_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
 
@@ -164,6 +164,14 @@ jobs:
                       raise SystemExit(f"checked Recipe package is not a deterministic rebuild: {name}")
           print(f"Verified {len(models)} Models, {len(recipes)} Recipes, and {len(actual)} packages.")
           PY
+
+      - name: Lint and type check the repository before publishing
+        shell: bash
+        run: |
+          set -euo pipefail
+          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" uvx --from ruff==0.16.1 ruff check .
+          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" uvx --from ruff==0.16.1 ruff format --check .
+          UV_CACHE_DIR="$RUNNER_TEMP/uv-cache" scripts/check-python-types
 
       - name: Validate release input
         env:

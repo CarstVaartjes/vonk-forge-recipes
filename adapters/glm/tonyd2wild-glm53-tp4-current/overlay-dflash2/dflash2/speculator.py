@@ -4,11 +4,12 @@
 from typing import Any
 
 import torch
-
 from vllm.config import VllmConfig
 from vllm.config.compilation import CUDAGraphMode
+
 # SM121-PORT: tldevice is needed by the local gumbel_noised_argmax below.
 from vllm.triton_utils import tl, tldevice, triton
+
 # SM121-PORT: the image's gumbel.py (g487ecf187, ~Aug 15) predates PR #52816,
 # which factored gumbel_noised_argmax out of gumbel_block_argmax. Import only
 # the rand primitives and define the helper locally (verbatim from the merged

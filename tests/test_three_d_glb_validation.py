@@ -107,15 +107,19 @@ class Glb:
                 count=3,
                 target=34962,
             )
+
             def png_chunk(kind: bytes, payload: bytes) -> bytes:
                 return (
-                    struct.pack(">I", len(payload)) + kind + payload
+                    struct.pack(">I", len(payload))
+                    + kind
+                    + payload
                     + struct.pack(">I", zlib.crc32(kind + payload) & 0xFFFFFFFF)
                 )
 
             ihdr = struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0)
             image = (
-                b"\x89PNG\r\n\x1a\n" + png_chunk(b"IHDR", ihdr)
+                b"\x89PNG\r\n\x1a\n"
+                + png_chunk(b"IHDR", ihdr)
                 + png_chunk(b"IDAT", zlib.compress(b"\0\xff\0\0"))
                 + png_chunk(b"IEND", b"")
             )
@@ -125,7 +129,9 @@ class Glb:
             document["images"] = [
                 {"bufferView": view, "mimeType": "image/png"} for view in image_views
             ]
-            document["textures"] = [{"source": index} for index in range(len(image_views))]
+            document["textures"] = [
+                {"source": index} for index in range(len(image_views))
+            ]
             pbr: dict[str, object] = {"baseColorTexture": {"index": 0}}
             if profile == "textured-pbr":
                 pbr["metallicRoughnessTexture"] = {"index": 1}
@@ -162,7 +168,9 @@ class Glb:
             attributes.update(NORMAL=normal, JOINTS_0=joints, WEIGHTS_0=weights)
             document["nodes"] = [{"mesh": 0, "skin": 0}, {"name": "root"}]
             document["scenes"] = [{"nodes": [0, 1]}]
-            document["skins"] = [{"inverseBindMatrices": inverse, "joints": [1], "skeleton": 1}]
+            document["skins"] = [
+                {"inverseBindMatrices": inverse, "joints": [1], "skeleton": 1}
+            ]
         return document
 
     def bytes(self, document: dict[str, object]) -> bytes:
@@ -202,7 +210,9 @@ class ThreeDGlbValidationTests(unittest.TestCase):
                 with self.subTest(context=context, profile=profile):
                     load_validator(context).validate_mesh_glb(path, profile=profile)
 
-    def rejected(self, document: dict[str, object], builder: Glb, profile: str, pattern: str) -> None:
+    def rejected(
+        self, document: dict[str, object], builder: Glb, profile: str, pattern: str
+    ) -> None:
         self.raw_rejected(builder.bytes(document), profile, pattern)
 
     def raw_rejected(self, content: bytes, profile: str, pattern: str) -> None:
@@ -224,14 +234,18 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             for context in CONTEXTS
         }
         self.assertEqual(len(values), 1)
-        self.assertEqual(hashlib.sha256(next(iter(values))).hexdigest(), VALIDATOR_SHA256)
+        self.assertEqual(
+            hashlib.sha256(next(iter(values))).hexdigest(), VALIDATOR_SHA256
+        )
 
     def test_required_webp_source_is_the_effective_texture_source(self) -> None:
         module = load_validator(CONTEXTS[0])
         texture = {"source": 0, "extensions": {"EXT_texture_webp": {"source": 1}}}
         self.assertEqual(module._texture_source(texture, 2), 1)
 
-    def test_rejects_out_of_range_indices_and_nonfinite_or_degenerate_positions(self) -> None:
+    def test_rejects_out_of_range_indices_and_nonfinite_or_degenerate_positions(
+        self,
+    ) -> None:
         builder = Glb()
         document = builder.document()
         index_view = builder.views[builder.accessors[1]["bufferView"]]
@@ -247,7 +261,9 @@ class ThreeDGlbValidationTests(unittest.TestCase):
         builder = Glb()
         document = builder.document()
         position_view = builder.views[builder.accessors[0]["bufferView"]]
-        struct.pack_into("<9f", builder.blob, int(position_view["byteOffset"]), *([0.0] * 9))
+        struct.pack_into(
+            "<9f", builder.blob, int(position_view["byteOffset"]), *([0.0] * 9)
+        )
         builder.accessors[0]["max"] = [0.0, 0.0, 0.0]
         self.rejected(document, builder, "geometry", "zero-size")
 
@@ -262,7 +278,9 @@ class ThreeDGlbValidationTests(unittest.TestCase):
         document["meshes"][0]["primitives"][0]["attributes"]["NORMAL"] = 99
         self.rejected(document, builder, "geometry", "NORMAL accessor")
 
-    def test_profile_checks_reject_missing_pbr_texture_and_invalid_skin_weights(self) -> None:
+    def test_profile_checks_reject_missing_pbr_texture_and_invalid_skin_weights(
+        self,
+    ) -> None:
         builder = Glb()
         document = builder.document("textured")
         self.rejected(document, builder, "textured-pbr", "metallicRoughnessTexture")
@@ -329,7 +347,9 @@ class ThreeDGlbValidationTests(unittest.TestCase):
 
         json_chunk = content[12 : 20 + json_length]
         bin_chunk = content[20 + json_length :]
-        swapped = struct.pack("<4sII", b"glTF", 2, len(content)) + bin_chunk + json_chunk
+        swapped = (
+            struct.pack("<4sII", b"glTF", 2, len(content)) + bin_chunk + json_chunk
+        )
         self.raw_rejected(swapped, "geometry", "first chunk is not JSON")
 
     def test_rejects_non_space_json_padding_and_finite_overflow(self) -> None:
@@ -406,7 +426,11 @@ class ThreeDGlbValidationTests(unittest.TestCase):
 
         builder = Glb()
         document = builder.document()
-        document["nodes"] = [{"mesh": 0, "children": [1]}, {"children": [2]}, {"children": [1]}]
+        document["nodes"] = [
+            {"mesh": 0, "children": [1]},
+            {"children": [2]},
+            {"children": [1]},
+        ]
         document["scenes"] = [{"nodes": [0, 2]}]
         self.rejected(document, builder, "geometry", "more than one parent")
 
@@ -434,10 +458,22 @@ class ThreeDGlbValidationTests(unittest.TestCase):
         builder = Glb()
         document = builder.document()
         document["nodes"][0]["matrix"] = [
-            1.0, 0.0, 0.0, 0.0,
-            1.0, 1.0, 0.0, 0.0,
-            0.0, 0.0, 1.0, 0.0,
-            0.0, 0.0, 0.0, 1.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
         ]
         self.rejected(document, builder, "geometry", "unsupported shear")
 
@@ -472,9 +508,13 @@ class ThreeDGlbValidationTests(unittest.TestCase):
         document = builder.document()
         document["extensionsUsed"] = ["VENDOR_unknown"]
         document["extensionsRequired"] = ["VENDOR_unknown"]
-        self.rejected(document, builder, "geometry", "extensions are invalid or unsupported")
+        self.rejected(
+            document, builder, "geometry", "extensions are invalid or unsupported"
+        )
 
-    def test_rejects_invalid_roots_in_every_declared_scene_for_all_profiles(self) -> None:
+    def test_rejects_invalid_roots_in_every_declared_scene_for_all_profiles(
+        self,
+    ) -> None:
         for profile in ("geometry", "textured", "textured-pbr", "skinned"):
             with self.subTest(profile=profile, corruption="invalid secondary root"):
                 builder = Glb()
@@ -503,19 +543,27 @@ class ThreeDGlbValidationTests(unittest.TestCase):
                 builder = Glb()
                 document = builder.document(profile)
                 document["nodes"][0]["camera"] = False
-                self.rejected(document, builder, profile, "camera nodes are not supported")
+                self.rejected(
+                    document, builder, profile, "camera nodes are not supported"
+                )
 
             with self.subTest(profile=profile, corruption="boolean material"):
                 builder = Glb()
                 document = builder.document(profile)
                 document["meshes"][0]["primitives"][0]["material"] = False
-                self.rejected(document, builder, profile, "primitive material index is invalid")
+                self.rejected(
+                    document, builder, profile, "primitive material index is invalid"
+                )
 
             with self.subTest(profile=profile, corruption="boolean morph accessor"):
                 builder = Glb()
                 document = builder.document(profile)
-                document["meshes"][0]["primitives"][0]["targets"] = [{"POSITION": False}]
-                self.rejected(document, builder, profile, "morph targets are not supported")
+                document["meshes"][0]["primitives"][0]["targets"] = [
+                    {"POSITION": False}
+                ]
+                self.rejected(
+                    document, builder, profile, "morph targets are not supported"
+                )
 
             with self.subTest(profile=profile, corruption="camera collection"):
                 builder = Glb()
@@ -527,7 +575,9 @@ class ThreeDGlbValidationTests(unittest.TestCase):
                 builder = Glb()
                 document = builder.document(profile)
                 document["animations"] = [{}]
-                self.rejected(document, builder, profile, "animations are not supported")
+                self.rejected(
+                    document, builder, profile, "animations are not supported"
+                )
 
     def test_rejects_nonfinite_normal_for_all_profiles(self) -> None:
         for profile in ("geometry", "textured", "textured-pbr", "skinned"):
@@ -546,13 +596,19 @@ class ThreeDGlbValidationTests(unittest.TestCase):
                     )
                     attributes["NORMAL"] = normal
                 normal_view = builder.views[builder.accessors[normal]["bufferView"]]
-                struct.pack_into("<f", builder.blob, int(normal_view["byteOffset"]), math.nan)
-                self.rejected(document, builder, profile, "NORMAL accessor contains non-finite")
+                struct.pack_into(
+                    "<f", builder.blob, int(normal_view["byteOffset"]), math.nan
+                )
+                self.rejected(
+                    document, builder, profile, "NORMAL accessor contains non-finite"
+                )
 
     def test_rejects_texture_coordinate_image_and_extension_corruption(self) -> None:
         builder = Glb()
         document = builder.document("textured-pbr")
-        document["materials"][0]["pbrMetallicRoughness"]["baseColorTexture"]["texCoord"] = 1
+        document["materials"][0]["pbrMetallicRoughness"]["baseColorTexture"][
+            "texCoord"
+        ] = 1
         self.rejected(document, builder, "textured-pbr", "must use TEXCOORD_0")
 
         builder = Glb()
@@ -623,8 +679,11 @@ class ThreeDGlbValidationTests(unittest.TestCase):
         )
         webp_chunks = valid_webp[12:]
         duplicate_webp = (
-            b"RIFF" + struct.pack("<I", 4 + 2 * len(webp_chunks))
-            + b"WEBP" + webp_chunks + webp_chunks
+            b"RIFF"
+            + struct.pack("<I", 4 + 2 * len(webp_chunks))
+            + b"WEBP"
+            + webp_chunks
+            + webp_chunks
         )
         document["images"][0]["bufferView"] = builder.view(duplicate_webp)
         document["images"][0]["mimeType"] = "image/webp"
@@ -651,8 +710,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
         builder = Glb()
         document = builder.document("textured-pbr")
         fake_webp = (
-            b"RIFF\x18\0\0\0WEBPVP8 \x0b\0\0\0"
-            b"\x20\0\0\x9d\x01\x2a\x01\0\x01\0\0\0"
+            b"RIFF\x18\0\0\0WEBPVP8 \x0b\0\0\0\x20\0\0\x9d\x01\x2a\x01\0\x01\0\0\0"
         )
         document["images"][0]["bufferView"] = builder.view(fake_webp)
         document["images"][0]["mimeType"] = "image/webp"
@@ -663,7 +721,9 @@ class ThreeDGlbValidationTests(unittest.TestCase):
 
         def png_chunk(kind: bytes, payload: bytes) -> bytes:
             return (
-                struct.pack(">I", len(payload)) + kind + payload
+                struct.pack(">I", len(payload))
+                + kind
+                + payload
                 + struct.pack(">I", zlib.crc32(kind + payload) & 0xFFFFFFFF)
             )
 
@@ -671,8 +731,10 @@ class ThreeDGlbValidationTests(unittest.TestCase):
         document = builder.document("textured-pbr")
         ihdr = struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0)
         critical_png = (
-            b"\x89PNG\r\n\x1a\n" + png_chunk(b"IHDR", ihdr)
-            + png_chunk(b"ABCD", b"") + png_chunk(b"IDAT", zlib.compress(b"\0\0\0\0"))
+            b"\x89PNG\r\n\x1a\n"
+            + png_chunk(b"IHDR", ihdr)
+            + png_chunk(b"ABCD", b"")
+            + png_chunk(b"IDAT", zlib.compress(b"\0\0\0\0"))
             + png_chunk(b"IEND", b"")
         )
         document["images"][0]["bufferView"] = builder.view(critical_png)
@@ -683,7 +745,8 @@ class ThreeDGlbValidationTests(unittest.TestCase):
         builder = Glb()
         document = builder.document("textured-pbr")
         jpeg = (
-            b"\xff\xd8\xff\xdb\x00\x43\x00" + b"\0" * 64
+            b"\xff\xd8\xff\xdb\x00\x43\x00"
+            + b"\0" * 64
             + b"\xff\xc4\x00\x04\x00\x00"
             + b"\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00"
             + b"\xff\xda\x00\x08\x01\x01\x00\x00\x3f\x00\x00\xff\xd9"
@@ -700,7 +763,12 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             builder.accessors
         )
         builder.accessors.append(
-            {"bufferView": image_view, "componentType": 5126, "count": 3, "type": "VEC2"}
+            {
+                "bufferView": image_view,
+                "componentType": 5126,
+                "count": 3,
+                "type": "VEC2",
+            }
         )
         self.rejected(document, builder, "textured-pbr", "must not be shared")
 
@@ -759,7 +827,9 @@ class ThreeDGlbValidationTests(unittest.TestCase):
         builder = Glb()
         document = builder.document("skinned")
         builder.accessors[3]["normalized"] = True
-        self.rejected(document, builder, "skinned", "joint accessor type or normalization")
+        self.rejected(
+            document, builder, "skinned", "joint accessor type or normalization"
+        )
 
 
 if __name__ == "__main__":

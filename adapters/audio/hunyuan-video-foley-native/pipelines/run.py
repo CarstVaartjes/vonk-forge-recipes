@@ -85,7 +85,9 @@ def _validate_wav(path: Path) -> None:
             ):
                 raise ValueError("unexpected WAV stream contract")
     except (OSError, EOFError, ValueError, wave.Error) as error:
-        raise SystemExit("upstream Foley inference produced an invalid WAV artifact") from error
+        raise SystemExit(
+            "upstream Foley inference produced an invalid WAV artifact"
+        ) from error
 
 
 def main() -> None:
@@ -160,7 +162,9 @@ def main() -> None:
         )
         outputs = list(staging.glob("*_generated.wav"))
         if len(outputs) != 1:
-            raise SystemExit("upstream Foley inference did not produce one WAV artifact")
+            raise SystemExit(
+                "upstream Foley inference did not produce one WAV artifact"
+            )
         _validate_wav(outputs[0])
         os.replace(outputs[0], args.output_dir / "output.wav")
     except subprocess.TimeoutExpired as error:

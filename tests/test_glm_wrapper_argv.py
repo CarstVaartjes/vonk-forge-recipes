@@ -65,13 +65,19 @@ class StopExec(RuntimeError):
 
 
 class GlmWrapperArgvTests(unittest.TestCase):
-    def test_every_glm_wrapper_executes_authored_argv_without_rewriting_engine_options(self) -> None:
+    def test_every_glm_wrapper_executes_authored_argv_without_rewriting_engine_options(
+        self,
+    ) -> None:
         for slug, wrapper in RECIPES.items():
             with self.subTest(slug=slug):
                 recipe = load(slug)
                 if slug == "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual":
-                    authored_names = {item["name"]: item for item in recipe["runtime"]["arguments"]}
-                    self.assertEqual(authored_names["attention-backend"]["value"], "B12X_MLA_SPARSE")
+                    authored_names = {
+                        item["name"]: item for item in recipe["runtime"]["arguments"]
+                    }
+                    self.assertEqual(
+                        authored_names["attention-backend"]["value"], "B12X_MLA_SPARSE"
+                    )
                 authored = compile_authored_argv(recipe)
                 if slug == "glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual":
                     kv_index = authored.index("--kv-cache-memory")
@@ -79,11 +85,16 @@ class GlmWrapperArgvTests(unittest.TestCase):
                 authored_engine = authored[:]
                 # These are Controller placement inputs, not engine argv.
                 placement_start = authored_engine.index("--nnodes")
-                authored_engine = authored_engine[:placement_start] + authored_engine[placement_start + 6 :]
+                authored_engine = (
+                    authored_engine[:placement_start]
+                    + authored_engine[placement_start + 6 :]
+                )
                 captured: list[tuple[str, ...]] = []
 
                 def fake_execv(
-                    path: str, argv: tuple[str, ...], captured: list[tuple[str, ...]] = captured
+                    path: str,
+                    argv: tuple[str, ...],
+                    captured: list[tuple[str, ...]] = captured,
                 ) -> None:
                     captured.append(argv)
                     raise StopExec
@@ -94,7 +105,9 @@ class GlmWrapperArgvTests(unittest.TestCase):
                     **kwargs: object,
                 ) -> subprocess.CompletedProcess[str]:
                     return subprocess.CompletedProcess(
-                        args, 0, stdout=f"VONK_ALIVE={_recipe['topology']['node_count']}\n"
+                        args,
+                        0,
+                        stdout=f"VONK_ALIVE={_recipe['topology']['node_count']}\n",
                     )
 
                 env = {
@@ -149,15 +162,23 @@ class GlmWrapperArgvTests(unittest.TestCase):
                     )
                 self.assertEqual(final.count("--opaque-engine-option"), 2)
                 self.assertEqual(final[final.index("--opaque-engine-option") + 1], "")
-                last_opaque = max(index for index, value in enumerate(final) if value == "--opaque-engine-option")
+                last_opaque = max(
+                    index
+                    for index, value in enumerate(final)
+                    if value == "--opaque-engine-option"
+                )
                 self.assertEqual(final[last_opaque + 1], "second")
                 utilization = [
-                    index for index, value in enumerate(final) if value == "--gpu-memory-utilization"
+                    index
+                    for index, value in enumerate(final)
+                    if value == "--gpu-memory-utilization"
                 ]
                 self.assertGreaterEqual(len(utilization), 2)
                 self.assertEqual(final[utilization[-1] + 1], "0.71")
                 speculative = [
-                    index for index, value in enumerate(final) if value == "--speculative-config"
+                    index
+                    for index, value in enumerate(final)
+                    if value == "--speculative-config"
                 ]
                 self.assertEqual(final[speculative[-1] + 1], '{"user_override":true}')
 

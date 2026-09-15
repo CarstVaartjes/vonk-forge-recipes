@@ -22,7 +22,8 @@ def canonical_digest(path: str) -> str:
 def catalog_entry(slug: str) -> dict[str, object]:
     catalog = load("catalog-index.json")
     return next(
-        item for item in catalog["recipes"]
+        item
+        for item in catalog["recipes"]
         if item["document"]["identity"]["slug"] == slug
     )
 
@@ -95,7 +96,10 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
     def test_release_metadata_and_package_bind_current_recipe_digests(self) -> None:
         versions = {
             "nemotron-3-5-lightning-30b-a3b-vllm-single": ("1.3.6", "2026-09-03"),
-            "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single": ("1.1.5", "2026-09-03"),
+            "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single": (
+                "1.1.5",
+                "2026-09-03",
+            ),
             "nemotron-3-nano-30b-a3b-vllm-single": ("2.0.6", "2026-09-05"),
             "moss-vl-realtime-11b-pytorch-single": (
                 "1.1.6",
@@ -120,7 +124,10 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
                     release.history[0].prior_recipe_content_sha256,
                     prior[0] if prior else None,
                 )
-                self.assertIn(release.history[0].upgrade_effect, {"none", "restart", "reprepare", "rebuild"})
+                self.assertIn(
+                    release.history[0].upgrade_effect,
+                    {"none", "restart", "reprepare", "rebuild"},
+                )
                 entry = catalog_entry(slug)
                 digest = canonical_digest(recipe_path)
                 self.assertEqual(

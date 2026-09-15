@@ -13,7 +13,11 @@ def load(path: Path) -> dict:
 
 
 def digest(document: dict) -> str:
-    return hashlib.sha256(json.dumps(document, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
+    return hashlib.sha256(
+        json.dumps(
+            document, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+        ).encode()
+    ).hexdigest()
 
 
 class MuseGlimmerRecipeTests(unittest.TestCase):
@@ -21,17 +25,28 @@ class MuseGlimmerRecipeTests(unittest.TestCase):
         model = load(ROOT / "models/muse-glimmer-30b-bf16-a4e59da5.json")
         recipe = load(ROOT / "recipes/muse-glimmer-30b-bf16-vllm-single.json")
         from vonk_forge_contracts import ModelDefinition
+
         canonical = ModelDefinition.model_validate(model).model_dump(mode="json")
-        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest(canonical))
-        self.assertEqual(model["source"]["revision"], "a4e59da52a7bc87ae7251dd5545c0dd437c44b68")
-        self.assertTrue(model["files"] and all(item["sha256"] for item in model["files"]))
+        self.assertEqual(
+            recipe["models"][0]["model"]["content_sha256"], digest(canonical)
+        )
+        self.assertEqual(
+            model["source"]["revision"], "a4e59da52a7bc87ae7251dd5545c0dd437c44b68"
+        )
+        self.assertTrue(
+            model["files"] and all(item["sha256"] for item in model["files"])
+        )
 
     def test_offline_single_spark_multimodal_contract(self) -> None:
         recipe = load(ROOT / "recipes/muse-glimmer-30b-bf16-vllm-single.json")
-        arguments = {item["name"]: item["value"] for item in recipe["runtime"]["arguments"]}
+        arguments = {
+            item["name"]: item["value"] for item in recipe["runtime"]["arguments"]
+        }
         self.assertEqual(recipe["settings"]["context_tokens"]["value"], 32768)
         self.assertEqual(arguments["generation-config"], "auto")
-        self.assertEqual(json.loads(arguments["limit-mm-per-prompt"]), {"image": 4, "video": 0})
+        self.assertEqual(
+            json.loads(arguments["limit-mm-per-prompt"]), {"image": 4, "video": 0}
+        )
         self.assertEqual(recipe["interfaces"][0]["adapter"], "openai")
         self.assertEqual(recipe["topology"]["node_count"], 1)
 
@@ -41,8 +56,13 @@ class MuseGlimmerRecipeTests(unittest.TestCase):
         self.assertNotIn("huggingface.co", dockerfile)
         recipe = load(ROOT / "recipes/muse-glimmer-30b-bf16-vllm-single.json")
         index = load(ROOT / "catalog-index.json")
-        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{recipe['identity']['slug']}.json")
+        entry = next(
+            item
+            for item in index["recipes"]
+            if item["source_path"] == f"recipes/{recipe['identity']['slug']}.json"
+        )
         self.assertEqual(entry["package"]["recipe_content_sha256"], digest(recipe))
 
 
-if __name__ == "__main__": unittest.main()
+if __name__ == "__main__":
+    unittest.main()

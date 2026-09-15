@@ -12,6 +12,7 @@ median decode was +0.95% versus stock while active EngineCore CPU fell 85.3%.
 The 2 ms candidate lost 1.68% decode in its paired test; 32 and 64 ms both lost
 about 1.8% while consuming more CPU than 16 ms.
 """
+
 from __future__ import annotations
 
 import os
@@ -44,8 +45,7 @@ def parse_spinwait_ms(raw: str | None) -> int | None:
     value = int(raw, 10)
     if not 1 <= value <= MAX_MS:
         raise ValueError(
-            f"{ENV_NAME} must be between 1 and {MAX_MS} milliseconds "
-            f"(got: {raw!r})"
+            f"{ENV_NAME} must be between 1 and {MAX_MS} milliseconds (got: {raw!r})"
         )
     return value
 

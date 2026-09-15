@@ -13,9 +13,8 @@ from collections.abc import Iterable
 
 import regex as re
 import torch
-import torch.nn as nn
-
-import vllm.envs as envs
+from torch import nn
+from vllm import envs
 from vllm.config import VllmConfig, get_current_vllm_config
 from vllm.distributed import (
     get_tensor_model_parallel_rank,
@@ -279,10 +278,7 @@ def _insert_context_kv(
             attn.padded_heads,
             attn.eps,
             block_size,
-            (
-                attn.kv_cache_dtype == "nvfp4_ds_mla"
-                and not _use_padded_nvfp4_cache()
-            ),
+            (attn.kv_cache_dtype == "nvfp4_ds_mla" and not _use_padded_nvfp4_cache()),
         )
     elif cache_dtype == torch.bfloat16:
         swa_3d = swa_cache.view(-1, block_size, attn.head_dim)

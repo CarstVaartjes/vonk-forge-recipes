@@ -39,7 +39,7 @@ class Vllm028MigrationTests(unittest.TestCase):
     def test_official_arm64_runtime_authority_is_immutable(self) -> None:
         recipe = load("recipes/qwen3-6-27b-vllm-single.json")
         base = recipe["execution"]["build"]["base_image"]
-        self.assertEqual(f'{base["repository"]}@sha256:{base["digest"]}', IMAGE)
+        self.assertEqual(f"{base['repository']}@sha256:{base['digest']}", IMAGE)
         self.assertEqual(base["platform"], "linux/arm64")
         dockerfile = (ROOT / recipe["execution"]["build"]["dockerfile"]).read_text()
         self.assertIn("2cf0a6915ce544dc493a0990f2ea38d81601128a", dockerfile)
@@ -81,9 +81,9 @@ class Vllm028MigrationTests(unittest.TestCase):
         )
 
     def test_gemma_parser_smoke_covers_stream_and_nonstream_tool_json(self) -> None:
-        smoke = (ROOT / "adapters/llm/vllm-openai-028/gemma4-parser-smoke.py").read_text(
-            encoding="utf-8"
-        )
+        smoke = (
+            ROOT / "adapters/llm/vllm-openai-028/gemma4-parser-smoke.py"
+        ).read_text(encoding="utf-8")
         dockerfile = (ROOT / "adapters/llm/vllm-openai-028/Dockerfile").read_text(
             encoding="utf-8"
         )

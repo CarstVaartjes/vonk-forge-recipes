@@ -27,7 +27,12 @@ def main() -> None:
     args = parser.parse_args()
     if args.entrypoint != "/opt/vonk/source/run.py":
         raise SystemExit("unexpected pipeline entrypoint")
-    if args.output_mime not in {"image/png", "video/mp4", "audio/wav", "model/gltf-binary"}:
+    if args.output_mime not in {
+        "image/png",
+        "video/mp4",
+        "audio/wav",
+        "model/gltf-binary",
+    }:
         raise SystemExit("unsupported output MIME")
     if args.num_inference_steps < 1 or args.num_inference_steps > 100:
         raise SystemExit("inference step bound is invalid")
@@ -42,7 +47,9 @@ def main() -> None:
         trust_remote_code=False,
     )
     pipe = pipe.to("cuda")
-    prompt = os.environ.get("VONK_PROMPT", "A small red fox in a quiet alpine landscape")
+    prompt = os.environ.get(
+        "VONK_PROMPT", "A small red fox in a quiet alpine landscape"
+    )
     generator = torch.Generator(device="cuda").manual_seed(args.seed)
     kwargs = {
         "prompt": prompt,

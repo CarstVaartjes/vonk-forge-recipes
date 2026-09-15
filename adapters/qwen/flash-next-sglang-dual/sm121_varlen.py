@@ -95,7 +95,7 @@ def _qsa_one_query_varlen_kernel(
     # (`!`) until max_tokens and can poison later radix hits.
     valid = (kv_end > kv_start) & (running_sum > 0.0)
     output = accumulator / tl.where(valid, running_sum, 1.0)
-    finite = output == output
+    finite = output == output  # noqa: PLR0124  (NaN self-comparison in Triton kernel)
     output = tl.where(finite & valid, output, 0.0)
     tl.store(
         out_ptr
@@ -134,9 +134,7 @@ def qsa_sm121_varlen_attention(
     if k.dtype != v.dtype:
         raise TypeError(f"k/v dtypes must match, got {k.dtype}/{v.dtype}")
     if k.dtype != q.dtype and k.dtype not in _fp8:
-        raise TypeError(
-            f"k/v dtype {k.dtype} is not {q.dtype} or fp8"
-        )
+        raise TypeError(f"k/v dtype {k.dtype} is not {q.dtype} or fp8")
     if q.device != k.device or q.device != v.device:
         raise ValueError("q/k/v must be on the same CUDA device")
     if cu_seqlens_q.device != q.device or cu_seqlens_k.device != q.device:

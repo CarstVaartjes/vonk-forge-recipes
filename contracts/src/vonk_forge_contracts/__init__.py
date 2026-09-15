@@ -4,6 +4,7 @@ The package intentionally exports only the two author-facing root types.  The
 small nested classes are implementation details of those roots and can evolve
 without creating a second public authority.
 """
+
 from __future__ import annotations
 
 from .canonical import content_sha256

@@ -60,15 +60,18 @@ Patches /usr/local/lib/python3.12/dist-packages/vllm/v1/core/sched/scheduler.py
 in-place inside the container (called from the compose entrypoint before
 ``exec vllm serve``).
 """
-from pathlib import Path
+
 import sys
+from pathlib import Path
 
 P = Path("/usr/local/lib/python3.12/dist-packages/vllm/v1/core/sched/scheduler.py")
 MARK = "# [issue43-hotfix]"
 if len(sys.argv) > 1 and sys.argv[1] == "--status":
     status_src = P.read_text() if P.is_file() else ""
-    print("issue43 decode-fairness + diag     :",
-          "APPLIED" if MARK in status_src else "NOT APPLIED")
+    print(
+        "issue43 decode-fairness + diag     :",
+        "APPLIED" if MARK in status_src else "NOT APPLIED",
+    )
     raise SystemExit(0)
 src = P.read_text()
 if MARK in src:
@@ -94,7 +97,7 @@ A1_NEW = (
     + "# [issue43-hotfix] per-step scheduler diagnostics gate (issue #43).\n"
     + "# Set DSPARK_ISSUE43_SCHED_DIAG=1 in the container env to emit one\n"
     + "# compact scheduled-tokens / decode-skip summary line per step.\n"
-    + "_ISSUE43_SCHED_DIAG = os.environ.get(\"DSPARK_ISSUE43_SCHED_DIAG\", \"0\") not in (\"0\", \"\", \"false\", \"False\")\n"
+    + '_ISSUE43_SCHED_DIAG = os.environ.get("DSPARK_ISSUE43_SCHED_DIAG", "0") not in ("0", "", "false", "False")\n'
 )
 src = src.replace(A1_OLD, A1_NEW, 1)
 
@@ -107,7 +110,7 @@ A2_NEW = (
     + "        # Tracks per-request scheduled prefill/decode token counts and\n"
     + "        # zero-token decode skips (by request_id and running-list pos).\n"
     + "        # Always built (cheap); only the step log line (below) is gated.\n"
-    + "        issue43_step_diag = {\"prefill\": {}, \"decode\": {}, \"skips\": []}\n"
+    + '        issue43_step_diag = {"prefill": {}, "decode": {}, "skips": []}\n'
 )
 src = src.replace(A2_OLD, A2_NEW, 1)
 
@@ -121,7 +124,9 @@ A3_OLD = (
     "\n"
     "            if num_new_tokens == 0:\n"
 )
-assert A3_OLD in src, "issue43: mamba-split/zero-check anchor not found; refusing to patch"
+assert A3_OLD in src, (
+    "issue43: mamba-split/zero-check anchor not found; refusing to patch"
+)
 A3_NEW = (
     "            if self.need_mamba_block_aligned_split:\n"
     "                num_new_tokens = self._mamba_block_aligned_split(\n"
@@ -138,7 +143,7 @@ A3_NEW = (
     "            # not-yet-visited decode-active lane; if the reservation can't\n"
     "            # be met alongside the prefill chunk, drop the chunk to 0 so the\n"
     "            # zero-check below skips it (continue) and the decodes run.\n"
-    "            if getattr(request, \"is_prefill_chunk\", False):\n"
+    '            if getattr(request, "is_prefill_chunk", False):\n'
     "                _dec_floor = 0\n"
     "                for _ri in range(req_index + 1, len(self.running)):\n"
     "                    _r = self.running[_ri]\n"
@@ -149,7 +154,7 @@ A3_NEW = (
     "                        continue\n"
     "                    if self.current_step < _r.next_decode_eligible_step:\n"
     "                        continue\n"
-    "                    if defer_prefills and getattr(_r, \"is_prefill_chunk\", False):\n"
+    '                    if defer_prefills and getattr(_r, "is_prefill_chunk", False):\n'
     "                        continue\n"
     "                    if _r.num_computed_tokens >= _r.num_prompt_tokens:\n"
     "                        _dec_floor += self.num_sampled_tokens_per_step\n"
@@ -180,7 +185,7 @@ A4_NEW = (
     "                # max-tokens sentinel is decode-active and got skipped here.\n"
     "                if (request.num_computed_tokens >= request.num_prompt_tokens\n"
     "                        and request.num_output_placeholders == 0):\n"
-    "                    issue43_step_diag[\"skips\"].append(\n"
+    '                    issue43_step_diag["skips"].append(\n'
     "                        (request.request_id, req_index,\n"
     "                         request.num_computed_tokens))\n"
     "                req_index += 1\n"
@@ -207,11 +212,11 @@ A5_NEW = (
     "            num_scheduled_tokens[request_id] = num_new_tokens\n"
     "            token_budget -= num_new_tokens\n"
     "            # [issue43-hotfix] per-request scheduled-tokens record (issue\n"
-    "            # #43 ask #1). Decode-active => \"decode\", else prefill chunk.\n"
+    '            # #43 ask #1). Decode-active => "decode", else prefill chunk.\n'
     "            _is_dec = (request.num_computed_tokens >= request.num_prompt_tokens\n"
     "                       and not request.is_prefill_chunk)\n"
     "            issue43_step_diag[\n"
-    "                \"decode\" if _is_dec else \"prefill\"][request_id] = num_new_tokens\n"
+    '                "decode" if _is_dec else "prefill"][request_id] = num_new_tokens\n'
     "            req_index += 1\n"
 )
 src = src.replace(A5_OLD, A5_NEW, 1)
@@ -224,15 +229,15 @@ A6_NEW = (
     "        # per-step diag for the live reproducer; emit a compact log line\n"
     "        # only when DSPARK_ISSUE43_SCHED_DIAG=1 to keep default overhead 0.\n"
     "        self.issue43_last_step_diag = issue43_step_diag\n"
-    "        if _ISSUE43_SCHED_DIAG and (issue43_step_diag[\"prefill\"]\n"
-    "                                    or issue43_step_diag[\"decode\"]\n"
-    "                                    or issue43_step_diag[\"skips\"]):\n"
+    '        if _ISSUE43_SCHED_DIAG and (issue43_step_diag["prefill"]\n'
+    '                                    or issue43_step_diag["decode"]\n'
+    '                                    or issue43_step_diag["skips"]):\n'
     "            logger.info(\n"
-    "                \"[issue43-step %d] run=%d prefill_toks=%s decode_toks=%s \"\n"
-    "                \"decode_skips=%s\",\n"
+    '                "[issue43-step %d] run=%d prefill_toks=%s decode_toks=%s "\n'
+    '                "decode_skips=%s",\n'
     "                self.current_step, len(scheduled_running_reqs),\n"
-    "                issue43_step_diag[\"prefill\"], issue43_step_diag[\"decode\"],\n"
-    "                issue43_step_diag[\"skips\"])\n"
+    '                issue43_step_diag["prefill"], issue43_step_diag["decode"],\n'
+    '                issue43_step_diag["skips"])\n'
     "\n"
     "        # Record the LoRAs in scheduled_running_reqs\n"
 )

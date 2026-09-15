@@ -8,7 +8,6 @@ import types
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/moss-vl-realtime"
 CONTRACT_PATH = ADAPTER_ROOT / "input_contract.py"
@@ -18,7 +17,7 @@ RECIPE_PATH = ROOT / "recipes/moss-vl-realtime-11b-pytorch-single.json"
 def _contract_module():
     module = types.ModuleType("moss_input_contract")
     module.__file__ = str(CONTRACT_PATH)
-    exec(
+    exec(  # noqa: S102 - load the input contract without importing adapter dependencies.
         compile(CONTRACT_PATH.read_text(encoding="utf-8"), str(CONTRACT_PATH), "exec"),
         module.__dict__,
     )
@@ -99,9 +98,7 @@ class MossRealtimeJobTests(unittest.TestCase):
         outputs = {slot["id"]: slot for slot in interface["output"]["slots"]}
         self.assertEqual(set(outputs), {"replay", "transcript"})
         self.assertEqual(outputs["replay"]["media_types"], ["video/mp4"])
-        self.assertEqual(
-            outputs["transcript"]["media_types"], ["application/x-ndjson"]
-        )
+        self.assertEqual(outputs["transcript"]["media_types"], ["application/x-ndjson"])
 
     def test_adapter_discovers_arbitrary_names_from_authenticated_slots(self) -> None:
         self._write_inputs()
@@ -124,10 +121,18 @@ class MossRealtimeJobTests(unittest.TestCase):
             "source_bundle"
         ]
         archive, _, digest = source_bundle(ADAPTER_ROOT)
-        context = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))["execution"]["build"]["context"]
+        context = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))["execution"][
+            "build"
+        ]["context"]
         self.assertEqual(context["path"], "adapters/video/moss-vl-realtime")
         self.assertTrue(digest and archive)
 
         index = json.loads((ROOT / "catalog-index.json").read_text(encoding="utf-8"))
-        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{RECIPE_PATH.name}")
-        self.assertEqual(entry["package"]["recipe_content_sha256"], _canonical_digest(RECIPE_PATH))
+        entry = next(
+            item
+            for item in index["recipes"]
+            if item["source_path"] == f"recipes/{RECIPE_PATH.name}"
+        )
+        self.assertEqual(
+            entry["package"]["recipe_content_sha256"], _canonical_digest(RECIPE_PATH)
+        )

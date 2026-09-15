@@ -18,14 +18,13 @@ A 21k prefix may cache ~20k instead of 21k; that is correct.
 Idempotent. Reverts an in-image v1 inject. Called from the compose
 entrypoint before ``exec vllm serve``.
 """
+
 from __future__ import annotations
 
 import sys
 from pathlib import Path
 
-P = Path(
-    "/usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_coordinator.py"
-)
+P = Path("/usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_coordinator.py")
 
 MARK_V2 = "# [issue26-hotfix-v2] SWA may shrink the common hit (#36)"
 MARK_V1 = "# [issue26-hotfix] SWA groups must not shrink the hybrid common hit"

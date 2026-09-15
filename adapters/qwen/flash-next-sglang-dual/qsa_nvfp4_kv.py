@@ -35,10 +35,7 @@ Wiring (applied by the sibling ``apply_nvfp4_patches.py`` build step):
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
-
 import torch
-
 from sglang.srt.layers.quantization.fp4_kv_cache_quant_method import (
     KVCacheAttentionAccess,
     KVCacheAttentionAccessKind,
@@ -101,7 +98,7 @@ class QSANVFP4KVCacheMethod(NVFP4KVCacheMethod):
         fp4_tensor: torch.Tensor,
         scales: torch.Tensor,
         layer_id: int,
-        dtype: Optional[torch.dtype] = None,
+        dtype: torch.dtype | None = None,
     ) -> torch.Tensor:
         """Dequantize one packed FP4 KV tensor (whole-pool view) for plain reads."""
         if scales.dtype != _FP8:
@@ -138,16 +135,12 @@ class QSAFP4KVView:
 
     def dequant_rows(self, k_rows, k_sf_rows, v_rows, v_sf_rows):
         """Dequantize already-gathered packed rows -> (k_bf16, v_bf16)."""
-        k = NVFP4KVQuantizeUtil.dequantize(
-            k_rows, k_sf_rows.view(_FP8), self.k_gs
-        )
-        v = NVFP4KVQuantizeUtil.dequantize(
-            v_rows, v_sf_rows.view(_FP8), self.v_gs
-        )
+        k = NVFP4KVQuantizeUtil.dequantize(k_rows, k_sf_rows.view(_FP8), self.k_gs)
+        v = NVFP4KVQuantizeUtil.dequantize(v_rows, v_sf_rows.view(_FP8), self.v_gs)
         return k, v
 
 
-def try_fp4_view(pool, layer_id: int) -> Optional[QSAFP4KVView]:
+def try_fp4_view(pool, layer_id: int) -> QSAFP4KVView | None:
     """Return the layer's FP4 buffers, or None for an unquantized pool.
 
     On SM100 the stock native-FP4 consumers stay in charge, so the QSA
@@ -177,7 +170,7 @@ def compact_and_dequant(
     cu_seqlens_k,
     batch: int,
     topk: int,
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Sparse gather + dequant for the QSA decode/verify path.
 
     Runs the stock compaction kernel twice — once over the packed FP4 data,
@@ -231,7 +224,7 @@ def compact_and_dequant(
 
 def gather_history_fp4(
     fp4_kv: QSAFP4KVView, req_to_token, req_indices, sequence_lens
-) -> Tuple[torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Chunked-prefill history gather: index_select + dequant per request.
 
     Mirrors the BF16 path's per-request ``index_select`` + ``cat`` (the

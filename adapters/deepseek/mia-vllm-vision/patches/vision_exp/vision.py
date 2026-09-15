@@ -4,6 +4,7 @@ Adapted from deepseek-ai/DeepSeek-V4-Flash-Vision-Exp ``inference/vision.py``
 (MIT) so it can load the checkpoint tensors on Anemll vLLM without the
 official custom kernels. RoPE tables are moved onto the activation device.
 """
+
 from __future__ import annotations
 
 from functools import lru_cache
@@ -60,7 +61,9 @@ class Attention(nn.Module):
         self.wqkv = nn.Linear(args.vision_dim, 3 * args.vision_dim)
         self.wo = nn.Linear(args.vision_dim, args.vision_dim)
 
-    def forward(self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor
+    ) -> torch.Tensor:
         n = x.size(0)
         q, k, v = (
             t.view(n, self.n_heads, self.head_dim)
@@ -93,7 +96,9 @@ class Block(nn.Module):
         self.norm2 = RMSNorm(args.vision_dim)
         self.mlp = MLP(args)
 
-    def forward(self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor
+    ) -> torch.Tensor:
         x = x + self.attn(self.norm1(x), cos, sin)
         return x + self.mlp(self.norm2(x))
 

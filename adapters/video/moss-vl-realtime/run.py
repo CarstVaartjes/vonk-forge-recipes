@@ -18,14 +18,15 @@ from pathlib import Path
 from typing import Any, NoReturn
 
 import torch
+from input_contract import resolve_moss_inputs
 from PIL import Image
 from transformers import AutoModelForCausalLM, AutoProcessor
-
-from input_contract import resolve_moss_inputs
 
 INPUTS = Path("/inputs")
 MODEL = Path("/models")
 ALLOWED_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
+
+
 def fail(message: str) -> NoReturn:
     raise SystemExit(message)
 
@@ -46,7 +47,12 @@ def bounded_integer(
     document: dict[str, Any], name: str, default: int, minimum: int, maximum: int
 ) -> int:
     value = document.get(name, default)
-    if isinstance(value, bool) or not isinstance(value, int) or value < minimum or value > maximum:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int)
+        or value < minimum
+        or value > maximum
+    ):
         fail(f"{name} must be an integer between {minimum} and {maximum}")
     return value
 
@@ -55,8 +61,14 @@ def bounded_text(
     document: dict[str, Any], name: str, default: str = "", *, required: bool = False
 ) -> str:
     value = document.get(name, default)
-    if not isinstance(value, str) or len(value) > 4096 or (required and not value.strip()):
-        fail(f"{name} must be {'a non-empty ' if required else 'a '}string of at most 4096 characters")
+    if (
+        not isinstance(value, str)
+        or len(value) > 4096
+        or (required and not value.strip())
+    ):
+        fail(
+            f"{name} must be {'a non-empty ' if required else 'a '}string of at most 4096 characters"
+        )
     return value
 
 
@@ -80,7 +92,7 @@ def safe_frame(name: Any, authenticated_frames: frozenset[str]) -> Path:
         with Image.open(frame) as image:
             if image.width * image.height > 1_048_576:
                 fail(f"frame exceeds the one-megapixel bound: {name}")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - any decoder error on untrusted frame bytes must fail closed
         fail(f"frame is not a valid supported image: {name}: {exc}")
     return frame
 
@@ -90,7 +102,11 @@ def load_manifest() -> tuple[dict[str, Any], list[dict[str, Any]]]:
         manifest, authenticated_frames = resolve_moss_inputs(INPUTS)
     except ValueError as exc:
         fail(str(exc))
-    if not manifest.is_file() or manifest.is_symlink() or manifest.stat().st_size > 1024 * 1024:
+    if (
+        not manifest.is_file()
+        or manifest.is_symlink()
+        or manifest.stat().st_size > 1024 * 1024
+    ):
         fail("the session slot must contain a regular manifest no larger than 1 MiB")
     try:
         document = json.loads(manifest.read_text(encoding="utf-8"))
@@ -115,7 +131,9 @@ def load_manifest() -> tuple[dict[str, Any], list[dict[str, Any]]]:
         "events",
     }
     if document.get("schema_version") != 1 or set(document) - allowed:
-        fail("session.json must use schema_version 1 and contain only documented fields")
+        fail(
+            "session.json must use schema_version 1 and contain only documented fields"
+        )
     events = document.get("events")
     if not isinstance(events, list) or not 1 <= len(events) <= 256:
         fail("events must contain between 1 and 256 entries")
@@ -150,8 +168,13 @@ def load_manifest() -> tuple[dict[str, Any], list[dict[str, Any]]]:
                 item["prompt"] = prompt
         elif event_type == "prompt":
             if set(event) != {"type", "text", "at_seconds"}:
-                fail(f"prompt event {index} must contain only type, text, and at_seconds")
-            item = {"type": "prompt", "text": bounded_text(event, "text", required=True)}
+                fail(
+                    f"prompt event {index} must contain only type, text, and at_seconds"
+                )
+            item = {
+                "type": "prompt",
+                "text": bounded_text(event, "text", required=True),
+            }
         else:
             fail(f"event {index} type must be frame or prompt")
         at_seconds = bounded_number(event, "at_seconds", -1, 0, 86400)
@@ -188,10 +211,15 @@ def main() -> None:
     if args.entrypoint != "/opt/vonk/source/run.py":
         fail("unexpected signed adapter entrypoint")
     if args.output_mime != "video/mp4":
-        fail("MOSS-VL realtime sessions emit a video replay with a JSONL transcript sidecar")
+        fail(
+            "MOSS-VL realtime sessions emit a video replay with a JSONL transcript sidecar"
+        )
     if not 1 <= args.timeout_seconds <= 3600 or not 0 <= args.seed < 2**63:
         fail("invalid bounded harness arguments")
-    if os.environ.get("HF_HUB_OFFLINE") != "1" or os.environ.get("TRANSFORMERS_OFFLINE") != "1":
+    if (
+        os.environ.get("HF_HUB_OFFLINE") != "1"
+        or os.environ.get("TRANSFORMERS_OFFLINE") != "1"
+    ):
         fail("offline model loading must be enforced")
 
     document, events = load_manifest()
@@ -218,7 +246,9 @@ def main() -> None:
     generate_kwargs: dict[str, Any] = {
         "max_new_tokens": max_new_tokens,
         "do_sample": do_sample,
-        "repetition_penalty": bounded_number(document, "repetition_penalty", 1.0, 0.5, 2.0),
+        "repetition_penalty": bounded_number(
+            document, "repetition_penalty", 1.0, 0.5, 2.0
+        ),
     }
     if do_sample:
         generate_kwargs.update(
@@ -279,7 +309,9 @@ def main() -> None:
 
     try:
         session.start()
-        record("session-start", model_revision="25e81cb952d5f353a5690f2c1ea09a725815df80")
+        record(
+            "session-start", model_revision="25e81cb952d5f353a5690f2c1ea09a725815df80"
+        )
         for event_index, event in enumerate(events):
             due = event["at_seconds"] / playback_speed
             while True:
@@ -333,7 +365,9 @@ def main() -> None:
     transcript_output = args.output_dir / "transcript.jsonl"
     with transcript_output.open("w", encoding="utf-8") as stream:
         for item in transcript:
-            stream.write(json.dumps(item, ensure_ascii=False, separators=(",", ":")) + "\n")
+            stream.write(
+                json.dumps(item, ensure_ascii=False, separators=(",", ":")) + "\n"
+            )
     if not transcript_output.stat().st_size:
         fail("MOSS-VL session produced an empty transcript")
 
@@ -344,7 +378,9 @@ def main() -> None:
         for index, event in enumerate(frames):
             stream.write(f"file '{event['path']}'\n")
             if index + 1 < len(frames):
-                duration = max(0.04, frames[index + 1]["timestamp"] - event["timestamp"])
+                duration = max(
+                    0.04, frames[index + 1]["timestamp"] - event["timestamp"]
+                )
             else:
                 duration = 1.0
             stream.write(f"duration {duration:.6f}\n")

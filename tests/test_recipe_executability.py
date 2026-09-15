@@ -41,9 +41,7 @@ FORBIDDEN_METADATA_CLAIMS = (
 
 def recipe_documents() -> list[tuple[Path, dict[str, object]]]:
     paths = sorted(RECIPES.glob("*.json"))
-    return [
-        (path, json.loads(path.read_text(encoding="utf-8"))) for path in paths
-    ]
+    return [(path, json.loads(path.read_text(encoding="utf-8"))) for path in paths]
 
 
 class RecipeExecutabilityTests(unittest.TestCase):
@@ -69,19 +67,25 @@ class RecipeExecutabilityTests(unittest.TestCase):
     def test_models_and_recipes_are_current_v2_documents(self) -> None:
         models: dict[tuple[str, str], ModelDefinition] = {}
         for path in sorted((ROOT / "models").glob("*.json")):
-            model = ModelDefinition.model_validate(json.loads(path.read_text(encoding="utf-8")))
+            model = ModelDefinition.model_validate(
+                json.loads(path.read_text(encoding="utf-8"))
+            )
             key = (model.identity.publisher, model.identity.slug)
             self.assertNotIn(key, models, path.name)
             models[key] = model
         self.assertTrue(models)
         self.assertEqual(len(list(RECIPES.glob("*.json"))), 85)
         for path in sorted(RECIPES.glob("*.json")):
-            recipe = RecipeDefinition.model_validate(json.loads(path.read_text(encoding="utf-8")))
+            recipe = RecipeDefinition.model_validate(
+                json.loads(path.read_text(encoding="utf-8"))
+            )
             validate_recipe_models(recipe, models.values())
             package_paths = {
                 item.relative_to(ROOT).as_posix()
                 for item in ROOT.rglob("*")
-                if (item.is_file() or item.is_dir()) and "__pycache__" not in item.parts and item.suffix != ".pyc"
+                if (item.is_file() or item.is_dir())
+                and "__pycache__" not in item.parts
+                and item.suffix != ".pyc"
             }
             validate_recipe_package_paths(recipe, package_paths)
             self.assertEqual(content_sha256(recipe), content_sha256(recipe))

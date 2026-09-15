@@ -7,11 +7,12 @@ branch. Upstream vLLM commit 7ca49fbe4bab019e55d57cdc4b7fd3d55c67c1a6
 returns one empty row per request and finishes an encoder-only request once its
 prompt is consumed. This startup patch applies both changes to the pinned image.
 """
+
 from __future__ import annotations
 
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 DEFAULT_OUTPUTS_TARGET = Path(
     "/usr/local/lib/python3.12/dist-packages/vllm/v1/outputs.py"
@@ -19,15 +20,10 @@ DEFAULT_OUTPUTS_TARGET = Path(
 DEFAULT_SCHEDULER_TARGET = Path(
     "/usr/local/lib/python3.12/dist-packages/vllm/v1/core/sched/scheduler.py"
 )
-OUTPUT_OLD_LINE = (
-    "    sampled_token_ids: list[list[int]] = [[0] for _ in req_ids]\n"
-)
-OUTPUT_NEW_LINE = (
-    "    sampled_token_ids: list[list[int]] = [[] for _ in req_ids]\n"
-)
+OUTPUT_OLD_LINE = "    sampled_token_ids: list[list[int]] = [[0] for _ in req_ids]\n"
+OUTPUT_NEW_LINE = "    sampled_token_ids: list[list[int]] = [[] for _ in req_ids]\n"
 SCHEDULER_OLD_FLAGS = (
-    "        self.is_encoder_decoder = vllm_config.model_config.is_encoder_decoder\n"
-    "\n"
+    "        self.is_encoder_decoder = vllm_config.model_config.is_encoder_decoder\n\n"
 )
 SCHEDULER_NEW_FLAGS = (
     "        self.is_encoder_decoder = vllm_config.model_config.is_encoder_decoder\n"

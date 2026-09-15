@@ -19,7 +19,9 @@ PREPARED = PREPARED_ROOT / "current"
 PATCHER = Path("/opt/vonk/build/patch_checkpoint_config.py")
 DETECT = Path("/opt/vonk/build/detect_ple_dtype.py")
 UPSTREAM_REVISION = "c2325b22602b51a5faf55fc2bebccc34f3f80b9f"
-MODEL_DOCUMENT_SHA256 = "0f2c8617255df59583d6def4f71cb20ec63709aaf7c801ae8ce71f6a18e5edc4"
+MODEL_DOCUMENT_SHA256 = (
+    "0f2c8617255df59583d6def4f71cb20ec63709aaf7c801ae8ce71f6a18e5edc4"
+)
 METADATA_HASH_LIMIT = 16 * 1024 * 1024
 
 
@@ -44,7 +46,10 @@ def _source_fingerprint(source: Path) -> str:
     digest = hashlib.sha256()
     digest.update(f"model-document:{MODEL_DOCUMENT_SHA256}\n".encode())
     digest.update(f"upstream:{UPSTREAM_REVISION}\n".encode())
-    entries = sorted((item for item in source.rglob("*") if item.is_file()), key=lambda item: item.relative_to(source).as_posix())
+    entries = sorted(
+        (item for item in source.rglob("*") if item.is_file()),
+        key=lambda item: item.relative_to(source).as_posix(),
+    )
     for path in entries:
         relative = path.relative_to(source).as_posix()
         size = path.stat().st_size
@@ -72,7 +77,9 @@ def _preparation_lock(root: Path):
 
 def _marker(path: Path) -> dict[str, str] | None:
     try:
-        document = json.loads((path / ".vonk-prepared.json").read_text(encoding="utf-8"))
+        document = json.loads(
+            (path / ".vonk-prepared.json").read_text(encoding="utf-8")
+        )
     except (FileNotFoundError, OSError, json.JSONDecodeError):
         return None
     return document if isinstance(document, dict) else None
@@ -91,7 +98,9 @@ def _publish_prepared(source_fingerprint: str) -> None:
         try:
             for entry in SOURCE.iterdir():
                 (staging / entry.name).symlink_to(entry)
-            subprocess.run([sys.executable, str(PATCHER), str(staging), str(staging)], check=True)
+            subprocess.run(
+                [sys.executable, str(PATCHER), str(staging), str(staging)], check=True
+            )
             for name in ("config", "hf_quant_config"):
                 patched = staging / f"{name}_patched.json"
                 if patched.is_file():
@@ -99,10 +108,14 @@ def _publish_prepared(source_fingerprint: str) -> None:
                     target.unlink(missing_ok=True)
                     patched.replace(target)
             marker_tmp = staging / ".vonk-prepared.json.tmp"
-            marker_tmp.write_text(json.dumps(expected_marker, sort_keys=True) + "\n", encoding="utf-8")
+            marker_tmp.write_text(
+                json.dumps(expected_marker, sort_keys=True) + "\n", encoding="utf-8"
+            )
             os.replace(marker_tmp, staging / ".vonk-prepared.json")
             if published.exists():
-                os.replace(published, PREPARED_ROOT / f".stale-{published.name}-{os.getpid()}")
+                os.replace(
+                    published, PREPARED_ROOT / f".stale-{published.name}-{os.getpid()}"
+                )
             os.replace(staging, published)
         except BaseException:
             if staging.exists():
@@ -172,13 +185,21 @@ def _merged_hf_overrides(arguments: list[str]) -> str | None:
     ple_dtype = str(source_text_config.get("ple_embedding_dtype") or "")
     if not ple_dtype:
         ple_dtype = subprocess.run(
-            [sys.executable, str(DETECT), str(PREPARED)], check=True, capture_output=True, text=True
+            [sys.executable, str(DETECT), str(PREPARED)],
+            check=True,
+            capture_output=True,
+            text=True,
         ).stdout.strip()
     inject_ple_dtype = bool(ple_dtype and "ple_embedding_dtype" not in text_config)
     if inject_ple_dtype:
         text_config["ple_embedding_dtype"] = ple_dtype
     max_len = value(arguments, "--max-model-len")
-    if max_len is None or not max_len.isascii() or not max_len.isdigit() or int(max_len) <= 0:
+    if (
+        max_len is None
+        or not max_len.isascii()
+        or not max_len.isdigit()
+        or int(max_len) <= 0
+    ):
         raise SystemExit("--max-model-len must be a positive integer")
     inject_yarn = int(max_len) > 262144 and "rope_parameters" not in text_config
     if inject_yarn:
@@ -204,20 +225,32 @@ def main() -> None:
     local = os.environ.get("VONK_LOCAL_ADDR")
     master = os.environ.get("VONK_MASTER_ADDR")
     port = os.environ.get("VONK_MASTER_PORT")
-    fabric = ("NCCL_SOCKET_IFNAME", "NCCL_IB_HCA", "NCCL_IB_GID_INDEX", "TP_SOCKET_IFNAME", "GLOO_SOCKET_IFNAME")
+    fabric = (
+        "NCCL_SOCKET_IFNAME",
+        "NCCL_IB_HCA",
+        "NCCL_IB_GID_INDEX",
+        "TP_SOCKET_IFNAME",
+        "GLOO_SOCKET_IFNAME",
+    )
     try:
         if backend != "mp" or node_count != "2" or node_rank not in {"0", "1"}:
             raise ValueError
         if headless != (node_rank == "1") or not local or not master or not port:
             raise ValueError
-        if any(not os.environ.get(name) for name in fabric) or not port.isascii() or not port.isdigit():
+        if (
+            any(not os.environ.get(name) for name in fabric)
+            or not port.isascii()
+            or not port.isdigit()
+        ):
             raise ValueError
         if not 1024 <= int(port) <= 65535:
             raise ValueError
         ip_address(local)
         ip_address(master)
     except ValueError:
-        raise SystemExit("Qwen3.8 TP2 requires complete Controller rendezvous and fabric") from None
+        raise SystemExit(
+            "Qwen3.8 TP2 requires complete Controller rendezvous and fabric"
+        ) from None
 
     prepare_model()
     override = _merged_hf_overrides(arguments)
@@ -229,7 +262,14 @@ def main() -> None:
     os.environ["MASTER_PORT"] = port
     os.environ.setdefault("HF_HUB_OFFLINE", "1")
     os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
-    vllm = next((candidate for candidate in ("/usr/local/bin/vllm", "/opt/vllm/.venv/bin/vllm") if Path(candidate).is_file()), None)
+    vllm = next(
+        (
+            candidate
+            for candidate in ("/usr/local/bin/vllm", "/opt/vllm/.venv/bin/vllm")
+            if Path(candidate).is_file()
+        ),
+        None,
+    )
     if vllm is None:
         raise SystemExit("the pinned Qwen vLLM executable is missing")
     os.execv(vllm, (vllm, "serve", str(PREPARED), *arguments))

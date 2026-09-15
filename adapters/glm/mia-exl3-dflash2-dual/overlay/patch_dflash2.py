@@ -35,10 +35,10 @@ def main() -> None:
     qwen = SITE / "model_executor/models/qwen3_dflash.py"
     replace_once(
         qwen,
-        'def _dflash_layer_causal(config: Qwen3Config, layer_idx: int) -> bool:\n'
+        "def _dflash_layer_causal(config: Qwen3Config, layer_idx: int) -> bool:\n"
         '    """``dflash_config.causal`` overrides all layers; else only SWA layers causal."""\n'
         '    override = (getattr(config, "dflash_config", None) or {}).get("causal")\n',
-        'def _dflash_layer_causal(config: Qwen3Config, layer_idx: int) -> bool:\n'
+        "def _dflash_layer_causal(config: Qwen3Config, layer_idx: int) -> bool:\n"
         '    """Honor checkpoint ``is_causal`` (incoai DFlash2: false) before SWA=causal."""\n'
         '    is_causal = getattr(config, "is_causal", None)\n'
         "    if is_causal is not None:\n"
@@ -67,11 +67,11 @@ def main() -> None:
     replace_once(
         qwen,
         "class DFlashQwen3ForCausalLM(Qwen3ForCausalLM):\n"
-        "    def __init__(self, *, vllm_config: VllmConfig, prefix: str = \"\"):\n",
+        '    def __init__(self, *, vllm_config: VllmConfig, prefix: str = ""):\n',
         "class DFlashQwen3ForCausalLM(Qwen3ForCausalLM):\n"
         "    model_cls = DFlashQwen3Model\n"
         "\n"
-        "    def __init__(self, *, vllm_config: VllmConfig, prefix: str = \"\"):\n",
+        '    def __init__(self, *, vllm_config: VllmConfig, prefix: str = ""):\n',
     )
     replace_once(
         qwen,
@@ -126,7 +126,7 @@ def main() -> None:
         "    # layout, and SM121 has no FA3/FA4 for plain FP8 KV. Keep draft KV in\n"
         "    # the model dtype unless speculative_config.kv_cache_dtype is set.\n"
         "    draft_kv = speculative_config.kv_cache_dtype\n"
-        '    if draft_kv is None and vllm_config.cache_config.cache_dtype in (\n'
+        "    if draft_kv is None and vllm_config.cache_config.cache_dtype in (\n"
         '        "fp8_ds_mla",\n'
         '        "fp8",\n'
         '        "fp8_e4m3",\n'

@@ -37,7 +37,11 @@ def job() -> tuple[str, Path, object]:
     manifest_path = INPUTS / "job.json"
     if manifest_path.is_file() and not manifest_path.is_symlink():
         document = json.loads(manifest_path.read_text(encoding="utf-8"))
-        if not isinstance(document, dict) or set(document) - {"control_type", "image", "control"}:
+        if not isinstance(document, dict) or set(document) - {
+            "control_type",
+            "image",
+            "control",
+        }:
             raise SystemExit("job.json has unsupported fields")
         kind = document.get("control_type")
         image = safe_named_file(document.get("image"), IMAGE_SUFFIXES)
@@ -45,21 +49,35 @@ def job() -> tuple[str, Path, object]:
         if kind in {"point", "voxel"}:
             control = safe_named_file(control, GEOMETRY_SUFFIXES)
         elif kind == "pose":
-            if not isinstance(control, list) or not control or not all(
-                isinstance(row, list) and len(row) == 3 and all(isinstance(v, (int, float)) for v in row)
-                for row in control
+            if (
+                not isinstance(control, list)
+                or not control
+                or not all(
+                    isinstance(row, list)
+                    and len(row) == 3
+                    and all(isinstance(v, (int, float)) for v in row)
+                    for row in control
+                )
             ):
-                raise SystemExit("pose control must be a non-empty array of xyz triples")
+                raise SystemExit(
+                    "pose control must be a non-empty array of xyz triples"
+                )
         elif kind == "bbox":
-            if not isinstance(control, list) or len(control) != 6 or not all(
-                isinstance(v, (int, float)) for v in control
+            if (
+                not isinstance(control, list)
+                or len(control) != 6
+                or not all(isinstance(v, (int, float)) for v in control)
             ):
                 raise SystemExit("bbox control must contain six numbers")
         else:
             raise SystemExit("control_type must be bbox, point, pose, or voxel")
         return kind, image, control
 
-    images = sorted(path for path in INPUTS.iterdir() if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES)
+    images = sorted(
+        path
+        for path in INPUTS.iterdir()
+        if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES
+    )
     if len(images) != 1:
         raise SystemExit("provide one image, or job.json plus its referenced inputs")
     return "bbox", images[0], [-0.95, -0.95, -0.95, 0.95, 0.95, 0.95]
@@ -89,7 +107,10 @@ def main() -> None:
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
-    if args.entrypoint != "/opt/vonk/source/run.py" or args.output_mime != "model/gltf-binary":
+    if (
+        args.entrypoint != "/opt/vonk/source/run.py"
+        or args.output_mime != "model/gltf-binary"
+    ):
         raise SystemExit("unexpected signed adapter contract")
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -107,7 +128,9 @@ def main() -> None:
         raise SystemExit("missing pinned local DINOv2-large artifact")
     original_dino_loader = Dinov2Model.from_pretrained
 
-    def load_local_dino(identifier: object, *loader_args: object, **loader_kwargs: object) -> object:
+    def load_local_dino(
+        identifier: object, *loader_args: object, **loader_kwargs: object
+    ) -> object:
         if identifier != "facebook/dinov2-large":
             raise RuntimeError(f"unexpected DINO model identifier: {identifier}")
         loader_kwargs["local_files_only"] = True
@@ -117,12 +140,18 @@ def main() -> None:
         pipeline = Hunyuan3DOmniSiTFlowMatchingPipeline.from_pretrained(str(TARGET))
     kwargs: dict[str, object] = {"image": str(image_path)}
     if kind == "bbox":
-        kwargs["bbox"] = torch.tensor(control, dtype=torch.float16, device="cuda").reshape(1, 1, 6)
+        kwargs["bbox"] = torch.tensor(
+            control, dtype=torch.float16, device="cuda"
+        ).reshape(1, 1, 6)
     elif kind == "pose":
-        kwargs["pose"] = torch.tensor(control, dtype=torch.float16, device="cuda").unsqueeze(0)
+        kwargs["pose"] = torch.tensor(
+            control, dtype=torch.float16, device="cuda"
+        ).unsqueeze(0)
     else:
         assert isinstance(control, Path)
-        kwargs[kind] = normalized_surface(control, sample=kind == "voxel", seed=args.seed)
+        kwargs[kind] = normalized_surface(
+            control, sample=kind == "voxel", seed=args.seed
+        )
     result = pipeline(
         **kwargs,
         num_inference_steps=50,
@@ -143,7 +172,9 @@ def main() -> None:
         validate_mesh_glb(temporary, profile="geometry")
     except ValueError as exc:
         temporary.unlink(missing_ok=True)
-        raise SystemExit(f"Hunyuan3D-Omni produced an invalid GLB artifact: {exc}") from exc
+        raise SystemExit(
+            f"Hunyuan3D-Omni produced an invalid GLB artifact: {exc}"
+        ) from exc
     os.replace(temporary, output)
 
 

@@ -12,6 +12,7 @@ Usage (inside container, after encoder copy):
   python3 hotfix-encoding-dsv4-issue21.py
   python3 hotfix-encoding-dsv4-issue21.py /path/to/deepseek_v4_encoding.py
 """
+
 from __future__ import annotations
 
 import sys
@@ -60,7 +61,10 @@ def main(argv: list[str]) -> int:
             print("issue21 encoder dict-args fix  : NOT APPLIED (encoder file missing)")
             return 0
         _, st = patch_text(target.read_text(encoding="utf-8"))
-        print("issue21 encoder dict-args fix  :", "APPLIED" if st != "missing" else "NOT APPLIED")
+        print(
+            "issue21 encoder dict-args fix  :",
+            "APPLIED" if st != "missing" else "NOT APPLIED",
+        )
         return 0
     target = Path(argv[1]) if len(argv) > 1 else DEFAULT_TARGET
     if not target.is_file():

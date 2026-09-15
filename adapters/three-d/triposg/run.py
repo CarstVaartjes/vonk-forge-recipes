@@ -23,7 +23,9 @@ def one_input_image() -> Path:
     candidates = sorted(
         path
         for path in INPUTS.iterdir()
-        if path.is_file() and not path.is_symlink() and path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}
+        if path.is_file()
+        and not path.is_symlink()
+        and path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}
     )
     if len(candidates) != 1:
         raise SystemExit("TripoSG requires exactly one JPEG, PNG, or WebP input")
@@ -40,7 +42,10 @@ def main() -> None:
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
-    if args.entrypoint != "/opt/vonk/source/run.py" or args.output_mime != "model/gltf-binary":
+    if (
+        args.entrypoint != "/opt/vonk/source/run.py"
+        or args.output_mime != "model/gltf-binary"
+    ):
         raise SystemExit("unexpected signed adapter contract")
     if not 1 <= args.timeout_seconds <= 3600:
         raise SystemExit("timeout is outside the harness contract")

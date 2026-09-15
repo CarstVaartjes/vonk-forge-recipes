@@ -4,6 +4,7 @@ The catalog stores one immutable model version/variant as one document.  The
 family, logical model, and exact version are deliberately nested so a model
 document is self describing when it is copied into a recipe package.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -73,7 +74,9 @@ class ModelIdentity(_ModelContract):
 
 class ModelMetadata(_ModelContract):
     description: StrictStr = Field(min_length=1, max_length=4000)
-    tags: list[Annotated[StrictStr, Field(pattern=r"^[a-z0-9][a-z0-9.-]{0,39}$")]] = Field(max_length=20)
+    tags: list[Annotated[StrictStr, Field(pattern=r"^[a-z0-9][a-z0-9.-]{0,39}$")]] = (
+        Field(max_length=20)
+    )
 
     @field_validator("tags")
     @classmethod
@@ -96,11 +99,15 @@ class ModelSource(_ModelContract):
 class ModelFile(_ModelContract):
     """One entry in the complete immutable model file manifest."""
 
-    id: StrictStr = Field(min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]{0,63}$")
+    id: StrictStr = Field(
+        min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]{0,63}$"
+    )
     path: StrictStr = Field(min_length=1, max_length=512)
     sha256: Sha256
     size_bytes: StrictInt = Field(ge=0)
-    roles: list[Annotated[StrictStr, Field(pattern=_TOKEN)]] = Field(min_length=1, max_length=16)
+    roles: list[Annotated[StrictStr, Field(pattern=_TOKEN)]] = Field(
+        min_length=1, max_length=16
+    )
 
     @field_validator("path")
     @classmethod
@@ -153,8 +160,13 @@ class ModelAccess(_ModelContract):
     def consistent_access(self) -> ModelAccess:
         expected_gated = self.visibility == "restricted"
         expected_authentication = "token" if expected_gated else "none"
-        if self.gated != expected_gated or self.authentication != expected_authentication:
-            raise ValueError("model access visibility, gated, and authentication must agree")
+        if (
+            self.gated != expected_gated
+            or self.authentication != expected_authentication
+        ):
+            raise ValueError(
+                "model access visibility, gated, and authentication must agree"
+            )
         return self
 
 
@@ -179,8 +191,8 @@ class ModelLineage(_ModelContract):
 
 
 class ModelTerritorialRestrictions(_ModelContract):
-    denied_jurisdictions: list[Annotated[StrictStr, Field(pattern=r"^[A-Z]{2,3}$")]] = Field(
-        min_length=1, max_length=64
+    denied_jurisdictions: list[Annotated[StrictStr, Field(pattern=r"^[A-Z]{2,3}$")]] = (
+        Field(min_length=1, max_length=64)
     )
     notice: StrictStr = Field(min_length=1, max_length=1024)
 
@@ -206,10 +218,22 @@ class ModelLicense(_ModelContract):
 
 
 CapabilityName = Literal[
-    "chat", "text-generation", "text-understanding", "reasoning", "tool-use",
-    "code-generation", "ocr", "image-generation", "image-understanding",
-    "image-editing", "video-generation", "video-understanding", "audio-generation",
-    "audio-understanding", "embeddings", "3d-generation",
+    "chat",
+    "text-generation",
+    "text-understanding",
+    "reasoning",
+    "tool-use",
+    "code-generation",
+    "ocr",
+    "image-generation",
+    "image-understanding",
+    "image-editing",
+    "video-generation",
+    "video-understanding",
+    "audio-generation",
+    "audio-understanding",
+    "embeddings",
+    "3d-generation",
 ]
 
 
@@ -226,7 +250,9 @@ class ModelCapabilityFact(_ModelContract):
         if self.evidence_status == "contradicted" and (
             self.support != "unknown" or self.evidence_digest is None
         ):
-            raise ValueError("contradicted capability facts require unknown support and evidence")
+            raise ValueError(
+                "contradicted capability facts require unknown support and evidence"
+            )
         if self.evidence_status == "unknown" and self.support != "unknown":
             raise ValueError("unknown capability evidence cannot claim support")
         return self
@@ -242,7 +268,9 @@ class ModelCapabilityProvenance(_ModelContract):
     def evidence_url(cls, value: str) -> str:
         parsed = urlsplit(_https_or_http(value, "capabilities.provenance.source_url"))
         if parsed.scheme != "https" or parsed.query or parsed.fragment:
-            raise ValueError("capability evidence must use an HTTPS URL without query or fragment")
+            raise ValueError(
+                "capability evidence must use an HTTPS URL without query or fragment"
+            )
         return value
 
 
@@ -255,7 +283,9 @@ class ModelCapabilities(_ModelContract):
     def facts_are_stable(self) -> ModelCapabilities:
         names = [fact.capability for fact in self.facts]
         if len(names) != len(set(names)):
-            raise ValueError("capability facts must not duplicate or contradict a capability")
+            raise ValueError(
+                "capability facts must not duplicate or contradict a capability"
+            )
         self.facts = sorted(self.facts, key=lambda fact: fact.capability)
         return self
 
@@ -283,7 +313,9 @@ class ModelDefinition(_ModelContract):
     lineage: ModelLineage
     dependencies: list[ModelReference] = Field(max_length=32)
     supersedes: ModelReference | None = None
-    modalities: list[Literal["text", "image", "audio", "video", "3d", "embeddings"]] = Field(min_length=1, max_length=6)
+    modalities: list[Literal["text", "image", "audio", "video", "3d", "embeddings"]] = (
+        Field(min_length=1, max_length=6)
+    )
     source: ModelSource
     format: ModelFormat
     parameters: ModelParameters
@@ -306,7 +338,10 @@ class ModelDefinition(_ModelContract):
         dependency_keys = [(item.publisher, item.slug) for item in self.dependencies]
         if len(dependency_keys) != len(set(dependency_keys)):
             raise ValueError("model dependencies must be unique")
-        if self.supersedes is not None and (self.supersedes.publisher, self.supersedes.slug) == (self.identity.publisher, self.identity.slug):
+        if self.supersedes is not None and (
+            self.supersedes.publisher,
+            self.supersedes.slug,
+        ) == (self.identity.publisher, self.identity.slug):
             raise ValueError("model cannot supersede itself")
         self.modalities = sorted(self.modalities)
         sizes: dict[str, int] = {}

@@ -30,6 +30,7 @@ Inputs:  files/qsa_ops_patched.py.orig     (nvidia/ops/qsa.py from the image)
          files/qsa_nvidia_patched.py.orig  (nvidia/qsa.py from the image)
 Outputs: files/qsa_ops_patched.py, files/qsa_nvidia_patched.py
 """
+
 import ast
 import os
 import sys
@@ -42,7 +43,8 @@ def patch(name: str, edits: list[tuple[str, str]]) -> None:
     dest = os.path.join(HERE, name)
     if not os.path.exists(orig):
         sys.exit(f"{name}: missing {orig} (start.sh extracts it from the image)")
-    src = open(orig).read()
+    with open(orig) as f:
+        src = f.read()
     for i, (old, new) in enumerate(edits):
         count = src.count(old)
         if count != 1:
@@ -54,7 +56,8 @@ def patch(name: str, edits: list[tuple[str, str]]) -> None:
         ast.parse(src)
     except SyntaxError as exc:
         sys.exit(f"{name}: patched source does not parse: {exc}")
-    open(dest, "w").write(src)
+    with open(dest, "w") as f:
+        f.write(src)
     print(f"patched {name}")
 
 
@@ -112,145 +115,183 @@ patch(
         ),
         # -- MQA (block-selection) kernel: signature -------------------------
         (
-            "    num_requests,\n"
-            "    score_divisor,\n"
-            "    PAGE_SIZE: tl.constexpr,\n",
-            "    num_requests,\n"
-            "    score_divisor,\n"
-            "    k_scale_ptr,\n"
-            "    PAGE_SIZE: tl.constexpr,\n",
+            "    num_requests,\n    score_divisor,\n    PAGE_SIZE: tl.constexpr,\n",
+            (
+                "    num_requests,\n"
+                "    score_divisor,\n"
+                "    k_scale_ptr,\n"
+                "    PAGE_SIZE: tl.constexpr,\n"
+            ),
         ),
         (
-            "    MAX_N: tl.constexpr,\n"
-            "    COMPRESS_RATIO: tl.constexpr,\n"
-            ") -> None:\n",
-            "    MAX_N: tl.constexpr,\n"
-            "    COMPRESS_RATIO: tl.constexpr,\n"
-            "    KV_QUANT_MODE: tl.constexpr,\n"
-            ") -> None:\n",
+            "    MAX_N: tl.constexpr,\n    COMPRESS_RATIO: tl.constexpr,\n) -> None:\n",
+            (
+                "    MAX_N: tl.constexpr,\n"
+                "    COMPRESS_RATIO: tl.constexpr,\n"
+                "    KV_QUANT_MODE: tl.constexpr,\n"
+                ") -> None:\n"
+            ),
         ),
         # -- MQA kernel: cast keys; apply the scalar after the dot ------------
         (
             "        scores = tl.dot(keys, query, out_dtype=tl.float32)\n",
-            "        keys = keys.to(query.dtype)\n"
-            "        scores = tl.dot(keys, query, out_dtype=tl.float32)\n"
-            "        if KV_QUANT_MODE:\n"
-            "            scores *= tl.load(k_scale_ptr)\n",
+            (
+                "        keys = keys.to(query.dtype)\n"
+                "        scores = tl.dot(keys, query, out_dtype=tl.float32)\n"
+                "        if KV_QUANT_MODE:\n"
+                "            scores *= tl.load(k_scale_ptr)\n"
+            ),
         ),
         # -- decode/prefill sparse GQA kernel: signature ---------------------
         (
-            "    num_rows,\n"
-            "    num_cache_blocks,\n"
-            "    num_requests,\n"
-            "    TOPK: tl.constexpr,\n",
-            "    num_rows,\n"
-            "    num_cache_blocks,\n"
-            "    num_requests,\n"
-            "    k_scale_ptr,\n"
-            "    v_scale_ptr,\n"
-            "    TOPK: tl.constexpr,\n",
+            (
+                "    num_rows,\n"
+                "    num_cache_blocks,\n"
+                "    num_requests,\n"
+                "    TOPK: tl.constexpr,\n"
+            ),
+            (
+                "    num_rows,\n"
+                "    num_cache_blocks,\n"
+                "    num_requests,\n"
+                "    k_scale_ptr,\n"
+                "    v_scale_ptr,\n"
+                "    TOPK: tl.constexpr,\n"
+            ),
         ),
         (
-            "    BLOCK_M: tl.constexpr,\n"
-            "    BLOCK_N: tl.constexpr,\n"
-            ") -> None:\n"
-            "    row = tl.program_id(0)\n"
-            "    kv_head = tl.program_id(1)\n",
-            "    BLOCK_M: tl.constexpr,\n"
-            "    BLOCK_N: tl.constexpr,\n"
-            "    KV_QUANT_MODE: tl.constexpr,\n"
-            ") -> None:\n"
-            "    row = tl.program_id(0)\n"
-            "    kv_head = tl.program_id(1)\n",
+            (
+                "    BLOCK_M: tl.constexpr,\n"
+                "    BLOCK_N: tl.constexpr,\n"
+                ") -> None:\n"
+                "    row = tl.program_id(0)\n"
+                "    kv_head = tl.program_id(1)\n"
+            ),
+            (
+                "    BLOCK_M: tl.constexpr,\n"
+                "    BLOCK_N: tl.constexpr,\n"
+                "    KV_QUANT_MODE: tl.constexpr,\n"
+                ") -> None:\n"
+                "    row = tl.program_id(0)\n"
+                "    kv_head = tl.program_id(1)\n"
+            ),
         ),
         # -- sparse attention: hoist scalar scales outside tensor-core dots --
         (
-            "        scores = tl.dot(query, keys)\n"
-            "        # Scaling scores avoids re-quantizing a scaled query to BF16.\n",
-            "        keys = keys.to(query.dtype)\n"
-            "        values = values.to(query.dtype)\n"
-            "        scores = tl.dot(query, keys)\n"
-            "        if KV_QUANT_MODE:\n"
-            "            scores *= tl.load(k_scale_ptr)\n"
-            "        # Scaling scores avoids re-quantizing a scaled query to BF16.\n",
+            (
+                "        scores = tl.dot(query, keys)\n"
+                "        # Scaling scores avoids re-quantizing a scaled query to BF16.\n"
+            ),
+            (
+                "        keys = keys.to(query.dtype)\n"
+                "        values = values.to(query.dtype)\n"
+                "        scores = tl.dot(query, keys)\n"
+                "        if KV_QUANT_MODE:\n"
+                "            scores *= tl.load(k_scale_ptr)\n"
+                "        # Scaling scores avoids re-quantizing a scaled query to BF16.\n"
+            ),
         ),
         (
             "    output_mask = head_offsets[:, None] < GROUP_SIZE\n",
-            "    if KV_QUANT_MODE:\n"
-            "        normalized_output *= tl.load(v_scale_ptr)\n"
-            "    output_mask = head_offsets[:, None] < GROUP_SIZE\n",
+            (
+                "    if KV_QUANT_MODE:\n"
+                "        normalized_output *= tl.load(v_scale_ptr)\n"
+                "    output_mask = head_offsets[:, None] < GROUP_SIZE\n"
+            ),
         ),
         # -- MQA wrapper: accept a scale + mode, reinterpret the cache -------
         (
-            "    num_columns: int | None = None,\n"
-            "    score_scale: float | None = None,\n"
-            ") -> tuple[torch.Tensor, torch.Tensor]:\n",
-            "    num_columns: int | None = None,\n"
-            "    score_scale: float | None = None,\n"
-            "    k_scale: torch.Tensor | None = None,\n"
-            "    kv_quant_mode: int = 0,\n"
-            ") -> tuple[torch.Tensor, torch.Tensor]:\n",
+            (
+                "    num_columns: int | None = None,\n"
+                "    score_scale: float | None = None,\n"
+                ") -> tuple[torch.Tensor, torch.Tensor]:\n"
+            ),
+            (
+                "    num_columns: int | None = None,\n"
+                "    score_scale: float | None = None,\n"
+                "    k_scale: torch.Tensor | None = None,\n"
+                "    kv_quant_mode: int = 0,\n"
+                ") -> tuple[torch.Tensor, torch.Tensor]:\n"
+            ),
         ),
         (
             "    _validate_mqa(q)\n",
-            "    _validate_mqa(q)\n"
-            "    k_cache = _qsa_as_fp8(k_cache, kv_quant_mode, \"selector\")\n",
+            (
+                "    _validate_mqa(q)\n"
+                '    k_cache = _qsa_as_fp8(k_cache, kv_quant_mode, "selector")\n'
+            ),
         ),
         (
-            "        float(score_divisor),\n"
-            "        PAGE_SIZE=k_cache.shape[1],\n",
-            "        float(score_divisor),\n"
-            "        _qsa_scale_ptr(k_scale, q.device),\n"
-            "        PAGE_SIZE=k_cache.shape[1],\n",
+            "        float(score_divisor),\n        PAGE_SIZE=k_cache.shape[1],\n",
+            (
+                "        float(score_divisor),\n"
+                "        _qsa_scale_ptr(k_scale, q.device),\n"
+                "        PAGE_SIZE=k_cache.shape[1],\n"
+            ),
         ),
         (
             "        COMPRESS_RATIO=compress_ratio,\n        num_warps=2,\n",
-            "        COMPRESS_RATIO=compress_ratio,\n"
-            "        KV_QUANT_MODE=kv_quant_mode,\n"
-            "        num_warps=2,\n",
+            (
+                "        COMPRESS_RATIO=compress_ratio,\n"
+                "        KV_QUANT_MODE=kv_quant_mode,\n"
+                "        num_warps=2,\n"
+            ),
         ),
         # -- sparse attention wrapper: scales, mode, reinterpret, tile width --
         (
-            "    out: torch.Tensor | None = None,\n"
-            ") -> torch.Tensor:\n"
-            '    """Run sparse GQA directly over paged BF16 K/V caches."""\n',
-            "    out: torch.Tensor | None = None,\n"
-            "    k_scale: torch.Tensor | None = None,\n"
-            "    v_scale: torch.Tensor | None = None,\n"
-            "    kv_quant_mode: int = 0,\n"
-            ") -> torch.Tensor:\n"
-            '    """Run sparse GQA directly over paged BF16 or FP8-e4m3 K/V caches."""\n',
+            (
+                "    out: torch.Tensor | None = None,\n"
+                ") -> torch.Tensor:\n"
+                '    """Run sparse GQA directly over paged BF16 K/V caches."""\n'
+            ),
+            (
+                "    out: torch.Tensor | None = None,\n"
+                "    k_scale: torch.Tensor | None = None,\n"
+                "    v_scale: torch.Tensor | None = None,\n"
+                "    kv_quant_mode: int = 0,\n"
+                ") -> torch.Tensor:\n"
+                '    """Run sparse GQA directly over paged BF16 or FP8-e4m3 K/V caches."""\n'
+            ),
         ),
         (
-            "    if token_to_req.shape != (q.shape[0],) or block_table.ndim != 2:\n"
-            '        raise ValueError("QSA sparse attention metadata has invalid shapes")\n',
-            "    if token_to_req.shape != (q.shape[0],) or block_table.ndim != 2:\n"
-            '        raise ValueError("QSA sparse attention metadata has invalid shapes")\n'
-            '    k_cache = _qsa_as_fp8(k_cache, kv_quant_mode, "key")\n'
-            '    v_cache = _qsa_as_fp8(v_cache, kv_quant_mode, "value")\n',
+            (
+                "    if token_to_req.shape != (q.shape[0],) or block_table.ndim != 2:\n"
+                '        raise ValueError("QSA sparse attention metadata has invalid shapes")\n'
+            ),
+            (
+                "    if token_to_req.shape != (q.shape[0],) or block_table.ndim != 2:\n"
+                '        raise ValueError("QSA sparse attention metadata has invalid shapes")\n'
+                '    k_cache = _qsa_as_fp8(k_cache, kv_quant_mode, "key")\n'
+                '    v_cache = _qsa_as_fp8(v_cache, kv_quant_mode, "value")\n'
+            ),
         ),
         # -- the runtime dtype assert: fp8 caches are legal now -------------
         (
             "    assert q.dtype == k_cache.dtype == v_cache.dtype == torch.bfloat16\n",
-            "    assert q.dtype == torch.bfloat16\n"
-            "    if kv_quant_mode:\n"
-            "        assert k_cache.dtype == v_cache.dtype == torch.float8_e4m3fn\n"
-            "    else:\n"
-            "        assert k_cache.dtype == v_cache.dtype == torch.bfloat16\n",
+            (
+                "    assert q.dtype == torch.bfloat16\n"
+                "    if kv_quant_mode:\n"
+                "        assert k_cache.dtype == v_cache.dtype == torch.float8_e4m3fn\n"
+                "    else:\n"
+                "        assert k_cache.dtype == v_cache.dtype == torch.bfloat16\n"
+            ),
         ),
         (
-            "        block_table.shape[0],\n"
-            "        TOPK=logical_indices.shape[1],\n",
-            "        block_table.shape[0],\n"
-            "        _qsa_scale_ptr(k_scale, q.device),\n"
-            "        _qsa_scale_ptr(v_scale, q.device),\n"
-            "        TOPK=logical_indices.shape[1],\n",
+            "        block_table.shape[0],\n        TOPK=logical_indices.shape[1],\n",
+            (
+                "        block_table.shape[0],\n"
+                "        _qsa_scale_ptr(k_scale, q.device),\n"
+                "        _qsa_scale_ptr(v_scale, q.device),\n"
+                "        TOPK=logical_indices.shape[1],\n"
+            ),
         ),
         (
             "        BLOCK_N=block_n,\n        num_warps=partial_warps,\n",
-            "        BLOCK_N=block_n,\n"
-            "        KV_QUANT_MODE=kv_quant_mode,\n"
-            "        num_warps=partial_warps,\n",
+            (
+                "        BLOCK_N=block_n,\n"
+                "        KV_QUANT_MODE=kv_quant_mode,\n"
+                "        num_warps=partial_warps,\n"
+            ),
         ),
     ],
 )
@@ -260,56 +301,68 @@ patch(
     [
         # -- advertise fp8 on the main attention backend ---------------------
         (
-            '    supported_kv_cache_dtypes: ClassVar[list[CacheDType]] = ["auto", "bfloat16"]\n'
-            "\n"
-            "    @staticmethod\n"
-            "    def get_name() -> str:\n"
-            '        return "QWEN38_FLASH_NEXT_QSA_TRITON"\n',
-            "    supported_kv_cache_dtypes: ClassVar[list[CacheDType]] = [\n"
-            '        "auto",\n        "bfloat16",\n        "fp8",\n        "fp8_e4m3",\n'
-            "    ]\n"
-            "\n"
-            "    @staticmethod\n"
-            "    def get_name() -> str:\n"
-            '        return "QWEN38_FLASH_NEXT_QSA_TRITON"\n',
+            (
+                '    supported_kv_cache_dtypes: ClassVar[list[CacheDType]] = ["auto", "bfloat16"]\n'
+                "\n"
+                "    @staticmethod\n"
+                "    def get_name() -> str:\n"
+                '        return "QWEN38_FLASH_NEXT_QSA_TRITON"\n'
+            ),
+            (
+                "    supported_kv_cache_dtypes: ClassVar[list[CacheDType]] = [\n"
+                '        "auto",\n        "bfloat16",\n        "fp8",\n        "fp8_e4m3",\n'
+                "    ]\n"
+                "\n"
+                "    @staticmethod\n"
+                "    def get_name() -> str:\n"
+                '        return "QWEN38_FLASH_NEXT_QSA_TRITON"\n'
+            ),
         ),
         # -- allow an fp8 cache with a bf16 query ----------------------------
         (
-            "        if key_cache.dtype != torch.bfloat16 or query.dtype != torch.bfloat16:\n"
-            '            raise NotImplementedError("Qwen3.8-Flash-Next QSA requires BF16 Q/K/V")\n',
-            "        kv_quant_mode = (\n"
-            "            1 if key_cache.dtype in (torch.uint8, torch.float8_e4m3fn) else 0\n"
-            "        )\n"
-            "        if query.dtype != torch.bfloat16:\n"
-            '            raise NotImplementedError("Qwen3.8-Flash-Next QSA requires a BF16 query")\n'
-            "        if not kv_quant_mode and key_cache.dtype != torch.bfloat16:\n"
-            "            raise NotImplementedError(\n"
-            '                "Qwen3.8-Flash-Next QSA requires a BF16 or FP8-e4m3 KV cache"\n'
-            "            )\n",
+            (
+                "        if key_cache.dtype != torch.bfloat16 or query.dtype != torch.bfloat16:\n"
+                '            raise NotImplementedError("Qwen3.8-Flash-Next QSA requires BF16 Q/K/V")\n'
+            ),
+            (
+                "        kv_quant_mode = (\n"
+                "            1 if key_cache.dtype in (torch.uint8, torch.float8_e4m3fn) else 0\n"
+                "        )\n"
+                "        if query.dtype != torch.bfloat16:\n"
+                '            raise NotImplementedError("Qwen3.8-Flash-Next QSA requires a BF16 query")\n'
+                "        if not kv_quant_mode and key_cache.dtype != torch.bfloat16:\n"
+                "            raise NotImplementedError(\n"
+                '                "Qwen3.8-Flash-Next QSA requires a BF16 or FP8-e4m3 KV cache"\n'
+                "            )\n"
+            ),
         ),
         # -- hand the layer's scales to the kernel ---------------------------
         (
-            "        qsa_sparse_paged_attention(\n"
-            "            query[:num_tokens],\n"
-            "            key_cache,\n"
-            "            value_cache,\n"
-            "            logical_indices,\n"
-            "            attn_metadata.block_table,\n"
-            "            token_to_req,\n"
-            "            output[:num_tokens],\n"
-            "        )\n",
-            "        qsa_sparse_paged_attention(\n"
-            "            query[:num_tokens],\n"
-            "            key_cache,\n"
-            "            value_cache,\n"
-            "            logical_indices,\n"
-            "            attn_metadata.block_table,\n"
-            "            token_to_req,\n"
-            "            output[:num_tokens],\n"
-            '            k_scale=getattr(layer, "_k_scale", None),\n'
-            '            v_scale=getattr(layer, "_v_scale", None),\n'
-            "            kv_quant_mode=kv_quant_mode,\n"
-            "        )\n",
+            (
+                "        qsa_sparse_paged_attention(\n"
+                "            query[:num_tokens],\n"
+                "            key_cache,\n"
+                "            value_cache,\n"
+                "            logical_indices,\n"
+                "            attn_metadata.block_table,\n"
+                "            token_to_req,\n"
+                "            output[:num_tokens],\n"
+                "        )\n"
+            ),
+            (
+                "        qsa_sparse_paged_attention(\n"
+                "            query[:num_tokens],\n"
+                "            key_cache,\n"
+                "            value_cache,\n"
+                "            logical_indices,\n"
+                "            attn_metadata.block_table,\n"
+                "            token_to_req,\n"
+                "            output[:num_tokens],\n"
+                '            k_scale=getattr(layer, "_k_scale", None),\n'
+                '            v_scale=getattr(layer, "_v_scale", None),\n'
+                "            kv_quant_mode=kv_quant_mode,\n"
+                "        )\n"
+            ),
         ),
         # -- neutralise the parent FlashAttention fp8 rejection --------------
         # FlashAttentionImpl.__init__ refuses a quantised KV cache because the
@@ -321,79 +374,95 @@ patch(
         # against this build: the Impl subclass defines only __init__ and
         # forward_qsa. So hand the parent an unquantised dtype, then restore.
         (
-            "    def __init__(self, *args, **kwargs) -> None:\n"
-            "        super().__init__(*args, **kwargs)\n"
-            "        if not is_flash_attn_varlen_func_available():\n",
-            "    def __init__(self, *args, **kwargs) -> None:\n"
-            "        _real_kv_dtype = None\n"
-            "        _kv_pos = None\n"
-            '        if "kv_cache_dtype" in kwargs:\n'
-            '            _real_kv_dtype = kwargs["kv_cache_dtype"]\n'
-            "        else:\n"
-            "            import inspect as _inspect\n"
-            "\n"
-            "            _names = list(\n"
-            "                _inspect.signature(FlashAttentionImpl.__init__).parameters\n"
-            "            )[1:]\n"
-            '            if "kv_cache_dtype" in _names:\n'
-            '                _idx = _names.index("kv_cache_dtype")\n'
-            "                if _idx < len(args):\n"
-            "                    _kv_pos = _idx\n"
-            "                    _real_kv_dtype = args[_idx]\n"
-            "        if _real_kv_dtype is not None and _real_kv_dtype not in (\n"
-            '            "auto",\n            "bfloat16",\n'
-            "        ):\n"
-            "            if _kv_pos is not None:\n"
-            '                args = args[:_kv_pos] + ("auto",) + args[_kv_pos + 1 :]\n'
-            "            else:\n"
-            '                kwargs = {**kwargs, "kv_cache_dtype": "auto"}\n'
-            "            super().__init__(*args, **kwargs)\n"
-            "            self.kv_cache_dtype = _real_kv_dtype\n"
-            "        else:\n"
-            "            super().__init__(*args, **kwargs)\n"
-            "        if not is_flash_attn_varlen_func_available():\n",
+            (
+                "    def __init__(self, *args, **kwargs) -> None:\n"
+                "        super().__init__(*args, **kwargs)\n"
+                "        if not is_flash_attn_varlen_func_available():\n"
+            ),
+            (
+                "    def __init__(self, *args, **kwargs) -> None:\n"
+                "        _real_kv_dtype = None\n"
+                "        _kv_pos = None\n"
+                '        if "kv_cache_dtype" in kwargs:\n'
+                '            _real_kv_dtype = kwargs["kv_cache_dtype"]\n'
+                "        else:\n"
+                "            import inspect as _inspect\n"
+                "\n"
+                "            _names = list(\n"
+                "                _inspect.signature(FlashAttentionImpl.__init__).parameters\n"
+                "            )[1:]\n"
+                '            if "kv_cache_dtype" in _names:\n'
+                '                _idx = _names.index("kv_cache_dtype")\n'
+                "                if _idx < len(args):\n"
+                "                    _kv_pos = _idx\n"
+                "                    _real_kv_dtype = args[_idx]\n"
+                "        if _real_kv_dtype is not None and _real_kv_dtype not in (\n"
+                '            "auto",\n            "bfloat16",\n'
+                "        ):\n"
+                "            if _kv_pos is not None:\n"
+                '                args = args[:_kv_pos] + ("auto",) + args[_kv_pos + 1 :]\n'
+                "            else:\n"
+                '                kwargs = {**kwargs, "kv_cache_dtype": "auto"}\n'
+                "            super().__init__(*args, **kwargs)\n"
+                "            self.kv_cache_dtype = _real_kv_dtype\n"
+                "        else:\n"
+                "            super().__init__(*args, **kwargs)\n"
+                "        if not is_flash_attn_varlen_func_available():\n"
+            ),
         ),
         # -- impl __init__: second copy of the cache_dtype guard -------------
         (
-            '        if self.kv_cache_dtype not in ("auto", "bfloat16"):\n'
-            "            raise NotImplementedError(\n"
-            '                "Qwen3.8-Flash-Next QSA requires a BF16 main KV cache"\n'
-            "            )\n"
-            "        self.supports_quant_query_input = False\n",
-            "        if self.kv_cache_dtype not in (\n"
-            '            "auto",\n            "bfloat16",\n            "fp8",\n            "fp8_e4m3",\n'
-            "        ):\n"
-            "            raise NotImplementedError(\n"
-            '                "Qwen3.8-Flash-Next QSA supports a BF16 or FP8-e4m3 main KV cache"\n'
-            "            )\n"
-            "        self.supports_quant_query_input = False\n",
+            (
+                '        if self.kv_cache_dtype not in ("auto", "bfloat16"):\n'
+                "            raise NotImplementedError(\n"
+                '                "Qwen3.8-Flash-Next QSA requires a BF16 main KV cache"\n'
+                "            )\n"
+                "        self.supports_quant_query_input = False\n"
+            ),
+            (
+                "        if self.kv_cache_dtype not in (\n"
+                '            "auto",\n            "bfloat16",\n            "fp8",\n            "fp8_e4m3",\n'
+                "        ):\n"
+                "            raise NotImplementedError(\n"
+                '                "Qwen3.8-Flash-Next QSA supports a BF16 or FP8-e4m3 main KV cache"\n'
+                "            )\n"
+                "        self.supports_quant_query_input = False\n"
+            ),
         ),
         # -- storage dtype: fp8 is stored as uint8 / float8_e4m3fn -----------
         (
-            "        if self.kv_cache_torch_dtype != torch.bfloat16:\n"
-            "            raise NotImplementedError(\n"
-            '                "Qwen3.8-Flash-Next QSA requires BF16 cache storage"\n'
-            "            )\n",
-            "        if self.kv_cache_torch_dtype not in (\n"
-            "            torch.bfloat16,\n            torch.uint8,\n            torch.float8_e4m3fn,\n"
-            "        ):\n"
-            "            raise NotImplementedError(\n"
-            '                "Qwen3.8-Flash-Next QSA cache storage must be BF16 or FP8-e4m3 "\n'
-            '                f"(got {self.kv_cache_torch_dtype})"\n'
-            "            )\n",
+            (
+                "        if self.kv_cache_torch_dtype != torch.bfloat16:\n"
+                "            raise NotImplementedError(\n"
+                '                "Qwen3.8-Flash-Next QSA requires BF16 cache storage"\n'
+                "            )\n"
+            ),
+            (
+                "        if self.kv_cache_torch_dtype not in (\n"
+                "            torch.bfloat16,\n            torch.uint8,\n            torch.float8_e4m3fn,\n"
+                "        ):\n"
+                "            raise NotImplementedError(\n"
+                '                "Qwen3.8-Flash-Next QSA cache storage must be BF16 or FP8-e4m3 "\n'
+                '                f"(got {self.kv_cache_torch_dtype})"\n'
+                "            )\n"
+            ),
         ),
         # -- stop __init__ rejecting an fp8 cache_dtype ----------------------
         (
-            '        if cache_config.cache_dtype not in ("auto", "bfloat16"):\n'
-            "            raise NotImplementedError(\n"
-            '                "Qwen3.8-Flash-Next QSA requires a BF16 main KV cache"\n'
-            "            )\n",
-            "        if cache_config.cache_dtype not in (\n"
-            '            "auto",\n            "bfloat16",\n            "fp8",\n            "fp8_e4m3",\n'
-            "        ):\n"
-            "            raise NotImplementedError(\n"
-            '                "Qwen3.8-Flash-Next QSA supports a BF16 or FP8-e4m3 main KV cache"\n'
-            "            )\n",
+            (
+                '        if cache_config.cache_dtype not in ("auto", "bfloat16"):\n'
+                "            raise NotImplementedError(\n"
+                '                "Qwen3.8-Flash-Next QSA requires a BF16 main KV cache"\n'
+                "            )\n"
+            ),
+            (
+                "        if cache_config.cache_dtype not in (\n"
+                '            "auto",\n            "bfloat16",\n            "fp8",\n            "fp8_e4m3",\n'
+                "        ):\n"
+                "            raise NotImplementedError(\n"
+                '                "Qwen3.8-Flash-Next QSA supports a BF16 or FP8-e4m3 main KV cache"\n'
+                "            )\n"
+            ),
         ),
     ],
 )

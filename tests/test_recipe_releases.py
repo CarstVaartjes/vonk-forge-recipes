@@ -77,7 +77,10 @@ def isolated_root() -> Iterator[Path]:
 class RecipeReleaseValidationTests(unittest.TestCase):
     def validate(self, document: dict[str, object]) -> RecipeRelease:
         recipe = json.loads(
-            (ROOT / "contracts/src/vonk_forge_contracts/examples/recipe-source-build.json").read_text()
+            (
+                ROOT
+                / "contracts/src/vonk_forge_contracts/examples/recipe-source-build.json"
+            ).read_text()
         )
         recipe["release"] = document
         parsed_recipe = RecipeDefinition.model_validate(recipe)
@@ -188,7 +191,8 @@ class RecipeReleaseBuildTests(unittest.TestCase):
             catalog_index.MAX_SOURCE_FILE_BYTES = 3
             try:
                 with self.assertRaisesRegex(
-                    SystemExit, "source bundle file exceeds the Git blob hydration limit"
+                    SystemExit,
+                    "source bundle file exceeds the Git blob hydration limit",
                 ):
                     catalog_index.source_bundle(context)
             finally:

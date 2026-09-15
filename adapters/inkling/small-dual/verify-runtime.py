@@ -9,7 +9,6 @@ import platform
 import torch
 from sglang.srt.server_args import ServerArgs
 
-
 REQUIRED_MODULES = (
     "sglang.srt.models.inkling",
     "sglang.srt.multimodal.inkling.processing_inkling",
@@ -44,7 +43,9 @@ def main() -> None:
     if platform.machine() not in {"aarch64", "arm64"}:
         raise SystemExit("the Inkling Spark adapter must be built for linux/arm64")
     if not torch.version.cuda or not torch.version.cuda.startswith("13."):
-        raise SystemExit("the Inkling Spark adapter requires the pinned CUDA 13 runtime")
+        raise SystemExit(
+            "the Inkling Spark adapter requires the pinned CUDA 13 runtime"
+        )
 
     for module in REQUIRED_MODULES:
         importlib.import_module(module)
@@ -52,7 +53,9 @@ def main() -> None:
     fields = set(ServerArgs.__dataclass_fields__)
     missing = sorted(REQUIRED_SERVER_FIELDS - fields)
     if missing:
-        raise SystemExit(f"the pinned SGLang image lacks Inkling launch fields: {missing}")
+        raise SystemExit(
+            f"the pinned SGLang image lacks Inkling launch fields: {missing}"
+        )
 
     nccl_version = importlib.metadata.version("nvidia-nccl-cu13")
     if nccl_version != "2.30.7":
