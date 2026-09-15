@@ -224,7 +224,7 @@ def exl3_fat_symbols() -> tuple[bool, bool, bool]:
     """(exl3_moe, exl3_fat_gemm, exl3_fat_gemm_scatter) availability."""
     try:
         ext = load_exllamav3_ext()
-    except Exception:
+    except Exception:  # noqa: BLE001  (extension availability probe)
         return False, False, False
     return (
         hasattr(ext, "exl3_moe"),
@@ -262,14 +262,14 @@ def load_fat_moe_ext():
 
         if all(hasattr(exl3_fat_moe_ext, name) for name in EXL3_FAT_MOE_SYMBOLS):
             found = exl3_fat_moe_ext
-    except Exception:
+    except Exception:  # noqa: BLE001  (extension availability probe)
         found = None
     if found is None:
         try:
             ext = load_exllamav3_ext()
             if all(hasattr(ext, name) for name in EXL3_FAT_MOE_SYMBOLS):
                 found = ext
-        except Exception:
+        except Exception:  # noqa: BLE001  (extension availability probe)
             found = None
     _FAT_MOE_EXT_CACHE.append(found)
     return found
@@ -335,7 +335,7 @@ def exl3_device_capability() -> tuple[int, int]:
         return -1, -1
     try:
         return tuple(int(v) for v in torch.cuda.get_device_capability())
-    except Exception:
+    except Exception:  # noqa: BLE001  (capability probe without a GPU)
         return -1, -1
 
 
@@ -351,7 +351,7 @@ def _exl3_tp_rank_size() -> tuple[int, int]:
             int(get_tensor_model_parallel_rank()),
             int(get_tensor_model_parallel_world_size()),
         )
-    except Exception:
+    except Exception:  # noqa: BLE001  (process group unavailable outside a worker)
         return -1, 1
 
 
@@ -686,7 +686,7 @@ def _install_exllamav3_namespace() -> None:
     spec = importlib.util.find_spec("exllamav3")
     if spec is None or not spec.submodule_search_locations:
         raise RuntimeError("exllamav3 package is not installed in this image")
-    package_root = Path(list(spec.submodule_search_locations)[0])
+    package_root = Path(next(iter(spec.submodule_search_locations)))
 
     # Stub only packages whose __init__.py pulls FlashAttention / serving extras.
     # Leave .ext, .util, and .modules.quant as real modules so LinearEXL3 loads.
@@ -1258,7 +1258,6 @@ def build_exl3_fused_state(
     import exllamav3_ext
 
     device = layer.w13_trellis.device
-    n_exp = len(inners)
     hidden = int(layer._exl3_hidden_size)
     intermediate = int(layer._exl3_intermediate_local)
 
@@ -1657,7 +1656,7 @@ def apply_exl3_fused_moe(
                 inners,
                 expert_map,
                 limit,
-                only_experts=set(int(i) for i in fat.tolist()),
+                only_experts={int(i) for i in fat.tolist()},
                 out=out,
             )
             _EXL3_FAT_DIAG["fat_expert_runs"] += int(fat.numel())
@@ -1691,7 +1690,7 @@ def apply_exl3_experts(
             import exllamav3_ext
 
             use_fused = hasattr(exllamav3_ext, "exl3_moe")
-        except Exception:
+        except Exception:  # noqa: BLE001  (extension symbol probe)
             use_fused = False
     if use_fused:
         out = apply_exl3_fused_moe(x2d, ids, weights, layer, inners, expert_map, limit)
@@ -2041,7 +2040,6 @@ class Exl3MoEMethod(FusedMoEMethodBase):
             get_tensor_model_parallel_world_size,
         )
 
-        layer = param
         # param is the Parameter; expert_id is already physical. Map to local
         # via the owning module if present on the weight_loader closure... we
         # look up from param's __dict__ after register. RoutedExperts.weight_loader
@@ -2143,7 +2141,7 @@ class Exl3MoEMethod(FusedMoEMethodBase):
                     fused_ok = True
                 else:
                     fused_err = "exllamav3_ext.exl3_moe missing"
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001  (fused-path bring-up is best-effort)
                 fused_err = repr(exc)
                 layer._exl3_ptrs = None
         if not self._logged:

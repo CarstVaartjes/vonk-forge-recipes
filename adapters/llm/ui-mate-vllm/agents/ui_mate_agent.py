@@ -28,9 +28,9 @@ import math
 import os
 import re
 import time
-from collections.abc import Sequence
 from io import BytesIO
 from pathlib import Path
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 from PIL import Image
 
@@ -65,7 +65,7 @@ DEFAULT_IMAGES_TO_KEEP = 5
 DEFAULT_COORDINATE_TYPE = "relative"
 DEFAULT_INCLUDE_THINKING_IN_HISTORY = True
 
-DEFAULT_RECENT_THINK_STEPS: int | None = None
+DEFAULT_RECENT_THINK_STEPS: Optional[int] = None
 DEFAULT_ADD_THOUGHT_PREFIX = False
 DEFAULT_ENABLE_THINKING = True
 DEFAULT_ENABLE_TRAJ_SLICE = False
@@ -103,17 +103,13 @@ def smart_resize(
     min_pixels: int = 56 * 56,
     max_pixels: int = 14 * 14 * 4 * 1280,
     max_long_side: int = 8192,
-) -> tuple[int, int]:
+) -> Tuple[int, int]:
     """Pick a (height, width) that is factor-aligned, within the pixel budget,
     and keeps the aspect ratio."""
     if height < 2 or width < 2:
-        raise ValueError(
-            f"height:{height} or width:{width} must be larger than factor:{factor}"
-        )
+        raise ValueError(f"height:{height} or width:{width} must be larger than factor:{factor}")
     if max(height, width) / min(height, width) > 200:
-        raise ValueError(
-            f"absolute aspect ratio must be smaller than 200, got {height} / {width}"
-        )
+        raise ValueError(f"absolute aspect ratio must be smaller than 200, got {height} / {width}")
 
     if max(height, width) > max_long_side:
         beta = max(height, width) / max_long_side
@@ -152,11 +148,11 @@ def process_image(image_bytes: bytes) -> str:
 # History collapsing
 # ---------------------------------------------------------------------------
 def collapse_messages(
-    messages: list[dict],
-    images_to_keep: int | None = 10,
+    messages: List[Dict],
+    images_to_keep: Optional[int] = 10,
     min_removal_threshold: int = 10,
     collapse_text: str = COLLAPSED_SCREENSHOT_TEXT,
-) -> tuple[list[dict], bool]:
+) -> Tuple[List[Dict], bool]:
     """Drop the oldest screenshots from user messages to bound context size.
 
     The step-0 screenshot (the initial state of the task) is never dropped, and
@@ -199,7 +195,7 @@ def collapse_messages(
         has_text = any(
             isinstance(block, dict) and block.get("type") == "text" for block in content
         )
-        new_content: list[dict] = []
+        new_content: List[Dict] = []
         removed_here = 0
         for block in content:
             if isinstance(block, dict) and block.get("type") == "image_url":
@@ -216,9 +212,7 @@ def collapse_messages(
 
         if removed_here > 0:
             collapsed_any = True
-            msg["content"] = _replace_with_placeholder(
-                new_content, has_text, collapse_text
-            )
+            msg["content"] = _replace_with_placeholder(new_content, has_text, collapse_text)
 
         if remaining_to_remove <= 0:
             break
@@ -227,8 +221,8 @@ def collapse_messages(
 
 
 def _replace_with_placeholder(
-    new_content: list[dict], has_text: bool, collapse_text: str
-) -> list[dict]:
+    new_content: List[Dict], has_text: bool, collapse_text: str
+) -> List[Dict]:
     """Swap a stripped-down user message for its collapse placeholder."""
     remaining_text = "".join(
         block.get("text", "")
@@ -237,10 +231,7 @@ def _replace_with_placeholder(
     ).strip()
 
     text_normalized = (
-        remaining_text.replace("\n", "")
-        .replace(" ", "")
-        .replace("\t", "")
-        .replace("\r", "")
+        remaining_text.replace("\n", "").replace(" ", "").replace("\t", "").replace("\r", "")
     )
     is_empty_or_xml_only = (
         not remaining_text
@@ -250,9 +241,7 @@ def _replace_with_placeholder(
 
     if not has_text or is_empty_or_xml_only:
         if "<tool_response>" in remaining_text:
-            placeholder_text = (
-                "<tool_response>\n" + collapse_text + "\n</tool_response>"
-            )
+            placeholder_text = "<tool_response>\n" + collapse_text + "\n</tool_response>"
         else:
             placeholder_text = collapse_text
         return [{"type": "text", "text": placeholder_text}]
@@ -312,7 +301,7 @@ def build_action_description() -> str:
 * `finished`: Terminate the task and indicate whether it was a 'success' or 'failure'."""
 
 
-def build_tools_def(description_prompt: str) -> dict:
+def build_tools_def(description_prompt: str) -> Dict:
     return {
         "type": "function",
         "function": {
@@ -323,22 +312,10 @@ def build_tools_def(description_prompt: str) -> dict:
                     "action": {
                         "description": build_action_description(),
                         "enum": [
-                            "left_click",
-                            "right_click",
-                            "middle_click",
-                            "double_click",
-                            "triple_click",
-                            "drag",
-                            "mouse_move",
-                            "type",
-                            "hotkey",
-                            "press",
-                            "key_down",
-                            "key_up",
-                            "scroll",
-                            "wait",
-                            "call_user",
-                            "finished",
+                            "left_click", "right_click", "middle_click",
+                            "double_click", "triple_click", "drag", "mouse_move",
+                            "type", "hotkey", "press", "key_down", "key_up",
+                            "scroll", "wait", "call_user", "finished",
                         ],
                         "type": "string",
                     },
@@ -390,11 +367,13 @@ def build_tools_def(description_prompt: str) -> dict:
     }
 
 
-def build_tools_and_format_block(tools_def: dict) -> str:
+def build_tools_and_format_block(tools_def: Dict) -> str:
     return (
         "# Tools\n\n"
         "You have access to the following functions:\n\n"
-        "<tools>\n" + json.dumps(tools_def) + "\n</tools>\n\n"
+        "<tools>\n"
+        + json.dumps(tools_def)
+        + "\n</tools>\n\n"
         "If you choose to call a function ONLY reply in the following format with NO suffix:\n\n"
         "<tool_call>\n"
         "<function=example_function_name>\n"
@@ -439,16 +418,15 @@ RESPONSE_FORMAT = (
 )
 
 
-def build_system_prompt(obs: dict | None = None) -> str:
+def build_system_prompt(obs: Optional[Dict] = None) -> str:
     """Assemble the system prompt, folding in the workflow parts obs may carry."""
     tools_def = patch_tools_schema(build_tools_def(build_description_prompt()), obs)
     prompt = (
         "You are a helpful GUI agent.\n\n"
-        + build_tools_and_format_block(tools_def)
-        + "\n\n"
-        + PROMPT_ADDITIONS
-        + "\n\n"
-        "# Response format\n\n" + RESPONSE_FORMAT
+        + build_tools_and_format_block(tools_def) + "\n\n"
+        + PROMPT_ADDITIONS + "\n\n"
+        "# Response format\n\n"
+        + RESPONSE_FORMAT
     ).strip()
 
     workflow_section = obs.get(OBS_SYSTEM_PROMPT) if isinstance(obs, dict) else None
@@ -461,63 +439,24 @@ def build_system_prompt(obs: dict | None = None) -> str:
 # Response parsing
 # ---------------------------------------------------------------------------
 _INFEASIBLE_LITERALS = (
-    "not possible",
-    "impossible",
-    "not feasible",
-    "cannot be completed",
-    "can't be completed",
-    "cannot be done",
-    "cannot complete",
-    "can't complete",
-    "unable to complete",
-    "cannot do this task",
-    "can't do this task",
-    "cannot complete this task as described",
-    "cannot be completed as specified",
-    "can't be completed as specified",
-    "not available in your country",
-    "not available",
-    "unavailable",
-    "not supported",
-    "does not support",
-    "doesn't support",
-    "cannot natively",
-    "does not have a built-in",
-    "doesn't have a built-in",
-    "does not include",
-    "is not among the natively built-in",
-    "will fall back to english",
-    "requires the official",
-    "no bluetooth found",
-    "plug in a dongle",
-    "folder is empty",
-    "downloads folder is empty",
-    "do not have the credentials",
-    "don't have the credentials",
-    "do not have the account credentials",
-    "don't have the account credentials",
-    "need the user's google account credentials",
-    "requires a language pack extension",
-    "requires email verification",
-    "requires a sign-up",
-    "requires sign-up",
-    "requires google account credentials",
-    "requires a google account",
-    "sign in to the google account",
-    "drm-protected",
-    "drm protection",
-    "cannot directly play",
-    "no legitimate way",
-    "requires a plugin",
-    "requires an extension",
-    "requires extension",
-    "requires plugin",
-    "requires a valid account",
-    "requires purchase",
-    "requires a purchased",
-    "no valid account",
-    "hidden audio",
-    "could you clarify",
+    "not possible", "impossible", "not feasible", "cannot be completed",
+    "can't be completed", "cannot be done", "cannot complete", "can't complete",
+    "unable to complete", "cannot do this task", "can't do this task",
+    "cannot complete this task as described", "cannot be completed as specified",
+    "can't be completed as specified", "not available in your country", "not available",
+    "unavailable", "not supported", "does not support", "doesn't support",
+    "cannot natively", "does not have a built-in", "doesn't have a built-in",
+    "does not include", "is not among the natively built-in", "will fall back to english",
+    "requires the official", "no bluetooth found", "plug in a dongle", "folder is empty",
+    "downloads folder is empty", "do not have the credentials", "don't have the credentials",
+    "do not have the account credentials", "don't have the account credentials",
+    "need the user's google account credentials", "requires a language pack extension",
+    "requires email verification", "requires a sign-up", "requires sign-up",
+    "requires google account credentials", "requires a google account",
+    "sign in to the google account", "drm-protected", "drm protection",
+    "cannot directly play", "no legitimate way", "requires a plugin", "requires an extension",
+    "requires extension", "requires plugin", "requires a valid account", "requires purchase",
+    "requires a purchased", "no valid account", "hidden audio", "could you clarify",
 )
 
 _INFEASIBLE_REGEXES = (
@@ -541,9 +480,7 @@ def looks_infeasible_response(text: str) -> bool:
 
 
 def extract_action_text(response: str) -> str:
-    match = re.search(
-        r"<action>\s*(.*?)\s*</action>", response, re.DOTALL | re.IGNORECASE
-    )
+    match = re.search(r"<action>\s*(.*?)\s*</action>", response, re.DOTALL | re.IGNORECASE)
     return match.group(1).strip() if match else ""
 
 
@@ -557,19 +494,17 @@ def compact_response_for_history(response: str, include_thinking: bool = False) 
     match = re.search(tag, response, re.IGNORECASE)
     if not match:
         return response
-    return response[match.start() :].strip()
+    return response[match.start():].strip()
 
 
-def parse_xml_tool_call(xml_content: str) -> dict | None:
+def parse_xml_tool_call(xml_content: str) -> Optional[Dict]:
     """Parse one XML tool call into a flat params dict."""
     func_match = re.search(r"<function=([^>]+)>", xml_content)
     if not func_match or func_match.group(1) != "computer_use":
         return None
 
-    params: dict = {}
-    for match in re.finditer(
-        r"<parameter=([^>]+)>\s*(.*?)\s*</parameter>", xml_content, re.DOTALL
-    ):
+    params: Dict = {}
+    for match in re.finditer(r"<parameter=([^>]+)>\s*(.*?)\s*</parameter>", xml_content, re.DOTALL):
         name = match.group(1)
         value = match.group(2).strip()
         if value.startswith("[") or value.startswith("{"):
@@ -582,7 +517,7 @@ def parse_xml_tool_call(xml_content: str) -> dict | None:
     return params
 
 
-def extract_xml_tool_calls(response: str) -> list[dict]:
+def extract_xml_tool_calls(response: str) -> List[Dict]:
     results = []
     for match in re.finditer(r"<tool_call>(.*?)</tool_call>", response, re.DOTALL):
         params = parse_xml_tool_call(match.group(1))
@@ -593,21 +528,23 @@ def extract_xml_tool_calls(response: str) -> list[dict]:
 
 def scale_coordinate(
     x: float, y: float, original_width: int, original_height: int, coordinate_type: str
-) -> tuple[int, int]:
+) -> Tuple[int, int]:
     if coordinate_type == "absolute":
         return int(x), int(y)
     return int(x * original_width / 999.0), int(y * original_height / 999.0)
 
 
-def _clean_keys(raw_keys) -> list:
+def _clean_keys(raw_keys) -> List:
     keys = raw_keys if isinstance(raw_keys, list) else [raw_keys]
     cleaned_keys = []
     for key in keys:
         if not isinstance(key, str):
             cleaned_keys.append(key)
             continue
-        key = key.removeprefix("keys=[")
-        key = key.removesuffix("]")
+        if key.startswith("keys=["):
+            key = key[6:]
+        if key.endswith("]"):
+            key = key[:-1]
         if key.startswith("['") or key.startswith('["'):
             key = key[2:] if len(key) > 2 else key
         if key.endswith("']") or key.endswith('"]'):
@@ -618,23 +555,15 @@ def _clean_keys(raw_keys) -> list:
 
 def to_pyautogui_code(
     action: str,
-    args: dict,
+    args: Dict,
     original_width: int,
     original_height: int,
     coordinate_type: str,
-) -> str | list[str]:
+) -> Union[str, List[str]]:
     """Convert one parsed action into pyautogui source (or a control token)."""
     adj_x = adj_y = None
-    if action in (
-        "left_click",
-        "click",
-        "right_click",
-        "middle_click",
-        "double_click",
-        "triple_click",
-        "drag",
-        "mouse_move",
-    ):
+    if action in ("left_click", "click", "right_click", "middle_click",
+                  "double_click", "triple_click", "drag", "mouse_move"):
         coordinate = args.get("coordinate")
         if isinstance(coordinate, (list, tuple)) and len(coordinate) >= 2:
             x, y = coordinate[:2]
@@ -643,39 +572,19 @@ def to_pyautogui_code(
             )
 
     if action in ("left_click", "click"):
-        return (
-            f"pyautogui.click({adj_x}, {adj_y})"
-            if adj_x is not None
-            else "pyautogui.click()"
-        )
+        return f"pyautogui.click({adj_x}, {adj_y})" if adj_x is not None else "pyautogui.click()"
 
     if action == "right_click":
-        return (
-            f"pyautogui.rightClick({adj_x}, {adj_y})"
-            if adj_x is not None
-            else "pyautogui.rightClick()"
-        )
+        return f"pyautogui.rightClick({adj_x}, {adj_y})" if adj_x is not None else "pyautogui.rightClick()"
 
     if action == "middle_click":
-        return (
-            f"pyautogui.middleClick({adj_x}, {adj_y})"
-            if adj_x is not None
-            else "pyautogui.middleClick()"
-        )
+        return f"pyautogui.middleClick({adj_x}, {adj_y})" if adj_x is not None else "pyautogui.middleClick()"
 
     if action == "double_click":
-        return (
-            f"pyautogui.doubleClick({adj_x}, {adj_y})"
-            if adj_x is not None
-            else "pyautogui.doubleClick()"
-        )
+        return f"pyautogui.doubleClick({adj_x}, {adj_y})" if adj_x is not None else "pyautogui.doubleClick()"
 
     if action == "triple_click":
-        return (
-            f"pyautogui.tripleClick({adj_x}, {adj_y})"
-            if adj_x is not None
-            else "pyautogui.tripleClick()"
-        )
+        return f"pyautogui.tripleClick({adj_x}, {adj_y})" if adj_x is not None else "pyautogui.tripleClick()"
 
     if action == "drag":
         duration = args.get("duration", 0.5)
@@ -686,11 +595,7 @@ def to_pyautogui_code(
         return f"pyautogui.dragTo({adj_x}, {adj_y})"
 
     if action == "mouse_move":
-        return (
-            f"pyautogui.moveTo({adj_x}, {adj_y})"
-            if adj_x is not None
-            else "pyautogui.moveTo(0, 0)"
-        )
+        return f"pyautogui.moveTo({adj_x}, {adj_y})" if adj_x is not None else "pyautogui.moveTo(0, 0)"
 
     if action == "type":
         text = args.get("text", "")
@@ -732,11 +637,7 @@ def to_pyautogui_code(
         else:
             keys = []
         keys_str = ", ".join(f"'{k}'" for k in keys)
-        return (
-            f"pyautogui.hotkey({keys_str})"
-            if len(keys) > 1
-            else f"pyautogui.press({keys_str})"
-        )
+        return f"pyautogui.hotkey({keys_str})" if len(keys) > 1 else f"pyautogui.press({keys_str})"
 
     if action == "press":
         keys = args.get("keys", [])
@@ -754,10 +655,7 @@ def to_pyautogui_code(
         return [f"pyautogui.keyDown('{k}')" for k in _clean_keys(args.get("keys", []))]
 
     if action == "key_up":
-        return [
-            f"pyautogui.keyUp('{k}')"
-            for k in reversed(_clean_keys(args.get("keys", [])))
-        ]
+        return [f"pyautogui.keyUp('{k}')" for k in reversed(_clean_keys(args.get("keys", [])))]
 
     if action in ("scroll", "sroll"):
         pixels = args.get("pixels", 0)
@@ -785,7 +683,7 @@ def parse_response(
     original_width: int,
     original_height: int,
     coordinate_type: str = DEFAULT_COORDINATE_TYPE,
-) -> tuple[str, list[str]]:
+) -> Tuple[str, List[str]]:
     """Turn a model response into (action text, pyautogui code / control tokens).
 
     ``call_user`` and responses without a usable action fall back to the
@@ -804,7 +702,7 @@ def parse_response(
             ["FAIL" if infeasible else "DONE"],
         )
 
-    pyautogui_codes: list[str] = []
+    pyautogui_codes: List[str] = []
     for params in tool_calls:
         action = params.get("action")
         if not action:
@@ -826,9 +724,7 @@ def parse_response(
             pyautogui_codes.append(code)
 
     if not pyautogui_codes:
-        return "<Error>: no pyautogui code generated", [
-            "FAIL" if infeasible else "DONE"
-        ]
+        return "<Error>: no pyautogui code generated", ["FAIL" if infeasible else "DONE"]
 
     # A terminal signal is returned on its own, never merged with other code.
     for code in pyautogui_codes:
@@ -842,8 +738,7 @@ def parse_response(
             if "keyDown" in c or "keyUp" in c
         )
         force_join = any(
-            k in c
-            for c in pyautogui_codes
+            k in c for c in pyautogui_codes
             for k in ("'enter'", "'backspace'", "'tab'", "'space'")
         )
         if not has_modifier or force_join:
@@ -880,19 +775,19 @@ class UIMateAgent:
         images_to_keep: int = DEFAULT_IMAGES_TO_KEEP,
         coordinate_type: str = DEFAULT_COORDINATE_TYPE,
         include_thinking_in_history: bool = DEFAULT_INCLUDE_THINKING_IN_HISTORY,
-        recent_think_steps: int | None = DEFAULT_RECENT_THINK_STEPS,
+        recent_think_steps: Optional[int] = DEFAULT_RECENT_THINK_STEPS,
         add_thought_prefix: bool = DEFAULT_ADD_THOUGHT_PREFIX,
-        collapse_text: str | None = None,
+        collapse_text: Optional[str] = None,
         enable_traj_slice: bool = DEFAULT_ENABLE_TRAJ_SLICE,
         traj_slice_interval: int = DEFAULT_TRAJ_SLICE_INTERVAL,
         max_trajectory_length: int = DEFAULT_MAX_TRAJECTORY_LENGTH,
         # --- endpoint ---
-        base_url: str | None = None,
-        api_key: str | None = None,
-        request_timeout: float | None = None,
-        max_retry_times: int | None = None,
+        base_url: Optional[str] = None,
+        api_key: Optional[str] = None,
+        request_timeout: Optional[float] = None,
+        max_retry_times: Optional[int] = None,
         # --- demonstration-guided execution (off unless a demo is given) ---
-        demo: str | Path | DemoWorkflow | None = None,
+        demo: Optional[Union[str, Path, DemoWorkflow]] = None,
         # --- runner-side context (accepted for parity, unused by predict) ---
         max_steps: int = DEFAULT_MAX_STEPS,
         screen_size: Sequence[int] = DEFAULT_SCREEN_SIZE,
@@ -953,16 +848,16 @@ class UIMateAgent:
         )
 
         self.logger = logger
-        self.sliced_messages_dir: str | None = None
+        self.sliced_messages_dir: Optional[str] = None
 
-        self.thoughts: list[str] = []
-        self.actions: list[str] = []
-        self.observations: list[dict] = []
-        self.responses: list[str] = []
-        self.screenshots: list[str | None] = []
+        self.thoughts: List[str] = []
+        self.actions: List[str] = []
+        self.observations: List[Dict] = []
+        self.responses: List[str] = []
+        self.screenshots: List[Optional[str]] = []
         self.collapsed_message_count = 0
         self.sliced_message_count = 0
-        self.full_messages_history: list[dict] = []
+        self.full_messages_history: List[Dict] = []
 
         self.logger.info(
             "UIMateAgent ready | model=%s | endpoint=%s | demo=%s",
@@ -973,14 +868,14 @@ class UIMateAgent:
 
     # -- message construction ------------------------------------------------
 
-    def _wrap_tool_response(self, parts: list[dict]) -> list[dict]:
+    def _wrap_tool_response(self, parts: List[Dict]) -> List[Dict]:
         return (
             [{"type": "text", "text": "<tool_response>\n"}]
             + parts
             + [{"type": "text", "text": "\n</tool_response>"}]
         )
 
-    def build_messages(self, instruction: str, obs: dict | None = None) -> list[dict]:
+    def build_messages(self, instruction: str, obs: Optional[Dict] = None) -> List[Dict]:
         """Build the chat messages for the current step from agent state."""
         total_steps = len(self.screenshots)
         start_step = max(1, total_steps - self.history_n)
@@ -991,7 +886,7 @@ class UIMateAgent:
 
         previous_actions = [
             f"Step {i + 1}: {self.actions[i]}"
-            for i in range(min(start_step - 1, len(self.actions)))
+            for i in range(0, min(start_step - 1, len(self.actions)))
         ]
         instruction_prompt = (
             "\nPlease generate the next move according to the UI screenshot, "
@@ -1007,7 +902,7 @@ class UIMateAgent:
             # action history, so the baseline first-turn text is replaced wholesale.
             instruction_prompt = f"\n{guidance}\n\nInstruction: {instruction}"
 
-        messages: list[dict] = [
+        messages: List[Dict] = [
             {
                 "role": "system",
                 "content": [{"type": "text", "text": build_system_prompt(obs)}],
@@ -1029,10 +924,7 @@ class UIMateAgent:
                 img_url = f"data:image/png;base64,{screenshot_data}"
                 image_block = {"type": "image_url", "image_url": {"url": img_url}}
                 if is_first_turn:
-                    user_content = [
-                        image_block,
-                        {"type": "text", "text": instruction_prompt},
-                    ]
+                    user_content = [image_block, {"type": "text", "text": instruction_prompt}]
                 else:
                     user_content = self._wrap_tool_response([image_block])
             messages.append({"role": "user", "content": user_content})
@@ -1044,9 +936,7 @@ class UIMateAgent:
                         "content": [
                             {
                                 "type": "text",
-                                "text": self._compact_history_step(
-                                    step_num, total_steps
-                                ),
+                                "text": self._compact_history_step(step_num, total_steps),
                             }
                         ],
                     }
@@ -1067,7 +957,7 @@ class UIMateAgent:
 
     # -- main loop -----------------------------------------------------------
 
-    def predict(self, instruction: str, obs: dict) -> tuple[str, list[str]]:
+    def predict(self, instruction: str, obs: Dict) -> Tuple[str, List[str]]:
         """Produce the next action(s) for the current screenshot."""
         screenshot_bytes = obs["screenshot"]
         original_width, original_height = Image.open(BytesIO(screenshot_bytes)).size
@@ -1119,15 +1009,10 @@ class UIMateAgent:
 
         if self.enable_traj_slice:
             messages_to_save = list(messages) + [
-                {
-                    "role": "assistant",
-                    "content": [{"type": "text", "text": response or ""}],
-                }
+                {"role": "assistant", "content": [{"type": "text", "text": response or ""}]}
             ]
             if save_snapshot:
-                self._save_message_snapshot(
-                    messages_to_save, self.collapsed_message_count
-                )
+                self._save_message_snapshot(messages_to_save, self.collapsed_message_count)
             self.full_messages_history = [
                 {
                     "messages_to_save": messages_to_save,
@@ -1167,7 +1052,7 @@ class UIMateAgent:
             return "".join(parts)
         return str(content)
 
-    def call_llm(self, payload: dict, model: str | None = None) -> str:
+    def call_llm(self, payload: Dict, model: Optional[str] = None) -> str:
         """Call the OpenAI-compatible endpoint, retrying transient failures.
 
         Returns an empty string once the retries are exhausted; downstream that
@@ -1180,27 +1065,23 @@ class UIMateAgent:
         model = model or payload.get("model") or self.model
         try:
             client = openai.OpenAI(
-                base_url=self.base_url,
-                api_key=self.api_key,
-                timeout=self.request_timeout,
+                base_url=self.base_url, api_key=self.api_key, timeout=self.request_timeout
             )
         except TypeError:
             client = openai.OpenAI(base_url=self.base_url, api_key=self.api_key)
 
         retryable_types = tuple(
-            exc
-            for exc in [
+            exc for exc in [
                 SSLError,
                 getattr(openai, "APIConnectionError", None),
                 getattr(openai, "APITimeoutError", None),
                 getattr(openai, "RateLimitError", None),
                 getattr(openai, "BadRequestError", None),
                 getattr(openai, "InternalServerError", None),
-            ]
-            if isinstance(exc, type)
+            ] if isinstance(exc, type)
         )
 
-        last_err: Exception | None = None
+        last_err: Optional[Exception] = None
         for attempt in range(1, self.max_retry_times + 1):
             try:
                 resp = client.chat.completions.create(
@@ -1210,35 +1091,29 @@ class UIMateAgent:
                     temperature=payload.get("temperature", self.temperature),
                     top_p=payload.get("top_p", self.top_p),
                     extra_body={
-                        "chat_template_kwargs": {
-                            "enable_thinking": self.enable_thinking
-                        }
+                        "chat_template_kwargs": {"enable_thinking": self.enable_thinking}
                     },
                 )
                 return self._extract_content_text(resp.choices[0].message.content)
             except retryable_types as exc:
                 last_err = exc
                 self.logger.warning(
-                    "call_llm failed attempt %d/%d: %s",
-                    attempt,
-                    self.max_retry_times,
-                    exc,
+                    "call_llm failed attempt %d/%d: %s", attempt, self.max_retry_times, exc
                 )
                 time.sleep(min(5.0 * attempt, 30.0))
 
         self.logger.error(
             "call_llm exhausted %d attempts; returning empty response (-> FAIL). Last error: %s",
-            self.max_retry_times,
-            last_err,
+            self.max_retry_times, last_err,
         )
         return ""
 
     # -- persistence helpers ---------------------------------------------------
 
     @staticmethod
-    def sanitize_messages(messages: list[dict]) -> list[dict]:
+    def sanitize_messages(messages: List[Dict]) -> List[Dict]:
         """Copy messages with inline base64 images truncated, for logging."""
-        sanitized: list[dict] = []
+        sanitized: List[Dict] = []
         for message in messages:
             cloned = {"role": message.get("role"), "content": []}
             for part in message.get("content", []) or []:
@@ -1253,12 +1128,12 @@ class UIMateAgent:
             sanitized.append(cloned)
         return sanitized
 
-    def _apply_permanent_collapses(self, messages: list[dict]) -> list[dict]:
+    def _apply_permanent_collapses(self, messages: List[Dict]) -> List[Dict]:
         collapsed_count = self.collapsed_message_count
         if collapsed_count <= 0:
             return messages
 
-        result: list[dict] = []
+        result: List[Dict] = []
         user_msg_count = 0
         for msg in messages:
             if msg.get("role") != "user":
@@ -1271,35 +1146,27 @@ class UIMateAgent:
                 continue
 
             content = msg.get("content", [])
-            has_text = any(
-                isinstance(b, dict) and b.get("type") == "text" for b in content
-            )
+            has_text = any(isinstance(b, dict) and b.get("type") == "text" for b in content)
             new_content = [
-                b
-                for b in content
+                b for b in content
                 if not (isinstance(b, dict) and b.get("type") == "image_url")
             ]
             result.append(
                 {
                     "role": "user",
-                    "content": _replace_with_placeholder(
-                        new_content, has_text, self.collapse_text
-                    ),
+                    "content": _replace_with_placeholder(new_content, has_text, self.collapse_text),
                 }
             )
         return result
 
-    def _save_message_snapshot(
-        self, messages: list[dict], collapsed_length: int
-    ) -> None:
+    def _save_message_snapshot(self, messages: List[Dict], collapsed_length: int) -> None:
         if not self.sliced_messages_dir:
             return
         self.sliced_message_count += 1
         try:
             os.makedirs(self.sliced_messages_dir, exist_ok=True)
             path = os.path.join(
-                self.sliced_messages_dir,
-                f"sliced_messages_{self.sliced_message_count}.json",
+                self.sliced_messages_dir, f"sliced_messages_{self.sliced_message_count}.json"
             )
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(
@@ -1329,7 +1196,7 @@ class UIMateAgent:
                 latest["messages_to_save"], latest.get("collapsed_length", 0)
             )
 
-    def reset(self, _logger: logging.Logger | None = None, *args, **kwargs) -> None:
+    def reset(self, _logger: Optional[logging.Logger] = None, *args, **kwargs) -> None:
         """Clear per-episode state. The runner passes its own logger in."""
         self.logger = _logger if _logger is not None else logger
         self.thoughts = []

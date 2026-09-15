@@ -87,15 +87,15 @@ def run_geometry(spec: dict, label: str):
     layout = K._glm5_next_tensor_layout(groups)
     assert layout is not None, f"[{label}] layout detection failed"
     (
-        attn_g,
-        mamba_gs,
-        mla_names,
-        idx_names,
+        _attn_g,
+        _mamba_gs,
+        _mla_names,
+        _idx_names,
         mla_page,
-        idx_page,
-        tail_names,
-        tail_page,
-        draft_g,
+        _idx_page,
+        _tail_names,
+        _tail_page,
+        _draft_g,
     ) = layout
     assert mla_page == MLA_PAGE
     cfg = K.get_kv_cache_config_from_groups(vllm_config, groups, AVAIL)

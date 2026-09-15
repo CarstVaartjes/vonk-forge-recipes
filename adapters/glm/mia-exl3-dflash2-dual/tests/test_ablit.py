@@ -326,7 +326,6 @@ def check_transplant(tmp_root: str) -> None:
 
     tdir = Path(tmp_root) / "transplant"
     tdir.mkdir(parents=True, exist_ok=True)
-    donors = {}
     entries = {}
     g = torch.Generator().manual_seed(123)
     for L in range(15, 46):
@@ -374,7 +373,9 @@ def check_transplant(tmp_root: str) -> None:
     donors_loaded = ablit.load_transplant_tensors(str(tmp_root), list(range(15, 46)))
     rank_out = {}
     for rank in (0, 1):
-        ablit._tp_rank = (lambda r: lambda: r)(rank)
+        # Bind the current rank into a zero-argument callable (the default
+        # argument keeps the value from being read late from the loop).
+        ablit._tp_rank = lambda r=rank: r
         m = _fake_model(with_mtp=False)
         with torch.no_grad():
             for L in range(15, 45):  # target decoder layers only (45 = MTP, absent)

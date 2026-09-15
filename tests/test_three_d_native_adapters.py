@@ -89,10 +89,10 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 validation.normalize_glb_json_padding = lambda _path: None
                 validation.validate_mesh_glb = lambda _path, *, profile: None
                 with mock.patch.dict(sys.modules, {"glb_validation": validation}):
-                    exec(
+                    exec(  # noqa: S102 - load the adapter source without importing heavy dependencies.
                         compile(source_path.read_bytes(), str(source_path), "exec"),
                         module,
-                    )  # noqa: S102
+                    )
                 inputs = Path(value)
                 image = inputs / "source.png"
                 image.write_bytes(b"png")

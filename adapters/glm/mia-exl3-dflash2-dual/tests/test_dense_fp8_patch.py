@@ -31,7 +31,7 @@ def classifier_tests() -> None:
     start = text.index("_GLM53_DENSE_FP8_SUFFIXES = {")
     end = text.index("class Glm53DenseFp8Method(")
     ns = {"os": os, "re": __import__("re")}
-    exec(text[start:end], ns)
+    exec(text[start:end], ns)  # noqa: S102  (exec runs the extracted patched source under test)
     f = ns["_glm53_dense_fp8_group"]
     lt = (
         ["linear_attention"] * 3

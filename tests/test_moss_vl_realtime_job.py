@@ -17,7 +17,7 @@ RECIPE_PATH = ROOT / "recipes/moss-vl-realtime-11b-pytorch-single.json"
 def _contract_module():
     module = types.ModuleType("moss_input_contract")
     module.__file__ = str(CONTRACT_PATH)
-    exec(
+    exec(  # noqa: S102 - load the input contract without importing adapter dependencies.
         compile(CONTRACT_PATH.read_text(encoding="utf-8"), str(CONTRACT_PATH), "exec"),
         module.__dict__,
     )

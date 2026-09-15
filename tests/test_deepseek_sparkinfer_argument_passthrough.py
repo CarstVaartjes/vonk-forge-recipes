@@ -139,6 +139,7 @@ def test_sparkinfer_wrappers_preserve_authored_engine_argv(
         [str(runnable_wrapper), "serve", str(model_source), *authored_args],
         env=environment,
         capture_output=True,
+        check=False,
     )
     assert result.returncode == 0, result.stderr.decode("utf-8", errors="replace")
     captured = result.stdout.split(b"\0")[:-1]

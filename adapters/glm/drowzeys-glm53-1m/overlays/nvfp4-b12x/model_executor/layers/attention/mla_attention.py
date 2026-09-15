@@ -209,7 +209,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from math import lcm
-from typing import ClassVar, Generic, TypeVar, cast
+from typing import ClassVar, TypeVar, cast
 
 import numpy as np
 import torch
@@ -910,7 +910,7 @@ class MLAAttention(nn.Module, AttentionLayerBase):
                 )
             else:
                 # Pads the head_dim if necessary (for the underlying kernel)
-                N, B, P = mqa_q_nope.shape
+                N, B, _P = mqa_q_nope.shape
                 W_UK_T = self.W_UK_T_dcp_qrep if qrep_decode else self.W_UK_T
                 assert W_UK_T is not None
                 _, _, L = W_UK_T.shape
@@ -1151,18 +1151,18 @@ class MLAAttention(nn.Module, AttentionLayerBase):
         kv_cache_dtype = kv_cache_dtype_str_to_dtype(
             self.kv_cache_dtype, vllm_config.model_config
         )
-        common_kwargs = dict(
-            block_size=vllm_config.cache_config.block_size,
-            num_kv_heads=1,
-            head_size=self.head_size,
-            dtype=kv_cache_dtype,
-            cache_dtype_str=vllm_config.cache_config.cache_dtype,
+        common_kwargs = {
+            "block_size": vllm_config.cache_config.block_size,
+            "num_kv_heads": 1,
+            "head_size": self.head_size,
+            "dtype": kv_cache_dtype,
+            "cache_dtype_str": vllm_config.cache_config.cache_dtype,
             # Stamp the quant mode so runners don't take the unquantized
             # ("auto") shape path for quantized layouts like fp8_ds_mla,
             # whose kernel page layout (656 B/token) differs from
             # head_size * dtype_size.
-            kv_quant_mode=get_kv_quant_mode(self.kv_cache_dtype),
-        )
+            "kv_quant_mode": get_kv_quant_mode(self.kv_cache_dtype),
+        }
         if self.sliding_window is not None:
             return SlidingWindowMLASpec(
                 **common_kwargs,
@@ -1491,7 +1491,7 @@ D = TypeVar("D", bound=MLACommonDecodeMetadata)
 
 
 @dataclass
-class MLACommonMetadata(AttentionMetadata, Generic[D]):
+class MLACommonMetadata[D: MLACommonDecodeMetadata](AttentionMetadata):
     """Metadata for MLACommon.
 
     NOTE: Please read the comment at the top of the file before trying to
@@ -2517,7 +2517,7 @@ def accumulate_mla_context_chunk(
         output_lse[:, init_start:token_end].copy_(attn_softmax_lse[:, written:])
 
 
-class MLACommonBaseImpl(MLAAttentionImpl[A], Generic[A]):
+class MLACommonBaseImpl[A: AttentionMetadata](MLAAttentionImpl[A]):
     """
     Shared MLA base providing dense-MHA prefill (via the selected
     MLAPrefillBackend) for both dense and sparse impls; subclasses add decode
@@ -2906,7 +2906,7 @@ class MLACommonBaseImpl(MLAAttentionImpl[A], Generic[A]):
             output.copy_(output_prefill)
 
 
-class MLACommonImpl(MLACommonBaseImpl[M], Generic[M]):
+class MLACommonImpl[M: MLACommonMetadata](MLACommonBaseImpl[M]):
     """
     NOTE: Please read the comment at the top of the file before trying to
     understand this class

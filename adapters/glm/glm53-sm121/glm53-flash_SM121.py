@@ -54,7 +54,7 @@ def parse_mode(argv: list[str]) -> str:
         return "sm90"
     if arg in ("sm120", "--legacy-sm120"):
         return "sm120"
-    raise SystemExit("unknown mode %r\n%s" % (arg, USAGE))
+    raise SystemExit(f"unknown mode {arg!r}\n{USAGE}")
 
 
 def apply_once(path: Path, old: str, new: str, label: str) -> str:
@@ -65,8 +65,7 @@ def apply_once(path: Path, old: str, new: str, label: str) -> str:
         return "skipped"
     if n_old != 1:
         raise SystemExit(
-            "%s refuse %s (old=%d new=%d); stock tree changed"
-            % (LOG, label, n_old, n_new)
+            f"{LOG} refuse {label} (old={n_old} new={n_new}); stock tree changed"
         )
     path.write_text(text.replace(old, new, 1))
     return "applied"
@@ -74,9 +73,9 @@ def apply_once(path: Path, old: str, new: str, label: str) -> str:
 
 def announce(title: str, results: list[str]) -> None:
     if all(r == "skipped" for r in results):
-        print("%s skip %s (already in this image)" % (LOG, title))
+        print(f"{LOG} skip {title} (already in this image)")
         return
-    print("%s %s (%s)" % (LOG, title, " ".join(results)))
+    print(f"{LOG} {title} ({' '.join(results)})")
 
 
 # ---------------------------------------------------------------------------
@@ -404,9 +403,8 @@ def apply_sm120() -> None:
     warmup = packed_skip_fi_warmup()
     autotune = packed_skip_fi_autotune()
     print(
-        "%s packed-path (not baked) cache_write=%s sm120_decode=%s "
-        "sm120_topk=%s skip_fi_warmup=%s skip_fi_autotune=%s"
-        % (LOG, cache, decode, topk, warmup, autotune)
+        f"{LOG} packed-path (not baked) cache_write={cache} sm120_decode={decode} "
+        f"sm120_topk={topk} skip_fi_warmup={warmup} skip_fi_autotune={autotune}"
     )
 
 

@@ -1,6 +1,32 @@
+[project]
+# Tooling and producer checks run on 3.14. Adapter sources still target 3.12
+# because the container images they overlay do; see [tool.ruff] below.
+name = "vonk-forge-recipes"
+version = "0.0.0"
+requires-python = ">=3.14"
+
 [tool.ruff]
 # The pinned formatter and linter are the repository's formatting authority.
-# There are no exclusions: adapter sources, overlays and patch files are
+# They cover every authored file: adapter sources, overlays and patch files are
 # reviewed code in this repository, not vendored trees.
+#
+# The linter and formatter target Python 3.12 even though this repository
+# declares and runs on 3.14: adapter sources are copied over the interpreter
+# already present in a pinned upstream image, and the vLLM/SGLang images these
+# adapters overlay still run 3.12, as does the platform copy of the shared
+# three-d GLB validator. Formatting at 3.12 keeps those files parseable in the
+# container and here.
 required-version = "==0.16.1"
 target-version = "py312"
+# Vendored third-party sources are byte-exact by contract, not authored here:
+# apply-build-patches.py hashes each DeepSeek V4 tokenizer encoding and fails
+# the container build if it is not the official file, and the adapter NOTICE
+# records the ui-mate agent sources as byte-identical to Tencent's commit.
+# Formatting or rewriting them would silently break that provenance, so both
+# gates skip them. Every other file, including the rest of adapters/, is
+# covered.
+exclude = [
+    "adapters/deepseek/mia-vllm/encoding/encoding_dsv4.py",
+    "adapters/deepseek/mia-vllm-vision/encoding/encoding_dsv4.py",
+    "adapters/llm/ui-mate-vllm/agents",
+]

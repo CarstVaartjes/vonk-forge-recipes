@@ -189,8 +189,7 @@ def run_patch(
         [sys.executable, str(PATCH)],
         env=env,
         text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         check=False,
     )
     if ok and proc.returncode != 0:
@@ -202,7 +201,7 @@ def run_patch(
 
 def assert_backend_behavior(source: str) -> None:
     namespace: dict[str, object] = {}
-    exec(compile(source, "patched_backend_fixture.py", "exec"), namespace)
+    exec(compile(source, "patched_backend_fixture.py", "exec"), namespace)  # noqa: S102  (exec runs the extracted patched source under test)
     grammar_cls = namespace["XgrammarGrammar"]
 
     matcher = FakeMatcher()
@@ -233,7 +232,7 @@ def assert_backend_behavior(source: str) -> None:
 
 def assert_manager_behavior(source: str) -> None:
     namespace: dict[str, object] = {}
-    exec(compile(source, "patched_manager_fixture.py", "exec"), namespace)
+    exec(compile(source, "patched_manager_fixture.py", "exec"), namespace)  # noqa: S102  (exec runs the extracted patched source under test)
     manager = namespace["StructuredOutputManager"]()
 
     grammar = FakeGrammar(valid_token=7)

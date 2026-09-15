@@ -92,7 +92,7 @@ def safe_frame(name: Any, authenticated_frames: frozenset[str]) -> Path:
         with Image.open(frame) as image:
             if image.width * image.height > 1_048_576:
                 fail(f"frame exceeds the one-megapixel bound: {name}")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - any decoder error on untrusted frame bytes must fail closed
         fail(f"frame is not a valid supported image: {name}: {exc}")
     return frame
 

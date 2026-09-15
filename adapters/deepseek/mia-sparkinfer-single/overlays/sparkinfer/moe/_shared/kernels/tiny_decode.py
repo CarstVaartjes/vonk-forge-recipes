@@ -101,35 +101,35 @@ class MoETinyDecodeKernelBackend:
         # drop to one tile per task; partials are scatter-added, so the task
         # split does not change results.
         fc2_kt_per_task = _FC2_KT_PER_TASK if kt2 % _FC2_KT_PER_TASK == 0 else 1
-        cfg = dict(
-            m=m,
-            k=k,
-            n=n,
-            two_n=2 * n,
-            num_topk=num_topk,
-            weight_E=weight_E,
-            rt=rt,
-            nt13=nt13,
-            kt13=kt13,
-            fc1_ktg=kt13 // _FC1_KT_PER_TASK,
-            nt2=k // 256,
-            kt2=kt2,
+        cfg = {
+            "m": m,
+            "k": k,
+            "n": n,
+            "two_n": 2 * n,
+            "num_topk": num_topk,
+            "weight_E": weight_E,
+            "rt": rt,
+            "nt13": nt13,
+            "kt13": kt13,
+            "fc1_ktg": kt13 // _FC1_KT_PER_TASK,
+            "nt2": k // 256,
+            "kt2": kt2,
             # Index of the partial FC2 K tile (== kt2 when none) and how many
             # 32-value groups of it are logically valid.
-            kt2_full=n // 128,
-            k2_tail_g32=(n % 128) // 32,
+            "kt2_full": n // 128,
+            "k2_tail_g32": (n % 128) // 32,
             # Half-aligned rp storage: each gated half is zero-padded to a
             # 128-row boundary (up at [0, n_pad128), gate at [n_pad128, ...)).
-            n_pad128=kt2 * 128,
-            fc2_kt_per_task=fc2_kt_per_task,
-            fc2_ktg=kt2 // fc2_kt_per_task,
-            w13_words=nt13 * kt13 * 4096,
-            w2_words=(k // 256) * kt2 * 4096,
-            sfb13_bytes=nt13 * kt13 * 1024,
-            sfb2_bytes=(k // 256) * kt2 * 1024,
-            fc1_tasks=rt * nt13 * (kt13 // _FC1_KT_PER_TASK),
-            fc2_tasks=rt * (k // 256) * (kt2 // fc2_kt_per_task),
-        )
+            "n_pad128": kt2 * 128,
+            "fc2_kt_per_task": fc2_kt_per_task,
+            "fc2_ktg": kt2 // fc2_kt_per_task,
+            "w13_words": nt13 * kt13 * 4096,
+            "w2_words": (k // 256) * kt2 * 4096,
+            "sfb13_bytes": nt13 * kt13 * 1024,
+            "sfb2_bytes": (k // 256) * kt2 * 1024,
+            "fc1_tasks": rt * nt13 * (kt13 // _FC1_KT_PER_TASK),
+            "fc2_tasks": rt * (k // 256) * (kt2 // fc2_kt_per_task),
+        }
         self._c = cfg
         self._cfg_key = tuple(sorted(cfg.items()))
         self.grid_x = (
@@ -445,16 +445,13 @@ class MoETinyDecodeKernelBackend:
             o1 = cute.arch.shuffle_sync_bfly(acc1, offset=4)
             o2 = cute.arch.shuffle_sync_bfly(acc2, offset=4)
             o3 = cute.arch.shuffle_sync_bfly(acc3, offset=4)
-            if route_active and cgrp == Int32(0):
-                if (r8 % Int32(2)) == Int32(0):
-                    ob = out_base + Int64(tok) * Int64(c["k"] * 2)
-                    accs = (acc0, acc1, acc2, acc3)
-                    others = (o0, o1, o2, o3)
-                    for v in cutlass.range_constexpr(4):
-                        p2 = nt * Int32(256) + n8c * Int32(32) + Int32(v * 8) + r8
-                        scatter_add_bf16x2(
-                            ob + Int64(p2) * Int64(2), accs[v], others[v]
-                        )
+            if route_active and cgrp == Int32(0) and (r8 % Int32(2)) == Int32(0):
+                ob = out_base + Int64(tok) * Int64(c["k"] * 2)
+                accs = (acc0, acc1, acc2, acc3)
+                others = (o0, o1, o2, o3)
+                for v in cutlass.range_constexpr(4):
+                    p2 = nt * Int32(256) + n8c * Int32(32) + Int32(v * 8) + r8
+                    scatter_add_bf16x2(ob + Int64(p2) * Int64(2), accs[v], others[v])
 
     @cute.jit
     def __call__(

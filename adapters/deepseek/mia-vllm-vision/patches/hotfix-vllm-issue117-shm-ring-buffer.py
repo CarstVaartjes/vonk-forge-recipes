@@ -507,7 +507,7 @@ def apply(target: Path, metadata_provider: MetadataProvider) -> ApplyResult:
 def _display_version() -> str:
     try:
         return importlib.metadata.version("vllm")
-    except Exception as error:
+    except Exception as error:  # noqa: BLE001 - version probing is best-effort display only
         return f"unavailable:{type(error).__name__}"
 
 
@@ -586,7 +586,7 @@ def main(argv: list[str] | None = None) -> int:
         if mode == "status":
             print("incompatible")
         return 2
-    except BaseException as error:
+    except BaseException as error:  # noqa: BLE001 - CLI must log structured failure for any abort
         digest = _display_digest()
         _log(mode, "failed", shown_version, digest, digest, None)
         print(

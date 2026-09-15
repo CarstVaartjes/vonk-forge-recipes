@@ -760,7 +760,7 @@ class VllmConfig:
             tmp_dir = os.path.join(tmp_dir, getpass.getuser())
             filename = (
                 f"VLLM_TRACE_FUNCTION_for_process_{os.getpid()}"
-                f"_thread_{threading.get_ident()}_at_{datetime.now()}.log"
+                f"_thread_{threading.get_ident()}_at_{datetime.now()}.log"  # noqa: DTZ005  (trace filename keeps upstream naive local time)
             ).replace(" ", "_")
             log_path = os.path.join(
                 tmp_dir,
@@ -2603,9 +2603,10 @@ def set_current_vllm_config(
         _current_vllm_config = vllm_config
         _current_prefix = prefix
         yield
-    except Exception:
-        raise
-    else:
+
+        # An exception raised by the with-body is thrown into the generator
+        # at the yield above, so it skips the rest of this try block exactly
+        # as the former ``except Exception: raise``/``else`` pair did.
         if check_compile:
             vllm_config.compilation_config.custom_op_log_check()
 
@@ -2658,7 +2659,7 @@ def get_current_vllm_config_or_none() -> VllmConfig | None:
 T = TypeVar("T")
 
 
-def get_layers_from_vllm_config(
+def get_layers_from_vllm_config[T](
     vllm_config: VllmConfig,
     layer_type: type[T],
     layer_names: Iterable[str] | None = None,

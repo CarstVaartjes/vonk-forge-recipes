@@ -20,7 +20,9 @@ def adapter_module():
     path = CANARY_ADAPTER / "run.py"
     module = types.ModuleType("ltx25_fp8_canary_adapter")
     module.__file__ = str(path)
-    exec(compile(path.read_text(encoding="utf-8"), str(path), "exec"), module.__dict__)
+    exec(  # noqa: S102 - load the adapter source without importing heavy dependencies.
+        compile(path.read_text(encoding="utf-8"), str(path), "exec"), module.__dict__
+    )
     return module
 
 

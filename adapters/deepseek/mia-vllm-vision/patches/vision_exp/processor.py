@@ -62,13 +62,13 @@ def _salt_image_mm_hashes(hashes: Any, mm_kwargs: Any) -> Any:
         return hashes
     try:
         items = mm_kwargs["image"]
-    except Exception:
+    except Exception:  # noqa: BLE001 - tolerate any upstream multimodal-kwargs shape change
         return hashes
     salted = []
     for i, digest in enumerate(hashes["image"]):
         try:
             ntok = _as_int(items[i]["num_tokens"])
-        except Exception:
+        except Exception:  # noqa: BLE001 - tolerate any missing/odd per-image token field
             salted.append(digest)
             continue
         salted.append(salt_mm_image_hash(str(digest), ntok))
@@ -260,14 +260,14 @@ class DeepseekV4VisionExpMultiModalProcessor(
         hf_inputs: BatchFeature,
         hf_processor_mm_kwargs: Mapping[str, object],
     ) -> Mapping[str, MultiModalFieldConfig]:
-        return dict(
-            pixel_values=MultiModalFieldConfig.batched("image"),
-            n_vit_h=MultiModalFieldConfig.batched("image"),
-            n_vit_w=MultiModalFieldConfig.batched("image"),
-            types=MultiModalFieldConfig.batched("image"),
-            perm=MultiModalFieldConfig.batched("image"),
-            num_tokens=MultiModalFieldConfig.batched("image"),
-        )
+        return {
+            "pixel_values": MultiModalFieldConfig.batched("image"),
+            "n_vit_h": MultiModalFieldConfig.batched("image"),
+            "n_vit_w": MultiModalFieldConfig.batched("image"),
+            "types": MultiModalFieldConfig.batched("image"),
+            "perm": MultiModalFieldConfig.batched("image"),
+            "num_tokens": MultiModalFieldConfig.batched("image"),
+        }
 
     def _get_prompt_updates(
         self,

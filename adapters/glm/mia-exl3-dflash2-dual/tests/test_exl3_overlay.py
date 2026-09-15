@@ -1030,11 +1030,12 @@ def _real_expert_layer(device, n_exp: int = 3, cap: int = 32):
         return None
     try:
         from safetensors import safe_open
-    except Exception:
+    except Exception:  # noqa: BLE001  (safetensors is optional for this check)
         return None
     index_path = snaps[0]
     root = index_path.rsplit("/", 1)[0]
-    wmap = json.load(open(index_path))["weight_map"]
+    with open(index_path) as f:
+        wmap = json.load(f)["weight_map"]
     prefix = "model.language_model.layers.3.mlp.experts"
     tensors = {}
     files = {}

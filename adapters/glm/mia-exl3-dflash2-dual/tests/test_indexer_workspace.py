@@ -547,7 +547,7 @@ def _patched_sizing_namespace() -> dict:
         "MLAAttentionSpec": _MLAAttentionSpec,
         "_calls": calls,
     }
-    exec(compile(ast.Module(body=wanted, type_ignores=[]), "<patched>", "exec"), ns)
+    exec(compile(ast.Module(body=wanted, type_ignores=[]), "<patched>", "exec"), ns)  # noqa: S102  (exec runs the extracted patched source under test)
     return ns
 
 

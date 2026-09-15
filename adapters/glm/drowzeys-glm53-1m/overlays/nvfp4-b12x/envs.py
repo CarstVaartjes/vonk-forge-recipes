@@ -2024,7 +2024,7 @@ environment_variables: dict[str, Callable[[], Any]] = {
     # execution is not beneficial (most likely because of the input clone)
     # TODO(alexm-redhat): Tune to be more dynamic based on GPU type
     "VLLM_SHARED_EXPERTS_STREAM_TOKEN_THRESHOLD": lambda: int(
-        os.getenv("VLLM_SHARED_EXPERTS_STREAM_TOKEN_THRESHOLD", 256)
+        os.getenv("VLLM_SHARED_EXPERTS_STREAM_TOKEN_THRESHOLD", "256")
     ),
     # Token-count cutoff for multi-stream overlap of the attention input
     # GEMM with auxiliary GEMMs (e.g. fused_wqa_wkv overlapped with indexer
@@ -2176,7 +2176,6 @@ def __getattr__(name: str):
 
 def _is_envs_cache_enabled() -> bool:
     """Checked if __getattr__ is wrapped with functools.cache"""
-    global __getattr__
     return hasattr(__getattr__, "cache_clear")
 
 
@@ -2330,7 +2329,7 @@ def compile_factors() -> dict[str, object]:
 
         try:
             raw = getter()
-        except Exception as exc:  # pragma: no cover - defensive logging
+        except Exception as exc:  # pragma: no cover - defensive logging  # noqa: BLE001
             logger.warning(
                 "Skipping environment variable %s while hashing compile factors: %s",
                 factor,

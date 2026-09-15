@@ -174,11 +174,11 @@ logger = init_logger(__name__)
 # fusion of the surrounding eager ops; carving each cluster into its own
 # @torch.compile leaf (backend==inductor) still fuses them. Matches the
 # grouped_topk / _cast_sigmoid leaf pattern.
-_INDEXER_COMPILE = dict(
-    dynamic=True,
-    backend=current_platform.simple_compile_backend,
-    options=maybe_disable_graph_partition(current_platform.simple_compile_backend),
-)
+_INDEXER_COMPILE = {
+    "dynamic": True,
+    "backend": current_platform.simple_compile_backend,
+    "options": maybe_disable_graph_partition(current_platform.simple_compile_backend),
+}
 
 
 @torch.compile(**_INDEXER_COMPILE)

@@ -113,7 +113,8 @@ def _replace_once(src: str, old: str, new: str, what: str) -> str:
 
 
 def patch() -> None:
-    src = open(ORIG).read()
+    with open(ORIG) as f:
+        src = f.read()
 
     anchor = (
         "        return self.kernel.apply_weights(layer, x, bias)\n\n\n"
@@ -150,7 +151,8 @@ def patch() -> None:
         "MXFP8 dispatch",
     )
 
-    open(OUT, "w").write(src)
+    with open(OUT, "w") as f:
+        f.write(src)
     print("ok", OUT)
 
 

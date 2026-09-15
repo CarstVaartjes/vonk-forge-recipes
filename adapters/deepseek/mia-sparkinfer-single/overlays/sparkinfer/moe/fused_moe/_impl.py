@@ -1851,7 +1851,6 @@ def clear_tp_moe_caches() -> None:
 
     global _LAST_WEIGHTS
     global _LAST_KERNEL
-    global _MICRO_DYNAMIC_CUTOVER_PAIRS_CACHE
     global _DYNAMIC_MULTICTA_CACHE
     global _DYNAMIC_DOWN_SCALE_CACHE
     _WEIGHT_CACHE.clear()
@@ -2355,33 +2354,33 @@ def _build_tp_moe_fp4_binding_from_views(
         # capture the initialization is replayed with the graph as required.
         tensors["kernel_workspace"].zero_()
 
-    common_kwargs = dict(
-        a=a,
-        experts=experts,
-        topk_weights=topk_weights,
-        topk_ids=topk_ids,
-        implementation=plan.implementation,
-        state_E=plan.state_E,
-        weight_E=plan.weight_E,
-        max_rows=plan.max_rows,
-        k=plan.k,
-        n=plan.n,
-        num_topk=plan.num_topk,
-        device=plan.device,
-        dtype=plan.dtype,
-        apply_router_weight_on_input=bool(apply_router_weight_on_input),
-        output=output,
-        input_scales_static=bool(input_scales_static),
-        fast_math=fast_math,
-        quant_mode=quant_mode,
-        deterministic_output=plan.deterministic_output,
-        unit_scale_contract=unit_scale_contract,
-        swiglu_limit=swiglu_limit,
-        swiglu_alpha=swiglu_alpha,
-        swiglu_beta=swiglu_beta,
-        activation_amax=activation_amax,
-        layer_idx=layer_idx,
-    )
+    common_kwargs = {
+        "a": a,
+        "experts": experts,
+        "topk_weights": topk_weights,
+        "topk_ids": topk_ids,
+        "implementation": plan.implementation,
+        "state_E": plan.state_E,
+        "weight_E": plan.weight_E,
+        "max_rows": plan.max_rows,
+        "k": plan.k,
+        "n": plan.n,
+        "num_topk": plan.num_topk,
+        "device": plan.device,
+        "dtype": plan.dtype,
+        "apply_router_weight_on_input": bool(apply_router_weight_on_input),
+        "output": output,
+        "input_scales_static": bool(input_scales_static),
+        "fast_math": fast_math,
+        "quant_mode": quant_mode,
+        "deterministic_output": plan.deterministic_output,
+        "unit_scale_contract": unit_scale_contract,
+        "swiglu_limit": swiglu_limit,
+        "swiglu_alpha": swiglu_alpha,
+        "swiglu_beta": swiglu_beta,
+        "activation_amax": activation_amax,
+        "layer_idx": layer_idx,
+    }
     if plan.implementation == "w4a16":
         return TPMoEFP4Binding(
             **common_kwargs,
@@ -3208,22 +3207,22 @@ def _materialize_workspace_from_core_arena(
     if a1_gscale is None or a2_gscale is None:
         raise ValueError("NVFP4 workspace materialization requires input scale tensors")
 
-    common_kwargs = dict(
-        implementation=plan.implementation,
-        quant_mode=plan.quant_mode,
-        state_E=plan.state_E,
-        weight_E=plan.weight_E,
-        max_rows=plan.max_rows,
-        k=plan.k,
-        n=plan.n,
-        num_topk=plan.num_topk,
-        device=plan.device,
-        dtype=plan.dtype,
-        row_counts=tensors["row_counts"],
-        barrier_count=tensors["barrier_count"],
-        barrier_epoch=tensors["barrier_epoch"],
-        volatile_launch_state=bool(volatile_launch_state),
-    )
+    common_kwargs = {
+        "implementation": plan.implementation,
+        "quant_mode": plan.quant_mode,
+        "state_E": plan.state_E,
+        "weight_E": plan.weight_E,
+        "max_rows": plan.max_rows,
+        "k": plan.k,
+        "n": plan.n,
+        "num_topk": plan.num_topk,
+        "device": plan.device,
+        "dtype": plan.dtype,
+        "row_counts": tensors["row_counts"],
+        "barrier_count": tensors["barrier_count"],
+        "barrier_epoch": tensors["barrier_epoch"],
+        "volatile_launch_state": bool(volatile_launch_state),
+    }
     if plan.implementation == "micro":
         workspace = TPMicroWorkspace(
             **common_kwargs,
@@ -4130,7 +4129,7 @@ def _e8m0_scale_to_w4a8_sfb_inplace(
     k_dim = int(k_dim)
     scale_cols = k_dim // 32
     scale_u8 = scale.view(torch.uint8)
-    is_logical, is_packed = _validate_e8m0_scale_w4a8_convertible(
+    is_logical, _is_packed = _validate_e8m0_scale_w4a8_convertible(
         scale_u8,
         weight_E=weight_E,
         rows=rows,
@@ -7327,26 +7326,26 @@ def build_tp_moe_fp4_binding(
                 f"expected at least {m * num_topk * k} elements, got "
                 f"{workspace.route_output.numel()}"
             )
-    common_kwargs = dict(
-        a=a,
-        experts=experts,
-        topk_weights=topk_weights,
-        topk_ids=topk_ids,
-        apply_router_weight_on_input=bool(apply_router_weight_on_input),
-        output=output,
-        input_scales_static=bool(input_scales_static),
-        fast_math=fast_math,
-        quant_mode=quant_mode,
-        deterministic_output=deterministic_output,
-        unit_scale_contract=unit_scale_contract,
-        swiglu_limit=swiglu_limit,
-        swiglu_alpha=swiglu_alpha,
-        swiglu_beta=swiglu_beta,
-        activation_amax=activation_amax,
-        layer_idx=layer_idx,
-        route_expert_map=route_expert_map,
-        output_expert_map=output_expert_map,
-    )
+    common_kwargs = {
+        "a": a,
+        "experts": experts,
+        "topk_weights": topk_weights,
+        "topk_ids": topk_ids,
+        "apply_router_weight_on_input": bool(apply_router_weight_on_input),
+        "output": output,
+        "input_scales_static": bool(input_scales_static),
+        "fast_math": fast_math,
+        "quant_mode": quant_mode,
+        "deterministic_output": deterministic_output,
+        "unit_scale_contract": unit_scale_contract,
+        "swiglu_limit": swiglu_limit,
+        "swiglu_alpha": swiglu_alpha,
+        "swiglu_beta": swiglu_beta,
+        "activation_amax": activation_amax,
+        "layer_idx": layer_idx,
+        "route_expert_map": route_expert_map,
+        "output_expert_map": output_expert_map,
+    }
     if isinstance(workspace, TPW4A16Workspace):
         if quant_mode != "w4a16":
             raise ValueError(
@@ -7760,22 +7759,22 @@ def _get_micro_kernel(
     e8m0_scale_layout = _micro_e8m0_scale_layout_for_quant_mode(quant_mode)
     dynamic_down_scale = _dynamic_down_scale_enabled() and not is_w4a8
 
-    micro_kwargs = dict(
-        sf_vec_size=16,
-        mma_tiler_mn=(64, 128),
-        output_tile_count_n=1,
-        fast_math=fast_math,
-        share_input_across_experts=share_input_across_experts and not is_w4a8,
-        share_expert_scales=share_expert_scales,
-        single_token=single_token,
-        dynamic_down_scale=dynamic_down_scale,
-        a8_mx_mode=is_w4a8,
-        scale_format=scale_format,
-        e8m0_scale_layout=e8m0_scale_layout,
-        swiglu_limit=swiglu_limit,
-        swiglu_alpha=swiglu_alpha,
-        swiglu_beta=swiglu_beta,
-    )
+    micro_kwargs = {
+        "sf_vec_size": 16,
+        "mma_tiler_mn": (64, 128),
+        "output_tile_count_n": 1,
+        "fast_math": fast_math,
+        "share_input_across_experts": share_input_across_experts and not is_w4a8,
+        "share_expert_scales": share_expert_scales,
+        "single_token": single_token,
+        "dynamic_down_scale": dynamic_down_scale,
+        "a8_mx_mode": is_w4a8,
+        "scale_format": scale_format,
+        "e8m0_scale_layout": e8m0_scale_layout,
+        "swiglu_limit": swiglu_limit,
+        "swiglu_alpha": swiglu_alpha,
+        "swiglu_beta": swiglu_beta,
+    }
     # The native NVFP4 split is currently a GLM SiLU decode specialization.
     # Keep existing activation wrappers untouched for the normal fused phase.
     if compile_time_phase:
@@ -7913,7 +7912,7 @@ def _compiled_direct_micro_accepts_block_dim(compiled, block_dim: int) -> bool:
         if err != driver.CUresult.CUDA_SUCCESS:
             raise RuntimeError(f"cuKernelGetAttribute failed with {err}")
         accepted = int(max_threads) >= int(block_dim)
-    except Exception:
+    except Exception:  # noqa: BLE001 - CUDA driver probe must degrade to "not launchable"
         accepted = False
 
     _MICRO_DIRECT_LAUNCH_CAP_CACHE[cache_key] = accepted
@@ -8490,12 +8489,12 @@ def _get_dynamic_kernel(
     a_dtype = cutlass.BFloat16
     alpha_dtype = cutlass.Float32
 
-    kernel_kwargs = dict(
-        sf_vec_size=sf_vec_size,
-        mma_tiler_mn=mma_tiler_mn,
-        fast_math=fast_math,
-        dynamic_down_scale=dynamic_down_scale,
-    )
+    kernel_kwargs = {
+        "sf_vec_size": sf_vec_size,
+        "mma_tiler_mn": mma_tiler_mn,
+        "fast_math": fast_math,
+        "dynamic_down_scale": dynamic_down_scale,
+    }
     kernel_kwargs["share_input_across_experts"] = share_input_across_experts
     kernel_kwargs["deterministic_output"] = bool(deterministic_output)
     kernel_kwargs["num_topk"] = int(num_topk)

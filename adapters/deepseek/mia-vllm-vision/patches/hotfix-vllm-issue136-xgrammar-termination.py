@@ -523,7 +523,7 @@ def _display_versions() -> tuple[str, str]:
     for package in ("vllm", "xgrammar"):
         try:
             value = importlib.metadata.version(package)
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001 - version probing is best-effort display only
             value = f"unavailable:{type(error).__name__}"
         displayed.append(value)
     return displayed[0], displayed[1]
@@ -612,7 +612,7 @@ def main(argv: list[str] | None = None) -> int:
         if mode == "status":
             print("incompatible")
         return 2
-    except BaseException as error:
+    except BaseException as error:  # noqa: BLE001 - CLI must log structured failure for any abort
         digest = _display_digest()
         _log(
             mode,

@@ -133,7 +133,7 @@ class Ltx25CatalogTests(unittest.TestCase):
         source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[
             "source_bundle"
         ]
-        archive, _, digest = source_bundle(ADAPTER_ROOT)
+        _archive, _, digest = source_bundle(ADAPTER_ROOT)
         context = _document(RECIPE)["execution"]["build"]["context"]
         self.assertEqual(context["path"], "adapters/video/ltx25-diffusers")
         self.assertTrue(digest)

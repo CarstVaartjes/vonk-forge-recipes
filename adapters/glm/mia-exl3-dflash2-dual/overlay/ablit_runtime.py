@@ -70,7 +70,7 @@ def _tp_world() -> int:
         from vllm.distributed import get_tensor_model_parallel_world_size
 
         return get_tensor_model_parallel_world_size()
-    except Exception:  # standalone / tests
+    except Exception:  # noqa: BLE001  (standalone / tests: vLLM not importable)
         return 1
 
 
@@ -79,7 +79,7 @@ def _tp_rank() -> int:
         from vllm.distributed import get_tensor_model_parallel_rank
 
         return get_tensor_model_parallel_rank()
-    except Exception:  # standalone / tests
+    except Exception:  # noqa: BLE001  (standalone / tests: vLLM not importable)
         return 0
 
 
@@ -87,7 +87,7 @@ try:  # inside the vLLM image
     from vllm.logger import init_logger
 
     logger = init_logger(__name__)
-except Exception:  # standalone (tests)
+except Exception:  # noqa: BLE001  (standalone / tests: vLLM logger not importable)
     import logging
 
     logger = logging.getLogger("glm53_ablit")

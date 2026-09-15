@@ -145,7 +145,7 @@ class Vllm028ModelVariantTests(unittest.TestCase):
         for recipe, context_path, class_name in cases:
             with self.subTest(recipe=recipe["identity"]["slug"]):
                 context = recipe["execution"]["build"]["context"]
-                archive, _, source_digest = module.source_bundle(ROOT / context_path)
+                _archive, _, source_digest = module.source_bundle(ROOT / context_path)
                 self.assertEqual(context["path"], context_path)
                 self.assertEqual(context["path"], context_path)
                 expected_digest = {

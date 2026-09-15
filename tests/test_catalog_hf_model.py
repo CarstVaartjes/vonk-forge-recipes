@@ -150,9 +150,9 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
                     "_get_bytes": lambda _url: self.fail("must not download"),
                 },
             ),
+            self.assertRaisesRegex(SystemExit, "refusing to download"),
         ):
-            with self.assertRaisesRegex(SystemExit, "refusing to download"):
-                namespace["main"]()
+            namespace["main"]()
 
     def test_gated_non_lfs_file_reports_actionable_authentication_error(self) -> None:
         namespace = runpy.run_path(str(TOOL))
@@ -174,11 +174,11 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
                     "_get_bytes": denied,
                 },
             ),
-        ):
-            with self.assertRaisesRegex(
+            self.assertRaisesRegex(
                 SystemExit, r"config\.json \(HTTP 401\); authenticate to Hugging Face"
-            ):
-                namespace["main"]()
+            ),
+        ):
+            namespace["main"]()
 
     def test_catalog_command_exposes_model_authority_options(self) -> None:
         result = __import__("subprocess").run(

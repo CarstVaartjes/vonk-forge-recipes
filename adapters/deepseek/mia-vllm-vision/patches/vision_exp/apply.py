@@ -262,7 +262,7 @@ def _wrap_router_compute_routing(router: Any, gate: Any) -> None:
         capturing = False
         try:
             capturing = bool(torch.cuda.is_current_stream_capturing())
-        except Exception:
+        except Exception:  # noqa: BLE001 - tolerate torch builds without stream-capture query
             capturing = False
         if vl is None or capturing or token_routing_kind(input_ids) == "text":
             return orig(hidden_states, router_logits, indices_type, input_ids=input_ids)

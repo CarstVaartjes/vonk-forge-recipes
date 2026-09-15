@@ -282,25 +282,25 @@ def run_unified_prefill(
                 f"SM120 sparse MLA prefill requires heads divisible by {hpb // 2}, got {heads}"
             )
         for mg_n_hg, active_heads, head_offset in partitions:
-            kwargs = dict(
-                q=q,
-                kv_cache=kv_cache,
-                topk_indices=topk_indices,
-                sm_scale=sm_scale,
-                latent_scale=latent_scale,
-                page_block_size=page_block_size,
-                topk_length=topk_length,
-                attn_sink=attn_sink,
-                output=output,
-                lse_out=lse_out,
-                stride_kv_block=stride_kv_block,
-                compute_mode=compute_mode,
-                mg_n_hg=mg_n_hg,
-                model_type=model_type,
-                scale_format=scale_format,
-                fp8_rope=bool(traits.fp8_rope),
-                latent_scale_per_token=bool(latent_scale_per_token),
-            )
+            kwargs = {
+                "q": q,
+                "kv_cache": kv_cache,
+                "topk_indices": topk_indices,
+                "sm_scale": sm_scale,
+                "latent_scale": latent_scale,
+                "page_block_size": page_block_size,
+                "topk_length": topk_length,
+                "attn_sink": attn_sink,
+                "output": output,
+                "lse_out": lse_out,
+                "stride_kv_block": stride_kv_block,
+                "compute_mode": compute_mode,
+                "mg_n_hg": mg_n_hg,
+                "model_type": model_type,
+                "scale_format": scale_format,
+                "fp8_rope": bool(traits.fp8_rope),
+                "latent_scale_per_token": bool(latent_scale_per_token),
+            }
             if extra_kv_cache is not None:
                 kwargs.update(
                     extra_kv_cache=extra_kv_cache,

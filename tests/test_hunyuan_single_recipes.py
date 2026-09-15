@@ -34,7 +34,7 @@ def load_module(
     try:
         module = types.ModuleType(name)
         module.__file__ = str(path)
-        exec(
+        exec(  # noqa: S102 - load the adapter source without importing heavy dependencies.
             compile(path.read_text(encoding="utf-8"), str(path), "exec"),
             module.__dict__,
         )

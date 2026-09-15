@@ -103,7 +103,7 @@ def _is_glm_moe_dsa_model() -> bool:
 
     try:
         vllm_config = get_current_vllm_config()
-    except Exception:
+    except Exception:  # noqa: BLE001  (no current vLLM config outside an engine context)
         return _KV_FP8_ROPE_REQUESTED
     model_config = vllm_config.model_config
     if model_config is None:
@@ -1267,7 +1267,7 @@ class B12xMLASparseImpl(MLAAttentionImpl[B12xMLASparseMetadata]):
     supports_dcp_reduce_scatter_output_in_workspace: bool = True
     # Cross-layer CKV prefetch state must exist before the first backend
     # instance so profile-cache cleanup is independent of construction order.
-    _all_layer_kv_caches: list[torch.Tensor | None] = []
+    _all_layer_kv_caches: ClassVar[list[torch.Tensor | None]] = []
     _shared_gather_event: torch.cuda.Event | None = None
     _shared_gather_buf_idx: int = 0
 
@@ -2410,7 +2410,7 @@ class B12xMLASparseImpl(MLAAttentionImpl[B12xMLASparseMetadata]):
             from vllm.distributed.parallel_state import get_dcp_group
 
             get_dcp_group().barrier()
-        except Exception:
+        except Exception:  # noqa: BLE001  (best-effort collective before teardown)
             return
         finally:
             if self.device.type == "cuda":

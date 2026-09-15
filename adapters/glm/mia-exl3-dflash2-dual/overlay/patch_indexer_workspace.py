@@ -201,7 +201,7 @@ def _glm53_rightsized_workspace_entries(vllm_config) -> int:
 '''
 
 _HELPER_NS: dict = {"os": os}
-exec(compile(HELPERS_SRC, "<glm53-indexer-workspace helpers>", "exec"), _HELPER_NS)
+exec(compile(HELPERS_SRC, "<glm53-indexer-workspace helpers>", "exec"), _HELPER_NS)  # noqa: S102  (exec runs the extracted patched source under test)
 
 workspace_mode = _HELPER_NS["_glm53_workspace_mode"]
 stock_workspace_entries = _HELPER_NS["_glm53_stock_workspace_entries"]

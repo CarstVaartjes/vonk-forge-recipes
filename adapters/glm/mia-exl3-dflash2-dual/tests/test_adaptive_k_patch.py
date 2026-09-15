@@ -45,7 +45,7 @@ def policy_tests(helper_src: str) -> None:
         old = dict(os.environ)
         os.environ.update(env)
         try:
-            exec(helper_src, ns)
+            exec(helper_src, ns)  # noqa: S102  (exec runs the extracted patched source under test)
             inst = ns["_Glm53AdaptiveK"]()
         finally:
             os.environ.clear()
@@ -231,7 +231,7 @@ def main() -> int:
         cstart = ct.index("def _glm53_adaptive_k_query_lens(")
         cend = ct.index("@dataclass(frozen=True)\nclass BatchExecutionDescriptor:")
         ns = {}
-        exec(ct[cstart:cend], ns)
+        exec(ct[cstart:cend], ns)  # noqa: S102  (exec runs the extracted patched source under test)
         fn = ns["_glm53_adaptive_k_query_lens"]
         os.environ["GLM53_ADAPTIVE_K"] = "off"
         assert fn([8], 8) == [8]

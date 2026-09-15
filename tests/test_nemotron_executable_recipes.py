@@ -115,7 +115,7 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
             recipe = read(path)
             build = recipe["execution"]["build"]
             context = ROOT / build["context"]["path"]
-            archive, _, digest = tool["source_bundle"](context)
+            _archive, _, digest = tool["source_bundle"](context)
             self.assertEqual(recipe["execution"]["mode"], "build")
             self.assertEqual(build["network"]["mode"], "none")
             self.assertRegex(digest, r"^[a-f0-9]{64}$")

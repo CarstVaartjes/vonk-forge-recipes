@@ -12,7 +12,7 @@ import platform
 from collections.abc import Callable
 from datetime import timedelta
 from functools import cache, lru_cache, wraps
-from typing import TYPE_CHECKING, NamedTuple, TypeVar
+from typing import TYPE_CHECKING, ClassVar, NamedTuple
 
 import torch
 
@@ -20,7 +20,6 @@ import torch
 import vllm._C_stable_libtorch
 from torch.distributed import PrefixStore, ProcessGroup
 from torch.distributed.distributed_c10d import is_nccl_available
-from typing_extensions import ParamSpec
 
 with contextlib.suppress(ImportError):
     import vllm._qutlass_C  # noqa
@@ -42,9 +41,6 @@ else:
     CacheDType = None
 
 logger = init_logger(__name__)
-
-_P = ParamSpec("_P")
-_R = TypeVar("_R")
 
 pynvml = import_pynvml()
 
@@ -214,9 +210,9 @@ class _BackendCandidate(NamedTuple):
     priority: int
 
 
-def with_nvml_context(fn: Callable[_P, _R]) -> Callable[_P, _R]:
+def with_nvml_context[**P, R](fn: Callable[P, R]) -> Callable[P, R]:
     @wraps(fn)
-    def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> _R:
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         pynvml.nvmlInit()
         try:
             return fn(*args, **kwargs)
@@ -237,7 +233,7 @@ def _get_wsl_kernel_version() -> tuple[int, ...] | None:
         release = platform.uname().release
         parts = release.split("-")[0].split(".")
         return tuple(int(x) for x in parts[:3])
-    except Exception:
+    except Exception:  # noqa: BLE001  (kernel release string is best-effort)
         return None
 
 
@@ -249,7 +245,7 @@ class CudaPlatformBase(Platform):
     ray_device_key: str = "GPU"
     dist_backend: str = "nccl"
     device_control_env_var: str = "CUDA_VISIBLE_DEVICES"
-    ray_noset_device_env_vars: list[str] = [
+    ray_noset_device_env_vars: ClassVar[list[str]] = [
         "RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES",
     ]
 
@@ -759,7 +755,7 @@ class CudaPlatformBase(Platform):
         try:
             device = torch.cuda.current_device()
             major, _ = torch.cuda.get_device_capability(device)
-        except Exception:
+        except Exception:  # noqa: BLE001  (no CUDA device: capability is unknown)
             return False
         return major in (9, 10)  # tonyd2wild v6: PDL off on SM12x (KDA Triton kernels)
 
@@ -877,7 +873,7 @@ class NvmlCudaPlatform(CudaPlatformBase):
                 numa_node,
                 device_id,
             )
-        except Exception:
+        except Exception:  # noqa: BLE001, S110  (NUMA probing is best-effort)
             pass
 
         try:
@@ -891,7 +887,7 @@ class NvmlCudaPlatform(CudaPlatformBase):
                         device_id,
                     )
                     return numa_node
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001  (NUMA probing must not fail the caller)
             logger.warning("Failed to get NUMA node for GPU %d: %s", device_id, e)
 
         return None
@@ -980,7 +976,7 @@ class NvmlCudaPlatform(CudaPlatformBase):
                     return None
                 numa_nodes.append(numa_node)
             return numa_nodes
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001  (NUMA probing must not fail the caller)
             logger.warning("Failed to get NUMA nodes for GPUs: %s", e)
             return None
 
@@ -1058,7 +1054,7 @@ try:
     try:
         pynvml.nvmlInit()
         nvml_available = True
-    except Exception:
+    except Exception:  # noqa: BLE001  (NVML is unavailable on some platforms)
         # On Jetson, NVML is not supported.
         nvml_available = False
 finally:

@@ -41,7 +41,7 @@ class OriginAlignedProfileTests(unittest.TestCase):
                 self.assertEqual(recipe.execution.mode, "build")
                 self.assertIn(recipe.execution.build.network.mode, {"none", "public"})
                 context = ROOT / recipe.execution.build.context.path
-                archive, _, digest = tool["source_bundle"](context)
+                _archive, _, digest = tool["source_bundle"](context)
                 self.assertRegex(digest, r"^[a-f0-9]{64}$")
                 self.assertEqual(recipe.topology.node_count, 2)
 

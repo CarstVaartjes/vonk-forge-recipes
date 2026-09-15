@@ -96,6 +96,13 @@ _NVFP4_FP8_ROPE_IO_STRIDE = 368
 _NVFP4_FP8_ROPE_SCALE_OFFSET = 288
 _NVFP4_SCALE_OFFSET = 256
 _NVFP4_SCALE_GROUP = 16
+# Defaults for the optional dynamic MLIR operands. Hoisted to module-level
+# singletons so the ``@cute.jit`` signatures keep value defaults without
+# calling ``Int32``/``Int64`` in the argument list.
+_EXTRA_PAGE_BLOCK_SIZE_DEFAULT = Int32(1)
+_EXTRA_STRIDE_KV_BLOCK_DEFAULT = Int64(0)
+_USE_EXTRA_SECTION_DEFAULT = Int32(0)
+_KV_SC_BASE_ADDR_DEFAULT = Int32(0)
 
 
 @cute.jit
@@ -463,9 +470,9 @@ def s2_qk_rope_regs_mg_glm(
     scale_format: cutlass.Constexpr = 1,
     fp8_rope: cutlass.Constexpr = False,
     extra_kv_cache_u8: cute.Tensor | None = None,
-    extra_page_block_size: Int32 = Int32(1),
-    extra_stride_kv_block: Int64 = Int64(0),
-    use_extra_section: Int32 = Int32(0),
+    extra_page_block_size: Int32 = _EXTRA_PAGE_BLOCK_SIZE_DEFAULT,
+    extra_stride_kv_block: Int64 = _EXTRA_STRIDE_KV_BLOCK_DEFAULT,
+    use_extra_section: Int32 = _USE_EXTRA_SECTION_DEFAULT,
 ):
     """GLM MG QK-RoPE. Mirrors ``s2_qk_rope_regs_mg_dsv4`` (registerized Q-rope A,
     KV-rope B from global) but with the GLM record geometry and the GLM B-operand
@@ -623,7 +630,7 @@ def s0_load_q_bf16_to_smem_mg(
     ``valid_hpb`` is smaller than ``hpb`` only for the heads==8 small-TP shard.
     Those inactive rows are zero-filled so the M=16 QK MMA remains well-defined
     while the epilogue gates stores to the real rows only."""
-    bar_kw = dict(barrier_id=barrier_id, number_of_threads=num_threads)
+    bar_kw = {"barrier_id": barrier_id, "number_of_threads": num_threads}
 
     # Q-NoPE -> bf16 smem (all groups). group g head h dim d.
     i = tid
@@ -633,9 +640,8 @@ def s0_load_q_bf16_to_smem_mg(
         h = rem // Int32(d_nope)
         d = rem - h * Int32(d_nope)
         dst = q_nope_bf16_g0_addr
-        if cutlass.const_expr(n_hg == 2):
-            if g != Int32(0):
-                dst = q_nope_bf16_g1_addr
+        if cutlass.const_expr(n_hg == 2) and g != Int32(0):
+            dst = q_nope_bf16_g1_addr
         if cutlass.const_expr(valid_hpb == hpb):
             val = Float32(q_token[head_base + g * Int32(hpb) + h, d])
         else:
@@ -655,9 +661,8 @@ def s0_load_q_bf16_to_smem_mg(
         h = rem // Int32(d_rope)
         d = rem - h * Int32(d_rope)
         dst = q_rope_g0_addr
-        if cutlass.const_expr(n_hg == 2):
-            if g != Int32(0):
-                dst = q_rope_g1_addr
+        if cutlass.const_expr(n_hg == 2) and g != Int32(0):
+            dst = q_rope_g1_addr
         if cutlass.const_expr(valid_hpb == hpb):
             val = Float32(q_token[head_base + g * Int32(hpb) + h, Int32(d_nope) + d])
         else:
@@ -696,9 +701,8 @@ def reload_q_rope_bf16_to_smem_mg(
         h = rem // Int32(d_rope)
         d = rem - h * Int32(d_rope)
         dst = q_rope_g0_addr
-        if cutlass.const_expr(n_hg == 2):
-            if g != Int32(0):
-                dst = q_rope_g1_addr
+        if cutlass.const_expr(n_hg == 2) and g != Int32(0):
+            dst = q_rope_g1_addr
         if cutlass.const_expr(valid_hpb == hpb):
             val = Float32(q_token[head_base + g * Int32(hpb) + h, Int32(d_nope) + d])
         else:
@@ -841,7 +845,7 @@ def _nvfp4_pair_bfloat2_mg(
     *,
     kv_smem_stride: cutlass.Constexpr,
     latent_scale_per_token: cutlass.Constexpr = False,
-    kv_sc_base_addr: Int32 = Int32(0),
+    kv_sc_base_addr: Int32 = _KV_SC_BASE_ADDR_DEFAULT,
 ) -> Uint32:
     """Dequant E2M1 * inline E4M3 * outer scale to bf16x2.
 
@@ -890,7 +894,7 @@ def s1_qk_nope_nvfp4_bf16_mg2(
     kv_smem_stride: cutlass.Constexpr,
     n_hg: cutlass.Constexpr = 2,
     latent_scale_per_token: cutlass.Constexpr = False,
-    kv_sc_base_addr: Int32 = Int32(0),
+    kv_sc_base_addr: Int32 = _KV_SC_BASE_ADDR_DEFAULT,
 ):
     """S1 (NVFP4): MG BF16 QK-NoPE with native E2M1/E4M3 in-register dequant.
 
@@ -1527,7 +1531,7 @@ def s4_online_softmax_mg2(
     two = cutlass.const_expr(n_hg == 2)
     hi0 = cutlass.const_expr(valid_hpb > 8)
     reduce_heads = cutlass.const_expr(n_hg * hpb if n_hg == 2 else valid_hpb)
-    bar_kw = dict(barrier_id=barrier_id, number_of_threads=num_threads)
+    bar_kw = {"barrier_id": barrier_id, "number_of_threads": num_threads}
     gid = lane >> Int32(2)
     tid = lane & Int32(3)
 
@@ -1637,19 +1641,18 @@ def s4_online_softmax_mg2(
             rope0_frag[1] = rope0_frag[1] * alpha00
             gsum0_frag[0] = gsum0_frag[0] * alpha00
 
-    if cutlass.const_expr(two):
-        if fmin_f32(alpha10, alpha11) < Float32(1.0):
-            for vc in cutlass.range_constexpr(n_acc_tiles):
-                acc1_frag[vc * 4 + 0] = acc1_frag[vc * 4 + 0] * alpha10
-                acc1_frag[vc * 4 + 1] = acc1_frag[vc * 4 + 1] * alpha10
-                acc1_frag[vc * 4 + 2] = acc1_frag[vc * 4 + 2] * alpha11
-                acc1_frag[vc * 4 + 3] = acc1_frag[vc * 4 + 3] * alpha11
-            rope1_frag[0] = rope1_frag[0] * alpha10
-            rope1_frag[1] = rope1_frag[1] * alpha10
-            rope1_frag[2] = rope1_frag[2] * alpha11
-            rope1_frag[3] = rope1_frag[3] * alpha11
-            gsum1_frag[0] = gsum1_frag[0] * alpha10
-            gsum1_frag[1] = gsum1_frag[1] * alpha11
+    if cutlass.const_expr(two) and fmin_f32(alpha10, alpha11) < Float32(1.0):
+        for vc in cutlass.range_constexpr(n_acc_tiles):
+            acc1_frag[vc * 4 + 0] = acc1_frag[vc * 4 + 0] * alpha10
+            acc1_frag[vc * 4 + 1] = acc1_frag[vc * 4 + 1] * alpha10
+            acc1_frag[vc * 4 + 2] = acc1_frag[vc * 4 + 2] * alpha11
+            acc1_frag[vc * 4 + 3] = acc1_frag[vc * 4 + 3] * alpha11
+        rope1_frag[0] = rope1_frag[0] * alpha10
+        rope1_frag[1] = rope1_frag[1] * alpha10
+        rope1_frag[2] = rope1_frag[2] * alpha11
+        rope1_frag[3] = rope1_frag[3] * alpha11
+        gsum1_frag[0] = gsum1_frag[0] * alpha10
+        gsum1_frag[1] = gsum1_frag[1] * alpha11
 
     for vc in cutlass.range_constexpr(n_acc_tiles):
         acc0[vc][0] = acc0_frag[vc * 4 + 0]
@@ -1747,7 +1750,7 @@ def s4_finalize_row_sum_mg2(
     two = cutlass.const_expr(n_hg == 2)
     hi0 = cutlass.const_expr(valid_hpb > 8)
     reduce_heads = cutlass.const_expr(n_hg * hpb if n_hg == 2 else valid_hpb)
-    bar_kw = dict(barrier_id=barrier_id, number_of_threads=num_threads)
+    bar_kw = {"barrier_id": barrier_id, "number_of_threads": num_threads}
     gid = lane >> Int32(2)
     tid = lane & Int32(3)
 
@@ -1783,9 +1786,8 @@ def s4_finalize_row_sum_mg2(
             group = Int32(0)
             h = tid_flat
         rsum = reduce0_sum_addr
-        if cutlass.const_expr(two):
-            if group != Int32(0):
-                rsum = reduce1_sum_addr
+        if cutlass.const_expr(two) and group != Int32(0):
+            rsum = reduce1_sum_addr
         total = Float32(0.0)
         for w in cutlass.range_constexpr(n_warps):
             total = total + ld_shared_f32(rsum + (Int32(w) * Int32(hpb) + h) * Int32(4))
@@ -1842,7 +1844,7 @@ def s6_xv_nope_mg_dsv4(
     ``n_hg * n_v_chunks * hpb`` (one group's worth for n_hg==1).
     """
     two = cutlass.const_expr(n_hg == 2)
-    bar_kw = dict(barrier_id=barrier_id, number_of_threads=num_threads)
+    bar_kw = {"barrier_id": barrier_id, "number_of_threads": num_threads}
     gid = lane >> Int32(2)
     tid = lane & Int32(3)
     warp_first_cand = warp_id * Int32(8)
@@ -2472,9 +2474,8 @@ class UnifiedPrefillMGKernel:
             m_group = tid // Int32(t.hpb)
             m_head = tid - m_group * Int32(t.hpb)
             m_base = reduce_g0 + Int32(L.reduce_warp_sum_group_off)
-            if cutlass.const_expr(n_hg == 2):
-                if m_group != Int32(0):
-                    m_base = reduce_g1 + Int32(L.reduce_warp_sum_group_off)
+            if cutlass.const_expr(n_hg == 2) and m_group != Int32(0):
+                m_base = reduce_g1 + Int32(L.reduce_warp_sum_group_off)
             st_shared_f32(m_base + m_head * Int32(4), Float32(-1e30))
         cute.arch.barrier()
 
@@ -2937,11 +2938,10 @@ class UnifiedPrefillMGKernel:
                 # / sec_len_now are the literal main expressions, exactly as today).
                 split_cand_start = ci * Int32(_CAND_WINDOW)
                 sec_len_now = section_len
-                if cutlass.const_expr(has_extra):
-                    if ci >= num_main_tiles:
-                        cis = ci - num_main_tiles
-                        split_cand_start = cis * Int32(_CAND_WINDOW)
-                        sec_len_now = extra_section_len
+                if cutlass.const_expr(has_extra) and ci >= num_main_tiles:
+                    cis = ci - num_main_tiles
+                    split_cand_start = cis * Int32(_CAND_WINDOW)
+                    sec_len_now = extra_section_len
                 split_cand_end = split_cand_start + Int32(_CAND_WINDOW)
                 split_cand_end = min(split_cand_end, sec_len_now)
                 buf = ci & Int32(1)
@@ -2951,9 +2951,8 @@ class UnifiedPrefillMGKernel:
                 # from global/L2.  A raw pointer can be selected dynamically for
                 # the dual-cache phase without staging a 64-entry smem copy.
                 index_base_ptr = get_ptr_as_int64(topk_row, split_cand_start)
-                if cutlass.const_expr(has_extra):
-                    if ci >= num_main_tiles:
-                        index_base_ptr = get_ptr_as_int64(extra_row, split_cand_start)
+                if cutlass.const_expr(has_extra) and ci >= num_main_tiles:
+                    index_base_ptr = get_ptr_as_int64(extra_row, split_cand_start)
 
                 # MAIN rope geometry used by the non-dual FP8 / GLM arms.
                 rope_cache = kv_cache_u8
@@ -3031,26 +3030,25 @@ class UnifiedPrefillMGKernel:
                         use_extra_section=Int32(ci >= num_main_tiles),
                     )
                 elif cutlass.const_expr(bf16_qk):
-                    if cutlass.const_expr(reload_bf16_qrope):
+                    if cutlass.const_expr(reload_bf16_qrope) and ci > Int32(0):
                         # Tile 0 consumes the S0 copy. S6 overwrites the aliased
                         # W_FP8 scratch, so restore only the 4 KiB Q-RoPE slice
                         # for each subsequent tile before issuing its QK work.
-                        if ci > Int32(0):
-                            reload_q_rope_bf16_to_smem_mg(
-                                q_token,
-                                q_rope_g0,
-                                q_rope_g1,
-                                head_base,
-                                tid,
-                                d_nope=t.d_nope,
-                                d_rope=t.d_rope,
-                                q_rope_stride=L.q_rope_stride,
-                                hpb=t.hpb,
-                                num_threads=self.math_threads,
-                                barrier_id=2,
-                                n_hg=n_hg,
-                                valid_hpb=self.valid_hpb,
-                            )
+                        reload_q_rope_bf16_to_smem_mg(
+                            q_token,
+                            q_rope_g0,
+                            q_rope_g1,
+                            head_base,
+                            tid,
+                            d_nope=t.d_nope,
+                            d_rope=t.d_rope,
+                            q_rope_stride=L.q_rope_stride,
+                            hpb=t.hpb,
+                            num_threads=self.math_threads,
+                            barrier_id=2,
+                            n_hg=n_hg,
+                            valid_hpb=self.valid_hpb,
+                        )
                     # Match FlashInfer's latency-hiding schedule: issue all
                     # KV-RoPE global loads before the long NoPE MMA chain, then
                     # consume the prefetched B operands in S2. The selected raw
@@ -3061,16 +3059,13 @@ class UnifiedPrefillMGKernel:
                         rope_idx, Int32(self.page_block_size), stride_kv_block
                     )
                     rope_base_ptr = get_ptr_as_int64(kv_cache_u8, rope_base)
-                    if cutlass.const_expr(has_extra):
-                        if ci >= num_main_tiles:
-                            rope_base = _dsv4_rope_base_off(
-                                rope_idx,
-                                Int32(self.pbs_extra),
-                                stride_extra_kv_block,
-                            )
-                            rope_base_ptr = get_ptr_as_int64(
-                                extra_kv_cache_u8, rope_base
-                            )
+                    if cutlass.const_expr(has_extra) and ci >= num_main_tiles:
+                        rope_base = _dsv4_rope_base_off(
+                            rope_idx,
+                            Int32(self.pbs_extra),
+                            stride_extra_kv_block,
+                        )
+                        rope_base_ptr = get_ptr_as_int64(extra_kv_cache_u8, rope_base)
                     kv_rope_regs = prefetch_kv_rope_regs_dsv4(
                         rope_base_ptr, lane, d_rope=t.d_rope
                     )

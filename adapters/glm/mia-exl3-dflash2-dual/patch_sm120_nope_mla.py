@@ -165,18 +165,24 @@ indexer = site / "model_executor/layers/sparse_attn_indexer_kpool.py"
 text = indexer.read_text()
 for old, new in (
     (
-        "                    expanded = expand_pools_and_append_tail(\n"
-        "                        pool_ids, q_seq, index_kpool\n"
-        "                    )\n",
-        "                    expanded = expand_pools_and_append_tail(\n"
-        "                        pool_ids[:, : select_k - 1], q_seq, index_kpool\n"
-        "                    )\n",
+        (
+            "                    expanded = expand_pools_and_append_tail(\n"
+            "                        pool_ids, q_seq, index_kpool\n"
+            "                    )\n"
+        ),
+        (
+            "                    expanded = expand_pools_and_append_tail(\n"
+            "                        pool_ids[:, : select_k - 1], q_seq, index_kpool\n"
+            "                    )\n"
+        ),
     ),
     (
         "            out = expand_pools_and_append_tail(pool_ids, dec_seq, index_kpool)\n",
-        "            out = expand_pools_and_append_tail(\n"
-        "                pool_ids[:, : select_k - 1], dec_seq, index_kpool\n"
-        "            )\n",
+        (
+            "            out = expand_pools_and_append_tail(\n"
+            "                pool_ids[:, : select_k - 1], dec_seq, index_kpool\n"
+            "            )\n"
+        ),
     ),
 ):
     if text.count(old) != 1:

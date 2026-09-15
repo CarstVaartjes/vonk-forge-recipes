@@ -121,14 +121,12 @@ class MiaDSparkRuntimeContractTest(unittest.TestCase):
 
     def test_verifier_accepts_the_exact_required_mapping(self) -> None:
         verifier = ADAPTER / "verify-dspark-runtime.py"
-        source = "\n".join(
-            (
-                '("gate_up_proj", "w1", 0),',
-                '("gate_up_proj", "w3", 1),',
-                'is_layer_param = name.startswith("model.layers.")',
-                "name = name.replace(weight_name, param_name)",
-            )
-        ).encode()
+        source = (
+            b'("gate_up_proj", "w1", 0),\n'
+            b'("gate_up_proj", "w3", 1),\n'
+            b'is_layer_param = name.startswith("model.layers.")\n'
+            b"name = name.replace(weight_name, param_name)"
+        )
         fake_target = MagicMock()
         fake_target.is_file.return_value = True
         fake_target.read_bytes.return_value = source

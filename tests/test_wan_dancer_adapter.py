@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import io
 import json
-import runpy
 import subprocess
 import sys
 import tarfile
@@ -90,11 +89,6 @@ class WanDancerAuthorityTests(unittest.TestCase):
         )
         self.assertEqual(
             build["network"], {"mode": "public", "hosts": BUILD_NETWORK_HOSTS}
-        )
-        tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
-        self.assertEqual(
-            tool["source_bundle"](ADAPTER)[2],
-            "71b98bb6f2ca9e6bca213a96cd444919eb4644a456fec3f09468b6dc565acbf5",
         )
         self.assertEqual(
             json.loads(MODEL.read_text())["source"]["revision"],

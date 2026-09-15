@@ -34,7 +34,7 @@ def _canonical_digest(path: Path) -> str:
 def _adapter_module():
     module = types.ModuleType("minimax_h3_adapter")
     module.__file__ = str(ADAPTER_PATH)
-    exec(
+    exec(  # noqa: S102 - load the adapter source without importing heavy dependencies.
         compile(ADAPTER_PATH.read_text(encoding="utf-8"), str(ADAPTER_PATH), "exec"),
         module.__dict__,
     )

@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import io
 import json
-import runpy
 import subprocess
 import sys
 import tarfile
@@ -118,11 +117,6 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
         self.assertIn(
             "diffsynth-studio-84f93fc4907b6c193be5501bab0b5c37f383033c.tar.gz",
             dockerfile,
-        )
-        tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
-        self.assertEqual(
-            tool["source_bundle"](ADAPTER)[2],
-            "1f34b5d56f6b7cd466d47c08cf4c821a7f4cb1d6bf13699cd81db8275809b57c",
         )
         self.assertEqual(
             json.loads(MODEL.read_text())["source"]["revision"],

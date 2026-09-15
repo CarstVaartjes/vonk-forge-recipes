@@ -106,13 +106,15 @@ def _replace_once(src: str, old: str, new: str, what: str) -> str:
 
 
 def patch() -> None:
-    src = open(TARGET).read()
+    with open(TARGET) as f:
+        src = f.read()
     if "FP8_BLOCK_SCALES" in src:
         print("already patched", TARGET)
         return
     src = _replace_once(src, ANCHOR_HELPER, HELPER + ANCHOR_HELPER, "helper")
     src = _replace_once(src, ANCHOR_DISPATCH, DISPATCH, "moe dispatch")
-    open(TARGET, "w").write(src)
+    with open(TARGET, "w") as f:
+        f.write(src)
     print("ok", TARGET)
 
 

@@ -99,13 +99,15 @@ def is_vision_exp_weight_name(name: str) -> bool:
     ``gate_up_proj`` shard. Aligner's ``w1`` and ViT MLP ``w1`` are full
     Linear layers, so those keys must bypass the stacked mapping.
     """
-    return (
-        name.startswith("aligner.")
-        or name.startswith("vision.")
-        or name.startswith("image_")
-        or name.startswith("model.aligner.")
-        or name.startswith("model.vision.")
-        or name.startswith("model.image_")
+    return name.startswith(
+        (
+            "aligner.",
+            "vision.",
+            "image_",
+            "model.aligner.",
+            "model.vision.",
+            "model.image_",
+        )
     )
 
 
