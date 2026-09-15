@@ -21,6 +21,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
+
 DEFAULT_MANIFEST = ROOT / "upstream-watch.json"
 SHA = re.compile(r"^[0-9a-f]{40}$")
 REPOSITORY_PART = re.compile(r"^[A-Za-z0-9_.-]+$")
@@ -120,13 +121,7 @@ def parse_source(value: str) -> SourceLocation:
             len(parts) == 4
             and parts[2] in {"tree", "commit"}
             and SHA.fullmatch(parts[3])
-        ):
-            embedded = parts[3]
-        elif (
-            len(parts) >= 5
-            and parts[2] == "blob"
-            and SHA.fullmatch(parts[3])
-        ):
+        ) or (len(parts) >= 5 and parts[2] == "blob" and SHA.fullmatch(parts[3])):
             embedded = parts[3]
         elif len(parts) != 2:
             raise DriftInputError(f"GitHub source URL form is unsupported: {value}")
@@ -267,11 +262,17 @@ def discover_watches(
             document = json.loads(path.read_text(encoding="utf-8"))
             try:
                 if expected_kind == "model":
-                    document = ModelDefinition.model_validate(document).model_dump(mode="json")
+                    document = ModelDefinition.model_validate(document).model_dump(
+                        mode="json"
+                    )
                 else:
-                    document = RecipeDefinition.model_validate(document).model_dump(mode="json")
+                    document = RecipeDefinition.model_validate(document).model_dump(
+                        mode="json"
+                    )
             except Exception as error:
-                raise DriftInputError(f"catalog contract is invalid: {path}: {error}") from error
+                raise DriftInputError(
+                    f"catalog contract is invalid: {path}: {error}"
+                ) from error
             publisher, slug = _identity(document, path, expected_kind)
             entity = f"{expected_kind}/{publisher}/{slug}"
             discovered_entities.add(entity)
@@ -299,7 +300,9 @@ def discover_watches(
         try:
             document = RecipeDefinition.model_validate(document).model_dump(mode="json")
         except Exception as error:
-            raise DriftInputError(f"catalog contract is invalid: {path}: {error}") from error
+            raise DriftInputError(
+                f"catalog contract is invalid: {path}: {error}"
+            ) from error
         publisher, slug = _identity(document, path, "recipe")
         entity = f"recipe/{publisher}/{slug}"
         discovered_entities.add(entity)

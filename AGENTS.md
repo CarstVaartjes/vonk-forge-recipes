@@ -57,6 +57,54 @@ keeping old formats usable alongside it.
   Report repository checks, publication, Controller deployment, and physical
   Spark execution separately.
 
+## Toolchain and gates
+
+Producer tooling, the contracts package, and the test suite run on **Python
+3.14**. Every workflow interpreter pin matches that. Adapter sources are the
+exception and stay **3.12-compatible**: they are copied over the interpreter
+already present in a pinned upstream image, and the vLLM/SGLang images these
+adapters overlay still run 3.12. The shared `adapters/three-d/*/glb_validation.py`
+copies must also stay byte-identical to the platform's 3.12 copy.
+
+```bash
+export VONK_RECIPE_LIBRARY_ROOT=/opt/vonk-forge-recipes
+
+# Repo-wide lint, format, and types. All three are pinned and deterministic.
+uvx --from ruff==0.16.1 ruff check .
+tools/check-python-format            # ruff format, plus extensionless entry points
+scripts/check-python-types           # pyright==1.1.408, reviewed baseline
+
+# Producer suite (CI installs the same wheel and extras).
+uv run --python 3.14 --no-project --with pytest==9.1.1 \
+  --with-editable contracts --with 'jsonschema>=4.24,<5' \
+  --with ./adapters/video/ltx2-sync-native/vonk_agent_protocol-2.2.0-py3-none-any.whl \
+  pytest -q -m "not lane"
+```
+
+`tools/pyright-baseline.json` is a reviewed allowlist, not a per-file budget: an
+unlisted error fails, a listed count that moves in either direction fails, a
+stale entry fails, and an entry with no reason fails. Run
+`scripts/check-python-types --update` to rewrite it, then write the reason for
+anything it adds. Prefer fixing the code; record a `noqa` or a baseline entry
+only when the linter or checker is wrong, and say why.
+
+Two vendored trees are excluded from both gates because their bytes are pinned
+by contract rather than authored here: the DeepSeek V4 tokenizer encodings
+(`apply-build-patches.py` hashes each copy and fails the container build
+otherwise) and `adapters/llm/ui-mate-vllm/agents/`, which `NOTICE` records as
+byte-identical to Tencent's commit. Everything else, including the rest of
+`adapters/`, is covered.
+
+Use `tools/check-python-format` rather than a bare `ruff format --check .`:
+`ruff format` resolves files by extension, so the extensionless executables in
+`tools/` and the adapters are only touched when they are named explicitly. The
+wrapper discovers them from their shebang and checks both sets.
+
+Do not add a digest that hashes a file shipped in the same commit: a source edit
+must not require hand-editing a digest the tooling owns. The only content
+digests worth keeping are upstream artifacts we did not author, such as the
+tokenizer encoding and the downloaded archives asserted against Dockerfiles.
+
 ## Entry points
 
 - [Create and update recipes](docs/recipe-authoring.md): standard agent workflow.

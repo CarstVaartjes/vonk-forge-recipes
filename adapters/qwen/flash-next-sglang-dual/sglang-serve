@@ -21,7 +21,13 @@ init_index, init_address = option(arguments, "--dist-init-addr")
 local_address = os.environ.get("VONK_LOCAL_ADDR")
 master_address = os.environ.get("VONK_MASTER_ADDR")
 master_port = os.environ.get("VONK_MASTER_PORT")
-fabric_names = ("NCCL_SOCKET_IFNAME", "NCCL_IB_HCA", "NCCL_IB_GID_INDEX", "TP_SOCKET_IFNAME", "GLOO_SOCKET_IFNAME")
+fabric_names = (
+    "NCCL_SOCKET_IFNAME",
+    "NCCL_IB_HCA",
+    "NCCL_IB_GID_INDEX",
+    "TP_SOCKET_IFNAME",
+    "GLOO_SOCKET_IFNAME",
+)
 
 try:
     if (
@@ -40,7 +46,9 @@ try:
     ip_address(local_address)
     ip_address(master_address)
 except ValueError:
-    raise SystemExit("distributed SGLang requires complete two-node placement rendezvous and fabric") from None
+    raise SystemExit(
+        "distributed SGLang requires complete two-node placement rendezvous and fabric"
+    ) from None
 
 arguments[init_index + 1] = f"{master_address}:{master_port}"
 os.environ["SGLANG_HOST_IP"] = local_address
@@ -103,8 +111,21 @@ if "--cuda-graph-bs-decode" not in arguments:
     arguments.extend(
         (
             "--cuda-graph-bs-decode",
-            "1", "2", "3", "4", "5", "6", "7", "8",
-            "10", "12", "14", "16", "20", "24", "28",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "10",
+            "12",
+            "14",
+            "16",
+            "20",
+            "24",
+            "28",
         )
     )
 for name in (

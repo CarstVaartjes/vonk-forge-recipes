@@ -112,7 +112,9 @@ def evaluate(
     return problems
 
 
-def _write(counts: dict[tuple[str, str], int], previous: list[dict[str, object]]) -> None:
+def _write(
+    counts: dict[tuple[str, str], int], previous: list[dict[str, object]]
+) -> None:
     reasons = {
         (str(entry.get("file", "")), str(entry.get("rule", ""))): str(
             entry.get("reason", "")
@@ -131,15 +133,15 @@ def _write(counts: dict[tuple[str, str], int], previous: list[dict[str, object]]
             for (file, rule), count in sorted(counts.items())
         ],
     }
-    BASELINE.write_text(
-        json.dumps(document, indent=2) + "\n", encoding="utf-8"
-    )
+    BASELINE.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
     missing = sorted(
         f"{entry['file']} {entry['rule']}"
         for entry in document["exceptions"]
         if not entry["reason"]
     )
-    print(f"baseline updated: {sum(counts.values())} error(s) in {len(counts)} entry(s)")
+    print(
+        f"baseline updated: {sum(counts.values())} error(s) in {len(counts)} entry(s)"
+    )
     if missing:
         print("write a reason for:", file=sys.stderr)
         for entry in missing:
