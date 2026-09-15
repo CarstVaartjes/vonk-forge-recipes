@@ -88,6 +88,12 @@ stale entry fails, and an entry with no reason fails. Run
 anything it adds. Prefer fixing the code; record a `noqa` or a baseline entry
 only when the linter or checker is wrong, and say why.
 
+`[tool.pyright]` pins `pythonVersion` and `typeCheckingMode` because both change
+which diagnostics exist. An unconfigured pyright resolves its defaults instead
+and reports a different set, so the baseline silently disagrees with the checker
+without any source change; `tests/test_python_gate_configuration.py` fails if
+that section or the CI wiring is dropped.
+
 Two vendored trees are excluded from both gates because their bytes are pinned
 by contract rather than authored here: the DeepSeek V4 tokenizer encodings
 (`apply-build-patches.py` hashes each copy and fails the container build
