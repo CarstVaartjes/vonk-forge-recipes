@@ -8,12 +8,6 @@
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
-      "file": "adapters/deepseek/mia-sparkinfer-single/overlays/coalesce_rank_sliced_exl3.py",
-      "rule": "reportPossiblyUnboundVariable",
-      "count": 1,
-      "reason": "Triton and CuTe kernels assign these symbols inside `cutlass.const_expr` / `tl.constexpr` branches pyright cannot evaluate, so it cannot prove the binding happens on the taken path."
-    },
-    {
       "file": "adapters/deepseek/mia-sparkinfer-single/overlays/sparkinfer/attention/_shared/mla/prefill.py",
       "rule": "reportArgumentType",
       "count": 6,
@@ -39,12 +33,6 @@
     },
     {
       "file": "adapters/deepseek/mia-sparkinfer-single/overlays/sparkinfer/attention/_shared/mla/prefill_mg.py",
-      "rule": "reportFunctionMemberAccess",
-      "count": 2,
-      "reason": "The callable is reached through an upstream object whose member surface has no host-side stub."
-    },
-    {
-      "file": "adapters/deepseek/mia-sparkinfer-single/overlays/sparkinfer/attention/_shared/mla/prefill_mg.py",
       "rule": "reportMissingImports",
       "count": 15,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
@@ -60,12 +48,6 @@
       "rule": "reportOptionalMemberAccess",
       "count": 5,
       "reason": "The member is reached only after an explicit guard on the same value; pyright loses that narrowing across the kernel branch."
-    },
-    {
-      "file": "adapters/deepseek/mia-sparkinfer-single/overlays/sparkinfer/attention/_shared/mla/prefill_mg.py",
-      "rule": "reportPossiblyUnboundVariable",
-      "count": 114,
-      "reason": "CuTe DSL assigns rope_ptr and the per-stage handles under cutlass.const_expr branches; the warning follows the same pre-existing kernel shape as before this change."
     },
     {
       "file": "adapters/deepseek/mia-sparkinfer-single/overlays/sparkinfer/moe/_shared/kernels/tiny_decode.py",
@@ -105,12 +87,6 @@
     },
     {
       "file": "adapters/deepseek/mia-sparkinfer-single/overlays/sparkinfer/moe/fused_moe/_impl.py",
-      "rule": "reportFunctionMemberAccess",
-      "count": 3,
-      "reason": "The callable is reached through an upstream object whose member surface has no host-side stub."
-    },
-    {
-      "file": "adapters/deepseek/mia-sparkinfer-single/overlays/sparkinfer/moe/fused_moe/_impl.py",
       "rule": "reportIndexIssue",
       "count": 5,
       "reason": "Indexing targets a dynamically shaped container that the surrounding runtime guard already bounds."
@@ -138,12 +114,6 @@
       "rule": "reportOptionalSubscript",
       "count": 7,
       "reason": "Kernel handles and buffer views are typed as optional by upstream stubs but are guaranteed present once the kernel is launched."
-    },
-    {
-      "file": "adapters/deepseek/mia-sparkinfer-single/overlays/sparkinfer/moe/fused_moe/_impl.py",
-      "rule": "reportPossiblyUnboundVariable",
-      "count": 2,
-      "reason": "Triton and CuTe kernels assign these symbols inside `cutlass.const_expr` / `tl.constexpr` branches pyright cannot evaluate, so it cannot prove the binding happens on the taken path."
     },
     {
       "file": "adapters/deepseek/mia-sparkinfer-single/overlays/sparkinfer/moe/fused_moe/_impl.py",
@@ -231,12 +201,6 @@
     },
     {
       "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/envs.py",
-      "rule": "reportFunctionMemberAccess",
-      "count": 1,
-      "reason": "The callable is reached through an upstream object whose member surface has no host-side stub."
-    },
-    {
-      "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/envs.py",
       "rule": "reportMissingImports",
       "count": 4,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
@@ -258,12 +222,6 @@
       "rule": "reportOptionalSubscript",
       "count": 1,
       "reason": "Kernel handles and buffer views are typed as optional by upstream stubs but are guaranteed present once the kernel is launched."
-    },
-    {
-      "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/model_executor/layers/attention/mla_attention.py",
-      "rule": "reportPossiblyUnboundVariable",
-      "count": 8,
-      "reason": "Triton and CuTe kernels assign these symbols inside `cutlass.const_expr` / `tl.constexpr` branches pyright cannot evaluate, so it cannot prove the binding happens on the taken path."
     },
     {
       "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/utils/torch_utils.py",
@@ -296,22 +254,10 @@
       "reason": "The member is reached only after an explicit guard on the same value; pyright loses that narrowing across the kernel branch."
     },
     {
-      "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/v1/attention/backends/mla/b12x_mla_sparse.py",
-      "rule": "reportPossiblyUnboundVariable",
-      "count": 2,
-      "reason": "Triton and CuTe kernels assign these symbols inside `cutlass.const_expr` / `tl.constexpr` branches pyright cannot evaluate, so it cannot prove the binding happens on the taken path."
-    },
-    {
       "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/v1/attention/backends/registry.py",
       "rule": "reportMissingImports",
       "count": 3,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
-    },
-    {
-      "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/v1/kv_cache_interface.py",
-      "rule": "reportIncompatibleMethodOverride",
-      "count": 6,
-      "reason": "Overriding an upstream method whose base signature lives in the container image, not in this checkout."
     },
     {
       "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/v1/kv_cache_interface.py",
@@ -327,12 +273,6 @@
     },
     {
       "file": "adapters/glm/drowzeys-glm53-1m/overlays/official/cuda.py",
-      "rule": "reportIncompatibleMethodOverride",
-      "count": 4,
-      "reason": "Overriding an upstream method whose base signature lives in the container image, not in this checkout."
-    },
-    {
-      "file": "adapters/glm/drowzeys-glm53-1m/overlays/official/cuda.py",
       "rule": "reportMissingImports",
       "count": 26,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
@@ -342,12 +282,6 @@
       "rule": "reportOptionalMemberAccess",
       "count": 2,
       "reason": "The member is reached only after an explicit guard on the same value; pyright loses that narrowing across the kernel branch."
-    },
-    {
-      "file": "adapters/glm/drowzeys-glm53-1m/overlays/official/cuda.py",
-      "rule": "reportPossiblyUnboundVariable",
-      "count": 2,
-      "reason": "Triton and CuTe kernels assign these symbols inside `cutlass.const_expr` / `tl.constexpr` branches pyright cannot evaluate, so it cannot prove the binding happens on the taken path."
     },
     {
       "file": "adapters/glm/drowzeys-glm53-1m/overlays/official/flashinfer_mla_sparse.py",
@@ -398,12 +332,6 @@
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
-      "file": "adapters/glm/drowzeys-glm53-1m/overlays/official/sparse_attn_indexer_kpool.py",
-      "rule": "reportPossiblyUnboundVariable",
-      "count": 7,
-      "reason": "Triton and CuTe kernels assign these symbols inside `cutlass.const_expr` / `tl.constexpr` branches pyright cannot evaluate, so it cannot prove the binding happens on the taken path."
-    },
-    {
       "file": "adapters/glm/glm53-sm121/glm53-flash_SM121.py",
       "rule": "reportArgumentType",
       "count": 2,
@@ -420,12 +348,6 @@
       "rule": "reportMissingImports",
       "count": 2,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
-    },
-    {
-      "file": "adapters/glm/mia-exl3-dflash2-dual/ablit/fetch_transplant.py",
-      "rule": "reportPossiblyUnboundVariable",
-      "count": 1,
-      "reason": "Triton and CuTe kernels assign these symbols inside `cutlass.const_expr` / `tl.constexpr` branches pyright cannot evaluate, so it cannot prove the binding happens on the taken path."
     },
     {
       "file": "adapters/glm/mia-exl3-dflash2-dual/overlay/ablit_runtime.py",
@@ -594,12 +516,6 @@
       "rule": "reportMissingImports",
       "count": 17,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
-    },
-    {
-      "file": "adapters/glm/tonyd2wild-dflash2-dual/sparse_attn_indexer_kpool_sm121.py",
-      "rule": "reportPossiblyUnboundVariable",
-      "count": 7,
-      "reason": "Triton and CuTe kernels assign these symbols inside `cutlass.const_expr` / `tl.constexpr` branches pyright cannot evaluate, so it cannot prove the binding happens on the taken path."
     },
     {
       "file": "adapters/glm/tonyd2wild-dflash2-dual/verify-runtime.py",
@@ -926,12 +842,6 @@
       "reason": "The iterable is guaranteed non-empty by the surrounding runtime guard, which pyright cannot follow."
     },
     {
-      "file": "adapters/video/moss-vl-realtime/input_contract.py",
-      "rule": "reportPossiblyUnboundVariable",
-      "count": 4,
-      "reason": "Triton and CuTe kernels assign these symbols inside `cutlass.const_expr` / `tl.constexpr` branches pyright cannot evaluate, so it cannot prove the binding happens on the taken path."
-    },
-    {
       "file": "adapters/video/moss-vl-realtime/run.py",
       "rule": "reportArgumentType",
       "count": 1,
@@ -1078,7 +988,7 @@
     {
       "file": "tests/test_canonical_synthetic_canary.py",
       "rule": "reportMissingImports",
-      "count": 4,
+      "count": 3,
       "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
@@ -1088,12 +998,6 @@
       "reason": "The test dereferences a value after asserting it exists; pyright cannot follow the assertion."
     },
     {
-      "file": "tests/test_canonical_synthetic_canary.py",
-      "rule": "reportPossiblyUnboundVariable",
-      "count": 1,
-      "reason": "The symbol is bound in every path the test can take; pyright cannot follow the branch guard."
-    },
-    {
       "file": "tests/test_catalog_hf_model.py",
       "rule": "reportArgumentType",
       "count": 1,
@@ -1101,12 +1005,6 @@
     },
     {
       "file": "tests/test_catalog_index_source_commit.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
-      "file": "tests/test_contract_examples.py",
       "rule": "reportMissingImports",
       "count": 1,
       "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
@@ -1132,29 +1030,11 @@
     {
       "file": "tests/test_contracts.py",
       "rule": "reportMissingImports",
-      "count": 5,
+      "count": 2,
       "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
       "file": "tests/test_deepseek_sparkinfer_argument_passthrough.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
-      "file": "tests/test_deepseek_v4_flash_vision_recipe.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
-      "file": "tests/test_flux2_nvfp4_recipe.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
-      "file": "tests/test_glm_model_inventory.py",
       "rule": "reportMissingImports",
       "count": 1,
       "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
@@ -1172,22 +1052,10 @@
       "reason": "The attribute is reached through a dynamically loaded adapter module or a dict-backed fixture."
     },
     {
-      "file": "tests/test_hunyuan_single_recipes.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
       "file": "tests/test_hunyuanocr_adapter.py",
       "rule": "reportAttributeAccessIssue",
       "count": 1,
       "reason": "The attribute is reached through a dynamically loaded adapter module or a dict-backed fixture."
-    },
-    {
-      "file": "tests/test_hunyuanocr_adapter.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
       "file": "tests/test_image_diffusers_adapters.py",
@@ -1206,12 +1074,6 @@
       "rule": "reportAttributeAccessIssue",
       "count": 2,
       "reason": "The attribute is reached through a dynamically loaded adapter module or a dict-backed fixture."
-    },
-    {
-      "file": "tests/test_ltx25_diffusers_adapter.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
       "file": "tests/test_ltx_fp4_adapter.py",
@@ -1256,22 +1118,10 @@
       "reason": "The attribute is reached through a dynamically loaded adapter module or a dict-backed fixture."
     },
     {
-      "file": "tests/test_minimax_h3_fl2va_recipe.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
       "file": "tests/test_mova_adapter.py",
       "rule": "reportAttributeAccessIssue",
       "count": 2,
       "reason": "The attribute is reached through a dynamically loaded adapter module or a dict-backed fixture."
-    },
-    {
-      "file": "tests/test_muse_glimmer_recipe.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
       "file": "tests/test_nemotron_executable_recipes.py",
@@ -1298,12 +1148,6 @@
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
-      "file": "tests/test_nemotron_executable_recipes.py",
-      "rule": "reportMissingImports",
-      "count": 2,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
       "file": "tests/test_nvidia_single_recipe_audit.py",
       "rule": "reportArgumentType",
       "count": 3,
@@ -1316,22 +1160,10 @@
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
-      "file": "tests/test_nvidia_single_recipe_audit.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
       "file": "tests/test_origin_aligned_profiles.py",
       "rule": "reportIndexIssue",
       "count": 6,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
-    },
-    {
-      "file": "tests/test_origin_aligned_profiles.py",
-      "rule": "reportMissingImports",
-      "count": 2,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
       "file": "tests/test_qualification_index.py",
@@ -1364,12 +1196,6 @@
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
-      "file": "tests/test_qwen36_nvfp4_recipe.py",
-      "rule": "reportMissingImports",
-      "count": 2,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
       "file": "tests/test_qwen_image_2512_fp8_lightning_recipe.py",
       "rule": "reportArgumentType",
       "count": 1,
@@ -1388,12 +1214,6 @@
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
-      "file": "tests/test_qwen_image_2512_fp8_lightning_recipe.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
       "file": "tests/test_qwen_image_edit_fp8mixed_recipe.py",
       "rule": "reportArgumentType",
       "count": 1,
@@ -1412,22 +1232,10 @@
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
-      "file": "tests/test_qwen_image_edit_fp8mixed_recipe.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
       "file": "tests/test_qwen_image_edit_int8_convrot_recipe.py",
       "rule": "reportIndexIssue",
       "count": 7,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
-    },
-    {
-      "file": "tests/test_qwen_image_edit_int8_convrot_recipe.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
       "file": "tests/test_qwen_image_edit_variant_matrix.py",
@@ -1440,12 +1248,6 @@
       "rule": "reportIndexIssue",
       "count": 3,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
-    },
-    {
-      "file": "tests/test_qwen_image_edit_variant_matrix.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
       "file": "tests/test_qwen_image_lightning_adapter.py",
@@ -1478,18 +1280,6 @@
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
-      "file": "tests/test_recipe_deployment_guidance.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
-      "file": "tests/test_recipe_executability.py",
-      "rule": "reportMissingImports",
-      "count": 3,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
       "file": "tests/test_recipe_operator_guidance.py",
       "rule": "reportIndexIssue",
       "count": 14,
@@ -1504,7 +1294,7 @@
     {
       "file": "tests/test_recipe_package_closure.py",
       "rule": "reportMissingImports",
-      "count": 2,
+      "count": 1,
       "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
@@ -1538,12 +1328,6 @@
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
-      "file": "tests/test_recipe_releases.py",
-      "rule": "reportMissingImports",
-      "count": 2,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
       "file": "tests/test_sparkinfer_single_recipe.py",
       "rule": "reportArgumentType",
       "count": 2,
@@ -1562,12 +1346,6 @@
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
-      "file": "tests/test_sparkinfer_single_recipe.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
       "file": "tests/test_sparkinfer_target_only_canary_recipe.py",
       "rule": "reportArgumentType",
       "count": 1,
@@ -1584,12 +1362,6 @@
       "rule": "reportIndexIssue",
       "count": 12,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
-    },
-    {
-      "file": "tests/test_sparkinfer_target_only_canary_recipe.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
       "file": "tests/test_step1x_3d_adapter.py",
@@ -1676,12 +1448,6 @@
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
-      "file": "tests/test_ui_mate_executable_recipe.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
       "file": "tests/test_vllm028_migration.py",
       "rule": "reportIndexIssue",
       "count": 8,
@@ -1698,12 +1464,6 @@
       "rule": "reportIndexIssue",
       "count": 26,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
-    },
-    {
-      "file": "tests/test_vllm028_model_variants.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
       "file": "tests/test_wan_dancer_adapter.py",
@@ -1725,12 +1485,6 @@
     },
     {
       "file": "tests/test_wan_dancer_adapter.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
-      "file": "tests/test_wan_dancer_adapter.py",
       "rule": "reportOptionalMemberAccess",
       "count": 1,
       "reason": "The test dereferences a value after asserting it exists; pyright cannot follow the assertion."
@@ -1746,12 +1500,6 @@
       "rule": "reportGeneralTypeIssues",
       "count": 1,
       "reason": "The fixture is intentionally ungrown so a malformed-input path can be exercised."
-    },
-    {
-      "file": "tests/test_wan_dancer_disk_offload_canary.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
       "file": "tests/test_wan_dancer_disk_offload_canary.py",

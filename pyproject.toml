@@ -30,3 +30,20 @@ exclude = [
     "adapters/deepseek/mia-vllm-vision/encoding/encoding_dsv4.py",
     "adapters/llm/ui-mate-vllm/agents",
 ]
+
+[tool.pyright]
+# One checker for the whole repository, adapters included. The mode and the
+# language version are pinned because both change which diagnostics exist:
+# an unconfigured pyright reports hundreds of extra findings, so the reviewed
+# baseline would otherwise depend on the host interpreter and on defaults.
+pythonVersion = "3.14"
+typeCheckingMode = "basic"
+# The contracts package is not installed in the environment CI checks with, so
+# its import root is declared here exactly as the test suites add it. Without
+# it every contract import is an unresolved-import finding.
+extraPaths = ["contracts/src"]
+exclude = [
+    "**/__pycache__/**",
+    "**/node_modules/**",
+    "**/.venv/**",
+]
