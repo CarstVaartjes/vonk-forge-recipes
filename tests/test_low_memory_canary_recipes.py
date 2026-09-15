@@ -6,7 +6,16 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PAIRS = (("laguna-s-2-1-nvfp4-vllm-single", "laguna-s-2-1-nvfp4-vllm-low-memory-canary-single"), ("nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single", "nemotron-3-5-lightning-dspark-lowmem-canary-single"))
+PAIRS = (
+    (
+        "laguna-s-2-1-nvfp4-vllm-single",
+        "laguna-s-2-1-nvfp4-vllm-low-memory-canary-single",
+    ),
+    (
+        "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single",
+        "nemotron-3-5-lightning-dspark-lowmem-canary-single",
+    ),
+)
 
 
 def load(slug: str, directory: str = "recipes") -> dict:
@@ -14,15 +23,24 @@ def load(slug: str, directory: str = "recipes") -> dict:
 
 
 def digest(document: dict) -> str:
-    return hashlib.sha256(json.dumps(document, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
+    return hashlib.sha256(
+        json.dumps(
+            document, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+        ).encode()
+    ).hexdigest()
 
 
 class LowMemoryCanaryRecipeTests(unittest.TestCase):
     def test_original_profiles_are_preserved_and_canaries_are_distinct(self) -> None:
         for original_slug, canary_slug in PAIRS:
             original, canary = load(original_slug), load(canary_slug)
-            self.assertNotEqual(original["identity"]["slug"], canary["identity"]["slug"])
-            self.assertEqual(original["models"][0]["model"]["slug"], canary["models"][0]["model"]["slug"])
+            self.assertNotEqual(
+                original["identity"]["slug"], canary["identity"]["slug"]
+            )
+            self.assertEqual(
+                original["models"][0]["model"]["slug"],
+                canary["models"][0]["model"]["slug"],
+            )
             self.assertIn("canary", canary["metadata"]["tags"])
 
     def test_canaries_reuse_exact_model_files_and_build_inputs(self) -> None:
@@ -43,8 +61,13 @@ class LowMemoryCanaryRecipeTests(unittest.TestCase):
         for _, slug in PAIRS:
             recipe = load(slug)
             index = json.loads((ROOT / "catalog-index.json").read_text())
-            entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{slug}.json")
+            entry = next(
+                item
+                for item in index["recipes"]
+                if item["source_path"] == f"recipes/{slug}.json"
+            )
             self.assertEqual(entry["package"]["recipe_content_sha256"], digest(recipe))
 
 
-if __name__ == "__main__": unittest.main()
+if __name__ == "__main__":
+    unittest.main()

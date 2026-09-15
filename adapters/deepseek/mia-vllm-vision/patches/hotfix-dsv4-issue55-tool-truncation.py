@@ -29,6 +29,7 @@ Usage (inside the container, after vLLM source is on disk):
   python3 hotfix-dsv4-issue55-tool-truncation.py
   python3 hotfix-dsv4-issue55-tool-truncation.py /path/to/vllm
 """
+
 from __future__ import annotations
 
 import sys
@@ -42,12 +43,10 @@ SERVING = "entrypoints/openai/chat_completion/serving.py"
 # at the top of this file, byte-stable).
 HELPER_ANCHOR = "import asyncio\n"
 HELPER_NEW = (
-    "import asyncio\n"
-    + MARK
-    + "\n"
+    "import asyncio\n" + MARK + "\n"
     "def _dsml_issue55_json_ok(s):\n"
-    "    \"\"\"True iff `s` parses as a complete JSON value. None/'' are ok.\"\"\"\n"
-    "    if s is None or s == \"\":\n"
+    '    """True iff `s` parses as a complete JSON value. None/\'\' are ok."""\n'
+    '    if s is None or s == "":\n'
     "        return True\n"
     "    try:\n"
     "        import json as _j\n"
@@ -61,37 +60,39 @@ HELPER_NEW = (
 
 STREAMING_OLD = (
     "                        if tools_streamed[i] and not tool_choice_function_name:\n"
-    "                            finish_reason_ = \"tool_calls\"\n"
+    '                            finish_reason_ = "tool_calls"\n'
     "                        else:\n"
     "                            finish_reason_ = (\n"
-    "                                output.finish_reason if output.finish_reason else \"stop\"\n"
+    '                                output.finish_reason if output.finish_reason else "stop"\n'
     "                            )"
 )
 
 STREAMING_NEW = (
-    "                        " + MARK + " gate the tool_calls verdict on engine length,\n"
+    "                        "
+    + MARK
+    + " gate the tool_calls verdict on engine length,\n"
     "                        # and strip non-JSON args from the trailing delta.\n"
     "                        if (\n"
     "                            tools_streamed[i]\n"
     "                            and not tool_choice_function_name\n"
-    "                            and str(output.finish_reason) != \"length\"\n"
+    '                            and str(output.finish_reason) != "length"\n'
     "                        ):\n"
-    "                            finish_reason_ = \"tool_calls\"\n"
+    '                            finish_reason_ = "tool_calls"\n'
     "                        else:\n"
     "                            finish_reason_ = (\n"
     "                                str(output.finish_reason)\n"
     "                                if output.finish_reason\n"
-    "                                else \"stop\"\n"
+    '                                else "stop"\n'
     "                            )\n"
     "                        if (\n"
-    "                            str(output.finish_reason) == \"length\"\n"
+    '                            str(output.finish_reason) == "length"\n'
     "                            and delta_message is not None\n"
-    "                            and getattr(delta_message, \"tool_calls\", None)\n"
+    '                            and getattr(delta_message, "tool_calls", None)\n'
     "                        ):\n"
     "                            _kept = [\n"
     "                                tc\n"
     "                                for tc in delta_message.tool_calls\n"
-    "                                if getattr(tc, \"function\", None)\n"
+    '                                if getattr(tc, "function", None)\n'
     "                                and _dsml_issue55_json_ok(tc.function.arguments)\n"
     "                            ]\n"
     "                            delta_message.tool_calls = _kept or None"
@@ -104,34 +105,34 @@ NOSTREAM_OLD = (
     "                index=output.index,\n"
     "                message=message,\n"
     "                logprobs=logprobs,\n"
-    "                finish_reason=\"tool_calls\"\n"
+    '                finish_reason="tool_calls"\n'
     "                if is_finish_reason_tool_calls\n"
     "                else output.finish_reason\n"
     "                if output.finish_reason\n"
-    "                else \"stop\","
+    '                else "stop",'
 )
 
 NOSTREAM_NEW = (
     "            " + MARK + " if the engine truncated for length, do not\n"
     "            # claim tool_calls ended cleanly, and drop unparseable args.\n"
-    "            if str(output.finish_reason) == \"length\":\n"
+    '            if str(output.finish_reason) == "length":\n'
     "                is_finish_reason_tool_calls = False\n"
-    "                if getattr(message, \"tool_calls\", None):\n"
+    '                if getattr(message, "tool_calls", None):\n'
     "                    message.tool_calls = [\n"
     "                        tc\n"
     "                        for tc in message.tool_calls\n"
-    "                        if getattr(tc, \"function\", None)\n"
+    '                        if getattr(tc, "function", None)\n'
     "                        and _dsml_issue55_json_ok(tc.function.arguments)\n"
     "                    ] or None\n"
     "            choice_data = ChatCompletionResponseChoice(\n"
     "                index=output.index,\n"
     "                message=message,\n"
     "                logprobs=logprobs,\n"
-    "                finish_reason=\"tool_calls\"\n"
+    '                finish_reason="tool_calls"\n'
     "                if is_finish_reason_tool_calls\n"
     "                else str(output.finish_reason)\n"
     "                if output.finish_reason\n"
-    "                else \"stop\","
+    '                else "stop",'
 )
 
 
@@ -151,7 +152,9 @@ def main() -> int:
         root = Path(sys.argv[2]) if len(sys.argv) > 2 else DEFAULT_VLLM
         p = root / SERVING
         applied = p.is_file() and MARK in p.read_text(encoding="utf-8")
-        print("issue55 tool-call truncation    :", "APPLIED" if applied else "NOT APPLIED")
+        print(
+            "issue55 tool-call truncation    :", "APPLIED" if applied else "NOT APPLIED"
+        )
         return 0
     vllm_root = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_VLLM
     path = vllm_root / SERVING

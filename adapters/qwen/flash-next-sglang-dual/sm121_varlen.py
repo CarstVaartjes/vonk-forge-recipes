@@ -134,9 +134,7 @@ def qsa_sm121_varlen_attention(
     if k.dtype != v.dtype:
         raise TypeError(f"k/v dtypes must match, got {k.dtype}/{v.dtype}")
     if k.dtype != q.dtype and k.dtype not in _fp8:
-        raise TypeError(
-            f"k/v dtype {k.dtype} is not {q.dtype} or fp8"
-        )
+        raise TypeError(f"k/v dtype {k.dtype} is not {q.dtype} or fp8")
     if q.device != k.device or q.device != v.device:
         raise ValueError("q/k/v must be on the same CUDA device")
     if cu_seqlens_q.device != q.device or cu_seqlens_k.device != q.device:

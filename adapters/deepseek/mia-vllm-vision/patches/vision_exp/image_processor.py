@@ -5,18 +5,19 @@ Adapted from deepseek-ai/DeepSeek-V4-Flash-Vision-Exp ``inference/image_processo
 back through URLs. Video is not part of this checkpoint: GIF is decoded as a
 still RGB frame (PIL's first frame).
 """
+
 from __future__ import annotations
 
 import base64
 import io
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
 from types import SimpleNamespace
-from typing import Any, Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from urllib.request import urlopen
 
 if TYPE_CHECKING:
-    import torch
     from PIL import Image as PILImage
 
 
@@ -271,7 +272,9 @@ def solve_resize_ratio(height, width, patch_size, downsample_ratio, max_n_token)
     return n_llm_h, n_llm_w, best_height, best_width, num_tokens
 
 
-def safe_resize(height, width, best_height, best_width, patch_size, downsample_ratio, max_n_token):
+def safe_resize(
+    height, width, best_height, best_width, patch_size, downsample_ratio, max_n_token
+):
     max_n_token -= COMPRESS_PAD_TO - 1
     n_llm_h, n_llm_w, num_tokens = grid_tokens(
         best_height, best_width, patch_size, downsample_ratio
@@ -325,7 +328,10 @@ def pil_to_patches(image: PILImage.Image, args) -> tuple[Any, int, int, int, int
     p = args.vision_patch_size
     image = image.convert("RGB")
     width, height = image.size
-    if args.vision_max_wh_ratio is not None and width > height * args.vision_max_wh_ratio:
+    if (
+        args.vision_max_wh_ratio is not None
+        and width > height * args.vision_max_wh_ratio
+    ):
         width = height * args.vision_max_wh_ratio
     if 0 < width * height < args.vision_min_pixels:
         ratio = (args.vision_min_pixels / (width * height)) ** 0.5
@@ -344,7 +350,10 @@ def pil_to_patches(image: PILImage.Image, args) -> tuple[Any, int, int, int, int
     )
     n_vit_h, n_vit_w = best_height // p, best_width // p
     src_w, src_h = image.size
-    if args.vision_max_wh_ratio is not None and src_w >= args.vision_max_wh_ratio * src_h:
+    if (
+        args.vision_max_wh_ratio is not None
+        and src_w >= args.vision_max_wh_ratio * src_h
+    ):
         image = image.resize((best_width, best_height))
     else:
         image = ImageOps.pad(image, (best_width, best_height), color=(127, 127, 127))
@@ -387,14 +396,20 @@ def build_image_block(n_llm_h: int, n_llm_w: int, start_pos: int):
     row_len = n_llm_w + 1
     pad_last = rows // 2 * row_len % 2 * 2
     types = torch.tensor(
-        ([IMAGE] * n_llm_w + [IMAGE_NEW_LINE]) * n_llm_h + [IMAGE_PAD] * (row_len * pad_h),
+        ([IMAGE] * n_llm_w + [IMAGE_NEW_LINE]) * n_llm_h
+        + [IMAGE_PAD] * (row_len * pad_h),
         dtype=torch.int64,
     )
-    order = torch.arange(rows * row_len).view(rows // 2, 2, row_len).transpose(1, 2).reshape(-1)
-    image_idx = torch.full((rows * row_len,), -1, dtype=torch.int64)
-    image_idx.view(rows, row_len)[:n_llm_h, :n_llm_w] = torch.arange(n_llm_h * n_llm_w).view(
-        n_llm_h, n_llm_w
+    order = (
+        torch.arange(rows * row_len)
+        .view(rows // 2, 2, row_len)
+        .transpose(1, 2)
+        .reshape(-1)
     )
+    image_idx = torch.full((rows * row_len,), -1, dtype=torch.int64)
+    image_idx.view(rows, row_len)[:n_llm_h, :n_llm_w] = torch.arange(
+        n_llm_h * n_llm_w
+    ).view(n_llm_h, n_llm_w)
     perm = image_idx[order]
     perm = perm[perm >= 0]
     types = torch.cat(

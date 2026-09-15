@@ -2,6 +2,7 @@
 
 Images only. The checkpoint has no video encoder; GIF is a still frame via PIL.
 """
+
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
@@ -9,7 +10,6 @@ from typing import Any
 
 import torch
 from transformers.feature_extraction_utils import BatchFeature
-
 from vllm.inputs import MultiModalDataDict
 from vllm.multimodal import MULTIMODAL_REGISTRY
 from vllm.multimodal.inputs import MultiModalFieldConfig
@@ -39,9 +39,11 @@ def _image_token_id(tokenizer) -> int:
     convert = getattr(tokenizer, "convert_tokens_to_ids", None)
     if convert is not None:
         token_id = convert(IMAGE_PLACEHOLDER)
-        if token_id is not None and token_id != getattr(tokenizer, "unk_token_id", None):
+        if token_id is not None and token_id != getattr(
+            tokenizer, "unk_token_id", None
+        ):
             return int(token_id)
-    vocab = getattr(tokenizer, "get_vocab", lambda: {})()
+    vocab = getattr(tokenizer, "get_vocab", dict)()
     if IMAGE_PLACEHOLDER in vocab:
         return int(vocab[IMAGE_PLACEHOLDER])
     return IMAGE_TOKEN_ID

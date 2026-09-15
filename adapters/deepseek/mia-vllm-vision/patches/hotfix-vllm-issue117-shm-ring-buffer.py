@@ -6,6 +6,7 @@ so this patcher recognizes that one exact companion overlay without changing
 it.  Only complete pinned stock or complete issue-117 post-images are accepted.
 Publication is staged beside the target, durable, atomic, and recoverable.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -15,9 +16,10 @@ import os
 import stat
 import sys
 import tempfile
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Literal
 
 PRODUCTION_TARGET = Path(
     "/usr/local/lib/python3.12/dist-packages/vllm/distributed/"
@@ -33,14 +35,14 @@ SPIN_ISSUE79 = b"busy_loop_s: float = 0.002"
 OLD_CONSTANT = (
     b"VLLM_RINGBUFFER_WARNING_INTERVAL = envs.VLLM_RINGBUFFER_WARNING_INTERVAL\n\n"
 )
-NEW_CONSTANT = b'''VLLM_RINGBUFFER_WARNING_INTERVAL = envs.VLLM_RINGBUFFER_WARNING_INTERVAL
+NEW_CONSTANT = b"""VLLM_RINGBUFFER_WARNING_INTERVAL = envs.VLLM_RINGBUFFER_WARNING_INTERVAL
 # Cap on how long an idle reader parks before re-reading the authoritative SHM
 # written-flag. Bounds lost-notify recovery latency to ~5s while the periodic
 # wakeup stays negligible (one flag check per reader every 5s).
 SHM_READER_RECHECK_INTERVAL_MS = 5000
 
 
-'''
+"""
 OLD_TIMEOUT = b'''        def timeout_ms(self) -> int | None:
             """Returns a timeout that is:
             - min(time to deadline, time to next warning) if we're logging warnings
@@ -78,7 +80,7 @@ NEW_TIMEOUT = b'''        def timeout_ms(self) -> int:
                 raise TimeoutError
             return min(wait_ms, time_left_ms)
 '''
-OLD_RELEASE = b'''                with self.buffer.get_data(self.current_idx) as buf:
+OLD_RELEASE = b"""                with self.buffer.get_data(self.current_idx) as buf:
                     yield buf
 
                 # caller has read from the buffer
@@ -91,8 +93,8 @@ OLD_RELEASE = b'''                with self.buffer.get_data(self.current_idx) as
                 self.current_idx = (self.current_idx + 1) % self.buffer.max_chunks
 
                 self._spin_condition.record_read()
-'''
-NEW_RELEASE = b'''                with self.buffer.get_data(self.current_idx) as buf:
+"""
+NEW_RELEASE = b"""                with self.buffer.get_data(self.current_idx) as buf:
                     try:
                         yield buf
                     finally:
@@ -105,15 +107,19 @@ NEW_RELEASE = b'''                with self.buffer.get_data(self.current_idx) as
                         next_idx = self.current_idx + 1
                         self.current_idx = next_idx % self.buffer.max_chunks
                         self._spin_condition.record_read()
-'''
+"""
 
 # Complete-file identities derived from vLLM commit 752a3a504485790a2e8491cacbb35c137339ad34.
 # Git blob 43e066c44b08453a781098fb04c04d37d8c1a429; bytes are not normalized.
 # The issue #79 variants differ only in SPIN_STOCK versus SPIN_ISSUE79.
 STOCK_SHA256 = "7ff67c2ef6b8a33a13b11aa3cb202da7887d1d44eed27c6a02d817ea24807d61"
-STOCK_ISSUE79_SHA256 = "423234a203429b4d74aa48021a3ea02f3811be7d6a1938369feed298254fd51f"
+STOCK_ISSUE79_SHA256 = (
+    "423234a203429b4d74aa48021a3ea02f3811be7d6a1938369feed298254fd51f"
+)
 PATCHED_SHA256 = "911e0dd65e0a0c6346e4f8f2120d2417fefe431ce5f2618ba9e9c9e1986faf23"
-PATCHED_ISSUE79_SHA256 = "30d8b62817adab4fabde8ddc6ce9a0f4b71899b80f70e8a50c688f5e63a46b0f"
+PATCHED_ISSUE79_SHA256 = (
+    "30d8b62817adab4fabde8ddc6ce9a0f4b71899b80f70e8a50c688f5e63a46b0f"
+)
 SOURCE_IDENTITIES: dict[str, tuple[str, bool, int]] = {
     STOCK_SHA256: ("stock-compatible", False, 39_864),
     STOCK_ISSUE79_SHA256: ("stock-compatible", True, 39_868),
@@ -258,7 +264,9 @@ def _classify_data(data: bytes) -> tuple[State, bool, str]:
 
     state = identity[0]
     issue79 = identity[1]
-    expected_regions = (1, 0, 1, 0, 1, 0) if state == "stock-compatible" else (0, 1, 0, 1, 0, 1)
+    expected_regions = (
+        (1, 0, 1, 0, 1, 0) if state == "stock-compatible" else (0, 1, 0, 1, 0, 1)
+    )
     expected_spin = (0, 1) if issue79 else (1, 0)
     if counts[:6] != expected_regions or counts[6:] != expected_spin:
         raise CompatibilityError(
@@ -267,9 +275,7 @@ def _classify_data(data: bytes) -> tuple[State, bool, str]:
     return state, issue79, digest
 
 
-def inspect_target(
-    target: Path, metadata_provider: MetadataProvider
-) -> Inspection:
+def inspect_target(target: Path, metadata_provider: MetadataProvider) -> Inspection:
     """Classify an exact regular stock/post-image without mutation."""
     before = _lstat_regular(target)
     vllm_version = _load_version(metadata_provider)
@@ -319,9 +325,7 @@ def _write_all(fd: int, data: bytes) -> None:
         remaining = remaining[written:]
 
 
-def _stage_temp(
-    target: Path, data: bytes, original: os.stat_result, tag: str
-) -> Path:
+def _stage_temp(target: Path, data: bytes, original: os.stat_result, tag: str) -> Path:
     fd = -1
     temp_path: Path | None = None
     try:
@@ -446,9 +450,7 @@ def apply(target: Path, metadata_provider: MetadataProvider) -> ApplyResult:
         candidate_temp = _stage_temp(
             target, candidate, inspection.file_stat, "candidate"
         )
-        _require_original_unchanged(
-            target, inspection.data, inspection.file_stat
-        )
+        _require_original_unchanged(target, inspection.data, inspection.file_stat)
         try:
             os.replace(candidate_temp, target)
         except BaseException:
@@ -551,9 +553,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if mode in {"check", "status"}:
-            inspection = inspect_target(
-                PRODUCTION_TARGET, importlib.metadata.version
-            )
+            inspection = inspect_target(PRODUCTION_TARGET, importlib.metadata.version)
             _log(
                 mode,
                 inspection.state,

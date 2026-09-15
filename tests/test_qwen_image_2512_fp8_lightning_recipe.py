@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import sys
 import unittest
@@ -8,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, content_sha256  # noqa: E402
+from vonk_forge_contracts import ModelDefinition, content_sha256
 
 
 def read(path: Path) -> dict[str, object]:
@@ -33,11 +32,15 @@ class QwenImage2512FP8LightningRecipeTests(unittest.TestCase):
 
     def test_four_step_1328_image_request_and_offline_build(self) -> None:
         recipe = read(ROOT / "recipes/qwen-image-2512-lightning-diffusers-single.json")
-        args = {item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]}  # type: ignore[index]
+        args = {
+            item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]
+        }  # type: ignore[index]
         self.assertEqual(args["num-inference-steps"], 4)
         self.assertEqual(args["width"], 1328)
         self.assertEqual(args["height"], 1328)
-        self.assertIn(recipe["execution"]["build"]["network"]["mode"], {"none", "public"})  # type: ignore[index]
+        self.assertIn(
+            recipe["execution"]["build"]["network"]["mode"], {"none", "public"}
+        )  # type: ignore[index]
         self.assertTrue(recipe["validation"]["serving"]["checks"])  # type: ignore[index]
 
 

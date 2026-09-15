@@ -27,10 +27,12 @@ def patch_tree(package_root: Path) -> None:
         )
 
     if "elif config.ATTN == 'sdpa':" not in full.read_text():
-        replace_once(full, "import torch\n", "import torch\nimport torch.nn.functional as F\n")
+        replace_once(
+            full, "import torch\n", "import torch\nimport torch.nn.functional as F\n"
+        )
         replace_once(
             full,
-            "    else:\n        raise ValueError(f\"Unknown attention module: {config.ATTN}\")\n",
+            '    else:\n        raise ValueError(f"Unknown attention module: {config.ATTN}")\n',
             """    elif config.ATTN == 'sdpa':
         if num_all_args == 1:
             q, k, v = qkv.unbind(dim=1)
@@ -53,7 +55,9 @@ def patch_tree(package_root: Path) -> None:
 """,
         )
 
-    replace_once(windowed, "import torch\n", "import torch\nimport torch.nn.functional as F\n")
+    replace_once(
+        windowed, "import torch\n", "import torch\nimport torch.nn.functional as F\n"
+    )
     replace_once(
         windowed,
         "    return fwd_indices, bwd_indices, seq_lens, attn_func_args\n",

@@ -1,6 +1,8 @@
 from pathlib import Path
 
-p = Path("/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py")
+p = Path(
+    "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py"
+)
 s = p.read_text()
 
 prefill_old = (
@@ -31,7 +33,9 @@ if s.count(decode_old) != 1:
     raise SystemExit("decode alloc match count: %d" % s.count(decode_old))
 p.write_text(s.replace(decode_old, decode_new))
 
-p = Path("/usr/local/lib/python3.12/dist-packages/vllm/models/glm5next/nvidia/ops/kpool_compress.py")
+p = Path(
+    "/usr/local/lib/python3.12/dist-packages/vllm/models/glm5next/nvidia/ops/kpool_compress.py"
+)
 s = p.read_text()
 guard_old = "    hist_out = tl.where(pid >= 0, hist_val, -1)\n"
 guard_new = "    hist_out = tl.where((pid >= 0) & (pid < pool_len), hist_val, -1)\n"

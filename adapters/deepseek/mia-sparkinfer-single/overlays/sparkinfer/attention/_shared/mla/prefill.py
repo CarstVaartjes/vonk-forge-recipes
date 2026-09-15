@@ -329,9 +329,12 @@ def run_unified_prefill(
     #     XV stays FP8). FlashInfer routes topk==128 to this BF16-QK kernel (the
     #     small K-loop where the Q-quant prologue would dominate); it lands a
     #     TIGHTER numeric (no Q-quant loss) than FP8.
-    _mg_enabled = os.environ.get(
-        "SPARKINFER_MLA_SM120_PREFILL_MG", "1"
-    ) not in ("0", "false", "False", "off")
+    _mg_enabled = os.environ.get("SPARKINFER_MLA_SM120_PREFILL_MG", "1") not in (
+        "0",
+        "false",
+        "False",
+        "off",
+    )
     # ── GLM (ARBITRARY_FP32, q=576, v_has_rope=False) MG gate ──────────────────
     # GLM has the SAME FlashInfer MG head-group structure as DSV4 (one CTA fuses
     # MG_N_HG HPB head groups, sharing the KV gather), differing only in the math

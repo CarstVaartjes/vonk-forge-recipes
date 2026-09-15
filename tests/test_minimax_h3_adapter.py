@@ -45,10 +45,15 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
     def test_recipe_resolves_exact_local_authorities(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
         model = json.loads(MODEL_PATH.read_text(encoding="utf-8"))
-        from vonk_forge_contracts import ModelDefinition
-        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], _canonical_digest(MODEL_PATH))
+        self.assertEqual(
+            recipe["models"][0]["model"]["content_sha256"],
+            _canonical_digest(MODEL_PATH),
+        )
         self.assertEqual(model["source"]["revision"], MODEL_REVISION)
-        self.assertEqual({item["name"] for item in recipe["runtime"]["environment"]}, {"HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE"})
+        self.assertEqual(
+            {item["name"] for item in recipe["runtime"]["environment"]},
+            {"HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE"},
+        )
 
         tags = set(recipe["metadata"]["tags"])
         self.assertIn("candidate", tags)
@@ -134,16 +139,21 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
                 return iter(())
 
         with mock.patch.dict(
-            sys.modules, {"av": types.SimpleNamespace(open=lambda *_a, **_k: Container())}
+            sys.modules,
+            {"av": types.SimpleNamespace(open=lambda *_a, **_k: Container())},
         ):
             module._verify_joint_av(
                 Path("unused.mp4"), width=960, height=544, frame_count=124
             )
 
         video_stream.codec_context.name = "hevc"
-        with mock.patch.dict(
-            sys.modules, {"av": types.SimpleNamespace(open=lambda *_a, **_k: Container())}
-        ), self.assertRaisesRegex(RuntimeError, "H.264 video and AAC audio"):
+        with (
+            mock.patch.dict(
+                sys.modules,
+                {"av": types.SimpleNamespace(open=lambda *_a, **_k: Container())},
+            ),
+            self.assertRaisesRegex(RuntimeError, "H.264 video and AAC audio"),
+        ):
             module._verify_joint_av(
                 Path("unused.mp4"), width=960, height=544, frame_count=124
             )
@@ -192,9 +202,7 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
         input_contract = recipe["interfaces"][0]["input"]
         slots = {slot["id"]: slot for slot in input_contract["slots"]}
-        self.assertEqual(
-            set(slots), {"prompt", "request", "images", "videos", "audio"}
-        )
+        self.assertEqual(set(slots), {"prompt", "request", "images", "videos", "audio"})
         self.assertEqual(slots["prompt"]["media_types"], ["text/plain"])
         self.assertEqual(slots["prompt"]["min_files"], 1)
         self.assertEqual(slots["request"]["media_types"], ["application/json"])
@@ -245,9 +253,7 @@ class MiniMaxH3InputContractTests(unittest.TestCase):
     def test_request_accepts_bounded_generation_controls(self) -> None:
         request = self.module.INPUT_ROOT / "request.json"
         request.write_text(
-            json.dumps(
-                {"num_frames": 124, "width": 960, "height": 544}
-            ),
+            json.dumps({"num_frames": 124, "width": 960, "height": 544}),
             encoding="utf-8",
         )
         value = self.module._load_request()
@@ -275,14 +281,10 @@ class MiniMaxH3InputContractTests(unittest.TestCase):
             ("balanced", 30),
             ("qualification-reference", 50),
         ):
-            sigma_grid_points = self.module._profile_sigma_grid_points(
-                profile, 31
-            )
+            sigma_grid_points = self.module._profile_sigma_grid_points(profile, 31)
             self.assertEqual(sigma_grid_points - 1, evaluations)
 
-        self.assertEqual(
-            self.module._profile_sigma_grid_points(None, 31), 31
-        )
+        self.assertEqual(self.module._profile_sigma_grid_points(None, 31), 31)
         with self.assertRaisesRegex(ValueError, "profile must be one of"):
             self.module._profile_sigma_grid_points("quick", 31)
         with self.assertRaisesRegex(ValueError, "must match a named"):

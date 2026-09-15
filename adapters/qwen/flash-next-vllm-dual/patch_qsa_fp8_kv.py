@@ -30,6 +30,7 @@ Inputs:  files/qsa_ops_patched.py.orig     (nvidia/ops/qsa.py from the image)
          files/qsa_nvidia_patched.py.orig  (nvidia/qsa.py from the image)
 Outputs: files/qsa_ops_patched.py, files/qsa_nvidia_patched.py
 """
+
 import ast
 import os
 import sys
@@ -112,18 +113,14 @@ patch(
         ),
         # -- MQA (block-selection) kernel: signature -------------------------
         (
-            "    num_requests,\n"
-            "    score_divisor,\n"
-            "    PAGE_SIZE: tl.constexpr,\n",
+            "    num_requests,\n    score_divisor,\n    PAGE_SIZE: tl.constexpr,\n",
             "    num_requests,\n"
             "    score_divisor,\n"
             "    k_scale_ptr,\n"
             "    PAGE_SIZE: tl.constexpr,\n",
         ),
         (
-            "    MAX_N: tl.constexpr,\n"
-            "    COMPRESS_RATIO: tl.constexpr,\n"
-            ") -> None:\n",
+            "    MAX_N: tl.constexpr,\n    COMPRESS_RATIO: tl.constexpr,\n) -> None:\n",
             "    MAX_N: tl.constexpr,\n"
             "    COMPRESS_RATIO: tl.constexpr,\n"
             "    KV_QUANT_MODE: tl.constexpr,\n"
@@ -194,11 +191,10 @@ patch(
         (
             "    _validate_mqa(q)\n",
             "    _validate_mqa(q)\n"
-            "    k_cache = _qsa_as_fp8(k_cache, kv_quant_mode, \"selector\")\n",
+            '    k_cache = _qsa_as_fp8(k_cache, kv_quant_mode, "selector")\n',
         ),
         (
-            "        float(score_divisor),\n"
-            "        PAGE_SIZE=k_cache.shape[1],\n",
+            "        float(score_divisor),\n        PAGE_SIZE=k_cache.shape[1],\n",
             "        float(score_divisor),\n"
             "        _qsa_scale_ptr(k_scale, q.device),\n"
             "        PAGE_SIZE=k_cache.shape[1],\n",
@@ -239,8 +235,7 @@ patch(
             "        assert k_cache.dtype == v_cache.dtype == torch.bfloat16\n",
         ),
         (
-            "        block_table.shape[0],\n"
-            "        TOPK=logical_indices.shape[1],\n",
+            "        block_table.shape[0],\n        TOPK=logical_indices.shape[1],\n",
             "        block_table.shape[0],\n"
             "        _qsa_scale_ptr(k_scale, q.device),\n"
             "        _qsa_scale_ptr(v_scale, q.device),\n"

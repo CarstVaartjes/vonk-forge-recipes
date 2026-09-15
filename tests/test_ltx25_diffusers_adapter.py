@@ -51,7 +51,9 @@ def _preflight_module():
     module = types.ModuleType("ltx25_diffusers_preflight")
     module.__file__ = str(PREFLIGHT_PATH)
     exec(  # noqa: S102 - exercise the standalone preflight module in isolation.
-        compile(PREFLIGHT_PATH.read_text(encoding="utf-8"), str(PREFLIGHT_PATH), "exec"),
+        compile(
+            PREFLIGHT_PATH.read_text(encoding="utf-8"), str(PREFLIGHT_PATH), "exec"
+        ),
         module.__dict__,
     )
     return module
@@ -64,24 +66,41 @@ class Ltx25CatalogTests(unittest.TestCase):
 
         self.assertEqual(model["source"]["revision"], MODEL_REVISION)
         selection = recipe["models"][0]
-        self.assertEqual([item["id"] for item in selection["files"]], ["primary-filtered-snapshot", "primary-filtered-snapshot-2"])
+        self.assertEqual(
+            [item["id"] for item in selection["files"]],
+            ["primary-filtered-snapshot", "primary-filtered-snapshot-2"],
+        )
         self.assertTrue(model["license"]["operator_acceptance_required"])
         self.assertEqual(model["license"]["spdx"], "LicenseRef-LTX-2-Community")
         from vonk_forge_contracts import ModelDefinition
-        model_digest = hashlib.sha256(json.dumps(ModelDefinition.model_validate(model).model_dump(mode="json"), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+        model_digest = hashlib.sha256(
+            json.dumps(
+                ModelDefinition.model_validate(model).model_dump(mode="json"),
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode()
+        ).hexdigest()
         self.assertEqual(selection["model"]["content_sha256"], model_digest)
         index = _document(ROOT / "catalog-index.json")
-        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{RECIPE.name}")
+        entry = next(
+            item
+            for item in index["recipes"]
+            if item["source_path"] == f"recipes/{RECIPE.name}"
+        )
         self.assertEqual(entry["package"]["recipe_content_sha256"], _digest(RECIPE))
         self.assertEqual(model["files"][0]["size_bytes"], 70_090_051_372)
         role = recipe["topology"]["roles"][0]
         disk = role["resources"]["disk"]
         self.assertGreaterEqual(disk["artifact_bytes"], model["files"][0]["size_bytes"])
         memory = role["resources"]["memory"]
-        required = max(
-            memory["startup_peak_bytes"],
-            memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
-        ) + memory["system_reserve_bytes"]
+        required = (
+            max(
+                memory["startup_peak_bytes"],
+                memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
+            )
+            + memory["system_reserve_bytes"]
+        )
         self.assertEqual(required, 128_000_000_000)
         input_contract = recipe["interfaces"][0]["input"]
         self.assertEqual(input_contract["max_bytes"], 81_920)
@@ -102,7 +121,9 @@ class Ltx25CatalogTests(unittest.TestCase):
 
     def test_filtered_snapshot_matches_adapter_closure(self) -> None:
         adapter = _adapter_module()
-        selected = "\n".join(item["file_id"] for item in _document(RECIPE)["models"][0]["files"])
+        selected = "\n".join(
+            item["file_id"] for item in _document(RECIPE)["models"][0]["files"]
+        )
         self.assertIn("filtered-snapshot", selected)
         for excluded in adapter.FORBIDDEN_PATHS:
             self.assertNotIn(excluded, selected)
@@ -126,7 +147,9 @@ class Ltx25CatalogTests(unittest.TestCase):
         self.assertIn("TRANSFORMERS_OFFLINE=1", dockerfile)
         self.assertIn("a95ab856bf29407b6b066ede0abe1846050db56c/LICENSE-2_x", readme)
         self.assertIn("Hugging Face read token", readme)
-        self.assertIn("be75acae5c99b0fb16ed6cfbf8f731e5121a729bef112d20337699407e796451", readme)
+        self.assertIn(
+            "be75acae5c99b0fb16ed6cfbf8f731e5121a729bef112d20337699407e796451", readme
+        )
         self.assertIn("505-byte", readme)
         self.assertIn("generic managed-artifact", readme)
         self.assertIn("error; rerun this preflight", readme)
@@ -140,9 +163,7 @@ class Ltx25PreflightTests(unittest.TestCase):
         self.preflight = _preflight_module()
 
     def test_license_acknowledgement_is_bound_to_exact_pinned_text(self) -> None:
-        self.preflight._verify_license_acknowledgement(
-            self.preflight.LICENSE_SHA256
-        )
+        self.preflight._verify_license_acknowledgement(self.preflight.LICENSE_SHA256)
         with self.assertRaisesRegex(
             self.preflight.PreflightError, "pinned LTX-2 Community License"
         ):
@@ -184,15 +205,18 @@ class Ltx25PreflightTests(unittest.TestCase):
 
         opener = mock.Mock()
         opener.open.return_value = Response()
-        with mock.patch.object(self.preflight, "PROBE_BYTES", 5), mock.patch.object(
-            self.preflight, "PROBE_GIT_BLOB_SHA1", blob_sha1
+        with (
+            mock.patch.object(self.preflight, "PROBE_BYTES", 5),
+            mock.patch.object(self.preflight, "PROBE_GIT_BLOB_SHA1", blob_sha1),
         ):
             digest = self.preflight._verify_gated_access(
                 "hf_private_test_value", opener=opener
             )
         self.assertEqual(digest, hashlib.sha256(payload).hexdigest())
         request = opener.open.call_args.args[0]
-        self.assertEqual(request.get_header("Authorization"), "Bearer hf_private_test_value")
+        self.assertEqual(
+            request.get_header("Authorization"), "Bearer hf_private_test_value"
+        )
         self.assertEqual(opener.open.call_args.kwargs["timeout"], 30)
 
     def test_access_failures_are_clear_and_do_not_echo_token(self) -> None:
@@ -265,6 +289,7 @@ class Ltx25AdapterTests(unittest.TestCase):
         for invalid in (-1, 2**63, True, "42"):
             with self.assertRaises(ValueError):
                 self.adapter._seed(invalid, 0)
+
     def test_prompt_file_is_required_and_options_json_is_optional(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             self.adapter.INPUT_ROOT = Path(directory)

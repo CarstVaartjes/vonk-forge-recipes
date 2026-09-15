@@ -15,16 +15,16 @@ from functools import cache, lru_cache, wraps
 from typing import TYPE_CHECKING, NamedTuple, TypeVar
 
 import torch
+
+# import custom ops, trigger op registration
+import vllm._C_stable_libtorch
 from torch.distributed import PrefixStore, ProcessGroup
 from torch.distributed.distributed_c10d import is_nccl_available
 from typing_extensions import ParamSpec
 
-# import custom ops, trigger op registration
-import vllm._C_stable_libtorch  # noqa
-
 with contextlib.suppress(ImportError):
     import vllm._qutlass_C  # noqa
-import vllm.envs as envs
+from vllm import envs
 from vllm.logger import init_logger
 from vllm.utils.import_utils import import_pynvml
 from vllm.v1.attention.backends.registry import AttentionBackendEnum
@@ -257,11 +257,11 @@ class CudaPlatformBase(Platform):
     def import_kernels(cls) -> None:
         """Import CUDA kernel extensions (_C_stable_libtorch, optional _qutlass_C)."""
         try:
-            import vllm._C_stable_libtorch  # noqa: F401
+            import vllm._C_stable_libtorch
         except ImportError as e:
             logger.warning_once("Failed to import from vllm._C_stable_libtorch: %r", e)
         with contextlib.suppress(ImportError):
-            import vllm._moe_C_stable_libtorch  # noqa: F401
+            import vllm._moe_C_stable_libtorch
         with contextlib.suppress(ImportError):
             import vllm._qutlass_C  # noqa: F401
 
@@ -335,7 +335,7 @@ class CudaPlatformBase(Platform):
                 return False
             # On compatible WSL2 kernels, pinned memory is supported but
             # disabled by default. Enable it via VLLM_WSL2_ENABLE_PIN_MEMORY=1.
-            import vllm.envs as envs
+            from vllm import envs
 
             return envs.VLLM_WSL2_ENABLE_PIN_MEMORY
         return True
@@ -604,7 +604,7 @@ class CudaPlatformBase(Platform):
     @classmethod
     def get_device_communicator_cls(cls) -> str:
         return (
-            "vllm.distributed.device_communicators.cuda_communicator.CudaCommunicator"  # noqa
+            "vllm.distributed.device_communicators.cuda_communicator.CudaCommunicator"
         )
 
     @classmethod

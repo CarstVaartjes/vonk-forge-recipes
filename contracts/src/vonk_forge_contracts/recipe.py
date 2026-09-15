@@ -3,6 +3,7 @@
 Only author intent is represented here.  Runtime resolution, image receipts,
 engine compatibility, and placement plans remain platform-owned concerns.
 """
+
 from __future__ import annotations
 
 import json
@@ -30,18 +31,31 @@ class _RecipeContract(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
 
 
-Identifier = Annotated[StrictStr, Field(min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]*$")]
+Identifier = Annotated[
+    StrictStr, Field(min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]*$")
+]
 Sha256 = Annotated[StrictStr, Field(pattern=r"^[a-f0-9]{64}$")]
 _SEGMENT = r"(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\.[A-Za-z0-9_-][A-Za-z0-9._-]*)"
-AbsolutePath = Annotated[StrictStr, Field(max_length=256, pattern=rf"^/{_SEGMENT}(?:/{_SEGMENT})*$")]
-RelativePath = Annotated[StrictStr, Field(max_length=256, pattern=rf"^{_SEGMENT}(?:/{_SEGMENT})*$")]
+AbsolutePath = Annotated[
+    StrictStr, Field(max_length=256, pattern=rf"^/{_SEGMENT}(?:/{_SEGMENT})*$")
+]
+RelativePath = Annotated[
+    StrictStr, Field(max_length=256, pattern=rf"^{_SEGMENT}(?:/{_SEGMENT})*$")
+]
 Scalar = StrictStr | StrictInt | StrictBool | StrictFloat
 type JsonValue = Scalar | None | list[JsonValue] | dict[StrictStr, JsonValue]
 type RuntimeArgumentValue = Scalar | list[JsonValue] | dict[StrictStr, JsonValue]
 ChangeEffect = Literal["none", "restart", "reprepare", "rebuild"]
 ReleaseChangeKind = Literal[
-    "initial", "model", "runtime", "performance", "fix", "security",
-    "compatibility", "breaking", "metadata",
+    "initial",
+    "model",
+    "runtime",
+    "performance",
+    "fix",
+    "security",
+    "compatibility",
+    "breaking",
+    "metadata",
 ]
 ReleaseUpgradeEffect = Literal["none", "restart", "reprepare", "rebuild"]
 
@@ -62,7 +76,9 @@ def _reject_nul(value: str, *, label: str) -> str:
     return value
 
 
-def _validate_runtime_argument_value(value: RuntimeArgumentValue | None) -> RuntimeArgumentValue | None:
+def _validate_runtime_argument_value(
+    value: RuntimeArgumentValue | None,
+) -> RuntimeArgumentValue | None:
     """Validate bounded JSON data without normalizing trusted engine options."""
 
     if value is None:
@@ -74,7 +90,9 @@ def _validate_runtime_argument_value(value: RuntimeArgumentValue | None) -> Runt
         if isinstance(node, str):
             _reject_nul(node, label="runtime argument value")
             if len(node.encode("utf-8")) > MAX_RUNTIME_ARGV_TOKEN_BYTES:
-                raise ValueError("runtime argument value string exceeds maximum UTF-8 size")
+                raise ValueError(
+                    "runtime argument value string exceeds maximum UTF-8 size"
+                )
         elif type(node) is float and not math.isfinite(node):
             raise ValueError("runtime argument value contains a non-finite number")
         elif isinstance(node, list):
@@ -88,16 +106,22 @@ def _validate_runtime_argument_value(value: RuntimeArgumentValue | None) -> Runt
             for key, item in node.items():
                 _reject_nul(key, label="runtime argument object key")
                 if len(key.encode("utf-8")) > MAX_RUNTIME_ARGV_TOKEN_BYTES:
-                    raise ValueError("runtime argument object key exceeds maximum UTF-8 size")
+                    raise ValueError(
+                        "runtime argument object key exceeds maximum UTF-8 size"
+                    )
                 visit(item, depth + 1)
 
     visit(value, 0)
-    serialized = value if isinstance(value, str) else json.dumps(
-        value,
-        ensure_ascii=False,
-        separators=(",", ":"),
-        sort_keys=True,
-        allow_nan=False,
+    serialized = (
+        value
+        if isinstance(value, str)
+        else json.dumps(
+            value,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+            allow_nan=False,
+        )
     )
     try:
         encoded = serialized.encode("utf-8")
@@ -121,7 +145,13 @@ def _validate_argv(tokens: list[str]) -> list[str]:
 def _serialize_runtime_argument_value(value: JsonValue) -> str:
     if isinstance(value, str):
         return value
-    return json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True, allow_nan=False)
+    return json.dumps(
+        value,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+        allow_nan=False,
+    )
 
 
 def _runtime_argument_tokens(argument: RecipeRuntimeArgument) -> list[str]:
@@ -137,15 +167,22 @@ def _runtime_argument_tokens(argument: RecipeRuntimeArgument) -> list[str]:
 
 
 class RecipeIdentity(_RecipeContract):
-    publisher: StrictStr = Field(min_length=2, max_length=64, pattern=r"^[a-z0-9][a-z0-9-]{1,62}$")
-    slug: StrictStr = Field(min_length=2, max_length=64, pattern=r"^[a-z0-9][a-z0-9-]{1,62}$")
+    publisher: StrictStr = Field(
+        min_length=2, max_length=64, pattern=r"^[a-z0-9][a-z0-9-]{1,62}$"
+    )
+    slug: StrictStr = Field(
+        min_length=2, max_length=64, pattern=r"^[a-z0-9][a-z0-9-]{1,62}$"
+    )
 
 
 class RecipeMetadata(_RecipeContract):
     title: StrictStr = Field(min_length=1, max_length=120)
     description: StrictStr = Field(min_length=1, max_length=4000)
     tags: list[StrictStr] = Field(max_length=20)
-    alignment: Literal["standard", "abliterated", "derisked", "other-modified", "unspecified"] | None = None
+    alignment: (
+        Literal["standard", "abliterated", "derisked", "other-modified", "unspecified"]
+        | None
+    ) = None
 
 
 class RecipeMount(_RecipeContract):
@@ -154,8 +191,12 @@ class RecipeMount(_RecipeContract):
 
 
 class RecipeModelFile(_RecipeContract):
-    id: StrictStr = Field(min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]{0,63}$")
-    file_id: StrictStr = Field(min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]{0,63}$")
+    id: StrictStr = Field(
+        min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]{0,63}$"
+    )
+    file_id: StrictStr = Field(
+        min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]{0,63}$"
+    )
     roles: list[StrictStr] = Field(min_length=1, max_length=32)
     mount: RecipeMount
 
@@ -174,7 +215,9 @@ class BuildContext(_RecipeContract):
 
 
 class RecipeImage(_RecipeContract):
-    repository: StrictStr = Field(min_length=1, max_length=512, pattern=r"^[a-z0-9][a-z0-9._/-]*$")
+    repository: StrictStr = Field(
+        min_length=1, max_length=512, pattern=r"^[a-z0-9][a-z0-9._/-]*$"
+    )
     digest: Sha256
     platform: Literal["linux/arm64"]
 
@@ -184,7 +227,9 @@ class BuildPatch(_RecipeContract):
 
 
 class BuildArgument(_RecipeContract):
-    name: StrictStr = Field(min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]{0,63}$")
+    name: StrictStr = Field(
+        min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]{0,63}$"
+    )
     value: Scalar
 
 
@@ -225,7 +270,9 @@ class RecipeBuildExecution(_RecipeContract):
     build: RecipeBuildDefinition
 
 
-RecipeExecution = Annotated[RecipeImageExecution | RecipeBuildExecution, Field(discriminator="mode")]
+RecipeExecution = Annotated[
+    RecipeImageExecution | RecipeBuildExecution, Field(discriminator="mode")
+]
 
 
 class _RecipeSettings(_RecipeContract):
@@ -261,14 +308,19 @@ class RecipeIntegerSetting(RecipeSetting):
     value: StrictInt = Field(ge=1)
 
 
-RecipeSettings = Annotated[RecipeGenerationSettings | RecipeEmbeddingSettings | RecipeJobSettings, Field(discriminator="kind")]
+RecipeSettings = Annotated[
+    RecipeGenerationSettings | RecipeEmbeddingSettings | RecipeJobSettings,
+    Field(discriminator="kind"),
+]
 
 
 class RecipeRuntimeArgument(_RecipeContract):
     # This is an engine keyword, not a shell token or an exhaustive option
     # enum.  Keep its shape structural so the compiler can form a flag safely;
     # the pinned engine remains the authority for whether the name is known.
-    name: StrictStr = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z][A-Za-z0-9_-]{0,63}$")
+    name: StrictStr = Field(
+        min_length=1, max_length=64, pattern=r"^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+    )
     value: RuntimeArgumentValue | None = Field(
         default=None,
         description="A literal process value; null is reserved for the setting-bound placeholder.",
@@ -286,7 +338,9 @@ class RecipeRuntimeArgument(_RecipeContract):
 
     @field_validator("value")
     @classmethod
-    def value_is_bounded_json(cls, value: RuntimeArgumentValue | None) -> RuntimeArgumentValue | None:
+    def value_is_bounded_json(
+        cls, value: RuntimeArgumentValue | None
+    ) -> RuntimeArgumentValue | None:
         return _validate_runtime_argument_value(value)
 
     @model_validator(mode="after")
@@ -304,7 +358,11 @@ class RecipeRuntimeEnvironment(_RecipeContract):
     @field_validator("name", "secret")
     @classmethod
     def names_have_no_nul(cls, value: str | None) -> str | None:
-        return None if value is None else _reject_nul(value, label="runtime environment field")
+        return (
+            None
+            if value is None
+            else _reject_nul(value, label="runtime environment field")
+        )
 
     @field_validator("value")
     @classmethod
@@ -324,7 +382,11 @@ class RecipeFailurePolicy(_RecipeContract):
 
 
 Argv = Annotated[
-    list[Annotated[StrictStr, Field(min_length=1, max_length=MAX_RUNTIME_ARGV_TOKEN_BYTES)]],
+    list[
+        Annotated[
+            StrictStr, Field(min_length=1, max_length=MAX_RUNTIME_ARGV_TOKEN_BYTES)
+        ]
+    ],
     Field(min_length=1, max_length=64),
 ]
 
@@ -406,7 +468,16 @@ class RecipeFabric(_RecipeContract):
 
 class RecipeTopology(_RecipeContract):
     name: StrictStr = Field(min_length=1, max_length=64)
-    mode: Literal["single", "distributed", "tensor_parallel", "pipeline_parallel", "data_parallel", "hybrid", "ray", "mpi"]
+    mode: Literal[
+        "single",
+        "distributed",
+        "tensor_parallel",
+        "pipeline_parallel",
+        "data_parallel",
+        "hybrid",
+        "ray",
+        "mpi",
+    ]
     node_count: StrictInt = Field(ge=1)
     roles: list[RecipeTopologyRole] = Field(min_length=1, max_length=32)
     parallelism: RecipeParallelism
@@ -428,9 +499,14 @@ class RecipeFileSlot(_RecipeContract):
 
     @model_validator(mode="after")
     def consistent(self) -> RecipeFileSlot:
-        if self.min_files > self.max_files or self.max_file_bytes > self.max_total_bytes:
+        if (
+            self.min_files > self.max_files
+            or self.max_file_bytes > self.max_total_bytes
+        ):
             raise ValueError("file slot limits are inconsistent")
-        if len(self.media_types) != len(set(self.media_types)) or len(self.extensions) != len(set(self.extensions)):
+        if len(self.media_types) != len(set(self.media_types)) or len(
+            self.extensions
+        ) != len(set(self.extensions)):
             raise ValueError("file slot media types and extensions must be unique")
         return self
 
@@ -451,7 +527,9 @@ class RecipeJobInput(_RecipeContract):
     required: StrictBool
     media_types: list[StrictStr] = Field(min_length=1, max_length=16)
     max_bytes: StrictInt = Field(ge=1, le=1073741824)
-    slots: list[RecipeInputSlot] | None = Field(default=None, min_length=1, max_length=32)
+    slots: list[RecipeInputSlot] | None = Field(
+        default=None, min_length=1, max_length=32
+    )
 
 
 class RecipeJobOutput(_RecipeContract):
@@ -463,7 +541,9 @@ class RecipeJobOutput(_RecipeContract):
 class RecipeOpenAIInterface(_RecipeContract):
     adapter: Literal["openai"]
     port: StrictInt = Field(ge=1024, le=65535)
-    model_aliases: list[Annotated[StrictStr, Field(min_length=1, max_length=120)]] = Field(min_length=1, max_length=16)
+    model_aliases: list[Annotated[StrictStr, Field(min_length=1, max_length=120)]] = (
+        Field(min_length=1, max_length=16)
+    )
     health_path: AbsolutePath
 
 
@@ -474,16 +554,34 @@ class RecipeJobInterface(_RecipeContract):
     output: RecipeJobOutput
 
 
-RecipeInterface = Annotated[RecipeOpenAIInterface | RecipeJobInterface, Field(discriminator="adapter")]
+RecipeInterface = Annotated[
+    RecipeOpenAIInterface | RecipeJobInterface, Field(discriminator="adapter")
+]
 
 
 ServingKind = Literal[
-    "openai.health", "openai.chat", "openai.vision", "openai.tools", "openai.completion", "openai.embedding",
-    "image-job.output", "audio-job.output", "video-job.output", "mesh-job.output", "artifact-job.output",
+    "openai.health",
+    "openai.chat",
+    "openai.vision",
+    "openai.tools",
+    "openai.completion",
+    "openai.embedding",
+    "image-job.output",
+    "audio-job.output",
+    "video-job.output",
+    "mesh-job.output",
+    "artifact-job.output",
 ]
 ServingAssertion = Literal[
-    "endpoint.healthy", "chat.nonempty", "chat.output-cap", "tools.called", "completion.nonempty", "completion.output-cap",
-    "embedding.nonempty", "inference.completed", "artifact.output",
+    "endpoint.healthy",
+    "chat.nonempty",
+    "chat.output-cap",
+    "tools.called",
+    "completion.nonempty",
+    "completion.output-cap",
+    "embedding.nonempty",
+    "inference.completed",
+    "artifact.output",
 ]
 
 _ASSERTIONS_BY_KIND: dict[str, frozenset[str]] = {
@@ -505,7 +603,9 @@ class RecipeHttpServingRequest(_RecipeContract):
     transport: Literal["http"]
     method: Literal["GET", "POST"]
     path: AbsolutePath
-    body: dict[StrictStr, JsonValue] | None = Field(default=None, min_length=1, max_length=32)
+    body: dict[StrictStr, JsonValue] | None = Field(
+        default=None, min_length=1, max_length=32
+    )
 
     @model_validator(mode="after")
     def method_body(self) -> RecipeHttpServingRequest:
@@ -518,7 +618,9 @@ class RecipeJobServingRequest(_RecipeContract):
     transport: Literal["job"]
     fixture: RelativePath
     input_path: Literal["/inputs"] | None = None
-    input_slots: dict[Identifier, RelativePath] = Field(default_factory=dict, max_length=32)
+    input_slots: dict[Identifier, RelativePath] = Field(
+        default_factory=dict, max_length=32
+    )
     output_path: Literal["/outputs"]
     output_slot: Identifier
 
@@ -529,7 +631,9 @@ class RecipeJobServingRequest(_RecipeContract):
         return self
 
 
-ServingRequest = Annotated[RecipeHttpServingRequest | RecipeJobServingRequest, Field(discriminator="transport")]
+ServingRequest = Annotated[
+    RecipeHttpServingRequest | RecipeJobServingRequest, Field(discriminator="transport")
+]
 
 
 class RecipeValidationCheck(_RecipeContract):
@@ -548,15 +652,30 @@ class RecipeValidationCheck(_RecipeContract):
         if is_job != isinstance(self.request, RecipeJobServingRequest):
             raise ValueError("serving request transport must match serving kind")
         if self.kind == "openai.health":
-            if not isinstance(self.request, RecipeHttpServingRequest) or self.request.method != "GET" or self.assertions != ["endpoint.healthy"]:
-                raise ValueError("health checks require an HTTP GET and endpoint.healthy")
+            if (
+                not isinstance(self.request, RecipeHttpServingRequest)
+                or self.request.method != "GET"
+                or self.assertions != ["endpoint.healthy"]
+            ):
+                raise ValueError(
+                    "health checks require an HTTP GET and endpoint.healthy"
+                )
         elif not is_job:
-            if not isinstance(self.request, RecipeHttpServingRequest) or self.request.method != "POST":
+            if (
+                not isinstance(self.request, RecipeHttpServingRequest)
+                or self.request.method != "POST"
+            ):
                 raise ValueError("representative OpenAI checks require an HTTP POST")
             body = self.request.body or {}
             if self.kind in {"openai.chat", "openai.vision", "openai.tools"}:
-                if self.request.path != "/v1/chat/completions" or not isinstance(body.get("messages"), list) or not body["messages"]:
-                    raise ValueError("chat checks require messages at /v1/chat/completions")
+                if (
+                    self.request.path != "/v1/chat/completions"
+                    or not isinstance(body.get("messages"), list)
+                    or not body["messages"]
+                ):
+                    raise ValueError(
+                        "chat checks require messages at /v1/chat/completions"
+                    )
                 if self.kind == "openai.vision" and not any(
                     isinstance(message, dict)
                     and isinstance(message.get("content"), list)
@@ -571,17 +690,41 @@ class RecipeValidationCheck(_RecipeContract):
                     for message in body["messages"]
                 ):
                     raise ValueError("vision checks require image_url content")
-                required = "tools.called" if self.kind == "openai.tools" else "chat.nonempty"
-                if required not in self.assertions or self.kind == "openai.tools" and not body.get("tools"):
-                    raise ValueError("OpenAI check does not exercise its declared behavior")
+                required = (
+                    "tools.called" if self.kind == "openai.tools" else "chat.nonempty"
+                )
+                if (
+                    required not in self.assertions
+                    or self.kind == "openai.tools"
+                    and not body.get("tools")
+                ):
+                    raise ValueError(
+                        "OpenAI check does not exercise its declared behavior"
+                    )
             elif self.kind == "openai.completion":
-                if self.request.path != "/v1/completions" or not body.get("prompt") or "completion.nonempty" not in self.assertions:
-                    raise ValueError("completion checks require a prompt and completion.nonempty")
+                if (
+                    self.request.path != "/v1/completions"
+                    or not body.get("prompt")
+                    or "completion.nonempty" not in self.assertions
+                ):
+                    raise ValueError(
+                        "completion checks require a prompt and completion.nonempty"
+                    )
             elif self.kind == "openai.embedding":
-                if self.request.path != "/v1/embeddings" or not body.get("input") or "embedding.nonempty" not in self.assertions:
-                    raise ValueError("embedding checks require input and embedding.nonempty")
-            if any(item.endswith("output-cap") for item in self.assertions) and (type(body.get("max_tokens")) is not int or body["max_tokens"] <= 0):
-                raise ValueError("output-cap requires a positive max_tokens request limit")
+                if (
+                    self.request.path != "/v1/embeddings"
+                    or not body.get("input")
+                    or "embedding.nonempty" not in self.assertions
+                ):
+                    raise ValueError(
+                        "embedding checks require input and embedding.nonempty"
+                    )
+            if any(item.endswith("output-cap") for item in self.assertions) and (
+                type(body.get("max_tokens")) is not int or body["max_tokens"] <= 0
+            ):
+                raise ValueError(
+                    "output-cap requires a positive max_tokens request limit"
+                )
         else:
             if not self.request.output_slot:
                 raise ValueError("job checks require an output slot")
@@ -591,7 +734,9 @@ class RecipeValidationCheck(_RecipeContract):
 
 
 class RecipeServingValidation(_RecipeContract):
-    interface: Literal["openai", "image-job", "audio-job", "video-job", "mesh-job", "artifact-job"]
+    interface: Literal[
+        "openai", "image-job", "audio-job", "video-job", "mesh-job", "artifact-job"
+    ]
     checks: list[RecipeValidationCheck] = Field(min_length=1, max_length=32)
 
 
@@ -616,7 +761,11 @@ class RecipeReleaseChange(_RecipeContract):
     kind: ReleaseChangeKind
     summary: StrictStr = Field(min_length=1, max_length=160)
     details: StrictStr | None = Field(default=None, max_length=1000)
-    references: list[Annotated[StrictStr, Field(min_length=1, max_length=500, pattern=r"^https://[^\s]+$")]] = Field(default_factory=list, max_length=8)
+    references: list[
+        Annotated[
+            StrictStr, Field(min_length=1, max_length=500, pattern=r"^https://[^\s]+$")
+        ]
+    ] = Field(default_factory=list, max_length=8)
 
     @model_validator(mode="after")
     def unique_references(self) -> RecipeReleaseChange:
@@ -626,7 +775,14 @@ class RecipeReleaseChange(_RecipeContract):
 
 
 class RecipeReleaseHistoryEntry(_RecipeContract):
-    version: Annotated[StrictStr, Field(min_length=5, max_length=64, pattern=r"^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$")]
+    version: Annotated[
+        StrictStr,
+        Field(
+            min_length=5,
+            max_length=64,
+            pattern=r"^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$",
+        ),
+    ]
     released_at: Annotated[StrictStr, Field(pattern=r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")]
     # The current release deliberately omits its own digest to avoid a
     # circular identity. Older entries retain their digest as explicitly
@@ -648,7 +804,14 @@ class RecipeReleaseHistoryEntry(_RecipeContract):
 
 
 class RecipeRelease(_RecipeContract):
-    version: Annotated[StrictStr, Field(min_length=5, max_length=64, pattern=r"^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$")]
+    version: Annotated[
+        StrictStr,
+        Field(
+            min_length=5,
+            max_length=64,
+            pattern=r"^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$",
+        ),
+    ]
     released_at: Annotated[StrictStr, Field(pattern=r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")]
     history: list[RecipeReleaseHistoryEntry] = Field(min_length=1, max_length=32)
 
@@ -665,7 +828,10 @@ class RecipeRelease(_RecipeContract):
 
     @model_validator(mode="after")
     def ordered_history(self) -> RecipeRelease:
-        if self.history[0].version != self.version or self.history[0].released_at != self.released_at:
+        if (
+            self.history[0].version != self.version
+            or self.history[0].released_at != self.released_at
+        ):
             raise ValueError("release current version/date must match history[0]")
         versions = [entry.version for entry in self.history]
         if len(versions) != len(set(versions)):
@@ -696,54 +862,94 @@ class RecipeDefinition(_RecipeContract):
     @model_validator(mode="after")
     def semantic_rules(self) -> RecipeDefinition:
         refs = [selection.model for selection in self.models]
-        if len({(r.kind, r.publisher, r.slug, r.content_sha256) for r in refs}) != len(refs):
+        if len({(r.kind, r.publisher, r.slug, r.content_sha256) for r in refs}) != len(
+            refs
+        ):
             raise ValueError("recipe references must be unique")
         settings_kind = self.settings.kind
         has_openai = any(interface.adapter == "openai" for interface in self.interfaces)
         if has_openai != (settings_kind in {"generation", "embedding"}):
             raise ValueError("settings kind must match the serving interface")
         role_names = [role.name for role in self.topology.roles]
-        if len(role_names) != len(set(role_names)) or sum(role.count for role in self.topology.roles) != self.topology.node_count:
+        if (
+            len(role_names) != len(set(role_names))
+            or sum(role.count for role in self.topology.roles)
+            != self.topology.node_count
+        ):
             raise ValueError("topology roles must be unique and sum to node_count")
         owners = [role for role in self.topology.roles if role.endpoint_owner]
         if len(owners) != 1 or owners[0].count != 1:
             raise ValueError("exactly one single-node role must own the endpoint")
         p = self.topology.parallelism
-        if p.world_size != p.tensor * p.pipeline * p.data or p.world_size != self.topology.node_count:
+        if (
+            p.world_size != p.tensor * p.pipeline * p.data
+            or p.world_size != self.topology.node_count
+        ):
             raise ValueError("world_size and parallelism product must equal node_count")
-        if (self.topology.node_count == 1) != (self.topology.fabric.connectivity == "none"):
-            raise ValueError("one-node topology requires no fabric; multi-node topology requires fabric")
-        if set(self.topology.start_order) != set(role_names) or len(self.topology.start_order) != len(role_names) or set(self.topology.stop_order) != set(role_names) or len(self.topology.stop_order) != len(role_names):
+        if (self.topology.node_count == 1) != (
+            self.topology.fabric.connectivity == "none"
+        ):
+            raise ValueError(
+                "one-node topology requires no fabric; multi-node topology requires fabric"
+            )
+        if (
+            set(self.topology.start_order) != set(role_names)
+            or len(self.topology.start_order) != len(role_names)
+            or set(self.topology.stop_order) != set(role_names)
+            or len(self.topology.stop_order) != len(role_names)
+        ):
             raise ValueError("topology orders must contain every role exactly once")
         if len({selection.id for selection in self.models}) != len(self.models):
             raise ValueError("model selection IDs must be unique")
-        selectors = {item.id: item for selection in self.models for item in selection.files}
+        selectors = {
+            item.id: item for selection in self.models for item in selection.files
+        }
         if len(selectors) != sum(len(selection.files) for selection in self.models):
             raise ValueError("model file selector IDs must be unique")
         for selection in self.models:
             for selector in selection.files:
                 if not set(selector.roles) <= set(role_names):
-                    raise ValueError("model file selector roles must match topology role assignments")
+                    raise ValueError(
+                        "model file selector roles must match topology role assignments"
+                    )
         setting_names = set(self.settings.knobs)
         for name in ("context_tokens", "concurrency", "max_batch_tokens"):
             if getattr(self.settings, name, None) is not None:
                 setting_names.add(name)
-        if any(argument.setting not in setting_names for argument in self.runtime.arguments if argument.setting is not None):
+        if any(
+            argument.setting not in setting_names
+            for argument in self.runtime.arguments
+            if argument.setting is not None
+        ):
             raise ValueError("runtime argument references an unknown setting")
         interface_names = [interface.adapter for interface in self.interfaces]
         if len(interface_names) != len(set(interface_names)):
             raise ValueError("interfaces must be unique")
         if self.validation.serving.interface not in interface_names:
             raise ValueError("validation interface is not declared")
-        if len(self.validation.serving.checks) == 1 and self.validation.serving.checks[0].kind == "openai.health":
+        if (
+            len(self.validation.serving.checks) == 1
+            and self.validation.serving.checks[0].kind == "openai.health"
+        ):
             raise ValueError("health alone does not test model serving")
         for check in self.validation.serving.checks:
-            if check.kind.endswith(".output") and check.kind.removesuffix(".output") != self.validation.serving.interface:
+            if (
+                check.kind.endswith(".output")
+                and check.kind.removesuffix(".output")
+                != self.validation.serving.interface
+            ):
                 raise ValueError("job serving check does not match interface")
-            if check.kind.startswith("openai.") and self.validation.serving.interface != "openai":
+            if (
+                check.kind.startswith("openai.")
+                and self.validation.serving.interface != "openai"
+            ):
                 raise ValueError("OpenAI serving check does not match interface")
             if check.kind.endswith(".output"):
-                interface = next(interface for interface in self.interfaces if interface.adapter == self.validation.serving.interface)
+                interface = next(
+                    interface
+                    for interface in self.interfaces
+                    if interface.adapter == self.validation.serving.interface
+                )
                 if not isinstance(interface, RecipeJobInterface):
                     raise ValueError("job serving requires a job interface")
                 request = check.request
@@ -751,14 +957,22 @@ class RecipeDefinition(_RecipeContract):
                     raise ValueError("job serving requires a filesystem request")
                 output_ids = {slot.id for slot in interface.output.slots}
                 if request.output_slot not in output_ids:
-                    raise ValueError("job request output_slot is not declared by the interface")
+                    raise ValueError(
+                        "job request output_slot is not declared by the interface"
+                    )
                 if interface.input is None:
                     if request.input_path is not None or request.input_slots:
-                        raise ValueError("job request input bindings require an interface input")
+                        raise ValueError(
+                            "job request input bindings require an interface input"
+                        )
                 else:
                     if interface.input.required and request.input_path is None:
                         raise ValueError("required job interface input must be bound")
-                    declared_input_ids = {slot.id for slot in interface.input.slots or []}
+                    declared_input_ids = {
+                        slot.id for slot in interface.input.slots or []
+                    }
                     if not set(request.input_slots) <= declared_input_ids:
-                        raise ValueError("job request input slot is not declared by the interface")
+                        raise ValueError(
+                            "job request input slot is not declared by the interface"
+                        )
         return self

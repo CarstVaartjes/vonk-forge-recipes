@@ -102,13 +102,13 @@ Usage::
     python3 patch_indexer_workspace.py              # apply
     python3 patch_indexer_workspace.py --preflight  # validate anchors only
 """
+
 from __future__ import annotations
 
 import os
 import stat
 import sys
 from pathlib import Path
-
 
 TARGET = Path(
     os.environ.get(
@@ -266,8 +266,7 @@ from dataclasses import dataclass
 # Site 2 -- the sizing function itself
 # ---------------------------------------------------------------------------
 MARK_SIZE = (
-    "    # [glm53-indexer-workspace] The workspace is sized in TOKENS "
-    "but indexed in\n"
+    "    # [glm53-indexer-workspace] The workspace is sized in TOKENS but indexed in\n"
 )
 
 ANCHOR_SIZE = """def get_max_prefill_buffer_size(vllm_config: VllmConfig):

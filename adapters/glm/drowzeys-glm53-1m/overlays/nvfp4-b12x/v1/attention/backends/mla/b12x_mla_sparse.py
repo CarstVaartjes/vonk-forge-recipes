@@ -34,7 +34,6 @@ from typing import TYPE_CHECKING, Any, ClassVar, cast
 import numpy as np
 import torch
 import torch.distributed as dist
-
 from vllm import _custom_ops as ops
 from vllm.config import VllmConfig
 from vllm.config.cache import CacheDType
@@ -110,10 +109,16 @@ def _is_glm_moe_dsa_model() -> bool:
     if model_config is None:
         return False
     model_type = getattr(model_config.hf_config, "model_type", None)
-    text_type = getattr(getattr(model_config, "hf_text_config", None), "model_type", None)
+    text_type = getattr(
+        getattr(model_config, "hf_text_config", None), "model_type", None
+    )
 
-    def _is_glm(mt):  # glm53 port: GLM-5.3 (NoPE + zero-RoPE shim) uses the compact record too
-        return isinstance(mt, str) and (mt == "glm_moe_dsa" or mt.startswith("glm5_next"))
+    def _is_glm(
+        mt,
+    ):  # glm53 port: GLM-5.3 (NoPE + zero-RoPE shim) uses the compact record too
+        return isinstance(mt, str) and (
+            mt == "glm_moe_dsa" or mt.startswith("glm5_next")
+        )
 
     logger.info_once("B12X GLM gate: model_type=%r text_type=%r", model_type, text_type)
     if _is_glm(model_type) or _is_glm(text_type):
@@ -892,7 +897,9 @@ class B12xMLASparseMetadataBuilder(AttentionMetadataBuilder[B12xMLASparseMetadat
         self.device = device
 
         self.mla_dims = get_mla_dims(self.model_config)
-        self.topk_tokens = vllm_config.model_config.hf_text_config.index_topk  # glm53 port: nested text_config
+        self.topk_tokens = (
+            vllm_config.model_config.hf_text_config.index_topk
+        )  # glm53 port: nested text_config
         parallel_config = vllm_config.parallel_config
         self.dcp_world_size = parallel_config.decode_context_parallel_size
         self.dcp_rank = 0
@@ -982,12 +989,12 @@ class B12xMLASparseMetadataBuilder(AttentionMetadataBuilder[B12xMLASparseMetadat
             num_decode_tokens = num_tokens
             num_prefill_tokens = 0
         elif getattr(cm, "batch_topology", None) is not None:
-            num_decodes, num_prefills, num_decode_tokens, num_prefill_tokens = (
-                getattr(cm, "batch_topology", None).split_decodes_and_prefills(
-                    cm,
-                    decode_threshold=1,
-                    treat_short_extends_as_decodes=True,
-                )
+            num_decodes, num_prefills, num_decode_tokens, num_prefill_tokens = getattr(
+                cm, "batch_topology", None
+            ).split_decodes_and_prefills(
+                cm,
+                decode_threshold=1,
+                treat_short_extends_as_decodes=True,
             )
         else:
             num_decodes, num_prefills, num_decode_tokens, num_prefill_tokens = (
@@ -1100,9 +1107,13 @@ class B12xMLASparseMetadataBuilder(AttentionMetadataBuilder[B12xMLASparseMetadat
                 cache_seq_lens_per_req = seq_lens_for_req[: cm.num_reqs]
         else:
             if getattr(cm, "batch_topology", None) is not None:
-                starts = getattr(cm, "batch_topology", None).query_start_loc_np[: cm.num_reqs + 1]
+                starts = getattr(cm, "batch_topology", None).query_start_loc_np[
+                    : cm.num_reqs + 1
+                ]
                 query_lens = getattr(cm, "batch_topology", None).query_lens_np
-                req_id_per_token_np = getattr(cm, "batch_topology", None).req_id_per_token_np
+                req_id_per_token_np = getattr(
+                    cm, "batch_topology", None
+                ).req_id_per_token_np
             else:
                 starts = np.asarray(cm.query_start_loc_cpu, dtype=np.int32)
                 query_lens = np.diff(starts)
@@ -1464,8 +1475,7 @@ class B12xMLASparseImpl(MLAAttentionImpl[B12xMLASparseMetadata]):
         if self.spec_extend_as_decode_force:
             q_per_req = max(q_per_req, self.spec_decode_max_q)
         self._decode_max_rows = min(max_num_seqs * q_per_req, max_batched)
-        if self._decode_max_rows < max_num_seqs:
-            self._decode_max_rows = max_num_seqs
+        self._decode_max_rows = max(self._decode_max_rows, max_num_seqs)
 
         self._max_batched = int(max_batched)
 
@@ -2671,7 +2681,9 @@ class B12xMLASparseImpl(MLAAttentionImpl[B12xMLASparseMetadata]):
                     _qsl = attn_metadata.query_start_loc
                     _lens = (_qsl[1:] - _qsl[:-1]).to(torch.int64)
                     _rid = torch.repeat_interleave(
-                        torch.arange(_lens.numel(), device=_lens.device, dtype=torch.int32),
+                        torch.arange(
+                            _lens.numel(), device=_lens.device, dtype=torch.int32
+                        ),
                         _lens,
                     )
                 selected_indices = _cvt(

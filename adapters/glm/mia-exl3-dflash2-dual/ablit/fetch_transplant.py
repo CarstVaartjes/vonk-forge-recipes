@@ -22,7 +22,6 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import sys
 import time
 import urllib.request
 from pathlib import Path
@@ -47,7 +46,12 @@ def auth() -> dict[str, str]:
     return {"Authorization": f"Bearer {TOKEN}"} if TOKEN else {}
 
 
-def http(url: str, headers: dict | None = None, start: int | None = None, end: int | None = None):
+def http(
+    url: str,
+    headers: dict | None = None,
+    start: int | None = None,
+    end: int | None = None,
+):
     req = urllib.request.Request(url, headers=dict(headers or {}))
     if start is not None:
         req.add_header("Range", f"bytes={start}-{end if end is not None else ''}")
@@ -79,8 +83,11 @@ def fetch_bytes(url: str, start: int, end: int, headers: dict, what: str) -> byt
             raise RuntimeError(f"short read {len(out)}/{total}")
         except Exception as exc:  # noqa: BLE001
             wait = 3 * (attempt + 1)
-            print(f"  retry {attempt + 1}/{RETRIES} for {what} at {got}/{total} "
-                  f"({exc}) — sleeping {wait}s", flush=True)
+            print(
+                f"  retry {attempt + 1}/{RETRIES} for {what} at {got}/{total} "
+                f"({exc}) — sleeping {wait}s",
+                flush=True,
+            )
             time.sleep(wait)
     raise SystemExit(f"FAILED: {what}")
 
@@ -89,7 +96,9 @@ def safetensors_span(shard_url: str, headers: dict, key: str) -> tuple[int, int,
     """Resolve (abs_start, abs_end, meta) for one tensor via its header."""
     with http(shard_url, headers, 0, 7) as rsp:
         n = int.from_bytes(rsp.read(8), "little")
-    hdr_bytes = fetch_bytes(shard_url, 8, 8 + n - 1, headers, f"header of {shard_url.rsplit('/', 1)[-1]}")
+    hdr_bytes = fetch_bytes(
+        shard_url, 8, 8 + n - 1, headers, f"header of {shard_url.rsplit('/', 1)[-1]}"
+    )
     header = json.loads(hdr_bytes)
     if key not in header:
         raise SystemExit(f"{key} not in {shard_url} header (keys={len(header)})")
@@ -104,8 +113,9 @@ def sha256(data: bytes) -> str:
 
 def main() -> None:
     lmap = json.loads(LAYER_MAP_PATH.read_text())
-    layers = sorted(e["layer"] for e in lmap["layers"]
-                    if e["role"] in ("edit", "mtp-edit"))
+    layers = sorted(
+        e["layer"] for e in lmap["layers"] if e["role"] in ("edit", "mtp-edit")
+    )
     print(f"donor : {DONOR}")
     print(f"layers: {layers[0]}..{layers[-1]} ({len(layers)} tensors)")
 
@@ -143,10 +153,15 @@ def main() -> None:
             raise SystemExit(f"donor index has no {key}")
         lmap_shard = next((e["shard"] for e in lmap["layers"] if e["layer"] == L), None)
         if lmap_shard and lmap_shard != shard:
-            print(f"  note: L{L} shard differs from LAYER_MAP ({shard} vs {lmap_shard}) — using donor index")
+            print(
+                f"  note: L{L} shard differs from LAYER_MAP ({shard} vs {lmap_shard}) — using donor index"
+            )
         out = OUT_DIR / f"L{L}.bin"
-        if out.is_file() and L in manifest.get("layers", {}) \
-                and manifest["layers"][L].get("sha256") == sha256(out.read_bytes()):
+        if (
+            out.is_file()
+            and L in manifest.get("layers", {})
+            and manifest["layers"][L].get("sha256") == sha256(out.read_bytes())
+        ):
             print(f"L{L}: already fetched ({out.stat().st_size / 1e6:.0f} MB)")
             continue
 

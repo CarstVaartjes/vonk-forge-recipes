@@ -1,0 +1,6 @@
+[tool.ruff]
+# The pinned formatter and linter are the repository's formatting authority.
+# There are no exclusions: adapter sources, overlays and patch files are
+# reviewed code in this repository, not vendored trees.
+required-version = "==0.16.1"
+target-version = "py312"

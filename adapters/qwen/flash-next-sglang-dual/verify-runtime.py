@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-
 QSA = Path(
     "/sgl-workspace/sglang/python/sglang/srt/layers/attention/"
     "qwen_sparse_attn_backend.py"

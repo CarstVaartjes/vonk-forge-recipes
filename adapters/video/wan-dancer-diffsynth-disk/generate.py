@@ -6,7 +6,6 @@ import argparse
 import os
 from pathlib import Path
 
-
 MODEL_ROOT = Path("/models")
 FRAME_COUNT = 149
 VRAM_LIMIT_GIB = 64.0
@@ -87,7 +86,9 @@ def _fit_reference(path: Path, height: int, width: int):
         source = source.convert("RGB")
         source.thumbnail((width, height), Image.Resampling.LANCZOS)
         canvas = Image.new("RGB", (width, height), (127, 127, 127))
-        canvas.paste(source, ((width - source.width) // 2, (height - source.height) // 2))
+        canvas.paste(
+            source, ((width - source.width) // 2, (height - source.height) // 2)
+        )
     return canvas
 
 
@@ -108,13 +109,17 @@ def _pipeline(stage: str):
         "computation_dtype": torch.bfloat16,
         "computation_device": "cuda",
     }
-    expert = "global_model.safetensors" if stage == "global" else "local_model.safetensors"
+    expert = (
+        "global_model.safetensors" if stage == "global" else "local_model.safetensors"
+    )
     model_configs = [
         ModelConfig(path=str(MODEL_ROOT / expert), **disk),
         ModelConfig(path=str(MODEL_ROOT / "models_t5_umt5-xxl-enc-bf16.pth"), **disk),
         ModelConfig(path=str(MODEL_ROOT / "Wan2.1_VAE.pth"), **disk),
         ModelConfig(
-            path=str(MODEL_ROOT / "models_clip_open-clip-xlm-roberta-large-vit-huge-14.pth"),
+            path=str(
+                MODEL_ROOT / "models_clip_open-clip-xlm-roberta-large-vit-huge-14.pth"
+            ),
             **disk,
         ),
     ]
@@ -137,14 +142,16 @@ def _global_keyframes(reference, height: int, width: int):
 
 
 def _local_keyframes(path: Path, output_frames: int, height: int, width: int):
-    from PIL import Image
     from diffsynth.utils.data import VideoData
+    from PIL import Image
 
     if not 1 <= output_frames <= FRAME_COUNT:
         raise SystemExit("output frame count is outside the one-segment canary bound")
     source = VideoData(video_file=str(path), height=height, width=width)
     if len(source) != FRAME_COUNT:
-        raise SystemExit(f"global stage emitted {len(source)} frames, expected {FRAME_COUNT}")
+        raise SystemExit(
+            f"global stage emitted {len(source)} frames, expected {FRAME_COUNT}"
+        )
 
     black = Image.new("RGB", (width, height), (0, 0, 0))
     keyframes = [black] * FRAME_COUNT
@@ -160,7 +167,9 @@ def _local_keyframes(path: Path, output_frames: int, height: int, width: int):
 
 def main() -> None:
     args = _arguments()
-    missing = [path for path in REQUIRED_MODEL_FILES if not (MODEL_ROOT / path).is_file()]
+    missing = [
+        path for path in REQUIRED_MODEL_FILES if not (MODEL_ROOT / path).is_file()
+    ]
     if missing:
         raise SystemExit(f"incomplete Wan-Dancer snapshot; missing: {missing}")
     if args.height * args.width > 921_600:

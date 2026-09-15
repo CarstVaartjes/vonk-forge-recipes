@@ -30,13 +30,13 @@ Mechanism from vcruz305/GLM-5.3-Flash-EXL3-K2-DGX-Spark-recipe
 (docs/KPOOL_TAIL_BUG.md). Fail-closed, idempotent, preflights the pinned
 anchor before writing.
 """
+
 from __future__ import annotations
 
 import os
 import stat
 import sys
 from pathlib import Path
-
 
 TARGET = Path(
     os.environ.get(
@@ -77,9 +77,7 @@ PATCHED = """        block_indices = (
 """
 
 
-def count_overruns(
-    positions: list[int], *, block_size: int, stride: int
-) -> int:
+def count_overruns(positions: list[int], *, block_size: int, stride: int) -> int:
     """How many positions the unpatched kernel would index past ``stride``."""
     if block_size < 1 or stride < 1:
         raise ValueError("block_size and stride must be >= 1")
@@ -103,9 +101,7 @@ def circular_slot_ids(
         if clamp:
             idx = min(idx, stride - 1)
         elif idx < 0 or idx >= stride:
-            raise IndexError(
-                f"pos={pos} indexes block {idx} past stride {stride}"
-            )
+            raise IndexError(f"pos={pos} indexes block {idx} past stride {stride}")
         out.append(block_table_row[idx] * block_size + (pos % block_size))
     return out
 
@@ -133,8 +129,7 @@ def prepare(source: str) -> tuple[str, str]:
     n_anchor = source.count(ANCHOR)
     if n_anchor != 1:
         raise ValueError(
-            "pinned block_table slot-mapping anchor drifted "
-            f"(anchor={n_anchor})"
+            f"pinned block_table slot-mapping anchor drifted (anchor={n_anchor})"
         )
     if "tl.minimum(block_indices, block_table_stride - 1)" in source:
         raise ValueError(

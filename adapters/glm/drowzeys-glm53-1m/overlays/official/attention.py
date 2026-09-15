@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 
+import os as _os
+
 import torch
 import torch.nn.functional as F
 from torch import nn
-
 from vllm.config import (
     CacheConfig,
     VllmConfig,
@@ -21,8 +22,6 @@ from vllm.model_executor.layers.linear import (
     RowParallelLinear,
 )
 from vllm.model_executor.layers.mla import MLAModules, MultiHeadLatentAttentionWrapper
-
-import os as _os
 from vllm.models.common.ops import fused_q_kv_rmsnorm as _fused_q_kv_rmsnorm
 
 _GLM53_PAD_ROPE = _os.environ.get("GLM53_PAD_ROPE", "auto")
@@ -46,21 +45,49 @@ class PadRopeMLAWrapper(MultiHeadLatentAttentionWrapper):
 
     VIRTUAL_ROPE = 64
 
-    def __init__(self, hidden_size, num_heads, scale, qk_nope_head_dim, qk_rope_head_dim,
-                 v_head_dim, q_lora_rank, kv_lora_rank, mla_modules, cache_config=None,
-                 quant_config=None, prefix="", **kw):
+    def __init__(
+        self,
+        hidden_size,
+        num_heads,
+        scale,
+        qk_nope_head_dim,
+        qk_rope_head_dim,
+        v_head_dim,
+        q_lora_rank,
+        kv_lora_rank,
+        mla_modules,
+        cache_config=None,
+        quant_config=None,
+        prefix="",
+        **kw,
+    ):
         assert qk_rope_head_dim == 0, "PadRopeMLAWrapper is only for NoPE MLA"
         assert mla_modules.rotary_emb is None
-        super().__init__(hidden_size, num_heads, scale, qk_nope_head_dim, self.VIRTUAL_ROPE,
-                         v_head_dim, q_lora_rank, kv_lora_rank, mla_modules, cache_config,
-                         quant_config, prefix, **kw)
+        super().__init__(
+            hidden_size,
+            num_heads,
+            scale,
+            qk_nope_head_dim,
+            self.VIRTUAL_ROPE,
+            v_head_dim,
+            q_lora_rank,
+            kv_lora_rank,
+            mla_modules,
+            cache_config,
+            quant_config,
+            prefix,
+            **kw,
+        )
         # restore REAL dims for everything the wrapper itself computes
         self.real_rope = 0
         self.qk_rope_head_dim = 0
         self.qk_head_dim = qk_nope_head_dim
         logger.info_once(
             "GLM-5.3 NoPE shim active (%s): virtual zero-RoPE %d -> KV head 576, "
-            "SM120 DSV3.2 dispatch", prefix, self.VIRTUAL_ROPE)
+            "SM120 DSV3.2 dispatch",
+            prefix,
+            self.VIRTUAL_ROPE,
+        )
 
     def forward(self, positions, hidden_states, llama_4_scaling=None):
         q_c = None
@@ -78,8 +105,12 @@ class PadRopeMLAWrapper(MultiHeadLatentAttentionWrapper):
         kv_c = kv_lora  # rope width is 0: nothing to split off
         if self.fuse_qkv_rmsnorm and q_c is not None:
             q_proj_input, kv_c_normed = _fused_q_kv_rmsnorm(
-                q_c, kv_c, self.q_a_layernorm.weight.data,
-                self.kv_a_layernorm.weight.data, self.q_a_layernorm.variance_epsilon)
+                q_c,
+                kv_c,
+                self.q_a_layernorm.weight.data,
+                self.kv_a_layernorm.weight.data,
+                self.q_a_layernorm.variance_epsilon,
+            )
             q_c = q_proj_input
         else:
             kv_c_normed = self.kv_a_layernorm(kv_c)
@@ -100,17 +131,27 @@ class PadRopeMLAWrapper(MultiHeadLatentAttentionWrapper):
         q = torch.cat([q, q.new_zeros((n, q.shape[1], self.VIRTUAL_ROPE))], dim=-1)
         if q_dcp_replicated is not None:
             q_dcp_replicated = torch.cat(
-                [q_dcp_replicated,
-                 q_dcp_replicated.new_zeros((n, q_dcp_replicated.shape[1], self.VIRTUAL_ROPE))],
-                dim=-1)
+                [
+                    q_dcp_replicated,
+                    q_dcp_replicated.new_zeros(
+                        (n, q_dcp_replicated.shape[1], self.VIRTUAL_ROPE)
+                    ),
+                ],
+                dim=-1,
+            )
         k_pe = kv_c_normed.new_zeros((n, 1, self.VIRTUAL_ROPE))
         attn_out = self.mla_attn(
-            q, kv_c_normed, k_pe,
+            q,
+            kv_c_normed,
+            k_pe,
             output_shape=(hidden_states.shape[0], self.num_heads * self.v_head_dim),
-            q_dcp_replicated=q_dcp_replicated)
+            q_dcp_replicated=q_dcp_replicated,
+        )
         if self.g_proj is not None:
             attn_out = attn_out * self.g_proj(hidden_states)[0].sigmoid()
         return self.o_proj(attn_out)[0]
+
+
 from vllm.model_executor.layers.quantization.base_config import QuantizationConfig
 from vllm.model_executor.layers.rotary_embedding import RotaryEmbedding, get_rope
 from vllm.model_executor.layers.sparse_attn_indexer_kpool import SparseAttnIndexerKpool

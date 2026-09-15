@@ -5,7 +5,6 @@
 from typing import TYPE_CHECKING, cast
 
 import torch
-
 from vllm.v1.attention.backend import (
     AttentionLayer,
     AttentionType,
@@ -149,7 +148,9 @@ class FlashInferMLASparseSM120Impl(MLAAttentionImpl[FlashInferMLASparseMetadata]
             qk_rope_head_dim=self.qk_rope_head_dim,
             block_tables=topk_indices_physical.unsqueeze(1),
             seq_lens=None,
-            max_seq_len=topk_indices.shape[1],  # GB10 shim: buffer width, see overlay notes
+            max_seq_len=topk_indices.shape[
+                1
+            ],  # GB10 shim: buffer width, see overlay notes
             out=output.unsqueeze(1),
             bmm1_scale=self.scale,
             bmm2_scale=1.0,

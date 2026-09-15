@@ -15,8 +15,7 @@ import torch
 from packaging import version
 from packaging.version import Version
 from torch.library import Library, infer_schema
-
-import vllm.envs as envs
+from vllm import envs
 from vllm.logger import init_logger
 from vllm.utils.platform_utils import is_pin_memory_available
 
@@ -1021,7 +1020,7 @@ def supports_xpu_graph() -> bool:
 
 
 # create a library to hold the custom op
-vllm_lib = Library("vllm", "FRAGMENT")  # noqa
+vllm_lib = Library("vllm", "FRAGMENT")
 
 
 def direct_register_custom_op(

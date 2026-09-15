@@ -6,7 +6,12 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RECIPES = {"glm-5-2-aqlm-vllm-triple": 3, "glm-5-2-quanttrio-vllm-four": 4, "glm-5-3-flash-nvfp4-vllm-four": 4, "inkling-small-nvfp4-sglang-dual": 2}
+RECIPES = {
+    "glm-5-2-aqlm-vllm-triple": 3,
+    "glm-5-2-quanttrio-vllm-four": 4,
+    "glm-5-3-flash-nvfp4-vllm-four": 4,
+    "inkling-small-nvfp4-sglang-dual": 2,
+}
 
 
 def load(path: Path) -> dict:
@@ -14,7 +19,11 @@ def load(path: Path) -> dict:
 
 
 def digest(document: dict) -> str:
-    return hashlib.sha256(json.dumps(document, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
+    return hashlib.sha256(
+        json.dumps(
+            document, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+        ).encode()
+    ).hexdigest()
 
 
 class DistributedRecipeAvailabilityTests(unittest.TestCase):
@@ -22,12 +31,16 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
         for slug, nodes in RECIPES.items():
             recipe = load(ROOT / "recipes" / f"{slug}.json")
             self.assertEqual(recipe["topology"]["node_count"], nodes)
-            self.assertTrue({"candidate", "executable"} <= set(recipe["metadata"]["tags"]))
+            self.assertTrue(
+                {"candidate", "executable"} <= set(recipe["metadata"]["tags"])
+            )
             self.assertTrue(recipe["models"])
 
     def test_per_node_disk_envelopes_are_bounded(self) -> None:
         for slug in RECIPES:
-            disk = load(ROOT / "recipes" / f"{slug}.json")["topology"]["roles"][0]["resources"]["disk"]
+            disk = load(ROOT / "recipes" / f"{slug}.json")["topology"]["roles"][0][
+                "resources"
+            ]["disk"]
             self.assertGreater(disk["artifact_bytes"], 0)
             self.assertGreater(disk["staging_bytes"], 0)
 
@@ -35,18 +48,34 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
         recipe = load(ROOT / "recipes/glm-5-3-flash-nvfp4-vllm-four.json")
         adapter = ROOT / "adapters/glm/tonyd2wild-glm53-tp4-current"
         dockerfile = (adapter / "Dockerfile").read_text()
-        arguments = {item["name"]: item["value"] for item in recipe["runtime"]["arguments"]}
-        self.assertEqual(recipe["execution"]["build"]["context"]["path"], "adapters/glm/tonyd2wild-glm53-tp4-current")
-        self.assertEqual(recipe["provenance"]["source_reference"], "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/tree/8fd2fcd27c04c7fa93e770000b818657f338875d")
-        self.assertEqual(recipe["execution"]["build"]["base_image"]["digest"], "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce")
+        arguments = {
+            item["name"]: item["value"] for item in recipe["runtime"]["arguments"]
+        }
+        self.assertEqual(
+            recipe["execution"]["build"]["context"]["path"],
+            "adapters/glm/tonyd2wild-glm53-tp4-current",
+        )
+        self.assertEqual(
+            recipe["provenance"]["source_reference"],
+            "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/tree/8fd2fcd27c04c7fa93e770000b818657f338875d",
+        )
+        self.assertEqual(
+            recipe["execution"]["build"]["base_image"]["digest"],
+            "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce",
+        )
         self.assertEqual(arguments["tensor-parallel-size"], 4)
         self.assertEqual(arguments["max-model-len"], 1048576)
         self.assertEqual(arguments["max-num-seqs"], 64)
         self.assertEqual(arguments["max-num-batched-tokens"], 16384)
         self.assertEqual(arguments["kv-cache-memory"], 25769803776)
-        self.assertEqual(arguments["speculative-config"], '{"method":"dflash","model":"/models/drafter","num_speculative_tokens":7}')
+        self.assertEqual(
+            arguments["speculative-config"],
+            '{"method":"dflash","model":"/models/drafter","num_speculative_tokens":7}',
+        )
         self.assertFalse(arguments["enforce-eager"])
-        self.assertEqual(arguments["compilation-config"], '{"cudagraph_mode":"FULL_AND_PIECEWISE"}')
+        self.assertEqual(
+            arguments["compilation-config"], '{"cudagraph_mode":"FULL_AND_PIECEWISE"}'
+        )
         drafter = next(
             selection
             for selection in recipe["models"]
@@ -71,7 +100,10 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
         self.assertIn("COPY overlay-dflash2/dflash2/", dockerfile)
         self.assertTrue((adapter / "upstream-Dockerfile.glm53-sm121-v9").is_file())
         self.assertTrue((adapter / "upstream-launch-tp4-24g.sh").is_file())
-        operational = "\n".join((adapter / name).read_text(errors="ignore") for name in ("Dockerfile", "vllm-wrapper.py", "verify-runtime.py"))
+        operational = "\n".join(
+            (adapter / name).read_text(errors="ignore")
+            for name in ("Dockerfile", "vllm-wrapper.py", "verify-runtime.py")
+        )
         self.assertNotIn("ssh -", operational.lower())
         self.assertNotIn("nfs", operational.lower())
 
@@ -82,7 +114,10 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
             if slug == "glm-5-3-flash-nvfp4-vllm-four":
                 continue
             recipe = load(ROOT / "recipes" / f"{slug}.json")
-            self.assertEqual(entries[slug]["package"]["recipe_content_sha256"], digest(recipe))
+            self.assertEqual(
+                entries[slug]["package"]["recipe_content_sha256"], digest(recipe)
+            )
 
 
-if __name__ == "__main__": unittest.main()
+if __name__ == "__main__":
+    unittest.main()

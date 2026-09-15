@@ -21,6 +21,7 @@ is exactly what the checkpoint stores. This patch only wires the dispatch.
 Operates in place on files/modelopt_patched.py (the output of
 patch_modelopt_mxfp8.py), so both patches stack.
 """
+
 import os
 import sys
 
@@ -117,6 +118,9 @@ def patch() -> None:
 
 if __name__ == "__main__":
     if not os.path.isfile(TARGET):
-        print(f"ERROR: missing {TARGET} (run patch_modelopt_mxfp8.py first)", file=sys.stderr)
+        print(
+            f"ERROR: missing {TARGET} (run patch_modelopt_mxfp8.py first)",
+            file=sys.stderr,
+        )
         sys.exit(1)
     patch()

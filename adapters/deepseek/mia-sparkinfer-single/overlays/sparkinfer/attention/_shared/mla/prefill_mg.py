@@ -13,13 +13,10 @@ import os
 
 import cuda.bindings.driver as cuda
 import cutlass
-import cutlass.cute as cute
 import cutlass.utils as cutlass_utils
 import torch
-from cutlass import Float32, Int32, Int64, Uint32
+from cutlass import Float32, Int32, Int64, Uint32, cute
 from cutlass.cute.runtime import from_dlpack
-
-from sparkinfer.attention._shared.cute.ops import LOG2_E
 from sparkinfer._lib.compiler import (
     DimKey,
     KernelCompileSpec,
@@ -42,8 +39,8 @@ from sparkinfer._lib.intrinsics import (
     ld_global_nc_u32,
     ld_global_v4_f32,
     ld_shared_f32_offset,
-    ld_shared_u16_offset,
     ld_shared_u8_offset,
+    ld_shared_u16_offset,
     ld_shared_v4_u32,
     ldmatrix_m8n8x4_b16,
     mma_m16n8k16_f32_bf16,
@@ -55,6 +52,7 @@ from sparkinfer._lib.intrinsics import (
     st_shared_bf16_from_f32,
     st_shared_f32_offset,
 )
+from sparkinfer.attention._shared.cute.ops import LOG2_E
 
 from .decode_math import (
     EPILOGUE_FINAL_BF16,
@@ -66,13 +64,12 @@ from .decode_math import (
     s0_quantize_q_to_smem,
     s1_qk_nope_block_scaled,
     s6_xv_nope,
-    st_shared_f32,
     s7_epilogue,
+    st_shared_f32,
 )
 from .io_mg import io_issue_gather_dsv4_nope, io_issue_gather_glm_mg
 from .smem_mg import get_prefill_mg_shared_storage_cls, make_smem_layout_mg
 from .traits import ComputeMode, ModelType, ScaleFormat, make_unified_traits
-
 
 _CAND_WINDOW = 64
 _DSV4_HEAD_DIM = 512
@@ -248,8 +245,7 @@ def _dsv4_rope_base_off(
     idx: Int32, page_block_size: Int32, stride_kv_block: Int64
 ) -> Int64:
     """Full DSV4 RoPE-record offset used by the QK prefetch paths."""
-    if idx < Int32(0):
-        idx = Int32(0)
+    idx = max(idx, Int32(0))
     return _dsv4_record_off(idx, page_block_size, stride_kv_block) + Int64(
         _DSV4_ROPE_GMEM_OFFSET
     )
@@ -389,8 +385,7 @@ def s2_qk_rope_global_mg_dsv4(
 def _glm_rope_base_off(
     idx: Int32, page_block_size: Int32, stride_kv_block: Int64
 ) -> Int64:
-    if idx < Int32(0):
-        idx = Int32(0)
+    idx = max(idx, Int32(0))
     block_idx = idx // page_block_size
     local_idx = idx - block_idx * page_block_size
     return (
@@ -408,8 +403,7 @@ def _nvfp4_rope_base_off(
     *,
     fp8_rope: cutlass.Constexpr = False,
 ) -> Int64:
-    if idx < Int32(0):
-        idx = Int32(0)
+    idx = max(idx, Int32(0))
     block_idx = idx // page_block_size
     local_idx = idx - block_idx * page_block_size
     if cutlass.const_expr(fp8_rope):
@@ -542,12 +536,9 @@ def s2_qk_rope_regs_mg_glm(
         else:
             if cutlass.const_expr(has_extra_cache):
                 # Dual-cache NVFP4: load through the section-selected pointer.
-                b0 = ld_global_nc_u32(
-                    rope_ptr + Int64(ko + tid * Int32(2)) * Int64(2)
-                )
+                b0 = ld_global_nc_u32(rope_ptr + Int64(ko + tid * Int32(2)) * Int64(2))
                 b1 = ld_global_nc_u32(
-                    rope_ptr
-                    + Int64(ko + tid * Int32(2) + Int32(8)) * Int64(2)
+                    rope_ptr + Int64(ko + tid * Int32(2) + Int32(8)) * Int64(2)
                 )
             else:
                 b0 = _ld_global_glm_rope_u32(
@@ -2488,10 +2479,8 @@ class UnifiedPrefillMGKernel:
         cute.arch.barrier()
 
         section_len = Int32(topk_length[token_idx])
-        if section_len < Int32(0):
-            section_len = Int32(0)
-        if section_len > Int32(self.topk):
-            section_len = Int32(self.topk)
+        section_len = max(section_len, Int32(0))
+        section_len = min(section_len, Int32(self.topk))
         is_empty_row = section_len == Int32(0)
         actual_tiles = (section_len + Int32(_CAND_WINDOW - 1)) // Int32(_CAND_WINDOW)
 
@@ -2504,10 +2493,8 @@ class UnifiedPrefillMGKernel:
         if cutlass.const_expr(has_extra):
             extra_total = Int32(self.extra_topk)
             extra_section_len = Int32(extra_topk_length[token_idx])
-            if extra_section_len < Int32(0):
-                extra_section_len = Int32(0)
-            if extra_section_len > extra_total:
-                extra_section_len = extra_total
+            extra_section_len = max(extra_section_len, Int32(0))
+            extra_section_len = min(extra_section_len, extra_total)
             is_empty_row = is_empty_row and (extra_section_len == Int32(0))
             num_extra_tiles = (extra_section_len + Int32(_CAND_WINDOW - 1)) // Int32(
                 _CAND_WINDOW
@@ -2554,8 +2541,7 @@ class UnifiedPrefillMGKernel:
             # loop_tiles>0 (== actual_tiles when not has_extra -> byte-identical).
             if loop_tiles > Int32(0):
                 g_end0 = Int32(_CAND_WINDOW)
-                if g_end0 > section_len:
-                    g_end0 = section_len
+                g_end0 = min(g_end0, section_len)
                 if cutlass.const_expr(is_glm or is_nvfp4):
                     io_issue_gather_glm_mg(
                         kv_cache_u8,
@@ -2612,8 +2598,7 @@ class UnifiedPrefillMGKernel:
                             cis = next_lc - num_main_tiles
                             g_start = cis * Int32(_CAND_WINDOW)
                             g_end = g_start + Int32(_CAND_WINDOW)
-                            if g_end > extra_section_len:
-                                g_end = extra_section_len
+                            g_end = min(g_end, extra_section_len)
                             if cutlass.const_expr(is_glm or is_nvfp4):
                                 # NVFP4 EXTRA gather: same GLM-style record
                                 # staging as the MAIN cache (432B E2M1+E4M3
@@ -2658,8 +2643,7 @@ class UnifiedPrefillMGKernel:
                         else:
                             g_start = next_lc * Int32(_CAND_WINDOW)
                             g_end = g_start + Int32(_CAND_WINDOW)
-                            if g_end > section_len:
-                                g_end = section_len
+                            g_end = min(g_end, section_len)
                             if cutlass.const_expr(is_glm or is_nvfp4):
                                 # DUAL main tiles: same NVFP4/GLM record
                                 # staging as the prologue (the DSV4 nope
@@ -2705,8 +2689,7 @@ class UnifiedPrefillMGKernel:
                     else:
                         g_start = next_lc * Int32(_CAND_WINDOW)
                         g_end = g_start + Int32(_CAND_WINDOW)
-                        if g_end > section_len:
-                            g_end = section_len
+                        g_end = min(g_end, section_len)
                         if cutlass.const_expr(is_glm or is_nvfp4):
                             io_issue_gather_glm_mg(
                                 kv_cache_u8,
@@ -2960,8 +2943,7 @@ class UnifiedPrefillMGKernel:
                         split_cand_start = cis * Int32(_CAND_WINDOW)
                         sec_len_now = extra_section_len
                 split_cand_end = split_cand_start + Int32(_CAND_WINDOW)
-                if split_cand_end > sec_len_now:
-                    split_cand_end = sec_len_now
+                split_cand_end = min(split_cand_end, sec_len_now)
                 buf = ci & Int32(1)
                 kv_fp8_b = kv_fp8_addr + buf * kv_fp8_buf
                 kv_sc_b = kv_sc_addr + buf * kv_sc_buf
@@ -3042,9 +3024,7 @@ class UnifiedPrefillMGKernel:
                         scale_format=t.scale_format,
                         fp8_rope=t.fp8_rope,
                         extra_kv_cache_u8=(
-                            extra_kv_cache_u8
-                            if cutlass.const_expr(has_extra)
-                            else None
+                            extra_kv_cache_u8 if cutlass.const_expr(has_extra) else None
                         ),
                         extra_page_block_size=Int32(self.pbs_extra),
                         extra_stride_kv_block=stride_extra_kv_block,
@@ -3980,7 +3960,9 @@ def _sparse_mla_prefill_mg_flat_launch(
         *spec_fields,
     )
     entry = kernel.call_dual if has_extra else kernel
-    sparkinfer_launch(entry, compile_spec=compile_spec, compile_args=args, runtime_args=args)
+    sparkinfer_launch(
+        entry, compile_spec=compile_spec, compile_args=args, runtime_args=args
+    )
 
 
 @torch.library.custom_op(

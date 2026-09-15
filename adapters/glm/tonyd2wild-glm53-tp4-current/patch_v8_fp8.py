@@ -6,7 +6,9 @@ from pathlib import Path
 # cudaFuncSetAttribute "invalid argument". Cap instead of force: fp8 keeps
 # TKV<=32, i.e. 16 on 100KB devices (91,680B, verified fitting + correct on
 # GB10: all probe cases clean, rel_err ~0.005 vs fp32 reference).
-p = Path("/usr/local/lib/python3.12/dist-packages/flashinfer/data/include/flashinfer/attention/mla.cuh")
+p = Path(
+    "/usr/local/lib/python3.12/dist-packages/flashinfer/data/include/flashinfer/attention/mla.cuh"
+)
 s = p.read_text()
 old = "    constexpr uint32_t EFF_CTA_TILE_KV = std::is_same_v<DTypeKV, __nv_fp8_e4m3> ? 32 : CTA_TILE_KV;\n"
 new = "    constexpr uint32_t EFF_CTA_TILE_KV = std::is_same_v<DTypeKV, __nv_fp8_e4m3> ? (CTA_TILE_KV < 32u ? CTA_TILE_KV : 32u) : CTA_TILE_KV;\n"

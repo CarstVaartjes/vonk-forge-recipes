@@ -14,17 +14,20 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256  # noqa: E402
+from vonk_forge_contracts import (
+    ModelDefinition,
+    RecipeDefinition,
+    content_sha256,
+)
+
 ADAPTER = ROOT / "adapters/video/wan-dancer-diffsynth-disk"
 RECIPE = ROOT / "recipes/wan-dancer-14b-disk-offload-pytorch-single.json"
 ORIGINAL_RECIPE = ROOT / "recipes/wan-dancer-14b-pytorch-single.json"
 MODEL = ROOT / "models/wan-dancer-14b.json"
 ARCHIVE = (
-    ADAPTER
-    / "vendor/diffsynth-studio-84f93fc4907b6c193be5501bab0b5c37f383033c.tar.gz"
+    ADAPTER / "vendor/diffsynth-studio-84f93fc4907b6c193be5501bab0b5c37f383033c.tar.gz"
 )
 ARCHIVE_SHA256 = "5f0dfef5351341613e2c8ba96806bddb576e5e1f44aaa104c5d5c388cf44bc1b"
 DIFFSYNTH_REVISION = "84f93fc4907b6c193be5501bab0b5c37f383033c"
@@ -56,7 +59,9 @@ PLATFORM_OWNED_CACHE_ENVIRONMENT = {
 
 
 def canonical_digest(path: Path) -> str:
-    return content_sha256(ModelDefinition.model_validate(json.loads(path.read_text(encoding="utf-8"))))
+    return content_sha256(
+        ModelDefinition.model_validate(json.loads(path.read_text(encoding="utf-8")))
+    )
 
 
 def package_manifest() -> dict[str, object]:
@@ -85,24 +90,44 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
 
     def test_canary_resolves_pinned_model_runtime_and_bounded_memory(self) -> None:
         recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
-        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], canonical_digest(MODEL))
+        self.assertEqual(
+            recipe["models"][0]["model"]["content_sha256"], canonical_digest(MODEL)
+        )
         execution = recipe["execution"]
         self.assertEqual(execution["mode"], "build")
         build = execution["build"]
         self.assertEqual(build["base_image"], BASE_IMAGE)
-        self.assertEqual(build["context"], {"path": "adapters/video/wan-dancer-diffsynth-disk"})
-        self.assertEqual(build["dockerfile"], "adapters/video/wan-dancer-diffsynth-disk/Dockerfile")
-        self.assertEqual(build["patches"], [{"path": "adapters/video/wan-dancer-diffsynth-disk/patch-runtime.py"}])
-        self.assertEqual(build["network"], {"mode": "public", "hosts": BUILD_NETWORK_HOSTS})
+        self.assertEqual(
+            build["context"], {"path": "adapters/video/wan-dancer-diffsynth-disk"}
+        )
+        self.assertEqual(
+            build["dockerfile"], "adapters/video/wan-dancer-diffsynth-disk/Dockerfile"
+        )
+        self.assertEqual(
+            build["patches"],
+            [{"path": "adapters/video/wan-dancer-diffsynth-disk/patch-runtime.py"}],
+        )
+        self.assertEqual(
+            build["network"], {"mode": "public", "hosts": BUILD_NETWORK_HOSTS}
+        )
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
-        self.assertIn('org.opencontainers.image.revision="84f93fc4907b6c193be5501bab0b5c37f383033c"', dockerfile)
-        self.assertIn("diffsynth-studio-84f93fc4907b6c193be5501bab0b5c37f383033c.tar.gz", dockerfile)
+        self.assertIn(
+            'org.opencontainers.image.revision="84f93fc4907b6c193be5501bab0b5c37f383033c"',
+            dockerfile,
+        )
+        self.assertIn(
+            "diffsynth-studio-84f93fc4907b6c193be5501bab0b5c37f383033c.tar.gz",
+            dockerfile,
+        )
         tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         self.assertEqual(
             tool["source_bundle"](ADAPTER)[2],
             "1f34b5d56f6b7cd466d47c08cf4c821a7f4cb1d6bf13699cd81db8275809b57c",
         )
-        self.assertEqual(json.loads(MODEL.read_text())["source"]["revision"], "85ce88dd8d025459dcf0fe93982d6da8b9002957")
+        self.assertEqual(
+            json.loads(MODEL.read_text())["source"]["revision"],
+            "85ce88dd8d025459dcf0fe93982d6da8b9002957",
+        )
         self.assertEqual(
             recipe["provenance"]["source_reference"],
             "https://github.com/modelscope/DiffSynth-Studio/tree/"
@@ -114,10 +139,13 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
         )
 
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        envelope = max(
-            memory["startup_peak_bytes"],
-            memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
-        ) + memory["system_reserve_bytes"]
+        envelope = (
+            max(
+                memory["startup_peak_bytes"],
+                memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
+            )
+            + memory["system_reserve_bytes"]
+        )
         self.assertEqual(envelope, 126_000_000_000)
         self.assertLess(envelope, 126_946_283_520)
 
@@ -127,7 +155,8 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
         self.assertIs(benchmark["stage_process_isolation"], True)
         runtime = recipe["runtime"]
         self.assertEqual(
-            set(runtime), {"engine", "entrypoint", "arguments", "environment", "lifecycle"}
+            set(runtime),
+            {"engine", "entrypoint", "arguments", "environment", "lifecycle"},
         )
         self.assertEqual(runtime["engine"], "pytorch-pipeline")
         environment_names = {item["name"] for item in runtime["environment"]}
@@ -161,7 +190,9 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
             }
             <= package_paths
         )
-        with tarfile.open(fileobj=io.BytesIO(PACKAGE.read_bytes()), mode="r:gz") as archive:
+        with tarfile.open(
+            fileobj=io.BytesIO(PACKAGE.read_bytes()), mode="r:gz"
+        ) as archive:
             for path in (
                 build["dockerfile"],
                 build["patches"][0]["path"],
@@ -177,7 +208,9 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
                     self.assertEqual(payload, (ROOT / path).read_bytes())
 
     def test_vendored_diffsynth_source_is_exact_and_offline_patch_applies(self) -> None:
-        self.assertEqual(hashlib.sha256(ARCHIVE.read_bytes()).hexdigest(), ARCHIVE_SHA256)
+        self.assertEqual(
+            hashlib.sha256(ARCHIVE.read_bytes()).hexdigest(), ARCHIVE_SHA256
+        )
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
         self.assertIn(
             f'org.opencontainers.image.revision="{DIFFSYNTH_REVISION}"',
@@ -259,9 +292,7 @@ class WanDancerDiskOffloadInputTests(unittest.TestCase):
             "diffsynth.utils.data": SimpleNamespace(VideoData=VideoData),
         }
         with mock.patch.dict(sys.modules, modules):
-            frames, mask = generator._local_keyframes(
-                Path("global.mp4"), 24, 1280, 720
-            )
+            frames, mask = generator._local_keyframes(Path("global.mp4"), 24, 1280, 720)
         self.assertEqual(frames[:24], list(range(24)))
         self.assertEqual(frames[24:], ["black"] * 125)
         self.assertEqual(mask, [1] * 24 + [0] * 125)

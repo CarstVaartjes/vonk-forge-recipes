@@ -9,10 +9,10 @@ import types
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, content_sha256  # noqa: E402
+from vonk_forge_contracts import ModelDefinition, content_sha256
+
 MODEL = ROOT / "models/ui-mate-27b-3ade2378.json"
 RECIPE = ROOT / "recipes/ui-mate-27b-vllm-single.json"
 ADAPTER = ROOT / "adapters/llm/ui-mate-vllm"
@@ -68,16 +68,29 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
             "4939d179bc15035661819efa149c3e1a7a5075a2f2334478e3c53e49991fd0a4",
         )
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
-        self.assertIn(f'org.opencontainers.image.revision="{HARNESS_REVISION}"', dockerfile)
-        self.assertIn('io.vonk.vllm.build-commit="2cf0a6915ce544dc493a0990f2ea38d81601128a"', dockerfile)
-        self.assertIn('io.vonk.ui-mate.upstream-archive-sha256="12046e80b390539417bfc803d1effcd7b867a4bb95ac8a20a5631ce60db9ab4d"', dockerfile)
+        self.assertIn(
+            f'org.opencontainers.image.revision="{HARNESS_REVISION}"', dockerfile
+        )
+        self.assertIn(
+            'io.vonk.vllm.build-commit="2cf0a6915ce544dc493a0990f2ea38d81601128a"',
+            dockerfile,
+        )
+        self.assertIn(
+            'io.vonk.ui-mate.upstream-archive-sha256="12046e80b390539417bfc803d1effcd7b867a4bb95ac8a20a5631ce60db9ab4d"',
+            dockerfile,
+        )
 
     def test_recipe_uses_official_protocol_with_bounded_spark_resources(self) -> None:
         recipe = _read(RECIPE)
         arguments = _arguments(recipe)
-        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], _canonical_digest(MODEL))
+        self.assertEqual(
+            recipe["models"][0]["model"]["content_sha256"], _canonical_digest(MODEL)
+        )
         self.assertEqual(recipe["execution"]["mode"], "build")
-        self.assertEqual(recipe["execution"]["build"]["base_image"]["digest"], "41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4")
+        self.assertEqual(
+            recipe["execution"]["build"]["base_image"]["digest"],
+            "41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4",
+        )
         self.assertEqual(arguments["served-model-name"], "UI_Mate")
         self.assertIs(arguments["trust-remote-code"], True)
         self.assertEqual(arguments["chat-template-content-format"], "openai")
@@ -121,7 +134,9 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
         ]
         archive, _, digest = source_bundle(ADAPTER)
         self.assertEqual(context["path"], "adapters/llm/ui-mate-vllm")
-        self.assertEqual(digest, "617da05a0afd62e6a7508b0c04dea52dae6f166a9ce8578cfb73754401738540")
+        self.assertEqual(
+            digest, "617da05a0afd62e6a7508b0c04dea52dae6f166a9ce8578cfb73754401738540"
+        )
         self.assertGreater(len(archive), 0)
 
     def test_vendored_parser_scales_official_actions_without_actuating(self) -> None:

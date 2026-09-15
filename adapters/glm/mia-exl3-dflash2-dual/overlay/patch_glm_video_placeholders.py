@@ -9,7 +9,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-
 KPOOL = Path(
     "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/"
     "sparse_attn_indexer_kpool.py"
@@ -22,8 +21,7 @@ KPOOL_NEW = (
 
 
 def _align_timestamps(timestamps: list, t_groups: int) -> list:
-    if t_groups < 1:
-        t_groups = 1
+    t_groups = max(t_groups, 1)
     if not timestamps:
         return [0] * t_groups
     n = len(timestamps)

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Clamp K-pool tail slot mapping to the one-block circular contract."""
+
 from __future__ import annotations
 
 import os
 import stat
 import sys
 from pathlib import Path
-
 
 TARGET = Path(
     os.environ.get(
@@ -95,8 +95,7 @@ def prepare(source: str) -> tuple[str, str]:
     anchor_count = source.count(ANCHOR)
     if anchor_count != 1:
         raise ValueError(
-            "pinned block_table slot-mapping anchor drifted "
-            f"(anchor={anchor_count})"
+            f"pinned block_table slot-mapping anchor drifted (anchor={anchor_count})"
         )
     if "tl.minimum(block_indices, block_table_stride - 1)" in source:
         raise ValueError(

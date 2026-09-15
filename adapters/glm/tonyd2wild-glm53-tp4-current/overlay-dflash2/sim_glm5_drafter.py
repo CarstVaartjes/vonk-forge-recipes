@@ -23,14 +23,12 @@ that _pool_bytes_per_block / emission / max-mem accounting agree.
 from types import SimpleNamespace
 
 import torch
-
 from vllm.v1.core import kv_cache_utils as K
 from vllm.v1.kv_cache_interface import (
     KpoolTailSpec,
     MambaSpec,
     MLAAttentionSpec,
     SlidingWindowSpec,
-    UniformTypeKVCacheSpecs,
 )
 from vllm.v1.worker.gpu.attn_utils import _reshape_attention_kv_cache
 
@@ -42,9 +40,7 @@ vllm_config = SimpleNamespace(
         pipeline_parallel_size=1, decode_context_parallel_size=1
     ),
     model_config=SimpleNamespace(max_model_len=262144),
-    cache_config=SimpleNamespace(
-        num_gpu_blocks_override=None, mamba_cache_mode="none"
-    ),
+    cache_config=SimpleNamespace(num_gpu_blocks_override=None, mamba_cache_mode="none"),
     max_in_flight_tokens=8192,
     speculative_config=None,
 )
@@ -137,8 +133,7 @@ def bind_and_reshape(cfg, layer_name: str, d_spec, kernel_block: int):
     content = 2 * kernel_block * d_spec.num_kv_heads * d_spec.head_size
     required = kernel_num_blocks * content
     assert required <= raw.numel(), (
-        f"boot-8 regression: view needs {required} B but tensor has "
-        f"{raw.numel()} B"
+        f"boot-8 regression: view needs {required} B but tensor has {raw.numel()} B"
     )
     view = _reshape_attention_kv_cache(
         raw, d_spec, shape, tuple(range(5)), kernel_num_blocks, packing=None

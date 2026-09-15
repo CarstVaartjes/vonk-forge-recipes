@@ -28,9 +28,7 @@ import os
 import sys
 
 VLLM_ROOT = (
-    sys.argv[1]
-    if len(sys.argv) > 1
-    else "/usr/local/lib/python3.12/dist-packages/vllm"
+    sys.argv[1] if len(sys.argv) > 1 else "/usr/local/lib/python3.12/dist-packages/vllm"
 )
 
 

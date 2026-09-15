@@ -41,8 +41,18 @@ class QwenRecipeQualificationMetadataTests(unittest.TestCase):
                     recipe["metadata"]["description"],
                 )
                 checks = recipe["validation"]["serving"]["checks"]
-                self.assertEqual({check["kind"] for check in checks}, {"openai.health", "openai.chat"})
-                self.assertIn("chat.nonempty", next(check["assertions"] for check in checks if check["kind"] == "openai.chat"))
+                self.assertEqual(
+                    {check["kind"] for check in checks},
+                    {"openai.health", "openai.chat"},
+                )
+                self.assertIn(
+                    "chat.nonempty",
+                    next(
+                        check["assertions"]
+                        for check in checks
+                        if check["kind"] == "openai.chat"
+                    ),
+                )
 
     def test_qwen38_fp8_is_preferred_dense_default(self) -> None:
         preferred = set(_recipe("qwen3-8-27b-fp8-vllm-single")["metadata"]["tags"])

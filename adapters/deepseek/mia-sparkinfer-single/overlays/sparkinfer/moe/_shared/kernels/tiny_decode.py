@@ -28,12 +28,9 @@ reads gate at [0, n), up at [n, 2n) unconditionally.
 from __future__ import annotations
 
 import cutlass
-import cutlass.cute as cute
 import torch
-from cutlass import Float32
+from cutlass import Float32, cute
 from cutlass.cutlass_dsl import Int32, Int64
-
-from sparkinfer._lib.utils import current_cuda_stream, make_ptr
 from sparkinfer._lib.intrinsics import (
     cvt_bf16x2_to_f16x2,
     cvt_e8m0x4_to_f32x4,
@@ -46,6 +43,7 @@ from sparkinfer._lib.intrinsics import (
     scatter_add_bf16x2,
     warp_reduce,
 )
+from sparkinfer._lib.utils import current_cuda_stream, make_ptr
 
 _BLOCK_THREADS = 256
 _FC1_KT_PER_TASK = 4

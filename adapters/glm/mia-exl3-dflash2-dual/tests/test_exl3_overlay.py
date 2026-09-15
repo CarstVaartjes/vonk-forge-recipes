@@ -68,7 +68,9 @@ def _check_ext_arch() -> None:
     assert hasattr(exllamav3_ext, "exl3_moe_max_concurrency")
     print("exllamav3_ext.exl3_moe present", flush=True)
     so = exllamav3_ext.__file__
-    dump = subprocess.check_output(["cuobjdump", "-lelf", so], text=True, stderr=subprocess.STDOUT)
+    dump = subprocess.check_output(
+        ["cuobjdump", "-lelf", so], text=True, stderr=subprocess.STDOUT
+    )
     arches = {
         line.strip().split()[-1]
         for line in dump.splitlines()
@@ -82,8 +84,13 @@ def _check_ext_arch() -> None:
             f"exllamav3_ext is not an SM121 cubin ({so}):\n{dump[-2000:]}"
         )
     if has_120_only:
-        raise AssertionError("exllamav3_ext is SM120-only; SM121 native kernels required")
-    print(f"exllamav3_ext arch OK {so} arches={sorted(arches) or 'see cuobjdump'}", flush=True)
+        raise AssertionError(
+            "exllamav3_ext is SM120-only; SM121 native kernels required"
+        )
+    print(
+        f"exllamav3_ext arch OK {so} arches={sorted(arches) or 'see cuobjdump'}",
+        flush=True,
+    )
 
 
 def _check_e2_diag_static() -> None:
@@ -100,14 +107,24 @@ def _check_e2_diag_static() -> None:
 
     diag = exl3_fat_diag()
     assert diag["schema"] == EXL3_FAT_DIAG_SCHEMA == 2, diag["schema"]
-    assert tuple(sorted(diag)) == tuple(sorted(EXL3_FAT_DIAG_KEYS)), (
-        set(diag) ^ set(EXL3_FAT_DIAG_KEYS)
+    assert tuple(sorted(diag)) == tuple(sorted(EXL3_FAT_DIAG_KEYS)), set(diag) ^ set(
+        EXL3_FAT_DIAG_KEYS
     )
-    for key in ("sym_fat_moe", "grouped_calls", "grouped_scratch_bytes", "grouped_eligible"):
+    for key in (
+        "sym_fat_moe",
+        "grouped_calls",
+        "grouped_scratch_bytes",
+        "grouped_eligible",
+    ):
         assert key in diag, key
     assert "grouped" in diag["fallback_calls"], diag["fallback_calls"]
 
-    keys = ("EXL3_FAT_SORTED", "EXL3_FAT_BATCHED", "EXL3_FAT_KERNEL", "EXL3_FAT_GROUPED")
+    keys = (
+        "EXL3_FAT_SORTED",
+        "EXL3_FAT_BATCHED",
+        "EXL3_FAT_KERNEL",
+        "EXL3_FAT_GROUPED",
+    )
     previous = {key: os.environ.get(key) for key in keys}
     try:
         for key in keys:
@@ -198,7 +215,9 @@ def _check_e2_diag_static() -> None:
         except RuntimeError:
             pass
         else:
-            raise AssertionError("ineligible grouped -> kernel must still need E2 symbols")
+            raise AssertionError(
+                "ineligible grouped -> kernel must still need E2 symbols"
+            )
         # The cap is not changed implicitly by the grouped flag.
         from vllm.model_executor.layers.quantization.exl3 import temp_rows_fused
 
@@ -214,14 +233,19 @@ def _check_e2_diag_static() -> None:
                 os.environ["EXL3_TEMP_ROWS_FUSED"] = prev_rows
         live_grouped = exl3_fat_moe_symbols()
         if live_grouped:
-            assert resolve_exl3_fat_tier(True, symbols=(True, True, True)) == ("grouped", "grouped_ok")
+            assert resolve_exl3_fat_tier(True, symbols=(True, True, True)) == (
+                "grouped",
+                "grouped_ok",
+            )
         else:
             try:
                 resolve_exl3_fat_tier(True, symbols=(True, True, True))
             except RuntimeError:
                 pass
             else:
-                raise AssertionError("this image lacks the E3 kernels; grouped must fail closed")
+                raise AssertionError(
+                    "this image lacks the E3 kernels; grouped must fail closed"
+                )
     finally:
         for key, value in previous.items():
             if value is None:
@@ -229,7 +253,6 @@ def _check_e2_diag_static() -> None:
             else:
                 os.environ[key] = value
     print("exl3 E2 diag schema + tier resolution OK", flush=True)
-
 
 
 def _check_gpu_gemm() -> None:
@@ -246,7 +269,9 @@ def _check_gpu_gemm() -> None:
     # One 16×16-tile K4 MCG matrix (256×256). Not a mock of LinearEXL3:
     # execute_exl3_linear is the shipped expert GEMM entry.
     in_f, out_f, bits = 256, 256, 4
-    trellis = torch.zeros((in_f // 16, out_f // 16, bits * 16), dtype=torch.int16, device=device)
+    trellis = torch.zeros(
+        (in_f // 16, out_f // 16, bits * 16), dtype=torch.int16, device=device
+    )
     suh = torch.ones(in_f, dtype=torch.float16, device=device)
     svh = torch.ones(out_f, dtype=torch.float16, device=device)
     mcg = torch.tensor([MCG_MARKER_SIGNED_INT32], dtype=torch.int32, device=device)
@@ -274,7 +299,6 @@ def _check_gpu_gemm() -> None:
     _check_grouped_fat(device)
 
 
-
 def _check_fat_kernel(device) -> None:
     """Compare E2 direct and scatter epilogues with LinearEXL3 reconstruction."""
     import exllamav3_ext
@@ -300,33 +324,33 @@ def _check_fat_kernel(device) -> None:
         dtype=torch.int16,
         generator=generator,
     ).to(device)
-    suh = torch.where(
-        torch.rand(in_f, generator=generator) > 0.5,
-        torch.tensor(1.0),
-        torch.tensor(-1.0),
-    ).half().to(device)
-    svh = torch.where(
-        torch.rand(out_f, generator=generator) > 0.5,
-        torch.tensor(1.0),
-        torch.tensor(-1.0),
-    ).half().to(device)
-    mcg = torch.tensor(
-        [MCG_MARKER_SIGNED_INT32], dtype=torch.int32, device=device
+    suh = (
+        torch.where(
+            torch.rand(in_f, generator=generator) > 0.5,
+            torch.tensor(1.0),
+            torch.tensor(-1.0),
+        )
+        .half()
+        .to(device)
     )
+    svh = (
+        torch.where(
+            torch.rand(out_f, generator=generator) > 0.5,
+            torch.tensor(1.0),
+            torch.tensor(-1.0),
+        )
+        .half()
+        .to(device)
+    )
+    mcg = torch.tensor([MCG_MARKER_SIGNED_INT32], dtype=torch.int32, device=device)
     x = torch.randn(rows, in_f, dtype=torch.float16, device=device)
-    reference = execute_exl3_linear(
-        x, trellis, suh, svh, mcg, out_dtype=torch.float32
-    )
+    reference = execute_exl3_linear(x, trellis, suh, svh, mcg, out_dtype=torch.float32)
     xh = torch.empty_like(x)
     exllamav3_ext.had_r_128(x, xh, suh, None, 1.0)
     direct = torch.empty(rows, out_f, dtype=torch.float32, device=device)
-    exllamav3_ext.exl3_fat_gemm(
-        xh, trellis, direct, svh, 4, True, False
-    )
+    exllamav3_ext.exl3_fat_gemm(xh, trellis, direct, svh, 4, True, False)
 
-    bound = max(
-        0.15, 0.08 * float(reference.float().abs().max().clamp_min(1.0))
-    )
+    bound = max(0.15, 0.08 * float(reference.float().abs().max().clamp_min(1.0)))
     direct_err = float((reference - direct).abs().max())
     assert torch.isfinite(direct).all()
     assert direct_err < bound, (
@@ -335,12 +359,8 @@ def _check_fat_kernel(device) -> None:
 
     token_idx = torch.randperm(rows + 17, device=device)[:rows].contiguous()
     route_weight = torch.rand(rows, dtype=torch.float16, device=device)
-    expected = torch.zeros(
-        rows + 17, out_f, dtype=torch.float32, device=device
-    )
-    expected.index_add_(
-        0, token_idx, reference * route_weight.float().unsqueeze(-1)
-    )
+    expected = torch.zeros(rows + 17, out_f, dtype=torch.float32, device=device)
+    expected.index_add_(0, token_idx, reference * route_weight.float().unsqueeze(-1))
     scattered = torch.zeros_like(expected)
     exllamav3_ext.exl3_fat_gemm_scatter(
         xh,
@@ -389,10 +409,22 @@ def _tiny_layer(device, n_exp: int = 3, hidden: int = 256, inter: int = 256):
     g.manual_seed(0)
     with torch.no_grad():
         layer.w13_trellis.copy_(
-            torch.randint(-30000, 30000, tuple(layer.w13_trellis.shape), dtype=torch.int16, generator=g)
+            torch.randint(
+                -30000,
+                30000,
+                tuple(layer.w13_trellis.shape),
+                dtype=torch.int16,
+                generator=g,
+            )
         )
         layer.w2_trellis.copy_(
-            torch.randint(-30000, 30000, tuple(layer.w2_trellis.shape), dtype=torch.int16, generator=g)
+            torch.randint(
+                -30000,
+                30000,
+                tuple(layer.w2_trellis.shape),
+                dtype=torch.int16,
+                generator=g,
+            )
         )
         layer.w13_suh.copy_(torch.randn(tuple(layer.w13_suh.shape), generator=g).half())
         layer.w13_svh.copy_(torch.randn(tuple(layer.w13_svh.shape), generator=g).half())
@@ -425,7 +457,9 @@ def _check_fused_vs_loop(device) -> None:
     max_err = float(err.max())
     # fp16 trellis GEMM noise, not bit-identical
     bound = max(0.15, 0.08 * float(y_loop.float().abs().max().clamp_min(1.0)))
-    assert max_err < bound, f"fused vs loop maxabs={max_err} bound={bound} mean_scale={scale}"
+    assert max_err < bound, (
+        f"fused vs loop maxabs={max_err} bound={bound} mean_scale={scale}"
+    )
     print(
         f"exl3 fused vs LinearEXL3 loop OK maxabs={max_err:.5f} bound={bound:.5f}",
         flush=True,
@@ -508,9 +542,7 @@ def _check_fused_fat_and_row_tile(device) -> None:
             y_kernel = apply_exl3_experts(x, ids, w, layer, fused=True)
             assert layer._exl3_last_fat_fallback == "kernel"
             assert torch.isfinite(y_kernel).all()
-            err_kernel = float(
-                (y_loop.float() - y_kernel.float()).abs().max()
-            )
+            err_kernel = float((y_loop.float() - y_kernel.float()).abs().max())
             assert err_kernel < bound, (
                 f"kernel fat fallback vs loop maxabs={err_kernel} bound={bound}"
             )
@@ -581,9 +613,7 @@ def _check_mixed_thin_fat(device) -> None:
         ids[:, 0] = 0
         ids[:100, 1] = 1
         ids[100:, 1] = 2
-        weights = torch.full(
-            (tokens, 2), 0.5, dtype=torch.float16, device=device
-        )
+        weights = torch.full((tokens, 2), 0.5, dtype=torch.float16, device=device)
 
         y_loop = apply_exl3_experts(x, ids, weights, layer, fused=False)
         os.environ["EXL3_MOE_ROW_TILE"] = "0"
@@ -593,22 +623,16 @@ def _check_mixed_thin_fat(device) -> None:
         y_batched = apply_exl3_experts(x, ids, weights, layer, fused=True)
         assert layer._exl3_last_fat_fallback == "batched"
         assert torch.isfinite(y_loop).all() and torch.isfinite(y_batched).all()
-        bound = max(
-            0.15, 0.08 * float(y_loop.float().abs().max().clamp_min(1.0))
-        )
+        bound = max(0.15, 0.08 * float(y_loop.float().abs().max().clamp_min(1.0)))
         err = float((y_loop.float() - y_batched.float()).abs().max())
-        assert err < bound, (
-            f"mixed thin+fat batched vs loop maxabs={err} bound={bound}"
-        )
+        assert err < bound, f"mixed thin+fat batched vs loop maxabs={err} bound={bound}"
         import exllamav3_ext
 
         if hasattr(exllamav3_ext, "exl3_fat_gemm"):
             os.environ["EXL3_FAT_KERNEL"] = "1"
             y_kernel = apply_exl3_experts(x, ids, weights, layer, fused=True)
             assert layer._exl3_last_fat_fallback == "kernel"
-            kernel_err = float(
-                (y_loop.float() - y_kernel.float()).abs().max()
-            )
+            kernel_err = float((y_loop.float() - y_kernel.float()).abs().max())
             assert torch.isfinite(y_kernel).all() and kernel_err < bound, (
                 f"mixed thin+fat kernel vs loop maxabs={kernel_err} bound={bound}"
             )
@@ -626,6 +650,7 @@ def _check_mixed_thin_fat(device) -> None:
 
 def _check_e2_diag(device) -> None:
     """Exact E2 counters for one fat prefill; degradation never poses as kernel."""
+    import exllamav3_ext
     import torch
     from vllm.model_executor.layers.quantization.exl3 import (
         _FAT_SCRATCH_BYTES,
@@ -634,8 +659,6 @@ def _check_e2_diag(device) -> None:
         exl3_fat_diag,
         reset_exl3_fat_diag_counters,
     )
-
-    import exllamav3_ext
 
     if not hasattr(exllamav3_ext, "exl3_fat_gemm"):
         print(
@@ -729,7 +752,9 @@ def _check_e2_diag(device) -> None:
         assert torch.isfinite(y_sorted).all()
         assert layer._exl3_last_fat_fallback == "sorted", layer._exl3_last_fat_fallback
         assert layer._exl3_last_fat_reason == "degraded_shared_suh"
-        assert after["fallback_calls"]["sorted"] - before["fallback_calls"]["sorted"] == 1
+        assert (
+            after["fallback_calls"]["sorted"] - before["fallback_calls"]["sorted"] == 1
+        )
         assert after["direct_calls"] == before["direct_calls"]
         assert after["scatter_calls"] == before["scatter_calls"]
         assert (
@@ -829,7 +854,6 @@ def _check_fused_cudagraph(device) -> None:
     print(f"exl3 fused CUDA graph capture OK maxabs={err:.5f}", flush=True)
 
 
-
 def _grouped_reference_tables(counts: list[int], cap: int, tile: int):
     """Straightforward host reference for build_grouped_fat_tables."""
     sorted_off = [0]
@@ -885,23 +909,46 @@ def _check_grouped_tables(device) -> None:
         cnt = expert_count[:n_exp]
         rows_cap = int(local.numel())
         for tile in tiles:
-            tb = build_grouped_fat_tables(cnt, cap, token_sorted, weight_sorted, rows_cap, tile)
-            segs, row_src, row_expert, num_rows = _grouped_reference_tables(counts, cap, tile)
+            tb = build_grouped_fat_tables(
+                cnt, cap, token_sorted, weight_sorted, rows_cap, tile
+            )
+            segs, row_src, row_expert, num_rows = _grouped_reference_tables(
+                counts, cap, tile
+            )
             ns = int(tb["num_segs"].item())
             nr = int(tb["num_rows"].item())
             assert ns == len(segs), (name, tile, ns, len(segs))
             assert nr == num_rows, (name, tile, nr, num_rows)
-            got_segs = list(zip(tb["seg_expert"][:ns].tolist(), tb["seg_row0"][:ns].tolist(), tb["seg_rows"][:ns].tolist()))
+            got_segs = list(
+                zip(
+                    tb["seg_expert"][:ns].tolist(),
+                    tb["seg_row0"][:ns].tolist(),
+                    tb["seg_rows"][:ns].tolist(),
+                )
+            )
             assert got_segs == segs, (name, tile, got_segs[:5], segs[:5])
             assert tb["row_expert"][:nr].tolist() == row_expert, (name, tile)
-            exp_tok = token_sorted[torch.tensor(row_src, dtype=torch.long, device=device)] if row_src else token_sorted[:0]
+            exp_tok = (
+                token_sorted[torch.tensor(row_src, dtype=torch.long, device=device)]
+                if row_src
+                else token_sorted[:0]
+            )
             assert torch.equal(tb["row_token"][:nr], exp_tok), (name, tile)
-            exp_w = weight_sorted[torch.tensor(row_src, dtype=torch.long, device=device)] if row_src else weight_sorted[:0]
+            exp_w = (
+                weight_sorted[torch.tensor(row_src, dtype=torch.long, device=device)]
+                if row_src
+                else weight_sorted[:0]
+            )
             assert torch.equal(tb["row_weight"][:nr], exp_w), (name, tile)
             # No fat row may point at a sentinel route (they sort last).
             assert all(src < sum(counts) for src in row_src)
-            assert int(tb["seg_expert"].numel()) >= ns and int(tb["row_token"].numel()) == rows_cap
-    print(f"exl3 E3 row/segment tables vs reference OK ({len(cases)} cases)", flush=True)
+            assert (
+                int(tb["seg_expert"].numel()) >= ns
+                and int(tb["row_token"].numel()) == rows_cap
+            )
+    print(
+        f"exl3 E3 row/segment tables vs reference OK ({len(cases)} cases)", flush=True
+    )
 
 
 def _err_stats(ref, got):
@@ -917,7 +964,9 @@ def _err_stats(ref, got):
         "meanabs": float(err.mean()),
         "nrmse": float((ref - got).pow(2).mean().sqrt()) / rms_ref,
         "per_token_max": float(per_tok.max()),
-        "per_token_p99": float(per_tok.kthvalue(max(1, int(0.99 * per_tok.numel()))).values),
+        "per_token_p99": float(
+            per_tok.kthvalue(max(1, int(0.99 * per_tok.numel()))).values
+        ),
         "ref_max": float(ref.abs().max()),
         "ref_mean": float(ref.abs().mean()),
         "finite": bool(torch.isfinite(got).all()),
@@ -938,11 +987,17 @@ def _assert_e3_within(name: str, e2: dict, e3: dict) -> None:
     assert e3["finite"], f"{name}: E3 produced non-finite values"
     for key in ("maxabs", "per_token_max", "per_token_p99"):
         bound = E3_TOL_FACTOR * e2[key] + floor
-        assert e3[key] <= bound, f"{name}: E3 {key}={e3[key]:.5f} > {bound:.5f} (E2 {e2[key]:.5f})"
+        assert e3[key] <= bound, (
+            f"{name}: E3 {key}={e3[key]:.5f} > {bound:.5f} (E2 {e2[key]:.5f})"
+        )
     bound = E3_TOL_FACTOR * e2["nrmse"] + E3_TOL_NRMSE_ABS
-    assert e3["nrmse"] <= bound, f"{name}: E3 nrmse={e3['nrmse']:.6f} > {bound:.6f} (E2 {e2['nrmse']:.6f})"
+    assert e3["nrmse"] <= bound, (
+        f"{name}: E3 nrmse={e3['nrmse']:.6f} > {bound:.6f} (E2 {e2['nrmse']:.6f})"
+    )
     coarse = max(0.15, 0.08 * max(1.0, e2["ref_max"]))
-    assert e3["maxabs"] < coarse, f"{name}: E3 maxabs {e3['maxabs']} exceeds coarse bound {coarse}"
+    assert e3["maxabs"] < coarse, (
+        f"{name}: E3 maxabs {e3['maxabs']} exceeds coarse bound {coarse}"
+    )
 
 
 def _grouped_env(cap: int):
@@ -968,7 +1023,9 @@ def _real_expert_layer(device, n_exp: int = 3, cap: int = 32):
     import torch
     from vllm.model_executor.layers.quantization.exl3 import Exl3Config, Exl3MoEMethod
 
-    snaps = glob.glob("/root/.cache/huggingface/hub/models--brandonmusic--GLM-5.3-Flash-tr3-4bpw/snapshots/*/model.safetensors.index.json")
+    snaps = glob.glob(
+        "/root/.cache/huggingface/hub/models--brandonmusic--GLM-5.3-Flash-tr3-4bpw/snapshots/*/model.safetensors.index.json"
+    )
     if not snaps:
         return None
     try:
@@ -998,19 +1055,28 @@ def _real_expert_layer(device, n_exp: int = 3, cap: int = 32):
     moe = types.SimpleNamespace(swiglu_limit=10.0)
     method = Exl3MoEMethod(moe, Exl3Config())
     layer = torch.nn.Module()
-    method.create_weights(layer, num_experts=n_exp, hidden_size=hidden,
-                          intermediate_size_per_partition=inter, params_dtype=torch.float16)
+    method.create_weights(
+        layer,
+        num_experts=n_exp,
+        hidden_size=hidden,
+        intermediate_size_per_partition=inter,
+        params_dtype=torch.float16,
+    )
     with torch.no_grad():
         for e in range(n_exp):
             for si, proj in ((0, "gate_proj"), (1, "up_proj")):
                 layer.w13_trellis[e, si].copy_(tensors[f"{prefix}.{e}.{proj}.trellis"])
                 layer.w13_suh[e, si].copy_(tensors[f"{prefix}.{e}.{proj}.suh"])
                 layer.w13_svh[e, si].copy_(tensors[f"{prefix}.{e}.{proj}.svh"])
-                layer.w13_mcg[e, si].copy_(tensors[f"{prefix}.{e}.{proj}.mcg"].reshape(-1)[:1])
+                layer.w13_mcg[e, si].copy_(
+                    tensors[f"{prefix}.{e}.{proj}.mcg"].reshape(-1)[:1]
+                )
             layer.w2_trellis[e].copy_(tensors[f"{prefix}.{e}.down_proj.trellis"])
             layer.w2_suh[e].copy_(tensors[f"{prefix}.{e}.down_proj.suh"])
             layer.w2_svh[e].copy_(tensors[f"{prefix}.{e}.down_proj.svh"])
-            layer.w2_mcg[e].copy_(tensors[f"{prefix}.{e}.down_proj.mcg"].reshape(-1)[:1])
+            layer.w2_mcg[e].copy_(
+                tensors[f"{prefix}.{e}.down_proj.mcg"].reshape(-1)[:1]
+            )
     layer = layer.to(device)
     method.process_weights_after_loading(layer)
     return layer, hidden, inter
@@ -1037,8 +1103,13 @@ def _check_grouped_fat(device) -> None:
     require = os.environ.get("EXL3_SELFCHECK_REQUIRE_GROUPED", "0") == "1"
     if not exl3_fat_moe_symbols():
         if require:
-            raise AssertionError("EXL3_SELFCHECK_REQUIRE_GROUPED=1 but the E3 kernels are absent")
-        print("exl3 E3 grouped kernels absent (E2 image) — grouped checks skipped", flush=True)
+            raise AssertionError(
+                "EXL3_SELFCHECK_REQUIRE_GROUPED=1 but the E3 kernels are absent"
+            )
+        print(
+            "exl3 E3 grouped kernels absent (E2 image) — grouped checks skipped",
+            flush=True,
+        )
         return
     _check_grouped_tables(device)
 
@@ -1050,16 +1121,19 @@ def _check_grouped_fat(device) -> None:
         os.environ.update(_grouped_env(cap))
         # --- routing with fat + thin + overlapping contributions ---
         _method, layer = _tiny_layer(device, n_exp=4)
-        assert layer._exl3_fat_effective_tier == "grouped", (layer._exl3_fat_effective_tier, layer._exl3_fat_tier_reason)
+        assert layer._exl3_fat_effective_tier == "grouped", (
+            layer._exl3_fat_effective_tier,
+            layer._exl3_fat_tier_reason,
+        )
         tokens = 300
         g = torch.Generator(device="cpu")
         g.manual_seed(7)
         x = torch.randn(tokens, 256, generator=g).half().to(device)
         ids = torch.zeros(tokens, 2, dtype=torch.long)
-        ids[:, 0] = 0                       # fat: 300 rows
-        ids[:200, 1] = 1                    # fat: 200 rows
-        ids[200:280, 1] = 2                 # fat: 80 rows
-        ids[280:, 1] = 3                    # thin: 20 rows (fused kernel)
+        ids[:, 0] = 0  # fat: 300 rows
+        ids[:200, 1] = 1  # fat: 200 rows
+        ids[200:280, 1] = 2  # fat: 80 rows
+        ids[280:, 1] = 3  # thin: 20 rows (fused kernel)
         ids = ids.to(device)
         w = torch.rand(tokens, 2, generator=g).softmax(-1).half().to(device)
 
@@ -1081,14 +1155,29 @@ def _check_grouped_fat(device) -> None:
         e3 = _err_stats(y_loop, y_e3)
         e3_rep = _err_stats(y_e3, y_e3b)
         e3_vs_e2 = _err_stats(y_e2, y_e3)
-        results["mixed"] = {"e2_vs_loop": e2, "e2_repeat": e2_rep, "e3_vs_loop": e3, "e3_repeat": e3_rep, "e3_vs_e2": e3_vs_e2}
+        results["mixed"] = {
+            "e2_vs_loop": e2,
+            "e2_repeat": e2_rep,
+            "e3_vs_loop": e3,
+            "e3_repeat": e3_rep,
+            "e3_vs_e2": e3_vs_e2,
+        }
         _assert_e3_within("mixed", e2, e3)
         diag = exl3_fat_diag()
         assert diag["grouped_calls"] == 2, diag["grouped_calls"]
         assert diag["fallback_calls"]["grouped"] == 2, diag["fallback_calls"]
-        assert diag["direct_calls"] == 0 and diag["scatter_calls"] == 0, (diag["direct_calls"], diag["scatter_calls"])
-        assert diag["grouped_scratch_bytes"] > 0 and diag["grouped_eligible"] and diag["sym_fat_moe"]
-        assert diag["effective_tier"] == "grouped" and diag["configured_tier"] == "grouped"
+        assert diag["direct_calls"] == 0 and diag["scatter_calls"] == 0, (
+            diag["direct_calls"],
+            diag["scatter_calls"],
+        )
+        assert (
+            diag["grouped_scratch_bytes"] > 0
+            and diag["grouped_eligible"]
+            and diag["sym_fat_moe"]
+        )
+        assert (
+            diag["effective_tier"] == "grouped" and diag["configured_tier"] == "grouped"
+        )
 
         # --- value regimes: ordinary small, saturation/clamp, near-zero ---
         for label, scale in (("small", 0.05), ("saturate", 40.0), ("near_zero", 1e-3)):
@@ -1128,7 +1217,10 @@ def _check_grouped_fat(device) -> None:
         results["grown_1200"] = {"e2_vs_loop": sb2, "e3_vs_loop": sb3}
         _assert_e3_within("grown_1200", sb2, sb3)
         apply_exl3_experts(x, ids, w, layer, fused=True)
-        assert _FAT_GROUPED_CACHE[next(iter(_FAT_GROUPED_CACHE))]["h13"].data_ptr() == grown.data_ptr()
+        assert (
+            _FAT_GROUPED_CACHE[next(iter(_FAT_GROUPED_CACHE))]["h13"].data_ptr()
+            == grown.data_ptr()
+        )
         del base_ptr
 
         # --- CUDA graph: capture a batch > cap, replay with changed data ---
@@ -1144,19 +1236,25 @@ def _check_grouped_fat(device) -> None:
         graph = torch.cuda.CUDAGraph()
         before_calls = exl3_fat_diag()["grouped_calls"]
         with torch.cuda.graph(graph):
-            y_graph = apply_exl3_experts(static_x, static_ids, static_w, layer, fused=True)
+            y_graph = apply_exl3_experts(
+                static_x, static_ids, static_w, layer, fused=True
+            )
         graph.replay()
         torch.cuda.synchronize()
         y_eager = apply_exl3_experts(static_x, static_ids, static_w, layer, fused=True)
         r0 = _err_stats(y_eager, y_graph)
-        assert r0["finite"] and r0["maxabs"] <= E3_TOL_FACTOR * e3_rep["maxabs"] + E3_TOL_ABS_REL * r0["ref_max"], r0
+        assert (
+            r0["finite"]
+            and r0["maxabs"]
+            <= E3_TOL_FACTOR * e3_rep["maxabs"] + E3_TOL_ABS_REL * r0["ref_max"]
+        ), r0
         # New activations, ids, weights and a different fat/thin split in place.
         static_x.copy_(torch.randn(tokens, 256, generator=g).half().to(device))
         new_ids = torch.zeros(tokens, 2, dtype=torch.long)
-        new_ids[:, 0] = 2                   # fat
-        new_ids[:40, 1] = 0                 # fat (40 > 32)
-        new_ids[40:60, 1] = 1               # thin
-        new_ids[60:, 1] = 3                 # fat
+        new_ids[:, 0] = 2  # fat
+        new_ids[:40, 1] = 0  # fat (40 > 32)
+        new_ids[40:60, 1] = 1  # thin
+        new_ids[60:, 1] = 3  # fat
         static_ids.copy_(new_ids.to(device))
         static_w.copy_(torch.rand(tokens, 2, generator=g).softmax(-1).half().to(device))
         graph.replay()
@@ -1165,24 +1263,40 @@ def _check_grouped_fat(device) -> None:
         y_eager2 = apply_exl3_experts(static_x, static_ids, static_w, layer, fused=True)
         y_loop2 = apply_exl3_experts(static_x, static_ids, static_w, layer, fused=False)
         r1 = _err_stats(y_eager2, y_graph2)
-        assert r1["finite"] and r1["maxabs"] <= E3_TOL_FACTOR * e3_rep["maxabs"] + E3_TOL_ABS_REL * r1["ref_max"], r1
+        assert (
+            r1["finite"]
+            and r1["maxabs"]
+            <= E3_TOL_FACTOR * e3_rep["maxabs"] + E3_TOL_ABS_REL * r1["ref_max"]
+        ), r1
         r_loop = _err_stats(y_loop2, y_graph2)
         assert r_loop["maxabs"] < max(0.15, 0.08 * max(1.0, r_loop["ref_max"])), r_loop
         # The replay must NOT be the stale first result.
         stale = _err_stats(y_eager, y_graph2)
-        assert stale["maxabs"] > 10 * r1["maxabs"] + 1e-3, "graph replay ignored live data"
-        results["graph"] = {"replay_vs_eager_first": r0, "replay_vs_eager_changed": r1, "replay_vs_loop_changed": r_loop}
+        assert stale["maxabs"] > 10 * r1["maxabs"] + 1e-3, (
+            "graph replay ignored live data"
+        )
+        results["graph"] = {
+            "replay_vs_eager_first": r0,
+            "replay_vs_eager_changed": r1,
+            "replay_vs_loop_changed": r_loop,
+        }
         # Python counters only count capture, not replays (documented).
         assert exl3_fat_diag()["grouped_calls"] >= before_calls + 1
 
         # --- real checkpoint experts at production geometry ---
         real = _real_expert_layer(device, n_exp=3, cap=cap)
         if real is None:
-            print("exl3 E3 real-checkpoint parity SKIPPED (HF cache not mounted)", flush=True)
+            print(
+                "exl3 E3 real-checkpoint parity SKIPPED (HF cache not mounted)",
+                flush=True,
+            )
             results["real"] = None
         else:
             rlayer, hidden, inter = real
-            assert rlayer._exl3_fat_effective_tier == "grouped", (rlayer._exl3_fat_effective_tier, rlayer._exl3_fat_tier_reason)
+            assert rlayer._exl3_fat_effective_tier == "grouped", (
+                rlayer._exl3_fat_effective_tier,
+                rlayer._exl3_fat_tier_reason,
+            )
             rt = 200
             rids = torch.zeros(rt, 2, dtype=torch.long)
             rids[:, 0] = 0
@@ -1203,7 +1317,12 @@ def _check_grouped_fat(device) -> None:
                 assert rlayer._exl3_last_fat_fallback == "grouped"
                 s2 = _err_stats(yl, ye2)
                 s3 = _err_stats(yl, ye3)
-                results["real"][label] = {"e2_vs_loop": s2, "e2_repeat": _err_stats(ye2, ye2b), "e3_vs_loop": s3, "e3_vs_e2": _err_stats(ye2, ye3)}
+                results["real"][label] = {
+                    "e2_vs_loop": s2,
+                    "e2_repeat": _err_stats(ye2, ye2b),
+                    "e3_vs_loop": s3,
+                    "e3_vs_e2": _err_stats(ye2, ye3),
+                }
                 _assert_e3_within(f"real_{label}", s2, s3)
             del rlayer
             torch.cuda.empty_cache()
@@ -1212,8 +1331,12 @@ def _check_grouped_fat(device) -> None:
         saved_bits = layer._exl3_bits
         layer._exl3_bits = 3
         _record_exl3_fat_resolution(layer)
-        assert layer._exl3_fat_effective_tier == "kernel", layer._exl3_fat_effective_tier
-        assert layer._exl3_fat_tier_reason.startswith("grouped_ineligible_bits_3"), layer._exl3_fat_tier_reason
+        assert layer._exl3_fat_effective_tier == "kernel", (
+            layer._exl3_fat_effective_tier
+        )
+        assert layer._exl3_fat_tier_reason.startswith("grouped_ineligible_bits_3"), (
+            layer._exl3_fat_tier_reason
+        )
         y_fb = apply_exl3_experts(x, ids, w, layer, fused=True)
         assert layer._exl3_last_fat_fallback == "kernel", layer._exl3_last_fat_fallback
         assert torch.isfinite(y_fb).all()
@@ -1245,9 +1368,12 @@ def _check_grouped_fat(device) -> None:
     print(
         "exl3 E3 grouped OK: mixed e2_vs_loop maxabs={:.4f} nrmse={:.6f} | e3_vs_loop maxabs={:.4f} nrmse={:.6f} | "
         "e3_vs_e2 maxabs={:.4f} | e3_repeat maxabs={:.5f} | real={}".format(
-            results["mixed"]["e2_vs_loop"]["maxabs"], results["mixed"]["e2_vs_loop"]["nrmse"],
-            results["mixed"]["e3_vs_loop"]["maxabs"], results["mixed"]["e3_vs_loop"]["nrmse"],
-            results["mixed"]["e3_vs_e2"]["maxabs"], results["mixed"]["e3_repeat"]["maxabs"],
+            results["mixed"]["e2_vs_loop"]["maxabs"],
+            results["mixed"]["e2_vs_loop"]["nrmse"],
+            results["mixed"]["e3_vs_loop"]["maxabs"],
+            results["mixed"]["e3_vs_loop"]["nrmse"],
+            results["mixed"]["e3_vs_e2"]["maxabs"],
+            results["mixed"]["e3_repeat"]["maxabs"],
             "skipped" if results.get("real") is None else "ok",
         ),
         flush=True,
@@ -1281,7 +1407,10 @@ def _check_dflash2() -> None:
         "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/qwen3_dflash.py"
     ).read_text()
     assert "self.decoder_layer_cls(" in qwen
-    assert "DFlashQwen3DecoderLayer(" not in qwen.split("self.layers")[1].split("def embed_input_ids")[0]
+    assert (
+        "DFlashQwen3DecoderLayer("
+        not in qwen.split("self.layers")[1].split("def embed_input_ids")[0]
+    )
     spec_init = Path(
         "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu/spec_decode/__init__.py"
     ).read_text()
@@ -1316,7 +1445,9 @@ def _check_dflash2() -> None:
     assert "compact_block" in standalone
     assert "page_size_padded=mla_page" in standalone
     assert "new_draft_specs = dict(draft_specs)" not in standalone
-    src = Path("/usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/qwen3_dflash.py").read_text()
+    src = Path(
+        "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/models/qwen3_dflash.py"
+    ).read_text()
     # Top-level is_causal must win so GLM-5.3-Flash-DFlash2 (is_causal=false,
     # all sliding_attention) does not silently draft as causal DFlash1.
     assert 'getattr(config, "is_causal", None)' in src

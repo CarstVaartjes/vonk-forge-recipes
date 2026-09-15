@@ -9,12 +9,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = (
-    ROOT
-    / "adapters/image/qwen-image-lightning-diffusers/qwen_image_lightning.py"
-)
+SCRIPT = ROOT / "adapters/image/qwen-image-lightning-diffusers/qwen_image_lightning.py"
 LOADER = importlib.machinery.SourceFileLoader("qwen_image_lightning", str(SCRIPT))
 SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)
 assert SPEC is not None
@@ -57,7 +53,9 @@ class QwenImageLightningAdapterTests(unittest.TestCase):
             target = recipe["models"][0]
             self.assertTrue(target["files"])
             self.assertEqual(target["files"][0]["mount"]["target"], "/models/target")
-            model = json.loads((ROOT / "models" / f"{target['model']['slug']}.json").read_text())
+            model = json.loads(
+                (ROOT / "models" / f"{target['model']['slug']}.json").read_text()
+            )
             self.assertTrue(model["files"][0]["roles"])
             self.assertNotIn("metadata-only", recipe["metadata"]["tags"])
             self.assertNotIn("non-executable", recipe["metadata"]["tags"])

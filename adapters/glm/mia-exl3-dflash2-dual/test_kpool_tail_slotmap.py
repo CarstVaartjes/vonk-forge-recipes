@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Regression tests for the K-pool tail one-block circular slot-map clamp."""
+
 from __future__ import annotations
 
 import os
@@ -8,11 +9,10 @@ import sys
 import tempfile
 from pathlib import Path
 
-
 HERE = Path(__file__).resolve().parent
 PATCH = HERE / "patch_kpool_tail_slotmap.py"
 sys.path.insert(0, str(HERE))
-from patch_kpool_tail_slotmap import (  # noqa: E402
+from patch_kpool_tail_slotmap import (
     ANCHOR,
     MARK,
     circular_slot_ids,
@@ -21,7 +21,8 @@ from patch_kpool_tail_slotmap import (  # noqa: E402
     verified_state,
 )
 
-PINNED_FIXTURE = '''import triton
+PINNED_FIXTURE = (
+    """import triton
 import triton.language as tl
 
 
@@ -62,7 +63,9 @@ def _compute_slot_mapping_kernel(
         ) * CP_KV_CACHE_INTERLEAVE_SIZE + (
             virtual_block_offsets % CP_KV_CACHE_INTERLEAVE_SIZE
         )
-''' + ANCHOR
+"""
+    + ANCHOR
+)
 
 
 def _run_patch(target: Path) -> subprocess.CompletedProcess[str]:

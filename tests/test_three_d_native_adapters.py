@@ -78,7 +78,9 @@ def read_package(slug: str) -> tuple[dict[str, object], dict[str, bytes]]:
 
 
 class NativeThreeDAdapterTests(unittest.TestCase):
-    def test_trellis_and_pixal_reject_unsafe_or_oversized_images_before_model_load(self) -> None:
+    def test_trellis_and_pixal_reject_unsafe_or_oversized_images_before_model_load(
+        self,
+    ) -> None:
         for adapter in ("pixal3d_job.py", "trellis2_job.py"):
             with self.subTest(adapter=adapter), tempfile.TemporaryDirectory() as value:
                 source_path = ROOT / "adapters/three-d/trellis2-native" / adapter
@@ -87,7 +89,10 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 validation.normalize_glb_json_padding = lambda _path: None
                 validation.validate_mesh_glb = lambda _path, *, profile: None
                 with mock.patch.dict(sys.modules, {"glb_validation": validation}):
-                    exec(compile(source_path.read_bytes(), str(source_path), "exec"), module)  # noqa: S102
+                    exec(
+                        compile(source_path.read_bytes(), str(source_path), "exec"),
+                        module,
+                    )  # noqa: S102
                 inputs = Path(value)
                 image = inputs / "source.png"
                 image.write_bytes(b"png")
@@ -106,13 +111,17 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 with self.assertRaisesRegex(SystemExit, "16 MiB"):
                     module["one_input"](inputs)
 
-        trellis = (ROOT / "adapters/three-d/trellis2-native/trellis2_job.py").read_text()
+        trellis = (
+            ROOT / "adapters/three-d/trellis2-native/trellis2_job.py"
+        ).read_text()
         self.assertLess(
             trellis.index("input_image = validated_input"),
             trellis.index("    import o_voxel"),
         )
 
-    def test_three_d_job_contracts_have_truthful_bounded_input_and_glb_output_slots(self) -> None:
+    def test_three_d_job_contracts_have_truthful_bounded_input_and_glb_output_slots(
+        self,
+    ) -> None:
         for slug in SLOTTED_RECIPES:
             with self.subTest(slug=slug):
                 recipe = json.loads((ROOT / f"recipes/{slug}.json").read_text())
@@ -145,7 +154,9 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 self.assertEqual(build["dockerfile"], f"{context_name}/Dockerfile")
                 self.assertEqual(build["patches"], [])
                 repository, digest = case["base_image"].split("@sha256:", 1)
-                self.assertEqual(build["base_image"]["repository"], repository.split(":", 1)[0])
+                self.assertEqual(
+                    build["base_image"]["repository"], repository.split(":", 1)[0]
+                )
                 self.assertEqual(build["base_image"]["digest"], digest)
 
                 manifest, payloads = read_package(slug)
@@ -195,11 +206,21 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 self.assertEqual(packaged_model["files"], model["files"])
                 self.assertEqual(
                     manifest["build_inputs"],
-                    [{"kind": "oci-image", "platform": "linux/arm64", "reference": case["base_image"]}],
+                    [
+                        {
+                            "kind": "oci-image",
+                            "platform": "linux/arm64",
+                            "reference": case["base_image"],
+                        }
+                    ],
                 )
                 tags = set(recipe["metadata"]["tags"])
                 self.assertIn("candidate", tags)
-                self.assertFalse(tags.intersection({"metadata-only", "non-executable", "integration-required"}))
+                self.assertFalse(
+                    tags.intersection(
+                        {"metadata-only", "non-executable", "integration-required"}
+                    )
+                )
 
     def test_runtime_is_offline_and_source_authorities_are_immutable(self) -> None:
         for slug, case in CASES.items():
@@ -212,14 +233,14 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 self.assertEqual(environment, {"HF_HUB_OFFLINE": "1"})
 
                 _manifest, payloads = read_package(slug)
-                dockerfile = payloads[f'{case["context"]}/Dockerfile'].decode()
+                dockerfile = payloads[f"{case['context']}/Dockerfile"].decode()
                 revision = case["source_revision"]
                 archive = case["source_archive"]
                 self.assertIn(
                     f'org.opencontainers.image.revision="{revision}"', dockerfile
                 )
                 self.assertIn(
-                    f'https://github.com/{case["source_repository"]}/archive/{revision}.tar.gz',
+                    f"https://github.com/{case['source_repository']}/archive/{revision}.tar.gz",
                     dockerfile,
                 )
                 self.assertIn(
@@ -230,7 +251,14 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 self.assertNotIn("TRANSFORMERS_OFFLINE=1", dockerfile)
 
     def test_entrypoints_are_syntax_valid_and_have_no_runtime_downloads(self) -> None:
-        forbidden = ("snapshot_download", "hf_hub_download", "requests.get", "requests.post", "urlopen(", "curl ")
+        forbidden = (
+            "snapshot_download",
+            "hf_hub_download",
+            "requests.get",
+            "requests.post",
+            "urlopen(",
+            "curl ",
+        )
         for case in CASES.values():
             context_name = case["context"]
             with self.subTest(context=context_name):
@@ -242,18 +270,23 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 self.assertIn("validate_mesh_glb(", source)
 
     def test_hunyuan_declares_and_forces_exact_local_dinov2(self) -> None:
-        recipe = json.loads((ROOT / "recipes/hunyuan3d-omni-pytorch-single.json").read_text())
-        model_version = json.loads(
-            (ROOT / "models/hunyuan3d-omni.json").read_text()
+        recipe = json.loads(
+            (ROOT / "recipes/hunyuan3d-omni-pytorch-single.json").read_text()
         )
-        self.assertEqual(model_version["license"]["spdx"], "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License")
+        model_version = json.loads((ROOT / "models/hunyuan3d-omni.json").read_text())
+        self.assertEqual(
+            model_version["license"]["spdx"],
+            "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License",
+        )
         self.assertTrue(model_version["license"]["url"].startswith("https://"))
         self.assertFalse(model_version["license"]["operator_acceptance_required"])
         self.assertEqual(
             recipe["models"][0]["model"]["content_sha256"],
             hashlib.sha256(CATALOG.canonical(model_version)).hexdigest(),
         )
-        self.assertEqual(recipe["models"][0]["files"][0]["mount"]["target"], "/models/target")
+        self.assertEqual(
+            recipe["models"][0]["files"][0]["mount"]["target"], "/models/target"
+        )
         self.assertEqual(recipe["models"][0]["files"][0]["file_id"], "snapshot")
         source = (ROOT / "adapters/three-d/hunyuan3d-omni/run.py").read_text()
         self.assertIn('identifier != "facebook/dinov2-large"', source)
@@ -261,11 +294,19 @@ class NativeThreeDAdapterTests(unittest.TestCase):
         self.assertIn("np.random.seed(args.seed)", source)
         self.assertIn("sample_surface(loaded, 81920, seed=seed)", source)
 
-    def test_pixal_validates_input_before_model_load_and_disables_cache_writes(self) -> None:
+    def test_pixal_validates_input_before_model_load_and_disables_cache_writes(
+        self,
+    ) -> None:
         source = (ROOT / "adapters/three-d/trellis2-native/pixal3d_job.py").read_text()
         dockerfile = (ROOT / "adapters/three-d/trellis2-native/Dockerfile").read_text()
-        self.assertLess(source.index("input_image = validated_input"), source.index("    import torch"))
-        self.assertIn('FLEX_GEMM_AUTOTUNE_CACHE_PATH="/opt/vonk/flexgemm-source/autotune_cache.json"', dockerfile)
+        self.assertLess(
+            source.index("input_image = validated_input"),
+            source.index("    import torch"),
+        )
+        self.assertIn(
+            'FLEX_GEMM_AUTOTUNE_CACHE_PATH="/opt/vonk/flexgemm-source/autotune_cache.json"',
+            dockerfile,
+        )
         self.assertIn('FLEX_GEMM_AUTOSAVE_AUTOTUNE_CACHE="0"', dockerfile)
         self.assertIn('validate_mesh_glb(temporary, profile="textured-pbr")', source)
         self.assertLess(

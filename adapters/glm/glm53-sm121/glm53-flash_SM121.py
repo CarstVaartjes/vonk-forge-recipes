@@ -22,6 +22,7 @@ Modes:
 Unknown args are refused. Each replacement must match stock vLLM / FI 0.6.18
 exactly once or we abort. Already-applied trees are skipped.
 """
+
 from __future__ import annotations
 
 import sys
@@ -136,9 +137,7 @@ def bake_sm90_wrapper_for_gb10() -> None:
         "        return capability.major in (9, 12)\n"
     )
     fa_old = '            backend="fa3",\n'
-    fa_new = (
-        '            backend=("fa3" if torch.cuda.get_device_capability()[0] == 9 else "fa2"),\n'
-    )
+    fa_new = '            backend=("fa3" if torch.cuda.get_device_capability()[0] == 9 else "fa2"),\n'
     gate_old = """        if not has_flashinfer_sm90_nope_mla():
             return (
                 "FLASHINFER_MLA_SPARSE_SM90 requires FlashInfer with SM90 "
@@ -384,13 +383,13 @@ def packed_skip_fi_autotune() -> str:
     assert ROOT is not None
     path = ROOT / "model_executor/warmup/kernel_warmup.py"
     marker = "GLM53_SKIP_FI_AUTOTUNE"
-    needle = '''    from flashinfer.autotuner import AutoTuner, set_autotune_process_group
-'''
-    replacement = f'''    # {marker}: fused_moe gemm1/gemm2 autotune kills rank 0 on GB10.
+    needle = """    from flashinfer.autotuner import AutoTuner, set_autotune_process_group
+"""
+    replacement = f"""    # {marker}: fused_moe gemm1/gemm2 autotune kills rank 0 on GB10.
     logger.info_once("Skipping FlashInfer autotune on SM121")
     return
     from flashinfer.autotuner import AutoTuner, set_autotune_process_group
-'''
+"""
     return _once(path, needle, replacement, marker)
 
 

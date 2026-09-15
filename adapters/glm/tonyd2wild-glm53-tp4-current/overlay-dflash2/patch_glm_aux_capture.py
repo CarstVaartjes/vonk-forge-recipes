@@ -168,11 +168,31 @@ class Glm5NextForConditionalGeneration(
 
 EDITS: list[tuple[str, str, str]] = [
     ("import EagleModelMixin + SupportsEagle3", EDIT_IMPORTS_ANCHOR, EDIT_IMPORTS_NEW),
-    ("Glm5NextModel gains EagleModelMixin", EDIT_MODEL_CLASS_ANCHOR, EDIT_MODEL_CLASS_NEW),
-    ("decoder loop: aux hidden state capture + mHC contraction", EDIT_LOOP_ANCHOR, EDIT_LOOP_NEW),
-    ("forward tail: return (hidden_states, aux_hidden_states)", EDIT_RETURN_ANCHOR, EDIT_RETURN_NEW),
-    ("Glm5NextForCausalLM declares SupportsEagle3", EDIT_CAUSAL_LM_ANCHOR, EDIT_CAUSAL_LM_NEW),
-    ("Glm5NextForConditionalGeneration declares SupportsEagle3", EDIT_COND_GEN_ANCHOR, EDIT_COND_GEN_NEW),
+    (
+        "Glm5NextModel gains EagleModelMixin",
+        EDIT_MODEL_CLASS_ANCHOR,
+        EDIT_MODEL_CLASS_NEW,
+    ),
+    (
+        "decoder loop: aux hidden state capture + mHC contraction",
+        EDIT_LOOP_ANCHOR,
+        EDIT_LOOP_NEW,
+    ),
+    (
+        "forward tail: return (hidden_states, aux_hidden_states)",
+        EDIT_RETURN_ANCHOR,
+        EDIT_RETURN_NEW,
+    ),
+    (
+        "Glm5NextForCausalLM declares SupportsEagle3",
+        EDIT_CAUSAL_LM_ANCHOR,
+        EDIT_CAUSAL_LM_NEW,
+    ),
+    (
+        "Glm5NextForConditionalGeneration declares SupportsEagle3",
+        EDIT_COND_GEN_ANCHOR,
+        EDIT_COND_GEN_NEW,
+    ),
 ]
 
 
@@ -181,7 +201,9 @@ def patch_file(path: str, dry_run: bool = False) -> int:
         text = f.read()
 
     if MARKER in text:
-        print(f"[patch_glm_aux_capture] {path}: already patched ({MARKER} marker found); no-op.")
+        print(
+            f"[patch_glm_aux_capture] {path}: already patched ({MARKER} marker found); no-op."
+        )
         return 0
 
     # Sanity: the file we expect (guards against pointing at the wrong tree).
@@ -224,7 +246,9 @@ def patch_file(path: str, dry_run: bool = False) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[1])
     ap.add_argument("--model-file", default=DEFAULT_MODEL_FILE)
-    ap.add_argument("--dry-run", action="store_true", help="validate anchors + parse, write nothing")
+    ap.add_argument(
+        "--dry-run", action="store_true", help="validate anchors + parse, write nothing"
+    )
     args = ap.parse_args()
     return patch_file(args.model_file, dry_run=args.dry_run)
 

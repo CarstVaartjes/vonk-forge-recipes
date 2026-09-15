@@ -55,7 +55,9 @@ class _Layer:
 
 
 class ImageDiffusersAdapterTests(unittest.TestCase):
-    def test_all_image_adapters_bind_the_verified_current_diffusers_revision(self) -> None:
+    def test_all_image_adapters_bind_the_verified_current_diffusers_revision(
+        self,
+    ) -> None:
         dockerfiles = (
             "adapters/image/nvidia-qwen-image-flash-diffusers/Dockerfile",
             "adapters/image/qwen-image-2512-diffusers/Dockerfile",

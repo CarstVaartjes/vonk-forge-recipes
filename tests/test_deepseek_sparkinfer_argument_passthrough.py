@@ -7,12 +7,19 @@ from pathlib import Path
 
 import pytest
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.parametrize(
-    ("relative_wrapper", "served_model_name", "model_len", "seqs", "batch", "graph", "utilization"),
+    (
+        "relative_wrapper",
+        "served_model_name",
+        "model_len",
+        "seqs",
+        "batch",
+        "graph",
+        "utilization",
+    ),
     [
         (
             "adapters/deepseek/sparkinfer-single/vllm-wrapper.sh",
@@ -57,7 +64,9 @@ def test_sparkinfer_wrappers_preserve_authored_engine_argv(
 
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()
-    (fake_bin / "uname").write_text("#!/bin/sh\nprintf '%s\\n' aarch64\n", encoding="utf-8")
+    (fake_bin / "uname").write_text(
+        "#!/bin/sh\nprintf '%s\\n' aarch64\n", encoding="utf-8"
+    )
     (fake_bin / "uname").chmod(0o755)
 
     fake_python = tmp_path / "runtime-python"

@@ -8,11 +8,9 @@ from collections import Counter
 from dataclasses import dataclass, fields, replace
 from enum import Enum, IntEnum
 from math import prod
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Self, TypeVar
 
 import torch
-from typing_extensions import Self
-
 from vllm.logger import init_logger
 from vllm.utils.math_utils import cdiv, round_up
 from vllm.utils.torch_utils import get_dtype_size, nvfp4_kv_cache_full_dim
@@ -506,8 +504,6 @@ class MLAAttentionSpec(FullAttentionSpec):
 @dataclass(frozen=True, kw_only=True)
 class HiddenStateCacheSpec(MLAAttentionSpec):
     """Marker for hidden-state cache layers used by extract_hidden_states."""
-
-    pass
 
 
 @dataclass(frozen=True, kw_only=True)

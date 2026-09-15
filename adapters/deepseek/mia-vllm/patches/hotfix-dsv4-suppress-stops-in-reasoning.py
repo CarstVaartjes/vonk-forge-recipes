@@ -21,6 +21,7 @@ Runtime opt-out (process-wide): ``DSPARK_SUPPRESS_STOPS_IN_REASONING=0``
 or Tony's ``VLLM_SUPPRESS_STOPS_IN_REASONING=0``.
 Skip applying this file: ``DSPARK_SKIP_SUPPRESS_STOPS_HOTFIX=1``.
 """
+
 from __future__ import annotations
 
 import sys
@@ -41,15 +42,15 @@ IMPORT_NEW = (
     "from abc import ABC, abstractmethod\n"
 )
 
-FACTORY_OLD = '''        if USE_FAST_DETOKENIZER and isinstance(tokenizer, PreTrainedTokenizerFast):
+FACTORY_OLD = """        if USE_FAST_DETOKENIZER and isinstance(tokenizer, PreTrainedTokenizerFast):
             # Fast tokenizer => use tokenizers library DecodeStream.
             return FastIncrementalDetokenizer(tokenizer, request)
 
         # Fall back to slow python-based incremental detokenization.
         return SlowIncrementalDetokenizer(tokenizer, request)
-'''
+"""
 
-FACTORY_NEW = '''        if USE_FAST_DETOKENIZER and isinstance(tokenizer, PreTrainedTokenizerFast):
+FACTORY_NEW = """        if USE_FAST_DETOKENIZER and isinstance(tokenizer, PreTrainedTokenizerFast):
             # Fast tokenizer => use tokenizers library DecodeStream.
             detok = FastIncrementalDetokenizer(tokenizer, request)
         else:
@@ -121,7 +122,7 @@ FACTORY_NEW = '''        if USE_FAST_DETOKENIZER and isinstance(tokenizer, PreTr
                 detok._reasoning_end_str = end_str
         except Exception as e:
             logger.debug("suppress-stops-in-reasoning: guard not armed (%s)", e)
-'''
+"""
 
 INIT_OLD = """        self._last_output_text_offset: int = 0
 
@@ -202,7 +203,9 @@ def main(argv: list[str]) -> int:
     if len(argv) > 1 and argv[1] == "--status":
         target = Path(argv[2]) if len(argv) > 2 else P
         applied = target.is_file() and MARK in target.read_text()
-        print("suppress-stops-in-reasoning    :", "APPLIED" if applied else "NOT APPLIED")
+        print(
+            "suppress-stops-in-reasoning    :", "APPLIED" if applied else "NOT APPLIED"
+        )
         return 0
     target = Path(argv[1]) if len(argv) > 1 else P
     if not target.is_file():

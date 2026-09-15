@@ -29,7 +29,7 @@ import logging
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 logger = logging.getLogger("ui_mate.demo_workflow")
 
@@ -64,7 +64,7 @@ GUIDANCE_LINE = (
 )
 
 # Mirrors the training schema for computer_use with subtask reporting enabled.
-SUBTASK_COMPLETE_PATCH: Dict[str, Any] = {
+SUBTASK_COMPLETE_PATCH: dict[str, Any] = {
     "action_enum": [SUBTASK_COMPLETE_ACTION],
     "action_description": (
         f"* `{SUBTASK_COMPLETE_ACTION}`: Signal that the CURRENT subtask is complete and"
@@ -101,35 +101,37 @@ class Subtask:
     title: str
     goal: str
     completion_flag: str = ""
-    key_steps: List[str] = field(default_factory=list)
+    key_steps: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
 class WorkflowPlan:
-    subtasks: List[Subtask] = field(default_factory=list)
+    subtasks: list[Subtask] = field(default_factory=list)
 
 
-def _key_step(step: Dict[str, Any]) -> str:
+def _key_step(step: dict[str, Any]) -> str:
     value = step.get("value") or {}
     executor = value.get("executor_layer") or {}
     planner = value.get("planner_layer") or {}
     return (executor.get("action_description") or planner.get("intent") or "").strip()
 
 
-def _parse_subtask(raw: Dict[str, Any]) -> Subtask:
+def _parse_subtask(raw: dict[str, Any]) -> Subtask:
     return Subtask(
         title=(raw.get("intent_summary") or "").strip(),
         goal=raw.get("sub_instruction") or "",
         completion_flag=raw.get("subtask_complete_flag") or "",
         key_steps=[
             text
-            for text in (_key_step(s) for s in raw.get("steps") or [] if isinstance(s, dict))
+            for text in (
+                _key_step(s) for s in raw.get("steps") or [] if isinstance(s, dict)
+            )
             if text
         ],
     )
 
 
-def find_demo_file(path: Union[str, Path]) -> Path:
+def find_demo_file(path: str | Path) -> Path:
     """Accept the demo file itself or a directory holding ``trajectory_captioned*.json``."""
     path = Path(path)
     if path.is_file():
@@ -140,7 +142,7 @@ def find_demo_file(path: Union[str, Path]) -> Path:
     return found[0]
 
 
-def load_plan(path: Union[str, Path]) -> WorkflowPlan:
+def load_plan(path: str | Path) -> WorkflowPlan:
     """Parse a demonstration into a :class:`WorkflowPlan`.
 
     An unusable demo raises instead of degrading into an unguided run, which would
@@ -163,7 +165,11 @@ def build_guidance(plan: WorkflowPlan, current_index: int) -> str:
     """Render the three workflow blocks the model sees, plus the guided-turn line."""
     progress = ["<workflow_progress>"]
     for i, subtask in enumerate(plan.subtasks):
-        mark = "【✅】" if i < current_index else ("【➡️】" if i == current_index else "【 】")
+        mark = (
+            "【✅】"
+            if i < current_index
+            else ("【➡️】" if i == current_index else "【 】")
+        )
         goal = (subtask.goal or "").strip().replace("\n", " ")
         progress.append(f"{mark}subtask {i}: {goal}")
     progress.append("</workflow_progress>")
@@ -184,7 +190,9 @@ def build_guidance(plan: WorkflowPlan, current_index: int) -> str:
         if subtask.key_steps
         else "None"
     )
-    action_list = f"<current_subtask_action_list>\n{body}\n</current_subtask_action_list>"
+    action_list = (
+        f"<current_subtask_action_list>\n{body}\n</current_subtask_action_list>"
+    )
 
     blocks = "\n\n".join(["\n".join(progress), "\n".join(current), action_list])
     return f"{blocks}\n{GUIDANCE_LINE}"
@@ -222,8 +230,8 @@ def detect_subtask_complete(response: str) -> bool:
 # Agent-side consumer
 # ---------------------------------------------------------------------------
 def patch_tools_schema(
-    tools_def: Optional[Dict[str, Any]], obs: Optional[Dict[str, Any]]
-) -> Optional[Dict[str, Any]]:
+    tools_def: dict[str, Any] | None, obs: dict[str, Any] | None
+) -> dict[str, Any] | None:
     """Fold ``obs[OBS_ACTION_PATCH]`` into a computer_use schema (in place; no-op if absent)."""
     if not isinstance(obs, dict) or not isinstance(tools_def, dict):
         return tools_def
@@ -234,8 +242,10 @@ def patch_tools_schema(
         properties = tools_def["function"]["parameters"]["properties"]
         action = properties["action"]
     except (KeyError, TypeError):
-        logger.warning("%s present but tools_def is not a computer_use schema; skipping.",
-                       OBS_ACTION_PATCH)
+        logger.warning(
+            "%s present but tools_def is not a computer_use schema; skipping.",
+            OBS_ACTION_PATCH,
+        )
         return tools_def
 
     enum = action.setdefault("enum", [])
@@ -271,7 +281,7 @@ class DemoWorkflow:
         self._await_finish = False
 
     @classmethod
-    def from_path(cls, path: Union[str, Path]) -> "DemoWorkflow":
+    def from_path(cls, path: str | Path) -> DemoWorkflow:
         """Build from a demo file, or from a directory holding one."""
         return cls(load_plan(path))
 
@@ -296,7 +306,7 @@ class DemoWorkflow:
 
     # -- per-step hooks ------------------------------------------------------
 
-    def decorate_obs(self, obs: Dict[str, Any]) -> Dict[str, Any]:
+    def decorate_obs(self, obs: dict[str, Any]) -> dict[str, Any]:
         """Return a copy of ``obs`` carrying this step's guidance."""
         return {
             **obs,
@@ -305,7 +315,7 @@ class DemoWorkflow:
             OBS_ACTION_PATCH: SUBTASK_COMPLETE_PATCH,
         }
 
-    def after_predict(self, response: str, actions: List[str]) -> List[str]:
+    def after_predict(self, response: str, actions: list[str]) -> list[str]:
         """Advance the pointer on a completion report, and keep that step harmless."""
         if detect_subtask_complete(response):
             if not self.is_last:
@@ -326,15 +336,15 @@ class DemoWorkflow:
 
 
 __all__ = [
-    "DemoWorkflow",
     "GUIDANCE_LINE",
     "OBS_ACTION_PATCH",
     "OBS_GUIDANCE",
     "OBS_SYSTEM_PROMPT",
     "SUBTASK_COMPLETE_ACTION",
     "SUBTASK_COMPLETE_PATCH",
-    "Subtask",
     "WORKFLOW_SYSTEM_SECTION",
+    "DemoWorkflow",
+    "Subtask",
     "WorkflowPlan",
     "build_guidance",
     "detect_subtask_complete",

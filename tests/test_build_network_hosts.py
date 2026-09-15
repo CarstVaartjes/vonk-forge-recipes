@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import unittest
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -18,7 +18,9 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
             if recipe["execution"]["mode"] != "build":
                 continue
             network = recipe["execution"]["build"]["network"]
-            self.assertEqual(len(network["hosts"]), len(set(network["hosts"])), path.name)
+            self.assertEqual(
+                len(network["hosts"]), len(set(network["hosts"])), path.name
+            )
             dockerfile = ROOT / recipe["execution"]["build"]["dockerfile"]
             self.assertTrue(dockerfile.is_file(), path.name)
             if network["mode"] == "none":
@@ -34,11 +36,20 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
             if "nvcr.io" not in hosts:
                 continue
             dockerfile = ROOT / build["dockerfile"]
-            steps = "\n".join(line for line in dockerfile.read_text().splitlines() if not line.lstrip().upper().startswith("FROM "))
+            steps = "\n".join(
+                line
+                for line in dockerfile.read_text().splitlines()
+                if not line.lstrip().upper().startswith("FROM ")
+            )
             self.assertIn("https://nvcr.io", steps, path.name)
 
     def test_security_and_redirect_hosts_remain_explicit(self) -> None:
-        for slug in ("ltx-2-19b-dev-fp4-pytorch-single", "step1x-3d-geometry-pytorch-single", "step1x-3d-label-geometry-pytorch-single", "step1x-3d-texture-pytorch-single"):
+        for slug in (
+            "ltx-2-19b-dev-fp4-pytorch-single",
+            "step1x-3d-geometry-pytorch-single",
+            "step1x-3d-label-geometry-pytorch-single",
+            "step1x-3d-texture-pytorch-single",
+        ):
             recipe = load(ROOT / "recipes" / f"{slug}.json")
             hosts = recipe["execution"]["build"]["network"]["hosts"]
             self.assertTrue(hosts, slug)

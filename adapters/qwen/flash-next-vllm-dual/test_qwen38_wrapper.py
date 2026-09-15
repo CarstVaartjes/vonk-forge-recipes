@@ -15,12 +15,16 @@ def _wrapper():
     return module
 
 
-def test_preparation_reruns_for_source_change_without_writing_source(tmp_path: Path) -> None:
+def test_preparation_reruns_for_source_change_without_writing_source(
+    tmp_path: Path,
+) -> None:
     wrapper = _wrapper()
     source = tmp_path / "models"
     source.mkdir()
     config = source / "config.json"
-    config.write_text(json.dumps({"text_config": {"ple_embedding_dtype": "float8_e4m3fn"}}))
+    config.write_text(
+        json.dumps({"text_config": {"ple_embedding_dtype": "float8_e4m3fn"}})
+    )
     (source / "weights.index.json").write_text('{"weight_map": {"x": "x.safetensors"}}')
     (source / "x.safetensors").write_bytes(b"immutable model bytes")
     patcher = tmp_path / "patcher.py"
@@ -38,19 +42,32 @@ def test_preparation_reruns_for_source_change_without_writing_source(tmp_path: P
 
     config.write_text(json.dumps({"text_config": {"ple_embedding_dtype": "nvfp4"}}))
     config.chmod(stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
-    source.chmod(stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+    source.chmod(
+        stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH
+    )
     second = wrapper.prepare_model()
     assert second != first
     assert wrapper.PREPARED.resolve() != first_target
-    assert json.loads(config.read_text())["text_config"]["ple_embedding_dtype"] == "nvfp4"
-    assert json.loads((wrapper.PREPARED / ".vonk-prepared.json").read_text())["source_fingerprint"] == second
+    assert (
+        json.loads(config.read_text())["text_config"]["ple_embedding_dtype"] == "nvfp4"
+    )
+    assert (
+        json.loads((wrapper.PREPARED / ".vonk-prepared.json").read_text())[
+            "source_fingerprint"
+        ]
+        == second
+    )
 
 
-def test_hf_overrides_merges_safe_options_and_enforces_yarn_guard(tmp_path: Path) -> None:
+def test_hf_overrides_merges_safe_options_and_enforces_yarn_guard(
+    tmp_path: Path,
+) -> None:
     wrapper = _wrapper()
     prepared = tmp_path / "prepared"
     prepared.mkdir()
-    (prepared / "config.json").write_text(json.dumps({"text_config": {"ple_embedding_dtype": "float8_e4m3fn"}}))
+    (prepared / "config.json").write_text(
+        json.dumps({"text_config": {"ple_embedding_dtype": "float8_e4m3fn"}})
+    )
     wrapper.PREPARED = prepared
     arguments = [
         "--max-model-len",
@@ -83,5 +100,9 @@ def test_oci_runtime_metadata_and_entrypoint_are_declared() -> None:
     adapter = Path(__file__).parent
     dockerfile = (adapter / "Dockerfile").read_text()
     assert 'ai.vonkforge.runtime-interface="v1"' in dockerfile
-    recipe = json.loads((adapter.parents[2] / "recipes/qwen3-8-flash-next-nvfp4-vllm-dual.json").read_text())
+    recipe = json.loads(
+        (
+            adapter.parents[2] / "recipes/qwen3-8-flash-next-nvfp4-vllm-dual.json"
+        ).read_text()
+    )
     assert recipe["runtime"]["entrypoint"] == ["/opt/vonk/bin/qwen38-vllm-serve"]

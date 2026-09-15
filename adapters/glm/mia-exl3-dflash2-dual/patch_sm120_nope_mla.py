@@ -197,12 +197,14 @@ text = text.replace(
     "    # GLM53_SKIP_FI_SPARSE_WARMUP: SM120 autotune wedges rank 0 on GB10.\n"
     "    deepseek_v4_sparse_mla_attention_warmup(worker)\n",
 )
-old_autotune = "    from flashinfer.autotuner import AutoTuner, set_autotune_process_group\n"
+old_autotune = (
+    "    from flashinfer.autotuner import AutoTuner, set_autotune_process_group\n"
+)
 if text.count(old_autotune) != 1:
     raise RuntimeError("expected one FlashInfer autotuner import")
 text = text.replace(
     old_autotune,
-    "    logger.info_once(\"Skipping FlashInfer autotune on SM121\")\n"
+    '    logger.info_once("Skipping FlashInfer autotune on SM121")\n'
     "    return\n"
     "    from flashinfer.autotuner import AutoTuner, set_autotune_process_group\n",
 )
@@ -210,10 +212,7 @@ warmup.write_text(text)
 
 platform = site / "platforms/cuda.py"
 text = platform.read_text()
-old_pdl = (
-    "            return False\n"
-    "        return major >= 9\n"
-)
+old_pdl = "            return False\n        return major >= 9\n"
 if text.count(old_pdl) != 1:
     raise RuntimeError("expected one PDL capability gate")
 platform.write_text(

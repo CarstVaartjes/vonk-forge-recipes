@@ -1,4 +1,5 @@
 import os
+
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """
@@ -212,11 +213,10 @@ from typing import ClassVar, Generic, TypeVar, cast
 
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 from tqdm import tqdm
-
-import vllm.envs as envs
 from vllm import _custom_ops as ops
+from vllm import envs
 from vllm._aiter_ops import rocm_aiter_ops
 from vllm.compilation.breakable_cudagraph import eager_break_during_capture
 from vllm.config import (
@@ -353,7 +353,9 @@ def _canonicalize_sparse_mla_kv_cache_dtype(
     if backend_name == "B12X_MLA_SPARSE" and kv_cache_dtype == "nvfp4_ds_mla":
         # B12X reads the packed 432B NVFP4 MLA record natively. [glm53 nvfp4 port]
         return "nvfp4_ds_mla"
-    if backend_name in ("FLASHMLA_SPARSE", "B12X_MLA_SPARSE") and is_quantized_kv_cache(kv_cache_dtype):
+    if backend_name in ("FLASHMLA_SPARSE", "B12X_MLA_SPARSE") and is_quantized_kv_cache(
+        kv_cache_dtype
+    ):
         return "fp8_ds_mla"
     if backend_name == "FLASHINFER_MLA_SPARSE_SM120" and kv_cache_dtype in (
         "auto",
@@ -1362,7 +1364,7 @@ class _DecodeConcatQuantFP8(QuantFP8):
     fusing cat/reshape/quant/view together.
     """
 
-    def _make_forward(quant_fn):  # noqa: N805
+    def _make_forward(quant_fn):
         """Factory to create forward methods that concat before quantization."""
 
         def forward(
