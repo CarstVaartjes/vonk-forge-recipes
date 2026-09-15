@@ -38,7 +38,9 @@ def patch(path, replacements):
         return
     for anchor, replacement in replacements:
         count = s.count(anchor)
-        assert count == 1, f"{path.name}: anchor matched {count} times (want 1):\n{anchor}"
+        assert count == 1, (
+            f"{path.name}: anchor matched {count} times (want 1):\n{anchor}"
+        )
         s = s.replace(anchor, replacement, 1)
     path.write_text(s)
     print(f"{path.name}: patched")
@@ -247,7 +249,9 @@ SERVER_ARGS_ANCHOR = """        if is_cuda():
                     "Use --kv-cache-dtype=fp4_mx_block16 for the block-size-16 FP4 recipe."
                 )
 """
-SERVER_ARGS_REPLACEMENT = SERVER_ARGS_ANCHOR + """            # dspark (DGX Spark / SM121, see qsa_nvfp4_kv): on QSA hybrid
+SERVER_ARGS_REPLACEMENT = (
+    SERVER_ARGS_ANCHOR
+    + """            # dspark (DGX Spark / SM121, see qsa_nvfp4_kv): on QSA hybrid
             # models the full-attention layers read the FP4 pool through the
             # QSA backend's Triton plain-dequant path; --attention-backend
             # only selects the GDN linear-attention kernels, so the MHA
@@ -261,6 +265,7 @@ SERVER_ARGS_REPLACEMENT = SERVER_ARGS_ANCHOR + """            # dspark (DGX Spar
                 except Exception:
                     pass
 """
+)
 
 # ---------------------------------------------------------------------------
 # 4. pool_configurator: no FP8 workspace share for QSA FP4 cell size
@@ -386,16 +391,16 @@ TOKEN0_RUN = 16
 def patch_token0_guard() -> None:
     """Abort a token-id-0 decode loop and drop the poisoned prefix cache."""
     schedule_batch = SRT / "managers" / "schedule_batch.py"
-    processor = (
-        SRT / "managers" / "scheduler_components" / "batch_result_processor.py"
-    )
+    processor = SRT / "managers" / "scheduler_components" / "batch_result_processor.py"
     scheduler = SRT / "managers" / "scheduler.py"
 
     pad_anchor = '''def _compute_pad_value(hash: int) -> int:
     """Compute pad value from hash."""
     return MM_PAD_SHIFT_VALUE + (hash % (1 << 30))
 '''
-    pad_replacement = pad_anchor + '''
+    pad_replacement = (
+        pad_anchor
+        + """
 # dspark_token0_guard: set when a request hits a repeated token-id-0 run.
 DSPARK_TOKEN0_FLUSH_NEEDED = False
 
@@ -411,9 +416,10 @@ def dspark_consume_token0_flush() -> bool:
     DSPARK_TOKEN0_FLUSH_NEEDED = False
     return needed
 
-'''
-    vocab_anchor = '''    def _check_vocab_boundary_finish(self, new_accepted_tokens: List[int] = None):
-'''
+"""
+    )
+    vocab_anchor = """    def _check_vocab_boundary_finish(self, new_accepted_tokens: List[int] = None):
+"""
     vocab_replacement = f'''    def _check_token0_loop_finish(self) -> bool:
         """Stop a decoded token-id-0 (`!`) run before it fills max_tokens."""
         ids = self.output_ids
@@ -438,14 +444,14 @@ def dspark_consume_token0_flush() -> bool:
 
     def _check_vocab_boundary_finish(self, new_accepted_tokens: List[int] = None):
 '''
-    finish_anchor = '''        new_accepted_tokens = self.output_ids[-new_accepted_len:]
+    finish_anchor = """        new_accepted_tokens = self.output_ids[-new_accepted_len:]
 
         # Sanitize out-of-range / NaN token ids before any decode.
         if self._check_vocab_boundary_finish(new_accepted_tokens):
             self._cap_finished_len_at_max_new_tokens()
             return
-'''
-    finish_replacement = '''        new_accepted_tokens = self.output_ids[-new_accepted_len:]
+"""
+    finish_replacement = """        new_accepted_tokens = self.output_ids[-new_accepted_len:]
 
         # Sanitize out-of-range / NaN token ids before any decode.
         if self._check_vocab_boundary_finish(new_accepted_tokens):
@@ -455,15 +461,15 @@ def dspark_consume_token0_flush() -> bool:
         # dspark_token0_guard: abort a repeated token-id-0 (`!`) run.
         if self._check_token0_loop_finish():
             return
-'''
-    insert_anchor = '''                is_insert = (
+"""
+    insert_anchor = """                is_insert = (
                     req.mamba_lazy_is_insert
                     if mamba_extra_buffer_lazy_enabled()
                     else True
                 )
                 release_kv_cache(req, self.tree_cache, is_insert=is_insert)
-'''
-    insert_replacement = '''                is_insert = (
+"""
+    insert_replacement = """                is_insert = (
                     req.mamba_lazy_is_insert
                     if mamba_extra_buffer_lazy_enabled()
                     else True
@@ -471,13 +477,13 @@ def dspark_consume_token0_flush() -> bool:
                 if getattr(req, "token0_loop", False):  # dspark_token0_guard
                     is_insert = False
                 release_kv_cache(req, self.tree_cache, is_insert=is_insert)
-'''
-    next_anchor = '''    def get_next_batch_to_run(
+"""
+    next_anchor = """    def get_next_batch_to_run(
         self, running_batch: ScheduleBatch, last_batch: Optional[ScheduleBatch]
     ) -> NextBatchPlan:
         self.process_pending_chunked_abort()
-'''
-    next_replacement = '''    def get_next_batch_to_run(
+"""
+    next_replacement = """    def get_next_batch_to_run(
         self, running_batch: ScheduleBatch, last_batch: Optional[ScheduleBatch]
     ) -> NextBatchPlan:
         self.process_pending_chunked_abort()
@@ -491,7 +497,7 @@ def dspark_consume_token0_flush() -> bool:
                     "dspark: token-id-0 loop; resetting prefix cache before the next prefill"
                 )
                 self.tree_cache.reset()
-'''
+"""
 
     for path, replacements in (
         (

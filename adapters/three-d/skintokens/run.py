@@ -37,7 +37,9 @@ from pygltflib import (
 )
 
 INPUTS = Path("/inputs")
-CHECKPOINT = Path("/models/target/experiments/articulation_xl_quantization_256_token_4/grpo_1400.ckpt")
+CHECKPOINT = Path(
+    "/models/target/experiments/articulation_xl_quantization_256_token_4/grpo_1400.ckpt"
+)
 
 
 def one_input_mesh() -> Path:
@@ -72,7 +74,11 @@ def export_rigged_glb(asset: object, output: Path) -> None:
     skin = np.asarray(asset.skin, dtype=np.float32)
     if vertices.ndim != 2 or vertices.shape[1] != 3 or not len(vertices):
         raise SystemExit("TokenRig returned invalid vertices")
-    if skin.shape != (len(vertices), len(parents)) or matrices.shape != (len(parents), 4, 4):
+    if skin.shape != (len(vertices), len(parents)) or matrices.shape != (
+        len(parents),
+        4,
+        4,
+    ):
         raise SystemExit("TokenRig returned an invalid skeleton or skin")
     mesh = trimesh.Trimesh(vertices=vertices, faces=faces.reshape(-1, 3), process=False)
     normals = np.asarray(mesh.vertex_normals, dtype=np.float32)
@@ -90,13 +96,21 @@ def export_rigged_glb(asset: object, output: Path) -> None:
     views: list[BufferView] = []
     accessors: list[Accessor] = []
 
-    def accessor(array: np.ndarray, component: int, kind: str, target: int | None = None) -> int:
+    def accessor(
+        array: np.ndarray, component: int, kind: str, target: int | None = None
+    ) -> int:
         contiguous = np.ascontiguousarray(array)
         offset, length = append_blob(blob, contiguous.tobytes())
         view = BufferView(buffer=0, byteOffset=offset, byteLength=length, target=target)
         views.append(view)
         count = len(contiguous)
-        item = Accessor(bufferView=len(views) - 1, byteOffset=0, componentType=component, count=count, type=kind)
+        item = Accessor(
+            bufferView=len(views) - 1,
+            byteOffset=0,
+            componentType=component,
+            count=count,
+            type=kind,
+        )
         if kind == VEC3:
             item.min = contiguous.min(axis=0).astype(float).tolist()
             item.max = contiguous.max(axis=0).astype(float).tolist()
@@ -110,10 +124,16 @@ def export_rigged_glb(asset: object, output: Path) -> None:
     index_accessor = accessor(faces, UNSIGNED_INT, SCALAR, ELEMENT_ARRAY_BUFFER)
     bind_accessor = accessor(inverse_bind, FLOAT, MAT4)
 
-    joint_names = asset.joint_names or [f"joint_{index}" for index in range(len(parents))]
+    joint_names = asset.joint_names or [
+        f"joint_{index}" for index in range(len(parents))
+    ]
     nodes = [Node(name="Rigged mesh", mesh=0, skin=0)]
     for index, parent in enumerate(parents):
-        local = matrices[index] if parent < 0 else np.linalg.inv(matrices[parent]) @ matrices[index]
+        local = (
+            matrices[index]
+            if parent < 0
+            else np.linalg.inv(matrices[parent]) @ matrices[index]
+        )
         children = (np.flatnonzero(parents == index) + 1).astype(int).tolist()
         nodes.append(
             Node(
@@ -138,7 +158,13 @@ def export_rigged_glb(asset: object, output: Path) -> None:
         scene=0,
         nodes=nodes,
         meshes=[Mesh(primitives=[primitive])],
-        skins=[Skin(inverseBindMatrices=bind_accessor, joints=list(range(1, len(parents) + 1)), skeleton=roots[0] if roots else None)],
+        skins=[
+            Skin(
+                inverseBindMatrices=bind_accessor,
+                joints=list(range(1, len(parents) + 1)),
+                skeleton=roots[0] if roots else None,
+            )
+        ],
         buffers=[Buffer(byteLength=len(blob))],
         bufferViews=views,
         accessors=accessors,
@@ -155,7 +181,10 @@ def main() -> None:
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
-    if args.entrypoint != "/opt/vonk/source/run.py" or args.output_mime != "model/gltf-binary":
+    if (
+        args.entrypoint != "/opt/vonk/source/run.py"
+        or args.output_mime != "model/gltf-binary"
+    ):
         raise SystemExit("unexpected signed adapter contract")
     torch.manual_seed(args.seed)
     loaded = trimesh.load(one_input_mesh(), force="mesh", process=True)
@@ -170,7 +199,9 @@ def main() -> None:
 
     with tempfile.TemporaryDirectory(prefix="vonk-skintokens-") as temporary:
         npz = Path(temporary) / "input.npz"
-        np.savez(npz, vertices=np.asarray(loaded.vertices), faces=np.asarray(loaded.faces))
+        np.savez(
+            npz, vertices=np.asarray(loaded.vertices), faces=np.asarray(loaded.faces)
+        )
         model = get_model(str(CHECKPOINT))
         assert model.tokenizer_config is not None
         tokenizer = get_tokenizer(**model.tokenizer_config)
@@ -181,7 +212,11 @@ def main() -> None:
             num_workers=0,
             pin_memory=True,
             persistent_workers=False,
-            datapath={"data_name": None, "loader": "npz", "filepaths": {"articulation": [str(npz)]}},
+            datapath={
+                "data_name": None,
+                "loader": "npz",
+                "filepaths": {"articulation": [str(npz)]},
+            },
         ).split_by_cls()
         module = RigDatasetModule(
             predict_dataset_config=configuration,
@@ -190,7 +225,10 @@ def main() -> None:
             process_fn=model._process_fn,
         )
         batch = next(iter(module.predict_dataloader()["articulation"]))
-        batch = {key: value.to("cuda") if isinstance(value, torch.Tensor) else value for key, value in batch.items()}
+        batch = {
+            key: value.to("cuda") if isinstance(value, torch.Tensor) else value
+            for key, value in batch.items()
+        }
         batch.pop("skeleton_tokens", None)
         batch.pop("skeleton_mask", None)
         batch["generate_kwargs"] = {
@@ -203,7 +241,9 @@ def main() -> None:
             "num_beams": 10,
             "do_sample": True,
         }
-        results: list[TokenRigResult] = model.predict_step(batch, skeleton_tokens=None, make_asset=True)["results"]
+        results: list[TokenRigResult] = model.predict_step(
+            batch, skeleton_tokens=None, make_asset=True
+        )["results"]
         result = results[0].asset
         if result is None:
             raise SystemExit("TokenRig did not return a rigged asset")
@@ -215,7 +255,9 @@ def main() -> None:
             validate_mesh_glb(temporary_output, profile="skinned")
         except ValueError as exc:
             temporary_output.unlink(missing_ok=True)
-            raise SystemExit(f"SkinTokens produced an invalid GLB artifact: {exc}") from exc
+            raise SystemExit(
+                f"SkinTokens produced an invalid GLB artifact: {exc}"
+            ) from exc
         os.replace(temporary_output, args.output_dir / "output.glb")
 
 

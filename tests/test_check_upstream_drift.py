@@ -118,7 +118,10 @@ class DiscoveryTests(unittest.TestCase):
             (root / "models").mkdir()
             (root / "recipes").mkdir()
             model = json.loads(
-                (ROOT / "contracts/src/vonk_forge_contracts/examples/model-definition.json").read_text()
+                (
+                    ROOT
+                    / "contracts/src/vonk_forge_contracts/examples/model-definition.json"
+                ).read_text()
             )
             model["identity"]["publisher"] = "example"
             model["identity"]["slug"] = "model"
@@ -126,13 +129,19 @@ class DiscoveryTests(unittest.TestCase):
             model["identity"]["family"]["slug"] = "model-family"
             model["identity"]["model"]["publisher"] = "example"
             model["identity"]["model"]["slug"] = "model"
-            model["source"] = {"repository": "https://huggingface.co/example/model", "revision": PINNED}
+            model["source"] = {
+                "repository": "https://huggingface.co/example/model",
+                "revision": PINNED,
+            }
             model["lineage"]["source_model"]["publisher"] = "example"
             model["lineage"]["source_model"]["slug"] = "source-model"
             model["provenance"]["source_revision"] = PINNED
             model["capabilities"]["provenance"]["source_revision"] = PINNED
             recipe = json.loads(
-                (ROOT / "contracts/src/vonk_forge_contracts/examples/recipe-source-build.json").read_text()
+                (
+                    ROOT
+                    / "contracts/src/vonk_forge_contracts/examples/recipe-source-build.json"
+                ).read_text()
             )
             recipe["identity"] = {"publisher": "example", "slug": "recipe"}
             recipe["provenance"] = {

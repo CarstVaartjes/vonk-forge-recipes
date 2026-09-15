@@ -8,11 +8,9 @@ from collections import Counter
 from dataclasses import dataclass, fields, replace
 from enum import Enum, IntEnum
 from math import prod
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Self
 
 import torch
-from typing_extensions import Self
-
 from vllm.logger import init_logger
 from vllm.utils.math_utils import cdiv, round_up
 from vllm.utils.torch_utils import get_dtype_size, nvfp4_kv_cache_full_dim
@@ -23,8 +21,6 @@ if TYPE_CHECKING:
     from vllm.config import VllmConfig
 
 logger = init_logger(__name__)
-
-_SpecT = TypeVar("_SpecT", bound="KVCacheSpec")
 
 
 # ---------------------------------------------------------------------------
@@ -88,7 +84,9 @@ def is_quantized_kv_cache(kv_cache_dtype: str) -> bool:
     return get_kv_quant_mode(kv_cache_dtype) != KVQuantMode.NONE
 
 
-def replace_as(spec: KVCacheSpec, target_cls: type[_SpecT], **changes) -> _SpecT:
+def replace_as[SpecT: "KVCacheSpec"](
+    spec: KVCacheSpec, target_cls: type[SpecT], **changes
+) -> SpecT:
     """``dataclasses.replace``, but rebuilding *spec* as *target_cls*
       e.g. ``SlidingWindowSpec`` -> ``FullAttentionSpec``
 
@@ -321,14 +319,14 @@ class FullAttentionSpec(AttentionSpec):
             "All attention layers in the same KV cache group must be FullAttentionSpec."
         )
 
-        sliding_window = set(
+        sliding_window = {
             spec.sliding_window for spec in specs if spec.sliding_window is not None
-        )
-        attention_chunk_size = set(
+        }
+        attention_chunk_size = {
             spec.attention_chunk_size
             for spec in specs
             if spec.attention_chunk_size is not None
-        )
+        }
         assert not any(isinstance(spec, MLAAttentionSpec) for spec in specs), (
             "MLAAttentionSpec should be merged in MLAAttentionSpec.merge"
         )
@@ -465,10 +463,10 @@ class MLAAttentionSpec(FullAttentionSpec):
         assert all(isinstance(spec, MLAAttentionSpec) for spec in specs), (
             "All attention layers in the same KV cache group must be MLAAttentionSpec."
         )
-        cache_dtype_str_set = set(spec.cache_dtype_str for spec in specs)
-        compress_ratio_set = set(spec.compress_ratio for spec in specs)
-        model_version_set = set(spec.model_version for spec in specs)
-        block_stride_set = set(spec.indexes_kv_by_block_stride for spec in specs)
+        cache_dtype_str_set = {spec.cache_dtype_str for spec in specs}
+        compress_ratio_set = {spec.compress_ratio for spec in specs}
+        model_version_set = {spec.model_version for spec in specs}
+        block_stride_set = {spec.indexes_kv_by_block_stride for spec in specs}
         assert (
             len(cache_dtype_str_set) == 1
             and len(compress_ratio_set) == 1
@@ -506,8 +504,6 @@ class MLAAttentionSpec(FullAttentionSpec):
 @dataclass(frozen=True, kw_only=True)
 class HiddenStateCacheSpec(MLAAttentionSpec):
     """Marker for hidden-state cache layers used by extract_hidden_states."""
-
-    pass
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -702,11 +698,11 @@ class SlidingWindowMLASpec(SlidingWindowSpec):
             "All attention layers in the same KV cache group must be "
             "SlidingWindowMLASpec."
         )
-        cache_dtype_str_set = set(spec.cache_dtype_str for spec in specs)
-        compress_ratio_set = set(spec.compress_ratio for spec in specs)
-        model_version_set = set(spec.model_version for spec in specs)
-        sliding_window_set = set(spec.sliding_window for spec in specs)
-        block_stride_set = set(spec.indexes_kv_by_block_stride for spec in specs)
+        cache_dtype_str_set = {spec.cache_dtype_str for spec in specs}
+        compress_ratio_set = {spec.compress_ratio for spec in specs}
+        model_version_set = {spec.model_version for spec in specs}
+        sliding_window_set = {spec.sliding_window for spec in specs}
+        block_stride_set = {spec.indexes_kv_by_block_stride for spec in specs}
         assert (
             len(cache_dtype_str_set) == 1
             and len(compress_ratio_set) == 1
@@ -882,14 +878,14 @@ class SinkFullAttentionSpec(FullAttentionSpec):
             "All attention layers in the same KV cache group must be FullAttentionSpec."
         )
 
-        sliding_window = set(
+        sliding_window = {
             spec.sliding_window for spec in specs if spec.sliding_window is not None
-        )
-        attention_chunk_size = set(
+        }
+        attention_chunk_size = {
             spec.attention_chunk_size
             for spec in specs
             if spec.attention_chunk_size is not None
-        )
+        }
         assert not any(isinstance(spec, MLAAttentionSpec) for spec in specs), (
             "MLAAttentionSpec should be merged in MLAAttentionSpec.merge"
         )
@@ -975,7 +971,7 @@ class UniformTypeKVCacheSpecs(KVCacheSpec):
         Uses the registry to determine grouping base classes, so custom specs
         that inherit from FullAttentionSpec are treated as full attention.
         """
-        block_sizes = set(spec.block_size for spec in kv_cache_specs.values())
+        block_sizes = {spec.block_size for spec in kv_cache_specs.values()}
         if len(block_sizes) > 1:
             # Different block sizes, not uniform.
             return False
@@ -996,7 +992,7 @@ class UniformTypeKVCacheSpecs(KVCacheSpec):
 
     # NOTE: below util functions are only used by DeepseekV4 for now.
     def get_page_sizes(self) -> list[int]:
-        return list(set(spec.page_size_bytes for spec in self.kv_cache_specs.values()))
+        return list({spec.page_size_bytes for spec in self.kv_cache_specs.values()})
 
     def get_num_layer_tuples(self) -> int:
         return Counter(

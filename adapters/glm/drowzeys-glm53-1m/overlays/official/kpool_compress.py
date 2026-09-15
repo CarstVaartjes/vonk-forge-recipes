@@ -13,7 +13,6 @@ helpers (select pools -> expand to tokens -> append tail).
 from __future__ import annotations
 
 import torch
-
 from vllm.triton_utils import tl, triton
 
 # The indexer head dim is fixed at 128 in the current GLM5Next config; the

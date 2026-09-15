@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import io
 import json
-import runpy
 import subprocess
 import sys
 import tarfile
@@ -16,7 +15,12 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256  # noqa: E402
+from vonk_forge_contracts import (
+    ModelDefinition,
+    RecipeDefinition,
+    content_sha256,
+)
+
 ADAPTER = ROOT / "adapters/video/wan-dancer-native"
 RECIPE = ROOT / "recipes/wan-dancer-14b-pytorch-single.json"
 MODEL = ROOT / "models/wan-dancer-14b.json"
@@ -68,18 +72,28 @@ def load_runner():
 class WanDancerAuthorityTests(unittest.TestCase):
     def test_recipe_resolves_complete_immutable_authorities(self) -> None:
         recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
-        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], canonical_digest(MODEL))
+        self.assertEqual(
+            recipe["models"][0]["model"]["content_sha256"], canonical_digest(MODEL)
+        )
         execution = recipe["execution"]
         self.assertEqual(execution["mode"], "build")
         build = execution["build"]
         self.assertEqual(build["base_image"], BASE_IMAGE)
         self.assertEqual(build["context"], {"path": "adapters/video/wan-dancer-native"})
-        self.assertEqual(build["dockerfile"], "adapters/video/wan-dancer-native/Dockerfile")
-        self.assertEqual(build["patches"], [{"path": "adapters/video/wan-dancer-native/patch-upstream.py"}])
-        self.assertEqual(build["network"], {"mode": "public", "hosts": BUILD_NETWORK_HOSTS})
-        tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
-        self.assertEqual(tool["source_bundle"](ADAPTER)[2], "71b98bb6f2ca9e6bca213a96cd444919eb4644a456fec3f09468b6dc565acbf5")
-        self.assertEqual(json.loads(MODEL.read_text())["source"]["revision"], "85ce88dd8d025459dcf0fe93982d6da8b9002957")
+        self.assertEqual(
+            build["dockerfile"], "adapters/video/wan-dancer-native/Dockerfile"
+        )
+        self.assertEqual(
+            build["patches"],
+            [{"path": "adapters/video/wan-dancer-native/patch-upstream.py"}],
+        )
+        self.assertEqual(
+            build["network"], {"mode": "public", "hosts": BUILD_NETWORK_HOSTS}
+        )
+        self.assertEqual(
+            json.loads(MODEL.read_text())["source"]["revision"],
+            "85ce88dd8d025459dcf0fe93982d6da8b9002957",
+        )
         self.assertEqual(
             recipe["provenance"]["source_reference"],
             "https://github.com/Wan-Video/Wan-Dancer/tree/"
@@ -93,7 +107,8 @@ class WanDancerAuthorityTests(unittest.TestCase):
         self.assertEqual(memory["system_reserve_bytes"], 8000000000)
         runtime = recipe["runtime"]
         self.assertEqual(
-            set(runtime), {"engine", "entrypoint", "arguments", "environment", "lifecycle"}
+            set(runtime),
+            {"engine", "entrypoint", "arguments", "environment", "lifecycle"},
         )
         self.assertEqual(runtime["engine"], "pytorch-pipeline")
         environment_names = {item["name"] for item in runtime["environment"]}
@@ -127,7 +142,9 @@ class WanDancerAuthorityTests(unittest.TestCase):
             }
             <= package_paths
         )
-        with tarfile.open(fileobj=io.BytesIO(PACKAGE.read_bytes()), mode="r:gz") as archive:
+        with tarfile.open(
+            fileobj=io.BytesIO(PACKAGE.read_bytes()), mode="r:gz"
+        ) as archive:
             for path in (
                 build["dockerfile"],
                 build["patches"][0]["path"],

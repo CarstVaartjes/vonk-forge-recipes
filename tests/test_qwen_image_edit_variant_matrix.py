@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import sys
 import unittest
@@ -8,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, content_sha256  # noqa: E402
+from vonk_forge_contracts import ModelDefinition, content_sha256
 
 
 def read(path: Path) -> dict[str, object]:
@@ -30,15 +29,24 @@ class QwenImageEditVariantMatrixTests(unittest.TestCase):
                     self.assertEqual(selection["model"]["content_sha256"], canonical)  # type: ignore[index]
                     self.assertTrue(selection["files"])
 
-    def test_edit_variants_have_bounded_offline_resources_and_output_checks(self) -> None:
+    def test_edit_variants_have_bounded_offline_resources_and_output_checks(
+        self,
+    ) -> None:
         for path in sorted((ROOT / "recipes").glob("qwen-image-edit-2511-*.json")):
             recipe = read(path)
             with self.subTest(recipe=path.name):
-                self.assertIn(recipe["execution"]["build"]["network"]["mode"], {"none", "public"})  # type: ignore[index]
+                self.assertIn(
+                    recipe["execution"]["build"]["network"]["mode"], {"none", "public"}
+                )  # type: ignore[index]
                 memory = recipe["topology"]["roles"][0]["resources"]["memory"]  # type: ignore[index]
-                self.assertLessEqual(memory["startup_peak_bytes"] + memory["system_reserve_bytes"], 128_000_000_000)
+                self.assertLessEqual(
+                    memory["startup_peak_bytes"] + memory["system_reserve_bytes"],
+                    128_000_000_000,
+                )
                 checks = recipe["validation"]["serving"]["checks"]  # type: ignore[index]
-                self.assertTrue(any("artifact.output" in check["assertions"] for check in checks))
+                self.assertTrue(
+                    any("artifact.output" in check["assertions"] for check in checks)
+                )
 
 
 if __name__ == "__main__":

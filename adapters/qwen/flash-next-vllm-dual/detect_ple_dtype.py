@@ -20,6 +20,7 @@ already declares the key, or when no PLE group is found (nothing to override).
 
 Usage: detect_ple_dtype.py <model dir with config.json>
 """
+
 import json
 import os
 import sys

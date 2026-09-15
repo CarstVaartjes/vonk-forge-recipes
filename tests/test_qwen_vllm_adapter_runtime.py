@@ -3,7 +3,6 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTERS = (
     ROOT / "adapters/llm/vllm-openai/Dockerfile",
@@ -40,7 +39,9 @@ def docker_environment(source: str) -> dict[str, str]:
 
 
 class QwenVllmAdapterRuntimeTests(unittest.TestCase):
-    def test_non_root_runtime_state_is_routed_to_the_writable_output_mount(self) -> None:
+    def test_non_root_runtime_state_is_routed_to_the_writable_output_mount(
+        self,
+    ) -> None:
         for dockerfile in ADAPTERS:
             with self.subTest(adapter=dockerfile.parent.name):
                 source = dockerfile.read_text(encoding="utf-8")
@@ -65,7 +66,10 @@ class QwenVllmAdapterRuntimeTests(unittest.TestCase):
                 assignments = docker_environment(source)
                 self.assertEqual(assignments, CACHE_ENVIRONMENT)
                 self.assertTrue(
-                    all(path.startswith("/outputs/cache/") for path in assignments.values())
+                    all(
+                        path.startswith("/outputs/cache/")
+                        for path in assignments.values()
+                    )
                 )
 
 

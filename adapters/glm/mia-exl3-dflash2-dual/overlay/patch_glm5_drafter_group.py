@@ -688,9 +688,9 @@ def patch_file(path: str, dry_run: bool = False) -> int:
             "            # inside a 2304-token manager). Layer i co-owns MLA tensor i.\n"
             "            compact_block = 64\n"
             "            logger.info(\n"
-            "                \"DFlash2 drafter KV: padded slot-share block=%d \"\n"
-            "                \"mla_page=%d (was block=%d); exact-fit page mismatch \"\n"
-            "                \"draft_bytes/token=%d\",\n"
+            '                "DFlash2 drafter KV: padded slot-share block=%d "\n'
+            '                "mla_page=%d (was block=%d); exact-fit page mismatch "\n'
+            '                "draft_bytes/token=%d",\n'
             "                compact_block,\n"
             "                mla_page,\n"
             "                any_draft.block_size,\n"
@@ -713,7 +713,9 @@ def patch_file(path: str, dry_run: bool = False) -> int:
         )
         if v2_compact in text:
             start = text.find("            # STANDALONE: compact per-layer tensors.")
-            end = text.find("        draft_uniform = UniformTypeKVCacheSpecs.from_specs(new_draft_specs)")
+            end = text.find(
+                "        draft_uniform = UniformTypeKVCacheSpecs.from_specs(new_draft_specs)"
+            )
             if start < 0 or end < 0 or end <= start:
                 raise AssertionError(
                     f"{path}: {MARKER} + compact_block present but cannot "
@@ -731,9 +733,7 @@ def patch_file(path: str, dry_run: bool = False) -> int:
             else:
                 with open(path, "w", encoding="utf-8") as f:
                     f.write(text)
-            print(
-                f"[patch_glm5_drafter_group] {path}: padded slot-share v3 applied."
-            )
+            print(f"[patch_glm5_drafter_group] {path}: padded slot-share v3 applied.")
             return 0
 
         # v2: shrink standalone DFlash pages off the 1152 MLA manager block.
@@ -753,9 +753,7 @@ def patch_file(path: str, dry_run: bool = False) -> int:
         try:
             ast.parse(text, filename=path)
         except SyntaxError as e:
-            raise AssertionError(
-                f"POST-EDIT ast.parse FAILED for {path}: {e}"
-            ) from e
+            raise AssertionError(f"POST-EDIT ast.parse FAILED for {path}: {e}") from e
         if dry_run:
             print(f"[patch_glm5_drafter_group] DRY RUN -- {path} not written.")
         else:

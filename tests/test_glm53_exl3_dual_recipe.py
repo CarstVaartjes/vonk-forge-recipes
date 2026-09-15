@@ -46,11 +46,15 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         )
 
     def test_recipe_has_bounded_speculative_profile(self) -> None:
-        arguments = {item["name"]: item for item in load(RECIPE)["runtime"]["arguments"]}
+        arguments = {
+            item["name"]: item for item in load(RECIPE)["runtime"]["arguments"]
+        }
         specification = json.loads(arguments["speculative-config"]["value"])
         self.assertEqual(specification["model"], "/models/drafter")
         self.assertEqual(specification["num_speculative_tokens"], 7)
-        self.assertEqual(load(RECIPE)["topology"]["start_order"], ["worker", "entrypoint"])
+        self.assertEqual(
+            load(RECIPE)["topology"]["start_order"], ["worker", "entrypoint"]
+        )
 
     def test_current_profile_fits_idle_sparks_with_controller_headroom(self) -> None:
         recipe = load(RECIPE)
@@ -59,10 +63,13 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         # current 0.85 launch even on these otherwise idle nodes.
         available_bytes = 126_000_000_000
         controller_floor_bytes = 4_000_000_000
-        utilization = float(next(
-            item["value"] for item in recipe["runtime"]["arguments"]
-            if item["name"] == "gpu-memory-utilization"
-        ))
+        utilization = float(
+            next(
+                item["value"]
+                for item in recipe["runtime"]["arguments"]
+                if item["name"] == "gpu-memory-utilization"
+            )
+        )
         # Upstream documents roughly 9 GiB of initialization outside vLLM's
         # utilization budget. Admission must also cover that lower bound.
         estimated_startup_bytes = 130_663_235_584 * utilization + 9 * 1024**3
@@ -72,7 +79,9 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
                 memory["startup_peak_bytes"],
                 memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
             )
-            self.assertGreaterEqual(memory["startup_peak_bytes"], estimated_startup_bytes)
+            self.assertGreaterEqual(
+                memory["startup_peak_bytes"], estimated_startup_bytes
+            )
             self.assertGreaterEqual(
                 available_bytes - demand,
                 max(controller_floor_bytes, memory["system_reserve_bytes"]),
@@ -85,18 +94,28 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
             recipe["provenance"]["source_reference"],
             "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/9c0794b68d7fc124f79104409ab434769503fb31",
         )
-        self.assertEqual(recipe["execution"]["build"]["base_image"]["digest"], "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce")
+        self.assertEqual(
+            recipe["execution"]["build"]["base_image"]["digest"],
+            "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce",
+        )
         self.assertEqual(arguments["gpu-memory-utilization"]["value"], "0.85")
         self.assertEqual(recipe["settings"]["context_tokens"]["value"], 850000)
         self.assertEqual(arguments["max-num-batched-tokens"]["value"], 7168)
         self.assertEqual(arguments["kv-cache-dtype"]["value"], "fp8")
         self.assertEqual(arguments["quantization"]["value"], "exl3")
-        self.assertEqual(arguments["chat-template"]["value"], "/opt/glm53/chat_template.jinja")
         self.assertEqual(
-            json.loads(arguments["compilation-config"]["value"])["cudagraph_capture_sizes"],
+            arguments["chat-template"]["value"], "/opt/glm53/chat_template.jinja"
+        )
+        self.assertEqual(
+            json.loads(arguments["compilation-config"]["value"])[
+                "cudagraph_capture_sizes"
+            ],
             [1, 2, 4, 8, 16, 24, 32],
         )
-        self.assertEqual(recipe["models"][0]["model"]["slug"], "glm-5-3-flash-exl3-tr3-4bpw-dflash2-25a44fdb")
+        self.assertEqual(
+            recipe["models"][0]["model"]["slug"],
+            "glm-5-3-flash-exl3-tr3-4bpw-dflash2-25a44fdb",
+        )
 
     def test_wrapper_preserves_authored_engine_arguments(self) -> None:
         original = [
@@ -133,20 +152,28 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
             "TP_SOCKET_IFNAME": "eth0",
             "GLOO_SOCKET_IFNAME": "eth0",
         }
-        with patch.object(sys, "argv", [str(ADAPTER / "vllm-wrapper.py"), *original]), patch.dict(
-            os.environ, env, clear=False
-        ), patch("pathlib.Path.is_file", return_value=True), patch("os.access", return_value=True), patch(
-            "os.execv", side_effect=fake_execv
-        ), self.assertRaisesRegex(RuntimeError, "captured"):
+        with (
+            patch.object(sys, "argv", [str(ADAPTER / "vllm-wrapper.py"), *original]),
+            patch.dict(os.environ, env, clear=False),
+            patch("pathlib.Path.is_file", return_value=True),
+            patch("os.access", return_value=True),
+            patch("os.execv", side_effect=fake_execv),
+            self.assertRaisesRegex(RuntimeError, "captured"),
+        ):
             runpy.run_path(str(ADAPTER / "vllm-wrapper.py"))
 
         self.assertEqual(len(captured), 1)
         self.assertEqual(captured[0][1 : 1 + len(original)], tuple(original))
-        self.assertEqual(captured[0][-4:], ("--master-addr", "10.0.0.2", "--master-port", "29500"))
+        self.assertEqual(
+            captured[0][-4:], ("--master-addr", "10.0.0.2", "--master-port", "29500")
+        )
 
     def test_current_source_build_closure_is_vendored_and_uses_no_ssh(self) -> None:
         dockerfile = (ADAPTER / "Dockerfile").read_text()
-        self.assertIn("FROM docker.io/vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce", dockerfile)
+        self.assertIn(
+            "FROM docker.io/vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce",
+            dockerfile,
+        )
         self.assertIn("COPY overlay/exl3.py", dockerfile)
         self.assertIn("COPY files/chat_template.jinja", dockerfile)
         self.assertTrue((ADAPTER / "upstream-LICENSE").is_file())
@@ -157,12 +184,17 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertIn("patch_adaptive_k.py", dockerfile)
         self.assertIn("patch_dense_fp8.py", dockerfile)
         self.assertIn("EXL3_FAT_GROUPED=1", dockerfile)
-        text = "\n".join((ADAPTER / name).read_text(errors="ignore") for name in ("Dockerfile", "vllm-wrapper.py", "verify-runtime.py"))
+        text = "\n".join(
+            (ADAPTER / name).read_text(errors="ignore")
+            for name in ("Dockerfile", "vllm-wrapper.py", "verify-runtime.py")
+        )
         self.assertNotIn("ssh -", text.lower())
 
     def test_current_defaults_and_source_license_are_declared(self) -> None:
         recipe = load(RECIPE)
-        environment = {item["name"]: item["value"] for item in recipe["runtime"]["environment"]}
+        environment = {
+            item["name"]: item["value"] for item in recipe["runtime"]["environment"]
+        }
         self.assertEqual(environment["EXL3_FAT_GROUPED"], "1")
         self.assertEqual(environment["EXL3_TEMP_ROWS_FUSED"], "32")
         self.assertEqual(environment["GLM53_INDEXER_WORKSPACE"], "rightsize")
@@ -173,9 +205,11 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
 
     def test_adapter_bundle_is_pinned(self) -> None:
         import runpy
+
         tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         _, _, digest = tool["source_bundle"](ADAPTER)
         self.assertTrue(digest)
 
 
-if __name__ == "__main__": unittest.main()
+if __name__ == "__main__":
+    unittest.main()

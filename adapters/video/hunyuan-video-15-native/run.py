@@ -117,7 +117,9 @@ def _validate_video(path: Path, resolution: int) -> None:
         json.JSONDecodeError,
         subprocess.SubprocessError,
     ) as error:
-        raise SystemExit("Diffusers produced an invalid 121-frame MP4 artifact") from error
+        raise SystemExit(
+            "Diffusers produced an invalid 121-frame MP4 artifact"
+        ) from error
 
 
 def _variant(pipeline: str, resolution: int, steps: int, guidance: float) -> str:

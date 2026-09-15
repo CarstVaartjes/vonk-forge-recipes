@@ -5,7 +5,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-
 EXPECTED_VERSION = "__version__ = '2.1.5'"
 
 

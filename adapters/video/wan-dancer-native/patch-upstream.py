@@ -30,11 +30,23 @@ def patch_stage(path: Path, model_name: str) -> None:
         "from diffsynth import save_video",
         "from diffsynth.data.video import save_video",
     )
-    replace_once(path, '    assert world_size == 8, "WORLD_SIZE must be 8"\n', "") if model_name == "global_model.safetensors" else None
+    replace_once(
+        path, '    assert world_size == 8, "WORLD_SIZE must be 8"\n', ""
+    ) if model_name == "global_model.safetensors" else None
     replace_all(path, "        use_usp=True,", "        use_usp=False,", 1)
-    replace_all(path, "    if dist.get_rank() == 0:", "    if True:", 2 if model_name == "global_model.safetensors" else 3)
+    replace_all(
+        path,
+        "    if dist.get_rank() == 0:",
+        "    if True:",
+        2 if model_name == "global_model.safetensors" else 3,
+    )
     barrier_count = 1 if model_name == "global_model.safetensors" else 3
-    replace_all(path, "    dist.barrier(device_ids=[dist.get_rank()])", "    # Single-Spark execution does not initialize a process group.", barrier_count)
+    replace_all(
+        path,
+        "    dist.barrier(device_ids=[dist.get_rank()])",
+        "    # Single-Spark execution does not initialize a process group.",
+        barrier_count,
+    )
 
     replacements = {
         f'ModelConfig(\n                model_id="Wan-AI/Wan-Dancer-14B",\n                origin_file_pattern="{model_name}",\n                offload_device="cpu",\n            )': f'ModelConfig(path="/models/{model_name}", offload_device="cpu")',
@@ -56,8 +68,8 @@ def patch_stage(path: Path, model_name: str) -> None:
 
     replace_once(
         path,
-        "    music_folder = \"outputs/tmp_results/\" + final_name + \"_\" + str(time_name)",
-        "    music_folder = os.path.join(os.environ[\"VONK_WORK_DIR\"], \"tmp_results\", final_name + \"_\" + str(time_name))",
+        '    music_folder = "outputs/tmp_results/" + final_name + "_" + str(time_name)',
+        '    music_folder = os.path.join(os.environ["VONK_WORK_DIR"], "tmp_results", final_name + "_" + str(time_name))',
     ) if model_name == "global_model.safetensors" else replace_once(
         path,
         "    music_folder = 'outputs/tmp_results/' + final_name + '_' + str(time_name)",
@@ -72,9 +84,15 @@ def main() -> None:
 
     # Import only the model-specific modules. Upstream's aggregate imports load
     # unrelated pipelines and make optional dependencies mandatory.
-    (root / "diffsynth/__init__.py").write_text("\"\"\"Wan-Dancer runtime package.\"\"\"\n", encoding="utf-8")
-    (root / "diffsynth/pipelines/__init__.py").write_text("\"\"\"Wan-Dancer pipelines.\"\"\"\n", encoding="utf-8")
-    (root / "diffsynth/prompters/__init__.py").write_text("from .wan_prompter import WanPrompter\n", encoding="utf-8")
+    (root / "diffsynth/__init__.py").write_text(
+        '"""Wan-Dancer runtime package."""\n', encoding="utf-8"
+    )
+    (root / "diffsynth/pipelines/__init__.py").write_text(
+        '"""Wan-Dancer pipelines."""\n', encoding="utf-8"
+    )
+    (root / "diffsynth/prompters/__init__.py").write_text(
+        "from .wan_prompter import WanPrompter\n", encoding="utf-8"
+    )
 
     pipeline = root / "diffsynth/pipelines/wan_video_new.py"
     replace_once(
@@ -125,7 +143,11 @@ def main() -> None:
 
     for stage in (root / "gen_video/gen_video_global.py", local):
         value = stage.read_text(encoding="utf-8")
-        forbidden = ("model_id=\"Wan-AI/Wan-Dancer-14B\"", "use_usp=True", "dist.get_rank()")
+        forbidden = (
+            'model_id="Wan-AI/Wan-Dancer-14B"',
+            "use_usp=True",
+            "dist.get_rank()",
+        )
         present = [item for item in forbidden if item in value]
         if present:
             raise SystemExit(f"{stage}: unsafe upstream assumptions remain: {present}")

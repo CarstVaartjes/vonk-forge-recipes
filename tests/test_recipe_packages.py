@@ -22,7 +22,9 @@ PLATFORM_OWNED_ENVIRONMENT = {
 }
 
 
-def test_full_catalog_packages_are_self_contained_and_deterministic(tmp_path: Path) -> None:
+def test_full_catalog_packages_are_self_contained_and_deterministic(
+    tmp_path: Path,
+) -> None:
     first_dir = tmp_path / "first"
     second_dir = tmp_path / "second"
     first = TOOL["build"](package_dir=first_dir)
@@ -30,11 +32,17 @@ def test_full_catalog_packages_are_self_contained_and_deterministic(tmp_path: Pa
     assert first["kind"] == second["kind"] == "recipe-library-index"
     assert first["schema_version"] == second["schema_version"] == 2
     source_models = {
-        (json.loads(path.read_text())["identity"]["publisher"], json.loads(path.read_text())["identity"]["slug"])
+        (
+            json.loads(path.read_text())["identity"]["publisher"],
+            json.loads(path.read_text())["identity"]["slug"],
+        )
         for path in ROOT.joinpath("models").glob("*.json")
     }
     source_recipes = {
-        (json.loads(path.read_text())["identity"]["publisher"], json.loads(path.read_text())["identity"]["slug"])
+        (
+            json.loads(path.read_text())["identity"]["publisher"],
+            json.loads(path.read_text())["identity"]["slug"],
+        )
         for path in ROOT.joinpath("recipes").glob("*.json")
     }
     assert source_models and source_recipes
@@ -42,26 +50,42 @@ def test_full_catalog_packages_are_self_contained_and_deterministic(tmp_path: Pa
     assert len(source_recipes) == len(list(ROOT.joinpath("recipes").glob("*.json")))
     for catalog in (first, second):
         assert {
-            (item["document"]["identity"]["publisher"], item["document"]["identity"]["slug"])
+            (
+                item["document"]["identity"]["publisher"],
+                item["document"]["identity"]["slug"],
+            )
             for item in catalog["catalog_entities"]
         } == source_models
         assert {
-            (item["document"]["identity"]["publisher"], item["document"]["identity"]["slug"])
+            (
+                item["document"]["identity"]["publisher"],
+                item["document"]["identity"]["slug"],
+            )
             for item in catalog["recipes"]
         } == source_recipes
-        package_names = {Path(str(item["package"]["path"])).name for item in catalog["recipes"]}
+        package_names = {
+            Path(str(item["package"]["path"])).name for item in catalog["recipes"]
+        }
         assert package_names == {f"{slug}.tar.gz" for _, slug in source_recipes}
     checked_index = json.loads((ROOT / "catalog-index.json").read_text())
     assert {
-        (item["document"]["identity"]["publisher"], item["document"]["identity"]["slug"])
+        (
+            item["document"]["identity"]["publisher"],
+            item["document"]["identity"]["slug"],
+        )
         for item in checked_index["catalog_entities"]
     } == source_models
     assert {
-        (item["document"]["identity"]["publisher"], item["document"]["identity"]["slug"])
+        (
+            item["document"]["identity"]["publisher"],
+            item["document"]["identity"]["slug"],
+        )
         for item in checked_index["recipes"]
     } == source_recipes
     expected_package_names = {f"{slug}.tar.gz" for _, slug in source_recipes}
-    assert {path.name for path in ROOT.joinpath("packages").glob("*.tar.gz")} == expected_package_names
+    assert {
+        path.name for path in ROOT.joinpath("packages").glob("*.tar.gz")
+    } == expected_package_names
 
     for first_row, second_row in zip(first["recipes"], second["recipes"], strict=True):
         first_package = first_row["package"]
@@ -75,7 +99,10 @@ def test_full_catalog_packages_are_self_contained_and_deterministic(tmp_path: Pa
         with tarfile.open(fileobj=io.BytesIO(first_bytes), mode="r:gz") as archive:
             names = archive.getnames()
             assert len(names) == len(set(names))
-            assert all(not name.startswith("/") and ".." not in name.split("/") for name in names)
+            assert all(
+                not name.startswith("/") and ".." not in name.split("/")
+                for name in names
+            )
             manifest = json.load(archive.extractfile("manifest.json"))
             assert manifest["schema_version"] == 2
             assert manifest["kind"] == "recipe-package"
@@ -93,7 +120,9 @@ def test_vision_serving_uses_a_real_png_payload() -> None:
     checks = recipe["validation"]["serving"]["checks"]
     vision = next(check for check in checks if check["kind"] == "openai.vision")
     parts = vision["request"]["body"]["messages"][0]["content"]
-    image = next(part["image_url"]["url"] for part in parts if part["type"] == "image_url")
+    image = next(
+        part["image_url"]["url"] for part in parts if part["type"] == "image_url"
+    )
     prefix, encoded = image.split(",", 1)
     assert prefix == "data:image/png;base64"
     payload = base64.b64decode(encoded, validate=True)
@@ -103,7 +132,9 @@ def test_vision_serving_uses_a_real_png_payload() -> None:
 
 
 def test_release_history_is_typed_recipe_metadata_without_self_digest() -> None:
-    recipes = [json.loads(path.read_text()) for path in ROOT.joinpath("recipes").glob("*.json")]
+    recipes = [
+        json.loads(path.read_text()) for path in ROOT.joinpath("recipes").glob("*.json")
+    ]
     assert recipes
     entries = [entry for recipe in recipes for entry in recipe["release"]["history"]]
     assert entries
@@ -113,8 +144,16 @@ def test_release_history_is_typed_recipe_metadata_without_self_digest() -> None:
         or len(entry["prior_recipe_content_sha256"]) == 64
         for entry in entries
     )
-    assert {entry["upgrade_effect"] for entry in entries} <= {"none", "restart", "reprepare", "rebuild"}
-    assert all(recipe["release"]["history"][0]["version"] == recipe["release"]["version"] for recipe in recipes)
+    assert {entry["upgrade_effect"] for entry in entries} <= {
+        "none",
+        "restart",
+        "reprepare",
+        "rebuild",
+    }
+    assert all(
+        recipe["release"]["history"][0]["version"] == recipe["release"]["version"]
+        for recipe in recipes
+    )
 
 
 def test_source_bundle_ignores_generated_python_cache_files(tmp_path: Path) -> None:
@@ -148,7 +187,9 @@ def test_editing_one_recipe_changes_only_that_package(tmp_path: Path) -> None:
         entity_documents=entities,
     )
     assert package_bytes != original[Path(str(target["package"]["path"])).name]
-    assert package["media_type"] == "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
+    assert (
+        package["media_type"] == "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
+    )
     for row in rows[1:]:
         filename = Path(str(row["package"]["path"])).name
         assert (tmp_path / filename).read_bytes() == original[filename]
@@ -174,14 +215,18 @@ def test_supplied_source_commit_only_changes_index_metadata(tmp_path: Path) -> N
     assert first["platform_commit"] == second["platform_commit"]
     for row in first["recipes"]:
         filename = Path(str(row["package"]["path"])).name
-        assert (first_dir / filename).read_bytes() == (second_dir / filename).read_bytes()
+        assert (first_dir / filename).read_bytes() == (
+            second_dir / filename
+        ).read_bytes()
 
 
 def test_platform_owned_cache_variables_are_not_recipe_inputs() -> None:
     for path in sorted((ROOT / "recipes").glob("*.json")):
         document = json.loads(path.read_text(encoding="utf-8"))
         runtime = document.get("runtime")
-        environment = runtime.get("environment", []) if isinstance(runtime, dict) else []
+        environment = (
+            runtime.get("environment", []) if isinstance(runtime, dict) else []
+        )
         names = {
             item.get("name")
             for item in environment
@@ -204,8 +249,10 @@ def test_model_capability_authority_is_external_and_canonical() -> None:
     }
     model_versions = sorted((ROOT / "models").glob("*.json"))
     model_keys = {
-        (json.loads(path.read_text(encoding="utf-8"))["identity"]["publisher"],
-         json.loads(path.read_text(encoding="utf-8"))["identity"]["slug"])
+        (
+            json.loads(path.read_text(encoding="utf-8"))["identity"]["publisher"],
+            json.loads(path.read_text(encoding="utf-8"))["identity"]["slug"],
+        )
         for path in model_versions
     }
     evidence_keys = set(entries)
@@ -233,9 +280,7 @@ def test_model_capability_authority_is_external_and_canonical() -> None:
         assert len({item["capability"] for item in facts}) == len(facts)
         assert all(item["support"] == "supported" for item in facts)
         assert all(item["evidence_status"] == "declared" for item in facts)
-        assert all(
-            item["evidence_digest"] in {None, evidence_digest} for item in facts
-        )
+        assert all(item["evidence_digest"] in {None, evidence_digest} for item in facts)
         assert all("vision" != item["capability"] for item in facts)
     assert set(unknown) == unknown_keys
 
@@ -259,29 +304,65 @@ def test_model_access_lineage_and_related_model_references_are_preserved() -> No
         "glm-5-3-flash-nvfp4-abliterated-d7f8afa8",
         "ltx-2-5-22b-distilled-bf16-diffusers",
     }
-    assert all(value == {"visibility": "restricted", "gated": True, "authentication": "token"} for value in restricted.values())
+    assert all(
+        value == {"visibility": "restricted", "gated": True, "authentication": "token"}
+        for value in restricted.values()
+    )
     assert supersedes == ["hunyuanocr-1-5-47644ecc"]
 
 
 def test_model_territorial_restrictions_preserve_all_published_records() -> None:
     expected = {
-        "hunyuan-video-15-distilled": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
-        "hunyuan-video-15-i2v-step-distilled": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
-        "hunyuan-video-15-t2v": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
-        "hunyuan-video-foley-xl": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
-        "hunyuan-video-foley-xxl": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
-        "hunyuan3d-omni": (["EU", "GB", "KR"], "The upstream Hunyuan3D-Omni Community License does not apply in the European Union, United Kingdom, or South Korea."),
-        "hunyuanocr-1-5-449e7d47": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
-        "hunyuanocr-1-5-47644ecc": (["EU", "GB", "KR"], "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."),
-        "minimax-h3": (["EU", "GB", "KR", "US"], "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."),
-        "minimax-h3-fl2va-42ed227e": (["EU", "GB", "KR", "US"], "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."),
+        "hunyuan-video-15-distilled": (
+            ["EU", "GB", "KR"],
+            "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea.",
+        ),
+        "hunyuan-video-15-i2v-step-distilled": (
+            ["EU", "GB", "KR"],
+            "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea.",
+        ),
+        "hunyuan-video-15-t2v": (
+            ["EU", "GB", "KR"],
+            "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea.",
+        ),
+        "hunyuan-video-foley-xl": (
+            ["EU", "GB", "KR"],
+            "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea.",
+        ),
+        "hunyuan-video-foley-xxl": (
+            ["EU", "GB", "KR"],
+            "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea.",
+        ),
+        "hunyuan3d-omni": (
+            ["EU", "GB", "KR"],
+            "The upstream Hunyuan3D-Omni Community License does not apply in the European Union, United Kingdom, or South Korea.",
+        ),
+        "hunyuanocr-1-5-449e7d47": (
+            ["EU", "GB", "KR"],
+            "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea.",
+        ),
+        "hunyuanocr-1-5-47644ecc": (
+            ["EU", "GB", "KR"],
+            "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea.",
+        ),
+        "minimax-h3": (
+            ["EU", "GB", "KR", "US"],
+            "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory.",
+        ),
+        "minimax-h3-fl2va-42ed227e": (
+            ["EU", "GB", "KR", "US"],
+            "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory.",
+        ),
     }
     actual = {}
     for path in ROOT.joinpath("models").glob("*.json"):
         document = json.loads(path.read_text())
         restriction = document["license"].get("territorial_restrictions")
         if restriction is not None:
-            actual[document["identity"]["slug"]] = (restriction["denied_jurisdictions"], restriction["notice"])
+            actual[document["identity"]["slug"]] = (
+                restriction["denied_jurisdictions"],
+                restriction["notice"],
+            )
     assert actual == expected
 
 
@@ -313,18 +394,41 @@ def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(
         )
         assert all(
             not name.startswith(
-                ("image/", "oci/", "weights/", "runtime-distributions/", "patch-bundles/", "execution-harnesses/")
+                (
+                    "image/",
+                    "oci/",
+                    "weights/",
+                    "runtime-distributions/",
+                    "patch-bundles/",
+                    "execution-harnesses/",
+                )
             )
             for name in names
         )
 
 
-def test_ds4_multistage_package_manifests_both_digest_pinned_base_images(tmp_path: Path) -> None:
+def test_ds4_multistage_package_manifests_both_digest_pinned_base_images(
+    tmp_path: Path,
+) -> None:
     catalog = TOOL["build"](package_dir=tmp_path)
-    row = next(item for item in catalog["recipes"] if item["document"]["identity"]["slug"] == "deepseek-v4-flash-0731-ds4-single")
-    with tarfile.open(tmp_path / Path(str(row["package"]["path"])).name, mode="r:gz") as archive:
+    row = next(
+        item
+        for item in catalog["recipes"]
+        if item["document"]["identity"]["slug"] == "deepseek-v4-flash-0731-ds4-single"
+    )
+    with tarfile.open(
+        tmp_path / Path(str(row["package"]["path"])).name, mode="r:gz"
+    ) as archive:
         manifest = json.load(archive.extractfile("manifest.json"))
     assert manifest["build_inputs"] == [
-        {"kind": "oci-image", "reference": "nvcr.io/nvidia/cuda:13.0.1-devel-ubuntu24.04@sha256:5c36750138dc1447a17dafbb397674f167d3b44ce18d9160d769df114577b35d", "platform": "linux/arm64"},
-        {"kind": "oci-image", "reference": "nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4", "platform": "linux/arm64"},
+        {
+            "kind": "oci-image",
+            "reference": "nvcr.io/nvidia/cuda:13.0.1-devel-ubuntu24.04@sha256:5c36750138dc1447a17dafbb397674f167d3b44ce18d9160d769df114577b35d",
+            "platform": "linux/arm64",
+        },
+        {
+            "kind": "oci-image",
+            "reference": "nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+            "platform": "linux/arm64",
+        },
     ]

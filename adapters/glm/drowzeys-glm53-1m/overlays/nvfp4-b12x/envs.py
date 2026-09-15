@@ -570,7 +570,6 @@ def _deprecated_triton_attn_use_td() -> None:
             "VLLM_TRITON_ATTN_USE_TD is deprecated and will be removed in "
             "v0.25. Use VLLM_TRITON_USE_TD instead."
         )
-    return None
 
 
 def _resolve_rust_cli_path() -> str | None:
@@ -1201,7 +1200,7 @@ environment_variables: dict[str, Callable[[], Any]] = {
     # potantially caused by a bug in the driver (535 series),
     # if might be helpful to set VLLM_SKIP_P2P_CHECK=0
     # so that vLLM can verify if p2p is actually working.
-    # See https://github.com/vllm-project/vllm/blob/a9b15c606fea67a072416ea0ea115261a2756058/vllm/distributed/device_communicators/custom_all_reduce_utils.py#L101-L108 for details. # noqa
+    # See https://github.com/vllm-project/vllm/blob/a9b15c606fea67a072416ea0ea115261a2756058/vllm/distributed/device_communicators/custom_all_reduce_utils.py#L101-L108 for details.
     "VLLM_SKIP_P2P_CHECK": lambda: os.getenv("VLLM_SKIP_P2P_CHECK", "1") == "1",
     # List of quantization kernels that should be disabled, used for testing
     # and performance comparisons. Currently only affects MPLinearKernel
@@ -2025,7 +2024,7 @@ environment_variables: dict[str, Callable[[], Any]] = {
     # execution is not beneficial (most likely because of the input clone)
     # TODO(alexm-redhat): Tune to be more dynamic based on GPU type
     "VLLM_SHARED_EXPERTS_STREAM_TOKEN_THRESHOLD": lambda: int(
-        int(os.getenv("VLLM_SHARED_EXPERTS_STREAM_TOKEN_THRESHOLD", 256))
+        os.getenv("VLLM_SHARED_EXPERTS_STREAM_TOKEN_THRESHOLD", "256")
     ),
     # Token-count cutoff for multi-stream overlap of the attention input
     # GEMM with auxiliary GEMMs (e.g. fused_wqa_wkv overlapped with indexer
@@ -2177,7 +2176,6 @@ def __getattr__(name: str):
 
 def _is_envs_cache_enabled() -> bool:
     """Checked if __getattr__ is wrapped with functools.cache"""
-    global __getattr__
     return hasattr(__getattr__, "cache_clear")
 
 
@@ -2331,7 +2329,7 @@ def compile_factors() -> dict[str, object]:
 
         try:
             raw = getter()
-        except Exception as exc:  # pragma: no cover - defensive logging
+        except Exception as exc:  # pragma: no cover - defensive logging  # noqa: BLE001
             logger.warning(
                 "Skipping environment variable %s while hashing compile factors: %s",
                 factor,

@@ -4,6 +4,7 @@ Called at the end of ``vllm/models/deepseek_v4/nvidia/model.py`` after the
 stock classes are defined. Video is not registered: the checkpoint has no
 video tower.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -261,17 +262,17 @@ def _wrap_router_compute_routing(router: Any, gate: Any) -> None:
         capturing = False
         try:
             capturing = bool(torch.cuda.is_current_stream_capturing())
-        except Exception:
+        except Exception:  # noqa: BLE001 - tolerate torch builds without stream-capture query
             capturing = False
         if vl is None or capturing or token_routing_kind(input_ids) == "text":
-            return orig(
-                hidden_states, router_logits, indices_type, input_ids=input_ids
-            )
+            return orig(hidden_states, router_logits, indices_type, input_ids=input_ids)
         topk_weights, topk_ids = fused_topk_bias_split_vl(
             hidden_states=hidden_states,
             gating_output=router_logits,
             scoring_func=router.scoring_func,
-            e_score_correction_bias=_bias_data(getattr(router, "e_score_correction_bias", None)),
+            e_score_correction_bias=_bias_data(
+                getattr(router, "e_score_correction_bias", None)
+            ),
             e_score_correction_bias_vl=vl,
             topk=router.top_k,
             renormalize=router.renormalize,
@@ -412,9 +413,7 @@ def apply_vision_exp(
                 raise TypeError(
                     "issue #175 mega-MoE wrap expects fused_topk_bias keyword args"
                 )
-            return fused_topk_bias_split_vl(
-                e_score_correction_bias_vl=vl, **kwargs
-            )
+            return fused_topk_bias_split_vl(e_score_correction_bias_vl=vl, **kwargs)
 
         nvidia_mod.fused_topk_bias = _split_ftb
         try:
@@ -457,7 +456,9 @@ def apply_vision_exp(
         from vllm.model_executor.models.utils import _merge_multimodal_embeddings
 
         is_mm = _require_is_multimodal(is_multimodal)
-        n_placeholders = int(is_mm.sum().item()) if hasattr(is_mm, "sum") else int(is_mm)
+        n_placeholders = (
+            int(is_mm.sum().item()) if hasattr(is_mm, "sum") else int(is_mm)
+        )
         n_embeds = _mm_embed_rows(multimodal_embeddings)
         if n_placeholders != n_embeds:
             raise ValueError(

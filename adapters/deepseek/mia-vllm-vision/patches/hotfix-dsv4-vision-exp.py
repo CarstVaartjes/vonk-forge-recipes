@@ -28,6 +28,7 @@ have no video encoder. GIF is decoded as a still RGB frame.
 Usage (inside the container, after the encoder copy):
   python3 hotfix-dsv4-vision-exp.py
 """
+
 from __future__ import annotations
 
 import sys
@@ -49,18 +50,16 @@ ENC_MARK = "# [vision-exp-hotfix] allow vLLM-inserted image placeholders"
 ENC_ROLE_MARK = "# [vision-exp-hotfix] images only in user messages"
 ENC_ROLE_PAIRED_MARK = "# [vision-exp-hotfix] paired <image> tag (issue 165)"
 ENC_ROLE_TOOL_MARK = "# [vision-exp-hotfix] tool text is not an image (issue 167)"
-ENC_ROLE_QUOTE_MARK = (
-    "# [vision-exp-hotfix] quoted paired tags are prose (issue 181)"
-)
+ENC_ROLE_QUOTE_MARK = "# [vision-exp-hotfix] quoted paired tags are prose (issue 181)"
 DSPARK_MARK = "# [vision-exp-hotfix] remap ffn.gate.bias_vl"
 
-DSPARK_GATE_BIAS_OLD = '''                if name.endswith(".ffn.gate.bias"):
+DSPARK_GATE_BIAS_OLD = """                if name.endswith(".ffn.gate.bias"):
                     name = name.replace(
                         ".ffn.gate.bias", ".ffn.gate.e_score_correction_bias"
                     )
-                param = params_dict[name]'''
+                param = params_dict[name]"""
 
-DSPARK_GATE_BIAS_NEW = f'''                if name.endswith(".ffn.gate.bias_vl"):
+DSPARK_GATE_BIAS_NEW = f"""                if name.endswith(".ffn.gate.bias_vl"):
                     name = name.replace(
                         ".ffn.gate.bias_vl",
                         ".ffn.gate.e_score_correction_bias_vl",
@@ -71,9 +70,9 @@ DSPARK_GATE_BIAS_NEW = f'''                if name.endswith(".ffn.gate.bias_vl")
                     )
                 if name not in params_dict:
                     continue  {DSPARK_MARK}
-                param = params_dict[name]'''
+                param = params_dict[name]"""
 
-MODEL_INJECT = f'''
+MODEL_INJECT = f"""
 {MODEL_MARK}
 import sys as _dspark_vision_sys
 if "/opt/dspark-patches" not in _dspark_vision_sys.path:
@@ -84,11 +83,9 @@ _dspark_apply_vision_exp(
     DeepseekV4ForCausalLM=DeepseekV4ForCausalLM,
     DeepseekV4MoE=DeepseekV4MoE,
 )
-'''
+"""
 
-CONTENT_CHECK = (
-    "if isinstance(content, str) and IMAGE_PLACEHOLDER in content:"
-)
+CONTENT_CHECK = "if isinstance(content, str) and IMAGE_PLACEHOLDER in content:"
 CONTENT_CHECK_NEW = (
     "if False and isinstance(content, str) and IMAGE_PLACEHOLDER in content:"
     f"  {ENC_MARK}"
@@ -161,7 +158,10 @@ def _validate_no_image_sp_tokens(msg):
 def patch_model_text(source: str) -> tuple[str, str]:
     if MODEL_MARK in source:
         return source, "skipped"
-    if "class DeepseekV4ForCausalLM" not in source or "class DeepseekV4MoE" not in source:
+    if (
+        "class DeepseekV4ForCausalLM" not in source
+        or "class DeepseekV4MoE" not in source
+    ):
         return source, "drift:missing-dsv4-class"
     updated = source.rstrip() + "\n" + MODEL_INJECT
     compile(updated, "model.py", "exec")
@@ -212,8 +212,7 @@ def patch_dspark_text(source: str) -> tuple[str, str]:
         return source, "skipped"
     if source.count(DSPARK_GATE_BIAS_OLD) != 1:
         return source, (
-            "drift:dspark-gate-bias-remap="
-            f"{source.count(DSPARK_GATE_BIAS_OLD)}"
+            f"drift:dspark-gate-bias-remap={source.count(DSPARK_GATE_BIAS_OLD)}"
         )
     updated = source.replace(DSPARK_GATE_BIAS_OLD, DSPARK_GATE_BIAS_NEW, 1)
     compile(updated, "dspark.py", "exec")

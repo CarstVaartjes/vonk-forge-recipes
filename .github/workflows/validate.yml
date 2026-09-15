@@ -41,7 +41,7 @@ jobs:
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.12.1"
-          python-version: "3.12"
+          python-version: "3.14"
           enable-cache: false
 
       - name: Verify committed generated catalog index and package set
@@ -49,7 +49,7 @@ jobs:
         run: |
           set -euo pipefail
           test_venv="$RUNNER_TEMP/catalog-test-venv"
-          uv venv --python 3.12 "$test_venv"
+          uv venv --python 3.14 "$test_venv"
           uv pip install --python "$test_venv/bin/python" -e contracts
           "$test_venv/bin/python" tools/build-catalog-index --check
 
@@ -68,7 +68,7 @@ jobs:
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.12.1"
-          python-version: "3.12"
+          python-version: "3.14"
           enable-cache: false
 
       - name: Install producer contract dependencies
@@ -76,7 +76,7 @@ jobs:
         run: |
           set -euo pipefail
           test_venv="$RUNNER_TEMP/recipe-test-venv"
-          uv venv --python 3.12 "$test_venv"
+          uv venv --python 3.14 "$test_venv"
           uv pip install --python "$test_venv/bin/python" \
             -e contracts \
             adapters/video/ltx2-sync-native/vonk_agent_protocol-2.2.0-py3-none-any.whl \
@@ -152,17 +152,23 @@ jobs:
           set -euo pipefail
           "$RECIPE_TEST_PYTHON" -m pytest -q
 
-      - name: Lint producer contracts and checks with pinned Ruff
+      - name: Lint the repository with pinned Ruff
         shell: bash
         run: |
           set -euo pipefail
-          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" \
-            uvx --from ruff==0.16.1 ruff check \
-              contracts/src/vonk_forge_contracts \
-              tests/test_contracts.py \
-              tests/test_recipe_releases.py \
-              tools/generate-contract-schemas \
-              tools/generate-contract-examples
+          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" uvx --from ruff==0.16.1 ruff check .
+
+      - name: Check formatting with pinned Ruff
+        shell: bash
+        run: |
+          set -euo pipefail
+          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" uvx --from ruff==0.16.1 ruff format --check .
+
+      - name: Type check the repository with pinned Pyright
+        shell: bash
+        run: |
+          set -euo pipefail
+          UV_CACHE_DIR="$RUNNER_TEMP/uv-cache" scripts/check-python-types
 
       - name: Prove deterministic generated package and index artifacts
         shell: bash
@@ -245,7 +251,7 @@ jobs:
           consumer_venv="$RUNNER_TEMP/contracts-consumer-venv"
           consumer_cwd="$RUNNER_TEMP/contracts-consumer"
           uv build --wheel --out-dir "$wheel_dir" contracts
-          uv venv --python 3.12 "$consumer_venv"
+          uv venv --python 3.14 "$consumer_venv"
           uv pip install --python "$consumer_venv/bin/python" "$wheel_dir"/*.whl
           mkdir -p "$consumer_cwd"
           (
@@ -288,7 +294,7 @@ jobs:
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.12.1"
-          python-version: "3.12"
+          python-version: "3.14"
           enable-cache: false
 
       - name: Test, lint, and build public contracts
@@ -296,7 +302,7 @@ jobs:
         run: |
           set -euo pipefail
           test_venv="$RUNNER_TEMP/contracts-test-venv"
-          uv venv --python 3.12 "$test_venv"
+          uv venv --python 3.14 "$test_venv"
           uv pip install --python "$test_venv/bin/python" \
             'pydantic>=2.13,<3' 'jsonschema>=4.24,<5' 'pytest>=8,<9'
           "$test_venv/bin/pytest" -q tests/test_contracts.py
@@ -308,14 +314,12 @@ jobs:
             exit 1
           fi
           UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" \
-            uvx --from ruff==0.16.1 ruff check \
-              contracts/src/vonk_forge_contracts tests/test_contracts.py \
-              tools/generate-contract-schemas tools/generate-contract-examples
+            uvx --from ruff==0.16.1 ruff check .
 
           wheel_dir="$RUNNER_TEMP/contracts-wheel"
           uv build --wheel --out-dir "$wheel_dir" contracts
           consumer_venv="$RUNNER_TEMP/contracts-consumer-venv"
-          uv venv --python 3.12 "$consumer_venv"
+          uv venv --python 3.14 "$consumer_venv"
           uv pip install --python "$consumer_venv/bin/python" "$wheel_dir"/*.whl
           consumer_cwd="$RUNNER_TEMP/contracts-consumer"
           mkdir -p "$consumer_cwd"

@@ -248,9 +248,7 @@ def _load_pipeline(workflow: str):
     return pipe
 
 
-def _verify_joint_av(
-    path: Path, *, width: int, height: int, frame_count: int
-) -> None:
+def _verify_joint_av(path: Path, *, width: int, height: int, frame_count: int) -> None:
     import av
 
     with av.open(str(path), mode="r") as container:
@@ -263,7 +261,9 @@ def _verify_joint_av(
         video = video_streams[0]
         audio = audio_streams[0].codec_context
         if video.codec_context.name != "h264" or audio.name != "aac":
-            raise RuntimeError("MiniMax H3 output must contain H.264 video and AAC audio")
+            raise RuntimeError(
+                "MiniMax H3 output must contain H.264 video and AAC audio"
+            )
         if video.width != width or video.height != height:
             raise RuntimeError("MiniMax H3 output dimensions do not match the job")
         if (
@@ -272,10 +272,7 @@ def _verify_joint_av(
             or audio.layout.name != "stereo"
         ):
             raise RuntimeError("MiniMax H3 output must contain 32 kHz stereo audio")
-        if (
-            video.average_rate is None
-            or float(video.average_rate) != 24.0
-        ):
+        if video.average_rate is None or float(video.average_rate) != 24.0:
             raise RuntimeError("MiniMax H3 output must contain 24 fps video")
 
     with av.open(str(path), mode="r") as container:
@@ -292,7 +289,9 @@ def _verify_joint_av(
     expected_duration = frame_count / 24
     audio_duration = audio_samples / 32_000
     if abs(expected_duration - audio_duration) > max(1 / 24, 1024 / 32_000):
-        raise RuntimeError("MiniMax H3 output audio and video durations are not synchronized")
+        raise RuntimeError(
+            "MiniMax H3 output audio and video durations are not synchronized"
+        )
 
 
 def main() -> None:
@@ -364,9 +363,7 @@ def main() -> None:
         audio=results["audio"][0],
         audio_sample_rate=results["sampling_rate"],
     )
-    _verify_joint_av(
-        temporary, width=width, height=height, frame_count=frame_count
-    )
+    _verify_joint_av(temporary, width=width, height=height, frame_count=frame_count)
     os.replace(temporary, destination)
 
 

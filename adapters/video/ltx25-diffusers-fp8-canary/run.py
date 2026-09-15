@@ -153,12 +153,16 @@ def _seed(value: object, default: int) -> int:
 
 
 def _validate_model_closure() -> None:
-    missing = sorted(path for path in REQUIRED_FILES if not (MODEL_ROOT / path).is_file())
+    missing = sorted(
+        path for path in REQUIRED_FILES if not (MODEL_ROOT / path).is_file()
+    )
     if missing:
         raise SystemExit(f"LTX 2.5 filtered snapshot is incomplete: {missing[0]}")
     forbidden = sorted(path for path in FORBIDDEN_PATHS if (MODEL_ROOT / path).exists())
     if forbidden:
-        raise SystemExit(f"LTX 2.5 snapshot contains excluded component: {forbidden[0]}")
+        raise SystemExit(
+            f"LTX 2.5 snapshot contains excluded component: {forbidden[0]}"
+        )
     for relative, expected in EXPECTED_SHARDS.items():
         document = json.loads((MODEL_ROOT / relative).read_text(encoding="utf-8"))
         weight_map = document.get("weight_map")
@@ -230,7 +234,9 @@ def _verify_joint_av(
 
     with av.open(str(path), mode="r") as container:
         if len(container.streams.video) != 1 or len(container.streams.audio) != 1:
-            raise RuntimeError("LTX 2.5 output must contain one video and one audio stream")
+            raise RuntimeError(
+                "LTX 2.5 output must contain one video and one audio stream"
+            )
         video_stream = container.streams.video[0]
         audio_stream = container.streams.audio[0]
         if video_stream.codec_context.name != "h264":
@@ -239,7 +245,10 @@ def _verify_joint_av(
             raise RuntimeError("LTX 2.5 output audio codec must be AAC")
         if video_stream.width != width or video_stream.height != height:
             raise RuntimeError("LTX 2.5 output dimensions do not match the job")
-        if video_stream.average_rate is None or float(video_stream.average_rate) != 24.0:
+        if (
+            video_stream.average_rate is None
+            or float(video_stream.average_rate) != 24.0
+        ):
             raise RuntimeError("LTX 2.5 output must be exactly 24 fps")
         if audio_stream.codec_context.sample_rate != sample_rate:
             raise RuntimeError("LTX 2.5 output audio sample rate changed")
@@ -264,7 +273,9 @@ def _verify_joint_av(
     video_seconds = frame_count / 24.0
     audio_seconds = audio_samples / sample_rate
     if abs(video_seconds - audio_seconds) > 1 / 24:
-        raise RuntimeError("LTX 2.5 output audio and video durations are not synchronized")
+        raise RuntimeError(
+            "LTX 2.5 output audio and video durations are not synchronized"
+        )
     return {
         "audio_channels": 2,
         "audio_codec": "aac",

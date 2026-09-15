@@ -10,7 +10,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import RecipeDefinition, content_sha256  # noqa: E402
+from vonk_forge_contracts import RecipeDefinition, content_sha256
+
 RUNTIME_DIGEST = "15c98035c9bbba7ec61d25acd93c3c34b0516754c299813e5f51344e858abd2d"
 RUNTIME_IMAGE = (
     "docker.io/vllm/vllm-openai@sha256:"
@@ -29,7 +30,8 @@ def digest(document: dict[str, object]) -> str:
 def catalog_entry(slug: str) -> dict[str, object]:
     catalog = load("catalog-index.json")
     return next(
-        item for item in catalog["recipes"]
+        item
+        for item in catalog["recipes"]
         if item["document"]["identity"]["slug"] == slug
     )
 
@@ -54,8 +56,14 @@ class Vllm028ModelVariantTests(unittest.TestCase):
 
     def test_immutable_runtime_and_fallbacks_coexist(self) -> None:
         for recipe in (self.gemma, self.lfm):
-            self.assertEqual(recipe["execution"]["build"]["base_image"]["repository"], "docker.io/vllm/vllm-openai")
-            self.assertEqual(recipe["execution"]["build"]["base_image"]["digest"], RUNTIME_IMAGE.split("@sha256:")[1])
+            self.assertEqual(
+                recipe["execution"]["build"]["base_image"]["repository"],
+                "docker.io/vllm/vllm-openai",
+            )
+            self.assertEqual(
+                recipe["execution"]["build"]["base_image"]["digest"],
+                RUNTIME_IMAGE.split("@sha256:")[1],
+            )
         self.assertEqual(self.gemma_fallback["runtime"]["engine"], "vllm")
         self.assertEqual(self.lfm_fallback["runtime"]["engine"], "vllm")
         for recipe in (self.gemma, self.lfm):
@@ -91,7 +99,9 @@ class Vllm028ModelVariantTests(unittest.TestCase):
             ["gemma-4-26b-a4b-it-vllm028"],
         )
         self.assertEqual(self.gemma["interfaces"][0]["health_path"], "/v1/models")
-        self.assertTrue(all(item["mount"]["read_only"] for item in self.gemma["models"][0]["files"]))
+        self.assertTrue(
+            all(item["mount"]["read_only"] for item in self.gemma["models"][0]["files"])
+        )
 
     def test_lfm_exact_image_and_tool_contract(self) -> None:
         arguments = {
@@ -114,7 +124,9 @@ class Vllm028ModelVariantTests(unittest.TestCase):
             ["lfm2-5-vl-3b-vllm028"],
         )
         self.assertEqual(self.lfm["interfaces"][0]["health_path"], "/v1/models")
-        self.assertTrue(all(item["mount"]["read_only"] for item in self.lfm["models"][0]["files"]))
+        self.assertTrue(
+            all(item["mount"]["read_only"] for item in self.lfm["models"][0]["files"])
+        )
 
     def test_build_time_interface_screens_and_source_bundles_are_exact(self) -> None:
         module = catalog_index_module()
@@ -133,10 +145,13 @@ class Vllm028ModelVariantTests(unittest.TestCase):
         for recipe, context_path, class_name in cases:
             with self.subTest(recipe=recipe["identity"]["slug"]):
                 context = recipe["execution"]["build"]["context"]
-                archive, _, source_digest = module.source_bundle(ROOT / context_path)
+                _archive, _, source_digest = module.source_bundle(ROOT / context_path)
                 self.assertEqual(context["path"], context_path)
                 self.assertEqual(context["path"], context_path)
-                expected_digest = {"adapters/google/gemma4-vllm-028": "bcd5a8df070f142e831c74476df6cb639ecda313c6a38626d13e71500bd5ecc5", "adapters/liquidai/lfm25-vl-vllm-028": "8a70ef3c06595c0b32331113df0a34982bbcf38151b00e94725012cf013b177a"}[context_path]
+                expected_digest = {
+                    "adapters/google/gemma4-vllm-028": "bcd5a8df070f142e831c74476df6cb639ecda313c6a38626d13e71500bd5ecc5",
+                    "adapters/liquidai/lfm25-vl-vllm-028": "8a70ef3c06595c0b32331113df0a34982bbcf38151b00e94725012cf013b177a",
+                }[context_path]
                 self.assertEqual(source_digest, expected_digest)
                 dockerfile = (ROOT / context_path / "Dockerfile").read_text()
                 smoke = (ROOT / context_path / "model-interface-smoke.py").read_text()
@@ -165,9 +180,7 @@ class Vllm028ModelVariantTests(unittest.TestCase):
                 self.assertIsNone(release.history[0].prior_recipe_content_sha256)
                 entry = catalog_entry(slug)
                 recipe_digest = digest(recipe)
-                self.assertEqual(
-                    entry["content_sha256"], recipe_digest
-                )
+                self.assertEqual(entry["content_sha256"], recipe_digest)
                 package = entry["package"]
                 self.assertEqual(package["recipe_content_sha256"], recipe_digest)
                 payload = (ROOT / package["path"]).read_bytes()

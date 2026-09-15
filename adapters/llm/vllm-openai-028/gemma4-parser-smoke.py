@@ -13,7 +13,6 @@ from vllm.entrypoints.openai.chat_completion.protocol import (
 from vllm.parser.gemma4 import TOOL_CALL_END, TOOL_CALL_START
 from vllm.tool_parsers.gemma4_engine_tool_parser import Gemma4EngineToolParser
 
-
 START_ID = 48
 END_ID = 49
 
@@ -53,9 +52,7 @@ def request() -> MagicMock:
 
 
 def non_streaming() -> None:
-    output = (
-        "Checking. <|tool_call>call:set_status{active:true,count:42}<tool_call|>"
-    )
+    output = "Checking. <|tool_call>call:set_status{active:true,count:42}<tool_call|>"
     result = parser().extract_tool_calls(output, request())
     assert result.tools_called is True
     assert result.content == "Checking."

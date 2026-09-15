@@ -24,7 +24,9 @@ def one_input(input_dir: Path) -> Path:
         and path.suffix.lower() in SUPPORTED_SUFFIXES
     )
     if len(candidates) != 1:
-        raise SystemExit(f"expected exactly one JPEG, PNG, or WebP input; found {len(candidates)}")
+        raise SystemExit(
+            f"expected exactly one JPEG, PNG, or WebP input; found {len(candidates)}"
+        )
     candidate = candidates[0]
     size = candidate.stat().st_size
     if not 1 <= size <= MAX_INPUT_BYTES:
@@ -32,13 +34,19 @@ def one_input(input_dir: Path) -> Path:
     return candidate
 
 
-def camera_params(field_of_view: float, mesh_scale: float, image_resolution: int = 512) -> dict[str, float]:
+def camera_params(
+    field_of_view: float, mesh_scale: float, image_resolution: int = 512
+) -> dict[str, float]:
     focal_pixels = (16.0 / math.tan(field_of_view / 2.0)) * image_resolution / 32.0
     x_world = -0.5 / mesh_scale
     y_world = 0.0
     x_ndc = -image_resolution / 2.0
     distance = focal_pixels * x_world / x_ndc - y_world
-    return {"camera_angle_x": field_of_view, "distance": distance, "mesh_scale": mesh_scale}
+    return {
+        "camera_angle_x": field_of_view,
+        "distance": distance,
+        "mesh_scale": mesh_scale,
+    }
 
 
 def validated_input(path: Path) -> object:
@@ -60,12 +68,18 @@ def main() -> None:
     parser.add_argument("--input-dir", type=Path, default=Path("/inputs"))
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--pipeline-resolution", choices=("1024_cascade", "1536_cascade"), default="1024_cascade")
+    parser.add_argument(
+        "--pipeline-resolution",
+        choices=("1024_cascade", "1536_cascade"),
+        default="1024_cascade",
+    )
     parser.add_argument("--field-of-view-radians", type=float, default=0.2)
     parser.add_argument("--mesh-scale", type=float, default=1.0)
     parser.add_argument("--max-num-tokens", type=int, default=49152)
     parser.add_argument("--decimation-target", type=int, default=1_000_000)
-    parser.add_argument("--texture-size", type=int, choices=(1024, 2048, 4096), default=2048)
+    parser.add_argument(
+        "--texture-size", type=int, choices=(1024, 2048, 4096), default=2048
+    )
     parser.add_argument("--timeout-seconds", type=int, default=3600)
     args = parser.parse_args()
     if args.entrypoint != "/opt/vonk/source/pixal3d_job.py":
@@ -86,7 +100,9 @@ def main() -> None:
     os.environ.setdefault("ATTN_BACKEND", "sdpa")
     os.environ.setdefault("SPARSE_ATTN_BACKEND", "sdpa")
     os.environ.setdefault("SPARSE_CONV_BACKEND", "flex_gemm")
-    os.environ.setdefault("FLEX_GEMM_AUTOTUNE_CACHE_PATH", "/opt/vonk/flexgemm-source/autotune_cache.json")
+    os.environ.setdefault(
+        "FLEX_GEMM_AUTOTUNE_CACHE_PATH", "/opt/vonk/flexgemm-source/autotune_cache.json"
+    )
     os.environ.setdefault("FLEX_GEMM_AUTOSAVE_AUTOTUNE_CACHE", "0")
 
     import numpy as np
@@ -116,7 +132,9 @@ def main() -> None:
             from src.model.naf import NAF
 
             model = NAF().to(device)
-            state = torch.load("/models/naf/naf_release.pth", map_location=device, weights_only=True)
+            state = torch.load(
+                "/models/naf/naf_release.pth", map_location=device, weights_only=True
+            )
             model.load_state_dict(state, strict=True)
             model.eval()
             model.requires_grad_(False)

@@ -16,7 +16,9 @@ new = """        elif device_capability.major == 12:
                 AttentionBackendEnum.FLASHINFER_MLA_SPARSE_SM120,
             ]"""
 if s.count(old) != 1:
-    raise SystemExit("unexpected cuda.py capability-12 MLA candidate list; refusing to patch")
+    raise SystemExit(
+        "unexpected cuda.py capability-12 MLA candidate list; refusing to patch"
+    )
 p.write_text(s.replace(old, new))
 
 p = base / "v1/attention/backends/mla/flashinfer_mla_sparse_sm90.py"

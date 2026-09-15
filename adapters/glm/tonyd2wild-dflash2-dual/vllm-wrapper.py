@@ -8,7 +8,6 @@ import sys
 from ipaddress import ip_address
 from pathlib import Path
 
-
 TARGET = Path("/models/target")
 DRAFTER = Path("/models/drafter")
 

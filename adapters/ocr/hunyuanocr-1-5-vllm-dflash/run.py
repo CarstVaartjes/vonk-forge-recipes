@@ -15,7 +15,6 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-
 INPUTS = Path("/inputs")
 MODEL = Path("/models")
 SOURCE = Path("/opt/hunyuanocr")
@@ -188,7 +187,9 @@ def launch_server(log_path: Path) -> tuple[subprocess.Popen[bytes], object]:
     return process, log
 
 
-def wait_ready(process: subprocess.Popen[bytes], timeout: float, log_path: Path) -> None:
+def wait_ready(
+    process: subprocess.Popen[bytes], timeout: float, log_path: Path
+) -> None:
     deadline = time.monotonic() + timeout
     endpoint = f"http://127.0.0.1:{PORT}/v1/models"
     while time.monotonic() < deadline:
@@ -205,7 +206,9 @@ def wait_ready(process: subprocess.Popen[bytes], timeout: float, log_path: Path)
     raise SystemExit("HunyuanOCR vLLM readiness timed out")
 
 
-def infer(image: Path, task_type: str, max_tokens: int, timeout: float) -> tuple[str, bool]:
+def infer(
+    image: Path, task_type: str, max_tokens: int, timeout: float
+) -> tuple[str, bool]:
     sys.path.insert(0, str(SOURCE / "inference"))
     from utils.output_utils import (  # type: ignore[import-not-found]
         clean_repeated_substrings,
@@ -309,7 +312,9 @@ def write_bundle(
     used: set[str] = set()
     with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for index, (source, text, early_stopped) in enumerate(results, start=1):
-            stem = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in source.stem)[:80]
+            stem = "".join(
+                ch if ch.isalnum() or ch in "-_" else "_" for ch in source.stem
+            )[:80]
             name = f"documents/{index:03d}-{stem}{OUTPUT_SUFFIXES[task_type]}"
             if name in used:
                 name = f"documents/{index:03d}-document{OUTPUT_SUFFIXES[task_type]}"
@@ -347,7 +352,9 @@ def main() -> None:
     if args.output_mime != "application/zip":
         raise SystemExit("HunyuanOCR emits an application/zip bundle")
     if args.seed != 0:
-        raise SystemExit("HunyuanOCR uses deterministic greedy decoding; seed must be zero")
+        raise SystemExit(
+            "HunyuanOCR uses deterministic greedy decoding; seed must be zero"
+        )
 
     images, task_type, max_tokens = read_job()
     log_path = Path("/tmp/hunyuanocr-vllm.log")

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Apply overlay/patch_scheduler_decode_floor.py to a copy of scheduler.py."""
+
 from __future__ import annotations
 
 import os
@@ -18,9 +19,7 @@ PATCH = next(
     )
     if p.is_file()
 )
-SRC = Path(
-    "/usr/local/lib/python3.12/dist-packages/vllm/v1/core/sched/scheduler.py"
-)
+SRC = Path("/usr/local/lib/python3.12/dist-packages/vllm/v1/core/sched/scheduler.py")
 
 
 def main() -> int:

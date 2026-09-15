@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Apply overlay/patch_adaptive_k.py to copies of scheduler.py / cudagraph_utils.py
 and unit-test the EMA policy (default off, batch minimum, structured, ratchet escape)."""
+
 from __future__ import annotations
 
 import os
@@ -12,12 +13,22 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 PATCH = next(
-    p for p in (HERE / "patch_adaptive_k.py", HERE.parent / "overlay" / "patch_adaptive_k.py")
+    p
+    for p in (
+        HERE / "patch_adaptive_k.py",
+        HERE.parent / "overlay" / "patch_adaptive_k.py",
+    )
     if p.is_file()
 )
 SITE = Path("/usr/local/lib/python3.12/dist-packages/vllm")
-SCHED_SRC = Path(os.environ.get("GLM53_SCHEDULER_PY_SRC", SITE / "v1/core/sched/scheduler.py"))
-CG_SRC = Path(os.environ.get("GLM53_CUDAGRAPH_UTILS_PY_SRC", SITE / "v1/worker/gpu/cudagraph_utils.py"))
+SCHED_SRC = Path(
+    os.environ.get("GLM53_SCHEDULER_PY_SRC", SITE / "v1/core/sched/scheduler.py")
+)
+CG_SRC = Path(
+    os.environ.get(
+        "GLM53_CUDAGRAPH_UTILS_PY_SRC", SITE / "v1/worker/gpu/cudagraph_utils.py"
+    )
+)
 
 
 class _Req:
@@ -34,7 +45,7 @@ def policy_tests(helper_src: str) -> None:
         old = dict(os.environ)
         os.environ.update(env)
         try:
-            exec(helper_src, ns)
+            exec(helper_src, ns)  # noqa: S102  (exec runs the extracted patched source under test)
             inst = ns["_Glm53AdaptiveK"]()
         finally:
             os.environ.clear()
@@ -65,7 +76,9 @@ def policy_tests(helper_src: str) -> None:
     s = _Req("s")
     r.spec_token_ids = [-1] * 7
     p.apply([(r, False), (s, True)], {"a": r, "s": s})
-    assert len(r.spec_token_ids) == 7 and len(s.spec_token_ids) == 7, "structured forces batch to 7"
+    assert len(r.spec_token_ids) == 7 and len(s.spec_token_ids) == 7, (
+        "structured forces batch to 7"
+    )
 
     # ratchet escape: saturation at n=2 feeds the full length, EMA can climb back to 7
     r.spec_token_ids = [-1] * 2
@@ -76,7 +89,13 @@ def policy_tests(helper_src: str) -> None:
     assert len(r.spec_token_ids) == 7, r.spec_token_ids
 
     # saturate=n reproduces the ratchet (documented behaviour)
-    p = make({"GLM53_ADAPTIVE_K": "ema", "GLM53_ADAPTIVE_K_SATURATE": "n", "GLM53_ADAPTIVE_K_HIST": "0"})
+    p = make(
+        {
+            "GLM53_ADAPTIVE_K": "ema",
+            "GLM53_ADAPTIVE_K_SATURATE": "n",
+            "GLM53_ADAPTIVE_K_HIST": "0",
+        }
+    )
     r = _Req("a")
     for _ in range(15):
         p.observe("a", 7, 1)
@@ -90,10 +109,18 @@ def policy_tests(helper_src: str) -> None:
     assert len(r.spec_token_ids) == 2, "saturate=n never climbs"
 
     # runtime override file: mode off -> no trimming; set clamped to boot set
-    import json, tempfile as _tf
+    import json
+    import tempfile as _tf
+
     with _tf.TemporaryDirectory() as td:
         f = Path(td) / "ak.json"
-        p = make({"GLM53_ADAPTIVE_K": "ema", "GLM53_ADAPTIVE_K_HIST": "0", "GLM53_ADAPTIVE_K_FILE": str(f)})
+        p = make(
+            {
+                "GLM53_ADAPTIVE_K": "ema",
+                "GLM53_ADAPTIVE_K_HIST": "0",
+                "GLM53_ADAPTIVE_K_FILE": str(f),
+            }
+        )
         r = _Req("a")
         for _ in range(15):
             p.observe("a", 7, 1)
@@ -106,16 +133,28 @@ def policy_tests(helper_src: str) -> None:
             p.observe("a", 7, 1)
         r.spec_token_ids = [-1] * 7
         p.apply([(r, False)], {"a": r})
-        assert len(r.spec_token_ids) == 7 and not p.enabled, "file mode=off must disable trimming"
+        assert len(r.spec_token_ids) == 7 and not p.enabled, (
+            "file mode=off must disable trimming"
+        )
         f.write_text(json.dumps({"mode": "ema", "set": [3, 5, 9]}))
         os.utime(f, (2, 2))
         p.steps = 0
         r.spec_token_ids = [-1] * 7
         p.apply([(r, False)], {"a": r})  # steps % 50 == 0 -> reload
-        assert p.enabled and p.k_set == [2, 4, 7], (p.enabled, p.k_set)  # no overlap with the boot set -> falls back
+        assert p.enabled and p.k_set == [2, 4, 7], (
+            p.enabled,
+            p.k_set,
+        )  # no overlap with the boot set -> falls back
     with _tf.TemporaryDirectory() as td:
         f = Path(td) / "ak.json"
-        p = make({"GLM53_ADAPTIVE_K": "ema", "GLM53_ADAPTIVE_K_SET": "2,3,4,5,7", "GLM53_ADAPTIVE_K_HIST": "0", "GLM53_ADAPTIVE_K_FILE": str(f)})
+        p = make(
+            {
+                "GLM53_ADAPTIVE_K": "ema",
+                "GLM53_ADAPTIVE_K_SET": "2,3,4,5,7",
+                "GLM53_ADAPTIVE_K_HIST": "0",
+                "GLM53_ADAPTIVE_K_FILE": str(f),
+            }
+        )
         f.write_text(json.dumps({"mode": "ema", "set": "3,5,7", "margin": 1.5}))
         p.steps = 0
         p._reload()
@@ -129,13 +168,22 @@ def policy_tests(helper_src: str) -> None:
     # schedule-time hook (async scheduler path)
     class _SReq:
         def __init__(self, rid, structured=False, prefill=False):
-            self.request_id = rid; self.use_structured_output = structured; self.is_prefill_chunk = prefill
+            self.request_id = rid
+            self.use_structured_output = structured
+            self.is_prefill_chunk = prefill
+
     p = make({"GLM53_ADAPTIVE_K": "ema", "GLM53_ADAPTIVE_K_HIST": "0"})
-    a, b, s, pf = _SReq("a"), _SReq("b"), _SReq("s", structured=True), _SReq("p", prefill=True)
+    a, b, s, pf = (
+        _SReq("a"),
+        _SReq("b"),
+        _SReq("s", structured=True),
+        _SReq("p", prefill=True),
+    )
     live = {"a": a, "b": b, "s": s, "p": pf}
     assert p.batch_k(7, [a], live) == 7, "unobserved request pins full length"
     for _ in range(15):
-        p.observe("a", 7, 1); p.observe("b", 7, 7)
+        p.observe("a", 7, 1)
+        p.observe("b", 7, 7)
     assert p.batch_k(7, [a], live) == 2
     assert p.batch_k(7, [b], live) == 7
     assert p.batch_k(7, [a, b], live) == 2, "batch minimum"
@@ -183,7 +231,7 @@ def main() -> int:
         cstart = ct.index("def _glm53_adaptive_k_query_lens(")
         cend = ct.index("@dataclass(frozen=True)\nclass BatchExecutionDescriptor:")
         ns = {}
-        exec(ct[cstart:cend], ns)
+        exec(ct[cstart:cend], ns)  # noqa: S102  (exec runs the extracted patched source under test)
         fn = ns["_glm53_adaptive_k_query_lens"]
         os.environ["GLM53_ADAPTIVE_K"] = "off"
         assert fn([8], 8) == [8]

@@ -8,10 +8,14 @@ import sys
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256  # noqa: E402
+from vonk_forge_contracts import (
+    ModelDefinition,
+    RecipeDefinition,
+    content_sha256,
+)
+
 ADAPTER_ROOT = ROOT / "adapters/deepseek/sparkinfer-single"
 MODEL_PATH = ROOT / "models/deepseek-v4-flash-0731-sparkinfer-exl3-k216.json"
 RECIPE_PATH = ROOT / "recipes/deepseek-v4-flash-0731-sparkinfer-single.json"
@@ -19,7 +23,9 @@ MODEL_REVISION = "ce5ff0f1efb2e184aafc759d281bfae47d3a359c"
 EXECUTABLE_PAYLOAD_REVISION = "22f28d32b9b29b4352eaa380ff8c2c170b2847ab"
 RUNTIME_REVISION = "590d2172394dd83c1f36ff29f0dc9ec6032ea9e2"
 IMAGE_DIGEST = "2e077489a83a0360952828051fe7f7a32c1801e5ce8436d85f7267583d614ff4"
-SOURCE_BUNDLE_DIGEST = "4258f92ba9d13e6e9688251f2bc407cba82250b6dc9fa2a62496ad22c78a885f"
+SOURCE_BUNDLE_DIGEST = (
+    "4258f92ba9d13e6e9688251f2bc407cba82250b6dc9fa2a62496ad22c78a885f"
+)
 
 
 def _document(path: Path) -> dict[str, object]:
@@ -34,7 +40,8 @@ def _canonical_digest(path: Path) -> str:
 def _catalog_entry(slug: str) -> dict[str, object]:
     catalog = _document(ROOT / "catalog-index.json")
     return next(
-        item for item in catalog["recipes"]
+        item
+        for item in catalog["recipes"]
         if item["document"]["identity"]["slug"] == slug
     )
 
@@ -43,10 +50,15 @@ class SparkInferSingleRecipeTests(unittest.TestCase):
     def test_complete_immutable_authority_closure(self) -> None:
         recipe = _document(RECIPE_PATH)
         model = _document(MODEL_PATH)
-        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], _canonical_digest(MODEL_PATH))
+        self.assertEqual(
+            recipe["models"][0]["model"]["content_sha256"],
+            _canonical_digest(MODEL_PATH),
+        )
         self.assertEqual(model["source"]["revision"], MODEL_REVISION)
         self.assertEqual(len(model["files"]), 190)
-        self.assertEqual(len({item["path"] for item in model["files"]}), len(model["files"]))
+        self.assertEqual(
+            len({item["path"] for item in model["files"]}), len(model["files"])
+        )
         self.assertTrue(all(len(item["sha256"]) == 64 for item in model["files"]))
 
     def test_adapter_is_offline_and_uses_the_published_launch_path(self) -> None:
@@ -88,7 +100,12 @@ class SparkInferSingleRecipeTests(unittest.TestCase):
             "exit 78",
         ):
             self.assertNotIn(forbidden, recipe_text)
-        for forbidden in ("non-executable", "integration-required", "/bin/false", "exit 78"):
+        for forbidden in (
+            "non-executable",
+            "integration-required",
+            "/bin/false",
+            "exit 78",
+        ):
             self.assertNotIn(forbidden, recipe_text)
 
         subprocess.run(

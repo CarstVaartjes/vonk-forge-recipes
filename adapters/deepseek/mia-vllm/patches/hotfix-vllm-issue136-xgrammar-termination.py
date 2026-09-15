@@ -7,6 +7,7 @@ identities.  Applying the three XgrammarGrammar hunks is one recoverable,
 same-directory atomic publication; an already-patched target is verified but
 never rewritten.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -16,9 +17,10 @@ import os
 import stat
 import sys
 import tempfile
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Literal
 
 PRODUCTION_TARGET = Path(
     "/usr/local/lib/python3.12/dist-packages/vllm/v1/structured_output/"
@@ -31,7 +33,9 @@ PATCHED_SHA256 = "6c7e23c0ae5c6836d0d56862c6e825c49727fa2409b881b44ea2526f1fd03f
 STOCK_SIZE = 12_699
 PATCHED_SIZE = 12_983
 STOCK_REGION_SHA256 = "9677073da0986c345f8fa36c787248ff5b3a1b0fbe999da31a91491f3267a149"
-PATCHED_REGION_SHA256 = "2a7417bbe9e32179c3de8a5750358339320bec672b388fc0ede978e2270b72f4"
+PATCHED_REGION_SHA256 = (
+    "2a7417bbe9e32179c3de8a5750358339320bec672b388fc0ede978e2270b72f4"
+)
 MARK = "[issue136-xgrammar]"
 
 OLD_REGION = b'''    def accept_tokens(self, request_id: str, tokens: list[int]) -> bool:
@@ -269,9 +273,7 @@ def _read_file(target: Path) -> bytes:
         ) from error
 
 
-def inspect_target(
-    target: Path, metadata_provider: MetadataProvider
-) -> Inspection:
+def inspect_target(target: Path, metadata_provider: MetadataProvider) -> Inspection:
     """Classify an exact stock or exact patched regular file without mutation."""
     before = _lstat_regular(target)
     vllm_version, xgrammar_version = _load_versions(metadata_provider)
@@ -469,13 +471,9 @@ def apply(target: Path, metadata_provider: MetadataProvider) -> ApplyResult:
     try:
         # Prepare a durable restoration image before publication.  Neither
         # temporary path is visible at the target until one atomic replace.
-        rollback_temp = _stage_temp(
-            target, inspection.data, inspection.file_stat
-        )
+        rollback_temp = _stage_temp(target, inspection.data, inspection.file_stat)
         candidate_temp = _stage_temp(target, candidate, inspection.file_stat)
-        _assert_original_unchanged(
-            target, inspection.data, inspection.file_stat
-        )
+        _assert_original_unchanged(target, inspection.data, inspection.file_stat)
         try:
             os.replace(candidate_temp, target)
         except BaseException:
@@ -490,9 +488,7 @@ def apply(target: Path, metadata_provider: MetadataProvider) -> ApplyResult:
             published = True
 
         _fsync_directory(target.parent)
-        _verify_published(
-            target, candidate, inspection.file_stat, metadata_provider
-        )
+        _verify_published(target, candidate, inspection.file_stat, metadata_provider)
     except BaseException as primary_error:
         if published:
             try:
@@ -501,9 +497,7 @@ def apply(target: Path, metadata_provider: MetadataProvider) -> ApplyResult:
                 os.replace(rollback_temp, target)
                 rollback_temp = None
                 _fsync_directory(target.parent)
-                _verify_restored(
-                    target, inspection.data, inspection.file_stat
-                )
+                _verify_restored(target, inspection.data, inspection.file_stat)
             except BaseException as rollback_error:
                 raise RollbackError(
                     "hotfix publication failed and rollback failed "
@@ -529,7 +523,7 @@ def _display_versions() -> tuple[str, str]:
     for package in ("vllm", "xgrammar"):
         try:
             value = importlib.metadata.version(package)
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001 - version probing is best-effort display only
             value = f"unavailable:{type(error).__name__}"
         displayed.append(value)
     return displayed[0], displayed[1]
@@ -564,17 +558,21 @@ def _log(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     modes = parser.add_mutually_exclusive_group()
-    modes.add_argument("--check", action="store_true", help="check compatibility without writing")
-    modes.add_argument("--status", action="store_true", help="report stock-compatible/patched/incompatible")
+    modes.add_argument(
+        "--check", action="store_true", help="check compatibility without writing"
+    )
+    modes.add_argument(
+        "--status",
+        action="store_true",
+        help="report stock-compatible/patched/incompatible",
+    )
     args = parser.parse_args(argv)
     mode: Mode = "status" if args.status else "check" if args.check else "apply"
     shown_versions = _display_versions()
 
     try:
         if mode in {"check", "status"}:
-            inspection = inspect_target(
-                PRODUCTION_TARGET, importlib.metadata.version
-            )
+            inspection = inspect_target(PRODUCTION_TARGET, importlib.metadata.version)
             _log(
                 mode,
                 inspection.state,
@@ -614,7 +612,7 @@ def main(argv: list[str] | None = None) -> int:
         if mode == "status":
             print("incompatible")
         return 2
-    except BaseException as error:
+    except BaseException as error:  # noqa: BLE001 - CLI must log structured failure for any abort
         digest = _display_digest()
         _log(
             mode,

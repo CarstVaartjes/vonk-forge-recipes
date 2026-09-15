@@ -45,8 +45,7 @@ def patch_label_encoder(root: Path) -> None:
     """Repair the upstream string lookup used by controlled geometry inference."""
 
     replace_exact(
-        root
-        / "step1x3d_geometry/models/conditional_encoders/label_encoder.py",
+        root / "step1x3d_geometry/models/conditional_encoders/label_encoder.py",
         'GEOMETRY_QUALITY_MAPPING[label["geometry_type"][0]]',
         'GEOMETRY_QUALITY_MAPPING[label["geometry_type"]]',
     )

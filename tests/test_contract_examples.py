@@ -5,12 +5,13 @@ from pathlib import Path
 
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_representative_contract_examples_validate() -> None:
-    examples = sorted((ROOT / "contracts/src/vonk_forge_contracts/examples").glob("*.json"))
+    examples = sorted(
+        (ROOT / "contracts/src/vonk_forge_contracts/examples").glob("*.json")
+    )
     assert {path.name for path in examples} >= {
         "model-definition.json",
         "recipe-image.json",
@@ -20,4 +21,6 @@ def test_representative_contract_examples_validate() -> None:
     }
     for path in examples:
         document = json.loads(path.read_text(encoding="utf-8"))
-        (ModelDefinition if document["kind"] == "model" else RecipeDefinition).model_validate(document)
+        (
+            ModelDefinition if document["kind"] == "model" else RecipeDefinition
+        ).model_validate(document)

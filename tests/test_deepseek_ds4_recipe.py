@@ -18,11 +18,15 @@ def load(path: Path) -> dict:
 
 
 def digest(path: Path) -> str:
-    body = json.dumps(load(path), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    body = json.dumps(
+        load(path), ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
     return hashlib.sha256(body.encode()).hexdigest()
 
 
-def compiled_engine_argv(recipe: dict, *, target: str, drafter: str | None = None) -> list[str]:
+def compiled_engine_argv(
+    recipe: dict, *, target: str, drafter: str | None = None
+) -> list[str]:
     """Render the recipe's opaque engine arguments exactly as authored."""
     settings = recipe["settings"]
     argv: list[str] = []
@@ -42,14 +46,23 @@ class DeepseekDs4RecipeTests(unittest.TestCase):
     def test_cuda_profile_describes_ordered_two_session_fallback(self) -> None:
         recipe = load(RECIPE)
         self.assertIn("two-session concurrency", recipe["metadata"]["title"])
-        self.assertEqual(next(a["setting"] for a in recipe["runtime"]["arguments"] if a["name"] == "batched-session"), "concurrency")
+        self.assertEqual(
+            next(
+                a["setting"]
+                for a in recipe["runtime"]["arguments"]
+                if a["name"] == "batched-session"
+            ),
+            "concurrency",
+        )
         self.assertEqual(recipe["settings"]["kind"], "generation")
         self.assertEqual(recipe["topology"]["node_count"], 1)
         names = [argument["name"] for argument in recipe["runtime"]["arguments"]]
         self.assertEqual(names, ["model", "ctx", "batched-session"])
 
     def test_dspark_uses_pinned_parser_option_names(self) -> None:
-        recipe = load(ROOT / "recipes/deepseek-v4-flash-0731-ds4-dspark-latency-single.json")
+        recipe = load(
+            ROOT / "recipes/deepseek-v4-flash-0731-ds4-dspark-latency-single.json"
+        )
         names = [argument["name"] for argument in recipe["runtime"]["arguments"]]
         self.assertEqual(names, ["model", "mtp-model", "ctx"])
         self.assertEqual(recipe["release"]["version"], "1.2.5")
@@ -58,8 +71,7 @@ class DeepseekDs4RecipeTests(unittest.TestCase):
         if shutil.which("make") is None or shutil.which("cc") is None:
             self.skipTest("native C toolchain is unavailable")
         archive_path = (
-            ROOT
-            / "adapters/deepseek/ds4/vendor/"
+            ROOT / "adapters/deepseek/ds4/vendor/"
             "ds4-f4d03f6cf9f11c1e7b630bcb160853acfba7c52a.tar.gz"
         )
         with tempfile.TemporaryDirectory(prefix="ds4-parser-") as temporary:
@@ -71,7 +83,8 @@ class DeepseekDs4RecipeTests(unittest.TestCase):
             binary = source_root / "ds4-server"
             cases = (
                 (
-                    ROOT / "recipes/deepseek-v4-flash-0731-ds4-dspark-latency-single.json",
+                    ROOT
+                    / "recipes/deepseek-v4-flash-0731-ds4-dspark-latency-single.json",
                     "/missing/target.gguf",
                     "/missing/drafter.gguf",
                 ),
@@ -84,7 +97,12 @@ class DeepseekDs4RecipeTests(unittest.TestCase):
             for recipe_path, target, drafter in cases:
                 with self.subTest(recipe=recipe_path.name):
                     result = subprocess.run(
-                        [str(binary), *compiled_engine_argv(load(recipe_path), target=target, drafter=drafter)],
+                        [
+                            str(binary),
+                            *compiled_engine_argv(
+                                load(recipe_path), target=target, drafter=drafter
+                            ),
+                        ],
                         check=False,
                         capture_output=True,
                         text=True,
@@ -96,7 +114,11 @@ class DeepseekDs4RecipeTests(unittest.TestCase):
 
     def test_release_binds_the_current_recipe_digest(self) -> None:
         index = load(ROOT / "catalog-index.json")
-        entry = next(item for item in index["recipes"] if item["source_path"] == f"recipes/{RECIPE.name}")
+        entry = next(
+            item
+            for item in index["recipes"]
+            if item["source_path"] == f"recipes/{RECIPE.name}"
+        )
         self.assertEqual(entry["package"]["recipe_content_sha256"], digest(RECIPE))
 
 

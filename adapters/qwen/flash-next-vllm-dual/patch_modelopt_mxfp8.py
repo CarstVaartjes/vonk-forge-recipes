@@ -29,6 +29,7 @@ The visual.* prefix rule is kept on top of the shape check: it is the verified
 multimodal configuration, and dequantizing only visual.* (rather than every
 MXFP8 layer) is what avoids the global BF16 dequant OOM.
 """
+
 import os
 import sys
 
@@ -79,7 +80,7 @@ def _mxfp8_native_kernel_supports(n: int, k: int) -> bool:
 
 # Inserted into ModelOptMxFp8LinearMethod.create_weights, where the dims are the
 # post-TP-split ones the kernel will actually be handed.
-SHAPE_FALLBACK = '''
+SHAPE_FALLBACK = """
         # Downgrade to BF16 emulation for shapes the native MXFP8 GEMM rejects
         # (e.g. linear_attn.in_proj_a/b, [48, 2560] -> N < 128). Each layer gets
         # its own ModelOptMxFp8LinearMethod, so this is per-layer.
@@ -100,17 +101,20 @@ SHAPE_FALLBACK = '''
                     type(self.kernel).__name__,
                 )
                 self.kernel = _mxfp8_emulation_kernel()
-'''
+"""
 
 
 def _replace_once(src: str, old: str, new: str, what: str) -> str:
     if src.count(old) != 1:
-        raise AssertionError(f"modelopt: {what} anchor missing (count={src.count(old)})")
+        raise AssertionError(
+            f"modelopt: {what} anchor missing (count={src.count(old)})"
+        )
     return src.replace(old, new)
 
 
 def patch() -> None:
-    src = open(ORIG).read()
+    with open(ORIG) as f:
+        src = f.read()
 
     anchor = (
         "        return self.kernel.apply_weights(layer, x, bias)\n\n\n"
@@ -147,7 +151,8 @@ def patch() -> None:
         "MXFP8 dispatch",
     )
 
-    open(OUT, "w").write(src)
+    with open(OUT, "w") as f:
+        f.write(src)
     print("ok", OUT)
 
 

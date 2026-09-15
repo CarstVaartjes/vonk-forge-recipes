@@ -23,7 +23,9 @@ def _publish_glb(temporary: Path, output: Path, *, profile: str) -> None:
         validate_mesh_glb(temporary, profile=profile)
     except ValueError as exc:
         temporary.unlink(missing_ok=True)
-        raise SystemExit(f"Step1X produced an invalid {profile} GLB artifact: {exc}") from exc
+        raise SystemExit(
+            f"Step1X produced an invalid {profile} GLB artifact: {exc}"
+        ) from exc
     os.replace(temporary, output)
 
 
@@ -49,7 +51,9 @@ def _validated_input_glb(path: Path) -> Path:
     try:
         validate_mesh_glb(path, profile="geometry")
     except ValueError as exc:
-        raise SystemExit(f"Step1X texture input is not a valid GLB mesh: {exc}") from exc
+        raise SystemExit(
+            f"Step1X texture input is not a valid GLB mesh: {exc}"
+        ) from exc
     return path
 
 
@@ -116,9 +120,7 @@ def _geometry(*, label_control: bool, seed: int, output_dir: Path) -> None:
 
 def _texture(*, seed: int, output_dir: Path) -> None:
     image_path = _one_input("image", _IMAGE_SUFFIXES)
-    mesh_path = _validated_input_glb(
-        _one_input("GLB mesh", frozenset({".glb"}))
-    )
+    mesh_path = _validated_input_glb(_one_input("GLB mesh", frozenset({".glb"})))
 
     import trimesh
     from step1x3d_texture.pipelines.step1x_3d_texture_synthesis_pipeline import (

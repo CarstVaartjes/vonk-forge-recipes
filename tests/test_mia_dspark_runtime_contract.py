@@ -11,7 +11,6 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/deepseek/mia-vllm"
 RECIPE = ROOT / "recipes/deepseek-v4-flash-0731-mia-dual.json"
@@ -30,8 +29,7 @@ class MiaDSparkRuntimeContractTest(unittest.TestCase):
     def test_recipe_persists_compile_caches_and_nccl_diagnostics(self) -> None:
         recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
         environment = {
-            item["name"]: item["value"]
-            for item in recipe["runtime"]["environment"]
+            item["name"]: item["value"] for item in recipe["runtime"]["environment"]
         }
 
         self.assertEqual(environment["TORCH_FR_BUFFER_SIZE"], "2000")
@@ -56,8 +54,7 @@ class MiaDSparkRuntimeContractTest(unittest.TestCase):
     def test_shipped_partial_prefill_default_is_the_safe_single_lane(self) -> None:
         recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
         environment = {
-            item["name"]: item["value"]
-            for item in recipe["runtime"]["environment"]
+            item["name"]: item["value"] for item in recipe["runtime"]["environment"]
         }
         patch_source = (
             ADAPTER / "patches/hotfix-dsv4-issue27-partial-prefill-concurrency.py"
@@ -88,9 +85,7 @@ class MiaDSparkRuntimeContractTest(unittest.TestCase):
         )
 
     def test_xgrammar_stock_to_patched_apply_executes_successfully(self) -> None:
-        patch_path = (
-            ADAPTER / "patches/hotfix-vllm-issue136-xgrammar-termination.py"
-        )
+        patch_path = ADAPTER / "patches/hotfix-vllm-issue136-xgrammar-termination.py"
         module = runpy.run_path(str(patch_path), run_name="issue136_apply_test")
         old_region = module["OLD_REGION"]
         new_region = module["NEW_REGION"]
@@ -126,14 +121,12 @@ class MiaDSparkRuntimeContractTest(unittest.TestCase):
 
     def test_verifier_accepts_the_exact_required_mapping(self) -> None:
         verifier = ADAPTER / "verify-dspark-runtime.py"
-        source = "\n".join(
-            (
-                '("gate_up_proj", "w1", 0),',
-                '("gate_up_proj", "w3", 1),',
-                'is_layer_param = name.startswith("model.layers.")',
-                "name = name.replace(weight_name, param_name)",
-            )
-        ).encode()
+        source = (
+            b'("gate_up_proj", "w1", 0),\n'
+            b'("gate_up_proj", "w3", 1),\n'
+            b'is_layer_param = name.startswith("model.layers.")\n'
+            b"name = name.replace(weight_name, param_name)"
+        )
         fake_target = MagicMock()
         fake_target.is_file.return_value = True
         fake_target.read_bytes.return_value = source

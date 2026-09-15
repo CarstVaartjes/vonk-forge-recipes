@@ -1,6 +1,8 @@
 import pathlib
 
-init = pathlib.Path("/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/__init__.py")
+init = pathlib.Path(
+    "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/__init__.py"
+)
 text = init.read_text()
 old = 'QuantizationMethods = Literal[\n    "awq",\n'
 new = 'QuantizationMethods = Literal[\n    "exl3",\n    "awq",\n'
@@ -15,7 +17,7 @@ lazy = (
 )
 lazy_new = (
     "    from .exl3 import Exl3Config\n"
-    "    method_to_config[\"exl3\"] = Exl3Config\n"
+    '    method_to_config["exl3"] = Exl3Config\n'
     "    # Update the `method_to_config` with customized quantization methods.\n"
     "    method_to_config.update(_CUSTOMIZED_METHOD_TO_QUANT_CONFIG)\n"
     "\n"

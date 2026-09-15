@@ -11,6 +11,7 @@ Checkpoints declare their PLE table format in text_config.ple_embedding_dtype:
 The stock image only selects the FP8 path when the whole checkpoint is Fp8Config,
 which breaks NVFP4-body checkpoints (both in-family NVFP4 PLE and excluded FP8 PLE).
 """
+
 import os
 import sys
 
@@ -507,7 +508,8 @@ DEQUANT = '''
 
 
 def patch(name: str, edits: list[tuple[str, str]]) -> None:
-    src = open(ORIG).read()
+    with open(ORIG) as f:
+        src = f.read()
     for old, new in edits:
         count = src.count(old)
         if count != 1:
@@ -515,7 +517,8 @@ def patch(name: str, edits: list[tuple[str, str]]) -> None:
                 f"{name}: anchor not unique/missing (count={count}):\n{old[:200]}"
             )
         src = src.replace(old, new)
-    open(OUT, "w").write(src)
+    with open(OUT, "w") as f:
+        f.write(src)
     print("patched", name)
 
 
@@ -524,359 +527,406 @@ def main() -> None:
         print(f"ERROR: missing {ORIG}", file=sys.stderr)
         sys.exit(1)
 
-    patch("ple_layer_patched", [
-        (
-            "from vllm.forward_context import get_forward_context\n",
-            "from vllm.forward_context import get_forward_context\n"
-            "from vllm.logger import init_logger\n"
-            "from vllm.model_executor.layers.quantization.modelopt import "
-            "ModelOptNvFp4Config\n"
-            "from vllm.model_executor.utils import set_weight_attrs\n\n"
-            "logger = init_logger(__name__)\n",
-        ),
-        (
-            "    def embedding(self, layer: nn.Module, input_: torch.Tensor) -> torch.Tensor:\n"
-            "        return F.embedding(input_, layer.weight)\n\n\n"
-            "def _get_ple_embedding_quant_method(\n",
-            "    def embedding(self, layer: nn.Module, input_: torch.Tensor) -> torch.Tensor:\n"
-            "        return F.embedding(input_, layer.weight)\n\n\n"
-            + NVFP4_BLOCK
-            + "\n"
-            + GET_QUANT_METHOD
-            + "\n\n"
-            "def _get_ple_embedding_quant_method_REMOVED(\n",
-        ),
-        (
-            "def _get_ple_embedding_quant_method_REMOVED(\n"
-            "    quant_config: QuantizationConfig | None,\n"
-            "    prefix: str,\n"
-            ") -> QuantizeMethodBase | None:\n"
-            '    """Select global-scale FP8 only for quantized PLE checkpoint shards."""\n\n'
-            "    if not isinstance(quant_config, Fp8Config):\n"
-            "        return None\n"
-            "    if not quant_config.is_checkpoint_fp8_serialized:\n"
-            "        return None\n\n"
-            "    ignored_layers = quant_config.ignored_layers\n"
-            "    if is_layer_skipped(\n"
-            "        prefix,\n"
-            "        ignored_layers,\n"
-            "        quant_config.packed_modules_mapping,\n"
-            "        match_mode=quant_config.ignored_layers_match_mode,\n"
-            "    ):\n"
-            "        return None\n"
-            "    # PLE checkpoint shards form one runtime embedding parameter.\n"
-            '    shard_prefix = f"{prefix}.shard_"\n'
-            "    if any(name.startswith(shard_prefix) for name in ignored_layers):\n"
-            "        return None\n"
-            "    return Qwen3_8FlashNextPLEFp8EmbeddingMethod()\n\n\n",
-            "",
-        ),
-        (
-            "            quant_method=_get_ple_embedding_quant_method(\n"
-            "                quant_config, f\"{prefix}.ngram_embedding\"\n"
-            "            ),\n",
-            "            quant_method=_get_ple_embedding_quant_method(\n"
-            "                quant_config,\n"
-            "                f\"{prefix}.ngram_embedding\",\n"
-            "                getattr(config, \"ple_embedding_dtype\", None),\n"
-            "            ),\n",
-        ),
-        (
-            "    def get_offload_output_dtype(self, default_dtype: torch.dtype) -> torch.dtype:\n"
-            '        """Keep quantized lookup results in their embedding storage dtype."""\n'
-            "        embedding = getattr(self, \"ngram_embedding\", None)\n"
-            "        weight = getattr(embedding, \"weight\", None)\n"
-            "        if weight is not None:\n"
-            "            return weight.dtype\n"
-            "        if hasattr(self, \"_offload_weight_scale\"):\n"
-            "            return torch.float8_e4m3fn\n"
-            "        return default_dtype\n\n"
-            "    def load_weights(self, weights: Iterable[tuple[str, torch.Tensor]]) -> set[str]:\n"
-            '        """Load hash buffers and checkpoint-split embedding rows."""\n\n'
-            "        # GPU workers retain only the global FP8 scale. The CPU process owns the\n"
-            "        # embedding weight and returns its quantized lookup output unchanged.\n"
-            "        if envs.VLLM_PLE_CPU_OFFLOAD and not is_offload_process():\n"
-            "            retained: set[str] = set()\n"
-            "            for name, loaded_weight in weights:\n"
-            "                if name != \"ngram_embedding.weight_scale\":\n"
-            "                    continue\n"
-            "                self.register_buffer(\n"
-            "                    \"_offload_weight_scale\",\n"
-            "                    loaded_weight.to(device=torch.accelerator.current_accelerator()),\n"
-            "                    persistent=False,\n"
-            "                )\n"
-            "                retained.add(name)\n"
-            "            return retained\n\n"
-            "        persistent_buffers = {\n"
-            "            \"layer_multipliers\": self.layer_multipliers,\n"
-            "            \"ngram_heads_offsets\": self.ngram_heads_offsets,\n"
-            "            \"ngram_heads_vocab_sizes\": self.ngram_heads_vocab_sizes,\n"
-            "        }\n"
-            "        loaded: set[str] = set()\n"
-            "        regular_weights: list[tuple[str, torch.Tensor]] = []\n"
-            '        shard_prefix = "ngram_embedding.shard_"\n\n'
-            "        for name, loaded_weight in weights:\n"
-            "            leaf_name = name.rsplit(\".\", 1)[-1]\n"
-            "            if leaf_name.startswith(\"hashstats_\") or leaf_name == \"token_lookup\":\n"
-            "                continue\n"
-            "            if name in persistent_buffers:\n"
-            "                buffer = persistent_buffers[name]\n"
-            "                if buffer.shape != loaded_weight.shape:\n"
-            "                    raise ValueError(\n"
-            '                        f"Shape mismatch for {name}: expected "\n'
-            '                        f"{tuple(buffer.shape)}, got {tuple(loaded_weight.shape)}"\n'
-            "                    )\n"
-            "                buffer.copy_(loaded_weight.to(device=buffer.device, dtype=buffer.dtype))\n"
-            "                loaded.add(name)\n"
-            "                continue\n"
-            "            if name.startswith(shard_prefix) and name.endswith(\".weight\"):\n"
-            "                shard_text = name[len(shard_prefix) : -len(\".weight\")]\n"
-            "                if not shard_text.isdigit():\n"
-            "                    regular_weights.append((name, loaded_weight))\n"
-            "                    continue\n"
-            "                shard_index = int(shard_text)\n"
-            "                if shard_index >= self.split_ngram_parts:\n"
-            "                    raise ValueError(\n"
-            '                        f"PLE embedding shard index {shard_index} exceeds "\n'
-            '                        f"split_ngram_parts={self.split_ngram_parts}"\n'
-            "                    )\n"
-            "                embedding = self.ngram_embedding\n"
-            "                shard_size = (\n"
-            "                    embedding.org_vocab_size + self.split_ngram_parts - 1\n"
-            "                ) // self.split_ngram_parts\n"
-            "                checkpoint_start = shard_index * shard_size\n"
-            "                expected_rows = max(\n"
-            "                    0,\n"
-            "                    min(shard_size, embedding.org_vocab_size - checkpoint_start),\n"
-            "                )\n"
-            "                expected_shape = (expected_rows, embedding.embedding_dim)\n"
-            "                if tuple(loaded_weight.shape) != expected_shape:\n"
-            "                    raise ValueError(\n"
-            '                        f"Shape mismatch for PLE embedding shard {shard_index}: "\n'
-            '                        f"expected {expected_shape}, got "\n'
-            '                        f"{tuple(loaded_weight.shape)}"\n'
-            "                    )\n"
-            "                copy_ple_embedding_shard_(\n"
-            "                    embedding.weight.data,\n"
-            "                    loaded_weight,\n"
-            "                    checkpoint_start=checkpoint_start,\n"
-            "                    tp_start=embedding.shard_indices.org_vocab_start_index,\n"
-            "                    tp_end=embedding.shard_indices.org_vocab_end_index,\n"
-            "                )\n"
-            "                loaded.add(\"ngram_embedding.weight\")\n"
-            "                continue\n"
-            "            regular_weights.append((name, loaded_weight))\n\n"
-            "        if regular_weights:\n"
-            "            loaded.update(AutoWeightsLoader(self).load_weights(regular_weights))\n"
-            "        return loaded\n",
-            LOAD_WEIGHTS,
-        ),
-        (
-            "        self.prefix = prefix\n"
-            "        self.hidden_size = int(config.hidden_size)\n"
-            "        self.hc_count = config.hc_count\n",
-            "        self.prefix = prefix\n"
-            "        self.hidden_size = int(config.hidden_size)\n"
-            "        self.ple_embedding_dim = int(config.ple_embed_dim)\n"
-            "        self.ple_ngram_heads = (int(config.ngram_size) - 1) * int(\n"
-            "            config.heads_per_ngram\n"
-            "        )\n"
-            "        self.ple_head_dim = self.ple_embedding_dim // self.ple_ngram_heads\n"
-            "        self.hc_count = config.hc_count\n",
-        ),
-        (
-            "    def _dequantize_embeddings(\n"
-            "        self,\n"
-            "        embeddings: torch.Tensor,\n"
-            "        output_dtype: torch.dtype,\n"
-            "    ) -> torch.Tensor:\n"
-            '        """Dequantize PLE lookup output."""\n\n'
-            "        if not is_fp8(embeddings):\n"
-            "            return embeddings\n"
-            "        weight_scale = self._get_embedding_weight_scale()\n"
-            "        if weight_scale is None:\n"
-            "            raise RuntimeError(\"FP8 PLE embedding is missing its global scale\")\n"
-            "        if weight_scale.device != embeddings.device:\n"
-            "            raise RuntimeError(\"FP8 PLE embedding scale must be on the output device\")\n"
-            "        return embeddings.to(output_dtype) * weight_scale.to(output_dtype)\n",
-            DEQUANT,
-        ),
-        # --- offload-path fixes (NVFP4 PLE) ---------------------------------
-        # 1. Re-add get_offload_output_dtype. The upstream offload fast path
-        #    does torch.index_select(weight, ..., out=buffer), which requires
-        #    buffer.dtype == weight.dtype. For an NVFP4 table the weight is
-        #    packed uint8, so the buffer must be uint8 too; the GPU side then
-        #    dequantizes via _dequantize_embeddings. Without this the buffer
-        #    defaults to bf16 and index_select raises
-        #    "self and result must have the same scalar type".
-        (
-            "    def load_weights(self, weights: Iterable[tuple[str, torch.Tensor]]) -> set[str]:\n"
-            '        """Load hash buffers and checkpoint-split embedding rows."""\n',
-            "    def get_offload_output_dtype(self, default_dtype: torch.dtype) -> torch.dtype:\n"
-            '        """Keep quantized lookup results in their storage dtype."""\n'
-            "        embedding = getattr(self, \"ngram_embedding\", None)\n"
-            "        weight = getattr(embedding, \"weight\", None)\n"
-            "        if weight is not None:\n"
-            "            return weight.dtype\n"
-            "        if hasattr(self, \"_offload_weight_scale_2\"):\n"
-            "            return torch.uint8\n"
-            "        if hasattr(self, \"_offload_weight_scale\"):\n"
-            "            return torch.float8_e4m3fn\n"
-            "        return default_dtype\n\n"
-            "    def load_weights(self, weights: Iterable[tuple[str, torch.Tensor]]) -> set[str]:\n"
-            '        """Load hash buffers and checkpoint-split embedding rows."""\n',
-        ),
-        # 2. Record the offload quant method on the GPU-side placeholder so
-        #    _dequantize_embeddings takes its NVFP4 branch (it reads
-        #    _offload_quant_method, which nothing previously assigned).
-        (
-            "                self.register_buffer(\n"
-            "                    \"_offload_nvfp4_lut\",\n"
-            "                    torch.tensor(\n"
-            "                        _FP4_VALUES, dtype=torch.float32, device=scale_2.device\n"
-            "                    ),\n"
-            "                    persistent=False,\n"
-            "                )\n",
-            "                self.register_buffer(\n"
-            "                    \"_offload_nvfp4_lut\",\n"
-            "                    torch.tensor(\n"
-            "                        _FP4_VALUES, dtype=torch.float32, device=scale_2.device\n"
-            "                    ),\n"
-            "                    persistent=False,\n"
-            "                )\n"
-            "                self._offload_quant_method = quant_method\n",
-        ),
-
-        # 3. Generalize the offload fast path to the packed row width. Upstream
-        #    assumes each embedding row is head_dim wide, but an NVFP4 table
-        #    stores head_dim/2 code bytes + head_dim/16 scale bytes per row.
-        #    Slicing the shared buffer to embedding_dim and reshaping to
-        #    head_dim gives index_select a wrongly-shaped out= tensor, so torch
-        #    RESIZES it -- silently allocating a new tensor instead of writing
-        #    into the IPC buffer. The GPU side then waits forever. Derive the
-        #    width from the weight itself (identical to upstream when
-        #    unquantized, since row_width == head_dim there).
-        (
-            "        if output_buffer is not None:\n"
-            "            output = output_buffer[:num_tokens, : self.embedding_dim]\n"
-            "            torch.index_select(\n"
-            "                self.ngram_embedding.weight,\n"
-            "                0,\n"
-            "                ngram_ids.reshape(-1),\n"
-            "                out=output.reshape(-1, self.head_dim),\n"
-            "            )\n"
-            "            return output\n",
-            "        if output_buffer is not None:\n"
-            "            # Offload fast path. The GPU side expects, per head, the\n"
-            "            # same packed row the on-device lookup produces:\n"
-            "            # NVFP4 -> cat(codes[head_dim/2], scales[head_dim/16]).\n"
-            "            # Prefer a memory-mapped pre-packed table (built by\n"
-            "            # files/build_ple_packed_table.py); otherwise assemble\n"
-            "            # the row from the separate code/scale parameters.\n"
-            "            emb = self.ngram_embedding\n"
-            "            ids = ngram_ids.reshape(-1)\n"
-            "            packed = getattr(emb, \"_packed_table\", None)\n"
-            "            scales = getattr(emb, \"weight_scale\", None)\n"
-            "            if packed is not None:\n"
-            "                row_width = packed.shape[-1]\n"
-            "                total_width = ngram_ids.shape[-1] * row_width\n"
-            "                output = output_buffer[:num_tokens, :total_width]\n"
-            "                torch.index_select(\n"
-            "                    packed, 0, ids, out=output.reshape(-1, row_width)\n"
-            "                )\n"
-            "                return output\n"
-            "            if scales is not None and scales.dim() == 2:\n"
-            "                codes = emb.weight\n"
-            "                scales_u8 = scales.view(torch.uint8)\n"
-            "                cw, sw = codes.shape[-1], scales_u8.shape[-1]\n"
-            "                row_width = cw + sw\n"
-            "                total_width = ngram_ids.shape[-1] * row_width\n"
-            "                output = output_buffer[:num_tokens, :total_width]\n"
-            "                rows = output.reshape(-1, row_width)\n"
-            "                rows[:, :cw].copy_(codes.index_select(0, ids))\n"
-            "                rows[:, cw:].copy_(scales_u8.index_select(0, ids))\n"
-            "                return output\n"
-            "            weight = emb.weight\n"
-            "            row_width = weight.shape[-1]\n"
-            "            total_width = ngram_ids.shape[-1] * row_width\n"
-            "            output = output_buffer[:num_tokens, :total_width]\n"
-            "            torch.index_select(\n"
-            "                weight, 0, ids, out=output.reshape(-1, row_width)\n"
-            "            )\n"
-            "            return output\n",
-        ),
-
-        # ---- GB10 offload placeholder fixes (see files/patch_ple_offload.py) ----
-        # (a) The GPU-worker placeholder skips its constructor, so it has no
-        #     ngram_embedding/quant_method. Give it the quant method from config
-        #     so load_weights() can capture the global scale + LUT and
-        #     get_offload_output_dtype() reports uint8 (packed bytes), not bf16.
-        (
-            "                quant_config=quant_config,\n"
-            "                params_dtype=model_config.dtype,\n"
-            "            )\n"
-            "        self.key_proj = ReplicatedLinear(\n",
-            "                quant_config=quant_config,\n"
-            "                params_dtype=model_config.dtype,\n"
-            "            )\n"
-            "        if not hasattr(self.ple_embedding, \"ngram_embedding\"):\n"
-            "            # Offload placeholder on the GPU worker.\n"
-            "            self.ple_embedding._offload_quant_method = (\n"
-            "                _get_ple_embedding_quant_method(\n"
-            "                    quant_config,\n"
-            "                    f\"{prefix}.ple_embedding.ngram_embedding\",\n"
-            "                    getattr(config, \"ple_embedding_dtype\", None),\n"
-            "                )\n"
-            "            )\n"
-            "        self.key_proj = ReplicatedLinear(\n",
-        ),
-        (
-            "        if envs.VLLM_PLE_CPU_OFFLOAD and not is_offload_process():\n"
-            "            retained: set[str] = set()\n"
-            "            quant_method = getattr(\n"
-            "                getattr(self, \"ngram_embedding\", None), \"quant_method\", None\n"
-            "            )\n",
-            "        if envs.VLLM_PLE_CPU_OFFLOAD and not is_offload_process():\n"
-            "            retained: set[str] = set()\n"
-            "            quant_method = getattr(\n"
-            "                getattr(self, \"ngram_embedding\", None), \"quant_method\", None\n"
-            "            )\n"
-            "            if quant_method is None:\n"
-            "                quant_method = getattr(self, \"_offload_quant_method\", None)\n",
-        ),
-        (
-            "        if hasattr(self, \"_offload_weight_scale_2\"):\n"
-            "            return torch.uint8\n",
-            "        if hasattr(self, \"_offload_weight_scale_2\"):\n"
-            "            return torch.uint8\n"
-            "        if isinstance(\n"
-            "            getattr(self, \"_offload_quant_method\", None),\n"
-            "            Qwen3_8FlashNextPLENVFp4EmbeddingMethod,\n"
-            "        ):\n"
-            "            return torch.uint8\n"
-            "        if isinstance(\n"
-            "            getattr(self, \"_offload_quant_method\", None),\n"
-            "            Qwen3_8FlashNextPLEFp8EmbeddingMethod,\n"
-            "        ):\n"
-            "            return torch.float8_e4m3fn\n",
-        ),
-        # (b) The IPC output buffer is ple_embed_dim wide; packed NVFP4 rows only
-        #     fill heads*packed_row_width of it. Slice before unflatten.
-        (
-            "            packed_row_width = (\n"
-            "                self.ple_head_dim // 2 + self.ple_head_dim // _NVFP4_BLOCK_SIZE\n"
-            "            )\n"
-            "            packed_rows = embeddings.unflatten(\n"
-            "                -1, (self.ple_ngram_heads, packed_row_width)\n"
-            "            )\n",
-            "            packed_row_width = (\n"
-            "                self.ple_head_dim // 2 + self.ple_head_dim // _NVFP4_BLOCK_SIZE\n"
-            "            )\n"
-            "            packed_rows = embeddings[\n"
-            "                ..., : self.ple_ngram_heads * packed_row_width\n"
-            "            ].unflatten(-1, (self.ple_ngram_heads, packed_row_width))\n",
-        ),
-    ])
+    patch(
+        "ple_layer_patched",
+        [
+            (
+                "from vllm.forward_context import get_forward_context\n",
+                (
+                    "from vllm.forward_context import get_forward_context\n"
+                    "from vllm.logger import init_logger\n"
+                    "from vllm.model_executor.layers.quantization.modelopt import "
+                    "ModelOptNvFp4Config\n"
+                    "from vllm.model_executor.utils import set_weight_attrs\n\n"
+                    "logger = init_logger(__name__)\n"
+                ),
+            ),
+            (
+                (
+                    "    def embedding(self, layer: nn.Module, input_: torch.Tensor) -> torch.Tensor:\n"
+                    "        return F.embedding(input_, layer.weight)\n\n\n"
+                    "def _get_ple_embedding_quant_method(\n"
+                ),
+                "    def embedding(self, layer: nn.Module, input_: torch.Tensor) -> torch.Tensor:\n"
+                "        return F.embedding(input_, layer.weight)\n\n\n"
+                + NVFP4_BLOCK
+                + "\n"
+                + GET_QUANT_METHOD
+                + "\n\n"
+                "def _get_ple_embedding_quant_method_REMOVED(\n",
+            ),
+            (
+                (
+                    "def _get_ple_embedding_quant_method_REMOVED(\n"
+                    "    quant_config: QuantizationConfig | None,\n"
+                    "    prefix: str,\n"
+                    ") -> QuantizeMethodBase | None:\n"
+                    '    """Select global-scale FP8 only for quantized PLE checkpoint shards."""\n\n'
+                    "    if not isinstance(quant_config, Fp8Config):\n"
+                    "        return None\n"
+                    "    if not quant_config.is_checkpoint_fp8_serialized:\n"
+                    "        return None\n\n"
+                    "    ignored_layers = quant_config.ignored_layers\n"
+                    "    if is_layer_skipped(\n"
+                    "        prefix,\n"
+                    "        ignored_layers,\n"
+                    "        quant_config.packed_modules_mapping,\n"
+                    "        match_mode=quant_config.ignored_layers_match_mode,\n"
+                    "    ):\n"
+                    "        return None\n"
+                    "    # PLE checkpoint shards form one runtime embedding parameter.\n"
+                    '    shard_prefix = f"{prefix}.shard_"\n'
+                    "    if any(name.startswith(shard_prefix) for name in ignored_layers):\n"
+                    "        return None\n"
+                    "    return Qwen3_8FlashNextPLEFp8EmbeddingMethod()\n\n\n"
+                ),
+                "",
+            ),
+            (
+                (
+                    "            quant_method=_get_ple_embedding_quant_method(\n"
+                    '                quant_config, f"{prefix}.ngram_embedding"\n'
+                    "            ),\n"
+                ),
+                (
+                    "            quant_method=_get_ple_embedding_quant_method(\n"
+                    "                quant_config,\n"
+                    '                f"{prefix}.ngram_embedding",\n'
+                    '                getattr(config, "ple_embedding_dtype", None),\n'
+                    "            ),\n"
+                ),
+            ),
+            (
+                (
+                    "    def get_offload_output_dtype(self, default_dtype: torch.dtype) -> torch.dtype:\n"
+                    '        """Keep quantized lookup results in their embedding storage dtype."""\n'
+                    '        embedding = getattr(self, "ngram_embedding", None)\n'
+                    '        weight = getattr(embedding, "weight", None)\n'
+                    "        if weight is not None:\n"
+                    "            return weight.dtype\n"
+                    '        if hasattr(self, "_offload_weight_scale"):\n'
+                    "            return torch.float8_e4m3fn\n"
+                    "        return default_dtype\n\n"
+                    "    def load_weights(self, weights: Iterable[tuple[str, torch.Tensor]]) -> set[str]:\n"
+                    '        """Load hash buffers and checkpoint-split embedding rows."""\n\n'
+                    "        # GPU workers retain only the global FP8 scale. The CPU process owns the\n"
+                    "        # embedding weight and returns its quantized lookup output unchanged.\n"
+                    "        if envs.VLLM_PLE_CPU_OFFLOAD and not is_offload_process():\n"
+                    "            retained: set[str] = set()\n"
+                    "            for name, loaded_weight in weights:\n"
+                    '                if name != "ngram_embedding.weight_scale":\n'
+                    "                    continue\n"
+                    "                self.register_buffer(\n"
+                    '                    "_offload_weight_scale",\n'
+                    "                    loaded_weight.to(device=torch.accelerator.current_accelerator()),\n"
+                    "                    persistent=False,\n"
+                    "                )\n"
+                    "                retained.add(name)\n"
+                    "            return retained\n\n"
+                    "        persistent_buffers = {\n"
+                    '            "layer_multipliers": self.layer_multipliers,\n'
+                    '            "ngram_heads_offsets": self.ngram_heads_offsets,\n'
+                    '            "ngram_heads_vocab_sizes": self.ngram_heads_vocab_sizes,\n'
+                    "        }\n"
+                    "        loaded: set[str] = set()\n"
+                    "        regular_weights: list[tuple[str, torch.Tensor]] = []\n"
+                    '        shard_prefix = "ngram_embedding.shard_"\n\n'
+                    "        for name, loaded_weight in weights:\n"
+                    '            leaf_name = name.rsplit(".", 1)[-1]\n'
+                    '            if leaf_name.startswith("hashstats_") or leaf_name == "token_lookup":\n'
+                    "                continue\n"
+                    "            if name in persistent_buffers:\n"
+                    "                buffer = persistent_buffers[name]\n"
+                    "                if buffer.shape != loaded_weight.shape:\n"
+                    "                    raise ValueError(\n"
+                    '                        f"Shape mismatch for {name}: expected "\n'
+                    '                        f"{tuple(buffer.shape)}, got {tuple(loaded_weight.shape)}"\n'
+                    "                    )\n"
+                    "                buffer.copy_(loaded_weight.to(device=buffer.device, dtype=buffer.dtype))\n"
+                    "                loaded.add(name)\n"
+                    "                continue\n"
+                    '            if name.startswith(shard_prefix) and name.endswith(".weight"):\n'
+                    '                shard_text = name[len(shard_prefix) : -len(".weight")]\n'
+                    "                if not shard_text.isdigit():\n"
+                    "                    regular_weights.append((name, loaded_weight))\n"
+                    "                    continue\n"
+                    "                shard_index = int(shard_text)\n"
+                    "                if shard_index >= self.split_ngram_parts:\n"
+                    "                    raise ValueError(\n"
+                    '                        f"PLE embedding shard index {shard_index} exceeds "\n'
+                    '                        f"split_ngram_parts={self.split_ngram_parts}"\n'
+                    "                    )\n"
+                    "                embedding = self.ngram_embedding\n"
+                    "                shard_size = (\n"
+                    "                    embedding.org_vocab_size + self.split_ngram_parts - 1\n"
+                    "                ) // self.split_ngram_parts\n"
+                    "                checkpoint_start = shard_index * shard_size\n"
+                    "                expected_rows = max(\n"
+                    "                    0,\n"
+                    "                    min(shard_size, embedding.org_vocab_size - checkpoint_start),\n"
+                    "                )\n"
+                    "                expected_shape = (expected_rows, embedding.embedding_dim)\n"
+                    "                if tuple(loaded_weight.shape) != expected_shape:\n"
+                    "                    raise ValueError(\n"
+                    '                        f"Shape mismatch for PLE embedding shard {shard_index}: "\n'
+                    '                        f"expected {expected_shape}, got "\n'
+                    '                        f"{tuple(loaded_weight.shape)}"\n'
+                    "                    )\n"
+                    "                copy_ple_embedding_shard_(\n"
+                    "                    embedding.weight.data,\n"
+                    "                    loaded_weight,\n"
+                    "                    checkpoint_start=checkpoint_start,\n"
+                    "                    tp_start=embedding.shard_indices.org_vocab_start_index,\n"
+                    "                    tp_end=embedding.shard_indices.org_vocab_end_index,\n"
+                    "                )\n"
+                    '                loaded.add("ngram_embedding.weight")\n'
+                    "                continue\n"
+                    "            regular_weights.append((name, loaded_weight))\n\n"
+                    "        if regular_weights:\n"
+                    "            loaded.update(AutoWeightsLoader(self).load_weights(regular_weights))\n"
+                    "        return loaded\n"
+                ),
+                LOAD_WEIGHTS,
+            ),
+            (
+                (
+                    "        self.prefix = prefix\n"
+                    "        self.hidden_size = int(config.hidden_size)\n"
+                    "        self.hc_count = config.hc_count\n"
+                ),
+                (
+                    "        self.prefix = prefix\n"
+                    "        self.hidden_size = int(config.hidden_size)\n"
+                    "        self.ple_embedding_dim = int(config.ple_embed_dim)\n"
+                    "        self.ple_ngram_heads = (int(config.ngram_size) - 1) * int(\n"
+                    "            config.heads_per_ngram\n"
+                    "        )\n"
+                    "        self.ple_head_dim = self.ple_embedding_dim // self.ple_ngram_heads\n"
+                    "        self.hc_count = config.hc_count\n"
+                ),
+            ),
+            (
+                (
+                    "    def _dequantize_embeddings(\n"
+                    "        self,\n"
+                    "        embeddings: torch.Tensor,\n"
+                    "        output_dtype: torch.dtype,\n"
+                    "    ) -> torch.Tensor:\n"
+                    '        """Dequantize PLE lookup output."""\n\n'
+                    "        if not is_fp8(embeddings):\n"
+                    "            return embeddings\n"
+                    "        weight_scale = self._get_embedding_weight_scale()\n"
+                    "        if weight_scale is None:\n"
+                    '            raise RuntimeError("FP8 PLE embedding is missing its global scale")\n'
+                    "        if weight_scale.device != embeddings.device:\n"
+                    '            raise RuntimeError("FP8 PLE embedding scale must be on the output device")\n'
+                    "        return embeddings.to(output_dtype) * weight_scale.to(output_dtype)\n"
+                ),
+                DEQUANT,
+            ),
+            # --- offload-path fixes (NVFP4 PLE) ---------------------------------
+            # 1. Re-add get_offload_output_dtype. The upstream offload fast path
+            #    does torch.index_select(weight, ..., out=buffer), which requires
+            #    buffer.dtype == weight.dtype. For an NVFP4 table the weight is
+            #    packed uint8, so the buffer must be uint8 too; the GPU side then
+            #    dequantizes via _dequantize_embeddings. Without this the buffer
+            #    defaults to bf16 and index_select raises
+            #    "self and result must have the same scalar type".
+            (
+                (
+                    "    def load_weights(self, weights: Iterable[tuple[str, torch.Tensor]]) -> set[str]:\n"
+                    '        """Load hash buffers and checkpoint-split embedding rows."""\n'
+                ),
+                (
+                    "    def get_offload_output_dtype(self, default_dtype: torch.dtype) -> torch.dtype:\n"
+                    '        """Keep quantized lookup results in their storage dtype."""\n'
+                    '        embedding = getattr(self, "ngram_embedding", None)\n'
+                    '        weight = getattr(embedding, "weight", None)\n'
+                    "        if weight is not None:\n"
+                    "            return weight.dtype\n"
+                    '        if hasattr(self, "_offload_weight_scale_2"):\n'
+                    "            return torch.uint8\n"
+                    '        if hasattr(self, "_offload_weight_scale"):\n'
+                    "            return torch.float8_e4m3fn\n"
+                    "        return default_dtype\n\n"
+                    "    def load_weights(self, weights: Iterable[tuple[str, torch.Tensor]]) -> set[str]:\n"
+                    '        """Load hash buffers and checkpoint-split embedding rows."""\n'
+                ),
+            ),
+            # 2. Record the offload quant method on the GPU-side placeholder so
+            #    _dequantize_embeddings takes its NVFP4 branch (it reads
+            #    _offload_quant_method, which nothing previously assigned).
+            (
+                (
+                    "                self.register_buffer(\n"
+                    '                    "_offload_nvfp4_lut",\n'
+                    "                    torch.tensor(\n"
+                    "                        _FP4_VALUES, dtype=torch.float32, device=scale_2.device\n"
+                    "                    ),\n"
+                    "                    persistent=False,\n"
+                    "                )\n"
+                ),
+                (
+                    "                self.register_buffer(\n"
+                    '                    "_offload_nvfp4_lut",\n'
+                    "                    torch.tensor(\n"
+                    "                        _FP4_VALUES, dtype=torch.float32, device=scale_2.device\n"
+                    "                    ),\n"
+                    "                    persistent=False,\n"
+                    "                )\n"
+                    "                self._offload_quant_method = quant_method\n"
+                ),
+            ),
+            # 3. Generalize the offload fast path to the packed row width. Upstream
+            #    assumes each embedding row is head_dim wide, but an NVFP4 table
+            #    stores head_dim/2 code bytes + head_dim/16 scale bytes per row.
+            #    Slicing the shared buffer to embedding_dim and reshaping to
+            #    head_dim gives index_select a wrongly-shaped out= tensor, so torch
+            #    RESIZES it -- silently allocating a new tensor instead of writing
+            #    into the IPC buffer. The GPU side then waits forever. Derive the
+            #    width from the weight itself (identical to upstream when
+            #    unquantized, since row_width == head_dim there).
+            (
+                (
+                    "        if output_buffer is not None:\n"
+                    "            output = output_buffer[:num_tokens, : self.embedding_dim]\n"
+                    "            torch.index_select(\n"
+                    "                self.ngram_embedding.weight,\n"
+                    "                0,\n"
+                    "                ngram_ids.reshape(-1),\n"
+                    "                out=output.reshape(-1, self.head_dim),\n"
+                    "            )\n"
+                    "            return output\n"
+                ),
+                (
+                    "        if output_buffer is not None:\n"
+                    "            # Offload fast path. The GPU side expects, per head, the\n"
+                    "            # same packed row the on-device lookup produces:\n"
+                    "            # NVFP4 -> cat(codes[head_dim/2], scales[head_dim/16]).\n"
+                    "            # Prefer a memory-mapped pre-packed table (built by\n"
+                    "            # files/build_ple_packed_table.py); otherwise assemble\n"
+                    "            # the row from the separate code/scale parameters.\n"
+                    "            emb = self.ngram_embedding\n"
+                    "            ids = ngram_ids.reshape(-1)\n"
+                    '            packed = getattr(emb, "_packed_table", None)\n'
+                    '            scales = getattr(emb, "weight_scale", None)\n'
+                    "            if packed is not None:\n"
+                    "                row_width = packed.shape[-1]\n"
+                    "                total_width = ngram_ids.shape[-1] * row_width\n"
+                    "                output = output_buffer[:num_tokens, :total_width]\n"
+                    "                torch.index_select(\n"
+                    "                    packed, 0, ids, out=output.reshape(-1, row_width)\n"
+                    "                )\n"
+                    "                return output\n"
+                    "            if scales is not None and scales.dim() == 2:\n"
+                    "                codes = emb.weight\n"
+                    "                scales_u8 = scales.view(torch.uint8)\n"
+                    "                cw, sw = codes.shape[-1], scales_u8.shape[-1]\n"
+                    "                row_width = cw + sw\n"
+                    "                total_width = ngram_ids.shape[-1] * row_width\n"
+                    "                output = output_buffer[:num_tokens, :total_width]\n"
+                    "                rows = output.reshape(-1, row_width)\n"
+                    "                rows[:, :cw].copy_(codes.index_select(0, ids))\n"
+                    "                rows[:, cw:].copy_(scales_u8.index_select(0, ids))\n"
+                    "                return output\n"
+                    "            weight = emb.weight\n"
+                    "            row_width = weight.shape[-1]\n"
+                    "            total_width = ngram_ids.shape[-1] * row_width\n"
+                    "            output = output_buffer[:num_tokens, :total_width]\n"
+                    "            torch.index_select(\n"
+                    "                weight, 0, ids, out=output.reshape(-1, row_width)\n"
+                    "            )\n"
+                    "            return output\n"
+                ),
+            ),
+            # ---- GB10 offload placeholder fixes (see files/patch_ple_offload.py) ----
+            # (a) The GPU-worker placeholder skips its constructor, so it has no
+            #     ngram_embedding/quant_method. Give it the quant method from config
+            #     so load_weights() can capture the global scale + LUT and
+            #     get_offload_output_dtype() reports uint8 (packed bytes), not bf16.
+            (
+                (
+                    "                quant_config=quant_config,\n"
+                    "                params_dtype=model_config.dtype,\n"
+                    "            )\n"
+                    "        self.key_proj = ReplicatedLinear(\n"
+                ),
+                (
+                    "                quant_config=quant_config,\n"
+                    "                params_dtype=model_config.dtype,\n"
+                    "            )\n"
+                    '        if not hasattr(self.ple_embedding, "ngram_embedding"):\n'
+                    "            # Offload placeholder on the GPU worker.\n"
+                    "            self.ple_embedding._offload_quant_method = (\n"
+                    "                _get_ple_embedding_quant_method(\n"
+                    "                    quant_config,\n"
+                    '                    f"{prefix}.ple_embedding.ngram_embedding",\n'
+                    '                    getattr(config, "ple_embedding_dtype", None),\n'
+                    "                )\n"
+                    "            )\n"
+                    "        self.key_proj = ReplicatedLinear(\n"
+                ),
+            ),
+            (
+                (
+                    "        if envs.VLLM_PLE_CPU_OFFLOAD and not is_offload_process():\n"
+                    "            retained: set[str] = set()\n"
+                    "            quant_method = getattr(\n"
+                    '                getattr(self, "ngram_embedding", None), "quant_method", None\n'
+                    "            )\n"
+                ),
+                (
+                    "        if envs.VLLM_PLE_CPU_OFFLOAD and not is_offload_process():\n"
+                    "            retained: set[str] = set()\n"
+                    "            quant_method = getattr(\n"
+                    '                getattr(self, "ngram_embedding", None), "quant_method", None\n'
+                    "            )\n"
+                    "            if quant_method is None:\n"
+                    '                quant_method = getattr(self, "_offload_quant_method", None)\n'
+                ),
+            ),
+            (
+                (
+                    '        if hasattr(self, "_offload_weight_scale_2"):\n'
+                    "            return torch.uint8\n"
+                ),
+                (
+                    '        if hasattr(self, "_offload_weight_scale_2"):\n'
+                    "            return torch.uint8\n"
+                    "        if isinstance(\n"
+                    '            getattr(self, "_offload_quant_method", None),\n'
+                    "            Qwen3_8FlashNextPLENVFp4EmbeddingMethod,\n"
+                    "        ):\n"
+                    "            return torch.uint8\n"
+                    "        if isinstance(\n"
+                    '            getattr(self, "_offload_quant_method", None),\n'
+                    "            Qwen3_8FlashNextPLEFp8EmbeddingMethod,\n"
+                    "        ):\n"
+                    "            return torch.float8_e4m3fn\n"
+                ),
+            ),
+            # (b) The IPC output buffer is ple_embed_dim wide; packed NVFP4 rows only
+            #     fill heads*packed_row_width of it. Slice before unflatten.
+            (
+                (
+                    "            packed_row_width = (\n"
+                    "                self.ple_head_dim // 2 + self.ple_head_dim // _NVFP4_BLOCK_SIZE\n"
+                    "            )\n"
+                    "            packed_rows = embeddings.unflatten(\n"
+                    "                -1, (self.ple_ngram_heads, packed_row_width)\n"
+                    "            )\n"
+                ),
+                (
+                    "            packed_row_width = (\n"
+                    "                self.ple_head_dim // 2 + self.ple_head_dim // _NVFP4_BLOCK_SIZE\n"
+                    "            )\n"
+                    "            packed_rows = embeddings[\n"
+                    "                ..., : self.ple_ngram_heads * packed_row_width\n"
+                    "            ].unflatten(-1, (self.ple_ngram_heads, packed_row_width))\n"
+                ),
+            ),
+        ],
+    )
     print("ok")
 
 

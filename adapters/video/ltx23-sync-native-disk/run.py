@@ -183,7 +183,9 @@ def _load_prompt() -> str:
     if manifest_path.is_symlink() or not manifest_path.is_file():
         raise SystemExit("a regular Vonk job input manifest is required")
     try:
-        manifest = RecipeJobInputManifest.model_validate_json(manifest_path.read_bytes())
+        manifest = RecipeJobInputManifest.model_validate_json(
+            manifest_path.read_bytes()
+        )
     except (OSError, ValidationError) as error:
         raise SystemExit(f"invalid Vonk job input manifest: {error}") from error
     if len(manifest.files) != 1:
