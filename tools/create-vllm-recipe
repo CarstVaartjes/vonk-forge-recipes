@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Create a canonical RecipeDefinition for an existing exact ModelDefinition."""
+
 from __future__ import annotations
 
 import argparse
@@ -20,7 +21,11 @@ def arguments() -> argparse.Namespace:
     parser.add_argument("--description", required=True)
     parser.add_argument("--tags", required=True)
     parser.add_argument("--publisher", required=True)
-    parser.add_argument("--model-version", required=True, help="slug of an existing exact models/*.json document")
+    parser.add_argument(
+        "--model-version",
+        required=True,
+        help="slug of an existing exact models/*.json document",
+    )
     parser.add_argument("--model-version-sha", required=True)
     parser.add_argument("--context-path", required=True)
     parser.add_argument("--base-image-repository", required=True)
@@ -44,12 +49,21 @@ def main() -> int:
     root = args.root.resolve()
     model_path = root / "models" / f"{args.model_version}.json"
     if not model_path.is_file():
-        raise SystemExit(f"exact ModelDefinition is missing: {model_path.relative_to(root)}")
+        raise SystemExit(
+            f"exact ModelDefinition is missing: {model_path.relative_to(root)}"
+        )
     model = ModelDefinition.model_validate_json(model_path.read_text(encoding="utf-8"))
     if content_sha256(model) != args.model_version_sha:
-        raise SystemExit("--model-version-sha does not match the canonical ModelDefinition")
+        raise SystemExit(
+            "--model-version-sha does not match the canonical ModelDefinition"
+        )
     model_files = [
-        {"id": f"entrypoint-{file.id}", "file_id": file.id, "roles": ["entrypoint"], "mount": {"target": f"/models/{file.path}", "read_only": True}}
+        {
+            "id": f"entrypoint-{file.id}",
+            "file_id": file.id,
+            "roles": ["entrypoint"],
+            "mount": {"target": f"/models/{file.path}", "read_only": True},
+        }
         for file in model.files
     ]
     runtime_args: list[dict[str, object]] = [
@@ -59,9 +73,13 @@ def main() -> int:
         {"name": "gpu-memory-utilization", "value": "0.80"},
     ]
     if args.reasoning_parser:
-        runtime_args.append({"name": "reasoning-parser", "value": args.reasoning_parser})
+        runtime_args.append(
+            {"name": "reasoning-parser", "value": args.reasoning_parser}
+        )
     if args.tool_call_parser:
-        runtime_args.append({"name": "tool-call-parser", "value": args.tool_call_parser})
+        runtime_args.append(
+            {"name": "tool-call-parser", "value": args.tool_call_parser}
+        )
     if args.reasoning_parser or args.tool_call_parser:
         runtime_args.append({"name": "enable-auto-tool-choice", "value": True})
     if args.trust_remote_code:
@@ -70,20 +88,170 @@ def main() -> int:
         "schema_version": 2,
         "kind": "recipe",
         "identity": {"publisher": "vonk-forge", "slug": args.slug},
-        "metadata": {"title": args.title, "description": args.description, "tags": args.tags.split(","), "alignment": "unspecified"},
-        "models": [{"id": "primary", "model": {"kind": "model", "publisher": model.identity.publisher, "slug": model.identity.slug, "content_sha256": content_sha256(model)}, "files": model_files}],
-        "execution": {"mode": "build", "build": {"base_image": {"repository": args.base_image_repository, "digest": args.base_image_digest, "platform": "linux/arm64"}, "context": {"path": args.context_path}, "dockerfile": f"{args.context_path}/Dockerfile", "patches": [], "target": None, "arguments": [], "network": {"mode": "none", "hosts": []}}},
-        "runtime": {"engine": "vllm", "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"], "arguments": runtime_args, "environment": [{"name": "HF_HUB_OFFLINE", "value": "1"}, {"name": "TRANSFORMERS_OFFLINE", "value": "1"}], "lifecycle": {"pre_start": [], "post_stop": [], "stop_timeout_seconds": 120, "failure": {"rank_loss": "not-applicable", "recovery": "restart-entrypoint"}}},
-        "topology": {"name": "solo", "mode": "single", "node_count": 1, "roles": [{"name": "entrypoint", "count": 1, "endpoint_owner": True, "resources": {"disk": {"image_bytes": 0, "artifact_bytes": args.model_bytes, "staging_bytes": args.model_bytes, "cache_bytes": 0, "rollback_bytes": 0, "safety_margin_bytes": 0}, "memory": {"kind": "unified", "startup_peak_bytes": args.startup_peak_bytes, "steady_state_bytes": args.steady_state_bytes, "runtime_growth_bytes": 0, "system_reserve_bytes": 0}}}], "parallelism": {"world_size": 1, "tensor": 1, "pipeline": 1, "data": 1, "backend": "local"}, "fabric": {"connectivity": "none", "minimum_bandwidth_mbps": 0}, "start_order": ["entrypoint"], "stop_order": ["entrypoint"]},
-        "interfaces": [{"adapter": "openai", "port": 8000, "model_aliases": [args.served_name], "health_path": "/v1/models"}],
-        "validation": {"benchmarks": [{"name": "bounded-chat", "framework": "openai", "configuration": {"max_output_tokens": 64}}], "serving": {"interface": "openai", "checks": [{"name": "health", "kind": "openai.health", "request": {"transport": "http", "method": "GET", "path": "/v1/models"}, "assertions": ["endpoint.healthy"]}, {"name": "bounded-chat", "kind": "openai.chat", "request": {"transport": "http", "method": "POST", "path": "/v1/chat/completions", "body": {"model": args.served_name, "messages": [{"role": "user", "content": "hello"}], "max_tokens": 64}}, "assertions": ["chat.nonempty", "chat.output-cap"]}]}},
-        "provenance": {"source_kind": "global", "source_reference": f"https://huggingface.co/{args.model_repository}/tree/{args.model_revision}", "attribution": [args.publisher]},
-        "settings": {"kind": "generation", "context_tokens": {"value": args.max_model_len, "change_effect": "restart"}, "concurrency": {"value": args.max_num_seqs, "change_effect": "restart"}, "max_batch_tokens": None, "knobs": {}},
+        "metadata": {
+            "title": args.title,
+            "description": args.description,
+            "tags": args.tags.split(","),
+            "alignment": "unspecified",
+        },
+        "models": [
+            {
+                "id": "primary",
+                "model": {
+                    "kind": "model",
+                    "publisher": model.identity.publisher,
+                    "slug": model.identity.slug,
+                    "content_sha256": content_sha256(model),
+                },
+                "files": model_files,
+            }
+        ],
+        "execution": {
+            "mode": "build",
+            "build": {
+                "base_image": {
+                    "repository": args.base_image_repository,
+                    "digest": args.base_image_digest,
+                    "platform": "linux/arm64",
+                },
+                "context": {"path": args.context_path},
+                "dockerfile": f"{args.context_path}/Dockerfile",
+                "patches": [],
+                "target": None,
+                "arguments": [],
+                "network": {"mode": "none", "hosts": []},
+            },
+        },
+        "runtime": {
+            "engine": "vllm",
+            "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
+            "arguments": runtime_args,
+            "environment": [
+                {"name": "HF_HUB_OFFLINE", "value": "1"},
+                {"name": "TRANSFORMERS_OFFLINE", "value": "1"},
+            ],
+            "lifecycle": {
+                "pre_start": [],
+                "post_stop": [],
+                "stop_timeout_seconds": 120,
+                "failure": {
+                    "rank_loss": "not-applicable",
+                    "recovery": "restart-entrypoint",
+                },
+            },
+        },
+        "topology": {
+            "name": "solo",
+            "mode": "single",
+            "node_count": 1,
+            "roles": [
+                {
+                    "name": "entrypoint",
+                    "count": 1,
+                    "endpoint_owner": True,
+                    "resources": {
+                        "disk": {
+                            "image_bytes": 0,
+                            "artifact_bytes": args.model_bytes,
+                            "staging_bytes": args.model_bytes,
+                            "cache_bytes": 0,
+                            "rollback_bytes": 0,
+                            "safety_margin_bytes": 0,
+                        },
+                        "memory": {
+                            "kind": "unified",
+                            "startup_peak_bytes": args.startup_peak_bytes,
+                            "steady_state_bytes": args.steady_state_bytes,
+                            "runtime_growth_bytes": 0,
+                            "system_reserve_bytes": 0,
+                        },
+                    },
+                }
+            ],
+            "parallelism": {
+                "world_size": 1,
+                "tensor": 1,
+                "pipeline": 1,
+                "data": 1,
+                "backend": "local",
+            },
+            "fabric": {"connectivity": "none", "minimum_bandwidth_mbps": 0},
+            "start_order": ["entrypoint"],
+            "stop_order": ["entrypoint"],
+        },
+        "interfaces": [
+            {
+                "adapter": "openai",
+                "port": 8000,
+                "model_aliases": [args.served_name],
+                "health_path": "/v1/models",
+            }
+        ],
+        "validation": {
+            "benchmarks": [
+                {
+                    "name": "bounded-chat",
+                    "framework": "openai",
+                    "configuration": {"max_output_tokens": 64},
+                }
+            ],
+            "serving": {
+                "interface": "openai",
+                "checks": [
+                    {
+                        "name": "health",
+                        "kind": "openai.health",
+                        "request": {
+                            "transport": "http",
+                            "method": "GET",
+                            "path": "/v1/models",
+                        },
+                        "assertions": ["endpoint.healthy"],
+                    },
+                    {
+                        "name": "bounded-chat",
+                        "kind": "openai.chat",
+                        "request": {
+                            "transport": "http",
+                            "method": "POST",
+                            "path": "/v1/chat/completions",
+                            "body": {
+                                "model": args.served_name,
+                                "messages": [{"role": "user", "content": "hello"}],
+                                "max_tokens": 64,
+                            },
+                        },
+                        "assertions": ["chat.nonempty", "chat.output-cap"],
+                    },
+                ],
+            },
+        },
+        "provenance": {
+            "source_kind": "global",
+            "source_reference": f"https://huggingface.co/{args.model_repository}/tree/{args.model_revision}",
+            "attribution": [args.publisher],
+        },
+        "settings": {
+            "kind": "generation",
+            "context_tokens": {"value": args.max_model_len, "change_effect": "restart"},
+            "concurrency": {"value": args.max_num_seqs, "change_effect": "restart"},
+            "max_batch_tokens": None,
+            "knobs": {},
+        },
     }
     validated = RecipeDefinition.model_validate(document)
     output = root / "recipes" / f"{args.slug}.json"
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(validated.model_dump(mode="json"), ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    output.write_text(
+        json.dumps(
+            validated.model_dump(mode="json"),
+            ensure_ascii=False,
+            sort_keys=True,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     print(output)
     return 0
 

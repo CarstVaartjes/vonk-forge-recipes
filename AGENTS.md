@@ -71,7 +71,7 @@ export VONK_RECIPE_LIBRARY_ROOT=/opt/vonk-forge-recipes
 
 # Repo-wide lint, format, and types. All three are pinned and deterministic.
 uvx --from ruff==0.16.1 ruff check .
-uvx --from ruff==0.16.1 ruff format --check .
+tools/check-python-format            # ruff format, plus extensionless entry points
 scripts/check-python-types           # pyright==1.1.408, reviewed baseline
 
 # Producer suite (CI installs the same wheel and extras).
@@ -94,6 +94,11 @@ by contract rather than authored here: the DeepSeek V4 tokenizer encodings
 otherwise) and `adapters/llm/ui-mate-vllm/agents/`, which `NOTICE` records as
 byte-identical to Tencent's commit. Everything else, including the rest of
 `adapters/`, is covered.
+
+Use `tools/check-python-format` rather than a bare `ruff format --check .`:
+`ruff format` resolves files by extension, so the extensionless executables in
+`tools/` and the adapters are only touched when they are named explicitly. The
+wrapper discovers them from their shebang and checks both sets.
 
 Do not add a digest that hashes a file shipped in the same commit: a source edit
 must not require hand-editing a digest the tooling owns. The only content
