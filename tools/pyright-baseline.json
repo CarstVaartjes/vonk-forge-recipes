@@ -1305,20 +1305,8 @@
     },
     {
       "file": "tests/test_recipe_package_closure.py",
-      "rule": "reportArgumentType",
-      "count": 3,
-      "reason": "The test deliberately passes partial or malformed values to prove the producer refuses them."
-    },
-    {
-      "file": "tests/test_recipe_package_closure.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
-      "file": "tests/test_recipe_package_closure.py",
       "rule": "reportOptionalMemberAccess",
-      "count": 10,
+      "count": 1,
       "reason": "The test dereferences a value after asserting it exists; pyright cannot follow the assertion."
     },
     {
