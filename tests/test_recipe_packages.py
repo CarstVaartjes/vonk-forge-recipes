@@ -23,14 +23,15 @@ PLATFORM_OWNED_ENVIRONMENT = {
 
 
 def test_full_catalog_packages_are_self_contained_and_deterministic(
-    tmp_path: Path,
+    tmp_path: Path, built_catalog: tuple[dict, Path]
 ) -> None:
-    first_dir = tmp_path / "first"
+    first, first_dir = built_catalog
     second_dir = tmp_path / "second"
-    first = TOOL["build"](package_dir=first_dir)
     second = TOOL["build"](package_dir=second_dir)
     assert first["kind"] == second["kind"] == "recipe-library-index"
     assert first["schema_version"] == second["schema_version"] == 2
+    # The generated index as a whole, not only each package, must reproduce.
+    assert first == second
     source_models = {
         (
             json.loads(path.read_text())["identity"]["publisher"],
@@ -168,12 +169,14 @@ def test_source_bundle_ignores_generated_python_cache_files(tmp_path: Path) -> N
     assert [entry["path"] for entry in files] == ["Dockerfile"]
 
 
-def test_editing_one_recipe_changes_only_that_package(tmp_path: Path) -> None:
-    catalog = TOOL["build"](package_dir=tmp_path)
+def test_editing_one_recipe_changes_only_that_package(
+    built_catalog: tuple[dict, Path],
+) -> None:
+    catalog, package_dir = built_catalog
     rows = catalog["recipes"]
     original = {
         Path(str(row["package"]["path"])).name: (
-            tmp_path / Path(str(row["package"]["path"])).name
+            package_dir / Path(str(row["package"]["path"])).name
         ).read_bytes()
         for row in rows
     }
@@ -192,7 +195,7 @@ def test_editing_one_recipe_changes_only_that_package(tmp_path: Path) -> None:
     )
     for row in rows[1:]:
         filename = Path(str(row["package"]["path"])).name
-        assert (tmp_path / filename).read_bytes() == original[filename]
+        assert (package_dir / filename).read_bytes() == original[filename]
 
 
 def test_supplied_source_commit_only_changes_index_metadata(tmp_path: Path) -> None:
@@ -367,11 +370,11 @@ def test_model_territorial_restrictions_preserve_all_published_records() -> None
 
 
 def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(
-    tmp_path: Path,
+    built_catalog: tuple[dict, Path],
 ) -> None:
     """Model weights and image layers remain separately cached artifacts."""
 
-    catalog = TOOL["build"](package_dir=tmp_path)
+    catalog, package_dir = built_catalog
     payload_suffixes = {
         ".safetensors",
         ".safetensors.index.json",
@@ -382,7 +385,7 @@ def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(
         ".onnx",
     }
     for row in catalog["recipes"]:
-        package_path = tmp_path / Path(str(row["package"]["path"])).name
+        package_path = package_dir / Path(str(row["package"]["path"])).name
         with tarfile.open(package_path, mode="r:gz") as archive:
             names = archive.getnames()
         build = row["document"]["execution"].get("build")
@@ -408,16 +411,16 @@ def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(
 
 
 def test_ds4_multistage_package_manifests_both_digest_pinned_base_images(
-    tmp_path: Path,
+    built_catalog: tuple[dict, Path],
 ) -> None:
-    catalog = TOOL["build"](package_dir=tmp_path)
+    catalog, package_dir = built_catalog
     row = next(
         item
         for item in catalog["recipes"]
         if item["document"]["identity"]["slug"] == "deepseek-v4-flash-0731-ds4-single"
     )
     with tarfile.open(
-        tmp_path / Path(str(row["package"]["path"])).name, mode="r:gz"
+        package_dir / Path(str(row["package"]["path"])).name, mode="r:gz"
     ) as archive:
         manifest = json.load(archive.extractfile("manifest.json"))
     assert manifest["build_inputs"] == [

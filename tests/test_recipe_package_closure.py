@@ -15,22 +15,22 @@ ROOT = Path(__file__).resolve().parents[1]
 TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
 
 
-def _job_row(tmp_path: Path) -> tuple[dict, bytes]:
-    catalog = TOOL["build"](package_dir=tmp_path)
+def _job_row(built_catalog: tuple[dict, Path]) -> tuple[dict, bytes]:
+    catalog, package_dir = built_catalog
     row = next(
         row
         for row in catalog["recipes"]
         if row["document"]["interfaces"][0]["adapter"] != "openai"
     )
-    return row, (tmp_path / Path(row["package"]["path"]).name).read_bytes()
+    return row, (package_dir / Path(row["package"]["path"]).name).read_bytes()
 
 
-def _row_for_slug(tmp_path: Path, slug: str) -> tuple[dict, bytes]:
-    catalog = TOOL["build"](package_dir=tmp_path)
+def _row_for_slug(built_catalog: tuple[dict, Path], slug: str) -> tuple[dict, bytes]:
+    catalog, package_dir = built_catalog
     row = next(
         row for row in catalog["recipes"] if row["document"]["identity"]["slug"] == slug
     )
-    return row, (tmp_path / Path(row["package"]["path"]).name).read_bytes()
+    return row, (package_dir / Path(row["package"]["path"]).name).read_bytes()
 
 
 def _rewrite(
@@ -72,8 +72,10 @@ def _rewrite(
     return output.getvalue()
 
 
-def test_archive_has_one_entrypoint_and_real_closure(tmp_path: Path) -> None:
-    row, payload = _job_row(tmp_path)
+def test_archive_has_one_entrypoint_and_real_closure(
+    built_catalog: tuple[dict, Path],
+) -> None:
+    row, payload = _job_row(built_catalog)
     TOOL["validate_recipe_archive"](payload, row["document"])
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         names = [
@@ -84,9 +86,11 @@ def test_archive_has_one_entrypoint_and_real_closure(tmp_path: Path) -> None:
     assert [name for name, _ in names].count("recipe.json") == 1
 
 
-def test_archive_allows_bounded_recipe_owned_direction_tensor(tmp_path: Path) -> None:
+def test_archive_allows_bounded_recipe_owned_direction_tensor(
+    built_catalog: tuple[dict, Path],
+) -> None:
     row, payload = _row_for_slug(
-        tmp_path,
+        built_catalog,
         "glm-5-3-flash-exl3-dflash2-vllm-dual",
     )
     TOOL["validate_recipe_archive"](payload, row["document"])
@@ -98,8 +102,10 @@ def test_archive_allows_bounded_recipe_owned_direction_tensor(tmp_path: Path) ->
     )
 
 
-def test_archive_rejects_unselected_model_document_namespace(tmp_path: Path) -> None:
-    row, payload = _job_row(tmp_path)
+def test_archive_rejects_unselected_model_document_namespace(
+    built_catalog: tuple[dict, Path],
+) -> None:
+    row, payload = _job_row(built_catalog)
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         entries = [
             (member.name, archive.extractfile(member).read())
@@ -118,8 +124,10 @@ def test_archive_rejects_unselected_model_document_namespace(tmp_path: Path) -> 
         TOOL["validate_recipe_archive"](malformed, row["document"])
 
 
-def test_archive_rejects_oversized_source_member(tmp_path: Path) -> None:
-    row, payload = _job_row(tmp_path)
+def test_archive_rejects_oversized_source_member(
+    built_catalog: tuple[dict, Path],
+) -> None:
+    row, payload = _job_row(built_catalog)
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         entries = [
             (member.name, archive.extractfile(member).read())
@@ -140,9 +148,9 @@ def test_archive_rejects_oversized_source_member(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("mutation", ["duplicate", "traversal"])
 def test_archive_rejects_duplicate_or_traversal_entrypoints(
-    tmp_path: Path, mutation: str
+    built_catalog: tuple[dict, Path], mutation: str
 ) -> None:
-    row, payload = _job_row(tmp_path)
+    row, payload = _job_row(built_catalog)
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         entries = [
             (member.name, archive.extractfile(member).read())
@@ -168,8 +176,10 @@ def test_archive_rejects_duplicate_or_traversal_entrypoints(
         TOOL["validate_recipe_archive"](malformed, row["document"])
 
 
-def test_archive_rejects_missing_model_source_and_fixture(tmp_path: Path) -> None:
-    row, payload = _job_row(tmp_path)
+def test_archive_rejects_missing_model_source_and_fixture(
+    built_catalog: tuple[dict, Path],
+) -> None:
+    row, payload = _job_row(built_catalog)
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         entries = [
             (member.name, archive.extractfile(member).read())
@@ -238,8 +248,10 @@ def _rewrite_member(
     return output.getvalue()
 
 
-def test_archive_rejects_payload_digest_and_undeclared_member(tmp_path: Path) -> None:
-    row, payload = _job_row(tmp_path)
+def test_archive_rejects_payload_digest_and_undeclared_member(
+    built_catalog: tuple[dict, Path],
+) -> None:
+    row, payload = _job_row(built_catalog)
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         recipe_body = archive.extractfile("recipe.json").read()
         members = [
@@ -255,8 +267,10 @@ def test_archive_rejects_payload_digest_and_undeclared_member(tmp_path: Path) ->
         TOOL["validate_recipe_archive"](extra, row["document"])
 
 
-def test_archive_rejects_consistent_but_different_recipe(tmp_path: Path) -> None:
-    row, payload = _job_row(tmp_path)
+def test_archive_rejects_consistent_but_different_recipe(
+    built_catalog: tuple[dict, Path],
+) -> None:
+    row, payload = _job_row(built_catalog)
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         entries = [
             (member.name, archive.extractfile(member).read())
@@ -291,9 +305,9 @@ def test_archive_rejects_consistent_but_different_recipe(tmp_path: Path) -> None
 
 @pytest.mark.parametrize("field", ["size", "sha256"])
 def test_archive_rejects_stale_manifest_member_metadata(
-    tmp_path: Path, field: str
+    built_catalog: tuple[dict, Path], field: str
 ) -> None:
-    row, payload = _job_row(tmp_path)
+    row, payload = _job_row(built_catalog)
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         manifest = json.load(archive.extractfile("manifest.json"))
     recipe_entry = next(
@@ -310,9 +324,9 @@ def test_archive_rejects_stale_manifest_member_metadata(
     "member_type", [tarfile.SYMTYPE, tarfile.LNKTYPE, tarfile.FIFOTYPE, tarfile.CHRTYPE]
 )
 def test_archive_rejects_non_regular_members(
-    tmp_path: Path, member_type: bytes
+    built_catalog: tuple[dict, Path], member_type: bytes
 ) -> None:
-    row, payload = _job_row(tmp_path)
+    row, payload = _job_row(built_catalog)
     malformed = _rewrite_member(payload, "recipe.json", member_type=member_type)
     with pytest.raises(SystemExit, match="non-regular archive member"):
         TOOL["validate_recipe_archive"](malformed, row["document"])

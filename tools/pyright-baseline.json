@@ -980,6 +980,12 @@
       "reason": "The contracts package is type-checked without its full optional dependency set installed in the host environment."
     },
     {
+      "file": "tests/conftest.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "This file must import pytest to declare the shared session fixture, and the pinned pyright environment installs no test runner, so the import cannot resolve here. The suite itself exercises it."
+    },
+    {
       "file": "tests/fixtures/canonical-synthetic-canary/context/request_contract.py",
       "rule": "reportMissingImports",
       "count": 1,
