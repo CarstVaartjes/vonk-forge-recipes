@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.vonkforge.ai/schemas/test-report/v1.schema.json",
+  "$defs": {
+    "TestReportCheck": {
+      "additionalProperties": false,
+      "description": "One named pass/fail observation from the run.",
+      "properties": {
+        "name": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9_.-]+$",
+          "title": "Name",
+          "type": "string"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "passed"
+      ],
+      "title": "TestReportCheck",
+      "type": "object"
+    },
+    "TestReportRuntime": {
+      "additionalProperties": false,
+      "description": "The runtime that executed the run under test.",
+      "properties": {
+        "agent_version": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Agent Version",
+          "type": "string"
+        },
+        "container_runtime": {
+          "enum": [
+            "podman",
+            "docker"
+          ],
+          "title": "Container Runtime",
+          "type": "string"
+        },
+        "architecture": {
+          "const": "linux/arm64",
+          "title": "Architecture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "agent_version",
+        "container_runtime",
+        "architecture"
+      ],
+      "title": "TestReportRuntime",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Execution evidence for exactly one recipe revision.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "recipe_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Recipe Sha256",
+      "type": "string"
+    },
+    "source_bundle_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Source Bundle Sha256",
+      "type": "string"
+    },
+    "build_input_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Build Input Sha256",
+      "type": "string"
+    },
+    "image_digest": {
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "title": "Image Digest",
+      "type": "string"
+    },
+    "topology_name": {
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+      "title": "Topology Name",
+      "type": "string"
+    },
+    "node_count": {
+      "minimum": 1,
+      "title": "Node Count",
+      "type": "integer"
+    },
+    "runtime": {
+      "$ref": "#/$defs/TestReportRuntime"
+    },
+    "checks": {
+      "items": {
+        "$ref": "#/$defs/TestReportCheck"
+      },
+      "maxItems": 256,
+      "minItems": 1,
+      "title": "Checks",
+      "type": "array"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "finished_at": {
+      "format": "date-time",
+      "title": "Finished At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "recipe_sha256",
+    "source_bundle_sha256",
+    "build_input_sha256",
+    "image_digest",
+    "topology_name",
+    "node_count",
+    "runtime",
+    "checks",
+    "started_at",
+    "finished_at"
+  ],
+  "title": "TestReport",
+  "type": "object"
+}

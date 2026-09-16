@@ -74,7 +74,15 @@ This is an ordinary reusable Python package; publishing to PyPI is unnecessary. 
 
 Catalog tooling and the Controller use the same validators and canonical serialization. The web consumes generated schemas/types. PostgreSQL stores validated canonical documents and digests, with query projections derived from those objects and database uniqueness/reference constraints. Pydantic does not automatically alter SQL tables.
 
-Private API, Spark execution-plan, operation-progress, build-receipt and telemetry contracts remain platform-owned. They do not add public catalog-authoring documents.
+## Test report: what was actually run
+
+[`TestReport`](src/vonk_forge_contracts/test_report.py) is the execution evidence for exactly one recipe revision. It binds the recipe, source bundle and build inputs by digest to the image that was actually run, the topology and node count that were exercised, the runtime that ran it, and the named checks that passed. The Controller requires a report before publication export; the catalog accepts and stores it.
+
+It is schema 1, while the authoring roots are schema 2. Each document owns its own version, and no document accepts two. The published JSON Schema keeps the catalog identifier `https://api.vonkforge.ai/schemas/test-report/v1.schema.json` so publishers see one stable identity.
+
+The generated JSON Schema is structural. Run ordering (`finished_at` not before `started_at`) and unique check names are model-only rules, so a non-Python consumer that validates only the schema does not enforce them.
+
+Private API, Spark execution-plan, operation-progress, build-receipt and telemetry contracts remain platform-owned. Test reports are the one execution-evidence document that is published, so they are defined here rather than duplicated per consumer.
 
 ## Release evidence
 
