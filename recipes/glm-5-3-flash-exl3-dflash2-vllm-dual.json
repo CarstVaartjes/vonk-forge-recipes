@@ -1888,6 +1888,22 @@
   "release": {
     "history": [
       {
+        "version": "1.5.2",
+        "released_at": "2026-09-16",
+        "upgrade_effect": "restart",
+        "prior_recipe_content_sha256": "05a2d22d3f8933cc7bc8136467a558fd5e76a27ad6f773800ecc4e640a83c3f9",
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Correct the FlashInfer autotune flag name so the pinned vLLM accepts the launch arguments.",
+            "details": "The runtime argument list spelled the flag disable-flashinfer-autotune, which the pinned engine does not define, so vllm serve exited with 'unrecognized arguments' before loading the model and the two-Spark workload never started. The shipped upstream launcher passes --no-enable-flashinfer-autotune, the argparse negation of the engine's enable_flashinfer_autotune field in vllm/engine/arg_utils.py, and the recipe now uses that name. Serving options, settings, model files and the build context are unchanged, so the prepared image and its archive are reused and only the workload restarts.",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/blob/9c0794b68d7fc124f79104409ab434769503fb31/start.sh"
+            ]
+          }
+        ]
+      },
+      {
         "version": "1.5.1",
         "released_at": "2026-09-13",
         "upgrade_effect": "reprepare",
@@ -2086,8 +2102,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-13",
-    "version": "1.5.1"
+    "released_at": "2026-09-16",
+    "version": "1.5.2"
   },
   "runtime": {
     "arguments": [
@@ -2162,7 +2178,7 @@
         "value": true
       },
       {
-        "name": "disable-flashinfer-autotune",
+        "name": "no-enable-flashinfer-autotune",
         "setting": null,
         "value": true
       },
