@@ -9093,6 +9093,22 @@
   "release": {
     "history": [
       {
+        "version": "2.0.8",
+        "released_at": "2026-09-16",
+        "upgrade_effect": "restart",
+        "prior_recipe_content_sha256": "a706c6a50d0c0bb951096b38408c19a31cc979014f0e333491ec3b19d4392fff",
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Correct the FlashInfer autotune flag name so the pinned vLLM accepts the launch arguments.",
+            "details": "The runtime argument list spelled the flag disable-flashinfer-autotune, which the pinned engine does not define, so vllm serve would exit with 'unrecognized arguments' before loading the model. The shipped upstream launcher passes --no-enable-flashinfer-autotune, the argparse negation of the engine's enable_flashinfer_autotune field, and the recipe now uses that name. Serving options, settings, model files and the build context are unchanged, so the prepared image is reused and only the workload restarts.",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.2-NVFP4-AQLM-Triple-DGX-Sparks/blob/5c85163ccb8d98d395880e71e2dbd03976a3f4ad/start.sh"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
@@ -9282,8 +9298,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "2.0.7"
+    "released_at": "2026-09-16",
+    "version": "2.0.8"
   },
   "runtime": {
     "arguments": [
@@ -9353,7 +9369,7 @@
         "value": 4096
       },
       {
-        "name": "disable-flashinfer-autotune",
+        "name": "no-enable-flashinfer-autotune",
         "setting": null,
         "value": true
       },
