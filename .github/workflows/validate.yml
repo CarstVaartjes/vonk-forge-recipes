@@ -19,12 +19,14 @@ permissions:
 jobs:
   validate:
     if: ${{ !inputs.producer_only }}
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@8764e5c2086eb6922ca0461fa1207fdf7dc1838e
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@e94b3c62d19633d518d1774d8cead728ca5c242d
     with:
       # Use the reviewed Forge validator for this launch contract. Its exact
       # published commit verifies declared source namespaces, Model payload
       # separation and archive identities independently of this recipe PR.
-      platform_ref: 8764e5c2086eb6922ca0461fa1207fdf7dc1838e
+      # Pinned to the platform commit that runs the validator on Python 3.14,
+      # the version the platform declares.
+      platform_ref: e94b3c62d19633d518d1774d8cead728ca5c242d
 
   catalog-index:
     if: ${{ !inputs.producer_only }}
