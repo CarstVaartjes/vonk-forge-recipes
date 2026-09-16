@@ -1,0 +1,385 @@
+{
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [],
+    "provenance": {
+      "evidence_digest": "baab473cb9ca2abc236aaecc3b3dccef114e56eeefb60f818ed3585e868d7a78",
+      "source_revision": "f909f39a60cbf637adddd03bd04b3921c9a01feb",
+      "source_url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Instruct-0708-FP8"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-b551592ec59b-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "b551592ec59b1e9ed0ad1053dae23cc27b047c10ff5f5f2e5d72129b41d81296",
+      "size_bytes": 1935
+    },
+    {
+      "id": "readme-fa116e0afa07-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "fa116e0afa07d37e2a803a19533b48983a029612cb8a11ecb61eb79ee518797a",
+      "size_bytes": 8184
+    },
+    {
+      "id": "readme-zh-543b2ba3a249-bc53aca037",
+      "path": "README_zh.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "543b2ba3a249c70852483324875d3f3309b975544033f114224f615faee493b5",
+      "size_bytes": 4331
+    },
+    {
+      "id": "added-tokens-b84237c86526-dec41b9537",
+      "path": "added_tokens.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "b84237c865267902e559e7a16ce618f52ed1fcd10ed707aa73287922164a8143",
+      "size_bytes": 761
+    },
+    {
+      "id": "architecture-28e51b34e031-aa0ed6aa56",
+      "path": "assets/architecture.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "28e51b34e031c884c540601d6b6651576c65836dc252694a1dc7dc0b1fc15237",
+      "size_bytes": 6086877
+    },
+    {
+      "id": "benchmark-offline-82819674c2c8-544d082328",
+      "path": "assets/benchmark-offline.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "82819674c2c8c62be9d6a25f324a7e9143f045cf4bc23acb813b9910aa2e9819",
+      "size_bytes": 1513464
+    },
+    {
+      "id": "logo-37bf0241f5fb-90580d12fb",
+      "path": "assets/logo.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "37bf0241f5fbab73fc955827f477befc95b88b0d3618c31628099b70ea1dd232",
+      "size_bytes": 940588
+    },
+    {
+      "id": "mossvl-quantization-benchmark-compariso-75ed545c6039-b4c7a4185c",
+      "path": "assets/mossvl_quantization_benchmark_comparison_en_4k.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "75ed545c603986ffe7e8ce419f3bc49796a427c5f288a919b7d2bd805f44e5e4",
+      "size_bytes": 2798897
+    },
+    {
+      "id": "mossvl-quantization-benchmark-compariso-8fda6adf7c96-6391fbc8ea",
+      "path": "assets/mossvl_quantization_benchmark_comparison_zh_4k.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8fda6adf7c96f7ce07e4dfc354882b321c1ff9ccf729b5584f816d10cf209631",
+      "size_bytes": 2678982
+    },
+    {
+      "id": "chat-template-bbe3b56544e7-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "bbe3b56544e7ea52bd7098656f8dc948d2ebb0c407a77d1b07237ddd43b52d9d",
+      "size_bytes": 5156
+    },
+    {
+      "id": "chat-template-d272c68bd115-56edbbf8f7",
+      "path": "chat_template.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d272c68bd115dca51b7e918dabac29b23510e3a25c4c5d9bd410b96eb11bf26e",
+      "size_bytes": 5363
+    },
+    {
+      "id": "config-17da34b651d4-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "17da34b651d45c7ff0f03fca326a0dc9df7fce0628ee4619f6e38af26f072ef1",
+      "size_bytes": 13584
+    },
+    {
+      "id": "configuration-moss-vl-f872adc0ee2a-55d545c53a",
+      "path": "configuration_moss_vl.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f872adc0ee2a106ebdf41bcf6c6bbc15f6ce700e0dc728000cacd62cac77e8a5",
+      "size_bytes": 5550
+    },
+    {
+      "id": "generation-config-45c0897c9342-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "45c0897c93421c07d90db183e0f44745ebb5b73a222c15b3962751d26c50143c",
+      "size_bytes": 314
+    },
+    {
+      "id": "merges-8831e4f1a044-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
+      "size_bytes": 1671853
+    },
+    {
+      "id": "model-00001-of-00004-e7fb06d5fb19-1913267ec8",
+      "path": "model-00001-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e7fb06d5fb1946b414477b638fce3d263a5b27b827268354f6849ce9833523a5",
+      "size_bytes": 4977933616
+    },
+    {
+      "id": "model-00002-of-00004-798beb87c120-60f6088da9",
+      "path": "model-00002-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "798beb87c12050e5c4e30a9e083fa3352b9c8883af7ce1f9ec701a21f0fed2cb",
+      "size_bytes": 4967677804
+    },
+    {
+      "id": "model-00003-of-00004-134f82abbc2c-fc35f2c4d5",
+      "path": "model-00003-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "134f82abbc2c4cff03c3493356935ec82826204fed513f1a6748c08ca0607a2e",
+      "size_bytes": 4539650492
+    },
+    {
+      "id": "model-00004-of-00004-89fad73cb8ae-5078e75d62",
+      "path": "model-00004-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "89fad73cb8ae4c0fc4a44ac1e559a7d74874c5f597c784a2cbbefde36ee8864a",
+      "size_bytes": 1244659840
+    },
+    {
+      "id": "model-safetensors-index-2a8a2eec9467-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "2a8a2eec9467083ef3cdf18b240411be5535d48754c9538b79976b8108026338",
+      "size_bytes": 107599
+    },
+    {
+      "id": "modeling-moss-vl-a53d3872564b-c41619fc78",
+      "path": "modeling_moss_vl.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "a53d3872564bf67ea85305a8f8e0b67f56201d725157b900d3f92e5bc8162176",
+      "size_bytes": 145860
+    },
+    {
+      "id": "mossvl-fp8-dynamic-report-3de1f35fef6a-6b3d837137",
+      "path": "mossvl_fp8_dynamic_report.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "3de1f35fef6af6cda7be4db61534060e58b153b8570f3e064f724462f729ccf7",
+      "size_bytes": 957
+    },
+    {
+      "id": "mossvl-kv8-report-b2e65339b183-29b6701f8c",
+      "path": "mossvl_kv8_report.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b2e65339b183850154da508690a9a1e88452ff31d12c87f4177ce5fba3ec8a61",
+      "size_bytes": 842
+    },
+    {
+      "id": "preprocessor-config-b4553631864a-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b4553631864a28c1a478e81171e8d311c27dee24ea0930e9bf0c68cbe4953201",
+      "size_bytes": 592
+    },
+    {
+      "id": "processing-moss-vl-fc362cbeabb4-2cd22ecdf2",
+      "path": "processing_moss_vl.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "fc362cbeabb4d33706b75acb552c5b6a82efcded39e5985448b0dba8ff20f2cc",
+      "size_bytes": 49540
+    },
+    {
+      "id": "recipe-d19e989b6ad7-e6afb07ce9",
+      "path": "recipe.yaml",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d19e989b6ad7968d2c1efd0554c7edabe73d027cd84f055fff4fc983e550368e",
+      "size_bytes": 381
+    },
+    {
+      "id": "special-tokens-map-d9b69ab72b25-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "d9b69ab72b25a2f729fbab18b2c1cff97bd68fe593f6617b7956832231176b91",
+      "size_bytes": 655
+    },
+    {
+      "id": "tokenizer-52d44d7e09e0-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "52d44d7e09e05fb10f9ec5dc913bf1d62ff37ac249cb9ec47d891935149f5e3e",
+      "size_bytes": 11423034
+    },
+    {
+      "id": "tokenizer-config-0eb9625d8592-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "0eb9625d859295946982f8555983b36fae9e47898c42dc15e4ed6f923399fdeb",
+      "size_bytes": 5806
+    },
+    {
+      "id": "video-preprocessor-config-bbe22d3f192c-35d01a7325",
+      "path": "video_preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "bbe22d3f192cfbc2cec69ddec52b4b70683c1240eda333df6974a08b92e05232",
+      "size_bytes": 680
+    },
+    {
+      "id": "video-processing-moss-vl-3d16558fe6a2-290a804ea4",
+      "path": "video_processing_moss_vl.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "3d16558fe6a20ace2ae7782739648feaaf245f536f666bcf66bfc3d9889cbe3c",
+      "size_bytes": 49765
+    },
+    {
+      "id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "size_bytes": 2776833
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "fp8",
+    "quantization": "fp8-dynamic-hqq-kv8"
+  },
+  "identity": {
+    "family": {
+      "publisher": "openmoss",
+      "slug": "moss-vl",
+      "title": "OpenMOSS MOSS-VL"
+    },
+    "model": {
+      "architecture": "MOSS-VL 11B cross-attention vision-language transformer",
+      "publisher": "openmoss",
+      "slug": "moss-vl-instruct-11b",
+      "title": "MOSS-VL-Instruct 11B"
+    },
+    "publisher": "openmoss",
+    "slug": "moss-vl-instruct-11b-fp8-f909f39a",
+    "variant": "Instruct 0708 FP8 f909f39a",
+    "version": "Instruct 0708 FP8 f909f39a"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "OpenMOSS"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "territorial_restrictions": null,
+    "url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Instruct-0708-FP8/blob/f909f39a60cbf637adddd03bd04b3921c9a01feb/LICENSE"
+  },
+  "limits": {
+    "context_tokens": 262144,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Immutable upstream snapshot at the pinned revision.",
+    "publisher": "openmoss",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "openmoss",
+      "slug": "moss-vl-instruct-11b"
+    }
+  },
+  "metadata": {
+    "description": "Offline 11B MOSS-VL-Instruct 0708 vision-language model.",
+    "tags": [
+      "openmoss",
+      "moss-vl",
+      "video",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "video"
+  ],
+  "parameters": {
+    "active": 11000000000,
+    "total": 11000000000
+  },
+  "provenance": {
+    "attribution": [
+      "OpenMOSS"
+    ],
+    "evidence_digest": "baab473cb9ca2abc236aaecc3b3dccef114e56eeefb60f818ed3585e868d7a78",
+    "source_revision": "f909f39a60cbf637adddd03bd04b3921c9a01feb",
+    "source_url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Instruct-0708-FP8"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Instruct-0708-FP8",
+    "revision": "f909f39a60cbf637adddd03bd04b3921c9a01feb"
+  },
+  "supersedes": null
+}
