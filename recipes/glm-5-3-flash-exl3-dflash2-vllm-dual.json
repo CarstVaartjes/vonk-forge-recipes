@@ -44,7 +44,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public 9c0794b EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its tested 2x DGX Spark EXL3/TR3 4 bpw target with the retained bf582e4e DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 850k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. Vonk physical acceptance and checkpoint requalification remain pending.",
+    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public bc68f310 EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its tested 2x DGX Spark EXL3/TR3 4 bpw target with the retained bf582e4e DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 850k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. Vonk physical acceptance and checkpoint requalification remain pending.",
     "tags": [
       "candidate",
       "dflash2",
@@ -1883,10 +1883,50 @@
       "vLLM contributors"
     ],
     "source_kind": "global",
-    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/9c0794b68d7fc124f79104409ab434769503fb31"
+    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c"
   },
   "release": {
     "history": [
+      {
+        "version": "1.6.0",
+        "released_at": "2026-09-16",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "9bbff39d46917c16db78f237a24b11e2276cc424c66ff948c4eaf6b3c69e81f7",
+        "changes": [
+          {
+            "kind": "compatibility",
+            "summary": "Refreshed the vendored Mia GLM 5.3 EXL3 source to bc68f310.",
+            "details": "Re-synced the Dockerfile, overlays, host tests, launcher and env example from MiaAI-Lab's public bc68f310 tree. New overlays: per-group APC retention (patch_apc_per_group_retention.py), the per-request prefix-cache no-store flag (patch_apc_no_store.py), the boot KV-capacity breakdown log (patch_kv_capacity_log.py) and the narrow cache-reset route (patch_cache_reset.py). Adds the instanttensor==0.2.0 direct-I/O safetensors loader and the fair mixed-prefill scheduler policy. Model snapshots and topology are unchanged. Physical Spark acceptance remains a separate evidence boundary.",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c"
+            ]
+          },
+          {
+            "kind": "compatibility",
+            "summary": "Compiled the E3 grouped kernels into exllamav3_ext and retired exl3_fat_moe_ext.",
+            "details": "overlay/exl3.py resolves exllamav3_ext before the additive module, and upstream now binds exl3_moe, exl3_fat_gemm, exl3_fat_gemm_scatter and the five exl3_fat_moe entry points into that one extension. The recipe drops the additively built exl3_fat_moe_ext module and build_exl3_fat_moe_ext.py, checks all symbols on exllamav3_ext in the Dockerfile and in verify-runtime.py, and keeps the source-backed EXLLAMAV3_COMMIT rebuild. Nothing falls back to the retired layout.",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c"
+            ]
+          },
+          {
+            "kind": "fix",
+            "summary": "Corrected the FlashInfer autotune flag to --no-enable-flashinfer-autotune.",
+            "details": "The recipe declared disable-flashinfer-autotune, which is not a vLLM option; upstream main passes --no-enable-flashinfer-autotune. The Autotuner skip is what keeps SM120 sparse-MLA autotune from wedging rank 0 on GB10, so the corrected spelling is required, not cosmetic.",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c"
+            ]
+          },
+          {
+            "kind": "runtime",
+            "summary": "Aligned runtime arguments and knobs with upstream main's effective defaults.",
+            "details": "Adds --load-format instanttensor, --mm-processor-cache-gb 1 and --mm-processor-kwargs {\"max_image_tokens\":2048}; keeps max-model-len and max-num-seqs setting-bound to context_tokens=850000 and concurrency=4; keeps compilation-config cudagraph_capture_sizes [1,2,4,8,16,24,32], upstream's DFlash2 branch value (1 2 3 4 6 8 12 is the MTP branch this recipe does not take). Declares GLM53_MIXED_PREFILL_CHUNK=fair with GLM53_FAIR_PREFILL_*, GLM53_APC_NO_STORE=1, GLM53_KV_CAPACITY_LOG=1, GLM53_SPINWAIT_MS=stock and EXL3_FAT_KERNEL=1. Upstream's DEFAULT_MAX_NEW_TOKENS and GLM53_BOOT_SHAPE_WARMUP are deliberately not declared: the launcher applies them through overlay/patch_default_max_new_tokens.py and scripts/boot-shape-warmup.sh, which this recipe does not vendor or run, so declaring them here would be inert.",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c"
+]
+}
+]
+},
       {
         "version": "1.5.2",
         "released_at": "2026-09-16",
@@ -2103,7 +2143,7 @@
       }
     ],
     "released_at": "2026-09-16",
-    "version": "1.5.2"
+    "version": "1.6.0"
   },
   "runtime": {
     "arguments": [
@@ -2163,6 +2203,11 @@
         "value": "fp8"
       },
       {
+        "name": "load-format",
+        "setting": null,
+        "value": "instanttensor"
+      },
+      {
         "name": "compilation-config",
         "setting": null,
         "value": "{\"cudagraph_capture_sizes\":[1,2,4,8,16,24,32]}"
@@ -2196,6 +2241,16 @@
         "name": "limit-mm-per-prompt",
         "setting": null,
         "value": "{\"image\":4,\"video\":1}"
+      },
+      {
+        "name": "mm-processor-kwargs",
+        "setting": null,
+        "value": "{\"max_image_tokens\":2048}"
+      },
+      {
+        "name": "mm-processor-cache-gb",
+        "setting": null,
+        "value": 1
       },
       {
         "name": "tool-call-parser",
@@ -2258,7 +2313,32 @@
       {
         "name": "GLM53_MIXED_PREFILL_CHUNK",
         "secret": null,
-        "value": "skip"
+        "value": "fair"
+      },
+      {
+        "name": "GLM53_FAIR_PREFILL_CHUNK",
+        "secret": null,
+        "value": "256"
+      },
+      {
+        "name": "GLM53_FAIR_PREFILL_SHARE",
+        "secret": null,
+        "value": "0.30"
+      },
+      {
+        "name": "GLM53_FAIR_PREFILL_MAX_INTERVAL_MS",
+        "secret": null,
+        "value": "2000"
+      },
+      {
+        "name": "GLM53_FAIR_PREFILL_MAX_STEP_MS",
+        "secret": null,
+        "value": "2000"
+      },
+      {
+        "name": "GLM53_FAIR_PREFILL_MAX_CHUNKS",
+        "secret": null,
+        "value": "1"
       },
       {
         "name": "EXL3_FUSED_MOE",
@@ -2281,6 +2361,11 @@
         "value": "1"
       },
       {
+        "name": "EXL3_FAT_KERNEL",
+        "secret": null,
+        "value": "1"
+      },
+      {
         "name": "GLM53_INDEXER_WORKSPACE",
         "secret": null,
         "value": "rightsize"
@@ -2294,6 +2379,21 @@
         "name": "GLM53_DENSE_FP8",
         "secret": null,
         "value": "off"
+      },
+      {
+        "name": "GLM53_APC_NO_STORE",
+        "secret": null,
+        "value": "1"
+      },
+      {
+        "name": "GLM53_KV_CAPACITY_LOG",
+        "secret": null,
+        "value": "1"
+      },
+      {
+        "name": "GLM53_SPINWAIT_MS",
+        "secret": null,
+        "value": "stock"
       },
       {
         "name": "TORCH_CUDA_ARCH_LIST",
