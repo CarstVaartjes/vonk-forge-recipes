@@ -1,14 +1,20 @@
 # Vonk Forge public contracts
 
-`ModelDefinition` and `RecipeDefinition` are the only author-facing roots in
-this package. They are strict Pydantic v2 models with pure semantic checks and
-no Controller, runtime, or platform imports. The checked-in JSON Schemas under
-`contracts/schema/` are generated from these roots:
+`ModelDefinition` and `RecipeDefinition` are the two author-facing roots in
+this package. `TestReport` is the third shared contract: the execution evidence
+for one recipe revision, which the Controller validates and the catalog
+publishes. It is not authoring input. All three are strict Pydantic v2 models
+with pure semantic checks and no Controller, runtime, or platform imports. The
+checked-in JSON Schemas under `contracts/schema/` are generated from these
+models:
 
 ```bash
 tools/generate-contract-schemas
 tools/generate-contract-schemas --check
 ```
+
+`TestReport` is schema 1 while the authoring roots are schema 2: each document
+owns its own version, and no document accepts two versions.
 
 The package is consumed in-repository during this greenfield transition. The
 platform and catalog builds should refresh the package from the latest
