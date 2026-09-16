@@ -356,12 +356,6 @@
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
-      "file": "adapters/glm/mia-exl3-dflash2-dual/overlay/build_exl3_fat_moe_ext.py",
-      "rule": "reportMissingImports",
-      "count": 2,
-      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
-    },
-    {
       "file": "adapters/glm/mia-exl3-dflash2-dual/overlay/dflash2_speculator.py",
       "rule": "reportIndexIssue",
       "count": 2,

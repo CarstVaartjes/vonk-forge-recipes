@@ -248,27 +248,25 @@ _FAT_MOE_EXT_CACHE: list = []
 def load_fat_moe_ext():
     """Module carrying the E3 kernels, or None.
 
-    Two supported sources: the tested additive `exl3_fat_moe_ext` module
-    (compiled without ``--use_fast_math``) or exllamav3_ext itself (bindings
-    patched at the full image build by patch_exl3_fat_kernel.py). Prefer the
-    additive module when both are present so E3 keeps the validated rounding
-    behavior. Resolved once.
+    Two supported sources: exllamav3_ext itself (bindings patched at the
+    full image build by patch_exl3_fat_kernel.py) or the additive
+    `exl3_fat_moe_ext` module (layered candidate image). Resolved once.
     """
     if _FAT_MOE_EXT_CACHE:
         return _FAT_MOE_EXT_CACHE[0]
     found = None
     try:
-        import exl3_fat_moe_ext
-
-        if all(hasattr(exl3_fat_moe_ext, name) for name in EXL3_FAT_MOE_SYMBOLS):
-            found = exl3_fat_moe_ext
+        ext = load_exllamav3_ext()
+        if all(hasattr(ext, name) for name in EXL3_FAT_MOE_SYMBOLS):
+            found = ext
     except Exception:  # noqa: BLE001  (extension availability probe)
         found = None
     if found is None:
         try:
-            ext = load_exllamav3_ext()
-            if all(hasattr(ext, name) for name in EXL3_FAT_MOE_SYMBOLS):
-                found = ext
+            import exl3_fat_moe_ext
+
+            if all(hasattr(exl3_fat_moe_ext, name) for name in EXL3_FAT_MOE_SYMBOLS):
+                found = exl3_fat_moe_ext
         except Exception:  # noqa: BLE001  (extension availability probe)
             found = None
     _FAT_MOE_EXT_CACHE.append(found)
@@ -1784,7 +1782,7 @@ class Exl3Config(QuantizationConfig):
         if isinstance(layer, LinearBase):
             group = _glm53_dense_fp8_group(prefix)  # [glm53-dense-fp8]
             if group is not None:
-                return Glm53DenseFp8Method(group)
+                return Glm53DenseFp8Method(group, prefix)
             return UnquantizedLinearMethod()
         return None
 
@@ -1868,16 +1866,46 @@ def _glm53_dense_fp8_group(
     return None
 
 
+_GLM53_TP3_UNALIGNED_KDA_SUFFIXES = (
+    ".self_attn.f_b_proj",
+    ".self_attn.g_b_proj",
+)
+
+
+def _glm53_use_marlin(group: str, prefix: str, tp_size: int) -> bool:
+    """Whether this projection's activation layout satisfies Marlin."""
+    # TP=3 f_a/g_a are 128-wide views of an 8,726-wide merged KDA projection.
+    # Their row pitch is not divisible by 8, and f_a's byte offset is not
+    # 16-aligned at capture size 1. Keeping just these two small projections in
+    # BF16 avoids invalid Marlin inputs and allocations inside CUDA graphs.
+    return not (
+        tp_size == 3
+        and group == "kda"
+        and prefix.endswith(_GLM53_TP3_UNALIGNED_KDA_SUFFIXES)
+    )
+
+
 class Glm53DenseFp8Method(UnquantizedLinearMethod):
     """BF16 weight at load time; per-output-channel FP8 e4m3 + Marlin at apply."""
 
-    def __init__(self, group: str) -> None:
+    def __init__(self, group: str, prefix: str) -> None:
         super().__init__()
         self.group = group
+        self.prefix = prefix
         self.ready = False
 
     def process_weights_after_loading(self, layer: torch.nn.Module) -> None:
         super().process_weights_after_loading(layer)
+        from vllm.distributed import get_tensor_model_parallel_world_size
+
+        tp_size = get_tensor_model_parallel_world_size()
+        if not _glm53_use_marlin(self.group, self.prefix, tp_size):
+            logger.warning_once(
+                "[glm53-dense-fp8] TP=3 keeps KDA f_b_proj/g_b_proj in BF16 "
+                "because their merged-projection views violate Marlin input "
+                "pitch/alignment requirements"
+            )
+            return
         from vllm.model_executor.layers.quantization.utils.marlin_utils_fp8 import (
             prepare_fp8_layer_for_marlin,
         )
