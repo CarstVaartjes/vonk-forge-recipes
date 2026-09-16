@@ -92,7 +92,7 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         arguments = {item["name"]: item for item in recipe["runtime"]["arguments"]}
         self.assertEqual(
             recipe["provenance"]["source_reference"],
-            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/9c0794b68d7fc124f79104409ab434769503fb31",
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c",
         )
         self.assertEqual(
             recipe["execution"]["build"]["base_image"]["digest"],
@@ -103,6 +103,17 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertEqual(arguments["max-num-batched-tokens"]["value"], 7168)
         self.assertEqual(arguments["kv-cache-dtype"]["value"], "fp8")
         self.assertEqual(arguments["quantization"]["value"], "exl3")
+        # vLLM spells this --no-enable-flashinfer-autotune; the earlier
+        # disable-flashinfer-autotune was not a real flag and must not return.
+        self.assertIn("no-enable-flashinfer-autotune", arguments)
+        self.assertNotIn("disable-flashinfer-autotune", arguments)
+        # The Dockerfile installs instanttensor before this is declared.
+        self.assertEqual(arguments["load-format"]["value"], "instanttensor")
+        self.assertEqual(arguments["mm-processor-cache-gb"]["value"], 1)
+        self.assertEqual(
+            json.loads(arguments["mm-processor-kwargs"]["value"]),
+            {"max_image_tokens": 2048},
+        )
         self.assertEqual(
             arguments["chat-template"]["value"], "/opt/glm53/chat_template.jinja"
         )
@@ -180,7 +191,9 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertTrue((ADAPTER / "upstream-LICENSE-MIT").is_file())
         self.assertTrue((ADAPTER / "upstream-start.sh").is_file())
         self.assertIn("overlay/exl3_fat_moe.cu", dockerfile)
-        self.assertIn("build_exl3_fat_moe_ext.py", dockerfile)
+        self.assertIn("patch_exl3_fat_kernel.py", dockerfile)
+        self.assertNotIn("build_exl3_fat_moe_ext.py", dockerfile)
+        self.assertIn("instanttensor==0.2.0", dockerfile)
         self.assertIn("patch_adaptive_k.py", dockerfile)
         self.assertIn("patch_dense_fp8.py", dockerfile)
         self.assertIn("EXL3_FAT_GROUPED=1", dockerfile)
@@ -196,10 +209,17 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
             item["name"]: item["value"] for item in recipe["runtime"]["environment"]
         }
         self.assertEqual(environment["EXL3_FAT_GROUPED"], "1")
+        self.assertEqual(environment["EXL3_FAT_KERNEL"], "1")
         self.assertEqual(environment["EXL3_TEMP_ROWS_FUSED"], "32")
         self.assertEqual(environment["GLM53_INDEXER_WORKSPACE"], "rightsize")
         self.assertEqual(environment["GLM53_ADAPTIVE_K"], "off")
         self.assertEqual(environment["GLM53_DENSE_FP8"], "off")
+        # Upstream main defaults the mixed-prefill policy to fair; the
+        # GLM53_FAIR_PREFILL_* legs only apply under that policy.
+        self.assertEqual(environment["GLM53_MIXED_PREFILL_CHUNK"], "fair")
+        self.assertEqual(environment["GLM53_APC_NO_STORE"], "1")
+        self.assertEqual(environment["GLM53_KV_CAPACITY_LOG"], "1")
+        self.assertEqual(environment["GLM53_SPINWAIT_MS"], "stock")
         self.assertIn("AGPL-3.0", recipe["metadata"]["description"])
         self.assertIn("AGPL-3.0", recipe["provenance"]["attribution"][-4])
 
