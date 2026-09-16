@@ -232,7 +232,7 @@
     {
       "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/utils/torch_utils.py",
       "rule": "reportMissingImports",
-      "count": 21,
+      "count": 19,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
@@ -442,7 +442,7 @@
     {
       "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_ablit.py",
       "rule": "reportMissingImports",
-      "count": 2,
+      "count": 1,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
@@ -1076,12 +1076,6 @@
       "reason": "The contracts package is type-checked without its full optional dependency set installed in the host environment."
     },
     {
-      "file": "tests/conftest.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "This file must import pytest to declare the shared session fixture, and the pinned pyright environment installs no test runner, so the import cannot resolve here. The suite itself exercises it."
-    },
-    {
       "file": "tests/fixtures/canonical-synthetic-canary/context/request_contract.py",
       "rule": "reportMissingImports",
       "count": 1,
@@ -1102,7 +1096,7 @@
     {
       "file": "tests/test_canonical_synthetic_canary.py",
       "rule": "reportMissingImports",
-      "count": 3,
+      "count": 2,
       "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
@@ -1116,12 +1110,6 @@
       "rule": "reportArgumentType",
       "count": 1,
       "reason": "The test deliberately passes partial or malformed values to prove the producer refuses them."
-    },
-    {
-      "file": "tests/test_catalog_index_source_commit.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
       "file": "tests/test_contracts.py",
@@ -1143,12 +1131,6 @@
     },
     {
       "file": "tests/test_contracts.py",
-      "rule": "reportMissingImports",
-      "count": 2,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
-      "file": "tests/test_deepseek_sparkinfer_argument_passthrough.py",
       "rule": "reportMissingImports",
       "count": 1,
       "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
@@ -1198,7 +1180,7 @@
     {
       "file": "tests/test_ltx_job_inputs.py",
       "rule": "reportMissingImports",
-      "count": 3,
+      "count": 2,
       "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
@@ -1376,12 +1358,6 @@
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
-      "file": "tests/test_recipe_build_inputs.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
       "file": "tests/test_recipe_deployment_guidance.py",
       "rule": "reportGeneralTypeIssues",
       "count": 1,
@@ -1480,7 +1456,7 @@
     {
       "file": "tests/test_test_report_contract.py",
       "rule": "reportMissingImports",
-      "count": 2,
+      "count": 1,
       "reason": "The tests are type-checked without the optional pydantic and pytest dependencies installed in the checking environment."
     },
     {

@@ -193,9 +193,18 @@ def test_editing_one_recipe_changes_only_that_package(
     assert (
         package["media_type"] == "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
     )
+    # `recipe_package` renders exactly the one document it is handed, so editing
+    # a recipe cannot reach another one: re-rendering every untouched recipe has
+    # to reproduce the bytes `build()` wrote for it. Reading the built archive
+    # back would only compare a file with itself.
     for row in rows[1:]:
         filename = Path(str(row["package"]["path"])).name
-        assert (package_dir / filename).read_bytes() == original[filename]
+        rebuilt, _metadata = TOOL["recipe_package"](
+            row["document"],
+            recipe_path=ROOT / str(row["source_path"]),
+            entity_documents=entities,
+        )
+        assert rebuilt == original[filename], filename
 
 
 def test_supplied_source_commit_only_changes_index_metadata(tmp_path: Path) -> None:

@@ -332,7 +332,21 @@ def validate_recipe_archive(
     recipe: dict[str, object],
     entities: dict[str, dict[str, object]] | None = None,
 ) -> None:
-    """Validate the physical immutable archive closure, including entrypoints."""
+    """Validate the physical immutable archive closure, including entrypoints.
+
+    This is a producer self-check: `recipe_package` calls it on the archive it
+    assembled a line earlier, so it never sees bytes it did not just write. The
+    hostile-input branches below (unsafe member paths, non-regular members,
+    duplicate names, undeclared or missing members, stale member metadata)
+    therefore cannot fire from that call site; they stay as a fail-closed guard
+    against a regression in `_archive` or `_recipe_closure` that would let such a
+    member into a generated package.
+
+    The copy that does parse untrusted bytes is the control plane's
+    `RecipePackageClient._decode_package`, and its adversarial archive cases live
+    with it in control/tests/test_recipe_package_archive_safety.py, because only
+    that side meets an adversary.
+    """
     entities = entities or _catalog_entity_documents()
     from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256
     from vonk_forge_contracts.resolver import validate_model_references
