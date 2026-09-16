@@ -968,6 +968,18 @@
       "reason": "The value is subscripted after a validator has established its shape."
     },
     {
+      "file": "contracts/src/vonk_forge_contracts/recipe_test_report.py",
+      "rule": "reportInvalidTypeForm",
+      "count": 8,
+      "reason": "The annotated form is valid Pydantic runtime typing that pyright's basic mode does not model, exactly as for model.py and recipe.py."
+    },
+    {
+      "file": "contracts/src/vonk_forge_contracts/recipe_test_report.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "The contracts package is type-checked without its full optional dependency set installed in the host environment."
+    },
+    {
       "file": "tests/fixtures/canonical-synthetic-canary/context/request_contract.py",
       "rule": "reportMissingImports",
       "count": 1,
@@ -1374,6 +1386,12 @@
       "rule": "reportCallIssue",
       "count": 1,
       "reason": "The call target is loaded dynamically in the test."
+    },
+    {
+      "file": "tests/test_test_report_contract.py",
+      "rule": "reportMissingImports",
+      "count": 2,
+      "reason": "The tests are type-checked without the optional pydantic and pytest dependencies installed in the checking environment."
     },
     {
       "file": "tests/test_three_d_glb_validation.py",
