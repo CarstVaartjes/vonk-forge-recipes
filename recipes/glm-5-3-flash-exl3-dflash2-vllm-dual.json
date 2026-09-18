@@ -1888,6 +1888,23 @@
   "release": {
     "history": [
       {
+        "version": "1.6.1",
+        "released_at": "2026-09-18",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "529c33afd6c0cc08b5a023642ad9f4dc3b450321ede87440220a1b34496da731",
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Apply the overlay that disables the GB10 persistent_topk guard, and stop the loader's free-memory estimate from refusing a buffer the node can allocate.",
+            "details": "The image copied overlay/patch_glm_video_placeholders.py but never ran it: GLM53_OVERLAY_ORDER applies it first inside the container, and this platform runs the workload with a read-only root, so the one overlay that rewrites an installed vLLM file never landed. The workload then died in worker initialization with \"launch_persistent_topk, topk.cu:138, persistent_topk would oversubscribe and the FilteredTopK fallback requires >=128KB smem per block (have 101376)\". The build applies it now, and verify-runtime.py fails closed unless the kpool guard carries the overlay marker and is disabled. The loader's own estimate is relaxed too: --load-format instanttensor refused a 1,268,776,960 B buffer against about 950 MB of reported free memory on a node reporting 126 GB available, because that reading excludes reclaimable page cache. A budget estimate may warn but must not refuse work the node can satisfy, so INSTANTTENSOR_MAX_FREE_MEM_USAGE is 2.0 and the allocator decides.",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/blob/bc68f310/upstream-start.sh",
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/blob/bc68f310/upstream-README.md"
+            ]
+          }
+        ]
+      },
+      {
         "version": "1.6.0",
         "released_at": "2026-09-16",
         "upgrade_effect": "rebuild",
@@ -1923,10 +1940,10 @@
             "details": "Adds --load-format instanttensor, --mm-processor-cache-gb 1 and --mm-processor-kwargs {\"max_image_tokens\":2048}; keeps max-model-len and max-num-seqs setting-bound to context_tokens=850000 and concurrency=4; keeps compilation-config cudagraph_capture_sizes [1,2,4,8,16,24,32], upstream's DFlash2 branch value (1 2 3 4 6 8 12 is the MTP branch this recipe does not take). Declares GLM53_MIXED_PREFILL_CHUNK=fair with GLM53_FAIR_PREFILL_*, GLM53_APC_NO_STORE=1, GLM53_KV_CAPACITY_LOG=1, GLM53_SPINWAIT_MS=stock and EXL3_FAT_KERNEL=1. Upstream's DEFAULT_MAX_NEW_TOKENS and GLM53_BOOT_SHAPE_WARMUP are deliberately not declared: the launcher applies them through overlay/patch_default_max_new_tokens.py and scripts/boot-shape-warmup.sh, which this recipe does not vendor or run, so declaring them here would be inert.",
             "references": [
               "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c"
-]
-}
-]
-},
+            ]
+          }
+        ]
+      },
       {
         "version": "1.5.2",
         "released_at": "2026-09-16",
@@ -2142,8 +2159,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-16",
-    "version": "1.6.0"
+    "released_at": "2026-09-18",
+    "version": "1.6.1"
   },
   "runtime": {
     "arguments": [
@@ -2464,6 +2481,11 @@
         "name": "NCCL_DEBUG",
         "secret": null,
         "value": "WARN"
+      },
+      {
+        "name": "INSTANTTENSOR_MAX_FREE_MEM_USAGE",
+        "secret": null,
+        "value": "2.0"
       }
     ],
     "lifecycle": {
