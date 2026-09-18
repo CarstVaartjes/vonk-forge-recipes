@@ -73,4 +73,33 @@ try:
 except Exception as exc:  # pragma: no cover - exercised by image build
     raise SystemExit(f"incomplete instanttensor loader: {exc}") from exc
 
+# The overlay that rewrites an installed vLLM file is applied at image build
+# time (the container root is read-only at run time), so the image has to prove
+# it landed rather than trusting that some later start-time hook ran. Two
+# independent facts: the kpool guard carries the overlay's own marker and is
+# disabled, and the video alignment is installed as a .pth that every process
+# imports.
+kpool_path = Path(
+    "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/"
+    "sparse_attn_indexer_kpool.py"
+)
+if not kpool_path.is_file():
+    raise SystemExit(f"incomplete GLM 5.3 overlay: {kpool_path} is absent")
+kpool = kpool_path.read_text()
+if "persistent_topk" not in kpool:
+    raise SystemExit(
+        "incomplete GLM 5.3 overlay: the GB10 persistent_topk guard is absent "
+        "from sparse_attn_indexer_kpool.py, so the overlay did not run"
+    )
+if "if False and current_platform.is_cuda()" not in kpool:
+    raise SystemExit(
+        "incomplete GLM 5.3 overlay: the GB10 persistent_topk guard is still "
+        "enabled in sparse_attn_indexer_kpool.py"
+    )
+video_pth = Path("/usr/local/lib/python3.12/dist-packages/glm53_video.pth")
+if not video_pth.is_file():
+    raise SystemExit(
+        f"incomplete GLM 5.3 overlay: the video alignment is not installed: {video_pth}"
+    )
+
 print("Mia GLM 5.3 EXL3 DFlash2 runtime contract OK")

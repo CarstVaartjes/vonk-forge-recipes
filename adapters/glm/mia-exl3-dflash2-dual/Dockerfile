@@ -185,6 +185,16 @@ RUN python3 /opt/glm53/patch_model_overrides.py
 RUN python3 /opt/glm53/patch_dflash2.py
 RUN python3 /opt/glm53/patch_glm_eagle3.py
 RUN python3 /opt/glm53/patch_glm5_drafter_group.py
+# GLM53_OVERLAY_ORDER applies this overlay first inside the container at run
+# time.  This image's root is mounted read-only when the workload runs, so the
+# one overlay that rewrites an installed vLLM file has to be applied here
+# instead: it disables the decode-path persistent_topk guard, which
+# oversubscribes GB10 shared memory on long sequences (the live failure reads
+# "persistent_topk would oversubscribe and the FilteredTopK fallback requires
+# >=128KB smem per block"), and it installs the video-timestamp alignment as a
+# .pth so every process, workers included, imports it.  verify-runtime.py then
+# proves both.
+RUN python3 /opt/glm53/patch_glm_video_placeholders.py
 RUN python3 /opt/glm53/patch_suppress_stops_in_reasoning.py
 RUN python3 /opt/glm53/patch_scheduler_decode_floor.py
 # Retention preflight runs BEFORE both overlays that edit kv_cache_coordinator.py
