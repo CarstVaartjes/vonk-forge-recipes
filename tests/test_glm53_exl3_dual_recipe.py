@@ -223,6 +223,48 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertIn("AGPL-3.0", recipe["metadata"]["description"])
         self.assertIn("AGPL-3.0", recipe["provenance"]["attribution"][-4])
 
+    def test_the_overlay_that_disables_persistent_topk_is_applied_at_build_time(
+        self,
+    ) -> None:
+        # The workload runs with a read-only root, so the one overlay that
+        # rewrites an installed vLLM file cannot be applied at run time the way
+        # GLM53_OVERLAY_ORDER applies it upstream. A live worker failure named the
+        # guard it disables: "launch_persistent_topk, topk.cu:138,
+        # persistent_topk would oversubscribe and the FilteredTopK fallback
+        # requires >=128KB smem per block (have 101376). total_ctas=73 >
+        # num_sms*occupancy=48".
+        dockerfile = (ADAPTER / "Dockerfile").read_text()
+        self.assertIn("COPY overlay/patch_glm_video_placeholders.py", dockerfile)
+        applied = "RUN python3 /opt/glm53/patch_glm_video_placeholders.py"
+        self.assertIn(applied, dockerfile)
+        # It rewrites the same file the tail-slotmap overlay does, and
+        # GLM53_OVERLAY_ORDER runs it before that one.
+        self.assertLess(
+            dockerfile.index(applied),
+            dockerfile.index("RUN python3 /opt/glm53/patch_kpool_tail_slotmap.py"),
+        )
+        # The build proves the guard is disabled rather than trusting the RUN.
+        verify = (ADAPTER / "verify-runtime.py").read_text()
+        self.assertIn('"persistent_topk" not in kpool', verify)
+        self.assertIn('"if False and current_platform.is_cuda()" not in kpool', verify)
+
+    def test_the_loader_budget_cannot_refuse_a_buffer_the_node_can_allocate(
+        self,
+    ) -> None:
+        # instanttensor refuses its staging buffer when it exceeds
+        # torch.cuda.mem_get_info().free times this fraction, and on a
+        # unified-memory Spark that reading excludes the reclaimable page cache of
+        # the model the platform just copied: a live cycle reported about 950 MB
+        # free on a node reporting 126 GB available and refused the 1,268,776,960 B
+        # buffer the checkpoint's largest tensor needs. The fraction must admit a
+        # buffer larger than the reading, which keeps the estimate a warning and
+        # leaves the allocator the owner of whether the allocation succeeds.
+        recipe = load(RECIPE)
+        environment = {
+            item["name"]: item["value"] for item in recipe["runtime"]["environment"]
+        }
+        self.assertGreater(float(environment["INSTANTTENSOR_MAX_FREE_MEM_USAGE"]), 1.0)
+
     def test_adapter_bundle_is_pinned(self) -> None:
         import runpy
 
