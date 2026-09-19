@@ -44,7 +44,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public bc68f310 EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its tested 2x DGX Spark EXL3/TR3 4 bpw target with the retained bf582e4e DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 850k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. Vonk physical acceptance and checkpoint requalification remain pending.",
+    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public bc68f310 EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its tested 2x DGX Spark EXL3/TR3 4 bpw target with the retained bf582e4e DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 850k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. The build applies the GB10 persistent-topk overlay and verify-runtime.py fails closed unless the kpool guard carries its marker, so an image without it cannot be promoted. Vonk physical acceptance and checkpoint requalification remain pending.",
     "tags": [
       "candidate",
       "dflash2",
@@ -1888,6 +1888,20 @@
   "release": {
     "history": [
       {
+        "version": "1.6.2",
+        "released_at": "2026-09-19",
+        "upgrade_effect": "none",
+        "prior_recipe_content_sha256": "38b9a2a034de946e93dacdfd5ebc25a5eb916971daf15d1931e637fdb1384126",
+        "changes": [
+          {
+            "kind": "metadata",
+            "summary": "Record the build-time state of the GB10 topk overlay in the recipe metadata; no executable input changes.",
+            "details": "The 1.6.1 revision applies overlay/patch_glm_video_placeholders.py during the image build and verify-runtime.py fails closed unless the kpool guard carries the overlay marker, so the metadata now names that guarantee instead of leaving it implicit in the adapter. The build arguments, base image, Dockerfile, runtime arguments and environment are unchanged, so an installed 1.6.1 workload keeps its image and needs no restart, no re-preparation and no rebuild.",
+            "references": []
+          }
+        ]
+      },
+      {
         "version": "1.6.1",
         "released_at": "2026-09-18",
         "upgrade_effect": "rebuild",
@@ -2159,8 +2173,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-18",
-    "version": "1.6.1"
+    "released_at": "2026-09-19",
+    "version": "1.6.2"
   },
   "runtime": {
     "arguments": [
