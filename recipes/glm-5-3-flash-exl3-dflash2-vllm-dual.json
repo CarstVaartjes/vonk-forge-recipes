@@ -1888,6 +1888,20 @@
   "release": {
     "history": [
       {
+        "version": "1.6.4",
+        "released_at": "2026-09-20",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "c52698cd3b67b038f0e311dff8ff244ae23a8c084918c2b2985df18dc61d8029",
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Give this revision its own build identity so the Controller can install it.",
+            "details": "A runtime-only successor reuses the earlier revision's verified archive, and the Controller then keeps that earlier revision's build identity. Install admission compares the selected build's recipe revision with the active one and refuses the plan with \"successful recipe build does not match the mapping\", so the profile could not switch to a revision whose only changes were runtime arguments. The image now carries VONK_GLM53_RECIPE_REVISION, which changes the build input and therefore produces a build bound to this revision, and it also makes the running image's recipe revision visible from inside the container.",
+            "references": []
+          }
+        ]
+      },
+      {
         "version": "1.6.3",
         "released_at": "2026-09-20",
         "upgrade_effect": "restart",
@@ -2188,7 +2202,7 @@
       }
     ],
     "released_at": "2026-09-20",
-    "version": "1.6.3"
+    "version": "1.6.4"
   },
   "runtime": {
     "arguments": [
