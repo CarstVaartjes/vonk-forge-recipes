@@ -98,7 +98,9 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
             recipe["execution"]["build"]["base_image"]["digest"],
             "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce",
         )
-        self.assertEqual(arguments["gpu-memory-utilization"]["value"], "0.85")
+        # The declared envelope is sized so the node can actually cover it: the agent
+        # requires MemAvailable >= reserved + 4 GB and the Sparks report ~125.5 GB.
+        self.assertEqual(arguments["gpu-memory-utilization"]["value"], "0.84")
         # The engine caps this configuration at about 394240 tokens on a
         # measured 126 GB GB10 node at gpu-memory-utilization 0.85, so the
         # declared context is the 320k this envelope can actually serve.
