@@ -44,7 +44,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public bc68f310 EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its tested 2x DGX Spark EXL3/TR3 4 bpw target with the retained bf582e4e DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 850k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. The build applies the GB10 persistent-topk overlay and verify-runtime.py fails closed unless the kpool guard carries its marker, so an image without it cannot be promoted. Vonk physical acceptance and checkpoint requalification remain pending.",
+    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public bc68f310 EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its tested 2x DGX Spark EXL3/TR3 4 bpw target with the retained bf582e4e DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 320k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. The build applies the GB10 persistent-topk overlay and verify-runtime.py fails closed unless the kpool guard carries its marker, so an image without it cannot be promoted. The declared context is 320k rather than upstream's 850k because the engine's own KV check caps this configuration at about 394k on the measured 126 GB GB10 node with gpu-memory-utilization 0.85, and the recipe's declared memory envelope forbids raising that utilization further. Vonk physical acceptance and checkpoint requalification remain pending.",
     "tags": [
       "candidate",
       "dflash2",
@@ -1888,6 +1888,20 @@
   "release": {
     "history": [
       {
+        "version": "1.6.3",
+        "released_at": "2026-09-20",
+        "upgrade_effect": "restart",
+        "prior_recipe_content_sha256": "b0958b8ba0687c427013b5898988fd607690659a281669a7665c3a4fb650e336",
+        "changes": [
+          {
+            "kind": "breaking",
+            "summary": "Declare a 320k context the engine can actually serve on a GB10 node.",
+            "details": "The workload reaches engine initialization and dies in vLLM's own KV check: \"To serve at least one request with the model's max seq len (850000), (13.46 GiB KV cache is needed, which is larger than the available KV cache memory (10.24 GiB). Based on the available memory, the estimated maximum model length is 394240.\" The measured nodes report about 126 GB MemAvailable, and this envelope (122 GB startup peak, 2 GB system reserve, the Controller's 4 GB floor) allows a gpu-memory-utilization of at most about 0.86, roughly 10.9 GiB of KV. Fitting 850k would put the declared envelope above the node's measured free memory, so the declared context becomes 320k, about 17 percent below the engine's own 394240 estimate for this configuration. Only runtime arguments and the declared context change: the image, build inputs, base image, Dockerfile, environment and topology are untouched, so an installed workload restarts and needs no rebuild.",
+            "references": []
+          }
+        ]
+      },
+      {
         "version": "1.6.2",
         "released_at": "2026-09-19",
         "upgrade_effect": "none",
@@ -2173,8 +2187,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-19",
-    "version": "1.6.2"
+    "released_at": "2026-09-20",
+    "version": "1.6.3"
   },
   "runtime": {
     "arguments": [
@@ -2520,7 +2534,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 850000
+      "value": 327680
     },
     "kind": "generation",
     "knobs": {},

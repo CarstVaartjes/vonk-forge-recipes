@@ -99,7 +99,10 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
             "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce",
         )
         self.assertEqual(arguments["gpu-memory-utilization"]["value"], "0.85")
-        self.assertEqual(recipe["settings"]["context_tokens"]["value"], 850000)
+        # The engine caps this configuration at about 394240 tokens on a
+        # measured 126 GB GB10 node at gpu-memory-utilization 0.85, so the
+        # declared context is the 320k this envelope can actually serve.
+        self.assertEqual(recipe["settings"]["context_tokens"]["value"], 327680)
         self.assertEqual(arguments["max-num-batched-tokens"]["value"], 7168)
         self.assertEqual(arguments["kv-cache-dtype"]["value"], "fp8")
         self.assertEqual(arguments["quantization"]["value"], "exl3")
