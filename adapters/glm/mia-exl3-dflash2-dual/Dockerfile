@@ -282,7 +282,12 @@ ENV HF_HUB_OFFLINE=1 \
     EXL3_FAT_GROUPED=1 \
     EXL3_TEMP_ROWS_FUSED=32 \
     GLM53_ADAPTIVE_K=off \
-    GLM53_DENSE_FP8=off
+    GLM53_DENSE_FP8=off \
+    # Records the recipe revision inside the image.  A runtime-only recipe change
+    # reuses the earlier archive, so the Controller keeps the earlier revision's build
+    # identity and install admission refuses the plan; an image change gives this
+    # revision its own build.
+    VONK_GLM53_RECIPE_REVISION=1.6.4
 
 WORKDIR /state
 USER 10001:10001
