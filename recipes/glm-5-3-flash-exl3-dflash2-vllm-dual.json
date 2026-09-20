@@ -1888,6 +1888,20 @@
   "release": {
     "history": [
       {
+        "version": "1.6.5",
+        "released_at": "2026-09-20",
+        "upgrade_effect": "restart",
+        "prior_recipe_content_sha256": "af217c8fc6b2e7e3b9d05fbb6a75387348209f72b25d2fcbb28e825e08c69f34",
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Fit the declared memory envelope under the node's measured available memory.",
+            "details": "The start was refused with \"local memory capacity changed after run admission\": the agent requires MemAvailable to cover the plan's reserved memory plus a fixed 4 GB, and both Sparks report about 125.5 GB available against the 122 GB this recipe declared, so the workload missed by roughly half a gigabyte. A declared envelope derives from gpu-memory-utilization (130.66 GB times the fraction plus 9 GiB of initialization outside vLLM's budget), so the utilization comes down to 0.84 and the declared peak to 120 GB, which leaves 1.5 GB of slack on the measured nodes while the KV budget for the declared 320k context stays at about 9.6 GiB against the roughly 5.2 GiB that context needs. Only runtime arguments and the declared envelope change; the image is untouched, so an installed workload restarts. The image also carries VONK_GLM53_RECIPE_REVISION=1.6.5 so this revision gets its own build identity rather than reusing the previous archive.",
+            "references": []
+          }
+        ]
+      },
+      {
         "version": "1.6.4",
         "released_at": "2026-09-20",
         "upgrade_effect": "rebuild",
@@ -2202,7 +2216,7 @@
       }
     ],
     "released_at": "2026-09-20",
-    "version": "1.6.4"
+    "version": "1.6.5"
   },
   "runtime": {
     "arguments": [
@@ -2239,7 +2253,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.85"
+        "value": "0.84"
       },
       {
         "name": "max-model-len",
@@ -2586,8 +2600,8 @@
           "memory": {
             "kind": "unified",
             "runtime_growth_bytes": 2500000000,
-            "startup_peak_bytes": 122000000000,
-            "steady_state_bytes": 119500000000,
+            "startup_peak_bytes": 120000000000,
+            "steady_state_bytes": 117500000000,
             "system_reserve_bytes": 2000000000
           }
         }
@@ -2608,8 +2622,8 @@
           "memory": {
             "kind": "unified",
             "runtime_growth_bytes": 2500000000,
-            "startup_peak_bytes": 122000000000,
-            "steady_state_bytes": 119500000000,
+            "startup_peak_bytes": 120000000000,
+            "steady_state_bytes": 117500000000,
             "system_reserve_bytes": 2000000000
           }
         }
