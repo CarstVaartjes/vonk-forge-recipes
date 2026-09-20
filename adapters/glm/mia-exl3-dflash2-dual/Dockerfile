@@ -287,7 +287,7 @@ ENV HF_HUB_OFFLINE=1 \
     # reuses the earlier archive, so the Controller keeps the earlier revision's build
     # identity and install admission refuses the plan; an image change gives this
     # revision its own build.
-    VONK_GLM53_RECIPE_REVISION=1.6.4
+    VONK_GLM53_RECIPE_REVISION=1.6.5
 
 WORKDIR /state
 USER 10001:10001
