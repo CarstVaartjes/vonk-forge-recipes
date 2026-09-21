@@ -101,10 +101,10 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         # The declared envelope is sized so the node can actually cover it: the agent
         # requires MemAvailable >= reserved + 4 GB and the Sparks report ~125.5 GB.
         self.assertEqual(arguments["gpu-memory-utilization"]["value"], "0.84")
-        # The engine caps this configuration at about 394240 tokens on a
-        # measured 126 GB GB10 node at gpu-memory-utilization 0.85, so the
-        # declared context is the 320k this envelope can actually serve.
-        self.assertEqual(recipe["settings"]["context_tokens"]["value"], 327680)
+        # The engine measures its own ceiling: at gpu-memory-utilization 0.84 it
+        # offers 9.05 GiB of KV and estimates a maximum of 225792 tokens, so the
+        # declared context is the 192k that budget actually serves.
+        self.assertEqual(recipe["settings"]["context_tokens"]["value"], 196608)
         self.assertEqual(arguments["max-num-batched-tokens"]["value"], 7168)
         self.assertEqual(arguments["kv-cache-dtype"]["value"], "fp8")
         self.assertEqual(arguments["quantization"]["value"], "exl3")
