@@ -1888,6 +1888,20 @@
   "release": {
     "history": [
       {
+        "version": "1.6.6",
+        "released_at": "2026-09-20",
+        "upgrade_effect": "restart",
+        "prior_recipe_content_sha256": "85679aceb9ff27db9082bfd107a81be719343d6f416359d15b377b3d41f643ca",
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Declare a 192k context that fits the KV budget the engine actually measures.",
+            "details": "With the 320k context the engine started and refused it in its own KV sizing: \"To serve at least one request with the model's max seq len (327680), (9.76 GiB KV cache is needed, which is larger than the available KV cache memory (9.05 GiB). Based on the available memory, the estimated maximum model length is 225792.\" At gpu-memory-utilization 0.84 this node offers 9.05 GiB of KV, so the earlier estimate that scaled the 850k measurement down by context length was wrong: the need has a large fixed component beside the per-token part. 196608 (192k) sits about 13 percent below the engine's own 225792 ceiling, so it fits with margin, while utilization stays at 0.84 and the declared 120 GB envelope stays inside the node's measured 125.5 GB. The image carries VONK_GLM53_RECIPE_REVISION=1.6.6 so this revision gets its own build identity instead of reusing the previous archive. Only the declared context and that image marker change.",
+            "references": []
+          }
+        ]
+      },
+      {
         "version": "1.6.5",
         "released_at": "2026-09-20",
         "upgrade_effect": "restart",
@@ -2216,7 +2230,7 @@
       }
     ],
     "released_at": "2026-09-20",
-    "version": "1.6.5"
+    "version": "1.6.6"
   },
   "runtime": {
     "arguments": [
@@ -2562,7 +2576,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 327680
+      "value": 196608
     },
     "kind": "generation",
     "knobs": {},
