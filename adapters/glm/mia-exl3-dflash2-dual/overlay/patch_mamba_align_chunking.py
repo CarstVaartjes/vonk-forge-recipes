@@ -40,6 +40,7 @@ Usage:
 
 Idempotent; a partially applied or drifted source fails before writing.
 """
+
 from __future__ import annotations
 
 import os
@@ -130,7 +131,9 @@ def verify_complete(text: str) -> list[str]:
     for _, _, new in EDITS:
         stripped = stripped.replace(new, "")
     problems += [
-        f"{label}: superseded form still present" for label, old, _ in EDITS if old in stripped
+        f"{label}: superseded form still present"
+        for label, old, _ in EDITS
+        if old in stripped
     ]
     try:
         compile(text, str(P), "exec")
@@ -152,7 +155,9 @@ def main() -> int:
         for label, old, new in EDITS:
             text = replace_once(text, old, new, label)
     if problems := verify_complete(text):
-        raise SystemExit(f"{P}: incomplete or drifted overlay state: " + "; ".join(problems))
+        raise SystemExit(
+            f"{P}: incomplete or drifted overlay state: " + "; ".join(problems)
+        )
     if text != P.read_text():
         P.write_text(text)
     print(f"patched {P.name} ({MARK})")

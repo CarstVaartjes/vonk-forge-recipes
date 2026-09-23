@@ -37,6 +37,7 @@ Usage:
 Idempotent; a partially applied or drifted source fails before writing either
 file. Both files are preflighted before either is written.
 """
+
 from __future__ import annotations
 
 import os
@@ -203,9 +204,13 @@ def verify_complete(path: Path, text: str, edits, stale_names=()) -> list[str]:
     for _, _, new in edits:
         stripped = stripped.replace(new, "")
     problems += [
-        f"{label}: superseded form still present" for label, old, _ in edits if old in stripped
+        f"{label}: superseded form still present"
+        for label, old, _ in edits
+        if old in stripped
     ]
-    problems += [f"{name}: stale reference remains" for name in stale_names if name in text]
+    problems += [
+        f"{name}: stale reference remains" for name in stale_names if name in text
+    ]
     try:
         compile(text, str(path), "exec")
     except SyntaxError as exc:
@@ -222,7 +227,9 @@ def prepare(path: Path, edits, stale_names=()) -> tuple[str, str]:
         for label, old, new in edits:
             text = replace_once(path, text, old, new, label)
     if problems := verify_complete(path, text, edits, stale_names):
-        raise SystemExit(f"{path}: incomplete or drifted overlay state: " + "; ".join(problems))
+        raise SystemExit(
+            f"{path}: incomplete or drifted overlay state: " + "; ".join(problems)
+        )
     return original, text
 
 

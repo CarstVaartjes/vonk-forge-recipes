@@ -209,7 +209,9 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
             dockerfile.index("RUN python3 /opt/glm53/patch_scheduler_decode_floor.py"),
             dockerfile.index("RUN python3 /opt/glm53/patch_mamba_align_chunking.py"),
         )
-        self.assertIn("RUN python3 /opt/glm53/patch_mamba_align_state_free.py", dockerfile)
+        self.assertIn(
+            "RUN python3 /opt/glm53/patch_mamba_align_state_free.py", dockerfile
+        )
         self.assertIn("RUN python3 /opt/glm53/patch_tool_choice_none.py", dockerfile)
         self.assertIn("python3 /opt/glm53/test_mamba_align_chunking.py", dockerfile)
         self.assertIn("python3 /opt/glm53/test_tool_choice_none.py", dockerfile)
