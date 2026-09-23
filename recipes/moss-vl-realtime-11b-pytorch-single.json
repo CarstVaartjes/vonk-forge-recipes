@@ -124,7 +124,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Pending single-DGX-Spark session-replay job for OpenMOSS MOSS-VL-Realtime. An ordered session.json drives the checkpoint's native realtime session while it remains active, including bounded timestamped frames, aligned or interrupting prompts, raw proactive-silence control tokens, and later correction chunks. The result contains a replay MP4 plus the authoritative JSONL transcript sidecar; this recipe does not expose the upstream interactive WebSocket, camera, or screen-capture service.",
+    "description": "Single-Spark MOSS-VL-Realtime 11B session-replay job using the exact d1f71a58 BF16 snapshot. It preserves the bounded MP4-plus-JSONL contract and adopts upstream cached-vision RoPE, preprocessing, system-prompt, and per-sample batched-vision fixes. Physical Spark acceptance remains pending.",
     "tags": [
       "executable",
       "pending",
@@ -148,8 +148,8 @@
     {
       "files": [
         {
-          "file_id": "metadata-0715d5b5b152",
-          "id": "primary-metadata-0715d5b5b152",
+          "file_id": "metadata-0715d5b5b152-618cd5b83d",
+          "id": "primary-metadata-0715d5b5b152-618cd5b83d",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -159,8 +159,8 @@
           ]
         },
         {
-          "file_id": "readme-b86dfa85b45e",
-          "id": "primary-readme-b86dfa85b45e",
+          "file_id": "readme-b86dfa85b45e-b335630551",
+          "id": "primary-readme-b86dfa85b45e-b335630551",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -170,8 +170,8 @@
           ]
         },
         {
-          "file_id": "architecture-28e51b34e031",
-          "id": "primary-architecture-28e51b34e031",
+          "file_id": "architecture-28e51b34e031-aa0ed6aa56",
+          "id": "primary-architecture-28e51b34e031-aa0ed6aa56",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -181,8 +181,8 @@
           ]
         },
         {
-          "file_id": "benchmark-streaming-7366164e8e0b",
-          "id": "primary-benchmark-streaming-7366164e8e0b",
+          "file_id": "benchmark-streaming-7366164e8e0b-f4b519c5c9",
+          "id": "primary-benchmark-streaming-7366164e8e0b-f4b519c5c9",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -192,8 +192,8 @@
           ]
         },
         {
-          "file_id": "logo-37bf0241f5fb",
-          "id": "primary-logo-37bf0241f5fb",
+          "file_id": "logo-37bf0241f5fb-90580d12fb",
+          "id": "primary-logo-37bf0241f5fb-90580d12fb",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -203,8 +203,8 @@
           ]
         },
         {
-          "file_id": "chat-template-d272c68bd115",
-          "id": "primary-chat-template-d272c68bd115",
+          "file_id": "chat-template-d272c68bd115-56edbbf8f7",
+          "id": "primary-chat-template-d272c68bd115-56edbbf8f7",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -214,8 +214,8 @@
           ]
         },
         {
-          "file_id": "config-ebab52596af1",
-          "id": "primary-config-ebab52596af1",
+          "file_id": "config-ebab52596af1-587cb980af",
+          "id": "primary-config-ebab52596af1-587cb980af",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -225,8 +225,8 @@
           ]
         },
         {
-          "file_id": "configuration-moss-vl-0603337d493e",
-          "id": "primary-configuration-moss-vl-0603337d493e",
+          "file_id": "configuration-moss-vl-0603337d493e-55d545c53a",
+          "id": "primary-configuration-moss-vl-0603337d493e-55d545c53a",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -236,8 +236,8 @@
           ]
         },
         {
-          "file_id": "generation-config-8b9afb365eaa",
-          "id": "primary-generation-config-8b9afb365eaa",
+          "file_id": "generation-config-8b9afb365eaa-97dd3d578b",
+          "id": "primary-generation-config-8b9afb365eaa-97dd3d578b",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -247,8 +247,8 @@
           ]
         },
         {
-          "file_id": "model-00001-of-00005-3fe2d46a92e3",
-          "id": "primary-model-00001-of-00005-3fe2d46a92e3",
+          "file_id": "model-00001-of-00005-3fe2d46a92e3-8453f51e85",
+          "id": "primary-model-00001-of-00005-3fe2d46a92e3-8453f51e85",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -258,8 +258,8 @@
           ]
         },
         {
-          "file_id": "model-00002-of-00005-18f357990793",
-          "id": "primary-model-00002-of-00005-18f357990793",
+          "file_id": "model-00002-of-00005-18f357990793-516421cb37",
+          "id": "primary-model-00002-of-00005-18f357990793-516421cb37",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -269,8 +269,8 @@
           ]
         },
         {
-          "file_id": "model-00003-of-00005-cecf1e02afe5",
-          "id": "primary-model-00003-of-00005-cecf1e02afe5",
+          "file_id": "model-00003-of-00005-cecf1e02afe5-05880bd763",
+          "id": "primary-model-00003-of-00005-cecf1e02afe5-05880bd763",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -280,8 +280,8 @@
           ]
         },
         {
-          "file_id": "model-00004-of-00005-57d794a266a1",
-          "id": "primary-model-00004-of-00005-57d794a266a1",
+          "file_id": "model-00004-of-00005-57d794a266a1-c340da1f8a",
+          "id": "primary-model-00004-of-00005-57d794a266a1-c340da1f8a",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -291,8 +291,8 @@
           ]
         },
         {
-          "file_id": "model-00005-of-00005-34009172ba73",
-          "id": "primary-model-00005-of-00005-34009172ba73",
+          "file_id": "model-00005-of-00005-34009172ba73-2bd52bf6f8",
+          "id": "primary-model-00005-of-00005-34009172ba73-2bd52bf6f8",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -302,8 +302,8 @@
           ]
         },
         {
-          "file_id": "model-safetensors-index-25dc84c05625",
-          "id": "primary-model-safetensors-index-25dc84c05625",
+          "file_id": "model-safetensors-index-25dc84c05625-0a05be8238",
+          "id": "primary-model-safetensors-index-25dc84c05625-0a05be8238",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -313,8 +313,8 @@
           ]
         },
         {
-          "file_id": "modeling-moss-vl-b594a48d7ef4",
-          "id": "primary-modeling-moss-vl-b594a48d7ef4",
+          "file_id": "modeling-moss-vl-278d1a6f18cc-c41619fc78",
+          "id": "primary-modeling-moss-vl-278d1a6f18cc-c41619fc78",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -324,8 +324,8 @@
           ]
         },
         {
-          "file_id": "preprocessor-config-94f62f9fd2d7",
-          "id": "primary-preprocessor-config-94f62f9fd2d7",
+          "file_id": "preprocessor-config-b4553631864a-36afccab5d",
+          "id": "primary-preprocessor-config-b4553631864a-36afccab5d",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -335,8 +335,8 @@
           ]
         },
         {
-          "file_id": "processing-moss-vl-fe2d78777ada",
-          "id": "primary-processing-moss-vl-fe2d78777ada",
+          "file_id": "processing-moss-vl-66bae14d9b47-2cd22ecdf2",
+          "id": "primary-processing-moss-vl-66bae14d9b47-2cd22ecdf2",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -346,8 +346,8 @@
           ]
         },
         {
-          "file_id": "tokenizer-e7bbd0f97840",
-          "id": "primary-tokenizer-e7bbd0f97840",
+          "file_id": "tokenizer-e7bbd0f97840-224931eb13",
+          "id": "primary-tokenizer-e7bbd0f97840-224931eb13",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -357,8 +357,8 @@
           ]
         },
         {
-          "file_id": "tokenizer-config-e23084208a8e",
-          "id": "primary-tokenizer-config-e23084208a8e",
+          "file_id": "tokenizer-config-e23084208a8e-94d5c6ba8f",
+          "id": "primary-tokenizer-config-e23084208a8e-94d5c6ba8f",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -368,8 +368,8 @@
           ]
         },
         {
-          "file_id": "video-preprocessor-config-f6828441758b",
-          "id": "primary-video-preprocessor-config-f6828441758b",
+          "file_id": "video-preprocessor-config-bbe22d3f192c-35d01a7325",
+          "id": "primary-video-preprocessor-config-bbe22d3f192c-35d01a7325",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -379,8 +379,8 @@
           ]
         },
         {
-          "file_id": "video-processing-moss-vl-4ffda6f8124e",
-          "id": "primary-video-processing-moss-vl-4ffda6f8124e",
+          "file_id": "video-processing-moss-vl-f270b92b0bae-290a804ea4",
+          "id": "primary-video-processing-moss-vl-f270b92b0bae-290a804ea4",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -390,8 +390,8 @@
           ]
         },
         {
-          "file_id": "vocab-ca10d7e9fb3e",
-          "id": "primary-vocab-ca10d7e9fb3e",
+          "file_id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+          "id": "primary-vocab-ca10d7e9fb3e-ba05d8e2e4",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -403,10 +403,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "86922089e21e3d91fc741ddf58c75a6cad69d91bed6be2695d2dbb3c2d7a9437",
+        "content_sha256": "751b6b65ceba6b68f3a2d138c25932619d805da7637ded9ace59c29a0d1cd108",
         "kind": "model",
         "publisher": "openmoss",
-        "slug": "moss-vl-realtime-11b-bf16-25e81cb9"
+        "slug": "moss-vl-realtime-11b-bf16-d1f71a58"
       }
     }
   ],
@@ -415,10 +415,27 @@
       "OpenMOSS"
     ],
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/tree/25e81cb952d5f353a5690f2c1ea09a725815df80"
+    "source_reference": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/tree/d1f71a588deaf2b9b9cea7c6fff66cb10847cc86"
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "The BF16 weight shards are unchanged. Upstream fixes cached-vision query RoPE, aligns processor and inference defaults, synchronizes offline system prompts with training, and computes media budgets and MRoPE position IDs per sample for batched vision inputs.",
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/compare/25e81cb952d5f353a5690f2c1ea09a725815df80...d1f71a588deaf2b9b9cea7c6fff66cb10847cc86",
+              "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/commit/d1f71a588deaf2b9b9cea7c6fff66cb10847cc86"
+            ],
+            "summary": "Refresh MOSS-VL-Realtime remote code to d1f71a58."
+          }
+        ],
+        "prior_recipe_content_sha256": "f441b4503252b8c4cfed62ea5bdc4a14e974cc9dd4541e3bda51b9037320c500",
+        "released_at": "2026-09-23",
+        "upgrade_effect": "reprepare",
+        "version": "1.2.0"
+      },
       {
         "changes": [
           {
@@ -553,8 +570,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.1.6"
+    "released_at": "2026-09-23",
+    "version": "1.2.0"
   },
   "runtime": {
     "arguments": [
