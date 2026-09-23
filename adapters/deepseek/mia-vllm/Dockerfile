@@ -6,7 +6,7 @@ LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/DeepSeek-v4-
       io.vonk.mia-source-archive-sha256="8491b7006312ce666cfb7f1d6cb67bc2dce15260732b184b666c280ea7d26d78" \
       io.vonk.anemll-source-revision="47503f8e38dadd4dededca798150db2619594fce" \
       io.vonk.pre-patch-tree-sha256="4a1ee8ac6eaefb8dfc9e3d15792daf9154dbaee0acab6295f1e4b95c8397c432" \
-      io.vonk.patch-tree-sha256="61a2242dee4005c3eeb916fba1e01a516901a6fa3cc5e3f7a06d89c17f0fd429" \
+      io.vonk.patch-tree-sha256="28e0db557f1c23af34f005d9734aba1bc7b04810973b410d011ee657fed29ffd" \
       io.vonk.dspark-loader-sha256="efe33c32d37ed7f26d869d94626f1415906d31218ec0ee44d79bb2b815b8cf39"
 
 COPY encoding /opt/vonk-build/encoding
@@ -22,7 +22,7 @@ RUN install --directory --owner 10001 --group 10001 /state /outputs \
     && python3 /opt/vonk-build/apply-build-patches.py \
     && python3 /opt/vonk-build/patches/hotfix-vllm-issue136-xgrammar-termination.py --status \
     && python3 /opt/vonk-build/verify-patched-tree.py \
-        /usr/local/lib/python3.12/dist-packages/vllm 61a2242dee4005c3eeb916fba1e01a516901a6fa3cc5e3f7a06d89c17f0fd429 \
+        /usr/local/lib/python3.12/dist-packages/vllm 28e0db557f1c23af34f005d9734aba1bc7b04810973b410d011ee657fed29ffd \
     && rm -rf /opt/vonk-build \
     && test -x /opt/vonk/bin/vllm
 

@@ -202,11 +202,51 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertIn("patch_adaptive_k.py", dockerfile)
         self.assertIn("patch_dense_fp8.py", dockerfile)
         self.assertIn("EXL3_FAT_GROUPED=1", dockerfile)
+        self.assertIn("COPY overlay/patch_mamba_align_chunking.py", dockerfile)
+        self.assertIn("COPY overlay/patch_mamba_align_state_free.py", dockerfile)
+        self.assertIn("COPY overlay/patch_tool_choice_none.py", dockerfile)
+        self.assertLess(
+            dockerfile.index("RUN python3 /opt/glm53/patch_scheduler_decode_floor.py"),
+            dockerfile.index("RUN python3 /opt/glm53/patch_mamba_align_chunking.py"),
+        )
+        self.assertIn("RUN python3 /opt/glm53/patch_mamba_align_state_free.py", dockerfile)
+        self.assertIn("RUN python3 /opt/glm53/patch_tool_choice_none.py", dockerfile)
+        self.assertIn("python3 /opt/glm53/test_mamba_align_chunking.py", dockerfile)
+        self.assertIn("python3 /opt/glm53/test_tool_choice_none.py", dockerfile)
+        verifier = (ADAPTER / "verify-runtime.py").read_text()
+        self.assertIn("# [glm53-mamba-align-chunking-v1]", verifier)
+        self.assertIn("# [glm53-mamba-align-state-free-v1]", verifier)
+        self.assertIn("# [glm53-tool-choice-none]", verifier)
         text = "\n".join(
             (ADAPTER / name).read_text(errors="ignore")
             for name in ("Dockerfile", "vllm-wrapper.py", "verify-runtime.py")
         )
         self.assertNotIn("ssh -", text.lower())
+
+    def test_current_release_backports_only_the_selected_upstream_fixes(self) -> None:
+        recipe = load(RECIPE)
+        self.assertEqual(recipe["release"]["version"], "1.6.7")
+        self.assertEqual(recipe["release"]["history"][0]["upgrade_effect"], "rebuild")
+        details = recipe["release"]["history"][0]["changes"][0]
+        self.assertIn("Mamba", details["summary"])
+        self.assertEqual(
+            set(details["references"]),
+            {
+                "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/commit/fd329d248e63de3ddd334c7d2ed3276e8321672b",
+                "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/commit/771a1867bc862fae5fa8946f85fb66749468679e",
+            },
+        )
+        # These targeted overlays are built on the existing exact lineage and
+        # runtime image; they do not claim to consume either upstream repository
+        # wholesale or silently float the platform.
+        self.assertEqual(
+            recipe["provenance"]["source_reference"],
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c",
+        )
+        self.assertEqual(
+            recipe["execution"]["build"]["base_image"]["digest"],
+            "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce",
+        )
 
     def test_current_defaults_and_source_license_are_declared(self) -> None:
         recipe = load(RECIPE)

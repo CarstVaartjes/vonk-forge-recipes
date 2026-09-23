@@ -963,6 +963,25 @@
   "release": {
     "history": [
       {
+        "version": "2.3.3",
+        "released_at": "2026-09-23",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "54b5129727710e049a8b9379a1595289007c27de0a0e1afb3b6d1c2082f1381e",
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Close pinned DeepSeek serialization, prefill, SHM-ring, and XGrammar retry regressions.",
+            "details": "Backports issue55 serialization safety and issue27 r3 exact running-prefill parity, plus the source-exact issue117 SHM-ring recovery also shipped by the Vision-Exp recipe. It also extends the reasoning-boundary XGrammar fix across both the backend and grammar manager as one validated two-file transaction (upstream issue210), so a partial application cannot leave the files inconsistent. The issue27 gate excludes decoder-only requests and non-running async reservations while warning on tracking undercount; issue55 retains empty tool_calls as a list. The source revision and exact Anemll digest remain unchanged. The strict post-patch tree hash was regenerated against that image. Rebuild required; no Spark acceptance is claimed.",
+            "references": [
+              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/12dace4cd7da47155ac4c19711a0d8d08b73834f",
+              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/a1fed70176c871d384ee86b8e58b88ffe79ca6d4",
+              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/eda7d3b844bfc2bd918592e8c6b4ab62d9c94d41",
+              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/cfbccaf878d02450966f10504105159d2b43d16f"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
@@ -1231,8 +1250,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "2.3.2"
+    "released_at": "2026-09-23",
+    "version": "2.3.3"
   },
   "runtime": {
     "arguments": [
