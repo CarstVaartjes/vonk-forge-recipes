@@ -320,7 +320,10 @@ def test_model_access_lineage_and_related_model_references_are_preserved() -> No
         value == {"visibility": "restricted", "gated": True, "authentication": "token"}
         for value in restricted.values()
     )
-    assert supersedes == ["hunyuanocr-1-5-47644ecc"]
+    assert set(supersedes) == {
+        "moss-vl-realtime-11b-bf16-d1f71a58",
+        "hunyuanocr-1-5-47644ecc",
+    }
 
 
 def test_model_territorial_restrictions_preserve_all_published_records() -> None:
