@@ -1,10 +1,11 @@
 # Recipe qualification plan — 2026-09-23
 
-This plan covers every recipe in the catalog at recipe-library `origin/main`
-commit `8f8d0667c257dfd9c0f7419628ee4fe4b953180b`, plus the MOSS-VL-Realtime
-refresh authored in this branch. It deliberately keeps source review, repository
-validation, publication, Controller deployment, and physical Spark acceptance as
-separate evidence gates.
+This plan covers every recipe in the 85-recipe catalog after the 2026-09-23
+source audit. The audited source snapshot includes the MOSS-VL-Realtime refresh
+and metadata correction, the target-only SparkInfer XGrammar fix, the bounded
+dual-Qwen preparation path, and selected DeepSeek/GLM dual-runtime backports.
+It deliberately keeps source review, repository validation, publication,
+Controller deployment, and physical Spark acceptance as separate evidence gates.
 
 ## Upstream audit outcome
 
@@ -14,13 +15,19 @@ advanced. An advanced channel was not treated as an automatic update. Exact
 selected files, executable closure, model identity, topology, and specialized-fork
 behavior were compared first.
 
-One applicable closed refresh was found: MOSS-VL-Realtime moves from `25e81cb9`
-to `d1f71a58` without changing its BF16 weight shards and adopts cached-vision
-RoPE, preprocessing, prompt, and per-sample batched-vision fixes. Other advanced
-channels are intentionally retained where only README/unselected files changed, the
-upstream default changed model identity, a moving engine main is not a release
-channel, history was rewritten, or the newer implementation lacks a closed and
-requalified Vonk source/image path.
+The audit closed five actionable recipe paths. MOSS-VL-Realtime moves from
+`25e81cb9` to `d1f71a58` without changing its BF16 weight shards, adopts the
+cached-vision/runtime fixes, and reports the correct separate weight and
+remote-code identities. The target-only SparkInfer recipe installs a hash-bound
+offline XGrammar 0.2.3 wheel and adds forced-tool-call coverage. The dual-Qwen
+vLLM recipe bounds its shared preparation lock and helpers. The two Mia DeepSeek
+recipes gain selected serialization, prefill-accounting, XGrammar, and shared-
+memory recovery fixes; the Mia GLM recipe gains selected Mamba alignment/state
+reclamation and `tool_choice:none` fixes. Exact-image patch gates were rerun for
+the Mia recipes. Other advanced channels are intentionally retained where only
+README/unselected files changed, the upstream default changed model identity, a
+moving engine main is not a release channel, history was rewritten, or the newer
+implementation lacks a closed and requalified Vonk source/image path.
 
 ## Per-recipe procedure
 
@@ -60,7 +67,7 @@ topology are genuine execution constraints.
 | 14 | `vonk-forge/qwen3-8-27b-fp8-vllm-single` | 1 | service | single-Spark | current |
 | 15 | `vonk-forge/laguna-xs-2-1-nvfp4-vllm-single` | 1 | service | single-Spark | current |
 | 16 | `vonk-forge/wan-2-2-ti2v-5b-comfyui-single` | 1 | job / 3600s | single-Spark | retained: README-only change |
-| 17 | `vonk-forge/moss-vl-realtime-11b-pytorch-single` | 1 | job / 1800s | single-Spark | updated to d1f71a58 |
+| 17 | `vonk-forge/moss-vl-realtime-11b-pytorch-single` | 1 | job / 1800s | single-Spark | updated to d1f71a58; transcript/NOTICE identities corrected |
 | 18 | `vonk-forge/ltx-2-19b-dev-bf16-diffusers-single` | 1 | job / 3600s | single-Spark | current |
 | 19 | `vonk-forge/ltx-2-19b-dev-fp4-pytorch-single` | 1 | job / 3600s | single-Spark | current |
 | 20 | `vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-single` | 1 | service | single-Spark | retained: README-only model change |
@@ -99,7 +106,7 @@ topology are genuine execution constraints.
 | 53 | `vonk-forge/wan-2-2-i2v-14b-comfyui-single` | 1 | job / 3600s | single-Spark | retained: README-only change |
 | 54 | `vonk-forge/wan-2-2-t2v-14b-comfyui-single` | 1 | job / 3600s | single-Spark | retained: README-only change |
 | 55 | `vonk-forge/wan-dancer-14b-disk-offload-pytorch-single` | 1 | job / 3600s | single-Spark | retained: Wan-Dancer adapter path unchanged |
-| 56 | `vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single` | 1 | service | single-Spark | retained: fixed public image not republished |
+| 56 | `vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single` | 1 | service | single-Spark | updated: SHA-pinned XGrammar 0.2.3 bundled offline; forced tool-call smoke added |
 | 57 | `vonk-forge/ling-3-0-flash-dspark-sglang-single` | 1 | service | single-Spark | current |
 | 58 | `vonk-forge/deepseek-v4-flash-0731-mia-sparkinfer-single` | 1 | service | single-Spark | current |
 | 59 | `vonk-forge/hunyuan-video-foley-xl-pytorch-single` | 1 | job / 3600s | operator acceptance | current |
@@ -116,12 +123,12 @@ topology are genuine execution constraints.
 | 70 | `vonk-forge/wan-dancer-14b-pytorch-single` | 1 | job / 3600s | capacity review | current |
 | 71 | `vonk-forge/deepseek-v4-flash-0731-sparkinfer-single` | 1 | service | capacity review | retained: fixed public image not republished |
 | 72 | `vonk-forge/laguna-s-2-1-nvfp4-vllm-single` | 1 | service | capacity review | retained: recipe already uses current model pin |
-| 73 | `vonk-forge/deepseek-v4-flash-0731-mia-dual` | 2 | service | dual-Spark | retained: newer runtime needs a closed Vonk port |
-| 74 | `vonk-forge/deepseek-v4-flash-vision-exp-mia-dual` | 2 | service | dual-Spark | retained: newer runtime needs a closed Vonk port |
-| 75 | `vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual` | 2 | service | dual-Spark | retained: newer TP2/TP3 overlays need requalification |
+| 73 | `vonk-forge/deepseek-v4-flash-0731-mia-dual` | 2 | service | dual-Spark | updated: selected issue 27/55/117/210 fixes verified in pinned image |
+| 74 | `vonk-forge/deepseek-v4-flash-vision-exp-mia-dual` | 2 | service | dual-Spark | updated: selected issue 27/55/210 fixes verified in pinned image |
+| 75 | `vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual` | 2 | service | dual-Spark | updated: Mamba alignment/state reclamation and tool-choice fixes verified in pinned image |
 | 76 | `vonk-forge/inkling-small-nvfp4-sglang-dual` | 2 | service | dual-Spark | retained: moving SGLang main is not a release channel |
 | 77 | `vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual` | 2 | service | dual-Spark | retained: upstream history was rewritten |
-| 78 | `vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual` | 2 | service | dual-Spark | retained: newer patches need a closed Vonk port |
+| 78 | `vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual` | 2 | service | dual-Spark | updated: preparation lock/helper waits bounded with recovery coverage |
 | 79 | `vonk-forge/glm-5-3-flash-nvfp4-vllm-dual` | 2 | service | dual-Spark | current |
 | 80 | `vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual` | 2 | service | dual-Spark | retained: upstream default/profile changed |
 | 81 | `vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual` | 2 | service | dual-Spark | retained: upstream renamed the target checkpoint |

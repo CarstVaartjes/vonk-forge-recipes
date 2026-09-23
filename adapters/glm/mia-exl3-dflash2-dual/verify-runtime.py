@@ -17,6 +17,9 @@ required = (
     "/opt/glm53/patch_kv_capacity_log.py",
     "/opt/glm53/patch_cache_reset.py",
     "/opt/glm53/patch_kpool_tail_slotmap.py",
+    "/opt/glm53/patch_mamba_align_chunking.py",
+    "/opt/glm53/patch_mamba_align_state_free.py",
+    "/opt/glm53/patch_tool_choice_none.py",
     "/opt/glm53/patch_scheduler_decode_floor.py",
     "/opt/glm53/patch_suppress_stops_in_reasoning.py",
     "/opt/glm53/patch_xgrammar_termination.py",
@@ -32,6 +35,9 @@ required = (
     "/opt/glm53/test_kv_capacity_log.py",
     "/opt/glm53/test_cache_reset_endpoint.py",
     "/opt/glm53/test_kpool_tail_slotmap.py",
+    "/opt/glm53/test_mamba_align_chunking.py",
+    "/opt/glm53/test_mamba_align_state_free.py",
+    "/opt/glm53/test_tool_choice_none.py",
     "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3.py",
 )
 missing = [path for path in required if not Path(path).is_file()]
@@ -101,5 +107,26 @@ if not video_pth.is_file():
     raise SystemExit(
         f"incomplete GLM 5.3 overlay: the video alignment is not installed: {video_pth}"
     )
+
+for relative, marker, label in (
+    (
+        "v1/core/sched/scheduler.py",
+        "# [glm53-mamba-align-chunking-v1]",
+        "Mamba block-aligned prefill checkpoints",
+    ),
+    (
+        "v1/core/single_type_kv_cache_manager.py",
+        "# [glm53-mamba-align-state-free-v1]",
+        "Mamba superseded-state reclamation",
+    ),
+    (
+        "parser/glm47_moe.py",
+        "# [glm53-tool-choice-none]",
+        "tool_choice:none decode mask",
+    ),
+):
+    path = Path("/usr/local/lib/python3.12/dist-packages/vllm") / relative
+    if not path.is_file() or marker not in path.read_text():
+        raise SystemExit(f"incomplete GLM 5.3 overlay: {label} is absent")
 
 print("Mia GLM 5.3 EXL3 DFlash2 runtime contract OK")

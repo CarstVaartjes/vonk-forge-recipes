@@ -159,6 +159,10 @@ COPY tests/test_suppress_stops.py /opt/glm53/test_suppress_stops.py
 COPY overlay/patch_scheduler_decode_floor.py /opt/glm53/patch_scheduler_decode_floor.py
 COPY tests/test_scheduler_decode_floor.py /opt/glm53/test_scheduler_decode_floor.py
 COPY tests/test_scheduler_decode_floor_restart.py /opt/glm53/test_scheduler_decode_floor_restart.py
+COPY overlay/patch_mamba_align_chunking.py /opt/glm53/patch_mamba_align_chunking.py
+COPY overlay/patch_mamba_align_state_free.py /opt/glm53/patch_mamba_align_state_free.py
+COPY tests/test_mamba_align_chunking.py /opt/glm53/test_mamba_align_chunking.py
+COPY tests/test_mamba_align_state_free.py /opt/glm53/test_mamba_align_state_free.py
 COPY overlay/patch_hybrid_prefix_hit.py /opt/glm53/patch_hybrid_prefix_hit.py
 COPY overlay/patch_apc_per_group_retention.py /opt/glm53/patch_apc_per_group_retention.py
 COPY tests/test_apc_per_group_retention.py /opt/glm53/test_apc_per_group_retention.py
@@ -177,6 +181,8 @@ COPY overlay/patch_spinwait.py /opt/glm53/patch_spinwait.py
 COPY tests/test_spinwait_patch.py /opt/glm53/test_spinwait_patch.py
 COPY overlay/patch_indexer_workspace.py /opt/glm53/patch_indexer_workspace.py
 COPY tests/test_indexer_workspace.py /opt/glm53/test_indexer_workspace.py
+COPY overlay/patch_tool_choice_none.py /opt/glm53/patch_tool_choice_none.py
+COPY tests/test_tool_choice_none.py /opt/glm53/test_tool_choice_none.py
 COPY overlay/ablit_runtime.py /opt/glm53/ablit_runtime.py
 COPY overlay/patch_ablit.py /opt/glm53/patch_ablit.py
 COPY tests/test_ablit.py /opt/glm53/test_ablit.py
@@ -197,6 +203,9 @@ RUN python3 /opt/glm53/patch_glm5_drafter_group.py
 RUN python3 /opt/glm53/patch_glm_video_placeholders.py
 RUN python3 /opt/glm53/patch_suppress_stops_in_reasoning.py
 RUN python3 /opt/glm53/patch_scheduler_decode_floor.py
+# The Mamba cache checkpoints use the Mamba groups' block size, not the
+# smaller DFlash page that also participates in the hybrid cache manager.
+RUN python3 /opt/glm53/patch_mamba_align_chunking.py
 # Retention preflight runs BEFORE both overlays that edit kv_cache_coordinator.py
 # (patch_hybrid_prefix_hit.py and patch_apc_per_group_retention.py), so its
 # composition case still sees a pristine copy of the fork's file.
@@ -214,6 +223,13 @@ RUN python3 /opt/glm53/patch_apc_per_group_retention.py
 # layout and the env-driven SWA-retention legs.
 RUN GLM53_VLLM_SRC_ROOT=/usr/local/lib/python3.12/dist-packages/vllm GLM53_REQUIRE_VLLM=1 GLM53_REQUIRE_COMPOSITION=1 python3 /opt/glm53/test_apc_no_store.py
 RUN python3 /opt/glm53/patch_apc_no_store.py
+# Test the exact image source before changing the Mamba manager/spec. The test
+# applies the patch to isolated copies and exercises live/in-flight state
+# ownership plus the align-mode page reservation.
+RUN GLM53_SINGLE_TYPE_KV_CACHE_MANAGER_PY=/usr/local/lib/python3.12/dist-packages/vllm/v1/core/single_type_kv_cache_manager.py \
+    GLM53_KV_CACHE_INTERFACE_PY=/usr/local/lib/python3.12/dist-packages/vllm/v1/kv_cache_interface.py \
+    python3 /opt/glm53/test_mamba_align_state_free.py
+RUN python3 /opt/glm53/patch_mamba_align_state_free.py
 # Same slot as the runtime GLM53_OVERLAY_ORDER (after per-group retention, after
 # the drafter-group patch it shares kv_cache_utils.py with): the host test
 # preflights the real file (both pinned anchors present, stock "GPU KV cache
@@ -228,6 +244,7 @@ RUN python3 /opt/glm53/patch_kpool_tail_slotmap.py
 RUN python3 /opt/glm53/patch_indexer_workspace.py
 RUN python3 /opt/glm53/patch_spinwait.py --preflight
 RUN python3 /opt/glm53/patch_cache_reset.py
+RUN python3 /opt/glm53/patch_tool_choice_none.py
 RUN python3 /opt/glm53/patch_ablit.py
 RUN python3 /opt/glm53/patch_adaptive_k.py
 RUN GLM53_DENSE_FP8=off python3 /opt/glm53/patch_dense_fp8.py
@@ -238,6 +255,8 @@ RUN EXL3_SELFCHECK_GPU=0 python3 /opt/glm53/test_exl3_overlay.py \
     && python3 /opt/glm53/test_suppress_stops.py \
     && python3 /opt/glm53/test_scheduler_decode_floor.py \
     && python3 /opt/glm53/test_scheduler_decode_floor_restart.py \
+    && python3 /opt/glm53/test_mamba_align_chunking.py \
+    && python3 /opt/glm53/test_tool_choice_none.py \
     && python3 /opt/glm53/test_hybrid_prefix_hit.py \
     && python3 /opt/glm53/test_xgrammar_termination.py \
     && python3 /opt/glm53/test_kpool_tail_slotmap.py \
@@ -287,7 +306,7 @@ ENV HF_HUB_OFFLINE=1 \
     # reuses the earlier archive, so the Controller keeps the earlier revision's build
     # identity and install admission refuses the plan; an image change gives this
     # revision its own build.
-    VONK_GLM53_RECIPE_REVISION=1.6.6
+    VONK_GLM53_RECIPE_REVISION=1.6.7
 
 WORKDIR /state
 USER 10001:10001

@@ -87,37 +87,66 @@ class MiaDSparkRuntimeContractTest(unittest.TestCase):
     def test_xgrammar_stock_to_patched_apply_executes_successfully(self) -> None:
         patch_path = ADAPTER / "patches/hotfix-vllm-issue136-xgrammar-termination.py"
         module = runpy.run_path(str(patch_path), run_name="issue136_apply_test")
-        old_region = module["OLD_REGION"]
-        new_region = module["NEW_REGION"]
-        stock = b"class SyntheticGrammar:\n" + old_region + b"\n"
-        patched = stock.replace(old_region, new_region)
         versions = {
             "vllm": module["EXPECTED_VLLM_VERSION"],
             "xgrammar": module["EXPECTED_XGRAMMAR_VERSION"],
         }
-        exact_fixture_constants = {
-            "STOCK_SIZE": len(stock),
-            "STOCK_SHA256": hashlib.sha256(stock).hexdigest(),
-            "PATCHED_SIZE": len(patched),
-            "PATCHED_SHA256": hashlib.sha256(patched).hexdigest(),
-        }
+
+        synthetic_specs = []
+        fixture_bytes: dict[str, tuple[bytes, bytes]] = {}
+        for spec in module["TARGETS"]:
+            if spec.name == "backend_xgrammar":
+                prefix = b"class SyntheticBackend:\n"
+            else:
+                prefix = (
+                    b"def synthetic_wrapper():\n"
+                    b"    if True:\n"
+                    b"        if True:\n"
+                    b"            if True:\n"
+                    b"                if True:\n"
+                )
+            stock = prefix + spec.old_region + b"\n"
+            patched = stock.replace(spec.old_region, spec.new_region, 1)
+            variant = module["SourceVariant"](
+                name="synthetic",
+                stock_sha256=hashlib.sha256(stock).hexdigest(),
+                stock_size=len(stock),
+                patched_sha256=hashlib.sha256(patched).hexdigest(),
+                patched_size=len(patched),
+            )
+            synthetic_specs.append(
+                module["TargetSpec"](
+                    name=spec.name,
+                    production_path=Path(spec.name + ".py"),
+                    variants=(variant,),
+                    stock_region_sha256=spec.stock_region_sha256,
+                    patched_region_sha256=spec.patched_region_sha256,
+                    old_region=spec.old_region,
+                    new_region=spec.new_region,
+                )
+            )
+            fixture_bytes[spec.name] = (stock, patched)
 
         with tempfile.TemporaryDirectory() as directory:
-            target = Path(directory) / "backend_xgrammar.py"
-            target.write_bytes(stock)
-            target.chmod(0o640)
-            with patch.dict(module["apply"].__globals__, exact_fixture_constants):
-                result = module["apply"](target, versions.__getitem__)
-
+            targets = {}
+            for spec in synthetic_specs:
+                target = Path(directory) / spec.production_path.name
+                target.write_bytes(fixture_bytes[spec.name][0])
+                target.chmod(0o640)
+                targets[spec.name] = target
+            with patch.dict(
+                module["apply"].__globals__, {"TARGETS": tuple(synthetic_specs)}
+            ):
+                result = module["apply"](targets, versions.__getitem__)
+                already_patched = module["apply"](targets, versions.__getitem__)
             self.assertEqual(result.outcome, "applied")
-            self.assertEqual(result.pre_sha256, exact_fixture_constants["STOCK_SHA256"])
-            self.assertEqual(
-                result.post_sha256, exact_fixture_constants["PATCHED_SHA256"]
-            )
             self.assertEqual(result.vllm_version, versions["vllm"])
             self.assertEqual(result.xgrammar_version, versions["xgrammar"])
-            self.assertEqual(target.read_bytes(), patched)
-            self.assertEqual(target.stat().st_mode & 0o777, 0o640)
+            for spec in synthetic_specs:
+                target = targets[spec.name]
+                self.assertEqual(target.read_bytes(), fixture_bytes[spec.name][1])
+                self.assertEqual(target.stat().st_mode & 0o777, 0o640)
+            self.assertEqual(already_patched.outcome, "already-patched")
 
     def test_verifier_accepts_the_exact_required_mapping(self) -> None:
         verifier = ADAPTER / "verify-dspark-runtime.py"
