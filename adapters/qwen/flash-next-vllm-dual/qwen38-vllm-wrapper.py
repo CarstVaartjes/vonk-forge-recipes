@@ -3,13 +3,17 @@
 
 from __future__ import annotations
 
+import errno
 import fcntl
 import hashlib
 import json
 import os
 import subprocess
 import sys
+import time
+from collections.abc import Iterator
 from contextlib import contextmanager
+from datetime import UTC, datetime, timedelta
 from ipaddress import ip_address
 from pathlib import Path
 
@@ -23,6 +27,10 @@ MODEL_DOCUMENT_SHA256 = (
     "0f2c8617255df59583d6def4f71cb20ec63709aaf7c801ae8ce71f6a18e5edc4"
 )
 METADATA_HASH_LIMIT = 16 * 1024 * 1024
+PREPARATION_LOCK_TIMEOUT_SECONDS = 60.0
+PREPARATION_LOCK_POLL_SECONDS = 0.25
+PREPARATION_LOCK_STATUS_INTERVAL_SECONDS = 5.0
+PREPARATION_HELPER_TIMEOUT_SECONDS = 60.0
 
 
 def value(arguments: list[str], option: str) -> str | None:
@@ -63,16 +71,107 @@ def _source_fingerprint(source: Path) -> str:
     return digest.hexdigest()
 
 
-@contextmanager
-def _preparation_lock(root: Path):
-    root.mkdir(parents=True, exist_ok=True)
-    descriptor = os.open(root / ".prepare.lock", os.O_CREAT | os.O_RDWR, 0o600)
+def _preparation_lock_owner(lock_path: Path) -> str:
     try:
-        fcntl.flock(descriptor, fcntl.LOCK_EX)
+        with lock_path.open("rb") as stream:
+            owner = json.loads(stream.read(4096))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        owner = None
+    if not isinstance(owner, dict):
+        return "owner_pid=unknown owner_started_at_utc=unknown"
+    pid = owner.get("pid")
+    started_at = owner.get("started_at_utc")
+    if type(pid) is not int or pid <= 0:
+        return "owner_pid=unknown owner_started_at_utc=unknown"
+    if not isinstance(started_at, str) or not started_at:
+        started_at = "unknown"
+    return f"owner_pid={pid} owner_started_at_utc={started_at}"
+
+
+def _write_preparation_lock_owner(descriptor: int) -> None:
+    owner = {
+        "pid": os.getpid(),
+        "started_at_utc": datetime.now(UTC).isoformat(timespec="seconds"),
+    }
+    payload = json.dumps(owner, sort_keys=True).encode("utf-8")
+    os.lseek(descriptor, 0, os.SEEK_SET)
+    os.ftruncate(descriptor, 0)
+    remaining = memoryview(payload)
+    while remaining:
+        written = os.write(descriptor, remaining)
+        if written <= 0:
+            raise OSError("could not write preparation-lock owner metadata")
+        remaining = remaining[written:]
+
+
+@contextmanager
+def _preparation_lock(root: Path) -> Iterator[None]:
+    root.mkdir(parents=True, exist_ok=True)
+    lock_path = root / ".prepare.lock"
+    descriptor = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+    acquired = False
+    try:
+        wait_started = time.monotonic()
+        wait_limit = PREPARATION_LOCK_TIMEOUT_SECONDS
+        wait_deadline = wait_started + wait_limit
+        deadline_utc = (datetime.now(UTC) + timedelta(seconds=wait_limit)).isoformat(
+            timespec="seconds"
+        )
+        next_status = wait_started
+        while not acquired:
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                acquired = True
+            except OSError as error:
+                if error.errno not in {errno.EACCES, errno.EAGAIN}:
+                    raise
+                now = time.monotonic()
+                observed_wait = now - wait_started
+                if now >= wait_deadline:
+                    owner = _preparation_lock_owner(lock_path)
+                    raise SystemExit(
+                        "timed out waiting for dependency=qwen38-model-preparation "
+                        f"lock={lock_path} {owner} "
+                        f"wait_limit_seconds={wait_limit:g} "
+                        f"observed_wait_seconds={observed_wait:.3f} "
+                        f"deadline_utc={deadline_utc} "
+                        "resume_condition=retry_after_owner_releases_lock"
+                    ) from None
+                if now >= next_status:
+                    owner = _preparation_lock_owner(lock_path)
+                    next_check_seconds = min(
+                        PREPARATION_LOCK_POLL_SECONDS,
+                        max(0.0, wait_deadline - now),
+                    )
+                    next_check_utc = (
+                        datetime.now(UTC) + timedelta(seconds=next_check_seconds)
+                    ).isoformat(timespec="seconds")
+                    print(
+                        "waiting for dependency=qwen38-model-preparation "
+                        f"lock={lock_path} {owner} "
+                        f"observed_wait_seconds={observed_wait:.3f} "
+                        f"deadline_utc={deadline_utc} "
+                        f"next_check_utc={next_check_utc} "
+                        f"next_check_seconds={next_check_seconds:g} "
+                        "resume_condition=retry_after_owner_releases_lock",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                    next_status = now + PREPARATION_LOCK_STATUS_INTERVAL_SECONDS
+                time.sleep(
+                    min(
+                        PREPARATION_LOCK_POLL_SECONDS,
+                        max(0.0, wait_deadline - now),
+                    )
+                )
+        _write_preparation_lock_owner(descriptor)
         yield
     finally:
-        fcntl.flock(descriptor, fcntl.LOCK_UN)
-        os.close(descriptor)
+        try:
+            if acquired:
+                fcntl.flock(descriptor, fcntl.LOCK_UN)
+        finally:
+            os.close(descriptor)
 
 
 def _marker(path: Path) -> dict[str, str] | None:
@@ -98,9 +197,19 @@ def _publish_prepared(source_fingerprint: str) -> None:
         try:
             for entry in SOURCE.iterdir():
                 (staging / entry.name).symlink_to(entry)
-            subprocess.run(
-                [sys.executable, str(PATCHER), str(staging), str(staging)], check=True
-            )
+            try:
+                subprocess.run(
+                    [sys.executable, str(PATCHER), str(staging), str(staging)],
+                    check=True,
+                    timeout=PREPARATION_HELPER_TIMEOUT_SECONDS,
+                )
+            except subprocess.TimeoutExpired:
+                raise SystemExit(
+                    f"preparation helper {PATCHER} exceeded "
+                    f"{PREPARATION_HELPER_TIMEOUT_SECONDS:g}s; "
+                    f"owner_pid={os.getpid()} lock={PREPARED_ROOT / '.prepare.lock'} "
+                    "resume_condition=retry_after_helper_is_repaired"
+                ) from None
             for name in ("config", "hf_quant_config"):
                 patched = staging / f"{name}_patched.json"
                 if patched.is_file():
@@ -184,12 +293,22 @@ def _merged_hf_overrides(arguments: list[str]) -> str | None:
     source_text_config = config.get("text_config", config)
     ple_dtype = str(source_text_config.get("ple_embedding_dtype") or "")
     if not ple_dtype:
-        ple_dtype = subprocess.run(
-            [sys.executable, str(DETECT), str(PREPARED)],
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
+        try:
+            detected = subprocess.run(
+                [sys.executable, str(DETECT), str(PREPARED)],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=PREPARATION_HELPER_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired:
+            raise SystemExit(
+                f"preparation helper {DETECT} exceeded "
+                f"{PREPARATION_HELPER_TIMEOUT_SECONDS:g}s; "
+                f"owner_pid={os.getpid()} "
+                "resume_condition=retry_after_helper_is_repaired"
+            ) from None
+        ple_dtype = detected.stdout.strip()
     inject_ple_dtype = bool(ple_dtype and "ple_embedding_dtype" not in text_config)
     if inject_ple_dtype:
         text_config["ple_embedding_dtype"] = ple_dtype
