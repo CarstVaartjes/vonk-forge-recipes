@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 import runpy
@@ -99,6 +100,69 @@ class MossRealtimeJobTests(unittest.TestCase):
         self.assertEqual(set(outputs), {"replay", "transcript"})
         self.assertEqual(outputs["replay"]["media_types"], ["video/mp4"])
         self.assertEqual(outputs["transcript"]["media_types"], ["application/x-ndjson"])
+
+    def test_transcript_and_notice_follow_current_model_sources(self) -> None:
+        recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
+        model_slug = recipe["models"][0]["model"]["slug"]
+        model = json.loads(
+            (ROOT / "models" / f"{model_slug}.json").read_text(encoding="utf-8")
+        )
+        source_revision = model["source"]["revision"]
+        source_url = model["source"]["repository"]
+        notice = (ADAPTER_ROOT / "NOTICE").read_text(encoding="utf-8")
+        self.assertIn(f"{source_url}/tree/{source_revision}", notice)
+
+        qualification = json.loads(
+            (ROOT / "qualification/definitions.json").read_text(encoding="utf-8")
+        )["recipes"]["vonk-forge/moss-vl-realtime-11b-pytorch-single"]
+        expected_revisions = [
+            assertion["model_revision"]
+            for assertion in qualification["assertions"]
+            if assertion.get("kind") == "realtime-transcript"
+        ]
+        for case in qualification.get("cases", []):
+            expected_revisions.extend(
+                assertion["model_revision"]
+                for assertion in case.get("assertions", [])
+                if assertion.get("kind") == "realtime-transcript"
+            )
+        self.assertTrue(expected_revisions)
+        self.assertEqual(len(set(expected_revisions)), 1)
+        expected_revision = expected_revisions[0]
+
+        module = ast.parse((ADAPTER_ROOT / "run.py").read_text(encoding="utf-8"))
+        start_records = [
+            node
+            for node in ast.walk(module)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "record"
+            and node.args
+            and isinstance(node.args[0], ast.Constant)
+            and node.args[0].value == "session-start"
+        ]
+        self.assertEqual(len(start_records), 1)
+        revision_values = [
+            keyword.value
+            for keyword in start_records[0].keywords
+            if keyword.arg == "model_revision"
+        ]
+        self.assertEqual(len(revision_values), 1)
+        revision_value = revision_values[0]
+        if isinstance(revision_value, ast.Name):
+            revision_assignments = [
+                ast.literal_eval(node.value)
+                for node in module.body
+                if isinstance(node, ast.Assign)
+                and len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Name)
+                and node.targets[0].id == revision_value.id
+            ]
+            self.assertEqual(len(revision_assignments), 1)
+            actual_revision = revision_assignments[0]
+        else:
+            actual_revision = ast.literal_eval(revision_value)
+        self.assertEqual(actual_revision, expected_revision)
 
     def test_adapter_discovers_arbitrary_names_from_authenticated_slots(self) -> None:
         self._write_inputs()

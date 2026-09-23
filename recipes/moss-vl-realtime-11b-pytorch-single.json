@@ -422,6 +422,23 @@
       {
         "changes": [
           {
+            "details": "The replay transcript now identifies the unchanged BF16 weight snapshot separately from the current remote-code revision. The adapter notice points to the selected d1f71a58 source snapshot.",
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/tree/06b067617677661194cf837970fe3a10f1a0e56d",
+              "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/tree/d1f71a588deaf2b9b9cea7c6fff66cb10847cc86"
+            ],
+            "summary": "Align the MOSS replay transcript and source notice with the current model pins."
+          }
+        ],
+        "prior_recipe_content_sha256": "ec7992aa56344a261b09e6c50aadd44bcdc59c2506ccb27a99513b42be359f06",
+        "released_at": "2026-09-23",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.1"
+      },
+      {
+        "changes": [
+          {
             "details": "The BF16 weight shards are unchanged. Upstream fixes cached-vision query RoPE, aligns processor and inference defaults, synchronizes offline system prompts with training, and computes media budgets and MRoPE position IDs per sample for batched vision inputs.",
             "kind": "fix",
             "references": [
@@ -571,7 +588,7 @@
       }
     ],
     "released_at": "2026-09-23",
-    "version": "1.2.0"
+    "version": "1.2.1"
   },
   "runtime": {
     "arguments": [
