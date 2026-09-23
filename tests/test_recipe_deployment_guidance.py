@@ -102,9 +102,9 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
             ),
             "nemotron-3-nano-30b-a3b-vllm-single": ("2.0.6", "2026-09-05"),
             "moss-vl-realtime-11b-pytorch-single": (
-                "1.1.6",
-                "2026-09-05",
-                "70b5a72ac7089b4e00ec6cd602532c36769d1577ea8d1b0cbd4bd1c27742537c",
+                "1.2.0",
+                "2026-09-23",
+                "f441b4503252b8c4cfed62ea5bdc4a14e974cc9dd4541e3bda51b9037320c500",
             ),
             "mova-360p-diffusers-single": ("2.0.9", "2026-09-05"),
             "mova-720p-diffusers-single": ("2.0.9", "2026-09-05"),

@@ -124,7 +124,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-Spark MOSS-VL-Realtime 11B session-replay job using the exact d1f71a58 BF16 snapshot. It preserves the bounded MP4-plus-JSONL contract and adopts upstream cached-vision RoPE, preprocessing, system-prompt, and per-sample batched-vision fixes. Physical Spark acceptance remains pending.",
+    "description": "Single-Spark MOSS-VL-Realtime 11B session-replay job using the exact d1f71a58 BF16 snapshot. It preserves the bounded MP4-plus-JSONL contract and adopts upstream cached-vision RoPE, preprocessing, system-prompt, and per-sample batched-vision fixes. It does not expose the upstream interactive WebSocket, camera, or screen-capture service. Physical Spark acceptance remains pending.",
     "tags": [
       "executable",
       "pending",
