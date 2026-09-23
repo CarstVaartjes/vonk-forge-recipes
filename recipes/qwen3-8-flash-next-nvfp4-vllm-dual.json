@@ -5106,6 +5106,20 @@
       {
         "changes": [
           {
+            "details": "The dual-node wrapper now acquires the shared prepared-cache lock nonblockingly with a finite 60-second deadline, reports the dependency, owner PID, deadline, and retry condition, and bounds both local preparation helpers. A killed helper releases the OS lock so a later authorized start can resume preparation. No physical Spark acceptance is asserted.",
+            "kind": "fix",
+            "references": [],
+            "summary": "Bound and diagnose shared Qwen3.8 prepared-cache coordination."
+          }
+        ],
+        "prior_recipe_content_sha256": "5869db23a9e6d8cb436f432520e59d7082a850effdb0c99b714f067f39ce5a49",
+        "released_at": "2026-09-23",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.1"
+      },
+      {
+        "changes": [
+          {
             "details": "Ports MiaAI-Lab's exact 6e08722d1fadf35fbe76244252288dc43df674dd SGLang-to-vLLM transition and the FP8-KV changes from ee33141b031970786d4e92c180861a1a65efabcc, as present at c2325b22602b51a5faf55fc2bebccc34f3f80b9f, into the Controller-managed dual-node topology. The OCI adapter bakes the upstream PLE, MXFP8 shape fallback, FP8_BLOCK_SCALES MTP dispatch, QSA FP8-KV, and absolute MTP-layer alias patches; the wrapper prepares a content-bound cache view atomically, merges safe overrides, and never invokes SSH, NFS, rsync, or a host Docker daemon. The official arm64 CUDA 13.0 image manifest is pinned from Docker Hub. No physical Spark receipt is asserted by this source checkpoint.",
             "kind": "runtime",
             "references": [
@@ -5141,8 +5155,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.0.0"
+    "released_at": "2026-09-23",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
