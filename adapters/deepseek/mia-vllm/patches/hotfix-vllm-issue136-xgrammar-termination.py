@@ -30,6 +30,7 @@ patched, backend stock) is never legitimate and is refused as incompatible.
 ``--status`` prints ``stock`` / ``patched`` / ``partial-invalid`` and exits 0
 only when fully patched.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -39,9 +40,10 @@ import os
 import stat
 import sys
 import tempfile
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Literal
 
 EXPECTED_VLLM_VERSION = "0.25.2.dev0+g752a3a504.d20260714"
 EXPECTED_XGRAMMAR_VERSION = "0.2.3"
@@ -390,15 +392,15 @@ def _read_file(target: Path) -> bytes:
         ) from error
 
 
-def inspect_target(
-    spec: TargetSpec, target: Path
-) -> Inspection:
+def inspect_target(spec: TargetSpec, target: Path) -> Inspection:
     """Classify an exact stock or exact patched regular file without mutation."""
     before = _lstat_regular(target)
     data = _read_file(target)
     after = _lstat_regular(target)
     if not _same_identity(before, after) or not _same_metadata(before, after):
-        raise CompatibilityError(f"target changed while it was being inspected ({target.name})")
+        raise CompatibilityError(
+            f"target changed while it was being inspected ({target.name})"
+        )
 
     digest = _sha256(data)
     old_count = data.count(spec.old_region)
@@ -440,7 +442,9 @@ def build_candidate(spec: TargetSpec, variant: SourceVariant, stock: bytes) -> b
         or _sha256(spec.old_region) != spec.stock_region_sha256
         or _sha256(spec.new_region) != spec.patched_region_sha256
     ):
-        raise CompatibilityError(f"candidate input is not the exact stock source ({spec.name})")
+        raise CompatibilityError(
+            f"candidate input is not the exact stock source ({spec.name})"
+        )
 
     offset = stock.index(spec.old_region)
     prefix = stock[:offset]
@@ -452,7 +456,9 @@ def build_candidate(spec: TargetSpec, variant: SourceVariant, stock: bytes) -> b
         or candidate.count(spec.old_region) != 0
         or candidate.count(spec.new_region) != 1
     ):
-        raise CompatibilityError(f"constructed post-image failed exact validation ({spec.name})")
+        raise CompatibilityError(
+            f"constructed post-image failed exact validation ({spec.name})"
+        )
     _compile_source(candidate, spec.production_path.name)
     return candidate
 
@@ -518,7 +524,9 @@ def _assert_original_unchanged(
         or not _same_metadata(current_stat, original_stat)
         or _read_file(target) != original_data
     ):
-        raise CompatibilityError(f"target changed before atomic publication ({target.name})")
+        raise CompatibilityError(
+            f"target changed before atomic publication ({target.name})"
+        )
 
 
 def _verify_published(
@@ -539,7 +547,9 @@ def _verify_published(
         or data.count(spec.old_region) != 0
         or data.count(spec.new_region) != 1
     ):
-        raise HotfixError(f"published target failed exact post-image verification ({spec.name})")
+        raise HotfixError(
+            f"published target failed exact post-image verification ({spec.name})"
+        )
     _compile_source(data, target.name)
 
 
@@ -549,7 +559,9 @@ def _verify_restored(
     restored_stat = _lstat_regular(target)
     restored = _read_file(target)
     if restored != original_data or not _same_metadata(restored_stat, original_stat):
-        raise RollbackError(f"rollback did not restore exact bytes and metadata ({target.name})")
+        raise RollbackError(
+            f"rollback did not restore exact bytes and metadata ({target.name})"
+        )
     _compile_source(restored, target.name)
 
 
@@ -609,7 +621,9 @@ def _publish_one(
             published = True
 
         _fsync_directory(target.parent)
-        _verify_published(spec, inspection.variant, target, candidate, inspection.file_stat)
+        _verify_published(
+            spec, inspection.variant, target, candidate, inspection.file_stat
+        )
     except BaseException as primary_error:
         if published:
             try:
@@ -631,9 +645,7 @@ def _publish_one(
         _unlink_temp(rollback_temp)
 
 
-def apply(
-    targets: dict[str, Path], metadata_provider: MetadataProvider
-) -> ApplyResult:
+def apply(targets: dict[str, Path], metadata_provider: MetadataProvider) -> ApplyResult:
     """Apply the chain transactionally, or verify an exact full post-image.
 
     ``targets`` maps each ``TargetSpec.name`` to the path to inspect/patch;
@@ -668,7 +680,9 @@ def apply(
     ]
 
     # Build and compile every candidate before the first write.
-    candidates = [build_candidate(spec, insp.variant, insp.data) for spec, insp in to_publish]
+    candidates = [
+        build_candidate(spec, insp.variant, insp.data) for spec, insp in to_publish
+    ]
 
     published_so_far: list[tuple[TargetSpec, Path, Inspection, bytes]] = []
     try:
@@ -684,10 +698,9 @@ def apply(
         for spec, path, insp, candidate in reversed(published_so_far):
             try:
                 _publish_one_restore(spec, path, insp, candidate)
-            except BaseException as rollback_error:
-                rollback_failures.append(
-                    f"{spec.name}:{type(rollback_error).__name__}"
-                )
+            # Continue collecting failures even when rollback itself is interrupted.
+            except BaseException as rollback_error:  # noqa: BLE001
+                rollback_failures.append(f"{spec.name}:{type(rollback_error).__name__}")
         if rollback_failures:
             raise RollbackError(
                 f"chain publication failed ({type(primary_error).__name__}) and "
@@ -737,7 +750,7 @@ def _display_versions() -> tuple[str, str]:
     for package in ("vllm", "xgrammar"):
         try:
             value = importlib.metadata.version(package)
-        except Exception as error:
+        except importlib.metadata.PackageNotFoundError as error:
             value = f"unavailable:{type(error).__name__}"
         displayed.append(value)
     return displayed[0], displayed[1]
@@ -781,8 +794,14 @@ def _production_targets() -> dict[str, Path]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     modes = parser.add_mutually_exclusive_group()
-    modes.add_argument("--check", action="store_true", help="check compatibility without writing")
-    modes.add_argument("--status", action="store_true", help="report stock/patched/partial-invalid/incompatible")
+    modes.add_argument(
+        "--check", action="store_true", help="check compatibility without writing"
+    )
+    modes.add_argument(
+        "--status",
+        action="store_true",
+        help="report stock/patched/partial-invalid/incompatible",
+    )
     args = parser.parse_args(argv)
     mode: Mode = "status" if args.status else "check" if args.check else "apply"
     shown_versions = _display_versions()
@@ -791,9 +810,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if mode in {"check", "status"}:
             versions = _load_versions(importlib.metadata.version)
-            inspections = [
-                inspect_target(spec, targets[spec.name]) for spec in TARGETS
-            ]
+            inspections = [inspect_target(spec, targets[spec.name]) for spec in TARGETS]
             chain = _classify_chain(inspections)
             joined = ",".join(i.digest for i in inspections)
             _log(mode, chain, versions[0], versions[1], joined, joined)
@@ -827,12 +844,15 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     except CompatibilityError as error:
         digests = _display_digests(targets)
-        _log(mode, "incompatible", shown_versions[0], shown_versions[1], digests, digests)
+        _log(
+            mode, "incompatible", shown_versions[0], shown_versions[1], digests, digests
+        )
         print(f"{MARK} incompatible: {error}", file=sys.stderr)
         if mode == "status":
             print("incompatible")
         return 2
-    except BaseException as error:
+    # Report every patch failure, including interruption, as a logged nonzero exit.
+    except BaseException as error:  # noqa: BLE001
         digests = _display_digests(targets)
         _log(mode, "failed", shown_versions[0], shown_versions[1], digests, digests)
         print(

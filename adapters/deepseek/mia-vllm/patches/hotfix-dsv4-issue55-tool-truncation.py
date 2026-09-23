@@ -149,10 +149,9 @@ def _patch_file(
 ) -> str:
     """Apply `new` over `old` once; idempotent. Returns applied|skipped|missing."""
     source = path.read_text(encoding="utf-8")
-    if new in source:
-        # The streaming replacement is a prefix of the previous buggy line.
-        if not previous or previous not in source:
-            return "skipped"
+    # The streaming replacement is a prefix of the previous buggy line.
+    if new in source and (not previous or previous not in source):
+        return "skipped"
     if old not in source:
         if previous and previous in source:
             old = previous

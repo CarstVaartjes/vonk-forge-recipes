@@ -3,6 +3,7 @@
 anchors, and the patched ``adjust_request`` masks ``<tool_call>`` only for
 none+tools chat requests (client ``bad_words`` preserved, other requests,
 the Responses API shape and the ``super()`` chain untouched)."""
+
 import sys
 from pathlib import Path
 
@@ -12,7 +13,7 @@ for _d in (HERE, ROOT / "overlay"):
     if (_d / "patch_tool_choice_none.py").is_file():
         sys.path.insert(0, str(_d))
         break
-from patch_tool_choice_none import MARK, OLD, apply_text  # noqa: E402
+from patch_tool_choice_none import MARK, OLD, apply_text
 
 # Dependency-free harness carrying the exact image anchor.
 MINIMAL = (
@@ -51,7 +52,8 @@ def _patched_parser() -> dict[str, object]:
     out, status = apply_text(MINIMAL)
     assert status == "applied", status
     ns: dict[str, object] = {}
-    exec(compile(out, "patched_glm47_moe_fixture.py", "exec"), ns)
+    # Execute the patched fixture in isolation to exercise its actual method body.
+    exec(compile(out, "patched_glm47_moe_fixture.py", "exec"), ns)  # noqa: S102
     return ns
 
 
@@ -92,8 +94,12 @@ def test_other_requests_untouched() -> None:
     ns = _patched_parser()
     parser = ns["Glm47MoeParser"]()
     make = ns["ChatCompletionRequest"]
-    for tool_choice, tools in (("auto", TOOLS), ("required", TOOLS),
-                               ("none", None), ("none", [])):
+    for tool_choice, tools in (
+        ("auto", TOOLS),
+        ("required", TOOLS),
+        ("none", None),
+        ("none", []),
+    ):
         req = parser.adjust_request(make(tool_choice, tools))
         assert req.bad_words == [], (tool_choice, tools, req.bad_words)
         assert req.skip_special_tokens is False
@@ -110,7 +116,11 @@ def test_recipe_wiring_if_present() -> None:
     launcher = start.read_text()
     image = dockerfile.read_text()
     assert 'TOOLCHOICE_PATCH_HOST="${TOOLCHOICE_PATCH_HOST:-' in launcher
-    order = launcher[launcher.index("GLM53_OVERLAY_ORDER=(") : launcher.index(")", launcher.index("GLM53_OVERLAY_ORDER=("))]
+    order = launcher[
+        launcher.index("GLM53_OVERLAY_ORDER=(") : launcher.index(
+            ")", launcher.index("GLM53_OVERLAY_ORDER=(")
+        )
+    ]
     assert "\n    patch_tool_choice_none.py\n" in order
     assert 'emit_overlay_block >> "$HEAD_SCRIPT"' in launcher
     assert 'emit_overlay_block >> "$WORKER_SCRIPT"' in launcher

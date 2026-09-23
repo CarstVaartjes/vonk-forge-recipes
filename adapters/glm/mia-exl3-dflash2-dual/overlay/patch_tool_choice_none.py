@@ -27,6 +27,7 @@ retention this deployment needs (168-vs-17 prompt-token class).
 
 Anchor is this image's ``vllm/parser/glm47_moe.py``. Fail closed on drift.
 """
+
 from __future__ import annotations
 
 import os
@@ -47,7 +48,8 @@ OLD = """    def _handle_tool_end(self, event, deltas) -> None:
         super()._handle_tool_end(event, deltas)
 """
 
-NEW = """    def adjust_request(
+NEW = (
+    """    def adjust_request(
         self, request: ChatCompletionRequest | ResponsesRequest
     ) -> ChatCompletionRequest | ResponsesRequest:
         request = super().adjust_request(request)
@@ -61,7 +63,9 @@ NEW = """    def adjust_request(
             request.bad_words.append(TOOL_CALL_START)
         return request
 
-""" + OLD
+"""
+    + OLD
+)
 
 
 def apply_text(src: str) -> tuple[str, str]:
@@ -87,7 +91,9 @@ def main(argv: list[str] | None = None) -> int:
     if len(argv) > 1 and argv[1] == "--status":
         target = Path(argv[2]) if len(argv) > 2 else P
         applied = target.is_file() and MARK in target.read_text(encoding="utf-8")
-        print("tool-choice-none               :", "APPLIED" if applied else "NOT APPLIED")
+        print(
+            "tool-choice-none               :", "APPLIED" if applied else "NOT APPLIED"
+        )
         return 0
     target = Path(argv[1]) if len(argv) > 1 else P
     if not target.is_file():
