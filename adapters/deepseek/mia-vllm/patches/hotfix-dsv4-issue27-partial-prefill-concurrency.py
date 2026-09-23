@@ -19,16 +19,18 @@ the cap. The cap is ``DSPARK_MAX_INFLIGHT_PREFILLS`` (1-3, default 1 via
 compose) because this image rejects ``--max-num-partial-prefills``. It is
 parsed once during ``Scheduler`` construction; unset, blank, nonpositive, or
 malformed values fall back to ``SchedulerConfig.max_num_partial_prefills``
-(stock 1), and malformed values emit one warning. ``self._inflight_prefills``
-is maintained by ``_update_after_schedule`` (populated for requests still
-needing more prefill chunks, discarded when they finish prefilling), so it
-correctly reflects the currently-prefilling set. This restores the documented
-concurrency cap of 1 by default, so at most one request prefill-chunks per
-step and decode lanes behind it in ``self.running`` always receive budget
-(chunk cap via ``--long-prefill-token-threshold`` keeps that one chunk below
-``max_num_batched_tokens`` leaving room for decode tokens).
+(stock 1), and malformed values emit one warning. The admission count is
+derived from ``self.running`` in exact parity with the stock
+``_inflight_prefills`` set: already-running requests count while their prompt
+remains unfinished; requests admitted this step count only when their
+scheduled tokens leave more prompt work. This avoids counting async-KV loads
+that are not running requests and prevents stale/lost set entries from
+allowing too many prefills. The set remains owned by vLLM for async-KV
+reservation bookkeeping. The resolved cap is logged once at construction and
+undercount drift is warned.
 
-Idempotent: re-applying is a no-op once the marker is present.
+Idempotent only for r3. An older issue27 marker is refused rather than
+silently treating its different admission predicate as current.
 
 Patches /usr/local/lib/python3.12/dist-packages/vllm/v1/core/sched/scheduler.py
 in-place inside the container (called from the compose entrypoint before
@@ -40,17 +42,30 @@ from pathlib import Path
 
 P = Path("/usr/local/lib/python3.12/dist-packages/vllm/v1/core/sched/scheduler.py")
 MARK = "# [issue27-hotfix] enforce max_num_partial_prefills on admission"
+R2_MARK = "# [issue27-r2]"
+R3_MARK = "# [issue27-r3]"
 if len(sys.argv) > 1 and sys.argv[1] == "--status":
     status_src = P.read_text() if P.is_file() else ""
+    if MARK in status_src and R3_MARK in status_src:
+        status = "APPLIED (r3)"
+    elif MARK in status_src and R2_MARK in status_src:
+        status = "APPLIED (r2, stale)"
+    elif MARK in status_src:
+        status = "APPLIED (pre-r2, stale)"
+    else:
+        status = "NOT APPLIED"
     print(
         "issue27 partial-prefill cap        :",
-        "APPLIED" if MARK in status_src else "NOT APPLIED",
+        status,
     )
     raise SystemExit(0)
 src = P.read_text()
 if MARK in src:
-    print(f"[issue27-hotfix] already applied to {P}")
-    raise SystemExit(0)
+    if R3_MARK in src:
+        print(f"[issue27-hotfix] already applied to {P}")
+        raise SystemExit(0)
+    print("[issue27-hotfix] older issue27 gate present (pre-r3); refusing to patch")
+    raise SystemExit(1)
 
 INIT_ANCHOR = (
     "        # In-flight requests still prefilling (prefill chunks + in-progress\n"
@@ -82,6 +97,17 @@ INIT_INJECT = INIT_ANCHOR + (
     "        if _pp_cap <= 0:\n"
     "            _pp_cap = self.scheduler_config.max_num_partial_prefills\n"
     "        self._dspark_max_inflight_prefills = min(_pp_cap, 3)\n"
+    "        # [issue27-hotfix] boot evidence and undercount tripwire state.\n"
+    "        self._dspark_inflight_diag = __import__('os').environ.get(\n"
+    "            'DSPARK_ISSUE43_SCHED_DIAG', '0'\n"
+    "        ) not in ('0', '', 'false', 'False')\n"
+    "        self._dspark_inflight_mismatches = 0\n"
+    "        logger.info(\n"
+    "            '[issue27-hotfix] in-flight prefill cap=%d env=%r sched=%x',\n"
+    "            self._dspark_max_inflight_prefills,\n"
+    "            _pp_cap_raw,\n"
+    "            id(self),\n"
+    "        )\n"
 )
 
 INJECT = ADMISSION_ANCHOR + (
@@ -92,16 +118,61 @@ INJECT = ADMISSION_ANCHOR + (
     "                # requests at the front of self.running consume the whole\n"
     "                # max_num_batched_tokens each step; decode-active requests behind\n"
     "                # them get num_new_tokens==0 and are skipped (continue, not preempt)\n"
-    "                # -> zero-preemption decode starvation (issue #27). _inflight_prefills\n"
-    "                # is the set of running requests still needing prefill chunks.\n"
+    "                # -> zero-preemption decode starvation (issue #27). Admission\n"
+    "                # is counted directly from self.running (exact parity with the\n"
+    "                # _inflight_prefills set, see [issue27-r3] below), not from the\n"
+    "                # set itself, whose add/discard bookkeeping is shared with\n"
+    "                # async-KV loads and is kept only for\n"
+    "                # _inflight_prefill_reserved_blocks.\n"
     "                # DSPARK_MAX_INFLIGHT_PREFILLS is parsed and cached once\n"
     "                # during Scheduler construction, never in this hot loop.\n"
-    "                if (\n"
-    "                    self._dspark_max_inflight_prefills > 0\n"
-    "                    and len(self._inflight_prefills)\n"
-    "                    >= self._dspark_max_inflight_prefills\n"
-    "                ):\n"
-    "                    break\n"
+    "                if self._dspark_max_inflight_prefills > 0:\n"
+    "                    _pp_running = 0\n"
+    "                    # [issue27-r3] Match the stock set's membership and\n"
+    "                    # discard timing. Earlier running entries count only\n"
+    "                    # while their prompt is unfinished; decoders never\n"
+    "                    # qualify, regardless of output placeholders. Requests\n"
+    "                    # admitted this step use the stock set's add predicate.\n"
+    "                    _pp_old = (\n"
+    "                        len(self.running)\n"
+    "                        - len(scheduled_new_reqs)\n"
+    "                        - len(scheduled_resumed_reqs)\n"
+    "                    )\n"
+    "                    for _i, _r in enumerate(self.running):\n"
+    "                        if _i < _pp_old:\n"
+    "                            if _r.num_computed_tokens < _r.num_prompt_tokens:\n"
+    "                                _pp_running += 1\n"
+    "                        elif (\n"
+    "                            _r.num_computed_tokens\n"
+    "                            + num_scheduled_tokens.get(_r.request_id, 0)\n"
+    "                            < _r.num_tokens\n"
+    "                        ):\n"
+    "                            _pp_running += 1\n"
+    "                    _pp_tracked = len(self._inflight_prefills)\n"
+    "                    if _pp_tracked < _pp_running:\n"
+    "                        self._dspark_inflight_mismatches += 1\n"
+    "                        if self._dspark_inflight_mismatches <= 16:\n"
+    "                            logger.warning(\n"
+    "                                '[issue27-hotfix] in-flight prefill undercount: '\n"
+    "                                'tracked=%d running=%d cap=%d step=%d (n=%d)',\n"
+    "                                _pp_tracked,\n"
+    "                                _pp_running,\n"
+    "                                self._dspark_max_inflight_prefills,\n"
+    "                                self.current_step,\n"
+    "                                self._dspark_inflight_mismatches,\n"
+    "                            )\n"
+    "                    if self._dspark_inflight_diag:\n"
+    "                        logger.info(\n"
+    "                            '[issue27-adm] step=%d tracked=%d running=%d cap=%d '\n"
+    "                            'waiting=%d',\n"
+    "                            self.current_step,\n"
+    "                            _pp_tracked,\n"
+    "                            _pp_running,\n"
+    "                            self._dspark_max_inflight_prefills,\n"
+    "                            len(self.waiting),\n"
+    "                        )\n"
+    "                    if _pp_running >= self._dspark_max_inflight_prefills:\n"
+    "                        break\n"
 )
 src = src.replace(INIT_ANCHOR, INIT_INJECT, 1)
 src = src.replace(ADMISSION_ANCHOR, INJECT, 1)
