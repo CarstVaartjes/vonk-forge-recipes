@@ -25,6 +25,7 @@ import sys
 import tempfile
 import types
 from pathlib import Path
+from typing import Protocol, cast
 
 HERE = Path(__file__).resolve().parent
 PATCH = next(
@@ -98,13 +99,15 @@ def init_statements(path: Path):
     )
     wanted = {"mamba_align_block_size", "mamba_align_eagle_backoff"}
     stmts = [
-        s
-        for s in init.body
-        if isinstance(s, ast.Assign)
-        and isinstance(s.targets[0], ast.Attribute)
-        and s.targets[0].attr in wanted
+        statement
+        for statement in init.body
+        if isinstance(statement, ast.Assign)
+        and isinstance(statement.targets[0], ast.Attribute)
+        and statement.targets[0].attr in wanted
     ]
     assert len(stmts) == 2, [ast.dump(s.targets[0]) for s in stmts]
+    body: list[ast.stmt] = []
+    body.extend(stmts)
     fn = ast.FunctionDef(
         name="derive",
         args=ast.arguments(
@@ -114,7 +117,7 @@ def init_statements(path: Path):
             kw_defaults=[],
             defaults=[],
         ),
-        body=stmts,
+        body=body,
         decorator_list=[],
         returns=None,
     )
@@ -136,8 +139,16 @@ class MambaSpec:
         self.block_size = block_size
 
 
+class _LoadedMambaSpec(Protocol):
+    block_size: int
+    mamba_cache_mode: str
+    num_speculative_blocks: int
+
+
 class Sched:
     """The attributes _mamba_block_aligned_split reads."""
+
+    kv_cache_manager: types.SimpleNamespace
 
     def __init__(
         self,
@@ -289,12 +300,10 @@ def part_c(src: Path) -> None:
     from test_mamba_align_state_free import Pool, load_manager
 
     manager_cls, spec_cls = load_manager(STM_SRC)
-    spec = spec_cls()
-    spec.block_size, spec.mamba_cache_mode, spec.num_speculative_blocks = (
-        MAMBA,
-        "align",
-        7,
-    )
+    spec = cast(_LoadedMambaSpec, spec_cls())
+    spec.block_size = MAMBA
+    spec.mamba_cache_mode = "align"
+    spec.num_speculative_blocks = 7
     pool = Pool(num_blocks=128)
     manager = manager_cls(
         spec,

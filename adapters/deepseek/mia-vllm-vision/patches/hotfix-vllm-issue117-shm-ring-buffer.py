@@ -120,7 +120,8 @@ PATCHED_SHA256 = "911e0dd65e0a0c6346e4f8f2120d2417fefe431ce5f2618ba9e9c9e1986faf
 PATCHED_ISSUE79_SHA256 = (
     "30d8b62817adab4fabde8ddc6ce9a0f4b71899b80f70e8a50c688f5e63a46b0f"
 )
-SOURCE_IDENTITIES: dict[str, tuple[str, bool, int]] = {
+State = Literal["stock-compatible", "patched"]
+SOURCE_IDENTITIES: dict[str, tuple[State, bool, int]] = {
     STOCK_SHA256: ("stock-compatible", False, 39_864),
     STOCK_ISSUE79_SHA256: ("stock-compatible", True, 39_868),
     PATCHED_SHA256: ("patched", False, 40_312),
@@ -138,7 +139,6 @@ PATCHES = (
 
 MetadataProvider = Callable[[str], str]
 Mode = Literal["apply", "check", "status"]
-State = Literal["stock-compatible", "patched"]
 
 
 class HotfixError(RuntimeError):

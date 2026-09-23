@@ -11,6 +11,7 @@ import unittest
 from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -147,7 +148,7 @@ def _load_patched_scheduler(
         path.write_text(ISSUE27_FIXTURE, encoding="utf-8")
         _apply_issue27(patch_path, path)
         patched = path.read_text(encoding="utf-8")
-    namespace: dict[str, object] = {}
+    namespace: dict[str, Any] = {}
     # Load the patched scheduler fixture without importing the vLLM package.
     exec(compile(patched, str(path), "exec"), namespace)  # noqa: S102
     scheduler = namespace["Scheduler"](running, tracked, config_cap)

@@ -140,12 +140,6 @@
       "reason": "The member is reached only after an explicit guard on the same value; pyright loses that narrowing across the kernel branch."
     },
     {
-      "file": "adapters/deepseek/mia-vllm-vision/patches/hotfix-vllm-issue117-shm-ring-buffer.py",
-      "rule": "reportReturnType",
-      "count": 1,
-      "reason": "The return crosses an untyped upstream boundary; the surrounding caller validates the shape."
-    },
-    {
       "file": "adapters/deepseek/mia-vllm-vision/patches/vision_exp/apply.py",
       "rule": "reportMissingImports",
       "count": 9,
@@ -768,12 +762,6 @@
       "rule": "reportMissingImports",
       "count": 3,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
-    },
-    {
-      "file": "adapters/qwen/flash-next-vllm-dual/test_qwen38_wrapper.py",
-      "rule": "reportAttributeAccessIssue",
-      "count": 5,
-      "reason": "The attribute comes from an upstream vLLM/SGLang class whose untyped runtime surface pyright cannot resolve from the host."
     },
     {
       "file": "adapters/three-d/hunyuan3d-omni/glb_validation.py",
