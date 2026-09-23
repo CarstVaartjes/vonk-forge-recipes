@@ -2,6 +2,14 @@ This adapter reuses the immutable public image and launch scripts from
 0xSero/deepseek-v4-flash-0731-spark-sparkinfer at commit
 590d2172394dd83c1f36ff29f0dc9ec6032ea9e2 (Apache-2.0).
 
+This adapter also includes the Apache-2.0 XGrammar 0.2.3 CPython 3.12 ARM64
+wheel from PyPI, pinned by SHA-256
+11255f184971489fc72b948b096e2917f482ba2dca975177f5411562cedb9c6d. It is
+installed offline into the runtime virtual environment to provide the
+normalize_tool_choice API required by the pinned vLLM tool parser. This
+matches the upstream correction merged at
+d370c0f0806a9ac994dc5f354715576cc23840b9.
+
 Vonk supplies the exact 0xSero/deepseek-v4-flash-0731-spark snapshot from its
 digest-bound artifact store at /models/weights. The adapter invokes upstream's
 lossless TP4-to-TP1 coalescer, target verifier, SparkInfer self-test, and
@@ -16,6 +24,6 @@ after target plus draft load. Those exact records remain pinned at commit
 590d2172394dd83c1f36ff29f0dc9ec6032ea9e2 under results/acceptance.json and
 results/clean-image-acceptance.json.
 
-This separate recipe remains a Candidate until the exact published image,
+This separate recipe remains a Candidate until the exact recipe-built image,
 126 GB admission envelope, endpoint, generation, structured output, and memory
 headroom pass a Vonk-managed physical Spark canary.

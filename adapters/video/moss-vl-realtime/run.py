@@ -25,6 +25,9 @@ from transformers import AutoModelForCausalLM, AutoProcessor
 INPUTS = Path("/inputs")
 MODEL = Path("/models")
 ALLOWED_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
+# The transcript identifies the unchanged BF16 weight snapshot. Remote model
+# code is pinned separately by the selected Model document.
+WEIGHTS_REVISION = "06b067617677661194cf837970fe3a10f1a0e56d"
 
 
 def fail(message: str) -> NoReturn:
@@ -309,9 +312,7 @@ def main() -> None:
 
     try:
         session.start()
-        record(
-            "session-start", model_revision="25e81cb952d5f353a5690f2c1ea09a725815df80"
-        )
+        record("session-start", model_revision=WEIGHTS_REVISION)
         for event_index, event in enumerate(events):
             due = event["at_seconds"] / playback_speed
             while True:

@@ -1089,6 +1089,24 @@
   "release": {
     "history": [
       {
+        "version": "1.1.7",
+        "released_at": "2026-09-23",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "517dfa7fa5e73cce23f5ea4a6a10f70f18f921045bc8c7ae87a68d7c5f02ac0e",
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Close pinned DeepSeek serialization, prefill, and XGrammar retry regressions.",
+            "details": "Backports upstream issue55 behavior that preserves filtered tool_calls as an empty list rather than null, which breaks vLLM serializers that call len(), and issue27 r3 parity that counts unfinished prefills from the scheduler's running list instead of trusting async-KV bookkeeping. The cap excludes decoder-only requests and non-running async reservations, with a warning on tracking undercount. It also extends the reasoning-boundary XGrammar fix across both the backend and grammar manager as one validated two-file transaction (upstream issue210), preventing a partial application from leaving the files inconsistent. Adapter regressions cover the behavior. The source revision and exact Anemll runtime digest remain unchanged; strict patched-tree hashes were recomputed inside that pinned image. Rebuild required; no Spark acceptance is claimed.",
+            "references": [
+              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/a1fed70176c871d384ee86b8e58b88ffe79ca6d4",
+              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/eda7d3b844bfc2bd918592e8c6b4ab62d9c94d41",
+              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/cfbccaf878d02450966f10504105159d2b43d16f"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": null,
@@ -1250,8 +1268,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.1.6"
+    "released_at": "2026-09-23",
+    "version": "1.1.7"
   },
   "runtime": {
     "arguments": [

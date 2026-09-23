@@ -49,6 +49,7 @@ run("hotfix-dsv4-issue55-tool-truncation.py", str(ROOT))
 shell_environment = {**os.environ, "VLLM_ROOT": str(ROOT)}
 run("hotfix-nvfp4-ds-mla-issue22.sh", environment=shell_environment)
 run("hotfix-gb10-spin-wait.sh", environment=shell_environment)
+run("hotfix-vllm-issue117-shm-ring-buffer.py")
 for patch in (
     "hotfix-dsv4-mtp-buffer-50312.sh",
     "hotfix-dsv4-skip-topk-49486.sh",

@@ -44,7 +44,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public bc68f310 EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its tested 2x DGX Spark EXL3/TR3 4 bpw target with the retained bf582e4e DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 320k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. The build applies the GB10 persistent-topk overlay and verify-runtime.py fails closed unless the kpool guard carries its marker, so an image without it cannot be promoted. The declared context is 320k rather than upstream's 850k because the engine's own KV check caps this configuration at about 394k on the measured 126 GB GB10 node with gpu-memory-utilization 0.85, and the recipe's declared memory envelope forbids raising that utilization further. Vonk physical acceptance and checkpoint requalification remain pending.",
+    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public bc68f310 EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its 2x DGX Spark EXL3/TR3 4 bpw target with the retained bf582e4e DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 192k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. The build applies the GB10 persistent-topk overlay and verify-runtime.py fails closed unless its marker is present. Selected upstream fixes are vendored for bounded Mamba align-state retention, Mamba-block chunk checkpoints, and tool_choice:none decode masking while the source and runtime image pins remain fixed. A 320k context was refused by the engine's own KV check at the declared 0.84 GPU utilization, so 192k remains the current declared context. Vonk physical acceptance and checkpoint requalification remain pending.",
     "tags": [
       "candidate",
       "dflash2",
@@ -1888,6 +1888,23 @@
   "release": {
     "history": [
       {
+        "version": "1.6.7",
+        "released_at": "2026-09-23",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "4e5255a78123f3052a4cbff993996a89262082de5c518c7e02eb906eee3e8665",
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Fix selected Mamba align and tool-choice runtime bugs.",
+            "details": "Backports upstream Mamba align state reclamation and block-size-aware chunking. The TP2 recipe exercises Mamba align mode with 7168-token scheduling and a smaller DFlash page, so superseded SSM state could accumulate and prefill checkpoints could land at the wrong Mamba boundary. It also masks the GLM47 <tool_call> opener at decode time for tool_choice:none; the recipe enables automatic tool choice and otherwise strips calls only after generation. The overlays and CPU regressions are vendored against the unchanged digest-pinned vLLM base. Model weights, topology, and runtime arguments are unchanged. Rebuild required; this is not physical Spark acceptance.",
+            "references": [
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/commit/fd329d248e63de3ddd334c7d2ed3276e8321672b",
+              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/commit/771a1867bc862fae5fa8946f85fb66749468679e"
+            ]
+          }
+        ]
+      },
+      {
         "version": "1.6.6",
         "released_at": "2026-09-20",
         "upgrade_effect": "restart",
@@ -2229,8 +2246,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-20",
-    "version": "1.6.6"
+    "released_at": "2026-09-23",
+    "version": "1.6.7"
   },
   "runtime": {
     "arguments": [
