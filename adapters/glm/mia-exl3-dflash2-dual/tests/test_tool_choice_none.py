@@ -4,16 +4,38 @@ anchors, and the patched ``adjust_request`` masks ``<tool_call>`` only for
 none+tools chat requests (client ``bad_words`` preserved, other requests,
 the Responses API shape and the ``super()`` chain untouched)."""
 
-import sys
+import importlib.util
 from pathlib import Path
+from typing import Any, Protocol, cast
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-for _d in (HERE, ROOT / "overlay"):
-    if (_d / "patch_tool_choice_none.py").is_file():
-        sys.path.insert(0, str(_d))
-        break
-from patch_tool_choice_none import MARK, OLD, apply_text
+PATCHER_PATH = next(
+    path
+    for path in (
+        HERE / "patch_tool_choice_none.py",
+        ROOT / "overlay" / "patch_tool_choice_none.py",
+    )
+    if path.is_file()
+)
+
+
+class _Patcher(Protocol):
+    MARK: str
+    OLD: str
+
+    def apply_text(self, source: str) -> tuple[str, str]: ...
+
+
+_PATCHER_SPEC = importlib.util.spec_from_file_location(
+    "patch_tool_choice_none", PATCHER_PATH
+)
+if _PATCHER_SPEC is None or _PATCHER_SPEC.loader is None:
+    raise ImportError(f"cannot load tool-choice patcher from {PATCHER_PATH}")
+_PATCHER_MODULE = importlib.util.module_from_spec(_PATCHER_SPEC)
+_PATCHER_SPEC.loader.exec_module(_PATCHER_MODULE)
+_PATCHER = cast(_Patcher, _PATCHER_MODULE)
+MARK, OLD, apply_text = _PATCHER.MARK, _PATCHER.OLD, _PATCHER.apply_text
 
 # Dependency-free harness carrying the exact image anchor.
 MINIMAL = (
@@ -48,10 +70,10 @@ MINIMAL = (
 TOOLS = [{"type": "function", "function": {"name": "lookup_fact"}}]
 
 
-def _patched_parser() -> dict[str, object]:
+def _patched_parser() -> dict[str, Any]:
     out, status = apply_text(MINIMAL)
     assert status == "applied", status
-    ns: dict[str, object] = {}
+    ns: dict[str, Any] = {}
     # Execute the patched fixture in isolation to exercise its actual method body.
     exec(compile(out, "patched_glm47_moe_fixture.py", "exec"), ns)  # noqa: S102
     return ns

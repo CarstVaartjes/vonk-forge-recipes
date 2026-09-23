@@ -7,6 +7,7 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
+from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
@@ -174,7 +175,9 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
         )
 
     def test_target_only_smoke_exercises_the_tool_parser(self) -> None:
-        definitions = _document(ROOT / "qualification/definitions.json")
+        definitions = cast(
+            dict[str, Any], _document(ROOT / "qualification/definitions.json")
+        )
         services = definitions["service_recipes"]
         contract = services[
             "vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single"

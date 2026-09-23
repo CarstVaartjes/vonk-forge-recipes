@@ -7,18 +7,39 @@ import stat
 import subprocess
 import sys
 import time
+from contextlib import AbstractContextManager
 from pathlib import Path
+from typing import Protocol, cast
 
 import pytest
 
 
-def _wrapper():
+class _Wrapper(Protocol):
+    SOURCE: Path
+    PREPARED_ROOT: Path
+    PREPARED: Path
+    PATCHER: Path
+    PREPARATION_LOCK_TIMEOUT_SECONDS: float
+    PREPARATION_LOCK_POLL_SECONDS: float
+    PREPARATION_LOCK_STATUS_INTERVAL_SECONDS: float
+    PREPARATION_HELPER_TIMEOUT_SECONDS: float
+
+    def prepare_model(self) -> str: ...
+
+    def _preparation_lock(self, root: Path) -> AbstractContextManager[None]: ...
+
+    def _merged_hf_overrides(self, arguments: list[str]) -> str | None: ...
+
+    def _set_option(self, arguments: list[str], option: str, value: str) -> None: ...
+
+
+def _wrapper() -> _Wrapper:
     path = Path(__file__).with_name("qwen38-vllm-wrapper.py")
     spec = importlib.util.spec_from_file_location("qwen38_vllm_wrapper", path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module
+    return cast(_Wrapper, module)
 
 
 def test_preparation_reruns_for_source_change_without_writing_source(
@@ -211,6 +232,7 @@ def test_hf_overrides_merges_safe_options_and_enforces_yarn_guard(
         '{"text_config":{"custom_flag":true}}',
     ]
     merged_json = wrapper._merged_hf_overrides(arguments)
+    assert merged_json is not None
     wrapper._set_option(arguments, "--hf-overrides", merged_json)
     merged = json.loads(arguments[arguments.index("--hf-overrides") + 1])
     assert arguments.count("--hf-overrides") == 1
@@ -223,7 +245,9 @@ def test_hf_overrides_merges_safe_options_and_enforces_yarn_guard(
     assert wrapper._merged_hf_overrides(explicit_args) == explicit
 
     default_args = ["--max-model-len", "262144"]
-    default = json.loads(wrapper._merged_hf_overrides(default_args))
+    default_json = wrapper._merged_hf_overrides(default_args)
+    assert default_json is not None
+    default = json.loads(default_json)
     assert default["text_config"]["ple_embedding_dtype"] == "float8_e4m3fn"
     assert "rope_parameters" not in default["text_config"]
 
