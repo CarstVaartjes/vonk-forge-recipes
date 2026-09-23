@@ -1,6 +1,27 @@
 # syntax=docker/dockerfile:1.7
 FROM ghcr.io/0xsero/deepseek-v4-flash-0731-spark-sparkinfer@sha256:2e077489a83a0360952828051fe7f7a32c1801e5ce8436d85f7267583d614ff4
 
+COPY vendor/ /tmp/xgrammar-wheel-parts/
+
+RUN cat /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-aa \
+         /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ab \
+         /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ac \
+         /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ad \
+         /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ae \
+         > /tmp/xgrammar-0.2.3.whl \
+    && printf '11255f184971489fc72b948b096e2917f482ba2dca975177f5411562cedb9c6d  /tmp/xgrammar-0.2.3.whl\n' \
+         | sha256sum -c - \
+    && env -u PIP_CONSTRAINT /opt/runtime-venv/bin/python -m pip install \
+         --no-deps --no-index /tmp/xgrammar-0.2.3.whl \
+    && /opt/runtime-venv/bin/python -c \
+         'import importlib.metadata; from xgrammar import normalize_tool_choice; assert importlib.metadata.version("xgrammar") == "0.2.3"' \
+    && rm -f /tmp/xgrammar-0.2.3.whl \
+         /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-aa \
+         /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ab \
+         /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ac \
+         /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ad \
+         /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ae
+
 LABEL org.opencontainers.image.source="https://github.com/0xSero/deepseek-v4-flash-0731-spark-sparkinfer" \
       org.opencontainers.image.revision="590d2172394dd83c1f36ff29f0dc9ec6032ea9e2" \
       org.opencontainers.image.licenses="Apache-2.0" \

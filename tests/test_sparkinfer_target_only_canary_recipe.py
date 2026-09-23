@@ -27,7 +27,11 @@ EXECUTABLE_PAYLOAD_REVISION = "22f28d32b9b29b4352eaa380ff8c2c170b2847ab"
 RUNTIME_REVISION = "590d2172394dd83c1f36ff29f0dc9ec6032ea9e2"
 IMAGE_DIGEST = "2e077489a83a0360952828051fe7f7a32c1801e5ce8436d85f7267583d614ff4"
 SOURCE_BUNDLE_DIGEST = (
-    "3dce433c20254af566bf5e11044ca81f1aa0f03d0f8ed4296533b49c98ea3d42"
+    "fab8ac1c98c2105fbf5958e0a10735be3e45ed9d6a228e340f938116d65b4672"
+)
+XGRAMMAR_VERSION = "0.2.3"
+XGRAMMAR_WHEEL_SHA256 = (
+    "11255f184971489fc72b948b096e2917f482ba2dca975177f5411562cedb9c6d"
 )
 LOWER_SPARK_BASELINE_BYTES = 126_946_283_520
 
@@ -119,6 +123,23 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
         self.assertIn("92.13 GiB", notice)
         self.assertIn("95.39 GiB", notice)
 
+        self.assertIn("COPY vendor/ /tmp/xgrammar-wheel-parts/", dockerfile)
+        self.assertIn(XGRAMMAR_WHEEL_SHA256, dockerfile)
+        self.assertIn("--no-deps --no-index /tmp/xgrammar-0.2.3.whl", dockerfile)
+        self.assertIn("from xgrammar import normalize_tool_choice", dockerfile)
+        self.assertIn(f'version("xgrammar") == "{XGRAMMAR_VERSION}"', dockerfile)
+        self.assertIn(XGRAMMAR_WHEEL_SHA256, notice)
+        wheel_parts = sorted((ADAPTER_ROOT / "vendor").glob("xgrammar-0.2.3.part-*"))
+        self.assertEqual(
+            [path.name[-2:] for path in wheel_parts],
+            ["aa", "ab", "ac", "ad", "ae"],
+        )
+        self.assertTrue(all(path.stat().st_size <= 10_000_000 for path in wheel_parts))
+        wheel_digest = hashlib.sha256()
+        for path in wheel_parts:
+            wheel_digest.update(path.read_bytes())
+        self.assertEqual(wheel_digest.hexdigest(), XGRAMMAR_WHEEL_SHA256)
+
         for forbidden in (
             "snapshot_download",
             "huggingface_hub",
@@ -135,12 +156,11 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
 
     def test_release_pins_the_upstream_measurements(self) -> None:
         recipe = RecipeDefinition.model_validate(_document(RECIPE_PATH))
-        release = recipe.release
         evidence = next(
             change
-            for entry in release.history
+            for entry in recipe.release.history
             for change in entry.changes
-            if change.references
+            if "92.13 GiB" in (change.details or "")
         )
         self.assertIn("92.13 GiB", evidence.details or "")
         self.assertIn("95.39 GiB", evidence.details or "")
@@ -151,6 +171,28 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
                 f"https://github.com/0xSero/deepseek-v4-flash-0731-spark-sparkinfer/blob/{RUNTIME_REVISION}/results/clean-image-acceptance.json",
                 f"https://github.com/0xSero/deepseek-v4-flash-0731-spark-sparkinfer/blob/{RUNTIME_REVISION}/scripts/entrypoint.sh",
             ],
+        )
+
+    def test_target_only_smoke_exercises_the_tool_parser(self) -> None:
+        definitions = _document(ROOT / "qualification/definitions.json")
+        services = definitions["service_recipes"]
+        contract = services[
+            "vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single"
+        ]
+        self.assertEqual(contract["smoke_cases"], ["M0", "A391", "T_REPORT"])
+        tool_case = definitions["service_case_templates"]["T_REPORT"]
+        self.assertEqual(len(tool_case["body"]["tools"]), 1)
+        self.assertEqual(
+            tool_case["body"]["tool_choice"]["function"]["name"],
+            "report_temperature",
+        )
+        self.assertEqual(
+            tool_case["assertions"][-1],
+            {
+                "kind": "path.equals",
+                "path": "choices.0.finish_reason",
+                "value": "tool_calls",
+            },
         )
 
     def test_source_bundle_and_package_digests_match(self) -> None:

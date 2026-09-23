@@ -99,7 +99,7 @@ topology are genuine execution constraints.
 | 53 | `vonk-forge/wan-2-2-i2v-14b-comfyui-single` | 1 | job / 3600s | single-Spark | retained: README-only change |
 | 54 | `vonk-forge/wan-2-2-t2v-14b-comfyui-single` | 1 | job / 3600s | single-Spark | retained: README-only change |
 | 55 | `vonk-forge/wan-dancer-14b-disk-offload-pytorch-single` | 1 | job / 3600s | single-Spark | retained: Wan-Dancer adapter path unchanged |
-| 56 | `vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single` | 1 | service | single-Spark | retained: fixed public image not republished |
+| 56 | `vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single` | 1 | service | single-Spark | update in isolated branch: SHA-pinned XGrammar 0.2.3 bundled offline; forced tool-call smoke awaits publication and physical run |
 | 57 | `vonk-forge/ling-3-0-flash-dspark-sglang-single` | 1 | service | single-Spark | current |
 | 58 | `vonk-forge/deepseek-v4-flash-0731-mia-sparkinfer-single` | 1 | service | single-Spark | current |
 | 59 | `vonk-forge/hunyuan-video-foley-xl-pytorch-single` | 1 | job / 3600s | operator acceptance | current |
