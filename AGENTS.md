@@ -78,7 +78,7 @@ scripts/check-python-types           # pyright==1.1.408, reviewed baseline
 # Producer suite (CI installs the same wheel and extras).
 uv run --python 3.14 --no-project --with pytest==9.1.1 \
   --with-editable contracts --with 'jsonschema>=4.24,<5' \
-  --with ./adapters/video/ltx2-sync-native/vonk_agent_protocol-2.2.0-py3-none-any.whl \
+  --with ./adapters/video/ltx2-sync-native/vonk_agent_protocol-3.0.0-py3-none-any.whl \
   pytest -q -m "not lane"
 ```
 

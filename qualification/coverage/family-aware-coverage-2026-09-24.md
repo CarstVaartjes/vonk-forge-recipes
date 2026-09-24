@@ -336,7 +336,7 @@ Grouped by exact build identity plus declared failure signature, because equival
 
 ## Bound-authority divergence
 
-The authority binds catalog index `0aed0c8410dea9f7` (v1.0.14 at `a6255140bb6e`); the current index is `3cacde1cd3b07b0b`. The authority must be refreshed before the changed rows are physically executed.
+The authority binds catalog index `0aed0c8410dea9f7` (v1.0.14 at `a6255140bb6e`); the current index is `cb9626b2b8c1a07a`. The authority must be refreshed before the changed rows are physically executed.
 
 These rows changed after the bound authority was built, so their bound version, content digest and package digest no longer apply.
 
@@ -344,7 +344,11 @@ These rows changed after the bound authority was built, so their bound version, 
 |---|---|---|---|---|
 | `vonk-forge/step1x-3d-geometry-pytorch-single` | 1.2.14 | 1.2.15 | `94e763a68277381b` | `e887c7886746df03` |
 | `vonk-forge/step1x-3d-label-geometry-pytorch-single` | 1.2.14 | 1.2.15 | `01eabc505d9290a7` | `dad16ecb2470ee39` |
+| `vonk-forge/ltx-2-19b-dev-bf16-diffusers-single` | 3.2.9 | 3.2.9 | `c04779955e788b66` | `c04779955e788b66` |
+| `vonk-forge/ltx-2-3-22b-distilled-1-1-diffusers-single` | 3.2.10 | 3.2.10 | `9a14a11bc10f0f37` | `9a14a11bc10f0f37` |
+| `vonk-forge/ltx-2-19b-distilled-fp8-diffusers-single` | 3.1.9 | 3.1.9 | `98308df9432d0ab6` | `98308df9432d0ab6` |
 | `vonk-forge/step1x-3d-texture-pytorch-single` | 1.2.14 | 1.2.15 | `b38718781701fd24` | `05216c92bca43543` |
+| `vonk-forge/ltx-2-19b-distilled-diffusers-single` | 3.1.9 | 3.1.9 | `1c45e749d797c0a2` | `1c45e749d797c0a2` |
 
 ## Not claimed here
 
