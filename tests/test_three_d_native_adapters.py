@@ -78,6 +78,19 @@ def read_package(slug: str) -> tuple[dict[str, object], dict[str, bytes]]:
 
 
 class NativeThreeDAdapterTests(unittest.TestCase):
+    def test_omni_and_skintokens_do_not_install_unused_torchaudio(self) -> None:
+        for context in (
+            "adapters/three-d/hunyuan3d-omni",
+            "adapters/three-d/skintokens",
+        ):
+            with self.subTest(context=context):
+                dockerfile = (ROOT / context / "Dockerfile").read_text()
+                self.assertIn(
+                    "--index-url https://download.pytorch.org/whl/cu132",
+                    dockerfile,
+                )
+                self.assertNotIn("torchaudio", dockerfile)
+
     def test_trellis_and_pixal_reject_unsafe_or_oversized_images_before_model_load(
         self,
     ) -> None:

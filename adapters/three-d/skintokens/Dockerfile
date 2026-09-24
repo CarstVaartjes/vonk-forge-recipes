@@ -28,7 +28,7 @@ RUN apt-get update \
     && ln -s /models/target/experiments /opt/skintokens/experiments \
     && python3 -m pip install --break-system-packages --no-cache-dir \
         --index-url https://download.pytorch.org/whl/cu132 \
-        torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0 \
+        torch==2.13.0 torchvision==0.28.0 \
     && python3 -m pip install --break-system-packages --no-cache-dir \
         transformers==5.15.1 diffusers==0.40.0 einops==0.8.2 \
         omegaconf==2.3.1 lightning==2.6.5 scipy==1.18.1 \

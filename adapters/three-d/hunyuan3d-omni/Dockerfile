@@ -21,7 +21,7 @@ RUN apt-get update \
     && rm /tmp/hunyuan3d-omni.tar.gz \
     && python3 -m pip install --break-system-packages --no-cache-dir \
         --index-url https://download.pytorch.org/whl/cu132 \
-        torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0 \
+        torch==2.13.0 torchvision==0.28.0 \
     && python3 -m pip install --break-system-packages --no-cache-dir \
         transformers==5.15.1 diffusers==0.40.0 accelerate==1.14.0 \
         timm==1.0.28 torchdiffeq==0.2.5 pytorch-lightning==2.6.5 \
