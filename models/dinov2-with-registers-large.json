@@ -7,9 +7,9 @@
   "capabilities": {
     "facts": [],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "evidence_digest": "03eee42f646659a9480f8911a81fdd81efeedd7ff39083c8e36398068daf72f5",
       "source_revision": "e4c89a4e05589de9b3e188688a303d0f3c04d0f3",
-      "source_url": "https://huggingface.co/facebook/dinov2-with-registers-large"
+      "source_url": "https://huggingface.co/facebook/dinov2-with-registers-large/blob/e4c89a4e05589de9b3e188688a303d0f3c04d0f3/config.json"
     },
     "schema_version": 2
   },
@@ -86,9 +86,9 @@
   },
   "provenance": {
     "attribution": ["facebook"],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "evidence_digest": "03eee42f646659a9480f8911a81fdd81efeedd7ff39083c8e36398068daf72f5",
     "source_revision": "e4c89a4e05589de9b3e188688a303d0f3c04d0f3",
-    "source_url": "https://huggingface.co/facebook/dinov2-with-registers-large"
+    "source_url": "https://huggingface.co/facebook/dinov2-with-registers-large/blob/e4c89a4e05589de9b3e188688a303d0f3c04d0f3/config.json"
   },
   "schema_version": 2,
   "source": {

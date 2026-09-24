@@ -22,7 +22,7 @@
   },
   "dependencies": [
     {
-      "content_sha256": "094dcfa95ee3a9b21992b64c4cf4e94f9114ba8942116dc63713243ecdbaa491",
+      "content_sha256": "a1dc0a1ff350539fed843ff313cb64b4df72650ab83e97168bd492e79412c134",
       "kind": "model",
       "publisher": "facebook",
       "slug": "dinov2-with-registers-large"

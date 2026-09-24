@@ -7,9 +7,9 @@
   "capabilities": {
     "facts": [],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "evidence_digest": "6d7b93508390ab91ac5bfbe4aeb4dc2d83f7bb1b05fb069d714b5b0c75f70d44",
       "source_revision": "462165984030d82259a11f4367a4eed129e94a7b",
-      "source_url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0"
+      "source_url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/462165984030d82259a11f4367a4eed129e94a7b/model_index.json"
     },
     "schema_version": 2
   },
@@ -184,9 +184,9 @@
   },
   "provenance": {
     "attribution": ["stabilityai"],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "evidence_digest": "6d7b93508390ab91ac5bfbe4aeb4dc2d83f7bb1b05fb069d714b5b0c75f70d44",
     "source_revision": "462165984030d82259a11f4367a4eed129e94a7b",
-    "source_url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0"
+    "source_url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/462165984030d82259a11f4367a4eed129e94a7b/model_index.json"
   },
   "schema_version": 2,
   "source": {
