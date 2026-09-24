@@ -96,7 +96,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Installable single-DGX Spark controlled image-to-geometry Candidate using the exact Step1X label pipeline, an SM121-native CUDA 13 runtime, deterministic offline input handling, and GLB output. For generated GLBs up to 240 MiB, the linked next step is vonk-forge/step1x-3d-texture-pytorch-single with the same reference image. Physical Spark quality, memory, and latency acceptance is still required.",
+    "description": "Installable single-DGX Spark controlled image-to-geometry Candidate using the exact Step1X label pipeline and declared DINOv2/CLIP configuration inputs, an SM121-native CUDA 13 runtime, deterministic offline input handling, and GLB output. For generated GLBs up to 240 MiB, the linked next step is vonk-forge/step1x-3d-texture-pytorch-single with the same reference image. Physical Spark quality, memory, and latency acceptance is still required.",
     "tags": [
       "candidate",
       "three-d",
@@ -115,8 +115,8 @@
     {
       "files": [
         {
-          "file_id": "snapshot",
-          "id": "primary-snapshot",
+          "file_id": "label-encoder-config",
+          "id": "primary-label-encoder-config",
           "mount": {
             "read_only": true,
             "target": "/models/target"
@@ -124,26 +124,146 @@
           "roles": [
             "entrypoint"
           ]
+        },
+        {
+          "file_id": "label-encoder-weights",
+          "id": "primary-label-encoder-weights",
+          "mount": {"read_only": true, "target": "/models/target"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "model-index",
+          "id": "primary-model-index",
+          "mount": {"read_only": true, "target": "/models/target"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "scheduler-config",
+          "id": "primary-scheduler-config",
+          "mount": {"read_only": true, "target": "/models/target"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "transformer-config",
+          "id": "primary-transformer-config",
+          "mount": {"read_only": true, "target": "/models/target"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "transformer-weights",
+          "id": "primary-transformer-weights",
+          "mount": {"read_only": true, "target": "/models/target"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "vae-config",
+          "id": "primary-vae-config",
+          "mount": {"read_only": true, "target": "/models/target"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "vae-weights",
+          "id": "primary-vae-weights",
+          "mount": {"read_only": true, "target": "/models/target"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "visual-processor",
+          "id": "primary-visual-processor",
+          "mount": {"read_only": true, "target": "/models/target"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "visual-encoder-config",
+          "id": "primary-visual-encoder-config",
+          "mount": {"read_only": true, "target": "/models/target"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "visual-encoder-weights",
+          "id": "primary-visual-encoder-weights",
+          "mount": {"read_only": true, "target": "/models/target"},
+          "roles": ["entrypoint"]
         }
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "35fb58f92e192b0905637e1677c49e27de7aa84b4a91156a58533b3c90ba13b9",
+        "content_sha256": "b1912f4d32832ff6eaaea6bbfcb18415413aa92f4bd2c3551a0ce88d6d696bfa",
         "kind": "model",
         "publisher": "stepfun-ai",
         "slug": "step1x-3d-label-geometry"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "config",
+          "id": "dinov2-config",
+          "mount": {"read_only": true, "target": "/models/dinov2-registers"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "image-processor",
+          "id": "dinov2-image-processor",
+          "mount": {"read_only": true, "target": "/models/dinov2-registers"},
+          "roles": ["entrypoint"]
+        }
+      ],
+      "id": "dinov2-registers",
+      "model": {
+        "content_sha256": "094dcfa95ee3a9b21992b64c4cf4e94f9114ba8942116dc63713243ecdbaa491",
+        "kind": "model",
+        "publisher": "facebook",
+        "slug": "dinov2-with-registers-large"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "config",
+          "id": "clip-config",
+          "mount": {"read_only": true, "target": "/models/clip"},
+          "roles": ["entrypoint"]
+        }
+      ],
+      "id": "clip",
+      "model": {
+        "content_sha256": "f191c9bc10ca5743f076737e5306d589b9f73a91acc1e347c7d090dbebb79e94",
+        "kind": "model",
+        "publisher": "openai",
+        "slug": "clip-vit-large-patch14"
       }
     }
   ],
   "provenance": {
     "attribution": [
-      "stepfun-ai"
+      "stepfun-ai",
+      "facebook",
+      "openai"
     ],
     "source_kind": "global",
     "source_reference": "https://huggingface.co/stepfun-ai/Step1X-3D/tree/bf7084495b3a72222f36549b7942948aa4d9daa7"
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "Replaced the nonexistent 19.64 GB snapshot pseudo-file with the exact pinned label-geometry subtree. Added only the DINOv2 config/processor and CLIP config consumed by the pinned adapter; Step1X supplies both encoders' weights.",
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/stepfun-ai/Step1X-3D/tree/bf7084495b3a72222f36549b7942948aa4d9daa7",
+              "https://huggingface.co/facebook/dinov2-with-registers-large/tree/e4c89a4e05589de9b3e188688a303d0f3c04d0f3",
+              "https://huggingface.co/openai/clip-vit-large-patch14/tree/32bd64288804d66eefd0ccbe215aa642df71cc41"
+            ],
+            "summary": "Declared exact label-geometry and encoder metadata closure."
+          }
+        ],
+        "prior_recipe_content_sha256": "8b31207b04c5f475597c24600d70d429c48fcddc5a23ac7adeb1ec6b1b9db05f",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "reprepare",
+        "version": "1.2.9"
+      },
       {
         "changes": [
           {
@@ -359,8 +479,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.2.8"
+    "released_at": "2026-09-24",
+    "version": "1.2.9"
   },
   "runtime": {
     "arguments": [
