@@ -36,7 +36,15 @@ implementation lacks a closed and requalified Vonk source/image path.
 The cache audit found authored aggregate paths (`snapshot` and
 `filtered-snapshot`) that are not upstream files. Exact per-file manifests and
 companion selections must replace them before those revisions can run. The
-following unresolved rows remain in the sequence, without a physical pass:
+source repair closes 14 recipes: the three Step1X variants, MOVA 360p/720p,
+Hunyuan3D-Omni, Foley XL/XXL, the three Hunyuan Video 1.5 variants,
+SkinTokens, MiniMax H3, and TripoSG. Exact companion Models and adapter mount
+selections are included. Hunyuan3D and Foley manifests omit checkpoints their
+selected adapters do not use, so cache preparation does not download them.
+All 14 repaired recipes passed structural compilation against platform
+`0123eeb46a36f828d57b293c0b6704f5aa13d5f2`; this is not cache or physical
+acceptance. The following unresolved rows remain in sequence, without a
+physical pass:
 
 - **LTX 2.5:** its 28 selected files require authentic per-file SHA-256 values.
   The official pinned `audio_vae/config.json` at
