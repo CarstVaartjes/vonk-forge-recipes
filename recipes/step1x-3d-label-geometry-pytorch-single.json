@@ -251,6 +251,27 @@
       {
         "changes": [
           {
+            "kind": "runtime",
+            "summary": "Closed the pinned Step1X Lightning import dependency.",
+            "details": "The exact Step1X source requirements request pytorch-lightning==2.2.4, which is in published vulnerable ranges. The image uses 2.6.6, whose release fixes checkpoint code execution; package metadata allows Python>=3.10 and torch>=2.1.0. lightning-utilities==0.11.2 satisfies its >=0.10.0 dependency and remains Step1X-pinned. The build smoke-imports the exact rank_zero runtime path.",
+            "references": [
+              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/requirements.txt",
+              "https://github.com/advisories/GHSA-cgwc-qvrx-rf7f",
+              "https://github.com/advisories/GHSA-mr7h-w2qc-ffc2",
+              "https://github.com/advisories/GHSA-75m9-98v2-hjpm",
+              "https://github.com/advisories/GHSA-qqmf-gpg7-g8gw",
+              "https://github.com/Lightning-AI/pytorch-lightning/releases/tag/2.6.6",
+              "https://pypi.org/project/pytorch-lightning/2.6.6/"
+            ]
+          }
+        ],
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.12"
+      },
+      {
+        "changes": [
+          {
             "kind": "fix",
             "summary": "Permit the official NVIDIA CUDA toolkit host.",
             "details": "The pinned PyTorch cu132 metadata requires cuda-toolkit==13.2.1; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
@@ -515,7 +536,7 @@
       }
     ],
     "released_at": "2026-09-24",
-    "version": "1.2.11"
+    "version": "1.2.12"
   },
   "runtime": {
     "arguments": [
