@@ -367,7 +367,8 @@ class RecipeRuntimeEnvironment(_RecipeContract):
     @field_validator("value")
     @classmethod
     def value_has_no_nul(cls, value: Scalar | None) -> Scalar | None:
-        return None if value is None else _validate_runtime_argument_value(value)
+        _validate_runtime_argument_value(value)
+        return value
 
     @model_validator(mode="after")
     def one_source(self) -> RecipeRuntimeEnvironment:
@@ -668,26 +669,27 @@ class RecipeValidationCheck(_RecipeContract):
                 raise ValueError("representative OpenAI checks require an HTTP POST")
             body = self.request.body or {}
             if self.kind in {"openai.chat", "openai.vision", "openai.tools"}:
+                messages = body.get("messages")
                 if (
                     self.request.path != "/v1/chat/completions"
-                    or not isinstance(body.get("messages"), list)
-                    or not body["messages"]
+                    or not isinstance(messages, list)
+                    or not messages
                 ):
                     raise ValueError(
                         "chat checks require messages at /v1/chat/completions"
                     )
                 if self.kind == "openai.vision" and not any(
                     isinstance(message, dict)
-                    and isinstance(message.get("content"), list)
+                    and isinstance(content := message.get("content"), list)
                     and any(
                         isinstance(part, dict)
                         and part.get("type") == "image_url"
-                        and isinstance(part.get("image_url"), dict)
-                        and isinstance(part["image_url"].get("url"), str)
-                        and bool(part["image_url"]["url"])
-                        for part in message["content"]
+                        and isinstance(image_url := part.get("image_url"), dict)
+                        and isinstance(url := image_url.get("url"), str)
+                        and bool(url)
+                        for part in content
                     )
-                    for message in body["messages"]
+                    for message in messages
                 ):
                     raise ValueError("vision checks require image_url content")
                 required = (
@@ -719,14 +721,18 @@ class RecipeValidationCheck(_RecipeContract):
                     raise ValueError(
                         "embedding checks require input and embedding.nonempty"
                     )
+            output_cap = body.get("max_tokens")
             if any(item.endswith("output-cap") for item in self.assertions) and (
-                type(body.get("max_tokens")) is not int or body["max_tokens"] <= 0
+                type(output_cap) is not int or output_cap <= 0
             ):
                 raise ValueError(
                     "output-cap requires a positive max_tokens request limit"
                 )
         else:
-            if not self.request.output_slot:
+            if (
+                not isinstance(self.request, RecipeJobServingRequest)
+                or not self.request.output_slot
+            ):
                 raise ValueError("job checks require an output slot")
             if "artifact.output" not in self.assertions:
                 raise ValueError("job checks require an artifact.output assertion")
