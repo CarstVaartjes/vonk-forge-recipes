@@ -1,0 +1,10 @@
+{
+  "schema_version": 2,
+  "capacity_reviews": {
+    "vonk-forge/ltx-2-5-22b-distilled-bf16-diffusers-single": "This recipe was retained for capacity review. Require a fresh whole-fleet profile preview to establish exact current memory and storage fit before loading.",
+    "vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single": "This recipe was retained for capacity review. Require a fresh whole-fleet profile preview to establish exact current memory and storage fit before loading.",
+    "vonk-forge/wan-dancer-14b-pytorch-single": "This recipe was retained for capacity review. Require a fresh whole-fleet profile preview to establish exact current memory and storage fit before loading.",
+    "vonk-forge/deepseek-v4-flash-0731-sparkinfer-single": "This recipe was retained for capacity review. Require a fresh whole-fleet profile preview to establish exact current memory and storage fit before loading.",
+    "vonk-forge/laguna-s-2-1-nvfp4-vllm-single": "This recipe was retained for capacity review. Require a fresh whole-fleet profile preview to establish exact current memory and storage fit before loading."
+  }
+}
