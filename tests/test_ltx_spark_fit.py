@@ -155,6 +155,8 @@ class LtxSparkFitTests(unittest.TestCase):
                     "master_port": None,
                     "port": 8000,
                     "reserved_memory_bytes": 1,
+                    "memory_floor_bytes": 0,
+                    "memory_kind": "unified",
                 },
             )
             sys.stdout.write(json.dumps(payload, sort_keys=True, separators=(",", ":")))
