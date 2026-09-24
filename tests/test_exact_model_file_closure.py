@@ -26,35 +26,33 @@ class ExactModelFileClosureTests(unittest.TestCase):
     def test_primary_manifests_are_selected_file_for_file(self) -> None:
         for recipe_slug, model_slug in PRIMARY_MODELS.items():
             with self.subTest(recipe=recipe_slug):
-                recipe = load_json(ROOT / "recipes" / f"{recipe_slug}.json")
-                RecipeDefinition.model_validate(recipe)
+                recipe = RecipeDefinition.model_validate_json(
+                    (ROOT / "recipes" / f"{recipe_slug}.json").read_text()
+                )
                 primary = next(
                     selection
-                    for selection in recipe["models"]
-                    if selection["id"] == "primary"
+                    for selection in recipe.models
+                    if selection.id == "primary"
                 )
                 model_doc = load_json(ROOT / "models" / f"{model_slug}.json")
                 model = ModelDefinition.model_validate(model_doc)
                 expected_ids = {item.id for item in model.files}
-                selected_ids = {item["file_id"] for item in primary["files"]}
+                selected_ids = {item.file_id for item in primary.files}
 
-                self.assertEqual(primary["model"]["slug"], model_slug)
-                self.assertEqual(
-                    primary["model"]["content_sha256"], content_sha256(model)
-                )
+                self.assertEqual(primary.model.slug, model_slug)
+                self.assertEqual(primary.model.content_sha256, content_sha256(model))
                 self.assertGreater(len(expected_ids), 1)
                 self.assertNotIn("snapshot", expected_ids)
                 self.assertEqual(selected_ids, expected_ids)
                 self.assertEqual(
-                    len(primary["files"]),
+                    len(primary.files),
                     len(expected_ids),
                     "no file may be selected twice",
                 )
                 self.assertTrue(
                     all(
-                        item["roles"] == ["entrypoint"]
-                        and item["mount"]["read_only"] is True
-                        for item in primary["files"]
+                        item.roles == ["entrypoint"] and item.mount.read_only is True
+                        for item in primary.files
                     )
                 )
 
@@ -77,9 +75,10 @@ class ExactModelFileClosureTests(unittest.TestCase):
 
         for recipe_slug, aux_ids in expected_auxiliary.items():
             with self.subTest(recipe=recipe_slug):
-                recipe = load_json(ROOT / "recipes" / f"{recipe_slug}.json")
-                RecipeDefinition.model_validate(recipe)
-                selections = {item["id"]: item for item in recipe["models"]}
+                recipe = RecipeDefinition.model_validate_json(
+                    (ROOT / "recipes" / f"{recipe_slug}.json").read_text()
+                )
+                selections = {item.id: item for item in recipe.models}
                 primary_slug = PRIMARY_MODELS[recipe_slug]
                 primary_doc = ModelDefinition.model_validate(
                     load_json(ROOT / "models" / f"{primary_slug}.json")
@@ -97,24 +96,24 @@ class ExactModelFileClosureTests(unittest.TestCase):
                     )
                     selection = selections[auxiliary_id]
                     selected_ref = (
-                        selection["model"]["publisher"],
-                        selection["model"]["slug"],
-                        selection["model"]["content_sha256"],
+                        selection.model.publisher,
+                        selection.model.slug,
+                        selection.model.content_sha256,
                     )
                     selected_refs.add(selected_ref)
-                    self.assertEqual(selection["model"]["slug"], doc_slug)
+                    self.assertEqual(selection.model.slug, doc_slug)
                     self.assertEqual(
-                        selection["model"]["content_sha256"], content_sha256(aux_model)
+                        selection.model.content_sha256, content_sha256(aux_model)
                     )
                     self.assertEqual(
-                        {item["file_id"] for item in selection["files"]},
+                        {item.file_id for item in selection.files},
                         {item.id for item in aux_model.files},
                     )
                     self.assertTrue(
                         all(
-                            item["mount"]["target"] == expected_mounts[auxiliary_id]
-                            and item["roles"] == ["entrypoint"]
-                            for item in selection["files"]
+                            item.mount.target == expected_mounts[auxiliary_id]
+                            and item.roles == ["entrypoint"]
+                            for item in selection.files
                         )
                     )
                 self.assertEqual(selected_refs, dependency_refs)

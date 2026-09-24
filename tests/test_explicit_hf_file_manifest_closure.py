@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import unittest
 from pathlib import Path
 
@@ -22,10 +21,6 @@ FULL_MODEL_SELECTIONS = {
     "minimax-h3",
     "triposg",
 }
-
-
-def load(path: Path) -> dict[str, object]:
-    return json.loads(path.read_text(encoding="utf-8"))
 
 
 class ExplicitHuggingFaceManifestTests(unittest.TestCase):
@@ -55,7 +50,9 @@ class ExplicitHuggingFaceManifestTests(unittest.TestCase):
                     )
                 )
 
-    def test_recipe_file_selectors_resolve_exact_models_and_offline_closure(self) -> None:
+    def test_recipe_file_selectors_resolve_exact_models_and_offline_closure(
+        self,
+    ) -> None:
         for model_slug, recipe_slug in MODEL_RECIPE_PAIRS.items():
             with self.subTest(recipe=recipe_slug):
                 model_path = ROOT / "models" / f"{model_slug}.json"
@@ -67,12 +64,8 @@ class ExplicitHuggingFaceManifestTests(unittest.TestCase):
                         encoding="utf-8"
                     )
                 )
-                selection = next(
-                    item for item in recipe.models if item.id == "primary"
-                )
-                self.assertEqual(
-                    selection.model.content_sha256, content_sha256(model)
-                )
+                selection = next(item for item in recipe.models if item.id == "primary")
+                self.assertEqual(selection.model.content_sha256, content_sha256(model))
                 by_id = {item.id: item for item in model.files}
                 selected_ids = {item.file_id for item in selection.files}
                 self.assertEqual(len(selected_ids), len(selection.files))
@@ -89,12 +82,14 @@ class ExplicitHuggingFaceManifestTests(unittest.TestCase):
                     self.assertEqual(selected_ids, set(by_id))
 
     def test_skintokens_selects_both_required_checkpoints(self) -> None:
-        recipe = load(ROOT / "recipes/skintokens-pytorch-single.json")
-        model = load(ROOT / "models/skintokens.json")
-        files = {item["id"]: item["path"] for item in model["files"]}
-        selected = {
-            files[item["file_id"]] for item in recipe["models"][0]["files"]
-        }
+        recipe = RecipeDefinition.model_validate_json(
+            (ROOT / "recipes/skintokens-pytorch-single.json").read_text()
+        )
+        model = ModelDefinition.model_validate_json(
+            (ROOT / "models/skintokens.json").read_text()
+        )
+        files = {item.id: item.path for item in model.files}
+        selected = {files[item.file_id] for item in recipe.models[0].files}
         self.assertEqual(
             selected,
             {
@@ -105,9 +100,7 @@ class ExplicitHuggingFaceManifestTests(unittest.TestCase):
 
     def test_triposg_binds_bria_config_and_weights_with_license_gate(self) -> None:
         recipe = RecipeDefinition.model_validate_json(
-            (ROOT / "recipes/triposg-pytorch-single.json").read_text(
-                encoding="utf-8"
-            )
+            (ROOT / "recipes/triposg-pytorch-single.json").read_text(encoding="utf-8")
         )
         triposg = ModelDefinition.model_validate_json(
             (ROOT / "models/triposg.json").read_text(encoding="utf-8")
@@ -132,8 +125,7 @@ class ExplicitHuggingFaceManifestTests(unittest.TestCase):
         self.assertEqual(selected_paths, {"config.json", "model.safetensors"})
         self.assertTrue(
             all(
-                item.mount.target == "/models/rmbg"
-                and item.roles == ["entrypoint"]
+                item.mount.target == "/models/rmbg" and item.roles == ["entrypoint"]
                 for item in bria_selection.files
             )
         )
