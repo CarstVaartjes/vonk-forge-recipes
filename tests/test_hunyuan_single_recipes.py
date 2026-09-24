@@ -64,18 +64,31 @@ def video_module():
 
 
 class HunyuanSingleRecipeAuthorityTests(unittest.TestCase):
-    def test_all_hunyuan_recipes_select_one_exact_model_and_job_interface(self) -> None:
+    def test_hunyuan_recipes_select_exact_models_and_job_interface(self) -> None:
         from vonk_forge_contracts import ModelDefinition, RecipeDefinition
+        from vonk_forge_contracts.canonical import content_sha256
 
+        expected_model_counts = {
+            "hunyuan-video-foley-xl-pytorch-single": 3,
+            "hunyuan-video-foley-xxl-pytorch-single": 3,
+            "hunyuan3d-omni-pytorch-single": 2,
+        }
         for slug in RECIPE_SLUGS:
             with self.subTest(slug=slug):
                 recipe = load(ROOT / "recipes" / f"{slug}.json")
                 RecipeDefinition.model_validate(recipe)
-                self.assertEqual(len(recipe["models"]), 1)
+                self.assertEqual(
+                    len(recipe["models"]), expected_model_counts.get(slug, 1)
+                )
                 self.assertEqual(recipe["topology"]["node_count"], 1)
-                model_slug = recipe["models"][0]["model"]["slug"]
-                model = load(ROOT / "models" / f"{model_slug}.json")
-                ModelDefinition.model_validate(model)
+                for selection in recipe["models"]:
+                    model_slug = selection["model"]["slug"]
+                    model = ModelDefinition.model_validate(
+                        load(ROOT / "models" / f"{model_slug}.json")
+                    )
+                    self.assertEqual(
+                        selection["model"]["content_sha256"], content_sha256(model)
+                    )
                 self.assertEqual(
                     recipe["interfaces"][0]["adapter"],
                     "artifact-job"

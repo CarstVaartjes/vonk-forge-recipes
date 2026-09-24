@@ -134,8 +134,305 @@
     {
       "files": [
         {
-          "file_id": "snapshot",
-          "id": "primary-snapshot",
+          "file_id": "file-774ba70e0bf6",
+          "id": "primary-file-774ba70e0bf6",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-30ab13f8cdcf",
+          "id": "primary-file-30ab13f8cdcf",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-4092e5fbaa5d",
+          "id": "primary-file-4092e5fbaa5d",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-40eb23f3c1f7",
+          "id": "primary-file-40eb23f3c1f7",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-b04a60c3412c",
+          "id": "primary-file-b04a60c3412c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-070a6d84b57f",
+          "id": "primary-file-070a6d84b57f",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-ee03ace9a3b1",
+          "id": "primary-file-ee03ace9a3b1",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-67ecb3dc37a8",
+          "id": "primary-file-67ecb3dc37a8",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-bcfd37e83e34",
+          "id": "primary-file-bcfd37e83e34",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-02972f2ff920",
+          "id": "primary-file-02972f2ff920",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-6ecf8bd4b949",
+          "id": "primary-file-6ecf8bd4b949",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-ab0456bfcf84",
+          "id": "primary-file-ab0456bfcf84",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-5fc12c01f9a5",
+          "id": "primary-file-5fc12c01f9a5",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-9a6c01131437",
+          "id": "primary-file-9a6c01131437",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-b87c178459f0",
+          "id": "primary-file-b87c178459f0",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-47a6faaf45c4",
+          "id": "primary-file-47a6faaf45c4",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-976cf290b8a5",
+          "id": "primary-file-976cf290b8a5",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-b674cc4a53a5",
+          "id": "primary-file-b674cc4a53a5",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-bf7833160a82",
+          "id": "primary-file-bf7833160a82",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-fd2acdf4d0f2",
+          "id": "primary-file-fd2acdf4d0f2",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-501d75fe963c",
+          "id": "primary-file-501d75fe963c",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-6d4052c31672",
+          "id": "primary-file-6d4052c31672",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-df94b70014d4",
+          "id": "primary-file-df94b70014d4",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-c17d43dd251b",
+          "id": "primary-file-c17d43dd251b",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-6a9ee3d258c2",
+          "id": "primary-file-6a9ee3d258c2",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-79c3fc8616e3",
+          "id": "primary-file-79c3fc8616e3",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-1f1c624bc410",
+          "id": "primary-file-1f1c624bc410",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-b899f9e2bead",
+          "id": "primary-file-b899f9e2bead",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -147,7 +444,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "93b0a23b98e2f22acd13e74721662b54e61b52091bbce83a1307cacb1fd732a1",
+        "content_sha256": "28ef0535f476b64926c6cbf40a64bed10df6d3fdc3e6a6213f6b8939db9347d9",
         "kind": "model",
         "publisher": "openmoss",
         "slug": "mova-720p"
@@ -163,6 +460,22 @@
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "Replaced the unsupported aggregate snapshot selector with every exact file from the pinned primary manifest and explicitly selected the adapter-required offline companion artifacts.",
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/OpenMOSS-Team/MOVA-720p/tree/8462bea9a317a3591279faeedfd3ca01b055cb59"
+            ],
+            "summary": "Bound the primary model and all required offline companion files by exact immutable file IDs."
+          }
+        ],
+        "prior_recipe_content_sha256": "96d319d04c5efd5b8a32c7331a2fd509ee07d8b4b5ac8b6ae7d0fcd85b5f3eef",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "reprepare",
+        "version": "2.0.10"
+      },
       {
         "changes": [
           {
@@ -371,8 +684,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "2.0.9"
+    "released_at": "2026-09-24",
+    "version": "2.0.10"
   },
   "runtime": {
     "arguments": [
