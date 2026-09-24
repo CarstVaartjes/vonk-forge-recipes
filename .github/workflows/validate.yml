@@ -81,7 +81,7 @@ jobs:
           uv venv --python 3.14 "$test_venv"
           uv pip install --python "$test_venv/bin/python" \
             -e contracts \
-            adapters/video/ltx2-sync-native/vonk_agent_protocol-2.2.0-py3-none-any.whl \
+            adapters/video/ltx2-sync-native/vonk_agent_protocol-3.0.0-py3-none-any.whl \
             'jsonschema>=4.24,<5' \
             'pytest>=8,<9'
           echo "RECIPE_TEST_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
@@ -107,7 +107,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" uvx --from ruff==0.16.1 ruff check .
+          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-lint
 
       - name: Check formatting with pinned Ruff
         shell: bash
@@ -192,7 +192,7 @@ jobs:
             exit 1
           fi
           UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" \
-            uvx --from ruff==0.16.1 ruff check .
+            tools/check-python-lint
 
           wheel_dir="$RUNNER_TEMP/contracts-wheel"
           uv build --wheel --out-dir "$wheel_dir" contracts

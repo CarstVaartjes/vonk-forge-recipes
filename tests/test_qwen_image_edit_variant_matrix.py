@@ -4,6 +4,7 @@ import json
 import sys
 import unittest
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
@@ -24,9 +25,9 @@ class QwenImageEditVariantMatrixTests(unittest.TestCase):
                 self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")
                 self.assertEqual(recipe["topology"]["node_count"], 1)
                 for selection in recipe["models"]:
-                    model = read(ROOT / "models" / f"{selection['model']['slug']}.json")  # type: ignore[index]
+                    model = read(ROOT / "models" / f"{selection['model']['slug']}.json")
                     canonical = content_sha256(ModelDefinition.model_validate(model))
-                    self.assertEqual(selection["model"]["content_sha256"], canonical)  # type: ignore[index]
+                    self.assertEqual(selection["model"]["content_sha256"], canonical)
                     self.assertTrue(selection["files"])
 
     def test_edit_variants_have_bounded_offline_resources_and_output_checks(
@@ -37,13 +38,15 @@ class QwenImageEditVariantMatrixTests(unittest.TestCase):
             with self.subTest(recipe=path.name):
                 self.assertIn(
                     recipe["execution"]["build"]["network"]["mode"], {"none", "public"}
-                )  # type: ignore[index]
-                memory = recipe["topology"]["roles"][0]["resources"]["memory"]  # type: ignore[index]
+                )
+                topology: Any = recipe["topology"]
+                memory = topology["roles"][0]["resources"]["memory"]
                 self.assertLessEqual(
                     memory["startup_peak_bytes"] + memory["system_reserve_bytes"],
                     128_000_000_000,
                 )
-                checks = recipe["validation"]["serving"]["checks"]  # type: ignore[index]
+                validation: Any = recipe["validation"]
+                checks = validation["serving"]["checks"]
                 self.assertTrue(
                     any("artifact.output" in check["assertions"] for check in checks)
                 )

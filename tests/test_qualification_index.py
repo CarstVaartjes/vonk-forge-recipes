@@ -2,18 +2,44 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import importlib.machinery
+import importlib.util
 import json
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any, cast
 
+import pytest
 from vonk_forge_contracts import RecipeDefinition, content_sha256
 
 ROOT = Path(__file__).resolve().parents[1]
 QUALIFICATION_ROOT = ROOT / "qualification"
+PLAN_PATH = ROOT / "docs/recipe-qualification-plan-2026-09-24.md"
+
+
+def _authority_namespace() -> dict[str, Any]:
+    """Load the extensionless entry point and return its real module namespace.
+
+    ``runpy.run_path`` returns a *copy* of the module globals, so a test that
+    patched that copy would leave the functions under test unchanged and pass
+    for the wrong reason. The module's own ``__dict__`` is what its functions
+    close over, so patching it reaches the code under test.
+    """
+
+    loader = importlib.machinery.SourceFileLoader(
+        "build_qualification_authority",
+        str(ROOT / "tools/build-qualification-authority"),
+    )
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module.__dict__
+
+
+AUTHORITY_TOOL = _authority_namespace()
 
 
 def _document(path: Path) -> dict[str, object]:
@@ -142,94 +168,72 @@ def test_skintokens_derivation_pins_upstream_and_transform() -> None:
     assert 'force="mesh", process=True' in source
 
 
-def test_authority_generation_uses_pinned_git_snapshot_and_fails_closed(
-    tmp_path: Path,
+def test_authority_reads_both_indexes_from_the_release_commit(monkeypatch) -> None:
+    """Reading a working-tree index instead of the pinned commit must fail."""
+
+    release = _document(QUALIFICATION_ROOT / "catalog-release.json")
+    commit = release["commit"]
+    assert isinstance(commit, str)
+    calls: list[tuple[str, str]] = []
+    real_blob = AUTHORITY_TOOL["_git_blob"]
+
+    def spy(commit_arg: str, relative_path: str) -> bytes:
+        calls.append((commit_arg, relative_path))
+        return real_blob(commit_arg, relative_path)
+
+    monkeypatch.setitem(AUTHORITY_TOOL, "_git_blob", spy)
+    AUTHORITY_TOOL["_build"]()
+    assert calls == [
+        (commit, "catalog-index.json"),
+        (commit, "qualification/qualification-index.json"),
+    ]
+
+
+def test_authority_fails_closed_on_an_unreadable_pin() -> None:
+    """Following an object that is not in this repository must fail closed."""
+
+    with pytest.raises(ValueError, match="cannot read pinned Git object"):
+        AUTHORITY_TOOL["_git_blob"]("0" * 40, "catalog-index.json")
+
+
+def test_authority_fails_closed_on_a_malformed_pin(monkeypatch) -> None:
+    """Accepting a release pin that is not a full Git SHA must fail closed."""
+
+    real_document = AUTHORITY_TOOL["_document"]
+
+    def fake_document(path: Path) -> dict[str, Any]:
+        document = real_document(path)
+        if path.name == "catalog-release.json":
+            document["commit"] = "not-a-commit"
+        return document
+
+    monkeypatch.setitem(AUTHORITY_TOOL, "_document", fake_document)
+    with pytest.raises(
+        ValueError, match="catalog release commit must be a full Git SHA"
+    ):
+        AUTHORITY_TOOL["_build"]()
+
+
+def test_authority_writes_nothing_when_the_build_fails(
+    monkeypatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    worktree = tmp_path / "recipe-worktree"
-    subprocess.run(
-        ["git", "worktree", "add", "--detach", str(worktree), "HEAD"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        timeout=30,
+    """Writing an output before the build succeeds must fail."""
+
+    outputs = (
+        QUALIFICATION_ROOT / "authorities/nl-sequential-2c118a99.json",
+        QUALIFICATION_ROOT / "campaigns/nl-sequential-2c118a99.json",
+        PLAN_PATH,
     )
-    try:
-        shutil.copy2(
-            ROOT / "tools/build-qualification-authority",
-            worktree / "tools/build-qualification-authority",
-        )
-        release_path = worktree / "qualification/catalog-release.json"
-        release_bytes = release_path.read_bytes()
-        release = json.loads(release_bytes)
-        assert isinstance(release, dict)
-        commit = release["commit"]
-        assert isinstance(commit, str)
+    before = {path: path.read_bytes() for path in outputs}
 
-        output_paths = (
-            worktree / "qualification/authorities/nl-sequential-2c118a99.json",
-            worktree / "qualification/campaigns/nl-sequential-2c118a99.json",
-            worktree / "docs/recipe-qualification-plan-2026-09-24.md",
-        )
-        original_outputs = {path: path.read_bytes() for path in output_paths}
-        catalog_path = worktree / "catalog-index.json"
-        qualification_path = worktree / "qualification/qualification-index.json"
-        catalog_path.write_bytes(catalog_path.read_bytes() + b"\n")
-        qualification_path.write_bytes(qualification_path.read_bytes() + b"\n")
+    def unavailable() -> dict[Path, bytes]:
+        raise ValueError("pinned catalog is unavailable")
 
-        refresh = subprocess.run(
-            [sys.executable, "tools/build-qualification-authority"],
-            cwd=worktree,
-            check=False,
-            capture_output=True,
-            timeout=30,
-        )
-        assert refresh.returncode == 0, refresh.stderr.decode("utf-8")
-        assert {path: path.read_bytes() for path in output_paths} == original_outputs
-        authority = _document(output_paths[0])
-        bound_catalog = _git_blob(commit, "catalog-index.json", root=worktree)
-        bound_qualification = _git_blob(
-            commit, "qualification/qualification-index.json", root=worktree
-        )
-        catalog_binding = authority["catalog"]
-        assert isinstance(catalog_binding, dict)
-        assert (
-            catalog_binding["catalog_index_sha256"]
-            == hashlib.sha256(bound_catalog).hexdigest()
-        )
-        assert (
-            catalog_binding["qualification_index_sha256"]
-            == hashlib.sha256(bound_qualification).hexdigest()
-        )
-
-        for bad_commit, expected_error in (
-            ("not-a-commit", "catalog release commit must be a full Git SHA"),
-            ("0" * 40, "cannot read pinned Git object"),
-        ):
-            bad_release = dict(release)
-            bad_release["commit"] = bad_commit
-            release_path.write_text(
-                json.dumps(bad_release, indent=2) + "\n", encoding="utf-8"
-            )
-            failed_refresh = subprocess.run(
-                [sys.executable, "tools/build-qualification-authority"],
-                cwd=worktree,
-                check=False,
-                capture_output=True,
-                timeout=30,
-            )
-            assert failed_refresh.returncode != 0
-            assert expected_error in failed_refresh.stderr.decode("utf-8")
-            assert {
-                path: path.read_bytes() for path in output_paths
-            } == original_outputs
-    finally:
-        subprocess.run(
-            ["git", "worktree", "remove", "--force", str(worktree)],
-            cwd=ROOT,
-            check=True,
-            capture_output=True,
-            timeout=30,
-        )
+    monkeypatch.setitem(AUTHORITY_TOOL, "_build", unavailable)
+    monkeypatch.setattr(sys, "argv", ["build-qualification-authority", "--check"])
+    assert AUTHORITY_TOOL["main"]() == 1
+    assert "pinned catalog is unavailable" in capsys.readouterr().err
+    assert {path: path.read_bytes() for path in outputs} == before
 
 
 def test_sequential_authority_binds_every_recipe_with_at_most_two_nodes() -> None:
@@ -414,3 +418,63 @@ def test_sequential_authority_binds_every_recipe_with_at_most_two_nodes() -> Non
         QUALIFICATION_ROOT / "authorities/nl-single-spark-7173cb48.json"
     ).exists()
     assert not (QUALIFICATION_ROOT / "campaigns/nl-single-spark-7173cb48.json").exists()
+
+
+def _authority_rows() -> list[dict[str, Any]]:
+    authority = cast(
+        Any,
+        _document(QUALIFICATION_ROOT / "authorities/nl-sequential-2c118a99.json"),
+    )
+    rows = authority["recipes"]
+    assert isinstance(rows, list)
+    return rows
+
+
+def test_plan_prose_changes_never_invalidate_the_generated_inventory() -> None:
+    """A prose edit, renamed heading or moved paragraph must not go stale."""
+
+    text = PLAN_PATH.read_text(encoding="utf-8")
+    rows = _authority_rows()
+    refresh = AUTHORITY_TOOL["_refresh_plan"]
+    assert refresh(text, rows) == text
+
+    edited = text.replace(
+        "Keep this inventory complete.",
+        "Keep this inventory complete and reviewed by its owner.",
+        1,
+    )
+    assert edited != text
+    assert refresh(edited, rows) == edited
+
+    renamed = edited.replace(
+        "## Complete inventory and existing authority order",
+        "## Inventory and campaign order",
+        1,
+    )
+    assert renamed != edited
+    assert refresh(renamed, rows) == renamed
+
+
+def test_plan_without_the_generated_inventory_block_fails_closed() -> None:
+    """A missing, duplicated or reversed marker must fail closed."""
+
+    text = PLAN_PATH.read_text(encoding="utf-8")
+    rows = _authority_rows()
+    begin = AUTHORITY_TOOL["_INVENTORY_BEGIN"]
+    end = AUTHORITY_TOOL["_INVENTORY_END"]
+    assert text.count(begin) == 1
+    assert text.count(end) == 1
+    swapped = text.replace(begin, "<!-- swap -->", 1)
+    swapped = swapped.replace(end, begin, 1).replace("<!-- swap -->", end, 1)
+
+    for broken in (
+        text.replace(begin, "", 1),
+        text.replace(end, "", 1),
+        text.replace(begin, f"{begin}\n{begin}", 1),
+        text.replace(begin, "", 1).replace(end, "", 1),
+        swapped,
+    ):
+        with pytest.raises(ValueError):
+            AUTHORITY_TOOL["_plan_rows"](broken)
+        with pytest.raises(ValueError):
+            AUTHORITY_TOOL["_refresh_plan"](broken, rows)
