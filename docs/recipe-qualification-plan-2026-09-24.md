@@ -29,7 +29,121 @@ README/unselected files changed, the upstream default changed model identity, a
 moving engine main is not a release channel, history was rewritten, or the newer
 implementation lacks a closed and requalified Vonk source/image path.
 
-## Per-recipe procedure
+## Family-aware qualification strategy
+
+This is the target execution strategy, updated after operator review on
+2026-09-24. The existing sequential runner and ordered authority do **not** yet
+implement paired single-Spark tests or shared recovery evidence. Until their
+replacement is implemented, tested, published and deployed, the current gates
+below remain mandatory. Editing this plan does not authorize ledger skips.
+
+### Validate broadly before using the Sparks
+
+1. Validate all 85 recipes against exact platform and library commits: canonical
+   contracts, selected upstream files, licenses/access gates, companion models,
+   mount paths, adapter imports and complete dependency closure. Record blockers
+   without hiding a recipe from the inventory. Use off-device checks wherever
+   they provide valid evidence; native ARM/CUDA builds and GPU kernels still
+   require their appropriate execution environment.
+2. Derive a coverage matrix from the canonical recipes. Group by exact runtime
+   image/build identity, engine version or fork, CUDA/native dependencies,
+   patches and adapter identity, then model family, quantization and topology.
+   Merely sharing the name vLLM, SGLang or PyTorch is not evidence equivalence.
+3. Build and check each exact stack once where its verified artifacts can be
+   reused. Audit its whole dependency/import path before retrying a build, not
+   just the last missing import. Fix shared defects once and revalidate every
+   affected recipe; preserve completed cache work and durable partial progress.
+4. Select a ready, low-cost representative for each distinct stack/family risk,
+   then test its related variants together to reuse images and model assets.
+   Each recipe still needs its own physical inference and declared assertions.
+
+| Coverage group | Representative checks; variants requiring separate evidence |
+|---|---|
+| vLLM | Model loader, tokenizer/template, quantization and attention kernels; declared text, tool, structured-output and vision paths. Different image versions and native stacks remain separate. |
+| SGLang | Loader and serving paths plus applicable cache, state-space, speculative-decoding and tensor-parallel behavior. A vLLM pass does not qualify SGLang. |
+| Specialized forks and engines | Mia, DeepSeek-specific stacks, SparkInfer, EXL3 and DFlash retain their exact fork, patch, kernel and auxiliary-model checks; generic engine evidence cannot replace them. |
+| Image/video workflows | Keep Diffusers and ComfyUI stacks distinct. Verify selected checkpoints, companion encoders/decoders, custom nodes, workflow and output validity for every recipe. |
+| 3D pipelines | Step1X and other pipelines need their own import/native-extension closure and valid geometry outputs. A shared PyTorch base does not qualify another pipeline. |
+| Audio and multimodal pipelines | Exercise the declared modality inputs, encoders/decoders and output assertions, not merely an HTTP response or a text-only prompt. |
+| Dual-Spark variants | Independently prove distributed initialization, inter-node communication, inference and rank-loss recovery. Single-Spark evidence is only a prerequisite, not a distributed pass. |
+
+### Two single-Spark lanes, one fleet owner
+
+The two available Sparks may run **two independent single-Spark recipes at the
+same time**. Schedule them as one paired batch under **one whole-fleet profile**,
+with one recipe assigned to each Spark. Do not launch competing per-lane
+profiles: every profile always owns the entire fleet, including idle nodes.
+
+- One coordinator owns profile changes, the reviewed plan and application
+  request. It binds both assignments and all replacement effects together.
+  The runner must retain distinct recipe, node, smoke and result identities so
+  one successful lane cannot qualify or conceal failure in the other.
+- Admit a pair only after fresh Controller previews prove both workloads fit
+  their respective nodes and shared storage/transfer/build resources permit it.
+  A Spark busy with native compilation is not assumed free for inference.
+- Run the two lane smoke suites concurrently. Initially use a batch barrier:
+  preserve both results and reconcile cleanup before applying the next pair.
+  Do not refill one lane by silently replacing or interrupting the other.
+- Dual-Spark recipes reserve both Sparks exclusively. Disruptive recovery
+  checks also run exclusively, after the other lane is stopped and its resource
+  release is observed. Host restart/rank-failure actions still require an
+  approved mechanism; observation mode does not perform them.
+- A recipe-local failure remains local in the evidence. Integrity, authority,
+  changed-plan or fleet-ownership failures stop the batch. Resume reconciles
+  the original operation and completed lane receipts instead of duplicating
+  loads or rerunning already-proven work unnecessarily.
+
+### Evidence reuse and recovery coverage
+
+Earlier working GLM-5.3 runs remain historical physical evidence; this campaign
+must not describe them as never tested. Match their actual model, recipe,
+image, topology, platform and test receipts before reusing any particular
+claim. A changed identity invalidates the affected evidence, not automatically
+every unrelated build or cached asset. Record missing provenance as an evidence
+gap instead of inventing a fresh pass.
+
+Every recipe needs an attributable inference result, including all its declared
+smoke cases and fixtures. Shared build checks can be reused only for identical
+artifacts. As a proposed optimization, expensive platform recovery checks may
+be shared across explicitly reviewed equivalent stacks/topologies; engine- or
+model-specific recovery risks still require dedicated checks. Document each
+covered failure mode, representative receipt, equivalence rationale and
+invalidation conditions. Until typed runner/authority support enforces this,
+the existing full per-recipe recovery ladder remains required.
+
+### Implementation and execution order
+
+- [x] Record family-aware coverage and two single-Spark lanes in this plan.
+- [ ] Derive the complete 85-row stack/family matrix, representative selection,
+  paired batches and recovery-coverage mapping from exact catalog identities.
+  Keep all 81 two-Spark-fleet candidates visible; the four larger-topology
+  recipes remain explicitly outside available physical capacity.
+- [ ] Implement the current campaign contract and runner together for paired
+  assignments, per-lane evidence, exclusive recovery and resumable batches.
+  Prove rejection of competing fleet ownership, stale plans, evidence from the
+  wrong recipe/node, duplicate apply after disconnect, and premature lane
+  replacement. Test one-lane failure without losing the other lane's result.
+  Do not introduce a parallel client-side planner or a legacy runner fallback.
+- [ ] Implement and verify explicit recovery-coverage references before using
+  shared recovery evidence; otherwise retain full per-recipe recovery checks.
+- [ ] Complete required review, CI, accepted publication and Controller/runner
+  deployment, then regenerate and review the exact campaign authority/order.
+  Respect separate schema-merge decisions if implementation changes schema.
+- [ ] Reconcile Step1X's completed native-build evidence and earlier GLM
+  receipts first. Run ready representative batches, then related variants;
+  schedule dual-Spark and recovery work exclusively. Provider/access blockers
+  stay visible and do not become physical passes.
+- [ ] Produce a final per-recipe report separating source freshness,
+  structural validity, cache readiness, inference and recovery evidence.
+
+Use bounded GPT-6 Luna High agents for independent audits or implementation,
+each in its own task-owned worktree. Avoid agents for routine polling, duplicate
+audits and repeated full suites on unchanged inputs. Integrate related fixes,
+run focused regression checks during iteration and the required combined gates
+before release. Refresh campaign authority after relevant artifacts settle,
+not after every intermediate failed build.
+
+## Current per-recipe procedure
 
 ### File-closure blockers found during cache preparation
 
@@ -57,7 +171,11 @@ physical pass:
   asset, while the current model-cache provider only resolves Hugging Face
   model files. Its source needs a supported cache contract before execution.
 
-### Ordered execution
+### Existing sequential execution gates
+
+This section records the executable sequential procedure, not the proposed
+two-lane scheduler above. Its deployment observations are dated evidence, not
+a claim about the currently running Controller; recheck deployment before use.
 
 For each row below, finish all gates before starting the next row. Platform PR #881 (`e7810dac`) merged the plan-digest-bound load API and sequential runner; PR #882 (`0123eeb4`) repairs the release acceptance caller. The accepted release `d9991261f8af0f2554c1eff057786f89a2b4765f1d83280b73c3c470dac906d1` was deployed on 2026-09-24: both Controller containers were healthy and their running image IDs matched the signed `0123eeb4` images. The accepted CLI also reports that source. At 08:59 UTC both Sparks remained online with the original healthy GLM run. This closes the platform deployment prerequisite, not recipe publication, cache readiness, or physical qualification.
 
@@ -70,7 +188,7 @@ For each row below, finish all gates before starting the next row. Platform PR #
 7. Use `vonk-fleet-qualify-campaign --manifest qualification/campaigns/nl-sequential-2c118a99.json --library-root RECIPE_ROOT --ledger LEDGER_OUTSIDE_INPUTS.jsonl --profile-number N --recipe RECIPE_KEY --observe` to record the full recovery ladder; observe mode takes no Spark, failure-Spark or review-acknowledgement flags and is available only for an already-recorded canary/checkpoint. For a one-Spark row, first capture the passing canary, then record the host offline, perform the offline restart, and observe the Spark returning with a different boot ID from serialized Fleet telemetry; stop the workload after the restart evidence is complete. For a dual-Spark row, observe failure-rank loss and route withdrawal, then rank recovery and recovered serving/smoke; stop the workload, then record and perform sequential offline restarts of both selected Sparks and verify both changed boot IDs. Preserve the exact sequence and recovery evidence; a workload restart alone is not acceptance.
 8. Retain verified model files, recipe images and compatible partial-transfer checkpoints. Record pass, blocked or fail before starting the next sequence number. A capacity-review row remains in sequence and may proceed only when its fresh live preview proves fit and its explicit `--accept-capacity-review RECIPE_KEY` acknowledgement is present.
 
-The refreshed authority is `qualification/authorities/nl-sequential-2c118a99.json`;
+The existing authority is `qualification/authorities/nl-sequential-2c118a99.json`;
 it binds the 85-recipe v1.0.14 catalog from tag `v1.0.14` (catalog source
 `f267238def47ea3ffd8d54b72a0ad491c3425aad`, release commit
 `a6255140bb6ecbec3b3813c88b7df41cc81cd8e1`) and lists every 1- or 2-Spark
@@ -85,9 +203,20 @@ review is a fresh live-preview gate, not a permanent exclusion. The four
 3+-Spark recipes are listed after the 81 in-scope rows only to make the catalog
 boundary auditable.
 
-## One-by-one sequence
+The authority above predates the v1.0.15 Step1X repair and must be refreshed
+before testing that revision. Step1X geometry 1.2.15 completed its native build
+on 2026-09-24 at 14:44 UTC (operation
+`6a5acb3b-d397-4fb2-8500-21779b854ebf`); this is not an inference or recovery
+pass. Reconcile its exact image receipt before applying it. Neither a newer
+recipe publication nor a merged platform fix proves live deployment.
+
+## Complete inventory and existing authority order
 
 Rows 1–81 are the one-at-a-time campaign and are bound by the ordered authority. Rows 82–85 close the catalog audit only; they require more than two Sparks and are not in the campaign.
+
+Keep this inventory complete. Family grouping and paired batches require a
+regenerated reviewed authority, not hand-edited sequence numbers or skipped
+ledger checkpoints. The table below preserves the existing executable order.
 
 | # | Recipe | Nodes | Check | Campaign gate | Source review |
 |---:|---|---:|---|---|---|
