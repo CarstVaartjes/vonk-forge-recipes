@@ -71,9 +71,9 @@ For each row below, finish all gates before starting the next row. Platform PR #
 8. Retain verified model files, recipe images and compatible partial-transfer checkpoints. Record pass, blocked or fail before starting the next sequence number. A capacity-review row remains in sequence and may proceed only when its fresh live preview proves fit and its explicit `--accept-capacity-review RECIPE_KEY` acknowledgement is present.
 
 The refreshed authority is `qualification/authorities/nl-sequential-2c118a99.json`;
-it binds the 85-recipe v1.0.11 catalog from tag `v1.0.11` (catalog source
-`2c29a43949b326ebf5dd280f5091255d80e777a3`, release commit
-`75e6b573b6f1c0bb484c39edbee50014799aeb0c`) and lists every 1- or 2-Spark
+it binds the 85-recipe v1.0.12 catalog from tag `v1.0.12` (catalog source
+`88f33f9a661d86bbf1a30c9c9b90e5c7e6d02593`, release commit
+`bd082ffa645e911f54156e25043be4efca095c30`) and lists every 1- or 2-Spark
 recipe in sequence. Publication completed on 2026-09-24 after all release
 checks passed. This closes the recipe publication prerequisite, not cache
 readiness or physical acceptance. The campaign manifest has no fixed Spark IDs
