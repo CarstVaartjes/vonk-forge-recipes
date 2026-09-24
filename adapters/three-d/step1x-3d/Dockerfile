@@ -36,6 +36,7 @@ RUN apt-get update \
         easydict==1.13 \
         einops==0.8.0 \
         "fastrlock @ https://files.pythonhosted.org/packages/57/21/ea1511b0ef0d5457efca3bf1823effb9c5cad4fc9dca86ce08e4d65330ce/fastrlock-0.8.3-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_28_aarch64.whl#sha256=85a49a1f1e020097d087e1963e42cea6f307897d5ebe2cb6daf4af47ffdd3eed" \
+        beautifulsoup4==4.15.0 \
         huggingface-hub==0.26.2 \
         imageio==2.34.1 \
         jaxtyping==0.2.28 \
@@ -56,6 +57,7 @@ RUN apt-get update \
         scikit-image==0.23.2 \
         scipy==1.13.0 \
         sentencepiece==0.2.0 \
+        soupsieve==2.9.2 \
         timm==0.9.16 \
         tokenizers==0.21.0 \
         tqdm==4.66.2 \

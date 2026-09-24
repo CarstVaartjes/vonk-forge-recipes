@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import ast
+import importlib
 import json
+import sys
 import tempfile
 import types
 import unittest
@@ -50,6 +52,104 @@ class Step1XUpstreamPatchTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
+
+    def test_inference_initializer_keeps_model_registry_without_training_imports(
+        self,
+    ) -> None:
+        package_root = self.root / "step1x3d_geometry"
+        package_root.mkdir()
+        initializer = package_root / "__init__.py"
+        initializer.write_text(
+            """import importlib
+
+__modules__ = {}
+
+def register(name):
+    def decorator(cls):
+        __modules__[name] = cls
+        return cls
+    return decorator
+
+def find(name):
+    if name in __modules__:
+        return __modules__[name]
+    module_string, _, cls_name = name.rpartition(".")
+    return getattr(importlib.import_module(module_string), cls_name)
+
+from . import data, models, systems
+""",
+            encoding="utf-8",
+        )
+
+        model_package = package_root / "models"
+        model_package.mkdir()
+        (model_package / "__init__.py").write_text(
+            "from . import runtime_models\n", encoding="utf-8"
+        )
+        (model_package / "runtime_models.py").write_text(
+            """import step1x3d_geometry
+
+@step1x3d_geometry.register("runtime-model")
+class RuntimeModel:
+    pass
+""",
+            encoding="utf-8",
+        )
+
+        data_package = package_root / "data"
+        data_package.mkdir()
+        (data_package / "__init__.py").write_text(
+            "from . import Objaverse\n", encoding="utf-8"
+        )
+        (data_package / "Objaverse.py").write_text(
+            "from streaming import StreamingDataLoader\n", encoding="utf-8"
+        )
+        systems_package = package_root / "systems"
+        systems_package.mkdir()
+        (systems_package / "__init__.py").write_text(
+            "training_registry_loaded = True\n", encoding="utf-8"
+        )
+
+        self.module.patch_inference_import_boundary(self.root)
+
+        original_path = sys.path[:]
+        original_modules = {
+            name: module
+            for name, module in sys.modules.items()
+            if name == "step1x3d_geometry" or name.startswith("step1x3d_geometry.")
+        }
+        sys.path.insert(0, str(self.root))
+        for name in original_modules:
+            sys.modules.pop(name, None)
+        try:
+            package = importlib.import_module("step1x3d_geometry")
+            self.assertIs(
+                package.find("runtime-model"),
+                package.models.runtime_models.RuntimeModel,
+            )
+            self.assertNotIn("step1x3d_geometry.data", sys.modules)
+            self.assertNotIn("step1x3d_geometry.systems", sys.modules)
+        finally:
+            for name in tuple(sys.modules):
+                if name == "step1x3d_geometry" or name.startswith("step1x3d_geometry."):
+                    sys.modules.pop(name, None)
+            sys.modules.update(original_modules)
+            sys.path[:] = original_path
+
+    def test_inference_initializer_patch_rejects_upstream_layout_drift(self) -> None:
+        initializer = self.root / "step1x3d_geometry/__init__.py"
+        initializer.parent.mkdir()
+        changed_layout = "from . import data, systems, models\n"
+        duplicate_layout = (
+            "from . import data, models, systems\nfrom . import data, models, systems\n"
+        )
+        for source in (changed_layout, duplicate_layout):
+            with self.subTest(source=source):
+                initializer.write_text(source, encoding="utf-8")
+                with self.assertRaisesRegex(SystemExit, "unexpected Step1X"):
+                    self.module.patch_inference_import_boundary(self.root)
+
+                self.assertEqual(initializer.read_text(encoding="utf-8"), source)
 
     def test_pipeline_import_does_not_require_pymeshlab(self) -> None:
         pipeline_path = (
