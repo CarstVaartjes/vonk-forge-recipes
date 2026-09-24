@@ -252,6 +252,27 @@
         "changes": [
           {
             "kind": "runtime",
+            "summary": "Keep the served geometry import closure independent of training systems.",
+            "details": "The pinned Step1X package initializer eagerly imported training data and systems before its model registry. The inference pipelines import their model classes directly, so the image now initializes models only and avoids the unused MosaicML streaming and plotting/logging imports. The geometry pipeline still imports T5Encoder; its required Beautiful Soup dependency is pinned to 4.15.0 with SoupSieve 2.9.2, outside both published affected ranges (through 2.8.3 and 2.8.4 respectively).",
+            "references": [
+              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_geometry/__init__.py",
+              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_geometry/models/pipelines/pipeline.py",
+              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_geometry/models/conditional_encoders/t5_encoder.py",
+              "https://pypi.org/project/beautifulsoup4/4.15.0/",
+              "https://pypi.org/project/soupsieve/2.9.2/",
+              "https://github.com/facelessuser/soupsieve/security/advisories/GHSA-836r-79rf-4m37",
+              "https://github.com/facelessuser/soupsieve/security/advisories/GHSA-j934-xhv5-fg8f"
+            ]
+          }
+        ],
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.13"
+      },
+      {
+        "changes": [
+          {
+            "kind": "runtime",
             "summary": "Closed the pinned Step1X Lightning import dependency.",
             "details": "The exact Step1X source requirements request pytorch-lightning==2.2.4, which is in published vulnerable ranges. The image uses 2.6.6, whose release fixes checkpoint code execution; package metadata allows Python>=3.10 and torch>=2.1.0. lightning-utilities==0.11.2 satisfies its >=0.10.0 dependency and remains Step1X-pinned. The build smoke-imports the exact rank_zero runtime path.",
             "references": [
@@ -536,7 +557,7 @@
       }
     ],
     "released_at": "2026-09-24",
-    "version": "1.2.12"
+    "version": "1.2.13"
   },
   "runtime": {
     "arguments": [
