@@ -212,11 +212,12 @@ recipe publication nor a merged platform fix proves live deployment.
 
 ## Complete inventory and existing authority order
 
-Rows 1–81 are the one-at-a-time campaign and are bound by the ordered authority. Rows 82–85 close the catalog audit only; they require more than two Sparks and are not in the campaign.
-
 Keep this inventory complete. Family grouping and paired batches require a
 regenerated reviewed authority, not hand-edited sequence numbers or skipped
 ledger checkpoints. The table below preserves the existing executable order.
+
+<!-- generated:begin qualification-inventory -->
+Rows 1–81 are the one-at-a-time campaign and are bound by the ordered authority. Rows 82–85 close the catalog audit only; they require more than two Sparks and are not in the campaign.
 
 | # | Recipe | Nodes | Check | Campaign gate | Source review |
 |---:|---|---:|---|---|---|
@@ -305,6 +306,7 @@ ledger checkpoints. The table below preserves the existing executable order.
 | 83 | `vonk-forge/glm-5-2-quanttrio-vllm-four` | 4 | no fixture | out of scope (>2 Sparks) | current |
 | 84 | `vonk-forge/inkling-975b-a41b-nvfp4-sglang-eight` | 8 | no fixture | out of scope (>2 Sparks) | retained: moving SGLang main is not a release channel |
 | 85 | `vonk-forge/glm-5-2-aqlm-vllm-triple` | 3 | no fixture | out of scope (>2 Sparks) | current |
+<!-- generated:end qualification-inventory -->
 
 ## Evidence and stop rules
 
