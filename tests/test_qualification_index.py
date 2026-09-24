@@ -4,16 +4,20 @@ import base64
 import hashlib
 import json
 import os
+import runpy
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any, cast
 
+import pytest
 from vonk_forge_contracts import RecipeDefinition, content_sha256
 
 ROOT = Path(__file__).resolve().parents[1]
 QUALIFICATION_ROOT = ROOT / "qualification"
+PLAN_PATH = ROOT / "docs/recipe-qualification-plan-2026-09-24.md"
+AUTHORITY_TOOL = runpy.run_path(str(ROOT / "tools/build-qualification-authority"))
 
 
 def _document(path: Path) -> dict[str, object]:
@@ -414,3 +418,63 @@ def test_sequential_authority_binds_every_recipe_with_at_most_two_nodes() -> Non
         QUALIFICATION_ROOT / "authorities/nl-single-spark-7173cb48.json"
     ).exists()
     assert not (QUALIFICATION_ROOT / "campaigns/nl-single-spark-7173cb48.json").exists()
+
+
+def _authority_rows() -> list[dict[str, Any]]:
+    authority = cast(
+        Any,
+        _document(QUALIFICATION_ROOT / "authorities/nl-sequential-2c118a99.json"),
+    )
+    rows = authority["recipes"]
+    assert isinstance(rows, list)
+    return rows
+
+
+def test_plan_prose_changes_never_invalidate_the_generated_inventory() -> None:
+    """A prose edit, renamed heading or moved paragraph must not go stale."""
+
+    text = PLAN_PATH.read_text(encoding="utf-8")
+    rows = _authority_rows()
+    refresh = AUTHORITY_TOOL["_refresh_plan"]
+    assert refresh(text, rows) == text
+
+    edited = text.replace(
+        "Keep this inventory complete.",
+        "Keep this inventory complete and reviewed by its owner.",
+        1,
+    )
+    assert edited != text
+    assert refresh(edited, rows) == edited
+
+    renamed = edited.replace(
+        "## Complete inventory and existing authority order",
+        "## Inventory and campaign order",
+        1,
+    )
+    assert renamed != edited
+    assert refresh(renamed, rows) == renamed
+
+
+def test_plan_without_the_generated_inventory_block_fails_closed() -> None:
+    """A missing, duplicated or reversed marker must fail closed."""
+
+    text = PLAN_PATH.read_text(encoding="utf-8")
+    rows = _authority_rows()
+    begin = AUTHORITY_TOOL["_INVENTORY_BEGIN"]
+    end = AUTHORITY_TOOL["_INVENTORY_END"]
+    assert text.count(begin) == 1
+    assert text.count(end) == 1
+    swapped = text.replace(begin, "<!-- swap -->", 1)
+    swapped = swapped.replace(end, begin, 1).replace("<!-- swap -->", end, 1)
+
+    for broken in (
+        text.replace(begin, "", 1),
+        text.replace(end, "", 1),
+        text.replace(begin, f"{begin}\n{begin}", 1),
+        text.replace(begin, "", 1).replace(end, "", 1),
+        swapped,
+    ):
+        with pytest.raises(ValueError):
+            AUTHORITY_TOOL["_plan_rows"](broken)
+        with pytest.raises(ValueError):
+            AUTHORITY_TOOL["_refresh_plan"](broken, rows)
