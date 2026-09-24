@@ -20,16 +20,122 @@
     },
     "schema_version": 2
   },
-  "dependencies": [],
+  "dependencies": [
+    {
+      "content_sha256": "5754fd1f85131102730496ee4e5fc842ef5b7b96e8308bce45a527beab8b4364",
+      "kind": "model",
+      "publisher": "facebook",
+      "slug": "dinov2-large-47b73eef"
+    }
+  ],
   "files": [
     {
-      "id": "snapshot",
-      "path": "snapshot",
+      "id": "file-7fb473f14fa7",
+      "path": "License.txt",
       "roles": [
-        "entrypoint"
+        "metadata"
       ],
-      "sha256": "ab0f993eb838a5f4156bcf4b155913bf3b9562fefc7e34e186de3423f180bc09",
-      "size_bytes": 25729134701
+      "sha256": "ccfc4916da352ffc9d01e85e8b0a00ebf5c23b41b97e6ee489a6b34b02f93276",
+      "size_bytes": 16966
+    },
+    {
+      "id": "file-ca940bab7168",
+      "path": "Notice.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "9d6c71d536c40e2e0f2564778f20e75754ab705a3a245bd0f225a689ab17e1e7",
+      "size_bytes": 16695
+    },
+    {
+      "id": "file-70cd5123c386",
+      "path": "cond_encoder/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "80d2b2388942ce3f5876f222e3dfc4fc19b4b4036cb9cd70a927de290fae2943",
+      "size_bytes": 641
+    },
+    {
+      "id": "file-9acfcd5fddca",
+      "path": "cond_encoder/pytorch_model.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f3f308e73153000ed566e985e2b1e38e9b40c12e23b7e6ecf89ce3ea1699c432",
+      "size_bytes": 464828
+    },
+    {
+      "id": "file-587cb980af76",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "efea7858ac17dd786ae41e512d877f4f3ff638bf6f64b8ad3eeb7cae62eb9eae",
+      "size_bytes": 321
+    },
+    {
+      "id": "file-fae5f923423e",
+      "path": "image_processor/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "c99230533229adff9a536acebcbf1ff5c30ac4038eeb977b54bdb44e57aca458",
+      "size_bytes": 78
+    },
+    {
+      "id": "file-f399b5c67982",
+      "path": "model/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "c508943a4a85f56c285dd53c00d785569cbfae8261aff68a5547dc5e789053eb",
+      "size_bytes": 478
+    },
+    {
+      "id": "file-e276db0b98e4",
+      "path": "model/pytorch_model.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "01c95e5f2588e324ebc05268231c92b3b1d9e83e5163723100ac958226c12a24",
+      "size_bytes": 12203119470
+    },
+    {
+      "id": "file-87055d22e185",
+      "path": "model/pytorch_model_ema.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1071255f12a0dfa5c2a2785bb7114dee280dc32f3844119445bf234bdb6a48d2",
+      "size_bytes": 12203277342
+    },
+    {
+      "id": "file-e65182345640",
+      "path": "scheduler/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "3300c973d4f140b4883d7de8e24aec59bba8eaef7f12e883530b7658b4171ad5",
+      "size_bytes": 549
+    },
+    {
+      "id": "file-101abd63dac6",
+      "path": "vae/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e895305a8a487ff4c42a69712c0c8c6fd1dac22ad29b29dcf8c8801f646e08e8",
+      "size_bytes": 1217
+    },
+    {
+      "id": "file-ebe6bb69b509",
+      "path": "vae/pytorch_model.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "379995ca170d8a899019125f389ba8692b2e35625ff64ddc3fdaa8c9302ac340",
+      "size_bytes": 1311145138
     }
   ],
   "format": {
