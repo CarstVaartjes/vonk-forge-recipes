@@ -23,6 +23,40 @@ def patch_inference_import_boundary(root: Path) -> None:
     )
 
 
+def patch_texture_saving_plot_imports(root: Path) -> None:
+    """Defer optional plotting imports until a plotting-only color map is used."""
+
+    path = root / "step1x3d_texture/utils/saving.py"
+    source = path.read_text(encoding="utf-8")
+    replacements = (
+        ("import matplotlib.pyplot as plt\n", ""),
+        ("from matplotlib import cm\n", ""),
+        ("from matplotlib.colors import LinearSegmentedColormap\n", ""),
+        (
+            '        elif cmap == "magma":\n',
+            (
+                '        elif cmap == "magma":\n'
+                "            from matplotlib import cm\n"
+                "            from matplotlib.colors import LinearSegmentedColormap\n"
+            ),
+        ),
+        (
+            '        elif cmap == "spectral":\n',
+            (
+                '        elif cmap == "spectral":\n'
+                "            import matplotlib.pyplot as plt\n"
+            ),
+        ),
+    )
+    for old, new in replacements:
+        if source.count(old) != 1:
+            raise SystemExit(
+                f"unexpected Step1X texture saving plotting layout: {old.strip()}"
+            )
+        source = source.replace(old, new, 1)
+    path.write_text(source, encoding="utf-8")
+
+
 def patch_pipeline_utils(root: Path) -> None:
     """Make the optional pymeshlab dependency lazy without breaking annotations."""
 
@@ -97,6 +131,7 @@ def patch_model_authorities(root: Path) -> None:
 
 def prepare(root: Path) -> None:
     patch_inference_import_boundary(root)
+    patch_texture_saving_plot_imports(root)
     patch_pipeline_utils(root)
     patch_label_encoder(root)
     patch_model_authorities(root)
