@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --python 3.14 --with pyright==1.1.408 --with pytest>=8,<9 --with pydantic==2.13.4 python
+#!/usr/bin/env -S uv run --no-project --python 3.14 --with pyright==1.1.408 --with pytest>=8,<9 --with pydantic==2.13.4 --with ./adapters/video/ltx2-sync-native/vonk_agent_protocol-3.0.0-py3-none-any.whl python
 """Fail when a Python type error appears outside the reviewed exception list.
 
 The repository does not type-check cleanly yet, but every surviving error is a
