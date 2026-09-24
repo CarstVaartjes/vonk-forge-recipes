@@ -9,6 +9,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Any
 from urllib.error import HTTPError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
@@ -150,7 +151,7 @@ def main() -> int:
         if isinstance(entry, dict) and entry.get("type") == "file"
     ]
 
-    artifacts: list[dict[str, object]] = []
+    artifacts: list[dict[str, Any]] = []
     for entry in file_entries:
         path = entry.get("path")
         size = entry.get("size")

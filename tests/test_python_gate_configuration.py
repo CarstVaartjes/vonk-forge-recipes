@@ -9,6 +9,8 @@ already happened once: the repository shipped the pyright baseline but no
 from __future__ import annotations
 
 import re
+import runpy
+import subprocess
 import tomllib
 from pathlib import Path
 
@@ -50,8 +52,11 @@ def test_vendored_trees_stay_excluded_from_both_gates() -> None:
 
 
 def test_every_python_gate_runs_in_ci() -> None:
+    # Every gate is named through its wrapper. A bare `ruff check .` or
+    # `ruff format --check .` resolves files by extension and silently skips
+    # the extensionless executables, so requiring the wrapper is the point.
     checks = {
-        "lint": re.compile(r"ruff==0\.16\.1\s+ruff\s+check\s+\."),
+        "lint": re.compile(r"tools/check-python-lint"),
         "format": re.compile(r"tools/check-python-format"),
         "types": re.compile(r"scripts/check-python-types"),
     }
@@ -59,3 +64,46 @@ def test_every_python_gate_runs_in_ci() -> None:
         assert any(
             pattern.search(path.read_text(encoding="utf-8")) for path in WORKFLOWS
         ), f"no workflow runs the {name} gate"
+
+
+def _entry_points() -> set[str]:
+    """Return the tracked extensionless Python executables, from the shebang."""
+
+    listed = subprocess.run(
+        ["git", "ls-files"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    entry_points: set[str] = set()
+    for name in listed.stdout.splitlines():
+        if not name or "." in name:
+            continue
+        path = ROOT / name
+        if not path.is_file():
+            continue
+        with path.open("r", encoding="utf-8") as handle:
+            first_line = handle.readline()
+        if first_line.startswith("#!") and "python" in first_line:
+            entry_points.add(name)
+    return entry_points
+
+
+def test_extensionless_entry_points_stay_inside_every_gate() -> None:
+    """A gate that regresses to a bare `.` scan must fail, not pass quietly."""
+
+    entry_points = _entry_points()
+    assert "tools/build-catalog-index" in entry_points
+
+    # The type gate is importable, so its discovery is checked directly rather
+    # than by matching its source text.
+    types_tool = runpy.run_path(str(ROOT / "scripts/check-python-types"))
+    assert set(types_tool["_entry_points"]()) == entry_points
+
+    # A shell wrapper cannot be imported, so its discovery contract is asserted
+    # on the two commands that implement it.
+    for name in ("tools/check-python-lint", "tools/check-python-format"):
+        text = (ROOT / name).read_text(encoding="utf-8")
+        assert "git ls-files" in text, f"{name} no longer discovers entry points"
+        assert "'#!'*python*" in text, f"{name} no longer matches the shebang"
