@@ -15,8 +15,29 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 QUALIFICATION = ROOT / "qualification"
-AUTHORITY_PATH = QUALIFICATION / "authorities/nl-sequential-2c118a99.json"
-CAMPAIGN_PATH = QUALIFICATION / "campaigns/nl-sequential-2c118a99.json"
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import RecipeDefinition
+from vonk_forge_contracts.qualification_authority import (
+    QualificationAuthority,
+    QualificationBatch,
+    QualificationBatchAssignment,
+    QualificationCampaignManifest,
+    RecoveryCoverage,
+    RecoveryCoverageDefinition,
+    RecoveryCoverageMember,
+    RecoveryCoverageRef,
+    recovery_coverage_id,
+)
+
+from qualification.catalog_source import pinned_catalog_source_tree
+from qualification.coverage_identity import execution_stack_identity
+
+AUTHORITY_ID = "nl-family-aware-20260924"
+AUTHORITY_PATH = QUALIFICATION / f"authorities/{AUTHORITY_ID}.json"
+CAMPAIGN_PATH = QUALIFICATION / f"campaigns/{AUTHORITY_ID}.json"
+RETIRED_AUTHORITY_PATH = QUALIFICATION / "authorities/nl-sequential-2c118a99.json"
+RETIRED_CAMPAIGN_PATH = QUALIFICATION / "campaigns/nl-sequential-2c118a99.json"
 PLAN_PATH = ROOT / "docs/recipe-qualification-plan-2026-09-24.md"
 _RECIPE_ROW = re.compile(r"[a-z0-9][a-z0-9-]{0,62}/[a-z0-9][a-z0-9-]{0,62}\Z")
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
@@ -29,6 +50,20 @@ _GIT_OBJECT_TIMEOUT_SECONDS = 10
 # without the block fails closed instead of silently regenerating prose.
 _INVENTORY_BEGIN = "<!-- generated:begin qualification-inventory -->"
 _INVENTORY_END = "<!-- generated:end qualification-inventory -->"
+
+_RECOVERY_INVALIDATION_FIELDS = [
+    "recipe_content_sha256",
+    "package_sha256",
+    "model_content_sha256s",
+    "runtime_stack_sha256",
+    "topology_sha256",
+    "coverage_membership",
+    "runtime_image_digest",
+    "platform_build_sha256",
+    "agent_build_sha256",
+    "target_node_ids",
+    "smoke_receipt_sha256",
+]
 
 
 def _document_bytes(content: bytes, description: str) -> dict[str, Any]:
@@ -117,7 +152,7 @@ def _plan_rows(text: str) -> list[dict[str, Any]]:
         if not line.startswith("|"):
             continue
         fields = [part.strip() for part in line.strip().strip("|").split("|")]
-        if len(fields) != 6 or not fields[0].isdigit():
+        if len(fields) != 8 or not fields[0].isdigit():
             continue
         match = re.fullmatch(r"`([^`]+)`", fields[1])
         if match is None:
@@ -130,9 +165,9 @@ def _plan_rows(text: str) -> list[dict[str, Any]]:
                 "sequence": int(fields[0]),
                 "key": key,
                 "node_count": int(fields[2]),
-                "check": fields[3],
-                "old_gate": fields[4],
-                "source_review": fields[5],
+                "check": fields[5],
+                "old_gate": fields[6],
+                "source_review": fields[7],
             }
         )
     if [row["sequence"] for row in rows] != list(range(1, len(rows) + 1)):
@@ -256,22 +291,197 @@ def _campaign_gate(row: dict[str, Any]) -> str:
     return "; ".join(labels)
 
 
-def _refresh_plan(text: str, rows: list[dict[str, Any]]) -> str:
+def _execution_batches(
+    rows: list[dict[str, Any]],
+) -> tuple[list[QualificationBatch], dict[str, tuple[str, int]]]:
+    """Pair single-node rows and schedule every dual-node row exclusively."""
+
+    singles = sorted(
+        (row for row in rows if row["node_count"] == 1),
+        key=lambda row: row["sequence"],
+    )
+    duals = sorted(
+        (row for row in rows if row["node_count"] == 2),
+        key=lambda row: row["sequence"],
+    )
+    if any(row["node_count"] not in (1, 2) for row in rows):
+        raise ValueError("only one- and two-node recipes belong in the authority")
+
+    pending: list[tuple[int, str, list[dict[str, Any]]]] = []
+    for offset in range(0, len(singles), 2):
+        assignments = singles[offset : offset + 2]
+        mode = "paired-single" if len(assignments) == 2 else "single"
+        pending.append((assignments[0]["sequence"], mode, assignments))
+    for row in duals:
+        pending.append((row["sequence"], "exclusive-dual", [row]))
+    pending.sort(key=lambda item: (item[0], item[1]))
+
+    batches: list[QualificationBatch] = []
+    assignment_by_recipe: dict[str, tuple[str, int]] = {}
+    for sequence, (_, mode, assigned_rows) in enumerate(pending, start=1):
+        batch_id = f"batch-{sequence:03d}"
+        assignments = [
+            QualificationBatchAssignment(
+                recipe=row["key"],
+                lane=lane,
+                node_count=row["node_count"],
+            )
+            for lane, row in enumerate(assigned_rows, start=1)
+        ]
+        batch = QualificationBatch(
+            sequence=sequence,
+            id=batch_id,
+            mode=mode,
+            assignments=assignments,
+        )
+        batches.append(batch)
+        for assignment in assignments:
+            assignment_by_recipe[assignment.recipe] = (batch_id, assignment.lane)
+    if set(assignment_by_recipe) != {row["key"] for row in rows}:
+        raise ValueError("execution batches must assign every in-scope recipe once")
+    return batches, assignment_by_recipe
+
+
+def _recovery_coverage_definitions(
+    rows: list[dict[str, Any]],
+) -> tuple[list[RecoveryCoverage], dict[str, list[dict[str, Any]]]]:
+    """Build exact typed recovery groups and references for every authority row."""
+
+    groups: dict[tuple[str, str, str, str], list[dict[str, Any]]] = {}
+    for row in rows:
+        modes = (
+            ["single-host-restart"]
+            if row["node_count"] == 1
+            else ["dual-rank-loss-recovery", "dual-host-restart"]
+        )
+        for failure_mode in modes:
+            recipe_specific = failure_mode == "dual-rank-loss-recovery"
+            discriminator = row["key"] if recipe_specific else ""
+            group_key = (
+                failure_mode,
+                row["runtime_stack_sha256"],
+                row["topology_sha256"],
+                discriminator,
+            )
+            groups.setdefault(group_key, []).append(row)
+
+    definitions: list[RecoveryCoverage] = []
+    refs_by_recipe: dict[str, list[dict[str, Any]]] = {row["key"]: [] for row in rows}
+    for (failure_mode, _, _, _), group_rows in sorted(groups.items()):
+        ordered_rows = sorted(group_rows, key=lambda row: row["key"])
+        representative = min(
+            ordered_rows,
+            key=lambda row: (
+                row["package"]["expected_bytes"],
+                row["sequence"],
+                row["key"],
+            ),
+        )
+        members = [
+            RecoveryCoverageMember(
+                recipe=row["key"],
+                recipe_content_sha256=row["content_sha256"],
+                package_sha256=row["package"]["sha256"],
+                model_content_sha256s=sorted(
+                    {
+                        reference["content_sha256"]
+                        for reference in row["model_license_refs"]
+                    }
+                ),
+                runtime_stack_sha256=row["runtime_stack_sha256"],
+                topology_sha256=row["topology_sha256"],
+            )
+            for row in ordered_rows
+        ]
+        shared = len(members) > 1
+        definition = RecoveryCoverageDefinition(
+            failure_mode=failure_mode,
+            representative_recipe=representative["key"],
+            members=members,
+            shared=shared,
+            equivalence_rationale=(
+                "Every member binds the same published runtime stack and topology. "
+                "Each receipt and reuse must still match that recipe's exact content, "
+                "package, Models, image, platform build, agent build, target nodes, "
+                "and smoke receipt."
+                if shared
+                else "Recovery evidence is dedicated to this exact recipe and failure mode."
+            ),
+            invalidated_by=_RECOVERY_INVALIDATION_FIELDS,
+        )
+        coverage = RecoveryCoverage(
+            **definition.model_dump(mode="json", exclude_none=True),
+            coverage_id=recovery_coverage_id(definition),
+        )
+        definitions.append(coverage)
+        for row in ordered_rows:
+            role = (
+                "representative"
+                if shared and row["key"] == representative["key"]
+                else "shared-member"
+                if shared
+                else "dedicated"
+            )
+            refs_by_recipe[row["key"]].append(
+                RecoveryCoverageRef(
+                    coverage_id=coverage.coverage_id,
+                    failure_mode=failure_mode,
+                    representative_recipe=representative["key"],
+                    role=role,
+                ).model_dump(mode="json")
+            )
+    return definitions, refs_by_recipe
+
+
+def _pinned_stack_identities(
+    catalog_recipes: dict[str, dict[str, Any]], source_commit: str
+) -> dict[str, dict[str, Any]]:
+    """Hash every recipe stack against the source commit in the published index."""
+
+    recipes = {
+        key: RecipeDefinition.model_validate(entry["document"])
+        for key, entry in catalog_recipes.items()
+    }
+    with pinned_catalog_source_tree(
+        ROOT, source_commit, list(recipes.values())
+    ) as source_root:
+        return {
+            key: execution_stack_identity(source_root, recipe, recipe.execution.build)
+            for key, recipe in recipes.items()
+        }
+
+
+def _refresh_plan(text: str, authority: dict[str, Any]) -> str:
     """Rewrite only the generated inventory block and copy authored prose."""
 
-    row_by_key = {row["key"]: row for row in rows}
+    row_by_key = {row["key"]: row for row in authority["recipes"]}
+    batch_by_recipe: dict[str, tuple[str, int]] = {}
+    for batch in authority["batches"]:
+        for assignment in batch["assignments"]:
+            batch_by_recipe[assignment["recipe"]] = (batch["id"], assignment["lane"])
+    single_recipe_count = sum(
+        assignment["node_count"] == 1
+        for batch in authority["batches"]
+        for assignment in batch["assignments"]
+    )
+    dual_batch_count = sum(
+        batch["mode"] == "exclusive-dual" for batch in authority["batches"]
+    )
+    single_batch_count = sum(
+        batch["mode"] in {"paired-single", "single"} for batch in authority["batches"]
+    )
     lines = [
         _INVENTORY_BEGIN,
         "\n",
         (
-            "Rows 1–81 are the one-at-a-time campaign and are bound by the ordered "
-            "authority. Rows 82–85 close the catalog audit only; they require more "
-            "than two Sparks and are not in the campaign."
+            f"The authority assigns {single_recipe_count} one-Spark recipes to "
+            f"{single_batch_count} batches and {dual_batch_count} two-Spark recipes "
+            "to exclusive batches. Wider topologies close the catalog audit only."
         ),
         "\n",
         "\n",
-        "| # | Recipe | Nodes | Check | Campaign gate | Source review |\n",
-        "|---:|---|---:|---|---|---|\n",
+        "| # | Recipe | Nodes | Batch | Lane | Check | Campaign gate | Source review |\n",
+        "|---:|---|---:|---|---:|---|---|---|\n",
     ]
     for plan_row in _plan_rows(text):
         key = plan_row["key"]
@@ -280,12 +490,17 @@ def _refresh_plan(text: str, rows: list[dict[str, Any]]) -> str:
             if plan_row["sequence"] <= 81:
                 raise ValueError(f"campaign row is absent from authority: {key}")
             gate = "out of scope (>2 Sparks)"
+            batch_id = "—"
+            lane = "—"
         else:
             gate = _campaign_gate(row)
+            batch_id, lane = batch_by_recipe[key]
         fields = [
             str(plan_row["sequence"]),
             f"`{key}`",
             str(plan_row["node_count"]),
+            f"`{batch_id}`" if batch_id != "—" else batch_id,
+            str(lane),
             plan_row["check"],
             gate,
             plan_row["source_review"],
@@ -325,6 +540,9 @@ def _build() -> dict[Path, bytes]:
     qualification = _document_bytes(
         qualification_bytes, "pinned qualification-index.json"
     )
+    source_commit = catalog.get("source_commit")
+    if not isinstance(source_commit, str) or _COMMIT.fullmatch(source_commit) is None:
+        raise ValueError("catalog source_commit must be a full Git SHA")
 
     catalog_recipes: dict[str, dict[str, Any]] = {}
     for entry in catalog.get("recipes", []):
@@ -345,6 +563,8 @@ def _build() -> dict[Path, bytes]:
         if not isinstance(digest, str) or digest in models_by_digest:
             raise ValueError("catalog Model content identities must be unique")
         models_by_digest[digest] = entity
+
+    stack_identities = _pinned_stack_identities(catalog_recipes, source_commit)
 
     capacity_reviews = gate_review.get("capacity_reviews")
     if not isinstance(capacity_reviews, dict):
@@ -471,6 +691,9 @@ def _build() -> dict[Path, bytes]:
             "qualification_inputs": qualification_inputs,
             "smoke_cases": smoke_cases,
             "review_gates": review_gates,
+            "runtime_stack_sha256": stack_identities[key]["runtime_stack_sha256"],
+            "topology_sha256": stack_identities[key]["topology_sha256"],
+            "recovery_coverage_refs": [],
         }
         if review_gates:
             row["disposition_reason"] = "; ".join(
@@ -487,41 +710,51 @@ def _build() -> dict[Path, bytes]:
     ):
         raise ValueError("capacity review must only name an in-scope campaign recipe")
 
-    source_commit = catalog.get("source_commit")
-    if not isinstance(source_commit, str) or _COMMIT.fullmatch(source_commit) is None:
-        raise ValueError("catalog source_commit must be a full Git SHA")
-    authority = {
-        "schema_version": 3,
-        "authority_id": "nl-sequential-2c118a99",
-        "catalog": {
-            "repository": repository,
-            "commit": catalog_commit,
-            "release_tag": release_tag,
-            "source_commit": source_commit,
-            "catalog_index_sha256": hashlib.sha256(catalog_bytes).hexdigest(),
-            "qualification_index_sha256": hashlib.sha256(
-                qualification_bytes
-            ).hexdigest(),
-            "recipe_count": len(catalog_recipes),
-        },
-        "scope": {
-            "maximum_node_count": 2,
-            "recipe_count": len(campaign_rows),
-            "excluded_topology_recipe_keys": out_of_scope,
-        },
-        "recipes": campaign_rows,
-    }
-    campaign = {
-        "schema_version": 2,
-        "qualification_authority": "../authorities/nl-sequential-2c118a99.json",
-        "fixture_manifest": "../qualification-index.json",
-        "options": {
-            "cleanup": "stop",
-            "operation_timeout_seconds": 86400,
-            "poll_interval_seconds": 5,
-        },
-    }
-    plan_output = _refresh_plan(plan_text, campaign_rows).encode("utf-8")
+    batches, _ = _execution_batches(campaign_rows)
+    coverage_definitions, refs_by_recipe = _recovery_coverage_definitions(campaign_rows)
+    for row in campaign_rows:
+        row["recovery_coverage_refs"] = refs_by_recipe[row["key"]]
+
+    authority_model = QualificationAuthority.model_validate(
+        {
+            "schema_version": 4,
+            "authority_id": AUTHORITY_ID,
+            "catalog": {
+                "repository": repository,
+                "commit": catalog_commit,
+                "release_tag": release_tag,
+                "source_commit": source_commit,
+                "catalog_index_sha256": hashlib.sha256(catalog_bytes).hexdigest(),
+                "qualification_index_sha256": hashlib.sha256(
+                    qualification_bytes
+                ).hexdigest(),
+                "recipe_count": len(catalog_recipes),
+            },
+            "scope": {
+                "maximum_node_count": 2,
+                "recipe_count": len(campaign_rows),
+                "excluded_topology_recipe_keys": out_of_scope,
+            },
+            "recipes": campaign_rows,
+            "batches": batches,
+            "recovery_coverage": coverage_definitions,
+        }
+    )
+    authority = authority_model.model_dump(mode="json", exclude_none=True)
+    campaign_model = QualificationCampaignManifest.model_validate(
+        {
+            "schema_version": 2,
+            "qualification_authority": f"../authorities/{AUTHORITY_ID}.json",
+            "fixture_manifest": "../qualification-index.json",
+            "options": {
+                "cleanup": "stop",
+                "operation_timeout_seconds": 86400,
+                "poll_interval_seconds": 5,
+            },
+        }
+    )
+    campaign = campaign_model.model_dump(mode="json", exclude_none=True)
+    plan_output = _refresh_plan(plan_text, authority).encode("utf-8")
     return {
         AUTHORITY_PATH: (
             json.dumps(authority, ensure_ascii=False, indent=2) + "\n"
@@ -548,18 +781,26 @@ def main() -> int:
             for path, expected in outputs.items()
             if not path.exists() or path.read_bytes() != expected
         ]
+        retired = [
+            path
+            for path in (RETIRED_AUTHORITY_PATH, RETIRED_CAMPAIGN_PATH)
+            if path.exists()
+        ]
         if args.check:
-            if stale:
+            if stale or retired:
+                affected = stale + retired
                 raise ValueError(
                     "qualification authority outputs are stale: "
-                    + ", ".join(path.relative_to(ROOT).as_posix() for path in stale)
+                    + ", ".join(path.relative_to(ROOT).as_posix() for path in affected)
                 )
-            print("qualification authority is current (81 recipes)")
+            print("qualification authority is current (81 recipes, paired schedule)")
             return 0
         for path, content in outputs.items():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(content)
-        print("refreshed qualification authority and sequential campaign (81 recipes)")
+        for path in (RETIRED_AUTHORITY_PATH, RETIRED_CAMPAIGN_PATH):
+            path.unlink(missing_ok=True)
+        print("refreshed qualification authority and batched campaign (81 recipes)")
         return 0
     except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
         print(f"build-qualification-authority: {error}", file=sys.stderr)

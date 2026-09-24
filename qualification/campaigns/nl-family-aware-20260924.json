@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "qualification_authority": "../authorities/nl-sequential-2c118a99.json",
+  "qualification_authority": "../authorities/nl-family-aware-20260924.json",
   "fixture_manifest": "../qualification-index.json",
   "options": {
     "cleanup": "stop",
