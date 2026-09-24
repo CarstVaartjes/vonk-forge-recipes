@@ -69,6 +69,11 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
             hosts = build["network"]["hosts"]
             self.assertIn("download.pytorch.org", hosts, path.name)
             self.assertIn("download-r2.pytorch.org", hosts, path.name)
+            if any(
+                f"https://download.pytorch.org/whl/{flavor}" in source
+                for flavor in ("cu130", "cu132")
+            ):
+                self.assertIn("pypi.nvidia.com", hosts, path.name)
 
 
 if __name__ == "__main__":
