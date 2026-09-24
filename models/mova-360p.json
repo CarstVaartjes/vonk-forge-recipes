@@ -310,7 +310,7 @@
     ],
     "operator_acceptance_required": true,
     "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/OpenMOSS-Team/MOVA-360p/blob/eab4aa91d6d5eb515e259a0c8533c90062b117a5/LICENSE"
+    "url": "https://huggingface.co/OpenMOSS-Team/MOVA-360p/blob/eab4aa91d6d5eb515e259a0c8533c90062b117a5/README.md"
   },
   "limits": {
     "context_tokens": null,

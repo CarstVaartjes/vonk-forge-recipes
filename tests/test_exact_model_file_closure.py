@@ -16,6 +16,16 @@ PRIMARY_MODELS = {
     "hunyuan-video-foley-xl-pytorch-single": "hunyuan-video-foley-xl",
     "hunyuan-video-foley-xxl-pytorch-single": "hunyuan-video-foley-xxl",
 }
+OMITTED_PRIMARY_PATHS = {
+    "hunyuan3d-omni-pytorch-single": {"model/pytorch_model_ema.bin"},
+    "hunyuan-video-foley-xl-pytorch-single": {"hunyuanvideo_foley.pth"},
+    "hunyuan-video-foley-xxl-pytorch-single": {"hunyuanvideo_foley_xl.pth"},
+}
+REQUIRED_PRIMARY_CHECKPOINTS = {
+    "hunyuan3d-omni-pytorch-single": "model/pytorch_model.bin",
+    "hunyuan-video-foley-xl-pytorch-single": "hunyuanvideo_foley_xl.pth",
+    "hunyuan-video-foley-xxl-pytorch-single": "hunyuanvideo_foley.pth",
+}
 
 
 def load_json(path: Path) -> dict[str, object]:
@@ -23,7 +33,7 @@ def load_json(path: Path) -> dict[str, object]:
 
 
 class ExactModelFileClosureTests(unittest.TestCase):
-    def test_primary_manifests_are_selected_file_for_file(self) -> None:
+    def test_primary_selection_matches_variant_specific_manifest(self) -> None:
         for recipe_slug, model_slug in PRIMARY_MODELS.items():
             with self.subTest(recipe=recipe_slug):
                 recipe = RecipeDefinition.model_validate_json(
@@ -36,18 +46,23 @@ class ExactModelFileClosureTests(unittest.TestCase):
                 )
                 model_doc = load_json(ROOT / "models" / f"{model_slug}.json")
                 model = ModelDefinition.model_validate(model_doc)
-                expected_ids = {item.id for item in model.files}
+                files_by_id = {item.id: item for item in model.files}
+                manifest_paths = {item.path for item in model.files}
+                omitted_paths = OMITTED_PRIMARY_PATHS.get(recipe_slug, set())
+                self.assertFalse(omitted_paths & manifest_paths)
                 selected_ids = {item.file_id for item in primary.files}
+                self.assertTrue(selected_ids <= set(files_by_id))
+                selected_paths = {files_by_id[file_id].path for file_id in selected_ids}
 
                 self.assertEqual(primary.model.slug, model_slug)
                 self.assertEqual(primary.model.content_sha256, content_sha256(model))
-                self.assertGreater(len(expected_ids), 1)
-                self.assertNotIn("snapshot", expected_ids)
-                self.assertEqual(selected_ids, expected_ids)
+                self.assertGreater(len(manifest_paths), 1)
+                self.assertNotIn("snapshot", manifest_paths)
+                self.assertEqual(selected_paths, manifest_paths)
                 self.assertEqual(
                     len(primary.files),
-                    len(expected_ids),
-                    "no file may be selected twice",
+                    len(selected_ids),
+                    "no manifest file may be selected twice",
                 )
                 self.assertTrue(
                     all(
@@ -55,6 +70,41 @@ class ExactModelFileClosureTests(unittest.TestCase):
                         for item in primary.files
                     )
                 )
+                required_checkpoint = REQUIRED_PRIMARY_CHECKPOINTS.get(recipe_slug)
+                if required_checkpoint is not None:
+                    self.assertIn(required_checkpoint, manifest_paths)
+                    self.assertIn(required_checkpoint, selected_paths)
+
+    def test_mova_license_links_target_the_pinned_model_cards(self) -> None:
+        for model_slug in ("mova-360p", "mova-720p"):
+            with self.subTest(model=model_slug):
+                model = ModelDefinition.model_validate(
+                    load_json(ROOT / "models" / f"{model_slug}.json")
+                )
+                self.assertEqual(model.license.spdx, "Apache-2.0")
+                self.assertEqual(
+                    model.license.url,
+                    f"{model.source.repository}/blob/{model.source.revision}/README.md",
+                )
+
+    def test_pytorch_checkpoint_models_do_not_claim_safetensors(self) -> None:
+        for model_slug in (
+            "hunyuan3d-omni",
+            "hunyuan-video-foley-xl",
+            "hunyuan-video-foley-xxl",
+        ):
+            with self.subTest(model=model_slug):
+                model = ModelDefinition.model_validate(
+                    load_json(ROOT / "models" / f"{model_slug}.json")
+                )
+                weight_paths = {
+                    item.path for item in model.files if "weights" in item.roles
+                }
+                self.assertTrue(weight_paths)
+                self.assertTrue(
+                    all(Path(path).suffix in {".bin", ".pth"} for path in weight_paths)
+                )
+                self.assertEqual(model.format.container, "other")
 
     def test_required_offline_dependencies_are_bound_to_adapter_mounts(self) -> None:
         expected_auxiliary = {

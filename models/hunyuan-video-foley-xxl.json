@@ -87,15 +87,6 @@
       "size_bytes": 10301204679
     },
     {
-      "id": "file-38117435414b",
-      "path": "hunyuanvideo_foley_xl.pth",
-      "roles": [
-        "weights"
-      ],
-      "sha256": "cf7e93dca93063942bc22b53d4fe888e9d9d5a1ad7977873b7b2c6b126cf00ca",
-      "size_bytes": 5854140970
-    },
-    {
       "id": "file-edbeb86cdf4b",
       "path": "synchformer_state_dict.pth",
       "roles": [
@@ -115,7 +106,7 @@
     }
   ],
   "format": {
-    "container": "safetensors",
+    "container": "other",
     "precision": "bf16",
     "quantization": "none"
   },

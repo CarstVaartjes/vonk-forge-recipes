@@ -175,17 +175,6 @@
           ]
         },
         {
-          "file_id": "file-6736cd72a818",
-          "id": "primary-file-6736cd72a818",
-          "mount": {
-            "read_only": true,
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
           "file_id": "file-38117435414b",
           "id": "primary-file-38117435414b",
           "mount": {
@@ -221,7 +210,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "b1da3745d619b072b688cc2c9d9256cf5daf10432bae7d539c158077dd14bd30",
+        "content_sha256": "67f0dbdd0516cbff2f754dde5356c8672f913afd05f120ebf098fe30dd2394d9",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan-video-foley-xl"
@@ -427,6 +416,22 @@
       {
         "changes": [
           {
+            "details": "The XL entrypoint selects hunyuanvideo_foley_xl.pth. The XXL-only hunyuanvideo_foley.pth is not loaded by this adapter and is removed from the exact XL Model manifest and recipe selection.",
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/tencent/HunyuanVideo-Foley/tree/3abd4e833b95b8db0fc9c687afc52483a48e9a97"
+            ],
+            "summary": "Keep Foley XL preparation on its exact variant checkpoint."
+          }
+        ],
+        "prior_recipe_content_sha256": "b9e6c5eefab0efa2858bde8ea67202c9959918ed7c101fbb1dd686b3be1a97a4",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "reprepare",
+        "version": "1.4.5"
+      },
+      {
+        "changes": [
+          {
             "details": "Replaced the unsupported aggregate snapshot selector with every exact file from the pinned primary manifest and explicitly selected the adapter-required offline companion artifacts.",
             "kind": "fix",
             "references": [
@@ -627,7 +632,7 @@
       }
     ],
     "released_at": "2026-09-24",
-    "version": "1.4.4"
+    "version": "1.4.5"
   },
   "runtime": {
     "arguments": [

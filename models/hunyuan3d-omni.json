@@ -102,15 +102,6 @@
       "size_bytes": 12203119470
     },
     {
-      "id": "file-87055d22e185",
-      "path": "model/pytorch_model_ema.bin",
-      "roles": [
-        "weights"
-      ],
-      "sha256": "1071255f12a0dfa5c2a2785bb7114dee280dc32f3844119445bf234bdb6a48d2",
-      "size_bytes": 12203277342
-    },
-    {
       "id": "file-e65182345640",
       "path": "scheduler/config.json",
       "roles": [
@@ -139,7 +130,7 @@
     }
   ],
   "format": {
-    "container": "safetensors",
+    "container": "other",
     "precision": "bf16",
     "quantization": "none"
   },
