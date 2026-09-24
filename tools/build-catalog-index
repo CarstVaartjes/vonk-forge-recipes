@@ -14,6 +14,7 @@ import sys
 import tarfile
 import tempfile
 from pathlib import Path, PurePosixPath
+from typing import Any
 
 REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 ROOT = Path(__file__).resolve().parents[1]
@@ -173,8 +174,8 @@ def _recorded_source_commit() -> str:
 
 
 # v2 package producer.
-def _catalog_entity_documents() -> dict[str, dict[str, object]]:
-    result: dict[str, dict[str, object]] = {}
+def _catalog_entity_documents() -> dict[str, dict[str, Any]]:
+    result: dict[str, dict[str, Any]] = {}
     from vonk_forge_contracts import ModelDefinition
 
     for path in sorted((ROOT / "models").glob("*.json")):
@@ -201,7 +202,7 @@ def _safe_file(path: Path) -> bool:
 
 
 def _recipe_closure(
-    recipe: dict[str, object], recipe_path: Path, entities: dict[str, dict[str, object]]
+    recipe: dict[str, object], recipe_path: Path, entities: dict[str, dict[str, Any]]
 ) -> list[tuple[str, bytes]]:
     files: dict[str, bytes] = {"recipe.json": canonical(recipe)}
     pending = [selection["model"] for selection in recipe["models"]]  # type: ignore[index]
@@ -330,7 +331,7 @@ def _dockerfile_build_inputs(content: bytes, *, label: str) -> list[dict[str, st
 def validate_recipe_archive(
     payload: bytes,
     recipe: dict[str, object],
-    entities: dict[str, dict[str, object]] | None = None,
+    entities: dict[str, dict[str, Any]] | None = None,
 ) -> None:
     """Validate the physical immutable archive closure, including entrypoints.
 
@@ -625,10 +626,10 @@ def validate_recipe_archive(
 
 
 def recipe_package(
-    document: dict[str, object],
+    document: dict[str, Any],
     *,
     recipe_path: Path | None = None,
-    entity_documents: dict[str, dict[str, object]] | None = None,
+    entity_documents: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[bytes, dict[str, object]]:
     from vonk_forge_contracts import RecipeDefinition, content_sha256
 
@@ -683,11 +684,11 @@ def build(
     package_dir: Path | None = None,
     platform_root: Path | None = None,
     source_commit: str | None = None,
-) -> dict[str, object]:
+) -> dict[str, Any]:
     package_dir = package_dir or ROOT / "packages"
     package_dir.mkdir(parents=True, exist_ok=True)
     entities = _catalog_entity_documents()
-    recipes: list[dict[str, object]] = []
+    recipes: list[dict[str, Any]] = []
     for path in sorted((ROOT / "recipes").glob("*.json")):
         document = json.loads(path.read_text(encoding="utf-8"))
         from vonk_forge_contracts import RecipeDefinition, content_sha256
@@ -767,7 +768,7 @@ def build(
     }
 
 
-def qualification_index(catalog: dict[str, object]) -> dict[str, object]:
+def qualification_index(catalog: dict[str, Any]) -> dict[str, object]:
     """Bind only structurally converted recipes into qualification transport data."""
     definitions = json.loads(QUALIFICATION_DEFINITIONS.read_text(encoding="utf-8"))
     available = {

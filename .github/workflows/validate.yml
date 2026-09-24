@@ -107,7 +107,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" uvx --from ruff==0.16.1 ruff check .
+          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-lint
 
       - name: Check formatting with pinned Ruff
         shell: bash
@@ -192,7 +192,7 @@ jobs:
             exit 1
           fi
           UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" \
-            uvx --from ruff==0.16.1 ruff check .
+            tools/check-python-lint
 
           wheel_dir="$RUNNER_TEMP/contracts-wheel"
           uv build --wheel --out-dir "$wheel_dir" contracts

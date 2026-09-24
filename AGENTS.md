@@ -69,8 +69,9 @@ copies must also stay byte-identical to the platform's 3.12 copy.
 ```bash
 export VONK_RECIPE_LIBRARY_ROOT=/opt/vonk-forge-recipes
 
-# Repo-wide lint, format, and types. All three are pinned and deterministic.
-uvx --from ruff==0.16.1 ruff check .
+# Repo-wide lint, format, and types. All three are pinned and deterministic,
+# and all three cover the extensionless executables, not just `*.py`.
+tools/check-python-lint              # ruff check, plus extensionless entry points
 tools/check-python-format            # ruff format, plus extensionless entry points
 scripts/check-python-types           # pyright==1.1.408, reviewed baseline
 
@@ -101,10 +102,12 @@ otherwise) and `adapters/llm/ui-mate-vllm/agents/`, which `NOTICE` records as
 byte-identical to Tencent's commit. Everything else, including the rest of
 `adapters/`, is covered.
 
-Use `tools/check-python-format` rather than a bare `ruff format --check .`:
-`ruff format` resolves files by extension, so the extensionless executables in
-`tools/` and the adapters are only touched when they are named explicitly. The
-wrapper discovers them from their shebang and checks both sets.
+Use `tools/check-python-lint` rather than a bare `ruff check .`, and
+`tools/check-python-format` rather than a bare `ruff format --check .`: Ruff
+resolves files by extension, so the extensionless executables in `tools/` and
+the adapters are only checked when they are named explicitly. Both wrappers
+discover them from their shebang and check both sets. `scripts/check-python-types`
+does the same for pyright, whose default program only includes `**/*.py`.
 
 Do not add a digest that hashes a file shipped in the same commit: a source edit
 must not require hand-editing a digest the tooling owns. The only content

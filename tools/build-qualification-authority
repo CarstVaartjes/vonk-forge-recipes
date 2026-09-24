@@ -68,8 +68,7 @@ def _git_blob(commit: str, relative_path: str) -> bytes:
             cwd=ROOT,
             env=environment,
             check=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             timeout=_GIT_OBJECT_TIMEOUT_SECONDS,
         )
     except subprocess.TimeoutExpired as error:
@@ -152,7 +151,7 @@ def _unique_fixture_ids(values: list[Any]) -> list[str]:
 
 
 def _artifact_fixture_ids(item: dict[str, Any]) -> list[str]:
-    fixture_ids: list[str] = []
+    fixture_ids: list[Any] = []
     cases = [item, *item.get("cases", [])]
     for case in cases:
         inputs = case.get("inputs")
@@ -264,9 +263,11 @@ def _refresh_plan(text: str, rows: list[dict[str, Any]]) -> str:
     lines = [
         _INVENTORY_BEGIN,
         "\n",
-        ("Rows 1–81 are the one-at-a-time campaign and are bound by the ordered "
-        "authority. Rows 82–85 close the catalog audit only; they require more "
-        "than two Sparks and are not in the campaign."),
+        (
+            "Rows 1–81 are the one-at-a-time campaign and are bound by the ordered "
+            "authority. Rows 82–85 close the catalog audit only; they require more "
+            "than two Sparks and are not in the campaign."
+        ),
         "\n",
         "\n",
         "| # | Recipe | Nodes | Check | Campaign gate | Source review |\n",
@@ -354,10 +355,10 @@ def _build() -> dict[Path, bytes]:
     if set(capacity_reviews) - set(catalog_recipes):
         raise ValueError("capacity review references an absent catalog recipe")
 
-    indexed_recipes = qualification.get("recipes")
-    service_recipes = qualification.get("service_recipes")
-    service_templates = qualification.get("service_case_templates")
-    fixtures = qualification.get("fixtures")
+    indexed_recipes: Any = qualification.get("recipes")
+    service_recipes: Any = qualification.get("service_recipes")
+    service_templates: Any = qualification.get("service_case_templates")
+    fixtures: Any = qualification.get("fixtures")
     if not all(
         isinstance(value, dict)
         for value in (indexed_recipes, service_recipes, service_templates, fixtures)
@@ -375,7 +376,7 @@ def _build() -> dict[Path, bytes]:
         if not isinstance(topology, dict) or not isinstance(package, dict):
             raise TypeError(f"catalog topology or package is malformed: {key}")
         node_count = topology.get("node_count")
-        if node_count != plan_row["node_count"]:
+        if node_count is None or node_count != plan_row["node_count"]:
             raise ValueError(f"plan topology differs from catalog for {key}")
         if node_count > 2:
             out_of_scope.append(key)
