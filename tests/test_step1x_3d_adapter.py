@@ -151,6 +151,136 @@ class RuntimeModel:
 
                 self.assertEqual(initializer.read_text(encoding="utf-8"), source)
 
+    def test_texture_plot_imports_are_deferred_until_a_plotting_color_map(self) -> None:
+        saving_path = self.root / "step1x3d_texture/utils/saving.py"
+        saving_path.parent.mkdir(parents=True)
+        saving_path.write_text(
+            """import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.colors import LinearSegmentedColormap
+
+class Saver:
+    def get_grayscale_image_(self, cmap):
+        if cmap == "jet":
+            return cmap
+        elif cmap == "magma":
+            return cm.get_cmap("magma"), LinearSegmentedColormap
+        elif cmap == "spectral":
+            return plt.get_cmap("Spectral")
+""",
+            encoding="utf-8",
+        )
+
+        self.module.patch_texture_saving_plot_imports(self.root)
+
+        source = saving_path.read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        top_level_matplotlib_imports = {
+            alias.name
+            for node in tree.body
+            if isinstance(node, ast.Import)
+            for alias in node.names
+            if alias.name.startswith("matplotlib")
+        }
+        top_level_matplotlib_imports.update(
+            node.module
+            for node in tree.body
+            if isinstance(node, ast.ImportFrom)
+            and node.module is not None
+            and node.module.startswith("matplotlib")
+        )
+        self.assertEqual(top_level_matplotlib_imports, set())
+
+        matplotlib_modules = (
+            "matplotlib",
+            "matplotlib.cm",
+            "matplotlib.colors",
+            "matplotlib.pyplot",
+        )
+        previous_modules = {
+            name: sys.modules.pop(name, None) for name in matplotlib_modules
+        }
+
+        class MatplotlibImportBlocker:
+            def find_spec(self, fullname, path=None, target=None):
+                if fullname == "matplotlib" or fullname.startswith("matplotlib."):
+                    raise ModuleNotFoundError("plotting dependencies are optional")
+
+        blocker = MatplotlibImportBlocker()
+        sys.meta_path.insert(0, blocker)
+        try:
+            module = types.ModuleType("step1x_texture_saving")
+            exec(compile(source, str(saving_path), "exec"), module.__dict__)
+            saver = module.__dict__["Saver"]()
+            self.assertEqual(saver.get_grayscale_image_("jet"), "jet")
+            for color_map in ("magma", "spectral"):
+                with (
+                    self.subTest(color_map=color_map),
+                    self.assertRaisesRegex(
+                        ModuleNotFoundError, "plotting dependencies are optional"
+                    ),
+                ):
+                    saver.get_grayscale_image_(color_map)
+        finally:
+            sys.meta_path.remove(blocker)
+
+        matplotlib = types.ModuleType("matplotlib")
+        matplotlib.__path__ = []
+        cm = types.ModuleType("matplotlib.cm")
+        cm.__dict__["get_cmap"] = lambda name: f"{name}-color-map"
+        colors = types.ModuleType("matplotlib.colors")
+        colormap_type = type("LinearSegmentedColormap", (), {})
+        colors.__dict__["LinearSegmentedColormap"] = colormap_type
+        pyplot = types.ModuleType("matplotlib.pyplot")
+        pyplot.__dict__["get_cmap"] = lambda name: f"{name}-color-map"
+        matplotlib.__dict__["cm"] = cm
+        sys.modules.update(
+            {
+                "matplotlib": matplotlib,
+                "matplotlib.cm": cm,
+                "matplotlib.colors": colors,
+                "matplotlib.pyplot": pyplot,
+            }
+        )
+        try:
+            self.assertEqual(
+                saver.get_grayscale_image_("magma"),
+                ("magma-color-map", colormap_type),
+            )
+            self.assertEqual(
+                saver.get_grayscale_image_("spectral"), "Spectral-color-map"
+            )
+        finally:
+            for name in matplotlib_modules:
+                sys.modules.pop(name, None)
+            sys.modules.update(
+                {
+                    name: module
+                    for name, module in previous_modules.items()
+                    if module is not None
+                }
+            )
+
+    def test_texture_plot_import_patch_rejects_upstream_layout_drift(self) -> None:
+        saving_path = self.root / "step1x3d_texture/utils/saving.py"
+        saving_path.parent.mkdir(parents=True)
+        source = (
+            "import matplotlib.pyplot as plt\n"
+            "from matplotlib import cm\n"
+            "from matplotlib.colors import LinearSegmentedColormap\n"
+            '        elif cmap == "magma":\n'
+            '        elif cmap == "spectral":\n'
+        )
+        changed_layout = source.replace(
+            "from matplotlib import cm\n", "from matplotlib import colormaps as cm\n"
+        )
+        saving_path.write_text(changed_layout, encoding="utf-8")
+
+        with self.assertRaisesRegex(SystemExit, "unexpected Step1X texture saving"):
+            self.module.patch_texture_saving_plot_imports(self.root)
+
+        self.assertEqual(saving_path.read_text(encoding="utf-8"), changed_layout)
+
     def test_pipeline_import_does_not_require_pymeshlab(self) -> None:
         pipeline_path = (
             self.root / "step1x3d_geometry/models/pipelines/pipeline_utils.py"
