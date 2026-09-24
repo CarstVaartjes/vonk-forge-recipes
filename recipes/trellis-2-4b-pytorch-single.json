@@ -19,6 +19,7 @@
           "download.pytorch.org",
           "download-r2.pytorch.org",
           "pypi.org",
+          "pypi.nvidia.com",
           "files.pythonhosted.org",
           "archive.ubuntu.com",
           "security.ubuntu.com",
@@ -148,6 +149,22 @@
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Permit the official NVIDIA CUDA toolkit host.",
+            "details": "The pinned PyTorch cu132 metadata requires cuda-toolkit==13.2.1; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
+            "references": [
+              "https://download.pytorch.org/whl/cu132/cuda-toolkit/"
+            ]
+          }
+        ],
+        "prior_recipe_content_sha256": "647879d325828f7a83e9cf14d9f3f5a329026fa85275090011c594897824a1f9",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.9"
+      },
       {
         "changes": [
           {
@@ -361,7 +378,7 @@
       }
     ],
     "released_at": "2026-09-24",
-    "version": "2.0.8"
+    "version": "2.0.9"
   },
   "runtime": {
     "arguments": [
