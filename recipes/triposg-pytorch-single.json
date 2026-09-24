@@ -114,8 +114,118 @@
     {
       "files": [
         {
-          "file_id": "snapshot",
-          "id": "primary-snapshot",
+          "file_id": "metadata-a9450d29ea6d-618cd5b83d",
+          "id": "primary-001",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-0f4c34a1a17a-b335630551",
+          "id": "primary-002",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-14e780d86fa1-ea49d31434",
+          "id": "primary-003",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-8ed81b0d5ffd-31237d51d1",
+          "id": "primary-004",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-399fba97a95f-ac49b4dec9",
+          "id": "primary-005",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-index-750af638d10f-ee03ace9a3",
+          "id": "primary-006",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "scheduler-config-ea7c9b4d502d-67ecb3dc37",
+          "id": "primary-007",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-54ad779e68f9-98e965502a",
+          "id": "primary-008",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-9192b5923f7b-6e22ab20f4",
+          "id": "primary-009",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-2fb6ba9b364d-101abd63da",
+          "id": "primary-010",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-a2e667c24927-86e9ee3b4f",
+          "id": "primary-011",
           "mount": {
             "read_only": true,
             "target": "/models/target"
@@ -127,10 +237,43 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a7511281440cef509b906378fc7f6a50b36ef470348b119098ed951ff642b676",
+        "content_sha256": "92bdd6669b05b45442df655d97c0dc2e2dd46235b6f0992dd11841ef52fe3128",
         "kind": "model",
         "publisher": "vast-ai",
         "slug": "triposg"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "config-d774e7d35151-587cb980af",
+          "id": "bria-001",
+          "mount": {
+            "read_only": true,
+            "target": "/models/rmbg"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-46ef7fe46f2a-9d75c1098f",
+          "id": "bria-002",
+          "mount": {
+            "read_only": true,
+            "target": "/models/rmbg"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "background-removal",
+      "model": {
+        "content_sha256": "f7c9e356bfe62fcce55d6a31d4e4c86fe2631bfa661829e4c5e11df3d372a74e",
+        "kind": "model",
+        "publisher": "bria-ai",
+        "slug": "bria-rmbg-1-4"
       }
     }
   ],
@@ -143,6 +286,24 @@
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "The TripoSG selection now names every file in its exact pinned source model. A separate BRIA RMBG 1.4 Model is bound for offline background removal, with its config and safetensors selected explicitly. BRIA metadata preserves the source-available non-commercial license and operator acceptance requirement; this does not assert legal acceptance.",
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/VAST-AI/TripoSG/tree/2c1c516d22d58db486a058d98d31bb6177344e06",
+              "https://huggingface.co/briaai/RMBG-1.4/tree/2ceba5a5efaec153162aedea169f76caf9b46cf8",
+              "https://huggingface.co/briaai/RMBG-1.4/blob/2ceba5a5efaec153162aedea169f76caf9b46cf8/README.md"
+            ],
+            "summary": "Bind exact TripoSG files and an explicit offline BRIA RMBG companion."
+          }
+        ],
+        "prior_recipe_content_sha256": "dc042d86390ad098fd519d2cc8c88f4aa269d2d1ad9521c6c46bf03632a692d9",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "reprepare",
+        "version": "2.0.10"
+      },
       {
         "changes": [
           {
@@ -362,8 +523,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "2.0.9"
+    "released_at": "2026-09-24",
+    "version": "2.0.10"
   },
   "runtime": {
     "arguments": [
@@ -437,7 +598,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 8788709333,
+            "artifact_bytes": 8122876770,
             "cache_bytes": 8000000000,
             "image_bytes": 16000000000,
             "rollback_bytes": 0,
