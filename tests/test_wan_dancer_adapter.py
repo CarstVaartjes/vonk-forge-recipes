@@ -35,6 +35,7 @@ BUILD_NETWORK_HOSTS = [
     "download.pytorch.org",
     "download-r2.pytorch.org",
     "pypi.org",
+    "pypi.nvidia.com",
     "files.pythonhosted.org",
     "archive.ubuntu.com",
     "security.ubuntu.com",
