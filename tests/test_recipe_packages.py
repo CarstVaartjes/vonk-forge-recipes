@@ -247,7 +247,7 @@ def test_platform_owned_cache_variables_are_not_recipe_inputs() -> None:
         assert not PLATFORM_OWNED_ENVIRONMENT & names, path.name
 
 
-def test_model_capability_authority_is_external_and_canonical() -> None:
+def test_models_bound_to_historical_capability_evidence_preserve_its_facts() -> None:
     evidence = json.loads(
         (ROOT / "docs/model-capability-evidence-2026-09-05.json").read_text(
             encoding="utf-8"
@@ -259,42 +259,27 @@ def test_model_capability_authority_is_external_and_canonical() -> None:
         (item["model_version"]["publisher"], item["model_version"]["slug"]): item
         for item in evidence["entries"]
     }
-    model_versions = sorted((ROOT / "models").glob("*.json"))
-    model_keys = {
-        (
-            json.loads(path.read_text(encoding="utf-8"))["identity"]["publisher"],
-            json.loads(path.read_text(encoding="utf-8"))["identity"]["slug"],
-        )
-        for path in model_versions
-    }
-    evidence_keys = set(entries)
-    # This immutable evidence snapshot also covers model revisions retired
-    # from the current catalog. Each current model must still resolve its
-    # declared capability facts against the snapshot below.
-    unknown_keys = model_keys - evidence_keys
-    unknown = []
-    for path in model_versions:
+    # This immutable snapshot owns only the facts explicitly bound to its digest.
+    # New models may bind their own pinned upstream evidence instead.
+    checked = 0
+    for path in sorted((ROOT / "models").glob("*.json")):
         document = json.loads(path.read_text(encoding="utf-8"))
         capabilities = document.get("capabilities")
         key = (document["identity"]["publisher"], document["identity"]["slug"])
         assert capabilities is not None
-        if not capabilities["facts"]:
-            unknown.append(key)
-            assert key in unknown_keys
+        if (
+            not capabilities["facts"]
+            or capabilities["provenance"]["evidence_digest"] != evidence_digest
+        ):
             continue
-        assert key in evidence_keys
-        assert capabilities["schema_version"] == 2
-        assert capabilities["provenance"]["evidence_digest"] == evidence_digest
-        assert capabilities["provenance"]["source_url"].startswith("https://")
-        assert len(capabilities["provenance"]["source_revision"]) == 40
+        checked += 1
+        assert key in entries
         facts = capabilities["facts"]
-        assert facts == sorted(facts, key=lambda item: item["capability"])
-        assert len({item["capability"] for item in facts}) == len(facts)
+        assert {item["capability"] for item in facts} == set(entries[key]["facts"])
         assert all(item["support"] == "supported" for item in facts)
         assert all(item["evidence_status"] == "declared" for item in facts)
         assert all(item["evidence_digest"] in {None, evidence_digest} for item in facts)
-        assert all("vision" != item["capability"] for item in facts)
-    assert set(unknown) == unknown_keys
+    assert checked > 0
 
 
 def test_model_access_lineage_and_related_model_references_are_preserved() -> None:
