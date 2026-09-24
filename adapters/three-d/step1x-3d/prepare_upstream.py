@@ -13,6 +13,16 @@ def replace_exact(path: Path, old: str, new: str, expected: int = 1) -> None:
     path.write_text(value.replace(old, new), encoding="utf-8")
 
 
+def patch_inference_import_boundary(root: Path) -> None:
+    """Keep model registrations while omitting training-only package imports."""
+
+    replace_exact(
+        root / "step1x3d_geometry/__init__.py",
+        "from . import data, models, systems\n",
+        "from . import models\n",
+    )
+
+
 def patch_pipeline_utils(root: Path) -> None:
     """Make the optional pymeshlab dependency lazy without breaking annotations."""
 
@@ -86,6 +96,7 @@ def patch_model_authorities(root: Path) -> None:
 
 
 def prepare(root: Path) -> None:
+    patch_inference_import_boundary(root)
     patch_pipeline_utils(root)
     patch_label_encoder(root)
     patch_model_authorities(root)
