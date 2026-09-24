@@ -3,11 +3,11 @@
   "authority_id": "nl-sequential-2c118a99",
   "catalog": {
     "repository": "CarstVaartjes/vonk-forge-recipes",
-    "commit": "addb7dbfc71515417df84327d005f6ef20d14d4c",
-    "release_tag": "v1.0.10",
-    "source_commit": "0d420583bea8e2e9c36c061700cefe3d9b7d38c1",
-    "catalog_index_sha256": "9211f68d629e558cb3202466cfadbe8cb78ad9f9cbb1e6fbf86a757c11c85a23",
-    "qualification_index_sha256": "8655075e5241e2c5100c79915f699543f9d74ff4f679712625e2a87aba3b3ca8",
+    "commit": "75e6b573b6f1c0bb484c39edbee50014799aeb0c",
+    "release_tag": "v1.0.11",
+    "source_commit": "2c29a43949b326ebf5dd280f5091255d80e777a3",
+    "catalog_index_sha256": "4736b84965c701b788bd62e99b70ab5c5f9f2376e2a00e7e5d582ebf6ead696c",
+    "qualification_index_sha256": "8b84fec910ab49f192da7b8e6f795675ef24e41b44f9fa9433202f135480b0bf",
     "recipe_count": 85
   },
   "scope": {
@@ -24,12 +24,12 @@
     {
       "sequence": 1,
       "key": "vonk-forge/step1x-3d-geometry-pytorch-single",
-      "recipe_version": "1.2.10",
-      "content_sha256": "5ac9b82e61d691f1164bb046dabef4591b261b0d9e00bc6680d5acc5899ab59b",
+      "recipe_version": "1.2.11",
+      "content_sha256": "7cf42caec76f806cd7d6e290aba6418e590a7cc0d2d7049e3031c752fc93d265",
       "package": {
         "path": "packages/step1x-3d-geometry-pytorch-single.tar.gz",
-        "sha256": "89fe52b45e35884a99015e9e48484e4afd44f1659b6cc8116b1f38d5e64fcf08",
-        "expected_bytes": 25002,
+        "sha256": "46fe908ab027ee7f81516697bf9a2a23de6e667478b5db3f7b6f4890de75b92a",
+        "expected_bytes": 25160,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -75,12 +75,12 @@
     {
       "sequence": 2,
       "key": "vonk-forge/step1x-3d-label-geometry-pytorch-single",
-      "recipe_version": "1.2.10",
-      "content_sha256": "ad6329f914c1e125265166f5481f96f6b14982d9a45813cfc5de394fce791320",
+      "recipe_version": "1.2.11",
+      "content_sha256": "866b6abb5beea1a9af99a37c38551cba4401d22635013c067db1603b6109e0d3",
       "package": {
         "path": "packages/step1x-3d-label-geometry-pytorch-single.tar.gz",
-        "sha256": "af12862ddb4625ccb598afb7110d1c31253fc48c2d4cf80563c3dbbd7c8ecde4",
-        "expected_bytes": 25718,
+        "sha256": "053ac0dd1dadf50f3a2c86f140f38171f79c8f91a9cc548829864b5dceeddfec",
+        "expected_bytes": 25885,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -136,12 +136,12 @@
     {
       "sequence": 3,
       "key": "vonk-forge/flux-2-klein-4b-nvfp4-comfyui-single",
-      "recipe_version": "1.0.7",
-      "content_sha256": "2677b39a7ff5f03248862ffefa3461bb2851b972c11632ae395b1e480ecb0b53",
+      "recipe_version": "1.0.8",
+      "content_sha256": "15c0efdfe835c95af286077847056167d11dca09e75df1c1b9b218f77fe98edc",
       "package": {
         "path": "packages/flux-2-klein-4b-nvfp4-comfyui-single.tar.gz",
-        "sha256": "fdc52ef0d09cc9e7fb0d301ac9f70918b2ffd455abaf0ae51eef4d2f9ad6a77c",
-        "expected_bytes": 13832,
+        "sha256": "d973f59ca7b04850c0c5487643c4a2c5fabef0b17631f980e7d1e15de1433b72",
+        "expected_bytes": 14002,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -172,12 +172,12 @@
     {
       "sequence": 4,
       "key": "vonk-forge/skintokens-pytorch-single",
-      "recipe_version": "2.0.11",
-      "content_sha256": "3c5ee0edbaabddb29609cbcb703e4cbf1da3f5000517437dd059c474820ddc17",
+      "recipe_version": "2.0.12",
+      "content_sha256": "254d338b57a727bbc515b893b651a672b8cbca3679202f13688c207c70fd8917",
       "package": {
         "path": "packages/skintokens-pytorch-single.tar.gz",
-        "sha256": "8248309f7263536ecf2371849fb5025827cb3aa019aefd8a50e94510ed148e0c",
-        "expected_bytes": 22655,
+        "sha256": "559487eefd2136322966cd6e115a900d9c2aecd69f0fcba09569dadb72bed7af",
+        "expected_bytes": 22812,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -213,12 +213,12 @@
     {
       "sequence": 5,
       "key": "vonk-forge/trellis-2-4b-pytorch-single",
-      "recipe_version": "2.0.8",
-      "content_sha256": "647879d325828f7a83e9cf14d9f3f5a329026fa85275090011c594897824a1f9",
+      "recipe_version": "2.0.9",
+      "content_sha256": "c3add959cab11364ab6c26672aa36c2adaecca9082dd224caf77b238418db98f",
       "package": {
         "path": "packages/trellis-2-4b-pytorch-single.tar.gz",
-        "sha256": "bbb4a5a0da167497a039e6af260c2d469645bb5313e20f47f2f77f10230e284a",
-        "expected_bytes": 24015,
+        "sha256": "befe87c8314e556102252a77b7857b7c2eb907d7e5acc8e8c1417b4f42df9d67",
+        "expected_bytes": 24249,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -254,12 +254,12 @@
     {
       "sequence": 6,
       "key": "vonk-forge/triposg-pytorch-single",
-      "recipe_version": "2.0.11",
-      "content_sha256": "7cf243ff638daaffd12f8b12d1324c6053c38580852908d47faeec42837f102a",
+      "recipe_version": "2.0.12",
+      "content_sha256": "89c921e5e81ac8506a5573f135376892ffae420f99b663f817a4b5f508342a35",
       "package": {
         "path": "packages/triposg-pytorch-single.tar.gz",
-        "sha256": "aecdb2a59ca197cc486a4455f0c48e49970398ed8f5c59580d70fd3b53b9860d",
-        "expected_bytes": 23350,
+        "sha256": "2e6ec034348bb071ab615ecd735b27cec8bed229aeb845e0d83e9dad763e0e88",
+        "expected_bytes": 23502,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -305,12 +305,12 @@
     {
       "sequence": 7,
       "key": "vonk-forge/flux-2-klein-4b-comfyui-single",
-      "recipe_version": "1.0.10",
-      "content_sha256": "181f486f463f46e16860fe150b64d160ac9cbbf0df737997522ffafa5e457cce",
+      "recipe_version": "1.0.11",
+      "content_sha256": "02b364fa748b230ba8ef3e0ace6447b3cb37acd859fc30fc67e57c57a91625cc",
       "package": {
         "path": "packages/flux-2-klein-4b-comfyui-single.tar.gz",
-        "sha256": "bfd8ad01c3ddd63405b15f1c001c14859cc3101463b7db07256781f029b48d1b",
-        "expected_bytes": 14444,
+        "sha256": "283d58bfdf2be249061ac2903488f09e381018dd3094a592f047193de74ff915",
+        "expected_bytes": 14608,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -341,12 +341,12 @@
     {
       "sequence": 8,
       "key": "vonk-forge/pixal3d-pytorch-single",
-      "recipe_version": "2.0.8",
-      "content_sha256": "23770e1d46912da353d397cebd1535ba9c1089fc40d5fc243a195d6b41584bb9",
+      "recipe_version": "2.0.9",
+      "content_sha256": "286221bcbfaf2419497cc6eff661b1493281bf8388d789671b171bcc5419d26b",
       "package": {
         "path": "packages/pixal3d-pytorch-single.tar.gz",
-        "sha256": "41efa57c6d1d24392d7373a8cbf1f73974eb9293ae77ded6df5bd5ff84d56f16",
-        "expected_bytes": 24021,
+        "sha256": "bad9f8a39e2618bda305a10d82badc32c1ae5f27f6c57f2fb9044aa608851c8e",
+        "expected_bytes": 24255,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -672,12 +672,12 @@
     {
       "sequence": 16,
       "key": "vonk-forge/wan-2-2-ti2v-5b-comfyui-single",
-      "recipe_version": "1.0.11",
-      "content_sha256": "25e0cb827392b9559ecaceb976fc813e7bc78cdf2748e496051eab9cc2ab955d",
+      "recipe_version": "1.0.12",
+      "content_sha256": "b7654d49d6cc23c9db6983f59168a45860c3e82a8f1ba66b0f5dbde03841dded",
       "package": {
         "path": "packages/wan-2-2-ti2v-5b-comfyui-single.tar.gz",
-        "sha256": "a448a892be56c99fd83471a36d20fa9730f5a799565354cc9e04615878a96a50",
-        "expected_bytes": 15070,
+        "sha256": "cb782db5052889db81c809d163ef0ee01d993f435f68143fa578af7e39c7e17a",
+        "expected_bytes": 15235,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -709,12 +709,12 @@
     {
       "sequence": 17,
       "key": "vonk-forge/moss-vl-realtime-11b-pytorch-single",
-      "recipe_version": "1.2.2",
-      "content_sha256": "0f589d363a3af4efce182112b4bbdf46a308c1015548166b8cd317dda500a222",
+      "recipe_version": "1.2.3",
+      "content_sha256": "80036fc05bf4808d5af3209696880a21c35a7b36db5d061ae2dbcdc72eb45b8c",
       "package": {
         "path": "packages/moss-vl-realtime-11b-pytorch-single.tar.gz",
-        "sha256": "5357bc05ae25d8272ef5ee97cc18e228e735f75096fea01104b01b1cbc35f75e",
-        "expected_bytes": 49489,
+        "sha256": "d8848b52d8dd8e9ab782f383e4239ca13c20071e994723f7c9a742556c3a7e78",
+        "expected_bytes": 49650,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -749,12 +749,12 @@
     {
       "sequence": 18,
       "key": "vonk-forge/ltx-2-19b-dev-bf16-diffusers-single",
-      "recipe_version": "3.2.8",
-      "content_sha256": "c563ad2382fc25b4459136ab80e9a15293fd2270034a69f48dd30f9f5fa7f22a",
+      "recipe_version": "3.2.9",
+      "content_sha256": "c04779955e788b666e2e6933408fad7ed3d0e96ba5215a55b58382852beb2e5f",
       "package": {
         "path": "packages/ltx-2-19b-dev-bf16-diffusers-single.tar.gz",
-        "sha256": "249b609cc18cc1e3c3752c0387ef90e5f57df7e596bab803b60a406d9189343b",
-        "expected_bytes": 89612,
+        "sha256": "b42dfb2a732c260b35d4e88118513d14a0a9288ea8305cebf1f9f76637375f8f",
+        "expected_bytes": 89810,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -801,12 +801,12 @@
     {
       "sequence": 19,
       "key": "vonk-forge/ltx-2-19b-dev-fp4-pytorch-single",
-      "recipe_version": "2.3.5",
-      "content_sha256": "617e8bb17b22a3aac4cae9970d219d46422d6e9070eee9e78f2ed418842ed52b",
+      "recipe_version": "2.3.6",
+      "content_sha256": "4a256a4ebe8eaeb436057a55b45e2f48110c449f228bb88cdd1ea50d09d9e4a5",
       "package": {
         "path": "packages/ltx-2-19b-dev-fp4-pytorch-single.tar.gz",
-        "sha256": "85326587f550b91f3f5935540a06fd308c4e21b2ed98ec6e258663f2307216f6",
-        "expected_bytes": 11762,
+        "sha256": "6b5d7dab2f8bfc9512a69c19408e90d9ad76fc7cd29c1321b079a61389b405d4",
+        "expected_bytes": 11953,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1021,12 +1021,12 @@
     {
       "sequence": 24,
       "key": "vonk-forge/ltx-2-3-22b-distilled-1-1-diffusers-single",
-      "recipe_version": "3.2.9",
-      "content_sha256": "7127e67128bf063655bb9cc3b7d6939440d482ea502b31c71ed379e7d8055a37",
+      "recipe_version": "3.2.10",
+      "content_sha256": "9a14a11bc10f0f37eef0ea738c834b25ac8ee093448b9afda010a33414e077bb",
       "package": {
         "path": "packages/ltx-2-3-22b-distilled-1-1-diffusers-single.tar.gz",
-        "sha256": "c45844cd8ccbe3abc5276380bf9d011e062a27b193ceecee5329a230cd43101e",
-        "expected_bytes": 89868,
+        "sha256": "54691634f8c35bede6c70692687ee1e7e1c01e3f9668e1d230b97baa492e65ac",
+        "expected_bytes": 90059,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1111,12 +1111,12 @@
     {
       "sequence": 26,
       "key": "vonk-forge/ltx-2-19b-distilled-fp8-diffusers-single",
-      "recipe_version": "3.1.8",
-      "content_sha256": "4ed662c266fcb1ec28d900b237fec876fa91b163ed8a256d71be8eae0403108b",
+      "recipe_version": "3.1.9",
+      "content_sha256": "98308df9432d0ab6ecdcfd43e29fa5c011606a4504d9d0f0b419c29cdb57a55c",
       "package": {
         "path": "packages/ltx-2-19b-distilled-fp8-diffusers-single.tar.gz",
-        "sha256": "5aa21ae88dc3a0475747023c9bcd3a54517082b82846a5f43c47e77352f70987",
-        "expected_bytes": 89089,
+        "sha256": "b3f1e00e2fed6de3c1292cd7b861f1077ce13b77160881be1d1a867f7c8dd0bd",
+        "expected_bytes": 89303,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1163,12 +1163,12 @@
     {
       "sequence": 27,
       "key": "vonk-forge/step1x-3d-texture-pytorch-single",
-      "recipe_version": "1.2.10",
-      "content_sha256": "a306775f19ce189a59f2c00696dd1b0953c2c0104bb9889963e737671005df20",
+      "recipe_version": "1.2.11",
+      "content_sha256": "b99e339e0f5b40785fe85fae50f8d245b8d1439ef26ecee0003baebdef6b944b",
       "package": {
         "path": "packages/step1x-3d-texture-pytorch-single.tar.gz",
-        "sha256": "645ead385fbf5c1a8365721536c7da725ad8183dc5245dc91ab4d9cde655a13a",
-        "expected_bytes": 26533,
+        "sha256": "4192b9309f979a5242477e6f55613b14df3fb245b2c775163ae7702b0f350189",
+        "expected_bytes": 26694,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1299,12 +1299,12 @@
     {
       "sequence": 30,
       "key": "vonk-forge/qwen-image-2512-fp8-lightning-comfyui-single",
-      "recipe_version": "1.0.7",
-      "content_sha256": "82856a4818fc4352db15a06ac490fb4e47fa4b8451085a26abd1c7f9639d62c9",
+      "recipe_version": "1.0.8",
+      "content_sha256": "f5fe7b71b65b3baa491180daf51b3ee3b24a0a14fdb520c81b03d4d270eacfb2",
       "package": {
         "path": "packages/qwen-image-2512-fp8-lightning-comfyui-single.tar.gz",
-        "sha256": "7e4c4aad0edb06a63f36dbce84f840c44f200fa9b25021521dea976a0552685c",
-        "expected_bytes": 13044,
+        "sha256": "19ff2251f2670759e820cdb3e035a9bd3bdaf926dbc8567b48f59f12d98511b7",
+        "expected_bytes": 13198,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1347,12 +1347,12 @@
     {
       "sequence": 31,
       "key": "vonk-forge/qwen-image-edit-2511-fp8mixed-comfyui-single",
-      "recipe_version": "1.0.8",
-      "content_sha256": "00c4b74cc5122ac43fd4e421a7c67000e5e6ec35063a6b7864e398fcfe1c0aa7",
+      "recipe_version": "1.0.9",
+      "content_sha256": "b4b4e55645deaecc9de82b7a9c27607bb0578e6cbd26b6d3f1595587107302f9",
       "package": {
         "path": "packages/qwen-image-edit-2511-fp8mixed-comfyui-single.tar.gz",
-        "sha256": "5a4e9371266a878406d084e036a6046038687d470322a595e5acda2771162c07",
-        "expected_bytes": 12851,
+        "sha256": "8b97be1195f5bcb4a9a8018251a26c00998256ccdc9635614f045bb928ef1e93",
+        "expected_bytes": 13007,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1386,12 +1386,12 @@
     {
       "sequence": 32,
       "key": "vonk-forge/qwen-image-edit-2511-int8-convrot-comfyui-single",
-      "recipe_version": "1.0.7",
-      "content_sha256": "765cd0adcf658b8a97e92c477ea7121c6d20cc518d4923720efa5095ec186101",
+      "recipe_version": "1.0.8",
+      "content_sha256": "e68dd745c048d869e7ec9e66b5505c46ab445d18ad428b13976b04feddcef5a9",
       "package": {
         "path": "packages/qwen-image-edit-2511-int8-convrot-comfyui-single.tar.gz",
-        "sha256": "8f3b926f82709d044fe2a0fcb775362c760a609710898141b61af8e34b7c2227",
-        "expected_bytes": 12972,
+        "sha256": "4ce76105f20413b7015a5f8055df4ebd1fae3b2a85205bcd8b13f2b55548ae85",
+        "expected_bytes": 13127,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1538,12 +1538,12 @@
     {
       "sequence": 36,
       "key": "vonk-forge/ltx-2-5-22b-distilled-fp8-cast-diffusers-single",
-      "recipe_version": "1.0.6",
-      "content_sha256": "7e7b79ce1378aa1b2a0cfbe00ab96b1229b71552b154d96bc14c6af23aeb938f",
+      "recipe_version": "1.0.7",
+      "content_sha256": "c86e27c58f1946598f56b172dc31c9e61860540a592869efb8fcc5345b00bc91",
       "package": {
         "path": "packages/ltx-2-5-22b-distilled-fp8-cast-diffusers-single.tar.gz",
-        "sha256": "771f58b63708f9933996b4a1730bc2070a1365e56e97804ace12d832cd108eef",
-        "expected_bytes": 14996,
+        "sha256": "67d13bf489b3a3f4fb63f876680f874d8f45992768fa80ba228f87e7e9b650a6",
+        "expected_bytes": 15152,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1692,12 +1692,12 @@
     {
       "sequence": 40,
       "key": "vonk-forge/ltx-2-19b-distilled-diffusers-single",
-      "recipe_version": "3.1.8",
-      "content_sha256": "3a25502bdfb819b812fbab6fc7ad21395281a95baf9ecb8d171e5394debb0852",
+      "recipe_version": "3.1.9",
+      "content_sha256": "1c45e749d797c0a21c944c79162edaafd578ee116f935f45f648e7818611a55b",
       "package": {
         "path": "packages/ltx-2-19b-distilled-diffusers-single.tar.gz",
-        "sha256": "7724d7eea70f8ea69932572988d5512827cae000f5d81b5d8677400384d780e1",
-        "expected_bytes": 89050,
+        "sha256": "a55c2eae9ed1010e98bf14d8a38c2451f51e1c151c5aaecd9feba30d9c879727",
+        "expected_bytes": 89272,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1932,12 +1932,12 @@
     {
       "sequence": 45,
       "key": "vonk-forge/nvidia-qwen-image-flash-diffusers-single",
-      "recipe_version": "1.2.7",
-      "content_sha256": "65d55f63b8b188d00973662b43058d743ec0ecf4d790db3139cb9ac58437f853",
+      "recipe_version": "1.2.8",
+      "content_sha256": "f2f6f77462892bf1e44af7787cce500b9beffe73678358cae7b234783d6e8341",
       "package": {
         "path": "packages/nvidia-qwen-image-flash-diffusers-single.tar.gz",
-        "sha256": "2b5a47c99b9a68981b17c8ace65e481ffb3d0fd1e1ca26ab2dce2fffdccbdba4",
-        "expected_bytes": 8736,
+        "sha256": "3bfdb2e2706b3024047a0852907f604349d0d41652ed23f1938f5ef6f892df19",
+        "expected_bytes": 8883,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1973,12 +1973,12 @@
     {
       "sequence": 46,
       "key": "vonk-forge/qwen-image-2512-comfyui-single",
-      "recipe_version": "1.0.11",
-      "content_sha256": "ae6291ab508c79f5f0c91a4655cad0a4203027f50bc746e96075745e4e9f1454",
+      "recipe_version": "1.0.12",
+      "content_sha256": "0fd69da88a0c60e55c38e6ab8ae2196350243e604b23485a7e458cd4196de287",
       "package": {
         "path": "packages/qwen-image-2512-comfyui-single.tar.gz",
-        "sha256": "40afc282eb9d44b845664eb6a47e0233d5904890fb3bc3d64de42d05f61acb5c",
-        "expected_bytes": 12949,
+        "sha256": "1f7011a24b5e9d9a32e3029ae7631a401658273adc5a9f6b678726f9a55d13df",
+        "expected_bytes": 13099,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2009,12 +2009,12 @@
     {
       "sequence": 47,
       "key": "vonk-forge/qwen-image-2512-diffusers-single",
-      "recipe_version": "1.2.7",
-      "content_sha256": "7545fc1f7538c0fa54de8d80cfe9d40b3596db037ebe920fb1b890dd5768cc0b",
+      "recipe_version": "1.2.8",
+      "content_sha256": "e4f8c7a5843e36a71e603c0a5a94897222d7a4a623135629870161295f949d42",
       "package": {
         "path": "packages/qwen-image-2512-diffusers-single.tar.gz",
-        "sha256": "0cbbef09307fe29211be4fa4dde60e4071d5ae05d2e6532394427e075c4f7708",
-        "expected_bytes": 8889,
+        "sha256": "54799722baa95ac8d0a3e7b60dca05f435dd9d0560089f09091a334d8eb5ed17",
+        "expected_bytes": 9048,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2044,12 +2044,12 @@
     {
       "sequence": 48,
       "key": "vonk-forge/qwen-image-2512-lightning-diffusers-single",
-      "recipe_version": "1.2.9",
-      "content_sha256": "e1aa9d209bece625f86d55ba6051148a2d2535adc21a273a76d533de4f89f8c5",
+      "recipe_version": "1.2.10",
+      "content_sha256": "5c40ca350720e43c8a263537dd21eac708c4799cbd575c94f24a7355a86d51da",
       "package": {
         "path": "packages/qwen-image-2512-lightning-diffusers-single.tar.gz",
-        "sha256": "ba44cc442c246513930760121200dee75126273ddbed9666cfa192eb0ef02325",
-        "expected_bytes": 10699,
+        "sha256": "3238e6a4037160100623efcf6614b5dd8d545b7f0197be88c8180425ca683c06",
+        "expected_bytes": 10860,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2091,12 +2091,12 @@
     {
       "sequence": 49,
       "key": "vonk-forge/qwen-image-edit-2511-comfyui-single",
-      "recipe_version": "1.0.11",
-      "content_sha256": "3fc7bfe89df21fc57f0c17567dd68e81fbd619671b7ce7c6df76c95471a61d9f",
+      "recipe_version": "1.0.12",
+      "content_sha256": "51773f1f48f367f2064ec42ab9b37d467c0a93beab10b2c2f1e3f0ff42a0c71c",
       "package": {
         "path": "packages/qwen-image-edit-2511-comfyui-single.tar.gz",
-        "sha256": "f31f0e71f2e3f45f232cf3eed28199bc3aaab13b58a32d58abc5be794f33dba3",
-        "expected_bytes": 14921,
+        "sha256": "b66bae0960fcd785260d60dadd42cb5bd2a3250883eb373c47f32299d4cfe2b3",
+        "expected_bytes": 15083,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2130,12 +2130,12 @@
     {
       "sequence": 50,
       "key": "vonk-forge/qwen-image-edit-2511-diffusers-single",
-      "recipe_version": "1.1.8",
-      "content_sha256": "a8da54dcc497abb68f23e5b5f616d606baa43329112d8372830ea2223e63ca41",
+      "recipe_version": "1.1.9",
+      "content_sha256": "88414d7a0ce94f80cbf623b0f5673d376fb77ae8000895b1fa5f18a29451803b",
       "package": {
         "path": "packages/qwen-image-edit-2511-diffusers-single.tar.gz",
-        "sha256": "828ab68efcb2e535721556d0677e6b5082833dd2c87cd4b169bb792f2934460b",
-        "expected_bytes": 9756,
+        "sha256": "ea4f3d2cf460441d2de306983a905dc8a35e85733de57d489d2e0503558a3a7f",
+        "expected_bytes": 9913,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2168,12 +2168,12 @@
     {
       "sequence": 51,
       "key": "vonk-forge/qwen-image-edit-2511-lightning-diffusers-single",
-      "recipe_version": "1.2.9",
-      "content_sha256": "56815d65f7e2869f925092f471f27af485f52b4eb4fcf6bc2dbe255d91f1102d",
+      "recipe_version": "1.2.10",
+      "content_sha256": "edf4b408fd5001d55c1f2b34e7e6afe6de7418001049b97a11ff93a7cc4eb210",
       "package": {
         "path": "packages/qwen-image-edit-2511-lightning-diffusers-single.tar.gz",
-        "sha256": "642f90604f05d2c90ae7fc166a463789864f42618d2e281e008fec559c622068",
-        "expected_bytes": 11613,
+        "sha256": "5195d604eac62838816c260bb1cfa7eecb600971716891fffd039bb3c7058bdf",
+        "expected_bytes": 11780,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2218,12 +2218,12 @@
     {
       "sequence": 52,
       "key": "vonk-forge/qwen-image-layered-diffusers-single",
-      "recipe_version": "1.1.10",
-      "content_sha256": "d853b7b972681a2e5ea8a13b69a656ac39e909bc6b59feb0abb6c7001b35cc89",
+      "recipe_version": "1.1.11",
+      "content_sha256": "4b2bd3a59fa0463c2fa5e148faa19181fb611bd25a3cab9feb72abe34ba35e4a",
       "package": {
         "path": "packages/qwen-image-layered-diffusers-single.tar.gz",
-        "sha256": "83bb0cd8d9cc427b4b2c1d505ab8e108a18551e6d03313860dcd9f7858db22b6",
-        "expected_bytes": 9341,
+        "sha256": "9c744d42c38eb04bbd6146d3315a74299eeae54b30050532168b8b38adef210d",
+        "expected_bytes": 9498,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2253,12 +2253,12 @@
     {
       "sequence": 53,
       "key": "vonk-forge/wan-2-2-i2v-14b-comfyui-single",
-      "recipe_version": "1.0.11",
-      "content_sha256": "9841131ab0fa6318044c190059b4f4a947039b3a4c6bdfa341b9d92512de1709",
+      "recipe_version": "1.0.12",
+      "content_sha256": "22ee9a46f1190e71463d45b9ae104c64f3827e39eb94f38c6c8b0e2e250dee0a",
       "package": {
         "path": "packages/wan-2-2-i2v-14b-comfyui-single.tar.gz",
-        "sha256": "37f95ef13930275d2fdcdb14a9e0b286c4536b082eb3f2517458a01248c19db2",
-        "expected_bytes": 15198,
+        "sha256": "0ea5549f9d51d862edd3161356f3e72e7d3bd2f35a269971195624da57c8709c",
+        "expected_bytes": 15358,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2290,12 +2290,12 @@
     {
       "sequence": 54,
       "key": "vonk-forge/wan-2-2-t2v-14b-comfyui-single",
-      "recipe_version": "1.0.11",
-      "content_sha256": "594bc292e7a03d9adbfb01a7148b82cd7a2eb39a1c408aeea0a7f8613fc25abc",
+      "recipe_version": "1.0.12",
+      "content_sha256": "b4845fc01e94d0f260ae21f4425fea8434c605d4957780e2ce325639aa1cb03a",
       "package": {
         "path": "packages/wan-2-2-t2v-14b-comfyui-single.tar.gz",
-        "sha256": "a56951496214e75434d790324874a059f0a13aae884307bbaf50dd1a21bf96f7",
-        "expected_bytes": 14778,
+        "sha256": "4363a98a41cf80daad44960c4cf5c5b700f673fe82790d50c980933a2423345e",
+        "expected_bytes": 14940,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2326,12 +2326,12 @@
     {
       "sequence": 55,
       "key": "vonk-forge/wan-dancer-14b-disk-offload-pytorch-single",
-      "recipe_version": "1.0.5",
-      "content_sha256": "8871cd91c4bb3eae052db20f0027d2599940b585a0b6eab804604365b43e3215",
+      "recipe_version": "1.0.6",
+      "content_sha256": "c49abbe2381a78bed31f055380e1aa963180c0929c5832636feacf3a2d6b4420",
       "package": {
         "path": "packages/wan-dancer-14b-disk-offload-pytorch-single.tar.gz",
-        "sha256": "c9f821001c332f987cd0eecccec580a84457b636afb342d962bf75691de6a320",
-        "expected_bytes": 3298687,
+        "sha256": "2941138740ce9b7d1205e23509fa9f00084bd5767f86f04de62cec9175a1db56",
+        "expected_bytes": 3298833,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2492,12 +2492,12 @@
     {
       "sequence": 59,
       "key": "vonk-forge/hunyuan-video-foley-xl-pytorch-single",
-      "recipe_version": "1.4.6",
-      "content_sha256": "bd00e22ebc7d4667f366842089ec5d97ca01f45a4fe667f06e0e153ed88b1d69",
+      "recipe_version": "1.4.7",
+      "content_sha256": "c732fbf160bcdc61f30ad008f9f587c8379d5dc94e61ae378c09bb15734ff417",
       "package": {
         "path": "packages/hunyuan-video-foley-xl-pytorch-single.tar.gz",
-        "sha256": "e8e543ef1be45608b7be54a8ffacf9b11996275a95002b6ffc47f2a3783f85ba",
-        "expected_bytes": 20763756,
+        "sha256": "8d9bf0cf3a241ee3b690aec7fb0ec23aa27f458856e24f66a49371f94b3ec775",
+        "expected_bytes": 20763936,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2562,12 +2562,12 @@
     {
       "sequence": 60,
       "key": "vonk-forge/hunyuan-video-foley-xxl-pytorch-single",
-      "recipe_version": "1.4.6",
-      "content_sha256": "bec334d662c6df3a60d66017d384597b49ccf3d7a18c0095989ad428a615358c",
+      "recipe_version": "1.4.7",
+      "content_sha256": "515084bcd12e8d33573724684fe7e947646302da8c29a6970d74c3bb6e6c933a",
       "package": {
         "path": "packages/hunyuan-video-foley-xxl-pytorch-single.tar.gz",
-        "sha256": "f00e66065aa0ac3d37b6ba4ef614173146e98fcff2018287b0e83a07367de33c",
-        "expected_bytes": 20763789,
+        "sha256": "d7d37aabe4977e6bc111acd5500430bffa7dc662fee7540a846261a772ed0d15",
+        "expected_bytes": 20763933,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2683,12 +2683,12 @@
     {
       "sequence": 62,
       "key": "vonk-forge/hunyuan3d-omni-pytorch-single",
-      "recipe_version": "2.0.11",
-      "content_sha256": "444f4bdd7bfd3142648ecbbe69b4144dd062cda01c8f89c44712de80f43b04c8",
+      "recipe_version": "2.0.12",
+      "content_sha256": "cf88e9ffbae994a64541a1177321183a66fa32d9ca8543951120dd44c5c230b7",
       "package": {
         "path": "packages/hunyuan3d-omni-pytorch-single.tar.gz",
-        "sha256": "7f97d09001d9317f527f25abafaba1dc6b8757ab5c3701df36b84d6255ccc6c9",
-        "expected_bytes": 23447,
+        "sha256": "c05106b4142bd1115054a29925b3c4009e5326c96b3e2f6362e9492f20b252a8",
+        "expected_bytes": 23606,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2736,12 +2736,12 @@
     {
       "sequence": 63,
       "key": "vonk-forge/hunyuan-video-15-distilled-diffusers-single",
-      "recipe_version": "1.4.6",
-      "content_sha256": "877052968903d7444f673b33c932357bb807ea1c4168f6e6ff4272341eec65a5",
+      "recipe_version": "1.4.7",
+      "content_sha256": "f964e89389810259570f47c106afff5f7dab44d9388255f8ba5b587c6c056dbb",
       "package": {
         "path": "packages/hunyuan-video-15-distilled-diffusers-single.tar.gz",
-        "sha256": "db2b732ebb2038edb51c3a4dda1ce7963cfd1e2b97a94b7b53c50ef0b091673f",
-        "expected_bytes": 50480,
+        "sha256": "b063093282e996535d389ed48e8921fc058326af6e8a70acafab1a83d561a10c",
+        "expected_bytes": 50639,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2785,12 +2785,12 @@
     {
       "sequence": 64,
       "key": "vonk-forge/hunyuan-video-15-i2v-step-distilled-diffusers-single",
-      "recipe_version": "1.4.6",
-      "content_sha256": "342767c964e33d707786708c4d30a79dc5dcfefdc08ecefcc780dd584f99b88a",
+      "recipe_version": "1.4.7",
+      "content_sha256": "2a3e1e8ec88d7e175a61e3a900b5f8c164bf0ff90d00d6210df103b112ee3e49",
       "package": {
         "path": "packages/hunyuan-video-15-i2v-step-distilled-diffusers-single.tar.gz",
-        "sha256": "3d9bf19b3ba1b3eb6f881097abdabc54b98463f2a8a94e1ed5e07b53b5fca2dd",
-        "expected_bytes": 50576,
+        "sha256": "19b699d995ed6c34e6ec8d5f07ba2ddbff56afbfe5b62d6dce974cde88f4de2a",
+        "expected_bytes": 50740,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2835,12 +2835,12 @@
     {
       "sequence": 65,
       "key": "vonk-forge/hunyuan-video-15-t2v-diffusers-single",
-      "recipe_version": "1.4.6",
-      "content_sha256": "5c1d9be8b04748e62c11fca7ddfa9fba40cc9648f5456f1d1190705aa8cb45dc",
+      "recipe_version": "1.4.7",
+      "content_sha256": "80807c21711891b5291b5fcf95cc6b640268cf161d96ec345f4134b6ef4e6adc",
       "package": {
         "path": "packages/hunyuan-video-15-t2v-diffusers-single.tar.gz",
-        "sha256": "ab9fd16218a3d68b5b34505be022451037d2ea4e5b0047f6f4cace6149009447",
-        "expected_bytes": 50456,
+        "sha256": "5692b49381ab40ecdb0d69d7e7a02204cf5dc9e054a1ceba5c67371a258dfcea",
+        "expected_bytes": 50612,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2884,12 +2884,12 @@
     {
       "sequence": 66,
       "key": "vonk-forge/minimax-h3-diffusers-single",
-      "recipe_version": "3.0.7",
-      "content_sha256": "69c7ec98cd0bbd402fd98dc029c7ff6dc0d0360387f8f1dc9e63d21be4628e4b",
+      "recipe_version": "3.0.8",
+      "content_sha256": "65e5977be19fbd8b072c17da2cb49a2a5fe0cc00365e571f23de85fe07425fb6",
       "package": {
         "path": "packages/minimax-h3-diffusers-single.tar.gz",
-        "sha256": "aa8e62d3ee61e0ae1b2d9c89f2b7f3270a745241b34ea9095dca3592d92cece9",
-        "expected_bytes": 30665,
+        "sha256": "d8a6aca1220e802b3fe67b4741c3c88d8b87f6de2a53387973116f05479b49b3",
+        "expected_bytes": 30841,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2934,12 +2934,12 @@
     {
       "sequence": 67,
       "key": "vonk-forge/minimax-h3-fl2va-diffusers-single",
-      "recipe_version": "1.0.7",
-      "content_sha256": "a46fc039f9ca04df6c5383b3cdb491cc508c9a41083b81a332c904c60f1cc69c",
+      "recipe_version": "1.0.8",
+      "content_sha256": "8500a152354bfb57315fd01a1a245b36df476950f391924b2c840c9065f8d902",
       "package": {
         "path": "packages/minimax-h3-fl2va-diffusers-single.tar.gz",
-        "sha256": "5bfee2fdc6c0403ebfecb933e5995e9ee6744e5a5846d4f494aa3d8234e0b1a8",
-        "expected_bytes": 14282,
+        "sha256": "957dcdfea0c9e4fac74766afd4285dbac2ae8fa7cbc5b875307ad043232bcc53",
+        "expected_bytes": 14435,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2990,12 +2990,12 @@
     {
       "sequence": 68,
       "key": "vonk-forge/ltx-2-5-22b-distilled-bf16-diffusers-single",
-      "recipe_version": "1.1.6",
-      "content_sha256": "53fbf970ddb34841de81f376ef76a7adfe31b2a1f00e8c5ca0ae5fc4a2c2e85d",
+      "recipe_version": "1.1.7",
+      "content_sha256": "6f9694eb6a5ff4eb1b898d6f7b5ff1157f623e0089c8e624b8289d8b6684456a",
       "package": {
         "path": "packages/ltx-2-5-22b-distilled-bf16-diffusers-single.tar.gz",
-        "sha256": "8a3bf07e739db8e4768fd6d4effda4890f371a1a4f3ebde26eb89a3add3a1f4b",
-        "expected_bytes": 14408,
+        "sha256": "1e62729937bb0670e367af93b9ad6c58248736280d6591d1c1ae3c812814a5ac",
+        "expected_bytes": 14641,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -3095,12 +3095,12 @@
     {
       "sequence": 70,
       "key": "vonk-forge/wan-dancer-14b-pytorch-single",
-      "recipe_version": "1.0.10",
-      "content_sha256": "a33822d3af8f8961e83c70db8d9534da0f53f60435608d091e5cc65a19982526",
+      "recipe_version": "1.0.11",
+      "content_sha256": "516fe69274cdca87f4f6b2919872b280ee3175e85887f60bf5c63aef3d020f27",
       "package": {
         "path": "packages/wan-dancer-14b-pytorch-single.tar.gz",
-        "sha256": "ef93436428a601e1d11ae991733ea2e8336d667474555ffe84655a5e17b7e476",
-        "expected_bytes": 31869557,
+        "sha256": "28188906d351421086efa294b5946195b881241a9d91c9a3702a632538e7d2d2",
+        "expected_bytes": 31869700,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
