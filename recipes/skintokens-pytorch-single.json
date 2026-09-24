@@ -108,8 +108,19 @@
     {
       "files": [
         {
-          "file_id": "snapshot",
-          "id": "primary-snapshot",
+          "file_id": "grpo-1400-f4e4706a11cf-0a004da47f",
+          "id": "primary-001",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "last-4843f49e58af-3417e359c3",
+          "id": "primary-002",
           "mount": {
             "read_only": true,
             "target": "/models/target"
@@ -121,7 +132,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "15fca734a83dda4643973cddb1986ebe63c3e88fc31f0c4394f8782a9e5eed01",
+        "content_sha256": "3a34062692ae74439da214f88b106d0c072690d916e1127b249864cdcae83b90",
         "kind": "model",
         "publisher": "vast-ai",
         "slug": "skintokens"
@@ -137,6 +148,22 @@
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "The recipe selects the TokenRig checkpoint and the separately referenced pretrained Skin VAE checkpoint from the exact upstream revision. The two local paths match the pinned source configuration and remove any reliance on a synthetic snapshot artifact.",
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/VAST-AI/SkinTokens/tree/79736cad0fd84de384d5eede659b4ebd24effe33"
+            ],
+            "summary": "Select both pinned TokenRig inference checkpoints explicitly."
+          }
+        ],
+        "prior_recipe_content_sha256": "6045b3b4372067513117053d03c3995e0c8af673bfbe7fc2597940d88c154f7b",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "reprepare",
+        "version": "2.0.10"
+      },
       {
         "changes": [
           {
@@ -350,8 +377,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "2.0.9"
+    "released_at": "2026-09-24",
+    "version": "2.0.10"
   },
   "runtime": {
     "arguments": [
@@ -425,7 +452,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 1618924643,
+            "artifact_bytes": 1618915724,
             "cache_bytes": 8000000000,
             "image_bytes": 16000000000,
             "rollback_bytes": 0,

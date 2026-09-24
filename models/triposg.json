@@ -8,28 +8,125 @@
     "facts": [
       {
         "capability": "3d-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_digest": "0f4c34a1a17acdbcff02c259d7f4f7b5df1b8956395c625c28da97930eb82ef3",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "evidence_digest": "0f4c34a1a17acdbcff02c259d7f4f7b5df1b8956395c625c28da97930eb82ef3",
       "source_revision": "2c1c516d22d58db486a058d98d31bb6177344e06",
-      "source_url": "https://huggingface.co/VAST-AI/TripoSG"
+      "source_url": "https://huggingface.co/VAST-AI/TripoSG/blob/2c1c516d22d58db486a058d98d31bb6177344e06/README.md"
     },
     "schema_version": 2
   },
-  "dependencies": [],
+  "dependencies": [
+    {
+      "content_sha256": "f7c9e356bfe62fcce55d6a31d4e4c86fe2631bfa661829e4c5e11df3d372a74e",
+      "kind": "model",
+      "publisher": "bria-ai",
+      "slug": "bria-rmbg-1-4"
+    }
+  ],
   "files": [
     {
-      "id": "snapshot",
-      "path": "snapshot",
+      "id": "metadata-a9450d29ea6d-618cd5b83d",
+      "path": ".gitattributes",
       "roles": [
-        "entrypoint"
+        "metadata"
       ],
-      "sha256": "529782f3a04bf520d2eb7f26f913e6c9d5073c9f56c91753865fbff5ff1c5ab1",
-      "size_bytes": 7946494238
+      "sha256": "a9450d29ea6d0dcc5cbb4872058e93b50345acdccca6507e69b014b79e5797af",
+      "size_bytes": 1564
+    },
+    {
+      "id": "readme-0f4c34a1a17a-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "0f4c34a1a17acdbcff02c259d7f4f7b5df1b8956395c625c28da97930eb82ef3",
+      "size_bytes": 1465
+    },
+    {
+      "id": "preprocessor-config-14e780d86fa1-ea49d31434",
+      "path": "feature_extractor_dinov2/preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "14e780d86fa1861f8751f868d7f45425b5feb55c38ca26f152ca5097ab30f828",
+      "size_bytes": 436
+    },
+    {
+      "id": "config-8ed81b0d5ffd-31237d51d1",
+      "path": "image_encoder_dinov2/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "8ed81b0d5ffd2c8b2cecd7dc1326d3eefa409bc9d525537b6b2a3c70a992fd02",
+      "size_bytes": 1104
+    },
+    {
+      "id": "model-399fba97a95f-ac49b4dec9",
+      "path": "image_encoder_dinov2/model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "399fba97a95f22c36834418bc69373364a99af3a1153da1c0fb31db567c92e23",
+      "size_bytes": 1217522888
+    },
+    {
+      "id": "model-index-750af638d10f-ee03ace9a3",
+      "path": "model_index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "750af638d10fc67a5f43d19ef0a0d1d3d446174e24b73bddd0a49226016c80c2",
+      "size_bytes": 525
+    },
+    {
+      "id": "scheduler-config-ea7c9b4d502d-67ecb3dc37",
+      "path": "scheduler/scheduler_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ea7c9b4d502dcaba97cd85291cfd7dbd3c6c82cbc4c775af5c6d9224864279c9",
+      "size_bytes": 158
+    },
+    {
+      "id": "config-54ad779e68f9-98e965502a",
+      "path": "transformer/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "54ad779e68f9bc7303122cdf291f6db48dec7c67e41d28c05ac359daf914128a",
+      "size_bytes": 191
+    },
+    {
+      "id": "diffusion-pytorch-model-9192b5923f7b-6e22ab20f4",
+      "path": "transformer/diffusion_pytorch_model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9192b5923f7b605b394192809aa2ceb73bf0f4009674d8e3b999b45bb97d4bf2",
+      "size_bytes": 5758280104
+    },
+    {
+      "id": "config-2fb6ba9b364d-101abd63da",
+      "path": "vae/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "2fb6ba9b364d42c9681879dca0f7edcb978f2db974a1ca4b15d28f9b15a5baed",
+      "size_bytes": 335
+    },
+    {
+      "id": "diffusion-pytorch-model-a2e667c24927-86e9ee3b4f",
+      "path": "vae/diffusion_pytorch_model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a2e667c24927a5a35e5f19fcb4c75890e9399aa966b6db8131d7df733a750c8b",
+      "size_bytes": 970685468
     }
   ],
   "format": {
@@ -61,6 +158,7 @@
     ],
     "operator_acceptance_required": true,
     "spdx": "MIT",
+    "territorial_restrictions": null,
     "url": "https://github.com/VAST-AI-Research/TripoSG/blob/fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c/LICENSE"
   },
   "limits": {
@@ -98,9 +196,9 @@
     "attribution": [
       "vast-ai"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "evidence_digest": "0f4c34a1a17acdbcff02c259d7f4f7b5df1b8956395c625c28da97930eb82ef3",
     "source_revision": "2c1c516d22d58db486a058d98d31bb6177344e06",
-    "source_url": "https://huggingface.co/VAST-AI/TripoSG"
+    "source_url": "https://huggingface.co/VAST-AI/TripoSG/blob/2c1c516d22d58db486a058d98d31bb6177344e06/README.md"
   },
   "schema_version": 2,
   "source": {

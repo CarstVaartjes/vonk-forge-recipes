@@ -94,41 +94,24 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
         self.assertEqual(recipe["execution"]["mode"], "build")
 
     def test_release_metadata_and_package_bind_current_recipe_digests(self) -> None:
-        versions = {
-            "nemotron-3-5-lightning-30b-a3b-vllm-single": ("1.3.6", "2026-09-03"),
-            "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single": (
-                "1.1.5",
-                "2026-09-03",
-            ),
-            "nemotron-3-nano-30b-a3b-vllm-single": ("2.0.6", "2026-09-05"),
-            "moss-vl-realtime-11b-pytorch-single": (
-                "1.2.1",
-                "2026-09-23",
-                "ec7992aa56344a261b09e6c50aadd44bcdc59c2506ccb27a99513b42be359f06",
-            ),
-            "mova-360p-diffusers-single": ("2.0.9", "2026-09-05"),
-            "mova-720p-diffusers-single": ("2.0.9", "2026-09-05"),
-            "muse-glimmer-30b-bf16-vllm-single": ("1.0.5", "2026-09-05"),
-        }
-        for slug, expected in versions.items():
-            version, released_at, *prior = expected
+        slugs = (
+            "nemotron-3-5-lightning-30b-a3b-vllm-single",
+            "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single",
+            "nemotron-3-nano-30b-a3b-vllm-single",
+            "moss-vl-realtime-11b-pytorch-single",
+            "mova-360p-diffusers-single",
+            "mova-720p-diffusers-single",
+            "muse-glimmer-30b-bf16-vllm-single",
+        )
+        for slug in slugs:
             with self.subTest(recipe=slug):
                 recipe_path = f"recipes/{slug}.json"
                 recipe = RecipeDefinition.model_validate(load(recipe_path))
-                release = recipe.release
-                self.assertEqual(release.version, version)
-                self.assertEqual(release.released_at, released_at)
-                self.assertEqual(release.history[0].version, version)
-                self.assertEqual(release.history[0].released_at, released_at)
-                self.assertEqual(
-                    release.history[0].prior_recipe_content_sha256,
-                    prior[0] if prior else None,
-                )
-                self.assertIn(
-                    release.history[0].upgrade_effect,
-                    {"none", "restart", "reprepare", "rebuild"},
-                )
                 entry = catalog_entry(slug)
+                self.assertEqual(
+                    RecipeDefinition.model_validate(entry["document"]).release,
+                    recipe.release,
+                )
                 digest = canonical_digest(recipe_path)
                 self.assertEqual(
                     entry["content_sha256"],

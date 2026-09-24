@@ -191,8 +191,3077 @@
     {
       "files": [
         {
-          "file_id": "snapshot",
-          "id": "primary-snapshot",
+          "file_id": "metadata-e48ce24c550b-618cd5b83d",
+          "id": "primary-001",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-d8f3bcc62e23-d58ca2d4a0",
+          "id": "primary-002",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-259f675c9f71-4aaaa43791",
+          "id": "primary-003",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-activations-74ca8bb9e803-be68b9732d",
+          "id": "primary-004",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-alias-free-act-db8761e66c0e-3a455ace82",
+          "id": "primary-005",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-alias-free-filter-a369523cd7f1-6e2a879bc8",
+          "id": "primary-006",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-alias-free-resample-fe3505589383-31000d9509",
+          "id": "primary-007",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-attn-proj-0e04556fa5fd-3bed22238d",
+          "id": "primary-008",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-audio-vae-ec04939602d4-8ab3fc2e70",
+          "id": "primary-009",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-bigvgan-f5df4e6f633e-464375c66a",
+          "id": "primary-010",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-utils-74ef0ba2c2a1-23df8f1a3a",
+          "id": "primary-011",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-755d0529d43b-fa013bfce2",
+          "id": "primary-012",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "minimax-h3-audio-vae-63bc0dab6def-652521aba5",
+          "id": "primary-013",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-37dddc2f3e6d-811eff632a",
+          "id": "primary-014",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-index-d1113e0f123c-76e5c66db0",
+          "id": "primary-015",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-5c72a170d2a4-5931bb9a91",
+          "id": "primary-016",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-599bab540750-3779d3b20e",
+          "id": "primary-017",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-0b3ae79637",
+          "id": "primary-018",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-a5d85b6dcc53-437fa6b5b1",
+          "id": "primary-019",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-a07e942ac874-c56ba9d9f8",
+          "id": "primary-020",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-067d65f229",
+          "id": "primary-021",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-ab71c8a414",
+          "id": "primary-022",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-5c72a170d2a4-3208956155",
+          "id": "primary-023",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-d2dd0c60d01b-2cc321e6b4",
+          "id": "primary-024",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-599bab540750-6d82d192d0",
+          "id": "primary-025",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00014-6b9dfbc930e5-e61cd8b03d",
+          "id": "primary-026",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00014-d8bb44b4ff30-fe53e326c8",
+          "id": "primary-027",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00014-54f22e8b3168-27137fcbf0",
+          "id": "primary-028",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00014-ad09c74d3c13-520230ed3c",
+          "id": "primary-029",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00014-fc993c8a0e2a-ce1ad86bc9",
+          "id": "primary-030",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00014-82f05620d1f7-a3fd82ec13",
+          "id": "primary-031",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00014-fb91da8cb01f-e206746de7",
+          "id": "primary-032",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00014-431ca56535c8-3c1d847d0d",
+          "id": "primary-033",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00014-3825e3f4302f-960b50bf17",
+          "id": "primary-034",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00014-aded5a4d1d5e-294672edfa",
+          "id": "primary-035",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00014-3820ffe8d8d6-1763c2ae80",
+          "id": "primary-036",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00014-05ad2d08ce71-9dadc75ad4",
+          "id": "primary-037",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00014-b64f22898712-f87514d8ea",
+          "id": "primary-038",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00014-e45b6c9998c7-d0b6ded30d",
+          "id": "primary-039",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-06c952c56928-6bf2228ba3",
+          "id": "primary-040",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-2db1ae842e",
+          "id": "primary-041",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-a5d85b6dcc53-209a2a717d",
+          "id": "primary-042",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-a07e942ac874-826f46dd44",
+          "id": "primary-043",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-d0db2babbf",
+          "id": "primary-044",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-a81b66f16b",
+          "id": "primary-045",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-599bab540750-328feddd83",
+          "id": "primary-046",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-a5d85b6dcc53-683f62767e",
+          "id": "primary-047",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-a07e942ac874-4dee8e7f2b",
+          "id": "primary-048",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-64ecb57cd0",
+          "id": "primary-049",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-f619093a231f-653aa96ab4",
+          "id": "primary-050",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00013-0b3386565e47-d8593c44bd",
+          "id": "primary-051",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00013-9c98fd4579c9-33571fc6ab",
+          "id": "primary-052",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00013-fa484c940d41-2b7cd8128d",
+          "id": "primary-053",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00013-4a851df37cce-c71773960f",
+          "id": "primary-054",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00013-3fe6ff94dc9d-222eeac7fb",
+          "id": "primary-055",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00013-79b47e1b9ff0-7e7b02d9dd",
+          "id": "primary-056",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00013-6ac4d6ce6397-dc328ec2ef",
+          "id": "primary-057",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00013-03531812243f-d8d27b22b0",
+          "id": "primary-058",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00013-7e82a80b0d0d-cdab422c37",
+          "id": "primary-059",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00013-ef0a1f6b6514-d726396399",
+          "id": "primary-060",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00013-bf885b8f2f07-e01f3b8b0c",
+          "id": "primary-061",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00013-dc717572d014-848cdc9ae8",
+          "id": "primary-062",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00013-8bfd852d5817-bb9cc9d4c6",
+          "id": "primary-063",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-fb457a26ffa6-7d98056df6",
+          "id": "primary-064",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "attention-c9db8465c57f-bce769d0a7",
+          "id": "primary-065",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "base-module-0e7ddf508617-2f561436f3",
+          "id": "primary-066",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-3edd2cdd1ebc-e676e0c122",
+          "id": "primary-067",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "conv-b3adee35f27e-404c6a6a46",
+          "id": "primary-068",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "flash-c1918463d303-6a78508120",
+          "id": "primary-069",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "func-0612c26a65f0-e840b37f29",
+          "id": "primary-070",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "klvae-d05a22b4918a-1d060ed1ba",
+          "id": "primary-071",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "minimax-h3-video-vae-77fdea69a484-5dc7056718",
+          "id": "primary-072",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "norm-258b120ca8d9-f3d3186037",
+          "id": "primary-073",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "normalize-8db651acb9eb-628238121a",
+          "id": "primary-074",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "parallel-7193522beafd-b61d85f1f8",
+          "id": "primary-075",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-66c68f541e65-3b19eb51cb",
+          "id": "primary-076",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-5f0c2e161d89-865716dcb9",
+          "id": "primary-077",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "utils-309e45e9d9e3-ed05d96572",
+          "id": "primary-078",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vae-cnn-3949b701e689-f17214b8fc",
+          "id": "primary-079",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vae-module-9558fb302e10-d594353552",
+          "id": "primary-080",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vae-processor-32870580a180-3977aacc51",
+          "id": "primary-081",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vae-vit-a372c28441b5-cd77975584",
+          "id": "primary-082",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-59b99642b95e-c693279643",
+          "id": "primary-083",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-f0116a903324-b335630551",
+          "id": "primary-084",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-d8f3bcc62e23-f233ea09db",
+          "id": "primary-085",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-259f675c9f71-42ac39e1cb",
+          "id": "primary-086",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-activations-74ca8bb9e803-06a3d0dc0b",
+          "id": "primary-087",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-alias-free-act-db8761e66c0e-6859f8db1c",
+          "id": "primary-088",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-alias-free-filter-a369523cd7f1-ff7211a145",
+          "id": "primary-089",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-alias-free-resample-fe3505589383-68a585d73a",
+          "id": "primary-090",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-attn-proj-0e04556fa5fd-296950c4fe",
+          "id": "primary-091",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-audio-vae-ec04939602d4-e212c76766",
+          "id": "primary-092",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-bigvgan-f5df4e6f633e-9560b75556",
+          "id": "primary-093",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dac-utils-74ef0ba2c2a1-af125a1afe",
+          "id": "primary-094",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-755d0529d43b-d2afbd7a90",
+          "id": "primary-095",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "minimax-h3-audio-vae-63bc0dab6def-8f6853aa88",
+          "id": "primary-096",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-37dddc2f3e6d-4dd9dfe16b",
+          "id": "primary-097",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-index-b160b13700bf-3983db5e1a",
+          "id": "primary-098",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-5c72a170d2a4-5da76fec9e",
+          "id": "primary-099",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-599bab540750-e258f19144",
+          "id": "primary-100",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-8830b72b07",
+          "id": "primary-101",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-a5d85b6dcc53-11fc3e2a47",
+          "id": "primary-102",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-a07e942ac874-03ecb6bbac",
+          "id": "primary-103",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-9ffbdbe195",
+          "id": "primary-104",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-80653ba783",
+          "id": "primary-105",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-5c72a170d2a4-1ffbbebb0d",
+          "id": "primary-106",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-d2dd0c60d01b-31e15edf80",
+          "id": "primary-107",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-599bab540750-f01b96d5f4",
+          "id": "primary-108",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00014-6b9dfbc930e5-6202afa1fb",
+          "id": "primary-109",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00014-d8bb44b4ff30-411a722ccc",
+          "id": "primary-110",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00014-54f22e8b3168-9c1bf70539",
+          "id": "primary-111",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00014-ad09c74d3c13-3cf02485e4",
+          "id": "primary-112",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00014-fc993c8a0e2a-61c8e62971",
+          "id": "primary-113",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00014-82f05620d1f7-acb8148576",
+          "id": "primary-114",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00014-fb91da8cb01f-ce6b13bb28",
+          "id": "primary-115",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00014-431ca56535c8-43fee1e71a",
+          "id": "primary-116",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00014-3825e3f4302f-49c1b737e8",
+          "id": "primary-117",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00014-aded5a4d1d5e-099eaca839",
+          "id": "primary-118",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00014-3820ffe8d8d6-aa70dc36db",
+          "id": "primary-119",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00014-05ad2d08ce71-54dfa9c17c",
+          "id": "primary-120",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00014-b64f22898712-4447b816c4",
+          "id": "primary-121",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00014-e45b6c9998c7-56f2c41436",
+          "id": "primary-122",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-06c952c56928-5f715b95bd",
+          "id": "primary-123",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-25f13e485f",
+          "id": "primary-124",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-a5d85b6dcc53-f41fe4d740",
+          "id": "primary-125",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-a07e942ac874-f6e3f47e75",
+          "id": "primary-126",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-e60961cdd8",
+          "id": "primary-127",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-47f31b7b51",
+          "id": "primary-128",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-599bab540750-191ae844a9",
+          "id": "primary-129",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-a5d85b6dcc53-f8ce8c0004",
+          "id": "primary-130",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-a07e942ac874-cb41531346",
+          "id": "primary-131",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-7161bdf200",
+          "id": "primary-132",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-f619093a231f-89eaaec3cd",
+          "id": "primary-133",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00013-902d6ae787f6-55c55c069b",
+          "id": "primary-134",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00013-97b907e4d9b3-99136d196e",
+          "id": "primary-135",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00013-fbdf425e3516-b5a7af01e2",
+          "id": "primary-136",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00013-3831e9ff2640-a2c38e55ba",
+          "id": "primary-137",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00013-ec7c6bdd2698-d29c94519c",
+          "id": "primary-138",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00013-536c4fe01ffd-d596fb1ccc",
+          "id": "primary-139",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00013-c7b80189722b-dd1563268a",
+          "id": "primary-140",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00013-1a7da8bb7477-515359066e",
+          "id": "primary-141",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00013-33f44f03128b-46dfd9714d",
+          "id": "primary-142",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00013-adb8df74dcff-cbfa2f2075",
+          "id": "primary-143",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00013-7175cdde6953-c704c779b5",
+          "id": "primary-144",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00013-1c5c0bf33ab6-9756559b6c",
+          "id": "primary-145",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00013-572e060b9b72-b0b8e76073",
+          "id": "primary-146",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-fb457a26ffa6-6888126bb8",
+          "id": "primary-147",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "attention-c9db8465c57f-1598dd8aff",
+          "id": "primary-148",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "base-module-0e7ddf508617-04274259bc",
+          "id": "primary-149",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-3edd2cdd1ebc-ceff019a84",
+          "id": "primary-150",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "conv-b3adee35f27e-9e3a79799e",
+          "id": "primary-151",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "flash-c1918463d303-8ca93b6b4c",
+          "id": "primary-152",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "func-0612c26a65f0-53f3e10e33",
+          "id": "primary-153",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "klvae-d05a22b4918a-799b0593f1",
+          "id": "primary-154",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "minimax-h3-video-vae-77fdea69a484-34d95a1246",
+          "id": "primary-155",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "norm-258b120ca8d9-4dfb8f748b",
+          "id": "primary-156",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "normalize-8db651acb9eb-b9dd527450",
+          "id": "primary-157",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "parallel-7193522beafd-63c52628ec",
+          "id": "primary-158",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-66c68f541e65-b4c1837734",
+          "id": "primary-159",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-5f0c2e161d89-9f39f51597",
+          "id": "primary-160",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "utils-309e45e9d9e3-bf7fa72d8b",
+          "id": "primary-161",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vae-cnn-3949b701e689-a0dd6cb917",
+          "id": "primary-162",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vae-module-9558fb302e10-aaa719f7ec",
+          "id": "primary-163",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vae-processor-32870580a180-6d28a86b6a",
+          "id": "primary-164",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vae-vit-a372c28441b5-fd13e682e6",
+          "id": "primary-165",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "fl2va-5a5d6e0fcdda-ef46d621a0",
+          "id": "primary-166",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-arch-5bd8e4077a11-300007a81b",
+          "id": "primary-167",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "h3-direct-2k-cc928dc5f406-b3853dbbf5",
+          "id": "primary-168",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "h3-direct-768p-642e444e8cfa-26318b7fe0",
+          "id": "primary-169",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "i2va-5a5d6e0fcdda-597794dde9",
+          "id": "primary-170",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "i2va-2k-dcfec002e432-aa9240637e",
+          "id": "primary-171",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "i2va-direct-2k-c3c1eef07982-d1fea625d0",
+          "id": "primary-172",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "i2va-direct-768p-fc73d7633bed-a5db9d73d6",
+          "id": "primary-173",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "minimax-h3-ebf43dfeaca4-4bdaa8e5b7",
+          "id": "primary-174",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "overview-b32290cdabb1-0f7b0c5bc7",
+          "id": "primary-175",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "r2va-5c9d33dfc517-eda86bf424",
+          "id": "primary-176",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "r2va-2k-c3c96ce2bcd2-9a31b86979",
+          "id": "primary-177",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "r2va-direct-2k-26f07ac79f87-84f8b08e73",
+          "id": "primary-178",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "r2va-direct-768p-9b940b139d16-f6df4a271e",
+          "id": "primary-179",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "ref2va-5c9d33dfc517-19d9d25c38",
+          "id": "primary-180",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "t2va-d66903241362-88fd959897",
+          "id": "primary-181",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "t2va-2k-6624095cbda8-80f2cdfc50",
+          "id": "primary-182",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "scheduler-config-804780f71334-d5d5004f55",
+          "id": "primary-183",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-9a3c645ff892-4092e5fbaa",
+          "id": "primary-184",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-52c59e67ba8d-40eb23f3c1",
+          "id": "primary-185",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "qa-about-license-c39dcfc5dc3e-bc27f97b71",
+          "id": "primary-186",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-prompt-writing-guide-base-en-2cfebc096a6e-0e56aa34cb",
+          "id": "primary-187",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-prompt-writing-guide-ref-en-1e574f356716-da0563f59a",
+          "id": "primary-188",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-index-5a587fe13b23-ee03ace9a3",
+          "id": "primary-189",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modular-model-index-a2b6a210e482-854eab417c",
+          "id": "primary-190",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-5c72a170d2a4-9ea95ca7fc",
+          "id": "primary-191",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-599bab540750-5c109f0066",
+          "id": "primary-192",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-f112452e22",
+          "id": "primary-193",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-a5d85b6dcc53-05256ef213",
+          "id": "primary-194",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-a07e942ac874-c2c3c4f263",
+          "id": "primary-195",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-318665c6b3",
+          "id": "primary-196",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-1ffa00cf15",
+          "id": "primary-197",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "scheduler-config-8fa6c3aa70dc-67ecb3dc37",
+          "id": "primary-198",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-2k-i2va-h3-base-d7d9a3f7d0dd-5086ef1154",
+          "id": "primary-199",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-2k-i2va-h3-context-ir-fc04f15349e8-2a54552d3f",
+          "id": "primary-200",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-2k-i2va-h3-regenerate-2k-b66701da7bdb-40d387dc69",
+          "id": "primary-201",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-2k-i2va-reference-2k-result-by-dir-51668e6d7533-b3736ead90",
+          "id": "primary-202",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-2k-i2va-reference-768p-result-by-d-a5db59db6b23-3e45e0324d",
+          "id": "primary-203",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-2k-ref2va-h3-api-2k-in-open-platfo-caec8a2aaa52-10f54fe1a8",
+          "id": "primary-204",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-2k-ref2va-h3-base-a7fcd7ac1bba-9bcde4b9f7",
+          "id": "primary-205",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-2k-ref2va-h3-context-ir-8ad994259735-d055548c55",
+          "id": "primary-206",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-2k-ref2va-reference-2k-result-by-d-2dbfe2718937-c2bf623426",
+          "id": "primary-207",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-2k-ref2va-reference-768p-result-by-ae5ab4330dbf-282d7601b6",
+          "id": "primary-208",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-2k-t2va-h3-base-1281d8f4f653-bad33517bb",
+          "id": "primary-209",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-2k-t2va-h3-context-ir-910f5ae62ee7-69c9e85f87",
+          "id": "primary-210",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-2k-t2va-h3-regenerate-2k-a285529b8840-0f94a99dd7",
+          "id": "primary-211",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-2k-t2va-reference-2k-result-by-dir-8b7a9a9951d1-65c989ad22",
+          "id": "primary-212",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "full-2k-t2va-reference-768p-result-by-d-6459f593f3a6-730d3da6cf",
+          "id": "primary-213",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "reproducible-768p-fl2va-request-82d1c06897da-b70a978059",
+          "id": "primary-214",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "reproducible-768p-ref2va-request-73ea0e5cc944-c0e720f4a7",
+          "id": "primary-215",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "reproducible-768p-t2va-request-78bfe72365f2-8a5b0bb2dc",
+          "id": "primary-216",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-5c72a170d2a4-1187694af5",
+          "id": "primary-217",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-d2dd0c60d01b-bcfd37e83e",
+          "id": "primary-218",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-599bab540750-fd9a7ce579",
+          "id": "primary-219",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00014-6b9dfbc930e5-2a42d5483b",
+          "id": "primary-220",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00014-d8bb44b4ff30-d2607ab9ef",
+          "id": "primary-221",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00014-54f22e8b3168-b6267df24b",
+          "id": "primary-222",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00014-ad09c74d3c13-317ccb3592",
+          "id": "primary-223",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00014-fc993c8a0e2a-b77c6935b6",
+          "id": "primary-224",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00014-82f05620d1f7-3935be3cf5",
+          "id": "primary-225",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00014-fb91da8cb01f-9235be5840",
+          "id": "primary-226",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00014-431ca56535c8-92faf76e8e",
+          "id": "primary-227",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00014-3825e3f4302f-7626657756",
+          "id": "primary-228",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00014-aded5a4d1d5e-bcc621276c",
+          "id": "primary-229",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00014-3820ffe8d8d6-eedb8b685b",
+          "id": "primary-230",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00014-05ad2d08ce71-bebc220809",
+          "id": "primary-231",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00014-b64f22898712-118b281a02",
+          "id": "primary-232",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00014-e45b6c9998c7-5997843bd8",
+          "id": "primary-233",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-06c952c56928-5fc12c01f9",
+          "id": "primary-234",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-a788ac5484",
+          "id": "primary-235",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-a5d85b6dcc53-9b5d4488eb",
+          "id": "primary-236",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-a07e942ac874-683269f7c6",
+          "id": "primary-237",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-f4177064cb",
+          "id": "primary-238",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-0377681b2a",
+          "id": "primary-239",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-599bab540750-ebbb0f71ea",
+          "id": "primary-240",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-a5d85b6dcc53-b87c178459",
+          "id": "primary-241",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-a07e942ac874-47a6faaf45",
+          "id": "primary-242",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-8c35116cc3",
+          "id": "primary-243",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-74c11bff5243-98e965502a",
+          "id": "primary-244",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00001-of-00014-2d847200c45c-9b4a264364",
+          "id": "primary-245",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00002-of-00014-2c4d362eddd2-737a6faf71",
+          "id": "primary-246",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00003-of-00014-949c5aafbbfa-da530da1cb",
+          "id": "primary-247",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00004-of-00014-eef761679010-5fd3267fe9",
+          "id": "primary-248",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00005-of-00014-43fdf42d638e-cfe87c350a",
+          "id": "primary-249",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00006-of-00014-6442510b34d1-149a56671a",
+          "id": "primary-250",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00007-of-00014-29f48f535c91-6e6ed6b7e7",
+          "id": "primary-251",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00008-of-00014-c711b096c764-a9e367faf3",
+          "id": "primary-252",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00009-of-00014-44428defe397-af0806a668",
+          "id": "primary-253",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00010-of-00014-3d44939c374c-05e4c0d691",
+          "id": "primary-254",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00011-of-00014-224d24430b58-e78154be23",
+          "id": "primary-255",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00012-of-00014-48fa2bd8fe13-3be611e16f",
+          "id": "primary-256",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00013-of-00014-be5b4b1809f9-1d7af0b810",
+          "id": "primary-257",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00014-of-00014-8fbd5e6c1fb1-6aeebdc985",
+          "id": "primary-258",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-safetensors-ind-ac30a3b58963-322b43acad",
+          "id": "primary-259",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-74c11bff5243-bed05ab340",
+          "id": "primary-260",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00001-of-00014-7a3fcad885f5-928329b6ee",
+          "id": "primary-261",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00002-of-00014-1638ae1dc8ae-5b2f30df0c",
+          "id": "primary-262",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00003-of-00014-1ef3c4954ffe-c3dbdda95a",
+          "id": "primary-263",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00004-of-00014-12d92f2975cf-8269794673",
+          "id": "primary-264",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00005-of-00014-304d41ce03d5-5085ff2283",
+          "id": "primary-265",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00006-of-00014-12a134b7c76d-f7bbe3c53e",
+          "id": "primary-266",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00007-of-00014-b96395261359-4d973943a7",
+          "id": "primary-267",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00008-of-00014-1897a6bf3b4f-240afa5684",
+          "id": "primary-268",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00009-of-00014-edfb38235adc-d43bedd7d1",
+          "id": "primary-269",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00010-of-00014-f8710775cf34-b432a67494",
+          "id": "primary-270",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00011-of-00014-9e18acc09f84-135f6294aa",
+          "id": "primary-271",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00012-of-00014-ea2e18228f8b-d050e92d5c",
+          "id": "primary-272",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00013-of-00014-1e12083b1875-d56a519319",
+          "id": "primary-273",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00014-of-00014-b340f44b5690-e8f99a650f",
+          "id": "primary-274",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-safetensors-ind-ac30a3b58963-0c022c80ad",
+          "id": "primary-275",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-78f67deec3d6-101abd63da",
+          "id": "primary-276",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00001-of-00003-72f4c6be84ac-580ad6b5f9",
+          "id": "primary-277",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00002-of-00003-2e05e8bc23fa-27c9bb4451",
+          "id": "primary-278",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00003-of-00003-c05d6ac4b1a3-5f80efb1b5",
+          "id": "primary-279",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-safetensors-ind-15f6d44553c3-3f3454fc53",
+          "id": "primary-280",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -204,7 +3273,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "704b978794bef2e723d9e9e8b3afd590dc5e2d3d62463b478e63fa80c17616b0",
+        "content_sha256": "bb044c9cd5c0970e54f0a1a9250f130116942f62b34313a3ef49094ee368d44b",
         "kind": "model",
         "publisher": "minimax",
         "slug": "minimax-h3"
@@ -221,6 +3290,22 @@
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "The recipe now binds all 280 files in the exact MiniMax H3 revision (498,474,749,480 bytes), including the common pipeline plus T2VA, FL2VA, Ref2VA text encoders, transformers, VAEs, tokenizer/configuration files, and local workflow code needed for offline selection of each supported workflow.",
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe"
+            ],
+            "summary": "Replace aggregate snapshot with the complete pinned per-file model selection."
+          }
+        ],
+        "prior_recipe_content_sha256": "a17f82034a0d5fd3679ea0e87775ef87fe2f1fa4da83883a05191620d16be771",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "reprepare",
+        "version": "3.0.6"
+      },
       {
         "changes": [
           {
@@ -485,8 +3570,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "3.0.5"
+    "released_at": "2026-09-24",
+    "version": "3.0.6"
   },
   "runtime": {
     "arguments": [

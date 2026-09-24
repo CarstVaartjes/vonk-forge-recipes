@@ -20,16 +20,77 @@
     },
     "schema_version": 2
   },
-  "dependencies": [],
+  "dependencies": [
+    {
+      "content_sha256": "a1dc0a1ff350539fed843ff313cb64b4df72650ab83e97168bd492e79412c134",
+      "kind": "model",
+      "publisher": "facebook",
+      "slug": "dinov2-with-registers-large"
+    }
+  ],
   "files": [
     {
-      "id": "snapshot",
-      "path": "snapshot",
-      "roles": [
-        "entrypoint"
-      ],
-      "sha256": "c29549a3132bd8b69bb20c162853cfa651c59ad99607b63eba86eda5582be3db",
-      "size_bytes": 19640984131
+      "id": "model-index",
+      "path": "Step1X-3D-Geometry-1300m/model_index.json",
+      "roles": ["configuration"],
+      "sha256": "717f8a638da2a180b18b4c628dc2daffb4962005b6ab9b223002b8e638eef7eb",
+      "size_bytes": 670
+    },
+    {
+      "id": "scheduler-config",
+      "path": "Step1X-3D-Geometry-1300m/scheduler/scheduler_config.json",
+      "roles": ["configuration"],
+      "sha256": "5ba6f9985d62d7262ae945543862205db29370844d120eec843fd5fefccd9c82",
+      "size_bytes": 414
+    },
+    {
+      "id": "transformer-config",
+      "path": "Step1X-3D-Geometry-1300m/transformer/config.json",
+      "roles": ["configuration"],
+      "sha256": "68ed62894940f17fe1350922ec857aaa14715dc80a84ba21573f21a1837920d9",
+      "size_bytes": 457
+    },
+    {
+      "id": "transformer-weights",
+      "path": "Step1X-3D-Geometry-1300m/transformer/diffusion_pytorch_model.safetensors",
+      "roles": ["weights"],
+      "sha256": "a8cfc27716009acc60035f2489a9b61de81790625b70aa27a682efc99a5137a9",
+      "size_bytes": 5265243816
+    },
+    {
+      "id": "vae-config",
+      "path": "Step1X-3D-Geometry-1300m/vae/config.json",
+      "roles": ["configuration"],
+      "sha256": "20518429427b6fb30c4f7297c2a8f0c0106354c32fde965580d45509e4319b02",
+      "size_bytes": 770
+    },
+    {
+      "id": "vae-weights",
+      "path": "Step1X-3D-Geometry-1300m/vae/diffusion_pytorch_model.safetensors",
+      "roles": ["weights"],
+      "sha256": "aa1b17360f6614a54ab3b971c966cfe64ff87a5445186b02c666e634b59c8302",
+      "size_bytes": 766401652
+    },
+    {
+      "id": "visual-processor",
+      "path": "Step1X-3D-Geometry-1300m/visual_eature_extractor/preprocessor_config.json",
+      "roles": ["processor"],
+      "sha256": "f200462fd341e9336a013fa61695f349dff32f75409c659831f30b9e8a5d3428",
+      "size_bytes": 465
+    },
+    {
+      "id": "visual-encoder-config",
+      "path": "Step1X-3D-Geometry-1300m/visual_encoder/config.json",
+      "roles": ["configuration"],
+      "sha256": "a482329aa19433149b79d4700dde02bc2c8feee0d7e103bd4528add0aea500fe",
+      "size_bytes": 411
+    },
+    {
+      "id": "visual-encoder-weights",
+      "path": "Step1X-3D-Geometry-1300m/visual_encoder/diffusion_pytorch_model.safetensors",
+      "roles": ["weights"],
+      "sha256": "c07f8abe3af5db214e3341c9f23fb2351cb15591afdae0da8e835dfabc42e850",
+      "size_bytes": 1217544216
     }
   ],
   "format": {
@@ -80,7 +141,7 @@
     }
   },
   "metadata": {
-    "description": "Immutable public snapshot at bf708449.",
+    "description": "Exact immutable geometry pipeline subtree at bf708449; its DINOv2 config and image-processor metadata are separately selected without external encoder weights.",
     "tags": [
       "stepfun-ai",
       "three-d",

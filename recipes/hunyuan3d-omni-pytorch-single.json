@@ -153,8 +153,118 @@
     {
       "files": [
         {
-          "file_id": "snapshot",
-          "id": "primary-snapshot",
+          "file_id": "file-7fb473f14fa7",
+          "id": "primary-file-7fb473f14fa7",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-ca940bab7168",
+          "id": "primary-file-ca940bab7168",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-70cd5123c386",
+          "id": "primary-file-70cd5123c386",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-9acfcd5fddca",
+          "id": "primary-file-9acfcd5fddca",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-587cb980af76",
+          "id": "primary-file-587cb980af76",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-fae5f923423e",
+          "id": "primary-file-fae5f923423e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-f399b5c67982",
+          "id": "primary-file-f399b5c67982",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-e276db0b98e4",
+          "id": "primary-file-e276db0b98e4",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-e65182345640",
+          "id": "primary-file-e65182345640",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-101abd63dac6",
+          "id": "primary-file-101abd63dac6",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-ebe6bb69b509",
+          "id": "primary-file-ebe6bb69b509",
           "mount": {
             "read_only": true,
             "target": "/models/target"
@@ -166,10 +276,54 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "72336c134cd48940d8211cbf4ac0b87bd8966bd06258f8add09d284c9c8e3247",
+        "content_sha256": "f2a225023fae4d2e0ddacbc9d92f426d7ffbf602a2ff5426f62a2c73d3279a91",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan3d-omni"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "file-587cb980af76",
+          "id": "dinov2-large-file-587cb980af76",
+          "mount": {
+            "read_only": true,
+            "target": "/models/dinov2-large"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-9d75c1098fc5",
+          "id": "dinov2-large-file-9d75c1098fc5",
+          "mount": {
+            "read_only": true,
+            "target": "/models/dinov2-large"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-36afccab5d8d",
+          "id": "dinov2-large-file-36afccab5d8d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/dinov2-large"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "dinov2-large",
+      "model": {
+        "content_sha256": "5754fd1f85131102730496ee4e5fc842ef5b7b96e8308bce45a527beab8b4364",
+        "kind": "model",
+        "publisher": "facebook",
+        "slug": "dinov2-large-47b73eef"
       }
     }
   ],
@@ -183,6 +337,39 @@
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "At the pinned Hunyuan3D-Omni loader, variant=None selects model/pytorch_model.bin; model/pytorch_model_ema.bin is loaded only for variant='ema'. The adapter passes no variant, so the unused EMA weights are removed from the exact Model manifest and recipe selection.",
+            "kind": "fix",
+            "references": [
+              "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/blob/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8/hy3dshape/pipelines/pipeline_generation_sit_omni.py"
+            ],
+            "summary": "Limit Hunyuan3D-Omni to the adapter's default checkpoint."
+          }
+        ],
+        "prior_recipe_content_sha256": "90621fdd536f27e8eb5503055c301ca73fca7a2a9861f46aec623159bcf6115d",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "reprepare",
+        "version": "2.0.10"
+      },
+      {
+        "changes": [
+          {
+            "details": "Replaced the unsupported aggregate snapshot selector with every exact file from the pinned primary manifest and explicitly selected the adapter-required offline companion artifacts.",
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/tencent/Hunyuan3D-Omni/tree/70e803bfb4e127d534049d8ab8c8cb511780d485",
+              "https://huggingface.co/facebook/dinov2-large/tree/47b73eefe95e8d44ec3623f8890bd894b6ea2d6c"
+            ],
+            "summary": "Bound the primary model and all required offline companion files by exact immutable file IDs."
+          }
+        ],
+        "prior_recipe_content_sha256": "26714eca6f379120c0788e8a22e3bcf6bb37d272a0e1f2dbb518dd7fb56c6a0b",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "reprepare",
+        "version": "2.0.9"
+      },
       {
         "changes": [
           {
@@ -400,8 +587,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "2.0.8"
+    "released_at": "2026-09-24",
+    "version": "2.0.10"
   },
   "runtime": {
     "arguments": [

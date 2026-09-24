@@ -1,0 +1,283 @@
+{
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "image-understanding",
+        "evidence_digest": "24e08231e4a1f467f69fd9a5f279c259544212dbeb581c710700f27effd07875",
+        "evidence_status": "declared",
+        "support": "supported"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "24e08231e4a1f467f69fd9a5f279c259544212dbeb581c710700f27effd07875",
+      "source_revision": "2ceba5a5efaec153162aedea169f76caf9b46cf8",
+      "source_url": "https://huggingface.co/briaai/RMBG-1.4/blob/2ceba5a5efaec153162aedea169f76caf9b46cf8/README.md"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-383e29c4ac00-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "383e29c4ac002dbdf4384d292dfc325d51e5645894e21504c36d0991e9f33e27",
+      "size_bytes": 1848
+    },
+    {
+      "id": "myconfig-6ed4bf30d736-f9ce2f32b5",
+      "path": "MyConfig.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "6ed4bf30d736b4fac18ca044e719a8cfc76bee7e71f022aa6f9e8853aa580d0b",
+      "size_bytes": 326
+    },
+    {
+      "id": "mypipe-ab93d1432f14-e999c7bec0",
+      "path": "MyPipe.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "ab93d1432f145082f631c58291a1b977785d1e2ae7f80fc5d76126c4113d1594",
+      "size_bytes": 2887
+    },
+    {
+      "id": "readme-24e08231e4a1-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "24e08231e4a1f467f69fd9a5f279c259544212dbeb581c710700f27effd07875",
+      "size_bytes": 6395
+    },
+    {
+      "id": "briarmbg-1dbefbca5c1a-7c06bb14fd",
+      "path": "briarmbg.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "1dbefbca5c1a3ec1afde2a2164b05274e7f62c861fa62e62a84525ff603a955d",
+      "size_bytes": 13101
+    },
+    {
+      "id": "config-d774e7d35151-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d774e7d35151efb2479a83f132a57048334adf722e6e354309e30c56e3b35fbe",
+      "size_bytes": 548
+    },
+    {
+      "id": "example-inference-02f466374258-eda1482643",
+      "path": "example_inference.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "02f466374258ac228e00a372ff6d379f25c948bce57ff1288f780bf7de395e1a",
+      "size_bytes": 1090
+    },
+    {
+      "id": "example-input-1e9cff13a43d-6bf4685f99",
+      "path": "example_input.jpg",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "1e9cff13a43d13ec0d0d733a55234e862a35c282cdbfa197c85223a937f28a56",
+      "size_bytes": 326645
+    },
+    {
+      "id": "model-893c16c340b1-02e8c16029",
+      "path": "model.pth",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "893c16c340b1ddafc93e78457a4d94190da9b7179149f8574284c83caebf5e8c",
+      "size_bytes": 176718373
+    },
+    {
+      "id": "model-46ef7fe46f2a-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "46ef7fe46f2ae284d8f1aaa24bfa5fca5ef25a34e2c7caa890a0029eb100e87f",
+      "size_bytes": 176381984
+    },
+    {
+      "id": "model-8cafcf770b06-2dcea1b02a",
+      "path": "onnx/model.onnx",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8cafcf770b06757c4eaced21b1a88e57fd2b66de01b8045f35f01535ba742e0f",
+      "size_bytes": 176153355
+    },
+    {
+      "id": "model-fp16-9fdfdb41866d-a96da39754",
+      "path": "onnx/model_fp16.onnx",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9fdfdb41866d872e0acf4a010c35c1a8547bf0eebe0d1544406bbf1c824cb59d",
+      "size_bytes": 88217533
+    },
+    {
+      "id": "model-quantized-a6648479275d-28ac868743",
+      "path": "onnx/model_quantized.onnx",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a6648479275dfd0ede0f3a8abc20aa5c437b394681b05e5af6d268250aaf40f3",
+      "size_bytes": 44403226
+    },
+    {
+      "id": "quantize-config-ef73b4d68d23-ea9739f1f9",
+      "path": "onnx/quantize_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ef73b4d68d23d1f1c3e02bf3b69a956f0370f7acd12430250f8c465880577a8d",
+      "size_bytes": 527
+    },
+    {
+      "id": "preprocessor-config-6f9c2cfdb87e-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "6f9c2cfdb87edd9b83c1314629657d5b320a6a89f8481c872a36253132e33afa",
+      "size_bytes": 345
+    },
+    {
+      "id": "pytorch-model-59569acdb281-207cf36381",
+      "path": "pytorch_model.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "59569acdb281ac9fc9f78f9d33b6f9f17f68e25086b74f9025c35bb5f2848967",
+      "size_bytes": 176574018
+    },
+    {
+      "id": "requirements-8a10729dee6c-4d7c51b1ef",
+      "path": "requirements.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8a10729dee6ce0b7fa46a7000e5f8c0e76454f17fe3097b3fa00dd5470afae0e",
+      "size_bytes": 87
+    },
+    {
+      "id": "results-2b7f08fc4c09-6c6ee86ab9",
+      "path": "results.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "2b7f08fc4c09db56b516186c0629f72523a5cbe328beaedda8b36349af4b04bc",
+      "size_bytes": 1251942
+    },
+    {
+      "id": "t4-43a9453f567d-60716d7c0b",
+      "path": "t4.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "43a9453f567d9bff7fe4481205575bbf302499379047ee6073247315452ba8fb",
+      "size_bytes": 2159885
+    },
+    {
+      "id": "utilities-c9e358b02d66-a1ad108b85",
+      "path": "utilities.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "c9e358b02d6687a752e45cb71730e3a6b8a251a50c66e8cc17ba25e3d7b0603f",
+      "size_bytes": 980
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "bria-ai",
+      "slug": "bria-rmbg",
+      "title": "BRIA RMBG"
+    },
+    "model": {
+      "architecture": "BriaRMBG",
+      "publisher": "bria-ai",
+      "slug": "bria-rmbg",
+      "title": "BRIA RMBG"
+    },
+    "publisher": "bria-ai",
+    "slug": "bria-rmbg-1-4",
+    "variant": "BRIA RMBG 1.4",
+    "version": "BRIA RMBG 1.4"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "BRIA AI"
+    ],
+    "operator_acceptance_required": true,
+    "spdx": "other",
+    "territorial_restrictions": null,
+    "url": "https://bria.ai/bria-huggingface-model-license-agreement/"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Official BRIA AI RMBG 1.4 source model at the pinned Hugging Face revision.",
+    "publisher": "bria-ai",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "bria-ai",
+      "slug": "bria-rmbg"
+    }
+  },
+  "metadata": {
+    "description": "Official BRIA RMBG v1.4 image-segmentation model at its immutable public revision. The model card labels its license source-available for non-commercial use and requires a separate commercial agreement.",
+    "tags": [
+      "bria-ai",
+      "image",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image"
+  ],
+  "parameters": {
+    "active": null,
+    "total": null
+  },
+  "provenance": {
+    "attribution": [
+      "BRIA AI"
+    ],
+    "evidence_digest": "24e08231e4a1f467f69fd9a5f279c259544212dbeb581c710700f27effd07875",
+    "source_revision": "2ceba5a5efaec153162aedea169f76caf9b46cf8",
+    "source_url": "https://huggingface.co/briaai/RMBG-1.4/blob/2ceba5a5efaec153162aedea169f76caf9b46cf8/README.md"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/briaai/RMBG-1.4",
+    "revision": "2ceba5a5efaec153162aedea169f76caf9b46cf8"
+  },
+  "supersedes": null
+}

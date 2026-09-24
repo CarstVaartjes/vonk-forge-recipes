@@ -126,8 +126,338 @@
     {
       "files": [
         {
-          "file_id": "snapshot",
-          "id": "primary-snapshot",
+          "file_id": "metadata-caf3ca02d5e8-618cd5b83d",
+          "id": "primary-001",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-97e453b0fa6b-b335630551",
+          "id": "primary-002",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-ec1f371074fb-ace603b1da",
+          "id": "primary-003",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "guider-config-8cc58a8bb048-5a4bb9dfdb",
+          "id": "primary-004",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-78bbe4544c7d-7408b0e2c4",
+          "id": "primary-005",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-d769e3a32a6a-239d514024",
+          "id": "primary-006",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-index-42d59fd7ad89-ee03ace9a3",
+          "id": "primary-007",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "scheduler-config-8ec387d5fa43-67ecb3dc37",
+          "id": "primary-008",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-40161074f1da-bcfd37e83e",
+          "id": "primary-009",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00003-a1b9f95e60d6-02972f2ff9",
+          "id": "primary-010",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00003-ab32a0fe73ed-6ecf8bd4b9",
+          "id": "primary-011",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00003-fe26b2e0da51-ab0456bfcf",
+          "id": "primary-012",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-3374ab25b322-5fc12c01f9",
+          "id": "primary-013",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-d9ced170e0c3-576e8524c7",
+          "id": "primary-014",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-f0a1043fa206-91d4db77fb",
+          "id": "primary-015",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "added-tokens-58b54bbe36fc-67aa73d88f",
+          "id": "primary-016",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-a0bc6f6fc7a2-875b211b57",
+          "id": "primary-017",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-8831e4f1a044-ebbb0f71ea",
+          "id": "primary-018",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-76862e765266-9a6c011314",
+          "id": "primary-019",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-9c5ae00e602b-b87c178459",
+          "id": "primary-020",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-11d20a741a0e-47a6faaf45",
+          "id": "primary-021",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-8c35116cc3",
+          "id": "primary-022",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "added-tokens-6dbf3df426e1-c992a97bfb",
+          "id": "primary-023",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-f9ff8c543ce7-d9a3373af2",
+          "id": "primary-024",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-56adeaeff12e-25c5334061",
+          "id": "primary-025",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-d36328fcc924-98e965502a",
+          "id": "primary-026",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00001-of-00002-a3ce050556ba-f940099643",
+          "id": "primary-027",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-00002-of-00002-374683b899a8-48c20e2a08",
+          "id": "primary-028",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-safetensors-ind-6b4af7af91fa-322b43acad",
+          "id": "primary-029",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-903c63784f93-101abd63da",
+          "id": "primary-030",
+          "mount": {
+            "read_only": true,
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-89dcb55c5fc9-86e9ee3b4f",
+          "id": "primary-031",
           "mount": {
             "read_only": true,
             "target": "/models"
@@ -139,7 +469,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "16834875b23181681c9410f40c5da3bc6ded2167a260ac1ff931aa85a78c0dfa",
+        "content_sha256": "8ae61136aab936136fece5ba2d943f679ad1b84c38de019c7db29c9ca8f98620",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan-video-15-i2v-step-distilled"
@@ -151,10 +481,26 @@
       "tencent"
     ],
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038"
+    "source_reference": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled/tree/854c04a4c8a53d990b418c7478f0802c0fc8c726"
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "The recipe now binds all 31 files from the exact upstream 480p I2V step-distilled revision, including the image encoder and feature extractor as well as every tokenizer, transformer, VAE, scheduler, and configuration file required offline.",
+            "kind": "model",
+            "references": [
+              "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled/tree/854c04a4c8a53d990b418c7478f0802c0fc8c726"
+            ],
+            "summary": "Replace aggregate snapshot with exact pinned Diffusers file selections."
+          }
+        ],
+        "prior_recipe_content_sha256": "9a64910660148814474c187c641ddd009ef12cf25530f45c7b8da50889d537a9",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "reprepare",
+        "version": "1.4.5"
+      },
       {
         "changes": [
           {
@@ -356,8 +702,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.4.4"
+    "released_at": "2026-09-24",
+    "version": "1.4.5"
   },
   "runtime": {
     "arguments": [

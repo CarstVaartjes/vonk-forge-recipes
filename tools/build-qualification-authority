@@ -6,7 +6,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -20,17 +22,65 @@ _RECIPE_ROW = re.compile(r"[a-z0-9][a-z0-9-]{0,62}/[a-z0-9][a-z0-9-]{0,62}\Z")
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 _COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 _FIXTURE_MARKERS = {"$fixture_data_uri", "$fixture_base64"}
+_GIT_OBJECT_TIMEOUT_SECONDS = 10
 
 
-def _document(path: Path) -> dict[str, Any]:
-    value = json.loads(path.read_text(encoding="utf-8"))
+def _document_bytes(content: bytes, description: str) -> dict[str, Any]:
+    value = json.loads(content.decode("utf-8"))
     if not isinstance(value, dict):
-        raise TypeError(f"{path.relative_to(ROOT)} must contain a JSON object")
+        raise TypeError(f"{description} must contain a JSON object")
     return value
 
 
-def _file_sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+def _document(path: Path) -> dict[str, Any]:
+    return _document_bytes(path.read_bytes(), path.relative_to(ROOT).as_posix())
+
+
+def _git_blob(commit: str, relative_path: str) -> bytes:
+    environment = os.environ.copy()
+    for name in (
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_INDEX_FILE",
+        "GIT_COMMON_DIR",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    ):
+        environment.pop(name, None)
+    environment.update(
+        {
+            "GIT_NO_REPLACE_OBJECTS": "1",
+            "GIT_NO_LAZY_FETCH": "1",
+            "GIT_OPTIONAL_LOCKS": "0",
+            "GIT_TERMINAL_PROMPT": "0",
+        }
+    )
+    object_name = f"{commit}:{relative_path}"
+    try:
+        result = subprocess.run(
+            ["git", "--no-replace-objects", "cat-file", "blob", object_name],
+            cwd=ROOT,
+            env=environment,
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=_GIT_OBJECT_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as error:
+        raise ValueError(
+            f"timed out reading pinned Git object {object_name} after "
+            f"{_GIT_OBJECT_TIMEOUT_SECONDS} seconds"
+        ) from error
+    except OSError as error:
+        raise ValueError(
+            f"cannot read pinned Git object {object_name}: {error}"
+        ) from error
+    if result.returncode != 0:
+        detail = result.stderr.decode("utf-8", errors="replace").strip()
+        if not detail:
+            detail = f"git exited with status {result.returncode}"
+        raise ValueError(f"cannot read pinned Git object {object_name}: {detail}")
+    return result.stdout
 
 
 def _recipe_key(document: dict[str, Any]) -> str:
@@ -235,12 +285,8 @@ def _refresh_plan(text: str, rows: list[dict[str, Any]]) -> str:
 
 
 def _build() -> dict[Path, bytes]:
-    catalog_path = ROOT / "catalog-index.json"
-    qualification_path = QUALIFICATION / "qualification-index.json"
     plan_text = PLAN_PATH.read_text(encoding="utf-8")
     plan_rows = _plan_rows(plan_text)
-    catalog = _document(catalog_path)
-    qualification = _document(qualification_path)
     release = _document(QUALIFICATION / "catalog-release.json")
     gate_review = _document(QUALIFICATION / "review-gates.json")
 
@@ -257,6 +303,15 @@ def _build() -> dict[Path, bytes]:
         r"v[0-9]+\.[0-9]+\.[0-9]+", release_tag
     ):
         raise ValueError("catalog release tag is invalid")
+
+    catalog_bytes = _git_blob(catalog_commit, "catalog-index.json")
+    qualification_bytes = _git_blob(
+        catalog_commit, "qualification/qualification-index.json"
+    )
+    catalog = _document_bytes(catalog_bytes, "pinned catalog-index.json")
+    qualification = _document_bytes(
+        qualification_bytes, "pinned qualification-index.json"
+    )
 
     catalog_recipes: dict[str, dict[str, Any]] = {}
     for entry in catalog.get("recipes", []):
@@ -430,8 +485,10 @@ def _build() -> dict[Path, bytes]:
             "commit": catalog_commit,
             "release_tag": release_tag,
             "source_commit": source_commit,
-            "catalog_index_sha256": _file_sha256(catalog_path),
-            "qualification_index_sha256": _file_sha256(qualification_path),
+            "catalog_index_sha256": hashlib.sha256(catalog_bytes).hexdigest(),
+            "qualification_index_sha256": hashlib.sha256(
+                qualification_bytes
+            ).hexdigest(),
             "recipe_count": len(catalog_recipes),
         },
         "scope": {
