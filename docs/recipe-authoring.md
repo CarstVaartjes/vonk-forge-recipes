@@ -193,6 +193,13 @@ to a commit that predates its authored inputs or invent a digest to avoid
 regeneration. Follow the generator and publication workflow if their procedure
 changes. Re-run freshness checks before pushing.
 
+When a pull request carries authored sources and their generated catalog,
+preserve the source commit in `main` with a merge commit; do not squash it,
+because publication verifies that the bound source commit is in the merged
+ancestry. If the change is squashed, regenerate packages and indexes against
+the actual merged source commit before publication. Keep the ancestry check
+intact.
+
 Open or update the PR with exact before/after sources, the reason for changes,
 version notes, validation results, and any retained pins. Complete CI, merge,
 and verify the published catalog and changed package downloads within the
