@@ -374,7 +374,7 @@ These definitions are validated against the current Pydantic authority contract.
 
 ## Published source comparison
 
-The working catalog index matches the accepted release index.
+The accepted release binds catalog index `cb9626b2b8c1a07a` (v1.0.16); the working index is `400bc65b6a723e0c`. Refresh the authority after the changed catalog has been accepted.
 
 The following rows differ from the accepted recipe or build-source identity.
 

@@ -11,7 +11,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 ROOT = Path(__file__).resolve().parents[1]
 QUALIFICATION = ROOT / "qualification"
@@ -27,6 +27,8 @@ from vonk_forge_contracts.qualification_authority import (
     RecoveryCoverageDefinition,
     RecoveryCoverageMember,
     RecoveryCoverageRef,
+    RecoveryFailureMode,
+    RecoveryInvalidationField,
     recovery_coverage_id,
 )
 
@@ -51,7 +53,7 @@ _GIT_OBJECT_TIMEOUT_SECONDS = 10
 _INVENTORY_BEGIN = "<!-- generated:begin qualification-inventory -->"
 _INVENTORY_END = "<!-- generated:end qualification-inventory -->"
 
-_RECOVERY_INVALIDATION_FIELDS = [
+_RECOVERY_INVALIDATION_FIELDS: list[RecoveryInvalidationField] = [
     "recipe_content_sha256",
     "package_sha256",
     "model_content_sha256s",
@@ -307,10 +309,18 @@ def _execution_batches(
     if any(row["node_count"] not in (1, 2) for row in rows):
         raise ValueError("only one- and two-node recipes belong in the authority")
 
-    pending: list[tuple[int, str, list[dict[str, Any]]]] = []
+    pending: list[
+        tuple[
+            int,
+            Literal["paired-single", "single", "exclusive-dual"],
+            list[dict[str, Any]],
+        ]
+    ] = []
     for offset in range(0, len(singles), 2):
         assignments = singles[offset : offset + 2]
-        mode = "paired-single" if len(assignments) == 2 else "single"
+        mode: Literal["paired-single", "single", "exclusive-dual"] = (
+            "paired-single" if len(assignments) == 2 else "single"
+        )
         pending.append((assignments[0]["sequence"], mode, assignments))
     for row in duals:
         pending.append((row["sequence"], "exclusive-dual", [row]))
@@ -347,9 +357,9 @@ def _recovery_coverage_definitions(
 ) -> tuple[list[RecoveryCoverage], dict[str, list[dict[str, Any]]]]:
     """Build exact typed recovery groups and references for every authority row."""
 
-    groups: dict[tuple[str, str, str, str], list[dict[str, Any]]] = {}
+    groups: dict[tuple[RecoveryFailureMode, str, str, str], list[dict[str, Any]]] = {}
     for row in rows:
-        modes = (
+        modes: list[RecoveryFailureMode] = (
             ["single-host-restart"]
             if row["node_count"] == 1
             else ["dual-rank-loss-recovery", "dual-host-restart"]
@@ -445,10 +455,16 @@ def _pinned_stack_identities(
     with pinned_catalog_source_tree(
         ROOT, source_commit, list(recipes.values())
     ) as source_root:
-        return {
-            key: execution_stack_identity(source_root, recipe, recipe.execution.build)
-            for key, recipe in recipes.items()
-        }
+        identities: dict[str, dict[str, Any]] = {}
+        for key, recipe in recipes.items():
+            if recipe.execution.mode != "build":
+                raise ValueError(
+                    f"qualification stack requires a build execution: {key}"
+                )
+            identities[key] = execution_stack_identity(
+                source_root, recipe, recipe.execution.build
+            )
+        return identities
 
 
 def _refresh_plan(text: str, authority: dict[str, Any]) -> str:

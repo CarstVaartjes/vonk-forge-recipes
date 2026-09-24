@@ -9,12 +9,12 @@
     "out_of_scope_recipe_count": 4,
     "in_scope_maximum_node_count": 2,
     "authority_id": "nl-family-aware-20260924",
-    "catalog_index_sha256": "cb9626b2b8c1a07a9a926b005313eb92bf071cb572bbd2c2ac9236b55a1a618b",
+    "catalog_index_sha256": "400bc65b6a723e0ce674e0c0e604893b52bfb0c1168fd1a095aef48098e29f5c",
     "bound_catalog_index_sha256": "cb9626b2b8c1a07a9a926b005313eb92bf071cb572bbd2c2ac9236b55a1a618b",
     "bound_release_tag": "v1.0.16",
     "bound_catalog_commit": "7b23f1a1569e16f8f2728ddd6846cf4f7c58f0f7",
     "source_commit": "a0ffd8735270c35b0c99b5b04cfe8956ce8c351d",
-    "catalog_binding_current": true
+    "catalog_binding_current": false
   },
   "coverage_group_order": [
     "vllm",
