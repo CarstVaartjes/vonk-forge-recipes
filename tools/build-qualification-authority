@@ -23,6 +23,12 @@ _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 _COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 _FIXTURE_MARKERS = {"$fixture_data_uri", "$fixture_base64"}
 _GIT_OBJECT_TIMEOUT_SECONDS = 10
+# The plan is authored prose wrapped around exactly one generated block.  The
+# markers make that boundary explicit: a prose edit, a renamed heading or a
+# moved paragraph cannot make the generator report the plan stale, and a plan
+# without the block fails closed instead of silently regenerating prose.
+_INVENTORY_BEGIN = "<!-- generated:begin qualification-inventory -->"
+_INVENTORY_END = "<!-- generated:end qualification-inventory -->"
 
 
 def _document_bytes(content: bytes, description: str) -> dict[str, Any]:
@@ -62,8 +68,7 @@ def _git_blob(commit: str, relative_path: str) -> bytes:
             cwd=ROOT,
             env=environment,
             check=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             timeout=_GIT_OBJECT_TIMEOUT_SECONDS,
         )
     except subprocess.TimeoutExpired as error:
@@ -93,9 +98,22 @@ def _recipe_key(document: dict[str, Any]) -> str:
     return key
 
 
+def _inventory_block(text: str) -> str:
+    for marker in (_INVENTORY_BEGIN, _INVENTORY_END):
+        if text.count(marker) != 1:
+            raise ValueError(
+                "qualification plan must contain exactly one generated inventory block"
+            )
+    start = text.index(_INVENTORY_BEGIN) + len(_INVENTORY_BEGIN)
+    stop = text.index(_INVENTORY_END)
+    if stop < start:
+        raise ValueError("qualification plan generated inventory block is reversed")
+    return text[start:stop]
+
+
 def _plan_rows(text: str) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
-    for line_number, line in enumerate(text.splitlines(), start=1):
+    for line_number, line in enumerate(_inventory_block(text).splitlines(), start=1):
         if not line.startswith("|"):
             continue
         fields = [part.strip() for part in line.strip().strip("|").split("|")]
@@ -133,7 +151,7 @@ def _unique_fixture_ids(values: list[Any]) -> list[str]:
 
 
 def _artifact_fixture_ids(item: dict[str, Any]) -> list[str]:
-    fixture_ids: list[str] = []
+    fixture_ids: list[Any] = []
     cases = [item, *item.get("cases", [])]
     for case in cases:
         inputs = case.get("inputs")
@@ -239,49 +257,44 @@ def _campaign_gate(row: dict[str, Any]) -> str:
 
 
 def _refresh_plan(text: str, rows: list[dict[str, Any]]) -> str:
+    """Rewrite only the generated inventory block and copy authored prose."""
+
     row_by_key = {row["key"]: row for row in rows}
-    result: list[str] = []
-    for line in text.splitlines(keepends=True):
-        if not line.startswith("|"):
-            result.append(line)
-            continue
-        fields = [part.strip() for part in line.strip().strip("|").split("|")]
-        if len(fields) == 6 and fields[0] == "#":
-            fields[4] = "Campaign gate"
-            result.append("| " + " | ".join(fields) + " |\n")
-            continue
-        if len(fields) != 6 or not fields[0].isdigit():
-            result.append(line)
-            continue
-        match = re.fullmatch(r"`([^`]+)`", fields[1])
-        if match is None:
-            raise ValueError(f"plan row {fields[0]} lacks a recipe key")
-        key = match.group(1)
+    lines = [
+        _INVENTORY_BEGIN,
+        "\n",
+        (
+            "Rows 1–81 are the one-at-a-time campaign and are bound by the ordered "
+            "authority. Rows 82–85 close the catalog audit only; they require more "
+            "than two Sparks and are not in the campaign."
+        ),
+        "\n",
+        "\n",
+        "| # | Recipe | Nodes | Check | Campaign gate | Source review |\n",
+        "|---:|---|---:|---|---|---|\n",
+    ]
+    for plan_row in _plan_rows(text):
+        key = plan_row["key"]
         row = row_by_key.get(key)
         if row is None:
-            if int(fields[0]) <= 81:
+            if plan_row["sequence"] <= 81:
                 raise ValueError(f"campaign row is absent from authority: {key}")
             gate = "out of scope (>2 Sparks)"
         else:
             gate = _campaign_gate(row)
-        fields[4] = gate
-        result.append("| " + " | ".join(fields) + " |\n")
-    updated = "".join(result)
-    sequence_heading = "## One-by-one sequence\n"
-    sequence_note = (
-        "Rows 1–81 are the one-at-a-time campaign and are bound by the ordered "
-        "authority. Rows 82–85 close the catalog audit only; they require more "
-        "than two Sparks and are not in the campaign."
-    )
-    if sequence_heading not in updated:
-        raise ValueError("qualification plan lacks the one-by-one sequence heading")
-    updated = re.sub(
-        r"(?m)^Rows 1–81 are the one-at-a-time campaign.*\n(?:\n)?", "", updated
-    )
-    updated = updated.replace(
-        sequence_heading, f"{sequence_heading}\n{sequence_note}\n", 1
-    )
-    return updated
+        fields = [
+            str(plan_row["sequence"]),
+            f"`{key}`",
+            str(plan_row["node_count"]),
+            plan_row["check"],
+            gate,
+            plan_row["source_review"],
+        ]
+        lines.append("| " + " | ".join(fields) + " |\n")
+    lines.append(_INVENTORY_END)
+    start = text.index(_INVENTORY_BEGIN)
+    stop = text.index(_INVENTORY_END) + len(_INVENTORY_END)
+    return text[:start] + "".join(lines) + text[stop:]
 
 
 def _build() -> dict[Path, bytes]:
@@ -342,10 +355,10 @@ def _build() -> dict[Path, bytes]:
     if set(capacity_reviews) - set(catalog_recipes):
         raise ValueError("capacity review references an absent catalog recipe")
 
-    indexed_recipes = qualification.get("recipes")
-    service_recipes = qualification.get("service_recipes")
-    service_templates = qualification.get("service_case_templates")
-    fixtures = qualification.get("fixtures")
+    indexed_recipes: Any = qualification.get("recipes")
+    service_recipes: Any = qualification.get("service_recipes")
+    service_templates: Any = qualification.get("service_case_templates")
+    fixtures: Any = qualification.get("fixtures")
     if not all(
         isinstance(value, dict)
         for value in (indexed_recipes, service_recipes, service_templates, fixtures)
@@ -363,7 +376,7 @@ def _build() -> dict[Path, bytes]:
         if not isinstance(topology, dict) or not isinstance(package, dict):
             raise TypeError(f"catalog topology or package is malformed: {key}")
         node_count = topology.get("node_count")
-        if node_count != plan_row["node_count"]:
+        if node_count is None or node_count != plan_row["node_count"]:
             raise ValueError(f"plan topology differs from catalog for {key}")
         if node_count > 2:
             out_of_scope.append(key)

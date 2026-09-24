@@ -4,6 +4,7 @@ import copy
 import json
 import subprocess
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 from jsonschema import Draft202012Validator
@@ -539,7 +540,8 @@ def test_content_digest_normalizes_defaults_and_rejects_raw_dicts() -> None:
         RecipeDefinition.model_validate(recipe.model_dump())
     )
     with pytest.raises(TypeError, match="validated"):
-        content_sha256(document)  # type: ignore[arg-type]
+        # The test passes a deliberately invalid raw dict, not a validated model.
+        content_sha256(cast(Any, document))
 
 
 def test_checked_in_schemas_are_generated_from_the_same_models() -> None:

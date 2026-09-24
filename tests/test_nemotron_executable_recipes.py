@@ -5,6 +5,7 @@ import runpy
 import sys
 import unittest
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
@@ -30,12 +31,12 @@ def read(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def recipe_model(recipe: dict[str, object], index: int = 0) -> dict[str, object]:
-    return read(ROOT / "models" / (recipe["models"][index]["model"]["slug"] + ".json"))  # type: ignore[index]
+def recipe_model(recipe: dict[str, Any], index: int = 0) -> dict[str, object]:
+    return read(ROOT / "models" / (recipe["models"][index]["model"]["slug"] + ".json"))
 
 
-def arguments(recipe: dict[str, object]) -> dict[str, object]:
-    return {item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]}  # type: ignore[index]
+def arguments(recipe: dict[str, Any]) -> dict[str, object]:
+    return {item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]}
 
 
 class NemotronExecutableRecipeTests(unittest.TestCase):
@@ -61,16 +62,16 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
         }
         for name, filename in expected.items():
             with self.subTest(profile=name):
-                recipe = read(RECIPES[name])
+                recipe: dict[str, Any] = read(RECIPES[name])
                 args = arguments(recipe)
                 self.assertEqual(
                     args["reasoning-parser-plugin"].split("/")[-1], filename
                 )
                 model = recipe_model(recipe)
-                selected = {item["file_id"] for item in recipe["models"][0]["files"]}  # type: ignore[index]
+                selected = {item["file_id"] for item in recipe["models"][0]["files"]}
                 manifest = next(
                     item for item in model["files"] if item["path"] == filename
-                )  # type: ignore[index]
+                )
                 self.assertIn(manifest["id"], selected)
                 self.assertIn("runtime", manifest["roles"])
 
@@ -90,7 +91,8 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
             },
         )
         self.assertEqual(len(recipe["models"]), 2)
-        drafter = recipe["models"][1]["files"][0]  # type: ignore[index]
+        models: Any = recipe["models"]
+        drafter = models[1]["files"][0]
         self.assertEqual(drafter["mount"]["target"], "/models/drafter")
 
     def test_omni_is_explicitly_text_only(self) -> None:

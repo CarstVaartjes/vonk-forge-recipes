@@ -11,9 +11,11 @@ import sys
 import time
 from collections import Counter
 from collections.abc import Callable
+from contextlib import AbstractContextManager
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlsplit
 from urllib.request import Request, urlopen
@@ -343,7 +345,7 @@ class ProviderClient:
         *,
         github_token: str | None = None,
         huggingface_token: str | None = None,
-        opener: Callable[..., object] = urlopen,
+        opener: Callable[..., AbstractContextManager[Any]] = urlopen,
     ) -> None:
         self.github_token = github_token
         self.huggingface_token = huggingface_token
@@ -368,7 +370,7 @@ class ProviderClient:
         request = Request(url, headers=headers)
         for attempt in range(3):
             try:
-                with self.opener(request, timeout=20) as response:  # type: ignore[attr-defined]
+                with self.opener(request, timeout=20) as response:
                     payload = response.read(MAX_RESPONSE_BYTES + 1)
                 if len(payload) > MAX_RESPONSE_BYTES:
                     raise RuntimeError(

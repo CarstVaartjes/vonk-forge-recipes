@@ -4,6 +4,7 @@ import json
 import sys
 import unittest
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
@@ -26,22 +27,23 @@ class QwenImage2512FP8LightningRecipeTests(unittest.TestCase):
         self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")
         self.assertEqual(len(recipe["models"]), 2)
         for selection in recipe["models"]:
-            model = read(ROOT / "models" / f"{selection['model']['slug']}.json")  # type: ignore[index]
-            self.assertEqual(selection["model"]["content_sha256"], digest(model))  # type: ignore[index]
+            model = read(ROOT / "models" / f"{selection['model']['slug']}.json")
+            self.assertEqual(selection["model"]["content_sha256"], digest(model))
             self.assertTrue(selection["files"])
 
     def test_four_step_1328_image_request_and_offline_build(self) -> None:
         recipe = read(ROOT / "recipes/qwen-image-2512-lightning-diffusers-single.json")
         args = {
             item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]
-        }  # type: ignore[index]
+        }
         self.assertEqual(args["num-inference-steps"], 4)
         self.assertEqual(args["width"], 1328)
         self.assertEqual(args["height"], 1328)
         self.assertIn(
             recipe["execution"]["build"]["network"]["mode"], {"none", "public"}
-        )  # type: ignore[index]
-        self.assertTrue(recipe["validation"]["serving"]["checks"])  # type: ignore[index]
+        )
+        validation: Any = recipe["validation"]
+        self.assertTrue(validation["serving"]["checks"])
 
 
 if __name__ == "__main__":

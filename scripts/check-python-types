@@ -22,6 +22,11 @@ gate and the fix was to baseline an import that was never missing. Modules that
 genuinely live only in the control environment (`vonk_control`,
 `vonk_agent_protocol`) still need their exceptions.
 
+pyright's default program only includes `**/*.py`, so the extensionless Python
+executables under `tools/` and `adapters/` were never analyzed. They are
+discovered by shebang and analyzed explicitly, alongside the project run, so a
+type error in an entry point cannot hide behind the glob.
+
 Run `--update` to write the current errors, then write the reason for any new
 entry it adds.
 """
@@ -38,9 +43,41 @@ ROOT = Path(__file__).resolve().parents[1]
 BASELINE = ROOT / "tools/pyright-baseline.json"
 
 
-def _diagnostics() -> list[dict[str, object]]:
+def _entry_points() -> list[str]:
+    """Return the tracked extensionless Python executables pyright's glob skips.
+
+    ``pyright`` defaults to ``**/*.py``, so an entry point named
+    ``tools/build-catalog-index`` is only analyzed when it is named explicitly.
+    The discovery matches ``tools/check-python-format``.
+    """
+
+    listed = subprocess.run(
+        ["git", "ls-files"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    entry_points: list[str] = []
+    for name in listed.stdout.splitlines():
+        if not name or "." in name:
+            continue
+        path = ROOT / name
+        if not path.is_file():
+            continue
+        try:
+            with path.open("r", encoding="utf-8") as handle:
+                first_line = handle.readline()
+        except OSError:
+            continue
+        if first_line.startswith("#!") and "python" in first_line:
+            entry_points.append(name)
+    return sorted(entry_points)
+
+
+def _pyright(paths: list[str]) -> list[dict[str, object]]:
     completed = subprocess.run(
-        ["pyright", "--outputjson"],
+        ["pyright", "--outputjson", *paths],
         cwd=ROOT,
         capture_output=True,
         text=True,
@@ -62,6 +99,14 @@ def _diagnostics() -> list[dict[str, object]]:
                 "rule": diagnostic.get("rule") or "unknown",
             }
         )
+    return diagnostics
+
+
+def _diagnostics() -> list[dict[str, object]]:
+    diagnostics = _pyright([])
+    entry_points = _entry_points()
+    if entry_points:
+        diagnostics.extend(_pyright(entry_points))
     return diagnostics
 
 

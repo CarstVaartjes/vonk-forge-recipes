@@ -1554,6 +1554,12 @@
       "rule": "reportOptionalMemberAccess",
       "count": 1,
       "reason": "The test dereferences a value after asserting it exists; pyright cannot follow the assertion."
+    },
+    {
+      "file": "tools/derive-skintokens-rigged-figure",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "The derivation tool imports trimesh 5.0.0, which is installed only in the environment that runs the derivation, never in the host environment that runs pyright."
     }
   ]
 }

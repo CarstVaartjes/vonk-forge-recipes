@@ -169,8 +169,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" uvx --from ruff==0.16.1 ruff check .
-          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" uvx --from ruff==0.16.1 ruff format --check .
+          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-lint
+          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-format
           UV_CACHE_DIR="$RUNNER_TEMP/uv-cache" scripts/check-python-types
 
       - name: Validate release input
