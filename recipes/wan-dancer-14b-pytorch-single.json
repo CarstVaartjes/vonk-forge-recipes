@@ -14,6 +14,7 @@
       "network": {
         "hosts": [
           "download.pytorch.org",
+          "download-r2.pytorch.org",
           "pypi.org",
           "files.pythonhosted.org",
           "archive.ubuntu.com",
@@ -452,6 +453,23 @@
       {
         "changes": [
           {
+            "kind": "fix",
+            "summary": "Declared the official cu130 PyTorch wheel-object host for source builds.",
+            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
+            "references": [
+              "https://download.pytorch.org/whl/cu130/torch/",
+              "https://download.pytorch.org/whl/cu130/torchvision/"
+            ]
+          }
+        ],
+        "prior_recipe_content_sha256": "bbca1bfac707e836e640bb4aac780cd7c21b4de86eba96f232fb60ae161de275",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.10"
+      },
+      {
+        "changes": [
+          {
             "details": "DiffSynth-Studio moved from 84f93fc4 to 4dbf980d and changed model configuration, pipeline, and runtime support. The native Wan Dancer adapter retains the specialized 84f93fc4 pin until compatibility and serving checks cover the changed implementation.",
             "kind": "compatibility",
             "references": [
@@ -621,8 +639,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.0.9"
+    "released_at": "2026-09-24",
+    "version": "1.0.10"
   },
   "runtime": {
     "arguments": [

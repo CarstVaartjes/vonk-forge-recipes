@@ -15,6 +15,7 @@
         "hosts": [
           "github.com",
           "download.pytorch.org",
+          "download-r2.pytorch.org",
           "pypi.org",
           "files.pythonhosted.org",
           "archive.ubuntu.com",
@@ -498,6 +499,23 @@
       {
         "changes": [
           {
+            "kind": "fix",
+            "summary": "Declared the official cu130 PyTorch wheel-object host for source builds.",
+            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
+            "references": [
+              "https://download.pytorch.org/whl/cu130/torch/",
+              "https://download.pytorch.org/whl/cu130/torchvision/"
+            ]
+          }
+        ],
+        "prior_recipe_content_sha256": "b60de94f35a5fdb0c74bccbb973bb2459d6d6dd4f3403f06a84882c52f78a10a",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "1.1.10"
+      },
+      {
+        "changes": [
+          {
             "details": "The current Diffusers source preserves the Qwen pipeline call surface used by this adapter; the selected prompt/image/layer arguments remain accepted without changing model files or recipe settings.",
             "kind": "compatibility",
             "references": [
@@ -677,8 +695,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.1.9"
+    "released_at": "2026-09-24",
+    "version": "1.1.10"
   },
   "runtime": {
     "arguments": [

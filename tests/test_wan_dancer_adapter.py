@@ -33,6 +33,7 @@ BASE_IMAGE = {
 }
 BUILD_NETWORK_HOSTS = [
     "download.pytorch.org",
+    "download-r2.pytorch.org",
     "pypi.org",
     "files.pythonhosted.org",
     "archive.ubuntu.com",

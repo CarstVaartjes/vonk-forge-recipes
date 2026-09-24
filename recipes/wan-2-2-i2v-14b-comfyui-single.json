@@ -15,6 +15,7 @@
         "hosts": [
           "codeload.github.com",
           "download.pytorch.org",
+          "download-r2.pytorch.org",
           "pypi.org",
           "files.pythonhosted.org",
           "archive.ubuntu.com",
@@ -198,6 +199,23 @@
       {
         "changes": [
           {
+            "kind": "fix",
+            "summary": "Declared the official cu130 PyTorch wheel-object host for source builds.",
+            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
+            "references": [
+              "https://download.pytorch.org/whl/cu130/torch/",
+              "https://download.pytorch.org/whl/cu130/torchvision/"
+            ]
+          }
+        ],
+        "prior_recipe_content_sha256": "85a10f38daf4ccc73e59bcc5a697b5c9cca582008de74ccb0585861a39f83a70",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.11"
+      },
+      {
+        "changes": [
+          {
             "details": "The digest-verified build now fetches ComfyUI at the current checked upstream commit. The pinned compare range changes ComfyUI internals and API nodes, while every node class used by this recipe workflow remains present in the current source tree; workflow JSON, model revisions, and specialized Spark resource declarations are unchanged.",
             "kind": "compatibility",
             "references": [
@@ -358,8 +376,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.0.10"
+    "released_at": "2026-09-24",
+    "version": "1.0.11"
   },
   "runtime": {
     "arguments": [

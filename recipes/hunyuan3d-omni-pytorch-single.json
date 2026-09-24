@@ -15,6 +15,7 @@
         "hosts": [
           "github.com",
           "download.pytorch.org",
+          "download-r2.pytorch.org",
           "pypi.org",
           "files.pythonhosted.org",
           "archive.ubuntu.com",
@@ -340,6 +341,25 @@
       {
         "changes": [
           {
+            "kind": "fix",
+            "summary": "Declared the official cu132 PyTorch wheel host and removed an unused torchaudio install request.",
+            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host, which is now explicitly permitted. The pinned upstream adapter source does not import torchaudio, and the stable cu132 index has no Python 3.12 ARM64 torchaudio 2.11.0 wheel, so the unnecessary request was removed. Model and runtime image pins are unchanged.",
+            "references": [
+              "https://download.pytorch.org/whl/cu132/torch/",
+              "https://download.pytorch.org/whl/cu132/torchvision/",
+              "https://download.pytorch.org/whl/cu132/torchaudio/",
+              "https://huggingface.co/tencent/Hunyuan3D-Omni/tree/70e803bfb4e127d534049d8ab8c8cb511780d485"
+            ]
+          }
+        ],
+        "prior_recipe_content_sha256": "5f1b198e461bddfc41986d5540036f5019bd0c624e0f5c4015e5bfadae67294c",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.11"
+      },
+      {
+        "changes": [
+          {
             "details": "At the pinned Hunyuan3D-Omni loader, variant=None selects model/pytorch_model.bin; model/pytorch_model_ema.bin is loaded only for variant='ema'. The adapter passes no variant, so the unused EMA weights are removed from the exact Model manifest and recipe selection.",
             "kind": "fix",
             "references": [
@@ -588,7 +608,7 @@
       }
     ],
     "released_at": "2026-09-24",
-    "version": "2.0.10"
+    "version": "2.0.11"
   },
   "runtime": {
     "arguments": [

@@ -15,6 +15,7 @@
         "hosts": [
           "github.com",
           "download.pytorch.org",
+          "download-r2.pytorch.org",
           "pypi.org",
           "files.pythonhosted.org",
           "archive.ubuntu.com",
@@ -856,6 +857,23 @@
       {
         "changes": [
           {
+            "kind": "fix",
+            "summary": "Declared the official cu130 PyTorch wheel-object host for source builds.",
+            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
+            "references": [
+              "https://download.pytorch.org/whl/cu130/torch/",
+              "https://download.pytorch.org/whl/cu130/torchvision/"
+            ]
+          }
+        ],
+        "prior_recipe_content_sha256": "c7e4de1eb860e522919a852c8711135ed85f928f0954f32803bec1735f4e0710",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "1.0.7"
+      },
+      {
+        "changes": [
+          {
             "details": "The current Diffusers compare range is large, but the exact MiniMax H3 modular pipeline source used by this adapter is byte-identical at the selected efabd60d pin and current c5469b7c head. The specialized FL2VA/reference workflows therefore retain their exact runtime pin and model closure.",
             "kind": "compatibility",
             "references": [
@@ -968,8 +986,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.0.6"
+    "released_at": "2026-09-24",
+    "version": "1.0.7"
   },
   "runtime": {
     "arguments": [
