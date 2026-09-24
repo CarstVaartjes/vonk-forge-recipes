@@ -298,6 +298,24 @@
         "changes": [
           {
             "kind": "runtime",
+            "summary": "Keep the shared Step1X inference smoke independent of plotting-only imports.",
+            "details": "The texture pipeline imports make_image_grid and tensor_to_image from the upstream saver module; Matplotlib is only used by its magma and spectral visualization branches. Those imports are now deferred to the selected branches without changing the image helpers. The shared build smoke exercises both helpers and imports the compiled custom rasterizer and nvdiffrast modules.",
+            "references": [
+              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_texture/utils/saving.py",
+              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_texture/pipelines/step1x_3d_texture_synthesis_pipeline.py",
+              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_texture/differentiable_renderer/mesh_render.py",
+              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_texture/custom_rasterizer/custom_rasterizer/__init__.py"
+            ]
+          }
+        ],
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.14"
+      },
+      {
+        "changes": [
+          {
+            "kind": "runtime",
             "summary": "Keep the served texture import closure independent of geometry training systems.",
             "details": "The texture pipeline imports geometry pipeline utilities, which executes the pinned Step1X package initializer. The image now initializes the model registry without importing unused training data or systems, avoiding their MosaicML streaming and plotting/logging dependencies. The shared Step1X build pins Beautiful Soup 4.15.0 and SoupSieve 2.9.2 for the still-eager T5 encoder import, outside both published affected ranges (through 2.8.3 and 2.8.4 respectively).",
             "references": [
@@ -597,7 +615,7 @@
       }
     ],
     "released_at": "2026-09-24",
-    "version": "1.2.13"
+    "version": "1.2.14"
   },
   "runtime": {
     "arguments": [
