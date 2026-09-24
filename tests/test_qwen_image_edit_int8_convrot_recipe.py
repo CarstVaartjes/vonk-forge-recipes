@@ -4,6 +4,7 @@ import json
 import sys
 import unittest
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
@@ -20,7 +21,7 @@ class QwenImageEditINT8ConvRotRecipeTests(unittest.TestCase):
     def test_exact_official_int8_convrot_model_is_bound(self) -> None:
         recipe = read(self.path)
         selection = recipe["models"][0]
-        model = read(ROOT / "models" / f"{selection['model']['slug']}.json")  # type: ignore[index]
+        model = read(ROOT / "models" / f"{selection['model']['slug']}.json")
         self.assertEqual(
             model["source"]["revision"], "e9e85de74a8f48c1e3e2656617626348675a2f21"
         )
@@ -28,13 +29,13 @@ class QwenImageEditINT8ConvRotRecipeTests(unittest.TestCase):
         self.assertEqual(
             selection["model"]["content_sha256"],
             content_sha256(ModelDefinition.model_validate(model)),
-        )  # type: ignore[index]
+        )
 
     def test_workflow_resource_and_job_contract(self) -> None:
         recipe = read(self.path)
         args = {
             item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]
-        }  # type: ignore[index]
+        }
         self.assertTrue(
             args["workflow"].endswith("qwen-image-edit-2511-int8-convrot.json")
         )
@@ -43,8 +44,9 @@ class QwenImageEditINT8ConvRotRecipeTests(unittest.TestCase):
         self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")
         self.assertIn(
             recipe["execution"]["build"]["network"]["mode"], {"none", "public"}
-        )  # type: ignore[index]
-        self.assertTrue(recipe["validation"]["serving"]["checks"])  # type: ignore[index]
+        )
+        validation: Any = recipe["validation"]
+        self.assertTrue(validation["serving"]["checks"])
 
 
 if __name__ == "__main__":
