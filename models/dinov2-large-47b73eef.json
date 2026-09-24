@@ -1,0 +1,130 @@
+{
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [
+      {
+        "capability": "image-understanding",
+        "evidence_digest": null,
+        "evidence_status": "unknown",
+        "support": "unknown"
+      }
+    ],
+    "provenance": {
+      "evidence_digest": "0be39948cdb4f4c364c505c039cffe26ba8097b7300bf55f361952c8b17a5fee",
+      "source_revision": "47b73eefe95e8d44ec3623f8890bd894b6ea2d6c",
+      "source_url": "https://huggingface.co/facebook/dinov2-large/blob/47b73eefe95e8d44ec3623f8890bd894b6ea2d6c/README.md"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "file-587cb980af76",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "12df51c069a2dc1305e34ba71ef58bc2407ea553b75f4722a1715c1bce3bbed0",
+      "size_bytes": 549
+    },
+    {
+      "id": "file-9d75c1098fc5",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "399fba97a95f22c36834418bc69373364a99af3a1153da1c0fb31db567c92e23",
+      "size_bytes": 1217522888
+    },
+    {
+      "id": "file-36afccab5d8d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "14e780d86fa1861f8751f868d7f45425b5feb55c38ca26f152ca5097ab30f828",
+      "size_bytes": 436
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "unspecified",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "facebook",
+      "slug": "dinov2",
+      "title": "DINOv2"
+    },
+    "model": {
+      "architecture": "Vision Transformer feature encoder",
+      "publisher": "facebook",
+      "slug": "dinov2-large",
+      "title": "DINOv2 Large"
+    },
+    "publisher": "facebook",
+    "slug": "dinov2-large-47b73eef",
+    "variant": "Large",
+    "version": "DINOv2 Large 47b73eef"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "facebook"
+    ],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/facebook/dinov2-large/blob/47b73eefe95e8d44ec3623f8890bd894b6ea2d6c/README.md"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Official DINOv2 Large upstream checkpoint at the pinned Hugging Face revision.",
+    "publisher": "facebook",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "facebook",
+      "slug": "dinov2-large"
+    }
+  },
+  "metadata": {
+    "description": "The exact DINOv2-Large feature encoder loaded locally by the Hunyuan3D-Omni adapter.",
+    "tags": [
+      "facebook",
+      "auxiliary",
+      "image",
+      "offline"
+    ]
+  },
+  "modalities": [
+    "image"
+  ],
+  "parameters": {
+    "active": null,
+    "total": null
+  },
+  "provenance": {
+    "attribution": [
+      "facebook"
+    ],
+    "evidence_digest": "0be39948cdb4f4c364c505c039cffe26ba8097b7300bf55f361952c8b17a5fee",
+    "source_revision": "47b73eefe95e8d44ec3623f8890bd894b6ea2d6c",
+    "source_url": "https://huggingface.co/facebook/dinov2-large/blob/47b73eefe95e8d44ec3623f8890bd894b6ea2d6c/README.md"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/facebook/dinov2-large",
+    "revision": "47b73eefe95e8d44ec3623f8890bd894b6ea2d6c"
+  },
+  "supersedes": null
+}

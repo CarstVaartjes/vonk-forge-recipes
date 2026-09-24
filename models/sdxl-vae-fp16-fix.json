@@ -1,0 +1,99 @@
+{
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [],
+    "provenance": {
+      "evidence_digest": "f18b16fa4381c90ab44a3d7abd2e90afd05a2c31b8ca69998bc93c6453aeb7b7",
+      "source_revision": "207b116dae70ace3637169f1ddd2434b91b3a8cd",
+      "source_url": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/blob/207b116dae70ace3637169f1ddd2434b91b3a8cd/config.json"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "vae-config",
+      "path": "config.json",
+      "roles": ["configuration"],
+      "sha256": "f18b16fa4381c90ab44a3d7abd2e90afd05a2c31b8ca69998bc93c6453aeb7b7",
+      "size_bytes": 631
+    },
+    {
+      "id": "vae-weights",
+      "path": "diffusion_pytorch_model.safetensors",
+      "roles": ["weights"],
+      "sha256": "1b909373b28f2137098b0fd9dbc6f97f8410854f31f84ddc9fa04b077b0ace2c",
+      "size_bytes": 334643238
+    }
+  ],
+  "format": {
+    "container": "safetensors",
+    "precision": "fp16-compatible",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "madebyollin",
+      "slug": "sdxl-vae",
+      "title": "Stable Diffusion XL VAE"
+    },
+    "model": {
+      "architecture": "AutoencoderKL",
+      "publisher": "madebyollin",
+      "slug": "sdxl-vae-fp16-fix",
+      "title": "SDXL VAE fp16 fix"
+    },
+    "publisher": "madebyollin",
+    "slug": "sdxl-vae-fp16-fix",
+    "variant": "Step1X texture pipeline VAE",
+    "version": "207b116dae70ace3637169f1ddd2434b91b3a8cd"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": ["madebyollin"],
+    "operator_acceptance_required": false,
+    "spdx": "MIT",
+    "url": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/blob/207b116dae70ace3637169f1ddd2434b91b3a8cd/README.md"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Pinned SDXL VAE replacement passed directly to AutoencoderKL.from_pretrained by Step1X.",
+    "publisher": "madebyollin",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "madebyollin",
+      "slug": "sdxl-vae-fp16-fix"
+    }
+  },
+  "metadata": {
+    "description": "Exact local-only VAE config and safe weights loaded by the Step1X texture adapter.",
+    "tags": ["madebyollin", "vae", "diffusers", "step1x"]
+  },
+  "modalities": ["image"],
+  "parameters": {
+    "active": null,
+    "total": null
+  },
+  "provenance": {
+    "attribution": ["madebyollin"],
+    "evidence_digest": "f18b16fa4381c90ab44a3d7abd2e90afd05a2c31b8ca69998bc93c6453aeb7b7",
+    "source_revision": "207b116dae70ace3637169f1ddd2434b91b3a8cd",
+    "source_url": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/blob/207b116dae70ace3637169f1ddd2434b91b3a8cd/config.json"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix",
+    "revision": "207b116dae70ace3637169f1ddd2434b91b3a8cd"
+  },
+  "supersedes": null
+}

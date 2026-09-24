@@ -29,13 +29,256 @@
   "dependencies": [],
   "files": [
     {
-      "id": "snapshot",
-      "path": "snapshot",
+      "id": "file-774ba70e0bf6",
+      "path": "audio_dit/config.json",
       "roles": [
-        "entrypoint"
+        "configuration"
       ],
-      "sha256": "34f46f8ce591e14cb6b77898535c9482969e6275a875926cbacc0becdf02e122",
-      "size_bytes": 77689755302
+      "sha256": "f82a96c8b38c35611166a5e53ee7a479d681c2ff137ce008fb1d449ea961764e",
+      "size_bytes": 625
+    },
+    {
+      "id": "file-30ab13f8cdcf",
+      "path": "audio_dit/diffusion_pytorch_model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "06804e8aba4e75477fa922e92ad0b03ae2ea2cade7e8829dd36d76fb5c3827d1",
+      "size_bytes": 2838470672
+    },
+    {
+      "id": "file-4092e5fbaa5d",
+      "path": "audio_vae/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "2414c27e35b495ba173db9d72318aad5e397d76170d53f67f30ab2d504743e0a",
+      "size_bytes": 471
+    },
+    {
+      "id": "file-40eb23f3c1f7",
+      "path": "audio_vae/diffusion_pytorch_model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "746e753316a1fa1dd600b73273137f5e5eb29758dd533e1161bf4d681ee46710",
+      "size_bytes": 743102794
+    },
+    {
+      "id": "file-b04a60c3412c",
+      "path": "dual_tower_bridge/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b71c525d5d15c0036e9778bfc807a306b329d4a939f218a2716597b05cc884a9",
+      "size_bytes": 456
+    },
+    {
+      "id": "file-070a6d84b57f",
+      "path": "dual_tower_bridge/diffusion_pytorch_model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "baacc218fc7be9f5f2f1757293f6654bd64042a06961ed8caef71037485467ec",
+      "size_bytes": 5319561560
+    },
+    {
+      "id": "file-ee03ace9a3b1",
+      "path": "model_index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "1b3a8c4316ffba7f1379e2ba4c74e21bcf49c6d2fe7fcca9529d5c2c96a8ad40",
+      "size_bytes": 874
+    },
+    {
+      "id": "file-67ecb3dc37a8",
+      "path": "scheduler/scheduler_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "4f8b88b2a40a4a6522bfbee6f4132598317290ef21625a259d3af92e3b994b48",
+      "size_bytes": 366
+    },
+    {
+      "id": "file-bcfd37e83e34",
+      "path": "text_encoder/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7d965d9c74f3be1c512f1216adff71599e69bab80f205c299dd77c56fd6c3ec6",
+      "size_bytes": 806
+    },
+    {
+      "id": "file-02972f2ff920",
+      "path": "text_encoder/model-00001-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a8e861969c7433e707cc5a74065d795d36cca07ec96eb6763eb4083df7248f58",
+      "size_bytes": 4935812536
+    },
+    {
+      "id": "file-6ecf8bd4b949",
+      "path": "text_encoder/model-00002-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d57d948ece4837d850b7a859a4415121d57cacf8b9ee1d4db200c67f592902d7",
+      "size_bytes": 4983103192
+    },
+    {
+      "id": "file-ab0456bfcf84",
+      "path": "text_encoder/model-00003-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "0da9ee284e21d1406df708788db1d502d95d75f69faa25cd26151bf8829b7c5f",
+      "size_bytes": 1442935480
+    },
+    {
+      "id": "file-5fc12c01f9a5",
+      "path": "text_encoder/model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "44944817a9a9055a60de879bb54163a8cc137c350116b8a122b3b9ae59ba88cf",
+      "size_bytes": 22512
+    },
+    {
+      "id": "file-9a6c01131437",
+      "path": "tokenizer/special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "456b58fd240a06c743a7c2cf8008bec501240d68ebd1fc4018ea569505fea270",
+      "size_bytes": 7079
+    },
+    {
+      "id": "file-b87c178459f0",
+      "path": "tokenizer/tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "20a46ac256746594ed7e1e3ef733b83fbc5a6f0922aa7480eda961743de080ef",
+      "size_bytes": 16837459
+    },
+    {
+      "id": "file-47a6faaf45c4",
+      "path": "tokenizer/tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e1b50df0915c97080a6fd94007202946ec95d56c5ca07d378cafd6a00320e169",
+      "size_bytes": 61790
+    },
+    {
+      "id": "file-976cf290b8a5",
+      "path": "video_dit/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "008d7da5a401c7d40c9f03bb9aac24902a5f227126df49111e9ff1c974e361bb",
+      "size_bytes": 613
+    },
+    {
+      "id": "file-b674cc4a53a5",
+      "path": "video_dit/diffusion_pytorch_model-00001-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3e176243adec4a6b3ede28614925ad6826337f41a03fad4c0c256275ccf8f91f",
+      "size_bytes": 9969027888
+    },
+    {
+      "id": "file-bf7833160a82",
+      "path": "video_dit/diffusion_pytorch_model-00002-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "78b272dd233f72fffa17b0a665b7c39cc11f35437d56268cfadd7b4a2d727e4a",
+      "size_bytes": 9891559912
+    },
+    {
+      "id": "file-fd2acdf4d0f2",
+      "path": "video_dit/diffusion_pytorch_model-00003-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9a99602b5d03677fa0e9dc7222a987f36eae0d116ca2c68320aa23e3bb3c6f27",
+      "size_bytes": 8717326600
+    },
+    {
+      "id": "file-501d75fe963c",
+      "path": "video_dit/diffusion_pytorch_model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f3cf29fe5d0fb94b86607ccd7a7f98a1e0a619e910e152e25a9e7fd66caf5b7f",
+      "size_bytes": 96805
+    },
+    {
+      "id": "file-6d4052c31672",
+      "path": "video_dit_2/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "452d4dae0d520ff162e31ebe4e5173035e2800856fde6fa9237f0acae5db0306",
+      "size_bytes": 615
+    },
+    {
+      "id": "file-df94b70014d4",
+      "path": "video_dit_2/diffusion_pytorch_model-00001-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8026100181118ef28271a07ccae55d01781c0ff14542b659f1f1d9cf14e6f035",
+      "size_bytes": 9969027888
+    },
+    {
+      "id": "file-c17d43dd251b",
+      "path": "video_dit_2/diffusion_pytorch_model-00002-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "0c50a146bbd97357819c6d7ea86ea63aae71951e9f1d41fbfcac4167f4e799a4",
+      "size_bytes": 9891559912
+    },
+    {
+      "id": "file-6a9ee3d258c2",
+      "path": "video_dit_2/diffusion_pytorch_model-00003-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9824172e48430ab08493a5a5dc8ce7b0251b18642b1ff0b9e6d8f65403b08f85",
+      "size_bytes": 8717326600
+    },
+    {
+      "id": "file-79c3fc8616e3",
+      "path": "video_dit_2/diffusion_pytorch_model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f3cf29fe5d0fb94b86607ccd7a7f98a1e0a619e910e152e25a9e7fd66caf5b7f",
+      "size_bytes": 96805
+    },
+    {
+      "id": "file-1f1c624bc410",
+      "path": "video_vae/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "705455536b5a1d38e5516bcdc87b0f4685dc708b89e73cd030e72367f29a2bf5",
+      "size_bytes": 947
+    },
+    {
+      "id": "file-b899f9e2bead",
+      "path": "video_vae/diffusion_pytorch_model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "39ffe6326a57bbc7c8a704d862e482588e3affc858bdbfc123a91b5ac3a3a42a",
+      "size_bytes": 253806966
     }
   ],
   "format": {
@@ -67,7 +310,7 @@
     ],
     "operator_acceptance_required": true,
     "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/OpenMOSS-Team/MOVA-720p/blob/8462bea9a317a3591279faeedfd3ca01b055cb59/LICENSE"
+    "url": "https://huggingface.co/OpenMOSS-Team/MOVA-720p/blob/8462bea9a317a3591279faeedfd3ca01b055cb59/README.md"
   },
   "limits": {
     "context_tokens": null,

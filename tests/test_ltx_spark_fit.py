@@ -4,7 +4,9 @@ import hashlib
 import json
 import os
 import runpy
+import subprocess
 import tempfile
+import textwrap
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -85,6 +87,102 @@ class LtxSparkFitTests(unittest.TestCase):
             platform_fixture.read_bytes(),
             "recipe fixture drifted from the platform's emitted schema-2 envelope",
         )
+
+    def test_bundled_protocol_consumes_platform_plan_at_many_argument_boundary(
+        self,
+    ) -> None:
+        document = load(ROOT / "tests/fixtures/compiled_workload_v2.json")
+        document["runtime"]["argv"] = [
+            f"--artifact-input={index:04d}" for index in range(518)
+        ]
+        wire = CompiledExecutionPlan.model_validate_json(
+            json.dumps(document, sort_keys=True, separators=(",", ":"))
+        )
+        self.assertEqual(len(wire.runtime.argv), 518)
+
+    def test_bundled_protocol_consumes_current_controller_plan_with_many_arguments(
+        self,
+    ) -> None:
+        platform_root = Path(
+            os.environ.get("VONK_FORGE_PLATFORM_ROOT", "/opt/vonk-forge")
+        )
+        producer_python = platform_root / "control/.venv/bin/python"
+        if not producer_python.is_file():
+            self.skipTest("the matching platform control environment is not supplied")
+
+        producer = textwrap.dedent(
+            """
+            import json
+            import sys
+
+            from control.tests.test_compiled_execution_plan import (
+                _image,
+                _model_objects,
+                _spec,
+            )
+            from vonk_control.compiled_execution_plan import (
+                compile_verified_execution_plan,
+                execution_identity_sha256,
+            )
+
+            runtime_spec = _spec()
+            runtime = runtime_spec["runtime"]
+            assert isinstance(runtime, dict)
+            entrypoint = runtime["entrypoint"]
+            assert isinstance(entrypoint, list)
+            runtime["entrypoint"] = [
+                entrypoint[0],
+                *(f"--artifact-input={index:04d}" for index in range(518)),
+            ]
+            identity = runtime_spec["identity"]
+            assert isinstance(identity, dict)
+            identity["execution_sha256"] = execution_identity_sha256(runtime_spec)
+            plan = compile_verified_execution_plan(
+                runtime_spec,
+                model_artifact_set_sha256="d" * 64,
+                model_objects=_model_objects(),
+                runtime_image=_image(),
+            )
+            payload = plan.to_compiled_launch_payload(
+                runtime_spec,
+                placement={
+                    "endpoint_address": None,
+                    "rank": 0,
+                    "role": "entrypoint",
+                    "world_size": 1,
+                    "local_address": None,
+                    "master_address": None,
+                    "master_port": None,
+                    "port": 8000,
+                    "reserved_memory_bytes": 1,
+                },
+            )
+            sys.stdout.write(json.dumps(payload, sort_keys=True, separators=(",", ":")))
+            """
+        )
+        producer_env = os.environ.copy()
+        producer_env["PYTHONPATH"] = os.pathsep.join(
+            str(path)
+            for path in (
+                platform_root / "agent_protocol/src",
+                platform_root / "control/src",
+                platform_root,
+            )
+        )
+        emitted = subprocess.run(
+            [str(producer_python), "-c", producer],
+            cwd=platform_root,
+            env=producer_env,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        ).stdout
+
+        payload = json.loads(emitted)
+        self.assertEqual(len(payload["runtime"]["argv"]), 518)
+        consumed = CompiledExecutionPlan.model_validate_json(emitted)
+        self.assertEqual(consumed.runtime.argv, payload["runtime"]["argv"])
 
     def test_both_sync_adapters_accept_schema2_nested_materialization(self) -> None:
         for adapter in ("ltx2-sync-native", "ltx23-sync-native-disk"):

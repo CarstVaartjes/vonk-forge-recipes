@@ -131,8 +131,8 @@
     {
       "files": [
         {
-          "file_id": "snapshot",
-          "id": "primary-snapshot",
+          "file_id": "ig2v-weights",
+          "id": "primary-ig2v-weights",
           "mount": {
             "read_only": true,
             "target": "/models/target"
@@ -144,22 +144,172 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c9a60aa3bc3b63f845bb297c425794e08d58870d24026812826284bd9397a33c",
+        "content_sha256": "655a885f11eff6ac59d8fd91ad9a3cfd8d84c7ea87dffa5abb17faca4b993f8e",
         "kind": "model",
         "publisher": "stepfun-ai",
         "slug": "step1x-3d-texture"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "model-index",
+          "id": "sdxl-model-index",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "scheduler-config",
+          "id": "sdxl-scheduler-config",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "text-encoder-config",
+          "id": "sdxl-text-encoder-config",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "text-encoder-weights",
+          "id": "sdxl-text-encoder-weights",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "text-encoder-2-config",
+          "id": "sdxl-text-encoder-2-config",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "text-encoder-2-weights",
+          "id": "sdxl-text-encoder-2-weights",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "tokenizer-merges",
+          "id": "sdxl-tokenizer-merges",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "tokenizer-special-tokens",
+          "id": "sdxl-tokenizer-special-tokens",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "tokenizer-config",
+          "id": "sdxl-tokenizer-config",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "tokenizer-vocab",
+          "id": "sdxl-tokenizer-vocab",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "tokenizer-2-merges",
+          "id": "sdxl-tokenizer-2-merges",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "tokenizer-2-special-tokens",
+          "id": "sdxl-tokenizer-2-special-tokens",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "tokenizer-2-config",
+          "id": "sdxl-tokenizer-2-config",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "tokenizer-2-vocab",
+          "id": "sdxl-tokenizer-2-vocab",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "unet-config",
+          "id": "sdxl-unet-config",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "unet-weights",
+          "id": "sdxl-unet-weights",
+          "mount": {"read_only": true, "target": "/models/sdxl"},
+          "roles": ["entrypoint"]
+        }
+      ],
+      "id": "sdxl",
+      "model": {
+        "content_sha256": "bb39ed141bef5c04ae40b95d03647823f66ebb88c7087ad0d40de9c578db616e",
+        "kind": "model",
+        "publisher": "stabilityai",
+        "slug": "stable-diffusion-xl-base-1-0"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "vae-config",
+          "id": "sdxl-vae-config",
+          "mount": {"read_only": true, "target": "/models/sdxl-vae"},
+          "roles": ["entrypoint"]
+        },
+        {
+          "file_id": "vae-weights",
+          "id": "sdxl-vae-weights",
+          "mount": {"read_only": true, "target": "/models/sdxl-vae"},
+          "roles": ["entrypoint"]
+        }
+      ],
+      "id": "sdxl-vae",
+      "model": {
+        "content_sha256": "f13cf97810053e567ec6c1d5a222479b0435c54a32275755ab3d3ec542e20e6b",
+        "kind": "model",
+        "publisher": "madebyollin",
+        "slug": "sdxl-vae-fp16-fix"
       }
     }
   ],
   "provenance": {
     "attribution": [
-      "stepfun-ai"
+      "stepfun-ai",
+      "stabilityai",
+      "madebyollin"
     ],
     "source_kind": "global",
     "source_reference": "https://huggingface.co/stepfun-ai/Step1X-3D/tree/bf7084495b3a72222f36549b7942948aa4d9daa7"
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "Replaced the nonexistent 19.64 GB snapshot pseudo-file with the pinned 3.60 GB texture adapter file and declared the exact default SDXL Diffusers files plus the separately loaded fixed VAE. SDXL is public and ungated, but its OpenRAIL++ terms require operator acceptance.",
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/stepfun-ai/Step1X-3D/tree/bf7084495b3a72222f36549b7942948aa4d9daa7",
+              "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/tree/462165984030d82259a11f4367a4eed129e94a7b",
+              "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/tree/207b116dae70ace3637169f1ddd2434b91b3a8cd"
+            ],
+            "summary": "Declared exact offline texture model closure."
+          }
+        ],
+        "prior_recipe_content_sha256": "f1c85a945a19c65d3501cc775f53e98f173358bd4755d8af7599f6e03fefcb09",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "reprepare",
+        "version": "1.2.9"
+      },
       {
         "changes": [
           {
@@ -369,8 +519,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.2.8"
+    "released_at": "2026-09-24",
+    "version": "1.2.9"
   },
   "runtime": {
     "arguments": [

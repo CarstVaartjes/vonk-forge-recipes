@@ -8,28 +8,334 @@
     "facts": [
       {
         "capability": "video-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+        "evidence_digest": "3042d4e1c6cbaeed7f6737c9aab127625d3befa4eee692b02ce546a8336c8edd",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "evidence_digest": "3042d4e1c6cbaeed7f6737c9aab127625d3befa4eee692b02ce546a8336c8edd",
       "source_revision": "f4dbc4a1efa4ac8ea56680cdf79d9f455105e814",
-      "source_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v"
+      "source_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v/blob/f4dbc4a1efa4ac8ea56680cdf79d9f455105e814/README.md"
     },
     "schema_version": 2
   },
   "dependencies": [],
   "files": [
     {
-      "id": "snapshot",
-      "path": "snapshot",
+      "id": "metadata-caf3ca02d5e8-618cd5b83d",
+      "path": ".gitattributes",
       "roles": [
-        "entrypoint"
+        "metadata"
       ],
-      "sha256": "759ca02fe3a4ce291753d79067866f8a6f99a6161a37d7b2b7d95c16abb3a498",
-      "size_bytes": 53384320228
+      "sha256": "caf3ca02d5e883f643e939cbed54f94237f94c171797f0dfea5e25c7e33315b3",
+      "size_bytes": 1580
+    },
+    {
+      "id": "readme-3042d4e1c6cb-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "3042d4e1c6cbaeed7f6737c9aab127625d3befa4eee692b02ce546a8336c8edd",
+      "size_bytes": 1842
+    },
+    {
+      "id": "guider-config-690862ec179f-5a4bb9dfdb",
+      "path": "guider/guider_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "690862ec179f7a295fe79a4dad8d0c4835bc071cd39655115c611e704dd6c5aa",
+      "size_bytes": 224
+    },
+    {
+      "id": "model-index-e6573b14a5b0-ee03ace9a3",
+      "path": "model_index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e6573b14a5b008a680f5ff1606003bf8715f82adaf89674917950939578403bb",
+      "size_bytes": 644
+    },
+    {
+      "id": "scheduler-config-d53ab643a8ac-67ecb3dc37",
+      "path": "scheduler/scheduler_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d53ab643a8ac67173386f8ea412baadb3e39d6b9c39347450a090e9fcc65b79d",
+      "size_bytes": 487
+    },
+    {
+      "id": "config-6848bb40490c-bcfd37e83e",
+      "path": "text_encoder/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "6848bb40490cbc356d531c6ec405b6b12ee54d1367b609169db6c311a00aaa78",
+      "size_bytes": 1471
+    },
+    {
+      "id": "model-00001-of-00003-a1b9f95e60d6-02972f2ff9",
+      "path": "text_encoder/model-00001-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a1b9f95e60d6844963933dc20c11cf712d902441ef50d0926e5f2b3521a2f01d",
+      "size_bytes": 4877660152
+    },
+    {
+      "id": "model-00002-of-00003-ab32a0fe73ed-6ecf8bd4b9",
+      "path": "text_encoder/model-00002-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ab32a0fe73edfa4af4eb0c7f17633c44704335d80755f9230200cf16fea42b7e",
+      "size_bytes": 4932750280
+    },
+    {
+      "id": "model-00003-of-00003-fe26b2e0da51-ab0456bfcf",
+      "path": "text_encoder/model-00003-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "fe26b2e0da51f3c6522b46056b26603f0642f866a60eacec09ebe66a025cb7ee",
+      "size_bytes": 4330864528
+    },
+    {
+      "id": "model-safetensors-index-3374ab25b322-5fc12c01f9",
+      "path": "text_encoder/model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "3374ab25b3226ec4416e0f036c157d577b36329a2c45ba710f8843547ef8ba00",
+      "size_bytes": 25702
+    },
+    {
+      "id": "config-093eb86b1826-576e8524c7",
+      "path": "text_encoder_2/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "093eb86b182657d3c6ab6c32e9c1373082c4ca3c4554e6ccc0dea28094ed8427",
+      "size_bytes": 782
+    },
+    {
+      "id": "model-3f3b22f79260-91d4db77fb",
+      "path": "text_encoder_2/model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3f3b22f7926015b76022ca4842a3130d83c477d4ecee8a5275252650d96bf97a",
+      "size_bytes": 877273128
+    },
+    {
+      "id": "added-tokens-58b54bbe36fc-67aa73d88f",
+      "path": "tokenizer/added_tokens.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "58b54bbe36fc752f79a24a271ef66a0a0830054b4dfad94bde757d851968060b",
+      "size_bytes": 605
+    },
+    {
+      "id": "chat-template-a0bc6f6fc7a2-875b211b57",
+      "path": "tokenizer/chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a0bc6f6fc7a29a80017a433e8f03a1cc1236e838a944a2d034295a60c4f2fddb",
+      "size_bytes": 1017
+    },
+    {
+      "id": "merges-8831e4f1a044-ebbb0f71ea",
+      "path": "tokenizer/merges.txt",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
+      "size_bytes": 1671853
+    },
+    {
+      "id": "special-tokens-map-76862e765266-9a6c011314",
+      "path": "tokenizer/special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "76862e765266b85aa9459767e33cbaf13970f327a0e88d1c65846c2ddd3a1ecd",
+      "size_bytes": 613
+    },
+    {
+      "id": "tokenizer-9c5ae00e602b-b87c178459",
+      "path": "tokenizer/tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "9c5ae00e602b8860cbd784ba82a8aa14e8feecec692e7076590d014d7b7fdafa",
+      "size_bytes": 11421896
+    },
+    {
+      "id": "tokenizer-config-11d20a741a0e-47a6faaf45",
+      "path": "tokenizer/tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "11d20a741a0eda1e7482d29b5d17553328922ed9e7391ec6f44d390215390f3d",
+      "size_bytes": 4713
+    },
+    {
+      "id": "vocab-ca10d7e9fb3e-8c35116cc3",
+      "path": "tokenizer/vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "size_bytes": 2776833
+    },
+    {
+      "id": "added-tokens-6dbf3df426e1-c992a97bfb",
+      "path": "tokenizer_2/added_tokens.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "6dbf3df426e1c529b1823b2a9b10b6cd72fab3b375b6d55cbf7608e89f081151",
+      "size_bytes": 29726
+    },
+    {
+      "id": "special-tokens-map-aca482f95fc2-d9a3373af2",
+      "path": "tokenizer_2/special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "aca482f95fc225629e1a4bf8d2e3784422f03def7d99210fe8101e839a92a00f",
+      "size_bytes": 167786
+    },
+    {
+      "id": "tokenizer-config-56adeaeff12e-25c5334061",
+      "path": "tokenizer_2/tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "56adeaeff12e5819883501744cfc1bea3b6daa1f72d870c5558f0e4794c24c0f",
+      "size_bytes": 247408
+    },
+    {
+      "id": "config-8e80ab2c8f89-98e965502a",
+      "path": "transformer/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "8e80ab2c8f893d371b660cf1e0cf2856977d77dbf4fd44f4114a3976325c1b98",
+      "size_bytes": 550
+    },
+    {
+      "id": "diffusion-pytorch-model-00001-of-00007-7f10f6baa7f5-3524ece111",
+      "path": "transformer/diffusion_pytorch_model-00001-of-00007.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7f10f6baa7f54e5ae420c9f621e00d669975edf8b03bf84aac502220e10d1e5d",
+      "size_bytes": 4974650312
+    },
+    {
+      "id": "diffusion-pytorch-model-00002-of-00007-2d78c3e3ed67-68bb6fe766",
+      "path": "transformer/diffusion_pytorch_model-00002-of-00007.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2d78c3e3ed6737cd255f94d1540ab42abc6063204f5d3afc58fa0e95b2846954",
+      "size_bytes": 4984921240
+    },
+    {
+      "id": "diffusion-pytorch-model-00003-of-00007-a5add36ddfe9-d6b3a94b9a",
+      "path": "transformer/diffusion_pytorch_model-00003-of-00007.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a5add36ddfe926ef3e575bc62c6c8c1a845ce9d52c0da40914bc6739cc0ddcf2",
+      "size_bytes": 4984921840
+    },
+    {
+      "id": "diffusion-pytorch-model-00004-of-00007-b8f74aa73943-f914f1f8cc",
+      "path": "transformer/diffusion_pytorch_model-00004-of-00007.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b8f74aa73943b2885af7b9adbb7b7e2839e477676200c5022d55f6ba7dcec977",
+      "size_bytes": 4968109672
+    },
+    {
+      "id": "diffusion-pytorch-model-00005-of-00007-64f9d1f57f27-f87d14363e",
+      "path": "transformer/diffusion_pytorch_model-00005-of-00007.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "64f9d1f57f274301a64df4d7f3ceb2a093803fdca86d817d550832f266305a66",
+      "size_bytes": 4900967800
+    },
+    {
+      "id": "diffusion-pytorch-model-00006-of-00007-4713eb9c914d-b3690e5c52",
+      "path": "transformer/diffusion_pytorch_model-00006-of-00007.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4713eb9c914d9d402148821d4cb19902be7a239a4b0feb62730ef1875c4b9966",
+      "size_bytes": 4934563168
+    },
+    {
+      "id": "diffusion-pytorch-model-00007-of-00007-cb0bb2e9de20-473e84cf20",
+      "path": "transformer/diffusion_pytorch_model-00007-of-00007.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "cb0bb2e9de20efc2fadd8d0808a642d2c4d18657e8424df77d072adca4447f9a",
+      "size_bytes": 3558508600
+    },
+    {
+      "id": "diffusion-pytorch-model-safetensors-ind-728378184469-322b43acad",
+      "path": "transformer/diffusion_pytorch_model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "728378184469168b5ffa9cb5ee7f0efaabad13fdc83d63105a8324c9f293e700",
+      "size_bytes": 187206
+    },
+    {
+      "id": "config-e80c0186b8b4-101abd63da",
+      "path": "vae/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e80c0186b8b41b135d4b3937df727ad314e08719d1f36af06577439259b74243",
+      "size_bytes": 427
+    },
+    {
+      "id": "diffusion-pytorch-model-00001-of-00002-59574f24717e-612bcd7c4c",
+      "path": "vae/diffusion_pytorch_model-00001-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "59574f24717e0306bd1c0af33fc5006c42625f615cda08f57246cc14d7f82571",
+      "size_bytes": 4929270112
+    },
+    {
+      "id": "diffusion-pytorch-model-00002-of-00002-7258d3080448-80bfc73080",
+      "path": "vae/diffusion_pytorch_model-00002-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7258d3080448036656835e8cf1bfa78e5e4d33b2c56fab6deab844dd2a5fdcc6",
+      "size_bytes": 113292844
+    },
+    {
+      "id": "diffusion-pytorch-model-safetensors-ind-fdf1ba922364-3f3454fc53",
+      "path": "vae/diffusion_pytorch_model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "fdf1ba922364183eb76f24139fb911c0f0e0678222c7b7402a7896846e20ceaf",
+      "size_bytes": 23187
     }
   ],
   "format": {
@@ -106,9 +412,9 @@
     "attribution": [
       "tencent"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "evidence_digest": "3042d4e1c6cbaeed7f6737c9aab127625d3befa4eee692b02ce546a8336c8edd",
     "source_revision": "f4dbc4a1efa4ac8ea56680cdf79d9f455105e814",
-    "source_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v"
+    "source_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-720p_t2v/blob/f4dbc4a1efa4ac8ea56680cdf79d9f455105e814/README.md"
   },
   "schema_version": 2,
   "source": {

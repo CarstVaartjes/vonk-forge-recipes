@@ -284,10 +284,34 @@ class NativeThreeDAdapterTests(unittest.TestCase):
             recipe["models"][0]["model"]["content_sha256"],
             hashlib.sha256(CATALOG.canonical(model_version)).hexdigest(),
         )
+        primary_files = recipe["models"][0]["files"]
         self.assertEqual(
-            recipe["models"][0]["files"][0]["mount"]["target"], "/models/target"
+            {selection["file_id"] for selection in primary_files},
+            {file["id"] for file in model_version["files"]},
         )
-        self.assertEqual(recipe["models"][0]["files"][0]["file_id"], "snapshot")
+        self.assertTrue(
+            all(
+                selection["mount"]["target"] == "/models/target"
+                and selection["roles"] == ["entrypoint"]
+                for selection in primary_files
+            )
+        )
+        dinov2 = recipe["models"][1]
+        dinov2_model = json.loads(
+            (ROOT / "models/dinov2-large-47b73eef.json").read_text()
+        )
+        self.assertEqual(dinov2["model"]["slug"], "dinov2-large-47b73eef")
+        self.assertEqual(
+            {selection["file_id"] for selection in dinov2["files"]},
+            {file["id"] for file in dinov2_model["files"]},
+        )
+        self.assertTrue(
+            all(
+                selection["mount"]["target"] == "/models/dinov2-large"
+                and selection["roles"] == ["entrypoint"]
+                for selection in dinov2["files"]
+            )
+        )
         source = (ROOT / "adapters/three-d/hunyuan3d-omni/run.py").read_text()
         self.assertIn('identifier != "facebook/dinov2-large"', source)
         self.assertIn('loader_kwargs["local_files_only"] = True', source)

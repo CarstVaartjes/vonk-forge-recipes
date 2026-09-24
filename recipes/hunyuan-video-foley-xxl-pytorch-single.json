@@ -131,8 +131,74 @@
     {
       "files": [
         {
-          "file_id": "snapshot",
-          "id": "primary-snapshot",
+          "file_id": "file-c693279643b8",
+          "id": "primary-file-c693279643b8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-dfb14fbb9e7d",
+          "id": "primary-file-dfb14fbb9e7d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-d8d0422389f0",
+          "id": "primary-file-d8d0422389f0",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-55838f7b4600",
+          "id": "primary-file-55838f7b4600",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-6736cd72a818",
+          "id": "primary-file-6736cd72a818",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-edbeb86cdf4b",
+          "id": "primary-file-edbeb86cdf4b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-526cd132f4e6",
+          "id": "primary-file-526cd132f4e6",
           "mount": {
             "read_only": true,
             "target": "/models/target"
@@ -144,10 +210,197 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c0af723d1f1816dc7f583524c370d7c422c465355516ed36bdb9934df8d08e2e",
+        "content_sha256": "25b5a80263e60f99b67da19df41246391067bf650a8f54e513936f9194b4b4fe",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan-video-foley-xxl"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "file-587cb980af76",
+          "id": "siglip2-file-587cb980af76",
+          "mount": {
+            "read_only": true,
+            "target": "/models/siglip2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-9d75c1098fc5",
+          "id": "siglip2-file-9d75c1098fc5",
+          "mount": {
+            "read_only": true,
+            "target": "/models/siglip2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-36afccab5d8d",
+          "id": "siglip2-file-36afccab5d8d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/siglip2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-c07a9be597b7",
+          "id": "siglip2-file-c07a9be597b7",
+          "mount": {
+            "read_only": true,
+            "target": "/models/siglip2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-224931eb13f8",
+          "id": "siglip2-file-224931eb13f8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/siglip2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-6a714af7b49e",
+          "id": "siglip2-file-6a714af7b49e",
+          "mount": {
+            "read_only": true,
+            "target": "/models/siglip2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-94d5c6ba8f6b",
+          "id": "siglip2-file-94d5c6ba8f6b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/siglip2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "siglip2",
+      "model": {
+        "content_sha256": "03ac77b98291a22708284c014ae7138397bef11607dcc67d2affceab77f7e8af",
+        "kind": "model",
+        "publisher": "google",
+        "slug": "siglip2-base-patch16-512-a89f5c50"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "file-587cb980af76",
+          "id": "clap-file-587cb980af76",
+          "mount": {
+            "read_only": true,
+            "target": "/models/clap"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-b0d6dcfed49b",
+          "id": "clap-file-b0d6dcfed49b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/clap"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-36afccab5d8d",
+          "id": "clap-file-36afccab5d8d",
+          "mount": {
+            "read_only": true,
+            "target": "/models/clap"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-207cf36381de",
+          "id": "clap-file-207cf36381de",
+          "mount": {
+            "read_only": true,
+            "target": "/models/clap"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-c07a9be597b7",
+          "id": "clap-file-c07a9be597b7",
+          "mount": {
+            "read_only": true,
+            "target": "/models/clap"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-224931eb13f8",
+          "id": "clap-file-224931eb13f8",
+          "mount": {
+            "read_only": true,
+            "target": "/models/clap"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-94d5c6ba8f6b",
+          "id": "clap-file-94d5c6ba8f6b",
+          "mount": {
+            "read_only": true,
+            "target": "/models/clap"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-ba05d8e2e484",
+          "id": "clap-file-ba05d8e2e484",
+          "mount": {
+            "read_only": true,
+            "target": "/models/clap"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "clap",
+      "model": {
+        "content_sha256": "0a4563c618c820ebf9dbbe9e32b674d477010039dbd6ce1da511329fc26dcd67",
+        "kind": "model",
+        "publisher": "laion",
+        "slug": "larger-clap-general-ada0c23a"
       }
     }
   ],
@@ -160,6 +413,40 @@
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "The XXL entrypoint selects hunyuanvideo_foley.pth. The XL-only hunyuanvideo_foley_xl.pth is not loaded by this adapter and is removed from the exact XXL Model manifest and recipe selection.",
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/tencent/HunyuanVideo-Foley/tree/3abd4e833b95b8db0fc9c687afc52483a48e9a97"
+            ],
+            "summary": "Keep Foley XXL preparation on its exact variant checkpoint."
+          }
+        ],
+        "prior_recipe_content_sha256": "17204a3ab5e6ddda7967838a48c9ee78658cf1bb19f2f7dddacab18743ca9d34",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "reprepare",
+        "version": "1.4.5"
+      },
+      {
+        "changes": [
+          {
+            "details": "Replaced the unsupported aggregate snapshot selector with every exact file from the pinned primary manifest and explicitly selected the adapter-required offline companion artifacts.",
+            "kind": "fix",
+            "references": [
+              "https://huggingface.co/tencent/HunyuanVideo-Foley/tree/3abd4e833b95b8db0fc9c687afc52483a48e9a97",
+              "https://huggingface.co/google/siglip2-base-patch16-512/tree/a89f5c5093f902bf39d3cd4d81d2c09867f0724b",
+              "https://huggingface.co/laion/larger_clap_general/tree/ada0c23a36c4e8582805bb38fec3905903f18b41"
+            ],
+            "summary": "Bound the primary model and all required offline companion files by exact immutable file IDs."
+          }
+        ],
+        "prior_recipe_content_sha256": "7c0b8a6d12161c97206113d5f098a9244a153d2c342f5bd996f780731245a480",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "reprepare",
+        "version": "1.4.4"
+      },
       {
         "changes": [
           {
@@ -344,8 +631,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.4.3"
+    "released_at": "2026-09-24",
+    "version": "1.4.5"
   },
   "runtime": {
     "arguments": [
