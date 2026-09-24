@@ -3,6 +3,8 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -26,6 +28,27 @@ def _document(path: Path) -> dict[str, object]:
     value = json.loads(path.read_text(encoding="utf-8"))
     assert isinstance(value, dict)
     return value
+
+
+def _git_blob(commit: str, relative_path: str, *, root: Path = ROOT) -> bytes:
+    environment = os.environ.copy()
+    environment["GIT_NO_REPLACE_OBJECTS"] = "1"
+    environment["GIT_NO_LAZY_FETCH"] = "1"
+    result = subprocess.run(
+        [
+            "git",
+            "--no-replace-objects",
+            "cat-file",
+            "blob",
+            f"{commit}:{relative_path}",
+        ],
+        cwd=root,
+        env=environment,
+        check=True,
+        capture_output=True,
+        timeout=10,
+    )
+    return result.stdout
 
 
 def _bindings(document: dict[str, object]) -> dict[str, dict[str, object]]:
@@ -131,6 +154,96 @@ def test_skintokens_derivation_pins_upstream_and_transform() -> None:
     assert 'force="mesh", process=True' in source
 
 
+def test_authority_generation_uses_pinned_git_snapshot_and_fails_closed(
+    tmp_path: Path,
+) -> None:
+    worktree = tmp_path / "recipe-worktree"
+    subprocess.run(
+        ["git", "worktree", "add", "--detach", str(worktree), "HEAD"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        timeout=30,
+    )
+    try:
+        shutil.copy2(
+            ROOT / "tools/build-qualification-authority",
+            worktree / "tools/build-qualification-authority",
+        )
+        release_path = worktree / "qualification/catalog-release.json"
+        release_bytes = release_path.read_bytes()
+        release = json.loads(release_bytes)
+        assert isinstance(release, dict)
+        commit = release["commit"]
+        assert isinstance(commit, str)
+
+        output_paths = (
+            worktree / "qualification/authorities/nl-sequential-2c118a99.json",
+            worktree / "qualification/campaigns/nl-sequential-2c118a99.json",
+            worktree / "docs/recipe-qualification-plan-2026-09-24.md",
+        )
+        original_outputs = {path: path.read_bytes() for path in output_paths}
+        catalog_path = worktree / "catalog-index.json"
+        qualification_path = worktree / "qualification/qualification-index.json"
+        catalog_path.write_bytes(catalog_path.read_bytes() + b"\n")
+        qualification_path.write_bytes(qualification_path.read_bytes() + b"\n")
+
+        refresh = subprocess.run(
+            [sys.executable, "tools/build-qualification-authority"],
+            cwd=worktree,
+            check=False,
+            capture_output=True,
+            timeout=30,
+        )
+        assert refresh.returncode == 0, refresh.stderr.decode("utf-8")
+        assert {path: path.read_bytes() for path in output_paths} == original_outputs
+        authority = _document(output_paths[0])
+        bound_catalog = _git_blob(commit, "catalog-index.json", root=worktree)
+        bound_qualification = _git_blob(
+            commit, "qualification/qualification-index.json", root=worktree
+        )
+        catalog_binding = authority["catalog"]
+        assert isinstance(catalog_binding, dict)
+        assert (
+            catalog_binding["catalog_index_sha256"]
+            == hashlib.sha256(bound_catalog).hexdigest()
+        )
+        assert (
+            catalog_binding["qualification_index_sha256"]
+            == hashlib.sha256(bound_qualification).hexdigest()
+        )
+
+        for bad_commit, expected_error in (
+            ("not-a-commit", "catalog release commit must be a full Git SHA"),
+            ("0" * 40, "cannot read pinned Git object"),
+        ):
+            bad_release = dict(release)
+            bad_release["commit"] = bad_commit
+            release_path.write_text(
+                json.dumps(bad_release, indent=2) + "\n", encoding="utf-8"
+            )
+            failed_refresh = subprocess.run(
+                [sys.executable, "tools/build-qualification-authority"],
+                cwd=worktree,
+                check=False,
+                capture_output=True,
+                timeout=30,
+            )
+            assert failed_refresh.returncode != 0
+            assert expected_error in failed_refresh.stderr.decode("utf-8")
+            assert {
+                path: path.read_bytes() for path in output_paths
+            } == original_outputs
+    finally:
+        subprocess.run(
+            ["git", "worktree", "remove", "--force", str(worktree)],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            timeout=30,
+        )
+
+
 def test_sequential_authority_binds_every_recipe_with_at_most_two_nodes() -> None:
     subprocess.run(
         [sys.executable, "tools/build-qualification-authority", "--check"],
@@ -141,32 +254,34 @@ def test_sequential_authority_binds_every_recipe_with_at_most_two_nodes() -> Non
     campaign_path = QUALIFICATION_ROOT / "campaigns/nl-sequential-2c118a99.json"
     authority = cast(Any, _document(authority_path))
     campaign = cast(Any, _document(campaign_path))
-    catalog_index = cast(Any, _document(ROOT / "catalog-index.json"))
-    qualification = cast(
-        Any, _document(QUALIFICATION_ROOT / "qualification-index.json")
-    )
     review_gates = cast(Any, _document(QUALIFICATION_ROOT / "review-gates.json"))
     release = cast(Any, _document(QUALIFICATION_ROOT / "catalog-release.json"))
+    catalog_commit = release["commit"]
+    assert isinstance(catalog_commit, str)
+    catalog_index_bytes = _git_blob(catalog_commit, "catalog-index.json")
+    qualification_bytes = _git_blob(
+        catalog_commit, "qualification/qualification-index.json"
+    )
+    catalog_index = cast(Any, json.loads(catalog_index_bytes))
+    qualification = cast(Any, json.loads(qualification_bytes))
 
     assert authority["schema_version"] == 3
     assert campaign["schema_version"] == 2
     assert authority["catalog"]["repository"] == "CarstVaartjes/vonk-forge-recipes"
     assert (
         authority["catalog"]["catalog_index_sha256"]
-        == hashlib.sha256((ROOT / "catalog-index.json").read_bytes()).hexdigest()
+        == hashlib.sha256(catalog_index_bytes).hexdigest()
     )
     assert (
         authority["catalog"]["qualification_index_sha256"]
-        == hashlib.sha256(
-            (QUALIFICATION_ROOT / "qualification-index.json").read_bytes()
-        ).hexdigest()
+        == hashlib.sha256(qualification_bytes).hexdigest()
     )
     assert authority["catalog"]["source_commit"] == catalog_index["source_commit"]
     assert authority["catalog"]["recipe_count"] == len(catalog_index["recipes"]) == 85
     assert authority["scope"]["maximum_node_count"] == 2
 
     assert authority["catalog"]["commit"] == release["commit"]
-    assert authority["catalog"]["release_tag"] == release["release_tag"] == "v1.0.8"
+    assert authority["catalog"]["release_tag"] == release["release_tag"]
 
     recipes_by_key: dict[str, Any] = {}
     models_by_digest: dict[str, Any] = {}
