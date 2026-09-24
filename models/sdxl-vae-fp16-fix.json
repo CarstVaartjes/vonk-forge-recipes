@@ -7,9 +7,9 @@
   "capabilities": {
     "facts": [],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "evidence_digest": "f18b16fa4381c90ab44a3d7abd2e90afd05a2c31b8ca69998bc93c6453aeb7b7",
       "source_revision": "207b116dae70ace3637169f1ddd2434b91b3a8cd",
-      "source_url": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix"
+      "source_url": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/blob/207b116dae70ace3637169f1ddd2434b91b3a8cd/config.json"
     },
     "schema_version": 2
   },
@@ -86,9 +86,9 @@
   },
   "provenance": {
     "attribution": ["madebyollin"],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "evidence_digest": "f18b16fa4381c90ab44a3d7abd2e90afd05a2c31b8ca69998bc93c6453aeb7b7",
     "source_revision": "207b116dae70ace3637169f1ddd2434b91b3a8cd",
-    "source_url": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix"
+    "source_url": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/blob/207b116dae70ace3637169f1ddd2434b91b3a8cd/config.json"
   },
   "schema_version": 2,
   "source": {

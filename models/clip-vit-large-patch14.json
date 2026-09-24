@@ -7,9 +7,9 @@
   "capabilities": {
     "facts": [],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "evidence_digest": "8a09b467700c58138c29d53c605b34ebc69beaadd13274a8a2af8ad2c2f4032a",
       "source_revision": "32bd64288804d66eefd0ccbe215aa642df71cc41",
-      "source_url": "https://huggingface.co/openai/clip-vit-large-patch14"
+      "source_url": "https://huggingface.co/openai/clip-vit-large-patch14/blob/32bd64288804d66eefd0ccbe215aa642df71cc41/config.json"
     },
     "schema_version": 2
   },
@@ -79,9 +79,9 @@
   },
   "provenance": {
     "attribution": ["openai"],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "evidence_digest": "8a09b467700c58138c29d53c605b34ebc69beaadd13274a8a2af8ad2c2f4032a",
     "source_revision": "32bd64288804d66eefd0ccbe215aa642df71cc41",
-    "source_url": "https://huggingface.co/openai/clip-vit-large-patch14"
+    "source_url": "https://huggingface.co/openai/clip-vit-large-patch14/blob/32bd64288804d66eefd0ccbe215aa642df71cc41/config.json"
   },
   "schema_version": 2,
   "source": {

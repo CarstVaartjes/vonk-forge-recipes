@@ -192,14 +192,19 @@ class LabelEncoder:
         self.assertLess(validation, pipeline_construction)
         self.assertIn('validate_mesh_glb(path, profile="geometry")', source)
 
-    def test_step1x_model_and_auxiliary_files_form_complete_offline_closure(self) -> None:
+    def test_step1x_model_and_auxiliary_files_form_complete_offline_closure(
+        self,
+    ) -> None:
         models = _model_definitions()
         cases = (
             (
                 "step1x-3d-geometry-pytorch-single.json",
                 "step1x-3d-geometry",
                 "Step1X-3D-Geometry-1300m/",
-                {"primary": "/models/target", "dinov2-registers": "/models/dinov2-registers"},
+                {
+                    "primary": "/models/target",
+                    "dinov2-registers": "/models/dinov2-registers",
+                },
             ),
             (
                 "step1x-3d-label-geometry-pytorch-single.json",
@@ -222,9 +227,8 @@ class LabelEncoder:
                 },
             ),
         )
-        adapter_sources = (
-            RUN_PATH.read_text(encoding="utf-8")
-            + PREPARE_PATH.read_text(encoding="utf-8")
+        adapter_sources = RUN_PATH.read_text(encoding="utf-8") + PREPARE_PATH.read_text(
+            encoding="utf-8"
         )
 
         for recipe_name, primary_slug, subfolder, expected_mounts in cases:
@@ -234,9 +238,7 @@ class LabelEncoder:
                         (ROOT / "recipes" / recipe_name).read_text(encoding="utf-8")
                     )
                 )
-                selections = {
-                    selection.id: selection for selection in recipe.models
-                }
+                selections = {selection.id: selection for selection in recipe.models}
                 self.assertEqual(set(selections), set(expected_mounts))
                 selected_models = [
                     models[(selection.model.publisher, selection.model.slug)]
@@ -246,7 +248,9 @@ class LabelEncoder:
 
                 primary = selections["primary"]
                 primary_model = models[("stepfun-ai", primary_slug)]
-                self.assertEqual(primary.model.content_sha256, content_sha256(primary_model))
+                self.assertEqual(
+                    primary.model.content_sha256, content_sha256(primary_model)
+                )
                 self.assertEqual(
                     {selector.file_id for selector in primary.files},
                     {model_file.id for model_file in primary_model.files},
@@ -258,7 +262,9 @@ class LabelEncoder:
                         for model_file in primary_model.files
                     )
                 )
-                self.assertNotIn("snapshot", {item.path for item in primary_model.files})
+                self.assertNotIn(
+                    "snapshot", {item.path for item in primary_model.files}
+                )
 
                 selected_dependencies = {
                     (
@@ -293,11 +299,15 @@ class LabelEncoder:
             {item.path for item in dinov2.files},
             {"config.json", "preprocessor_config.json"},
         )
-        self.assertNotIn("weights", {role for item in dinov2.files for role in item.roles})
+        self.assertNotIn(
+            "weights", {role for item in dinov2.files for role in item.roles}
+        )
 
         clip = models[("openai", "clip-vit-large-patch14")]
         self.assertEqual({item.path for item in clip.files}, {"config.json"})
-        self.assertNotIn("weights", {role for item in clip.files for role in item.roles})
+        self.assertNotIn(
+            "weights", {role for item in clip.files for role in item.roles}
+        )
         self.assertEqual(clip.license.spdx, "MIT")
         self.assertIn("cautions against deployed use", clip.metadata.description)
 
@@ -329,6 +339,39 @@ class LabelEncoder:
             {item.path for item in models[("madebyollin", "sdxl-vae-fp16-fix")].files},
             {"config.json", "diffusion_pytorch_model.safetensors"},
         )
+
+    def test_auxiliary_model_evidence_hashes_immutable_source_files(self) -> None:
+        models = _model_definitions()
+        evidence_files = {
+            ("facebook", "dinov2-with-registers-large"): "config.json",
+            ("openai", "clip-vit-large-patch14"): "config.json",
+            ("stabilityai", "stable-diffusion-xl-base-1-0"): "model_index.json",
+            ("madebyollin", "sdxl-vae-fp16-fix"): "config.json",
+        }
+
+        for identity, evidence_path in evidence_files.items():
+            with self.subTest(model=identity):
+                model = models[identity]
+                source_file = next(
+                    item for item in model.files if item.path == evidence_path
+                )
+                source_url = (
+                    f"{model.source.repository}/blob/{model.source.revision}/"
+                    f"{evidence_path}"
+                )
+                self.assertEqual(
+                    model.provenance.source_revision, model.source.revision
+                )
+                self.assertEqual(model.provenance.source_url, source_url)
+                self.assertEqual(model.provenance.evidence_digest, source_file.sha256)
+                self.assertEqual(
+                    model.capabilities.provenance.source_revision,
+                    model.source.revision,
+                )
+                self.assertEqual(model.capabilities.provenance.source_url, source_url)
+                self.assertEqual(
+                    model.capabilities.provenance.evidence_digest, source_file.sha256
+                )
 
 
 if __name__ == "__main__":

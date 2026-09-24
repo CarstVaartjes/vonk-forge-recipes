@@ -188,7 +188,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "b1912f4d32832ff6eaaea6bbfcb18415413aa92f4bd2c3551a0ce88d6d696bfa",
+        "content_sha256": "eb92cfc437c8be662c26491af48b197d9fa5dd511503c93e891a08b53c0f4274",
         "kind": "model",
         "publisher": "stepfun-ai",
         "slug": "step1x-3d-label-geometry"
@@ -211,7 +211,7 @@
       ],
       "id": "dinov2-registers",
       "model": {
-        "content_sha256": "094dcfa95ee3a9b21992b64c4cf4e94f9114ba8942116dc63713243ecdbaa491",
+        "content_sha256": "a1dc0a1ff350539fed843ff313cb64b4df72650ab83e97168bd492e79412c134",
         "kind": "model",
         "publisher": "facebook",
         "slug": "dinov2-with-registers-large"
@@ -228,7 +228,7 @@
       ],
       "id": "clip",
       "model": {
-        "content_sha256": "f191c9bc10ca5743f076737e5306d589b9f73a91acc1e347c7d090dbebb79e94",
+        "content_sha256": "f4bf667134c88ab2768342c2bfbf66e02a60799bfb382f3a4a47d54ff09cd059",
         "kind": "model",
         "publisher": "openai",
         "slug": "clip-vit-large-patch14"
