@@ -11,13 +11,66 @@ from __future__ import annotations
 
 from .canonical import content_sha256
 from .model import ModelDefinition
+from .qualification_authority import (
+    QualificationAuthority,
+    QualificationBatch,
+    QualificationBatchAssignment,
+    QualificationCampaignManifest,
+    RecipeAuthorityRow,
+    RecoveryCoverage,
+    RecoveryCoverageConsumption,
+    RecoveryCoverageDefinition,
+    RecoveryCoverageMember,
+    RecoveryCoverageReceipt,
+    RecoveryCoverageReceiptEnvelope,
+    RecoveryCoverageRef,
+    RecoveryCoverageUse,
+    RecoveryNodeBuildIdentity,
+    RecoveryNodeEvidence,
+    RecoveryRankEvidence,
+    campaign_authority_json_schema,
+    campaign_manifest_json_schema,
+    recovery_coverage_consumption_json_schema,
+    recovery_coverage_id,
+    recovery_coverage_receipt_json_schema,
+    recovery_coverage_use_json_schema,
+    recovery_receipt_sha256,
+)
 from .recipe import RecipeDefinition
 from .recipe_test_report import TestReport
 
 __version__ = "0.1.0"
 CONTRACT_VERSION = 2
 
-__all__ = ["ModelDefinition", "RecipeDefinition", "TestReport", "content_sha256"]
+__all__ = [
+    "ModelDefinition",
+    "QualificationAuthority",
+    "QualificationBatch",
+    "QualificationBatchAssignment",
+    "QualificationCampaignManifest",
+    "RecipeAuthorityRow",
+    "RecipeDefinition",
+    "RecoveryCoverage",
+    "RecoveryCoverageConsumption",
+    "RecoveryCoverageDefinition",
+    "RecoveryCoverageMember",
+    "RecoveryCoverageReceipt",
+    "RecoveryCoverageReceiptEnvelope",
+    "RecoveryCoverageRef",
+    "RecoveryCoverageUse",
+    "RecoveryNodeBuildIdentity",
+    "RecoveryNodeEvidence",
+    "RecoveryRankEvidence",
+    "TestReport",
+    "campaign_authority_json_schema",
+    "campaign_manifest_json_schema",
+    "content_sha256",
+    "recovery_coverage_consumption_json_schema",
+    "recovery_coverage_id",
+    "recovery_coverage_receipt_json_schema",
+    "recovery_coverage_use_json_schema",
+    "recovery_receipt_sha256",
+]
 
 
 def model_json_schema() -> dict[str, object]:

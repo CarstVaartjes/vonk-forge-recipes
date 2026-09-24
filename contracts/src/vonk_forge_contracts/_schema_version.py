@@ -19,6 +19,11 @@ def _strict_version(expected: int) -> BeforeValidator:
 
 
 # ``ModelDefinition`` and ``RecipeDefinition`` are schema 2; the recipe
-# execution ``TestReport`` is schema 1.  Each document owns its own version.
+# execution ``TestReport`` and recovery coverage receipts are schema 1. The
+# qualification authority owns schema 4; the small campaign manifest remains
+# schema 2. Each document owns its own version.
 SchemaVersion = Annotated[Literal[2], _strict_version(2)]
 TestReportSchemaVersion = Annotated[Literal[1], _strict_version(1)]
+QualificationAuthoritySchemaVersion = Annotated[Literal[4], _strict_version(4)]
+QualificationCampaignSchemaVersion = Annotated[Literal[2], _strict_version(2)]
+RecoveryCoverageReceiptSchemaVersion = Annotated[Literal[1], _strict_version(1)]

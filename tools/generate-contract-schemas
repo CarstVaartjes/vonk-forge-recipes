@@ -11,8 +11,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import (
+    campaign_authority_json_schema,
+    campaign_manifest_json_schema,
     model_json_schema,
     recipe_json_schema,
+    recovery_coverage_consumption_json_schema,
+    recovery_coverage_receipt_json_schema,
+    recovery_coverage_use_json_schema,
     test_report_json_schema,
 )
 
@@ -45,6 +50,31 @@ def main() -> int:
             ROOT
             / "contracts/src/vonk_forge_contracts/schema/test-report-v1.schema.json",
             test_report_json_schema(),
+        ),
+        (
+            ROOT
+            / "contracts/src/vonk_forge_contracts/schema/qualification-authority-v4.schema.json",
+            campaign_authority_json_schema(),
+        ),
+        (
+            ROOT
+            / "contracts/src/vonk_forge_contracts/schema/qualification-campaign-manifest-v2.schema.json",
+            campaign_manifest_json_schema(),
+        ),
+        (
+            ROOT
+            / "contracts/src/vonk_forge_contracts/schema/recovery-coverage-receipt-v1.schema.json",
+            recovery_coverage_receipt_json_schema(),
+        ),
+        (
+            ROOT
+            / "contracts/src/vonk_forge_contracts/schema/recovery-coverage-use-v1.schema.json",
+            recovery_coverage_use_json_schema(),
+        ),
+        (
+            ROOT
+            / "contracts/src/vonk_forge_contracts/schema/recovery-coverage-consumption-v1.schema.json",
+            recovery_coverage_consumption_json_schema(),
         ),
     )
     ok = all(_write(path, schema, args.check) for path, schema in targets)
