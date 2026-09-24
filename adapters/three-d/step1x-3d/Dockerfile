@@ -40,12 +40,14 @@ RUN apt-get update \
         imageio==2.34.1 \
         jaxtyping==0.2.28 \
         kornia==0.8.0 \
+        lightning-utilities==0.11.2 \
         numpy==1.26.4 \
         omegaconf==2.3.0 \
         onnxruntime==1.21.0 \
         opencv-python-headless==4.10.0.84 \
         pillow==10.3.0 \
         plyfile==1.0.3 \
+        pytorch-lightning==2.6.6 \
         PyMCubes==0.1.4 \
         pybind11==2.13.6 \
         pygltflib==1.16.4 \
@@ -81,7 +83,7 @@ RUN python3 /tmp/prepare_upstream.py \
     && python3 -m pip install --break-system-packages --no-cache-dir --no-build-isolation \
         /opt/step1x/step1x3d_texture/custom_rasterizer \
         /opt/step1x/step1x3d_texture/differentiable_renderer \
-    && python3 -c 'from step1x3d_geometry.models.pipelines.pipeline import Step1X3DGeometryPipeline; from step1x3d_texture.pipelines.step1x_3d_texture_synthesis_pipeline import Step1X3DTexturePipeline'
+    && python3 -c 'import pytorch_lightning.utilities.rank_zero; from step1x3d_geometry.models.pipelines.pipeline import Step1X3DGeometryPipeline; from step1x3d_texture.pipelines.step1x_3d_texture_synthesis_pipeline import Step1X3DTexturePipeline'
 
 COPY run.py geometry.py label-geometry.py texture.py glb_validation.py /opt/vonk/source/
 
