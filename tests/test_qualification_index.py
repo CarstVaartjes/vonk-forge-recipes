@@ -10,18 +10,10 @@ import sys
 from pathlib import Path
 from typing import Any, cast
 
+from vonk_forge_contracts import RecipeDefinition, content_sha256
+
 ROOT = Path(__file__).resolve().parents[1]
 QUALIFICATION_ROOT = ROOT / "qualification"
-
-
-def _canonical(value: object) -> bytes:
-    return json.dumps(
-        value,
-        ensure_ascii=False,
-        allow_nan=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
 
 
 def _document(path: Path) -> dict[str, object]:
@@ -80,14 +72,10 @@ def test_recipe_digests_are_generated_locally_and_cover_supported_topologies() -
     assert all("content_sha256" not in value for value in source_bindings.values())
     expected: dict[str, str] = {}
     for path in sorted((ROOT / "recipes").glob("*.json")):
-        recipe = _document(path)
-        identity = recipe["identity"]
-        topology = recipe["topology"]
-        assert isinstance(identity, dict)
-        assert isinstance(topology, dict)
-        if topology["node_count"] <= 2:
-            key = f"{identity['publisher']}/{identity['slug']}"
-            expected[key] = hashlib.sha256(_canonical(recipe)).hexdigest()
+        recipe = RecipeDefinition.model_validate_json(path.read_bytes())
+        if recipe.topology.node_count <= 2:
+            key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+            expected[key] = content_sha256(recipe)
 
     assert set(source_bindings) == set(generated_bindings) == set(expected)
     assert {
