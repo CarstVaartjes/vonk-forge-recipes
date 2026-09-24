@@ -271,6 +271,43 @@ def test_authority_schema_and_model_bind_every_batch_and_recovery_reference() ->
         QualificationAuthority.model_validate(invalid)
 
     invalid = copy.deepcopy(document)
+    member = copy.deepcopy(invalid["recovery_coverage"][0]["members"][1])
+    payload = {
+        "failure_mode": "single-host-restart",
+        "representative_recipe": "aa/ss",
+        "members": [member],
+        "shared": False,
+        "equivalence_rationale": "This member retains its dedicated recovery check.",
+        "invalidated_by": INVALIDATED_BY,
+    }
+    coverage_id = recovery_coverage_id(payload)
+    invalid["recovery_coverage"].append({"coverage_id": coverage_id, **payload})
+    invalid["recipes"][1]["recovery_coverage_refs"] = [
+        {
+            "coverage_id": coverage_id,
+            "failure_mode": "single-host-restart",
+            "representative_recipe": "aa/ss",
+            "role": "dedicated",
+        }
+    ]
+    with pytest.raises(
+        ValidationError, match="members and row references must be exact"
+    ):
+        QualificationAuthority.model_validate(invalid)
+
+    invalid = copy.deepcopy(document)
+    invalid["recipes"][0]["recovery_coverage_refs"].append(
+        {
+            **invalid["recipes"][0]["recovery_coverage_refs"][0],
+            "coverage_id": "0" * 64,
+        }
+    )
+    with pytest.raises(
+        ValidationError, match="exactly one reference per recovery mode"
+    ):
+        QualificationAuthority.model_validate(invalid)
+
+    invalid = copy.deepcopy(document)
     invalid["recovery_coverage"][0]["members"][1]["topology_sha256"] = "f" * 64
     with pytest.raises(ValidationError, match="identical runtime and topology"):
         RecoveryCoverage.model_validate(invalid["recovery_coverage"][0])

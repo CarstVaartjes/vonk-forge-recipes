@@ -466,6 +466,9 @@ class QualificationAuthority(_QualificationContract):
             2: {"dual-rank-loss-recovery", "dual-host-restart"},
         }
         seen_refs: set[tuple[str, RecoveryFailureMode]] = set()
+        referenced_members: dict[str, set[str]] = {
+            coverage_id: set() for coverage_id in coverage_by_id
+        }
         for row in self.recipes:
             refs = {
                 (ref.coverage_id, ref.failure_mode): ref
@@ -473,6 +476,10 @@ class QualificationAuthority(_QualificationContract):
             }
             if len(refs) != len(row.recovery_coverage_refs):
                 raise ValueError(f"{row.key} repeats a recovery coverage reference")
+            if len(refs) != len(expected_modes[row.node_count]):
+                raise ValueError(
+                    f"{row.key} must have exactly one reference per recovery mode"
+                )
             if {failure_mode for _, failure_mode in refs} != expected_modes[
                 row.node_count
             ]:
@@ -519,6 +526,7 @@ class QualificationAuthority(_QualificationContract):
                         f"{row.key} recovery reference role is inconsistent"
                     )
                 seen_refs.add((row.key, reference.failure_mode))
+                referenced_members[reference.coverage_id].add(row.key)
         expected_refs = {
             (row.key, mode)
             for row in self.recipes
@@ -527,9 +535,14 @@ class QualificationAuthority(_QualificationContract):
         if seen_refs != expected_refs:
             raise ValueError("recovery definitions and row references must be exact")
         for group in self.recovery_coverage:
-            if any(member.recipe not in rows_by_key for member in group.members):
+            declared_members = {member.recipe for member in group.members}
+            if any(member not in rows_by_key for member in declared_members):
                 raise ValueError(
                     "recovery coverage includes a recipe outside the authority"
+                )
+            if declared_members != referenced_members[group.coverage_id]:
+                raise ValueError(
+                    "recovery coverage members and row references must be exact"
                 )
         return self
 
