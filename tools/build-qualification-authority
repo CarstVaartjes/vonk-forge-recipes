@@ -267,14 +267,14 @@ def _refresh_plan(text: str, rows: list[dict[str, Any]]) -> str:
         fields[4] = gate
         result.append("| " + " | ".join(fields) + " |\n")
     updated = "".join(result)
-    sequence_heading = "## One-by-one sequence\n"
+    sequence_heading = "## Complete inventory and existing authority order\n"
     sequence_note = (
         "Rows 1–81 are the one-at-a-time campaign and are bound by the ordered "
         "authority. Rows 82–85 close the catalog audit only; they require more "
         "than two Sparks and are not in the campaign."
     )
     if sequence_heading not in updated:
-        raise ValueError("qualification plan lacks the one-by-one sequence heading")
+        raise ValueError("qualification plan lacks the inventory sequence heading")
     updated = re.sub(
         r"(?m)^Rows 1–81 are the one-at-a-time campaign.*\n(?:\n)?", "", updated
     )
