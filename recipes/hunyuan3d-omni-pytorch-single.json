@@ -17,6 +17,7 @@
           "download.pytorch.org",
           "download-r2.pytorch.org",
           "pypi.org",
+          "pypi.nvidia.com",
           "files.pythonhosted.org",
           "archive.ubuntu.com",
           "security.ubuntu.com",
@@ -342,6 +343,22 @@
         "changes": [
           {
             "kind": "fix",
+            "summary": "Permit the official NVIDIA CUDA toolkit host.",
+            "details": "The pinned PyTorch cu132 metadata requires cuda-toolkit==13.2.1; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
+            "references": [
+              "https://download.pytorch.org/whl/cu132/cuda-toolkit/"
+            ]
+          }
+        ],
+        "prior_recipe_content_sha256": "444f4bdd7bfd3142648ecbbe69b4144dd062cda01c8f89c44712de80f43b04c8",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.12"
+      },
+      {
+        "changes": [
+          {
+            "kind": "fix",
             "summary": "Declared the official cu132 PyTorch wheel host and removed an unused torchaudio install request.",
             "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host, which is now explicitly permitted. The pinned upstream adapter source does not import torchaudio, and the stable cu132 index has no Python 3.12 ARM64 torchaudio 2.11.0 wheel, so the unnecessary request was removed. Model and runtime image pins are unchanged.",
             "references": [
@@ -608,7 +625,7 @@
       }
     ],
     "released_at": "2026-09-24",
-    "version": "2.0.11"
+    "version": "2.0.12"
   },
   "runtime": {
     "arguments": [

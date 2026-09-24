@@ -18,6 +18,7 @@
           "download.pytorch.org",
           "download-r2.pytorch.org",
           "pypi.org",
+          "pypi.nvidia.com",
           "files.pythonhosted.org",
           "archive.ubuntu.com",
           "security.ubuntu.com",
@@ -419,6 +420,22 @@
       {
         "changes": [
           {
+            "kind": "fix",
+            "summary": "Permit the official NVIDIA CUDA toolkit host.",
+            "details": "The pinned PyTorch cu132 metadata requires cuda-toolkit==13.2.1; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
+            "references": [
+              "https://download.pytorch.org/whl/cu132/cuda-toolkit/"
+            ]
+          }
+        ],
+        "prior_recipe_content_sha256": "c563ad2382fc25b4459136ab80e9a15293fd2270034a69f48dd30f9f5fa7f22a",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "3.2.9"
+      },
+      {
+        "changes": [
+          {
             "details": "Replaced the stale bundled protocol wheel with the Controller's current platform wheel (sha256 7555df9ec0f576ac0530d1e6abdd2f3845614cf397a7bc2c8dcd01bc86967565). The previous copy rejected a Controller-produced schema-2 plan with 518 valid argv entries; the current shared contract accepts it. Model weights and upstream LTX engine pins are unchanged.",
             "kind": "runtime",
             "references": [
@@ -711,7 +728,7 @@
       }
     ],
     "released_at": "2026-09-24",
-    "version": "3.2.8"
+    "version": "3.2.9"
   },
   "runtime": {
     "arguments": [
