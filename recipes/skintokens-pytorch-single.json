@@ -16,6 +16,7 @@
           "github.com",
           "huggingface.co",
           "download.pytorch.org",
+          "download-r2.pytorch.org",
           "pypi.org",
           "files.pythonhosted.org",
           "archive.ubuntu.com",
@@ -148,6 +149,25 @@
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Declared the official cu132 PyTorch wheel host and removed an unused torchaudio install request.",
+            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host, which is now explicitly permitted. The pinned upstream adapter source does not import torchaudio, and the stable cu132 index has no Python 3.12 ARM64 torchaudio 2.11.0 wheel, so the unnecessary request was removed. Model and runtime image pins are unchanged.",
+            "references": [
+              "https://download.pytorch.org/whl/cu132/torch/",
+              "https://download.pytorch.org/whl/cu132/torchvision/",
+              "https://download.pytorch.org/whl/cu132/torchaudio/",
+              "https://huggingface.co/VAST-AI/SkinTokens/tree/79736cad0fd84de384d5eede659b4ebd24effe33"
+            ]
+          }
+        ],
+        "prior_recipe_content_sha256": "c475a5f4168ee7690ea822be837b5f11eb49616138be8998a57f38704445fa92",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.11"
+      },
       {
         "changes": [
           {
@@ -378,7 +398,7 @@
       }
     ],
     "released_at": "2026-09-24",
-    "version": "2.0.10"
+    "version": "2.0.11"
   },
   "runtime": {
     "arguments": [

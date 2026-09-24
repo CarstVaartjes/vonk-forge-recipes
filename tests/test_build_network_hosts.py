@@ -56,6 +56,20 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
             if slug.startswith("step1x"):
                 self.assertIn("security.ubuntu.com", hosts)
 
+    def test_pytorch_index_object_host_is_explicit(self) -> None:
+        for path in sorted((ROOT / "recipes").glob("*.json")):
+            recipe = load(path)
+            if recipe["execution"]["mode"] != "build":
+                continue
+            build = recipe["execution"]["build"]
+            dockerfile = ROOT / build["dockerfile"]
+            source = dockerfile.read_text(encoding="utf-8")
+            if "https://download.pytorch.org/whl/" not in source:
+                continue
+            hosts = build["network"]["hosts"]
+            self.assertIn("download.pytorch.org", hosts, path.name)
+            self.assertIn("download-r2.pytorch.org", hosts, path.name)
+
 
 if __name__ == "__main__":
     unittest.main()

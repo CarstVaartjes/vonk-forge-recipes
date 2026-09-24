@@ -15,6 +15,7 @@
         "hosts": [
           "github.com",
           "download.pytorch.org",
+          "download-r2.pytorch.org",
           "pypi.org",
           "files.pythonhosted.org",
           "archive.ubuntu.com",
@@ -3293,6 +3294,23 @@
       {
         "changes": [
           {
+            "kind": "fix",
+            "summary": "Declared the official cu130 PyTorch wheel-object host for source builds.",
+            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
+            "references": [
+              "https://download.pytorch.org/whl/cu130/torch/",
+              "https://download.pytorch.org/whl/cu130/torchvision/"
+            ]
+          }
+        ],
+        "prior_recipe_content_sha256": "740814d717cfa2af510bc9a890ce709cac4cf5a6351175e8847acf9163335a47",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "3.0.7"
+      },
+      {
+        "changes": [
+          {
             "details": "The recipe now binds all 280 files in the exact MiniMax H3 revision (498,474,749,480 bytes), including the common pipeline plus T2VA, FL2VA, Ref2VA text encoders, transformers, VAEs, tokenizer/configuration files, and local workflow code needed for offline selection of each supported workflow.",
             "kind": "model",
             "references": [
@@ -3571,7 +3589,7 @@
       }
     ],
     "released_at": "2026-09-24",
-    "version": "3.0.6"
+    "version": "3.0.7"
   },
   "runtime": {
     "arguments": [

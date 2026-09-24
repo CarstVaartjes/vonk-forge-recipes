@@ -15,6 +15,7 @@
         "hosts": [
           "github.com",
           "download.pytorch.org",
+          "download-r2.pytorch.org",
           "pypi.org",
           "files.pythonhosted.org",
           "archive.ubuntu.com",
@@ -289,6 +290,23 @@
       {
         "changes": [
           {
+            "kind": "fix",
+            "summary": "Declared the official cu132 PyTorch wheel-object host for source builds.",
+            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
+            "references": [
+              "https://download.pytorch.org/whl/cu132/torch/",
+              "https://download.pytorch.org/whl/cu132/torchvision/"
+            ]
+          }
+        ],
+        "prior_recipe_content_sha256": "cf1f5c2be9a3510eb07666a1b4d71327917dcc626fe99c1181da69ce3cb293a1",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "2.0.11"
+      },
+      {
+        "changes": [
+          {
             "details": "The TripoSG selection now names every file in its exact pinned source model. A separate BRIA RMBG 1.4 Model is bound for offline background removal, with its config and safetensors selected explicitly. BRIA metadata preserves the source-available non-commercial license and operator acceptance requirement; this does not assert legal acceptance.",
             "kind": "model",
             "references": [
@@ -524,7 +542,7 @@
       }
     ],
     "released_at": "2026-09-24",
-    "version": "2.0.10"
+    "version": "2.0.11"
   },
   "runtime": {
     "arguments": [
