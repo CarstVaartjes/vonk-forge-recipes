@@ -176,6 +176,7 @@ class LtxSparkFitTests(unittest.TestCase):
             check=True,
             capture_output=True,
             text=True,
+            timeout=30,
         ).stdout
 
         payload = json.loads(emitted)
