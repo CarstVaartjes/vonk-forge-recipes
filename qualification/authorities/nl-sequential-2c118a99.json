@@ -3,11 +3,11 @@
   "authority_id": "nl-sequential-2c118a99",
   "catalog": {
     "repository": "CarstVaartjes/vonk-forge-recipes",
-    "commit": "2c118a9900a9cb7ca2ce1456353eb2926e68f039",
-    "release_tag": "v1.0.8",
-    "source_commit": "c7018796ce7b1fc88945e83b2e682bcb6d7a184c",
-    "catalog_index_sha256": "c3b64dc0110612fd0315fe8693904f942ef8d5af706de48cf20d0fe02dc7511f",
-    "qualification_index_sha256": "5afb641f4df1ed71412e3e2dc5c58d02ce3ca95a78f591eb19e0d4c51bf7da68",
+    "commit": "0af39819fccd9bef9d506ec7624b900d7a0fb3ae",
+    "release_tag": "v1.0.9",
+    "source_commit": "1b99a3728e206a8d0b6f586dc3f1cde7221d5057",
+    "catalog_index_sha256": "36c63247e2838496c047a3a63228fb6eccfa08c6a44ae8203bb7d9d7228a80f9",
+    "qualification_index_sha256": "f9a43d30a1afab77464c330e3bfb37f92c57c44df92431715054ac01025ccc43",
     "recipe_count": 85
   },
   "scope": {
@@ -24,12 +24,12 @@
     {
       "sequence": 1,
       "key": "vonk-forge/step1x-3d-geometry-pytorch-single",
-      "recipe_version": "1.2.8",
-      "content_sha256": "5d474f77f806263aea71a3af12c1094fe7bd220f3f8e0dea9fec34375c026f55",
+      "recipe_version": "1.2.9",
+      "content_sha256": "4d498a893dd1690cb70f9833feb685fbdc19267cb42575908b3852c8704e0b4a",
       "package": {
         "path": "packages/step1x-3d-geometry-pytorch-single.tar.gz",
-        "sha256": "bb3fc99dcc755e18bb8771bae51d13a7c4805ec616a2e4c226b5b29998fece21",
-        "expected_bytes": 23214,
+        "sha256": "fe79aaf407cc6d3f6681976e33f4f1d6c5e86a56621aa65ed2063b5cd7374ce6",
+        "expected_bytes": 24818,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -39,13 +39,23 @@
       "model_license_refs": [
         {
           "key": "stepfun-ai/step1x-3d-geometry",
-          "content_sha256": "84e9ac0ac3e89d62246653b1c7332006f1670f2209de0f4622f00c693612375e",
+          "content_sha256": "8ea7d65dec4b306e8d5890da4076d82ed0898c51206c7dd76c7672a759c09777",
           "spdx": "Apache-2.0",
           "url": "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/LICENSE",
           "attribution": [
             "stepfun-ai"
           ],
           "operator_acceptance_required": true
+        },
+        {
+          "key": "facebook/dinov2-with-registers-large",
+          "content_sha256": "a1dc0a1ff350539fed843ff313cb64b4df72650ab83e97168bd492e79412c134",
+          "spdx": "Apache-2.0",
+          "url": "https://huggingface.co/facebook/dinov2-with-registers-large/blob/e4c89a4e05589de9b3e188688a303d0f3c04d0f3/README.md",
+          "attribution": [
+            "facebook"
+          ],
+          "operator_acceptance_required": false
         }
       ],
       "qualification_inputs": [
@@ -65,12 +75,12 @@
     {
       "sequence": 2,
       "key": "vonk-forge/step1x-3d-label-geometry-pytorch-single",
-      "recipe_version": "1.2.8",
-      "content_sha256": "8b31207b04c5f475597c24600d70d429c48fcddc5a23ac7adeb1ec6b1b9db05f",
+      "recipe_version": "1.2.9",
+      "content_sha256": "ac3fe54af7391b6c6e299757fa7a2c42103599144834a239fde582bc22925f67",
       "package": {
         "path": "packages/step1x-3d-label-geometry-pytorch-single.tar.gz",
-        "sha256": "e6d1ebcf8e052cbe47ad42d2f11d19190f33464e5be31e869e1d44906e3a356e",
-        "expected_bytes": 23304,
+        "sha256": "a1bf913491185941472f0149c1081a8124a57bec4a4a3166023675ea1ae501df",
+        "expected_bytes": 25537,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -80,13 +90,33 @@
       "model_license_refs": [
         {
           "key": "stepfun-ai/step1x-3d-label-geometry",
-          "content_sha256": "35fb58f92e192b0905637e1677c49e27de7aa84b4a91156a58533b3c90ba13b9",
+          "content_sha256": "eb92cfc437c8be662c26491af48b197d9fa5dd511503c93e891a08b53c0f4274",
           "spdx": "Apache-2.0",
           "url": "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/LICENSE",
           "attribution": [
             "stepfun-ai"
           ],
           "operator_acceptance_required": true
+        },
+        {
+          "key": "facebook/dinov2-with-registers-large",
+          "content_sha256": "a1dc0a1ff350539fed843ff313cb64b4df72650ab83e97168bd492e79412c134",
+          "spdx": "Apache-2.0",
+          "url": "https://huggingface.co/facebook/dinov2-with-registers-large/blob/e4c89a4e05589de9b3e188688a303d0f3c04d0f3/README.md",
+          "attribution": [
+            "facebook"
+          ],
+          "operator_acceptance_required": false
+        },
+        {
+          "key": "openai/clip-vit-large-patch14",
+          "content_sha256": "f4bf667134c88ab2768342c2bfbf66e02a60799bfb382f3a4a47d54ff09cd059",
+          "spdx": "MIT",
+          "url": "https://github.com/openai/CLIP/blob/d05afc436d78f1c48dc0dbf8e5980a9d471f35f6/LICENSE",
+          "attribution": [
+            "openai"
+          ],
+          "operator_acceptance_required": false
         }
       ],
       "qualification_inputs": [
@@ -142,12 +172,12 @@
     {
       "sequence": 4,
       "key": "vonk-forge/skintokens-pytorch-single",
-      "recipe_version": "2.0.9",
-      "content_sha256": "6045b3b4372067513117053d03c3995e0c8af673bfbe7fc2597940d88c154f7b",
+      "recipe_version": "2.0.10",
+      "content_sha256": "c475a5f4168ee7690ea822be837b5f11eb49616138be8998a57f38704445fa92",
       "package": {
         "path": "packages/skintokens-pytorch-single.tar.gz",
-        "sha256": "cf5f2f04b6124ee0849f4df0176fb4d6da276782dea67eb8fe331f10651e31bc",
-        "expected_bytes": 21953,
+        "sha256": "802bc1c460193a601fbd857497886487e6fbfaaaaa297b4eee0959d1340a44ac",
+        "expected_bytes": 22396,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -157,7 +187,7 @@
       "model_license_refs": [
         {
           "key": "vast-ai/skintokens",
-          "content_sha256": "15fca734a83dda4643973cddb1986ebe63c3e88fc31f0c4394f8782a9e5eed01",
+          "content_sha256": "3a34062692ae74439da214f88b106d0c072690d916e1127b249864cdcae83b90",
           "spdx": "MIT",
           "url": "https://github.com/VAST-AI-Research/SkinTokens/blob/273b691d35989d71cd17ff2895fdc735097b92d1/LICENSE",
           "attribution": [
@@ -224,12 +254,12 @@
     {
       "sequence": 6,
       "key": "vonk-forge/triposg-pytorch-single",
-      "recipe_version": "2.0.9",
-      "content_sha256": "dc042d86390ad098fd519d2cc8c88f4aa269d2d1ad9521c6c46bf03632a692d9",
+      "recipe_version": "2.0.10",
+      "content_sha256": "cf1f5c2be9a3510eb07666a1b4d71327917dcc626fe99c1181da69ce3cb293a1",
       "package": {
         "path": "packages/triposg-pytorch-single.tar.gz",
-        "sha256": "d49155db711b7e8e0a77b2653cb3d34192da6fd6f67c73609263c0240227ebf9",
-        "expected_bytes": 19954,
+        "sha256": "9d4a291f45545f1b9ec4b90700e9d3c474256ae6e3e58bb65dc1819a8febdaab",
+        "expected_bytes": 23157,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -239,11 +269,21 @@
       "model_license_refs": [
         {
           "key": "vast-ai/triposg",
-          "content_sha256": "a7511281440cef509b906378fc7f6a50b36ef470348b119098ed951ff642b676",
+          "content_sha256": "92bdd6669b05b45442df655d97c0dc2e2dd46235b6f0992dd11841ef52fe3128",
           "spdx": "MIT",
           "url": "https://github.com/VAST-AI-Research/TripoSG/blob/fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c/LICENSE",
           "attribution": [
             "vast-ai"
+          ],
+          "operator_acceptance_required": true
+        },
+        {
+          "key": "bria-ai/bria-rmbg-1-4",
+          "content_sha256": "f7c9e356bfe62fcce55d6a31d4e4c86fe2631bfa661829e4c5e11df3d372a74e",
+          "spdx": "other",
+          "url": "https://bria.ai/bria-huggingface-model-license-agreement/",
+          "attribution": [
+            "BRIA AI"
           ],
           "operator_acceptance_required": true
         }
@@ -709,12 +749,12 @@
     {
       "sequence": 18,
       "key": "vonk-forge/ltx-2-19b-dev-bf16-diffusers-single",
-      "recipe_version": "3.2.7",
-      "content_sha256": "c72038b39ac1552c6c9f6eb9b33145a7c40ada21129d8c3b87918b6f368665d9",
+      "recipe_version": "3.2.8",
+      "content_sha256": "c563ad2382fc25b4459136ab80e9a15293fd2270034a69f48dd30f9f5fa7f22a",
       "package": {
         "path": "packages/ltx-2-19b-dev-bf16-diffusers-single.tar.gz",
-        "sha256": "a2f689dac9f8e105c8bc5eb19f1bec5765fb8d43c0568eb5998c69b7c10d64f5",
-        "expected_bytes": 81503,
+        "sha256": "249b609cc18cc1e3c3752c0387ef90e5f57df7e596bab803b60a406d9189343b",
+        "expected_bytes": 89612,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -981,12 +1021,12 @@
     {
       "sequence": 24,
       "key": "vonk-forge/ltx-2-3-22b-distilled-1-1-diffusers-single",
-      "recipe_version": "3.2.8",
-      "content_sha256": "d6b13f42d01b5391599c61e87bc4a7c0e7612f03b85717d59c0636dc110f276b",
+      "recipe_version": "3.2.9",
+      "content_sha256": "7127e67128bf063655bb9cc3b7d6939440d482ea502b31c71ed379e7d8055a37",
       "package": {
         "path": "packages/ltx-2-3-22b-distilled-1-1-diffusers-single.tar.gz",
-        "sha256": "a3bfaf9232dfb3166473a9e2c53b4e86b4f876f58e1ac9217af8cc71d720ee49",
-        "expected_bytes": 81753,
+        "sha256": "c45844cd8ccbe3abc5276380bf9d011e062a27b193ceecee5329a230cd43101e",
+        "expected_bytes": 89868,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1071,12 +1111,12 @@
     {
       "sequence": 26,
       "key": "vonk-forge/ltx-2-19b-distilled-fp8-diffusers-single",
-      "recipe_version": "3.1.7",
-      "content_sha256": "9494c1aaaf349561d88e5758b403974605b89d65def2f308e3e1d0e4d1fbdd38",
+      "recipe_version": "3.1.8",
+      "content_sha256": "4ed662c266fcb1ec28d900b237fec876fa91b163ed8a256d71be8eae0403108b",
       "package": {
         "path": "packages/ltx-2-19b-distilled-fp8-diffusers-single.tar.gz",
-        "sha256": "6a657a5fa71dc1799ce5b714be532fbe68cd20ceb058a391845638f630618ace",
-        "expected_bytes": 80905,
+        "sha256": "5aa21ae88dc3a0475747023c9bcd3a54517082b82846a5f43c47e77352f70987",
+        "expected_bytes": 89089,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1123,12 +1163,12 @@
     {
       "sequence": 27,
       "key": "vonk-forge/step1x-3d-texture-pytorch-single",
-      "recipe_version": "1.2.8",
-      "content_sha256": "f1c85a945a19c65d3501cc775f53e98f173358bd4755d8af7599f6e03fefcb09",
+      "recipe_version": "1.2.9",
+      "content_sha256": "9a7933ac98f199c544c750f3a93037d934dd10aad393e0f04acdf7d524bd1c8e",
       "package": {
         "path": "packages/step1x-3d-texture-pytorch-single.tar.gz",
-        "sha256": "d0b2ed8bea5bedf44c71e2640a26e6d491982c9baa4c889c4607fbf0a0eaf797",
-        "expected_bytes": 23713,
+        "sha256": "ad8a5012b17cb9763821dbd32d63ac088243c963021475c44694208bf822ec87",
+        "expected_bytes": 26345,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1138,13 +1178,33 @@
       "model_license_refs": [
         {
           "key": "stepfun-ai/step1x-3d-texture",
-          "content_sha256": "c9a60aa3bc3b63f845bb297c425794e08d58870d24026812826284bd9397a33c",
+          "content_sha256": "655a885f11eff6ac59d8fd91ad9a3cfd8d84c7ea87dffa5abb17faca4b993f8e",
           "spdx": "Apache-2.0",
           "url": "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/LICENSE",
           "attribution": [
             "stepfun-ai"
           ],
           "operator_acceptance_required": true
+        },
+        {
+          "key": "stabilityai/stable-diffusion-xl-base-1-0",
+          "content_sha256": "bb39ed141bef5c04ae40b95d03647823f66ebb88c7087ad0d40de9c578db616e",
+          "spdx": "LicenseRef-CreativeML-Open-RAIL-Plus-Plus-M",
+          "url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/462165984030d82259a11f4367a4eed129e94a7b/LICENSE.md",
+          "attribution": [
+            "stabilityai"
+          ],
+          "operator_acceptance_required": true
+        },
+        {
+          "key": "madebyollin/sdxl-vae-fp16-fix",
+          "content_sha256": "f13cf97810053e567ec6c1d5a222479b0435c54a32275755ab3d3ec542e20e6b",
+          "spdx": "MIT",
+          "url": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/blob/207b116dae70ace3637169f1ddd2434b91b3a8cd/README.md",
+          "attribution": [
+            "madebyollin"
+          ],
+          "operator_acceptance_required": false
         }
       ],
       "qualification_inputs": [
@@ -1519,12 +1579,12 @@
     {
       "sequence": 37,
       "key": "vonk-forge/mova-360p-diffusers-single",
-      "recipe_version": "2.0.9",
-      "content_sha256": "e8eddf6b00e0e9c8c67edc0f33a292b925e02ceeb4ae824c916b993e5cc42d21",
+      "recipe_version": "2.0.11",
+      "content_sha256": "71656e7ef3990b67c059de758b0e47af18f65393385089916e2771b555dfd2b2",
       "package": {
         "path": "packages/mova-360p-diffusers-single.tar.gz",
-        "sha256": "919ba624e01e36400fd5aa8c1df102334ec910e440a63c0ad25849340638d8fd",
-        "expected_bytes": 11967,
+        "sha256": "3d3f204f60d350d585310b7fdef69f3c74e81e8a91d130ad980e35ba128b492e",
+        "expected_bytes": 14682,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1534,9 +1594,9 @@
       "model_license_refs": [
         {
           "key": "openmoss/mova-360p",
-          "content_sha256": "a0cc0c54c3d28111b48f041eda319f8c391ef669634aa40f0f870f68897f293a",
+          "content_sha256": "ab85f24ed5246b93a26b17f12ff7d81a95dbbb3c965a33bde9024522adb52151",
           "spdx": "Apache-2.0",
-          "url": "https://huggingface.co/OpenMOSS-Team/MOVA-360p/blob/eab4aa91d6d5eb515e259a0c8533c90062b117a5/LICENSE",
+          "url": "https://huggingface.co/OpenMOSS-Team/MOVA-360p/blob/eab4aa91d6d5eb515e259a0c8533c90062b117a5/README.md",
           "attribution": [
             "openmoss"
           ],
@@ -1632,12 +1692,12 @@
     {
       "sequence": 40,
       "key": "vonk-forge/ltx-2-19b-distilled-diffusers-single",
-      "recipe_version": "3.1.7",
-      "content_sha256": "bb2ac226bbc6d78c241d9ffdb6c0b3afd2ed07e53abe11af096c61ae717e8b77",
+      "recipe_version": "3.1.8",
+      "content_sha256": "3a25502bdfb819b812fbab6fc7ad21395281a95baf9ecb8d171e5394debb0852",
       "package": {
         "path": "packages/ltx-2-19b-distilled-diffusers-single.tar.gz",
-        "sha256": "16d355ad87e881d9491ecb4ae7f16d3c66188c241103e47ccdac9afdcb75dc3c",
-        "expected_bytes": 80868,
+        "sha256": "7724d7eea70f8ea69932572988d5512827cae000f5d81b5d8677400384d780e1",
+        "expected_bytes": 89050,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1725,12 +1785,12 @@
     {
       "sequence": 42,
       "key": "vonk-forge/mova-720p-diffusers-single",
-      "recipe_version": "2.0.9",
-      "content_sha256": "96d319d04c5efd5b8a32c7331a2fd509ee07d8b4b5ac8b6ae7d0fcd85b5f3eef",
+      "recipe_version": "2.0.11",
+      "content_sha256": "1639d10401f829723d9eab4cf715c63b68b587051566e1e1586fbfcce9a9743a",
       "package": {
         "path": "packages/mova-720p-diffusers-single.tar.gz",
-        "sha256": "2997d75a8bc036b351245789a8ffd271a4ab664dcd245b0cb235b09d209eff0b",
-        "expected_bytes": 11976,
+        "sha256": "c81734af2d71e04c23c11335f242dd38032dc6d91671ad2e9bf8c2dcefda9943",
+        "expected_bytes": 14690,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1740,9 +1800,9 @@
       "model_license_refs": [
         {
           "key": "openmoss/mova-720p",
-          "content_sha256": "93b0a23b98e2f22acd13e74721662b54e61b52091bbce83a1307cacb1fd732a1",
+          "content_sha256": "d2cd61dcd4d6eca1c0755fb6292346588974be8903fc06d333020f51b254566b",
           "spdx": "Apache-2.0",
-          "url": "https://huggingface.co/OpenMOSS-Team/MOVA-720p/blob/8462bea9a317a3591279faeedfd3ca01b055cb59/LICENSE",
+          "url": "https://huggingface.co/OpenMOSS-Team/MOVA-720p/blob/8462bea9a317a3591279faeedfd3ca01b055cb59/README.md",
           "attribution": [
             "openmoss"
           ],
@@ -2432,12 +2492,12 @@
     {
       "sequence": 59,
       "key": "vonk-forge/hunyuan-video-foley-xl-pytorch-single",
-      "recipe_version": "1.4.3",
-      "content_sha256": "a09945b0aca571ea626a36b11f0790388cd2224bf9da051fe48b57e4c3d55b86",
+      "recipe_version": "1.4.5",
+      "content_sha256": "034ecc2d347f87309fccd49993af375c4fd9b64e37fc74017319c4838f32076d",
       "package": {
         "path": "packages/hunyuan-video-foley-xl-pytorch-single.tar.gz",
-        "sha256": "c8c7c9fe1ea131b131f03af15f987b538fda7083757e4240f7dbf0a3b90dd247",
-        "expected_bytes": 20760550,
+        "sha256": "37c3da95c68be288484f875fd7e6202b927c05facc977f6f8a1c01f313a576ea",
+        "expected_bytes": 20763560,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2447,7 +2507,7 @@
       "model_license_refs": [
         {
           "key": "tencent/hunyuan-video-foley-xl",
-          "content_sha256": "652b01caa51a2a581fd4d1ec661f6a00719238ae0e19b9b0dc7e7e9daee4c344",
+          "content_sha256": "67f0dbdd0516cbff2f754dde5356c8672f913afd05f120ebf098fe30dd2394d9",
           "spdx": "LicenseRef-Tencent-Hunyuan-Community",
           "url": "https://huggingface.co/tencent/HunyuanVideo-Foley/blob/3abd4e833b95b8db0fc9c687afc52483a48e9a97/LICENSE",
           "attribution": [
@@ -2462,6 +2522,26 @@
             ],
             "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
           }
+        },
+        {
+          "key": "google/siglip2-base-patch16-512-a89f5c50",
+          "content_sha256": "03ac77b98291a22708284c014ae7138397bef11607dcc67d2affceab77f7e8af",
+          "spdx": "Apache-2.0",
+          "url": "https://huggingface.co/google/siglip2-base-patch16-512/blob/a89f5c5093f902bf39d3cd4d81d2c09867f0724b/README.md",
+          "attribution": [
+            "google"
+          ],
+          "operator_acceptance_required": false
+        },
+        {
+          "key": "laion/larger-clap-general-ada0c23a",
+          "content_sha256": "0a4563c618c820ebf9dbbe9e32b674d477010039dbd6ce1da511329fc26dcd67",
+          "spdx": "Apache-2.0",
+          "url": "https://huggingface.co/laion/larger_clap_general/blob/ada0c23a36c4e8582805bb38fec3905903f18b41/README.md",
+          "attribution": [
+            "laion"
+          ],
+          "operator_acceptance_required": false
         }
       ],
       "qualification_inputs": [
@@ -2482,12 +2562,12 @@
     {
       "sequence": 60,
       "key": "vonk-forge/hunyuan-video-foley-xxl-pytorch-single",
-      "recipe_version": "1.4.3",
-      "content_sha256": "7c0b8a6d12161c97206113d5f098a9244a153d2c342f5bd996f780731245a480",
+      "recipe_version": "1.4.5",
+      "content_sha256": "caf1e0c70678b95b944e7baf9107f9de69f01290709d2f2ea3cfe8cee04cdebf",
       "package": {
         "path": "packages/hunyuan-video-foley-xxl-pytorch-single.tar.gz",
-        "sha256": "b35945ca883e0d7cd9d79b719eefd2f7b4b8f9b147cedfe5f7e904fe3b5b7d7b",
-        "expected_bytes": 20760564,
+        "sha256": "280562e32d67ec69f2100a9437d9d709948f4a33a57eb183ac49cb51c42f13be",
+        "expected_bytes": 20763590,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2497,7 +2577,7 @@
       "model_license_refs": [
         {
           "key": "tencent/hunyuan-video-foley-xxl",
-          "content_sha256": "c0af723d1f1816dc7f583524c370d7c422c465355516ed36bdb9934df8d08e2e",
+          "content_sha256": "25b5a80263e60f99b67da19df41246391067bf650a8f54e513936f9194b4b4fe",
           "spdx": "LicenseRef-Tencent-Hunyuan-Community",
           "url": "https://huggingface.co/tencent/HunyuanVideo-Foley/blob/3abd4e833b95b8db0fc9c687afc52483a48e9a97/LICENSE",
           "attribution": [
@@ -2512,6 +2592,26 @@
             ],
             "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
           }
+        },
+        {
+          "key": "google/siglip2-base-patch16-512-a89f5c50",
+          "content_sha256": "03ac77b98291a22708284c014ae7138397bef11607dcc67d2affceab77f7e8af",
+          "spdx": "Apache-2.0",
+          "url": "https://huggingface.co/google/siglip2-base-patch16-512/blob/a89f5c5093f902bf39d3cd4d81d2c09867f0724b/README.md",
+          "attribution": [
+            "google"
+          ],
+          "operator_acceptance_required": false
+        },
+        {
+          "key": "laion/larger-clap-general-ada0c23a",
+          "content_sha256": "0a4563c618c820ebf9dbbe9e32b674d477010039dbd6ce1da511329fc26dcd67",
+          "spdx": "Apache-2.0",
+          "url": "https://huggingface.co/laion/larger_clap_general/blob/ada0c23a36c4e8582805bb38fec3905903f18b41/README.md",
+          "attribution": [
+            "laion"
+          ],
+          "operator_acceptance_required": false
         }
       ],
       "qualification_inputs": [
@@ -2583,12 +2683,12 @@
     {
       "sequence": 62,
       "key": "vonk-forge/hunyuan3d-omni-pytorch-single",
-      "recipe_version": "2.0.8",
-      "content_sha256": "26714eca6f379120c0788e8a22e3bcf6bb37d272a0e1f2dbb518dd7fb56c6a0b",
+      "recipe_version": "2.0.10",
+      "content_sha256": "5f1b198e461bddfc41986d5540036f5019bd0c624e0f5c4015e5bfadae67294c",
       "package": {
         "path": "packages/hunyuan3d-omni-pytorch-single.tar.gz",
-        "sha256": "33e45d12fbd385ad83cf8fb293e5397a846e9ba96fb307158277bccb26858d1b",
-        "expected_bytes": 21189,
+        "sha256": "6b2f6435a5da53732a092a89f972650a05a0cbea804bb3b3ced780ab28be48d2",
+        "expected_bytes": 23201,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2598,7 +2698,7 @@
       "model_license_refs": [
         {
           "key": "tencent/hunyuan3d-omni",
-          "content_sha256": "72336c134cd48940d8211cbf4ac0b87bd8966bd06258f8add09d284c9c8e3247",
+          "content_sha256": "f2a225023fae4d2e0ddacbc9d92f426d7ffbf602a2ff5426f62a2c73d3279a91",
           "spdx": "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License",
           "url": "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/blob/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8/License.txt",
           "attribution": [
@@ -2613,6 +2713,16 @@
             ],
             "notice": "The upstream Hunyuan3D-Omni Community License does not apply in the European Union, United Kingdom, or South Korea."
           }
+        },
+        {
+          "key": "facebook/dinov2-large-47b73eef",
+          "content_sha256": "5754fd1f85131102730496ee4e5fc842ef5b7b96e8308bce45a527beab8b4364",
+          "spdx": "Apache-2.0",
+          "url": "https://huggingface.co/facebook/dinov2-large/blob/47b73eefe95e8d44ec3623f8890bd894b6ea2d6c/README.md",
+          "attribution": [
+            "facebook"
+          ],
+          "operator_acceptance_required": false
         }
       ],
       "qualification_inputs": [
@@ -2626,12 +2736,12 @@
     {
       "sequence": 63,
       "key": "vonk-forge/hunyuan-video-15-distilled-diffusers-single",
-      "recipe_version": "1.4.4",
-      "content_sha256": "76f5f7603238b6d6b460ed4ae79b3ea75c83c207e1b172482a5edf8a188447bf",
+      "recipe_version": "1.4.5",
+      "content_sha256": "0ed66beadfbb26454064a1f80fa534a45b371774a3f55b7418db54f1d4cf05b5",
       "package": {
         "path": "packages/hunyuan-video-15-distilled-diffusers-single.tar.gz",
-        "sha256": "029172fb48f35b74f67e5623077ece59b0331e0d7cce434120526c06843ab168",
-        "expected_bytes": 47274,
+        "sha256": "e20f5b7a57ec7c35ed1b264ebfa10821648c97812431aa2254cfd05f9792c66c",
+        "expected_bytes": 50274,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2641,7 +2751,7 @@
       "model_license_refs": [
         {
           "key": "tencent/hunyuan-video-15-distilled",
-          "content_sha256": "d538d73935110ac4f8a16c4b4a4e06f0c9021ba488527821d1faa6b149d7b69d",
+          "content_sha256": "51ca0d5487a9683454a93dee6b2541abdd2b6ff1d328fe9bbc6479fa2a03be70",
           "spdx": "LicenseRef-Tencent-Hunyuan-Community",
           "url": "https://huggingface.co/tencent/HunyuanVideo-1.5/blob/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038/LICENSE",
           "attribution": [
@@ -2675,12 +2785,12 @@
     {
       "sequence": 64,
       "key": "vonk-forge/hunyuan-video-15-i2v-step-distilled-diffusers-single",
-      "recipe_version": "1.4.4",
-      "content_sha256": "9a64910660148814474c187c641ddd009ef12cf25530f45c7b8da50889d537a9",
+      "recipe_version": "1.4.5",
+      "content_sha256": "dba8b3c1832d6eaaadba32b5074cdc134bee602d5110a9a6575005d8606c70db",
       "package": {
         "path": "packages/hunyuan-video-15-i2v-step-distilled-diffusers-single.tar.gz",
-        "sha256": "e1881d78e24db603901b1b8735e174cf16b0ef6f9b770cb21188d6fa72075f89",
-        "expected_bytes": 47707,
+        "sha256": "8756daf86b07a42290a6b31781c2e1984a73302d8fd95d3fc7e1fdad9dd298f6",
+        "expected_bytes": 50375,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2690,7 +2800,7 @@
       "model_license_refs": [
         {
           "key": "tencent/hunyuan-video-15-i2v-step-distilled",
-          "content_sha256": "16834875b23181681c9410f40c5da3bc6ded2167a260ac1ff931aa85a78c0dfa",
+          "content_sha256": "8ae61136aab936136fece5ba2d943f679ad1b84c38de019c7db29c9ca8f98620",
           "spdx": "LicenseRef-Tencent-Hunyuan-Community",
           "url": "https://huggingface.co/tencent/HunyuanVideo-1.5/blob/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038/LICENSE",
           "attribution": [
@@ -2725,12 +2835,12 @@
     {
       "sequence": 65,
       "key": "vonk-forge/hunyuan-video-15-t2v-diffusers-single",
-      "recipe_version": "1.4.4",
-      "content_sha256": "e84c36248bc46e32ecf7db127acb3e9567baf8cc159e5ff80422e7a92948c80a",
+      "recipe_version": "1.4.5",
+      "content_sha256": "131f0fa8b81fd5fa32e7567d77f375241ba7927c91f78170fbc5a9301a63e1e6",
       "package": {
         "path": "packages/hunyuan-video-15-t2v-diffusers-single.tar.gz",
-        "sha256": "3b4378d15f0379ab038d58cadca47ae716637520e4b7ebf6c5712bbb9594f41f",
-        "expected_bytes": 47247,
+        "sha256": "548a421c229e74fff31741f24f9729a8ec4a53979862f3454264a82e1c186f2e",
+        "expected_bytes": 50250,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2740,7 +2850,7 @@
       "model_license_refs": [
         {
           "key": "tencent/hunyuan-video-15-t2v",
-          "content_sha256": "f519d160a4211bd0710108c7df08d381556bc4decc571eabd57a5ec085e62e9b",
+          "content_sha256": "ee3561861abb2ec39e0d56d6e8f6bc5607d0368bcbbc50157feb5c0ddfc4a92b",
           "spdx": "LicenseRef-Tencent-Hunyuan-Community",
           "url": "https://huggingface.co/tencent/HunyuanVideo-1.5/blob/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038/LICENSE",
           "attribution": [
@@ -2774,12 +2884,12 @@
     {
       "sequence": 66,
       "key": "vonk-forge/minimax-h3-diffusers-single",
-      "recipe_version": "3.0.5",
-      "content_sha256": "a17f82034a0d5fd3679ea0e87775ef87fe2f1fa4da83883a05191620d16be771",
+      "recipe_version": "3.0.6",
+      "content_sha256": "740814d717cfa2af510bc9a890ce709cac4cf5a6351175e8847acf9163335a47",
       "package": {
         "path": "packages/minimax-h3-diffusers-single.tar.gz",
-        "sha256": "ccf80846b22d1b08fa8aa41b3e0b9b22c08934531d171acada8e87b07e408315",
-        "expected_bytes": 11013,
+        "sha256": "597929b81baa212893d7f7771c0877530bc36802da179fbb20e84fb759dc9dc6",
+        "expected_bytes": 30455,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -2789,7 +2899,7 @@
       "model_license_refs": [
         {
           "key": "minimax/minimax-h3",
-          "content_sha256": "704b978794bef2e723d9e9e8b3afd590dc5e2d3d62463b478e63fa80c17616b0",
+          "content_sha256": "bb044c9cd5c0970e54f0a1a9250f130116942f62b34313a3ef49094ee368d44b",
           "spdx": "LicenseRef-MiniMax-H3-Community-License",
           "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE",
           "attribution": [
