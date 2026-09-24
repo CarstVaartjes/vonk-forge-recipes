@@ -252,6 +252,22 @@
         "changes": [
           {
             "kind": "runtime",
+            "summary": "Initialize PyTorch before checking its compiled rasterizer extension.",
+            "details": "The image-build smoke now imports PyTorch before custom_rasterizer, matching the inference path and making PyTorch shared libraries available to the extension loader. The explicit rasterizer, pipeline, and image-helper checks remain enabled.",
+            "references": [
+              "https://docs.pytorch.org/cppdocs/faq.html",
+              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_texture/custom_rasterizer/custom_rasterizer/render.py"
+            ]
+          }
+        ],
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "1.2.15"
+      },
+      {
+        "changes": [
+          {
+            "kind": "runtime",
             "summary": "Keep the shared Step1X inference smoke independent of plotting-only imports.",
             "details": "The texture pipeline imports make_image_grid and tensor_to_image from the upstream saver module; Matplotlib is only used by its magma and spectral visualization branches. Those imports are now deferred to the selected branches without changing the image helpers. The shared build smoke exercises both helpers and imports the compiled custom rasterizer and nvdiffrast modules.",
             "references": [
@@ -568,7 +584,7 @@
       }
     ],
     "released_at": "2026-09-24",
-    "version": "1.2.14"
+    "version": "1.2.15"
   },
   "runtime": {
     "arguments": [

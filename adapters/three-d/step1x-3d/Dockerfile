@@ -85,7 +85,7 @@ RUN python3 /tmp/prepare_upstream.py \
     && python3 -m pip install --break-system-packages --no-cache-dir --no-build-isolation \
         /opt/step1x/step1x3d_texture/custom_rasterizer \
         /opt/step1x/step1x3d_texture/differentiable_renderer \
-    && python3 -c 'import custom_rasterizer; import nvdiffrast.torch; import pytorch_lightning.utilities.rank_zero; from step1x3d_geometry.models.pipelines.pipeline import Step1X3DGeometryPipeline; from step1x3d_texture.pipelines.step1x_3d_texture_synthesis_pipeline import Step1X3DTexturePipeline' \
+    && python3 -c 'import torch; import custom_rasterizer; import nvdiffrast.torch; import pytorch_lightning.utilities.rank_zero; from step1x3d_geometry.models.pipelines.pipeline import Step1X3DGeometryPipeline; from step1x3d_texture.pipelines.step1x_3d_texture_synthesis_pipeline import Step1X3DTexturePipeline' \
     && python3 -c 'import numpy as np; from PIL import Image; from step1x3d_texture.utils import make_image_grid, tensor_to_image; image = tensor_to_image(np.zeros((2, 2, 3), dtype=np.uint8)); assert isinstance(image, Image.Image); assert make_image_grid([image]).size == (2, 2)'
 
 COPY run.py geometry.py label-geometry.py texture.py glb_validation.py /opt/vonk/source/
