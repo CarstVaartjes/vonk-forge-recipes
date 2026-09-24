@@ -1,0 +1,1047 @@
+#!/usr/bin/env python3
+"""Derive the family-aware qualification coverage matrix from exact catalog identities.
+
+The 2026-09-24 plan asks for one complete 85-row stack/family matrix with
+representative selection, paired single-Spark batches and a recovery-coverage
+mapping.  Every field here is derived from documents this repository already
+owns:
+
+* ``catalog-index.json`` - the producer index and its content/package digests;
+* ``recipes/*.json`` and ``models/*.json`` - the authored contract documents;
+* ``qualification/authorities/nl-sequential-2c118a99.json`` - the ordered
+  <=2-Spark authority, its per-row gates and its smoke/fixture references.
+
+The matrix records structure only.  Cache readiness, structural qualification,
+Controller deployment and physical Spark acceptance are separate evidence
+boundaries and are deliberately not decided here; the rendered report names what
+it does not claim.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import sys
+from pathlib import Path
+from typing import Any
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import (
+    ModelDefinition,
+    RecipeDefinition,
+    content_sha256,
+)
+from vonk_forge_contracts.recipe import RecipeBuildDefinition
+
+CATALOG_PATH = ROOT / "catalog-index.json"
+RECIPE_DIRECTORY = ROOT / "recipes"
+MODEL_DIRECTORY = ROOT / "models"
+AUTHORITY_PATH = ROOT / "qualification/authorities/nl-sequential-2c118a99.json"
+MATRIX_PATH = ROOT / "qualification/coverage/family-aware-coverage-2026-09-24.json"
+REPORT_PATH = ROOT / "qualification/coverage/family-aware-coverage-2026-09-24.md"
+PLAN_REFERENCE = "docs/recipe-qualification-plan-2026-09-24.md"
+
+IN_SCOPE_MAXIMUM_NODE_COUNT = 2
+
+# A recipe's primary coverage group follows its execution engine and workflow.
+# Sharing the label "vllm" is not evidence equivalence: exact identity stays in
+# ``stack_id`` and ``specialized_forks`` below.
+COVERAGE_GROUPS = (
+    "vllm",
+    "sglang",
+    "specialized-fork-engines",
+    "image-video-workflows",
+    "three-d-pipelines",
+    "audio-multimodal-pipelines",
+)
+_SPECIALIZED = "specialized-fork-engines"
+_IMAGE_VIDEO = "image-video-workflows"
+_THREE_D = "three-d-pipelines"
+_AUDIO_MULTIMODAL = "audio-multimodal-pipelines"
+
+# The stock upstream image per engine.  Any other image is a declared fork for
+# that engine and cannot be qualified by generic engine evidence.
+_STOCK_ENGINE_IMAGES = {
+    "vllm": "docker.io/vllm/vllm-openai",
+    "sglang": "docker.io/lmsysorg/sglang",
+}
+# Declared fork markers, matched against the recipe slug and the build context.
+_FORK_MARKERS = ("dflash", "dspark", "exl3", "sparkinfer")
+_VIDEO_IMAGE_INTERFACES = frozenset({"image-job", "video-job"})
+_JOB_INTERFACES = frozenset(
+    {"image-job", "audio-job", "video-job", "mesh-job", "artifact-job"}
+)
+
+
+def _json_document(path: Path) -> Any:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _canonical_digest(value: Any) -> str:
+    payload = json.dumps(
+        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _short_digest(value: Any) -> str:
+    return _canonical_digest(value)[:16]
+
+
+def _recipe_key(recipe: RecipeDefinition) -> str:
+    return f"{recipe.identity.publisher}/{recipe.identity.slug}"
+
+
+def _model_key(model: ModelDefinition) -> str:
+    return f"{model.identity.publisher}/{model.identity.slug}"
+
+
+def _require_object(value: Any, description: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise TypeError(f"{description} must contain a JSON object")
+    return value
+
+
+def _indexed_recipes() -> dict[str, dict[str, Any]]:
+    """Validate every indexed recipe and prove the index matches the tree."""
+
+    catalog = _require_object(_json_document(CATALOG_PATH), "catalog-index.json")
+    entries = catalog.get("recipes")
+    if not isinstance(entries, list):
+        raise TypeError("catalog-index.json recipes must be an array")
+    indexed: dict[str, dict[str, Any]] = {}
+    for entry in entries:
+        document = _require_object(entry, "catalog recipe entry")
+        recipe = RecipeDefinition.model_validate(document["document"])
+        key = _recipe_key(recipe)
+        if key in indexed:
+            raise ValueError(f"catalog contains duplicate recipe key: {key}")
+        digest = content_sha256(recipe)
+        if digest != document.get("content_sha256"):
+            raise ValueError(f"catalog content digest is not canonical: {key}")
+        package = _require_object(document.get("package"), f"package: {key}")
+        tree_path = RECIPE_DIRECTORY / f"{recipe.identity.slug}.json"
+        tree = RecipeDefinition.model_validate(_json_document(tree_path))
+        if content_sha256(tree) != digest:
+            raise ValueError(
+                f"authored recipe document disagrees with catalog index: {key}"
+            )
+        indexed[key] = {
+            "recipe": recipe,
+            "content_sha256": digest,
+            "package_path": package.get("path"),
+            "package_sha256": package.get("sha256"),
+        }
+    return indexed
+
+
+def _indexed_models() -> dict[str, ModelDefinition]:
+    """Validate every canonical Model document referenced by the catalog."""
+
+    catalog = _require_object(_json_document(CATALOG_PATH), "catalog-index.json")
+    entities = catalog.get("catalog_entities")
+    if not isinstance(entities, list):
+        raise TypeError("catalog-index.json catalog_entities must be an array")
+    indexed: dict[str, ModelDefinition] = {}
+    for entity in entities:
+        document = _require_object(entity, "catalog entity")
+        embedded = _require_object(document.get("document"), "catalog entity document")
+        if embedded.get("kind") != "model":
+            continue
+        model = ModelDefinition.model_validate(embedded)
+        key = _model_key(model)
+        if key in indexed:
+            raise ValueError(f"catalog contains duplicate Model key: {key}")
+        digest = content_sha256(model)
+        if digest != document.get("content_sha256"):
+            raise ValueError(f"catalog Model content digest is not canonical: {key}")
+        tree_path = MODEL_DIRECTORY / f"{model.identity.slug}.json"
+        tree = ModelDefinition.model_validate(_json_document(tree_path))
+        if content_sha256(tree) != digest:
+            raise ValueError(
+                f"authored Model document disagrees with catalog index: {key}"
+            )
+        indexed[key] = model
+    return indexed
+
+
+def _authority(recipe_keys: set[str]) -> dict[str, Any]:
+    document = _require_object(
+        _json_document(AUTHORITY_PATH), "qualification authority"
+    )
+    if document.get("schema_version") != 3:
+        raise ValueError("qualification authority schema must be 3")
+    entries = document.get("recipes")
+    scope = _require_object(document.get("scope"), "qualification authority scope")
+    if not isinstance(entries, list):
+        raise TypeError("qualification authority recipes must be an array")
+    rows: dict[str, dict[str, Any]] = {}
+    for entry in entries:
+        row = _require_object(entry, "qualification authority row")
+        key = row.get("key")
+        if not isinstance(key, str) or key not in recipe_keys:
+            raise ValueError(
+                f"qualification authority references an absent recipe: {key}"
+            )
+        if key in rows:
+            raise ValueError(f"qualification authority repeats a recipe: {key}")
+        rows[key] = row
+    excluded = scope.get("excluded_topology_recipe_keys")
+    if not isinstance(excluded, list) or not all(isinstance(k, str) for k in excluded):
+        raise TypeError("excluded_topology_recipe_keys must be an array of keys")
+    if set(rows) | set(excluded) != recipe_keys:
+        raise ValueError(
+            "authority and exclusions must partition the catalog exactly once"
+        )
+    if set(rows) & set(excluded):
+        raise ValueError("an excluded recipe cannot also be an authority row")
+    sequences = sorted(row["sequence"] for row in rows.values())
+    if sequences != list(range(1, len(rows) + 1)):
+        raise ValueError("authority sequences must be contiguous from 1")
+    return {
+        "authority_id": document.get("authority_id"),
+        "catalog": _require_object(
+            document.get("catalog"), "qualification authority catalog binding"
+        ),
+        "maximum_node_count": scope.get("maximum_node_count"),
+        "rows": rows,
+        "excluded": excluded,
+    }
+
+
+def _build_definition(recipe: RecipeDefinition) -> RecipeBuildDefinition:
+    execution = recipe.execution
+    if execution.mode != "build":
+        raise ValueError(
+            f"recipe does not declare a build execution: {_recipe_key(recipe)}"
+        )
+    return execution.build
+
+
+def _fork_signals(
+    recipe: RecipeDefinition, build: RecipeBuildDefinition, engine: str
+) -> list[str]:
+    signals: set[str] = set()
+    stock = _STOCK_ENGINE_IMAGES.get(engine)
+    if stock is not None and build.base_image.repository != stock:
+        signals.add(f"image:{build.base_image.repository}")
+    haystack = f"{recipe.identity.slug} {build.context.path}".lower()
+    for marker in _FORK_MARKERS:
+        if marker in haystack:
+            signals.add(f"marker:{marker}")
+    for patch in build.patches:
+        signals.add(f"patch:{patch.path}")
+    return sorted(signals)
+
+
+def _coverage_group(engine: str, interface: str, signals: list[str]) -> str:
+    declared_fork = any(signal.startswith(("image:", "marker:")) for signal in signals)
+    if engine == "sglang":
+        return "sglang"
+    if engine == "vllm":
+        return _SPECIALIZED if declared_fork else "vllm"
+    if engine == "ds4":
+        return _SPECIALIZED
+    if engine in {"diffusers", "comfyui"}:
+        return _IMAGE_VIDEO
+    if engine == "pytorch-pipeline":
+        if declared_fork:
+            return _SPECIALIZED
+        if interface in _VIDEO_IMAGE_INTERFACES:
+            return _IMAGE_VIDEO
+        if interface == "mesh-job":
+            return _THREE_D
+        if interface in {"audio-job", "artifact-job"}:
+            return _AUDIO_MULTIMODAL
+    raise ValueError(f"no coverage group for engine {engine!r} interface {interface!r}")
+
+
+def _stack(recipe: RecipeDefinition, build: RecipeBuildDefinition) -> dict[str, Any]:
+    return {
+        "engine": recipe.runtime.engine,
+        "entrypoint": list(recipe.runtime.entrypoint),
+        "base_image": {
+            "repository": build.base_image.repository,
+            "digest": build.base_image.digest,
+            "platform": build.base_image.platform,
+        },
+        "build_context": build.context.path,
+        "dockerfile": build.dockerfile,
+        "target": build.target,
+        "patches": [patch.path for patch in build.patches],
+    }
+
+
+def _declared_artifact_bytes(recipe: RecipeDefinition) -> int:
+    return max(role.resources.disk.artifact_bytes for role in recipe.topology.roles)
+
+
+def _declared_steady_state_bytes(recipe: RecipeDefinition) -> int:
+    return max(
+        role.resources.memory.steady_state_bytes for role in recipe.topology.roles
+    )
+
+
+def _review_gate_kinds(authority_row: dict[str, Any]) -> set[str]:
+    kinds: set[str] = set()
+    for gate in authority_row.get("review_gates") or []:
+        if isinstance(gate, dict) and isinstance(gate.get("kind"), str):
+            kinds.add(gate["kind"])
+    return kinds
+
+
+def _row(
+    recipe: RecipeDefinition,
+    indexed: dict[str, Any],
+    models: dict[str, ModelDefinition],
+    authority: dict[str, Any],
+) -> dict[str, Any]:
+    key = _recipe_key(recipe)
+    build = _build_definition(recipe)
+    interface_document = recipe.validation.serving.interface
+    interface = (
+        "openai-service" if interface_document == "openai" else interface_document
+    )
+    engine = recipe.runtime.engine
+    signals = _fork_signals(recipe, build, engine)
+    stack = _stack(recipe, build)
+    metadata = _require_object(indexed[key], key)
+    selections = []
+    for selection in recipe.models:
+        reference = selection.model
+        model_key = f"{reference.publisher}/{reference.slug}"
+        model = models.get(model_key)
+        if model is None:
+            raise ValueError(f"recipe references an undocumented Model: {model_key}")
+        selections.append(
+            {
+                "key": model_key,
+                "selection": selection.id,
+                "family": model.identity.family.slug,
+                "family_title": model.identity.family.title,
+                "model": model.identity.model.slug,
+                "variant": model.identity.variant,
+                "precision": model.format.precision,
+                "quantization": model.format.quantization,
+                "parameters_total": model.parameters.total,
+                "parameters_active": model.parameters.active,
+                "modalities": list(model.modalities),
+                "visibility": model.access.visibility,
+                "gated": model.access.gated,
+                "license_spdx": model.license.spdx,
+                "source_repository": model.source.repository,
+                "source_revision": model.source.revision,
+            }
+        )
+    node_count = recipe.topology.node_count
+    in_scope = node_count <= IN_SCOPE_MAXIMUM_NODE_COUNT
+    authority_row = authority["rows"].get(key)
+    row: dict[str, Any] = {
+        "key": key,
+        "recipe_version": recipe.release.version,
+        "content_sha256": metadata["content_sha256"],
+        "package": {
+            "path": metadata["package_path"],
+            "sha256": metadata["package_sha256"],
+        },
+        "in_scope": in_scope,
+        "node_count": node_count,
+        "interface": interface,
+        "check_kind": "service" if interface_document == "openai" else "job",
+        "coverage_group": _coverage_group(engine, interface_document, signals),
+        "specialized_forks": signals,
+        "distributed_evidence_required": node_count > 1,
+        "engine": engine,
+        "stack": stack,
+        "stack_id": _short_digest(stack),
+        "topology": {
+            "mode": recipe.topology.mode,
+            "name": recipe.topology.name,
+            "node_count": node_count,
+            "parallelism": recipe.topology.parallelism.model_dump(mode="json"),
+            "fabric": recipe.topology.fabric.model_dump(mode="json"),
+            "rank_loss": (
+                recipe.runtime.lifecycle.failure.rank_loss
+                if recipe.runtime.lifecycle.failure is not None
+                else None
+            ),
+            "recovery": (
+                recipe.runtime.lifecycle.failure.recovery
+                if recipe.runtime.lifecycle.failure is not None
+                else None
+            ),
+        },
+        "families": sorted({item["family"] for item in selections}),
+        "quantizations": sorted({item["quantization"] for item in selections}),
+        "precisions": sorted({item["precision"] for item in selections}),
+        "modalities": sorted({m for item in selections for m in item["modalities"]}),
+        "declared_artifact_bytes": _declared_artifact_bytes(recipe),
+        "declared_steady_state_bytes": _declared_steady_state_bytes(recipe),
+        "models": selections,
+        "authority": None,
+        "authority_divergence": None,
+        "representative": False,
+        "representative_for": None,
+        "schedule": None,
+    }
+    row["risk_group_id"] = _short_digest(
+        {
+            "stack_id": row["stack_id"],
+            "coverage_group": row["coverage_group"],
+            "families": row["families"],
+            "quantizations": row["quantizations"],
+            "node_count": node_count,
+        }
+    )
+    if authority_row is None:
+        row["schedule"] = {
+            "kind": "excluded",
+            "reason": "topology exceeds the available two-Spark fleet",
+        }
+        return row
+    binding = {
+        "authority_id": authority["authority_id"],
+        "sequence": authority_row.get("sequence"),
+        "recipe_version": authority_row.get("recipe_version"),
+        "content_sha256": authority_row.get("content_sha256"),
+        "package_sha256": (authority_row.get("package") or {}).get("sha256"),
+        "disposition": authority_row.get("disposition"),
+        "operator_acceptance_required": authority_row.get(
+            "operator_acceptance_required"
+        ),
+        "review_gate_kinds": sorted(_review_gate_kinds(authority_row)),
+        "smoke_cases": list(authority_row.get("smoke_cases") or []),
+        "qualification_inputs": list(authority_row.get("qualification_inputs") or []),
+    }
+    row["authority"] = binding
+    if (
+        binding["content_sha256"] != row["content_sha256"]
+        or binding["package_sha256"] != row["package"]["sha256"]
+        or binding["recipe_version"] != row["recipe_version"]
+    ):
+        row["authority_divergence"] = {
+            "bound_recipe_version": binding["recipe_version"],
+            "bound_content_sha256": binding["content_sha256"],
+            "bound_package_sha256": binding["package_sha256"],
+            "reason": "catalog identity changed after the authority was built",
+        }
+    return row
+
+
+def _assign_representatives(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for row in rows:
+        if row["in_scope"]:
+            groups.setdefault(row["risk_group_id"], []).append(row)
+    representatives: list[dict[str, Any]] = []
+    for risk_group_id, members in sorted(groups.items()):
+        ordered = sorted(
+            members, key=lambda item: (item["declared_artifact_bytes"], item["key"])
+        )
+        chosen = ordered[0]
+        chosen["representative"] = True
+        for member in ordered[1:]:
+            member["representative_for"] = chosen["key"]
+        representatives.append(
+            {
+                "risk_group_id": risk_group_id,
+                "representative": chosen["key"],
+                "coverage_group": chosen["coverage_group"],
+                "stack_id": chosen["stack_id"],
+                "families": chosen["families"],
+                "quantizations": chosen["quantizations"],
+                "node_count": chosen["node_count"],
+                "declared_artifact_bytes": chosen["declared_artifact_bytes"],
+                "members": [member["key"] for member in ordered],
+            }
+        )
+    return representatives
+
+
+def _paired_batches(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    single = sorted(
+        (row for row in rows if row["in_scope"] and row["node_count"] == 1),
+        key=lambda item: item["authority"]["sequence"],
+    )
+    batches: list[dict[str, Any]] = []
+    for offset in range(0, len(single), 2):
+        lanes = single[offset : offset + 2]
+        for lane_number, row in enumerate(lanes, start=1):
+            row["schedule"] = {
+                "kind": "paired-batch",
+                "batch": len(batches) + 1,
+                "lane": lane_number,
+            }
+        shared_stack = len({row["stack_id"] for row in lanes}) == 1
+        model_sets = [{item["key"] for item in row["models"]} for row in lanes]
+        shared_models = (
+            bool(model_sets[0] & model_sets[1]) if len(lanes) == 2 else False
+        )
+        batches.append(
+            {
+                "batch": len(batches) + 1,
+                "lanes": [
+                    {
+                        "lane": lane_number,
+                        "recipe": row["key"],
+                        "coverage_group": row["coverage_group"],
+                        "stack_id": row["stack_id"],
+                        "representative": row["representative"],
+                        "declared_artifact_bytes": row["declared_artifact_bytes"],
+                    }
+                    for lane_number, row in enumerate(lanes, start=1)
+                ],
+                "shared_stack_id": shared_stack,
+                "shared_model_identity": shared_models,
+                "combined_declared_artifact_bytes": sum(
+                    row["declared_artifact_bytes"] for row in lanes
+                ),
+                "admission": [
+                    "fresh-whole-fleet-preview-per-lane-must-prove-fit",
+                    "both-Sparks-healthy-and-idle-for-inference",
+                ],
+                "barrier": "preserve-both-lane-results-and-reconcile-cleanup-before-the-next-batch",
+            }
+        )
+    if len(single) % 2 != 0:
+        raise ValueError("a paired single-Spark schedule requires an even row count")
+    return batches
+
+
+def _exclusive_schedule(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    exclusive: list[dict[str, Any]] = []
+    for row in sorted(
+        (item for item in rows if item["in_scope"] and item["node_count"] > 1),
+        key=lambda item: item["authority"]["sequence"],
+    ):
+        row["schedule"] = {"kind": "exclusive", "reason": "dual-Spark topology"}
+        exclusive.append(
+            {
+                "kind": "dual-spark",
+                "recipe": row["key"],
+                "node_count": row["node_count"],
+                "coverage_group": row["coverage_group"],
+                "stack_id": row["stack_id"],
+                "declared_artifact_bytes_per_role": row["declared_artifact_bytes"],
+                "requires": [
+                    "both-Sparks-reserved-exclusively",
+                    "other-lane-stopped-and-its-release-observed",
+                ],
+            }
+        )
+    for row in sorted(
+        (item for item in rows if not item["in_scope"]),
+        key=lambda item: (item["node_count"], item["key"]),
+    ):
+        exclusive.append(
+            {
+                "kind": "outside-available-capacity",
+                "recipe": row["key"],
+                "node_count": row["node_count"],
+                "coverage_group": row["coverage_group"],
+                "reason": "requires more than two Sparks; catalog audit only",
+            }
+        )
+    return exclusive
+
+
+def _recovery_coverage(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    signatures: dict[str, list[dict[str, Any]]] = {}
+    for row in rows:
+        if not row["in_scope"]:
+            continue
+        signature = {
+            "stack_id": row["stack_id"],
+            "node_count": row["node_count"],
+            "backend": row["topology"]["parallelism"]["backend"],
+            "rank_loss": row["topology"]["rank_loss"],
+            "recovery": row["topology"]["recovery"],
+        }
+        signatures.setdefault(_short_digest(signature), []).append(row)
+    entries: list[dict[str, Any]] = []
+    for signature_id, members in sorted(signatures.items()):
+        members_sorted = sorted(members, key=lambda item: item["authority"]["sequence"])
+        fork_free = [row for row in members_sorted if not row["specialized_forks"]]
+        candidate = len(fork_free) > 1
+        entries.append(
+            {
+                "recovery_signature": signature_id,
+                "stack_id": members_sorted[0]["stack_id"],
+                "node_count": members_sorted[0]["node_count"],
+                "backend": members_sorted[0]["topology"]["parallelism"]["backend"],
+                "rank_loss": members_sorted[0]["topology"]["rank_loss"],
+                "recovery": members_sorted[0]["topology"]["recovery"],
+                "recipes": [row["key"] for row in members_sorted],
+                "families": sorted(
+                    {family for row in members_sorted for family in row["families"]}
+                ),
+                "quantizations": sorted(
+                    {quant for row in members_sorted for quant in row["quantizations"]}
+                ),
+                "shared_coverage_candidate": candidate,
+                "candidate_recipes": [row["key"] for row in fork_free],
+                "dedicated_required": [
+                    row["key"] for row in members_sorted if row["specialized_forks"]
+                ],
+                "model_specific_review_required": len(members_sorted) > 1,
+                "enforceable": False,
+                "blocked_reason": (
+                    "typed runner/authority support for shared recovery evidence is not "
+                    "implemented; the full per-recipe recovery ladder remains required"
+                ),
+            }
+        )
+    return {
+        "ladder_owner": f"{PLAN_REFERENCE}#existing-sequential-execution-gates",
+        "enforceable": False,
+        "signatures": entries,
+    }
+
+
+def _build() -> dict[Path, bytes]:
+    indexed = _indexed_recipes()
+    models = _indexed_models()
+    authority = _authority(set(indexed))
+    if authority["maximum_node_count"] != IN_SCOPE_MAXIMUM_NODE_COUNT:
+        raise ValueError("authority scope does not match the in-scope node bound")
+
+    rows = [
+        _row(metadata["recipe"], indexed, models, authority)
+        for _, metadata in sorted(indexed.items(), key=lambda item: item[0])
+    ]
+    in_scope = [row for row in rows if row["in_scope"]]
+    if len(in_scope) != len(authority["rows"]):
+        raise ValueError("in-scope row count disagrees with the authority")
+
+    representatives = _assign_representatives(rows)
+    batches = _paired_batches(rows)
+    exclusive = _exclusive_schedule(rows)
+    recovery = _recovery_coverage(rows)
+
+    ordered = sorted(
+        rows,
+        key=lambda item: (
+            item["authority"]["sequence"] if item["authority"] else 10_000,
+            item["node_count"],
+            item["key"],
+        ),
+    )
+    for position, row in enumerate(ordered, start=1):
+        row["matrix_row"] = position
+
+    scheduled = [row for row in in_scope if row["schedule"] is None]
+    if scheduled:
+        raise ValueError(
+            f"in-scope rows without a schedule: {[r['key'] for r in scheduled]}"
+        )
+    lane_members = [lane["recipe"] for batch in batches for lane in batch["lanes"]]
+    if sorted(lane_members) != sorted(
+        row["key"] for row in in_scope if row["node_count"] == 1
+    ):
+        raise ValueError(
+            "paired batches must cover every single-Spark in-scope row once"
+        )
+    exclusive_members = [
+        entry["recipe"] for entry in exclusive if entry["kind"] == "dual-spark"
+    ]
+    if sorted(exclusive_members) != sorted(
+        row["key"] for row in in_scope if row["node_count"] > 1
+    ):
+        raise ValueError(
+            "exclusive entries must cover every dual-Spark in-scope row once"
+        )
+    for entry in representatives:
+        if entry["representative"] not in entry["members"]:
+            raise ValueError("a representative must belong to its risk group")
+
+    catalog_index_sha256 = hashlib.sha256(CATALOG_PATH.read_bytes()).hexdigest()
+    bound_catalog_index_sha256 = authority["catalog"].get("catalog_index_sha256")
+    bound_recipe_count = authority["catalog"].get("recipe_count")
+    if bound_recipe_count != len(rows):
+        raise ValueError("authority catalog binding disagrees with the catalog size")
+
+    matrix = {
+        "schema_version": 1,
+        "matrix_id": "family-aware-coverage-2026-09-24",
+        "plan": PLAN_REFERENCE,
+        "catalog": {
+            "repository": "CarstVaartjes/vonk-forge-recipes",
+            "recipe_count": len(rows),
+            "in_scope_recipe_count": len(in_scope),
+            "out_of_scope_recipe_count": len(rows) - len(in_scope),
+            "in_scope_maximum_node_count": IN_SCOPE_MAXIMUM_NODE_COUNT,
+            "authority_id": authority["authority_id"],
+            "catalog_index_sha256": catalog_index_sha256,
+            "bound_catalog_index_sha256": bound_catalog_index_sha256,
+            "bound_release_tag": authority["catalog"].get("release_tag"),
+            "bound_catalog_commit": authority["catalog"].get("commit"),
+            "catalog_binding_current": catalog_index_sha256
+            == bound_catalog_index_sha256,
+        },
+        "coverage_group_order": list(COVERAGE_GROUPS),
+        "rows": ordered,
+        "representatives": representatives,
+        "paired_batches": batches,
+        "exclusive_schedule": exclusive,
+        "recovery_coverage": recovery,
+        "reuse_rules": [
+            "exact build identity is stack_id; a shared engine name is not equivalence",
+            "shared model or image reuse requires an identical stack_id and model identity",
+            "each recipe still needs its own physical inference and declared assertions",
+            "distributed evidence is independent of single-Spark evidence",
+            "recovery coverage sharing stays unenforceable until typed runner support exists",
+        ],
+    }
+    return {
+        MATRIX_PATH: (json.dumps(matrix, ensure_ascii=False, indent=2) + "\n").encode(
+            "utf-8"
+        ),
+        REPORT_PATH: _render_report(matrix).encode("utf-8"),
+    }
+
+
+def _gib(value: int) -> str:
+    return f"{value / 1024**3:.1f} GiB"
+
+
+def _rows_label(count: int) -> str:
+    return f"{count} row" if count == 1 else f"{count} rows"
+
+
+def _row_group(row: dict[str, Any]) -> str:
+    return ", ".join(row["families"]) if row["families"] else "-"
+
+
+def _render_report(matrix: dict[str, Any]) -> str:
+    rows: list[dict[str, Any]] = matrix["rows"]
+    lines: list[str] = []
+    lines.append("# Family-aware qualification coverage matrix — 2026-09-24")
+    lines.append("")
+    lines.append(
+        "Derived from exact catalog identities by `tools/build-family-aware-coverage`."
+    )
+    lines.append("")
+    lines.append(
+        "This artifact answers the plan's coverage-matrix implementation item. It "
+        "records structural identity, representative selection and scheduling bounds "
+        "only. It is **not** cache readiness, structural qualification, Controller "
+        "deployment or physical Spark acceptance."
+    )
+    lines.append("")
+    lines.append("## Sources")
+    lines.append("")
+    lines.append("| Input | Identity |")
+    lines.append("|---|---|")
+    lines.append(f"| Plan | `{matrix['plan']}` |")
+    lines.append(
+        f"| Catalog | {matrix['catalog']['repository']} — "
+        f"{matrix['catalog']['recipe_count']} recipe documents |"
+    )
+    lines.append(f"| Qualification authority | `{matrix['catalog']['authority_id']}` |")
+    lines.append(
+        f"| Scope | {matrix['catalog']['in_scope_recipe_count']} recipes within "
+        f"{matrix['catalog']['in_scope_maximum_node_count']} Sparks; "
+        f"{matrix['catalog']['out_of_scope_recipe_count']} larger topologies listed "
+        "for audit only |"
+    )
+    lines.append("")
+    lines.append("## Derivation")
+    lines.append("")
+    for rule in (
+        (
+            "Every indexed recipe and Model document is validated through the canonical "
+            "contract, and its canonical content digest must equal the producer index "
+            "digest and the authored tree document."
+        ),
+        (
+            "`stack_id` is the canonical digest of the exact engine, entrypoint, base "
+            "image repository/digest/platform, build context, Dockerfile, target and "
+            "declared build patches. It is the reuse boundary."
+        ),
+        (
+            "`coverage_group` is the primary engine/workflow group. Declared forks are "
+            "cross-cutting: a non-stock engine image or a declared fork marker in the "
+            "recipe slug or build context is recorded in `specialized_forks` and cannot "
+            "be satisfied by generic engine evidence."
+        ),
+        "`risk_group_id` adds model family, quantization and node count to the stack.",
+        (
+            "A risk group's representative is the ready-to-build member with the smallest "
+            "declared artifact footprint; cache readiness is not decided here."
+        ),
+        (
+            "Paired batches place two single-Spark rows on the two Sparks in authority "
+            "order. Dual-Spark rows are exclusive. Every batch keeps distinct lane "
+            "identities and a barrier."
+        ),
+        (
+            "Recovery sharing is proposed by declared failure signature only and stays "
+            "unenforceable until typed runner/authority support exists."
+        ),
+    ):
+        lines.append(f"- {rule}")
+    lines.append("")
+    lines.append("## Coverage groups")
+    lines.append("")
+    lines.append(
+        "The required checks and variant boundaries for each group remain owned by "
+        "the plan; this table only records which exact identities fall in each group."
+    )
+    lines.append("")
+    lines.append(
+        "| Coverage group | In-scope rows | Specialized-forks flag | Exclusive rows |"
+    )
+    lines.append("|---|---:|---:|---:|")
+    group_rows: dict[str, list[dict[str, Any]]] = {
+        group: [] for group in COVERAGE_GROUPS
+    }
+    for row in rows:
+        if row["in_scope"]:
+            group_rows[row["coverage_group"]].append(row)
+    for group in COVERAGE_GROUPS:
+        members = group_rows[group]
+        forked = sum(1 for row in members if row["specialized_forks"])
+        exclusive = sum(1 for row in members if row["node_count"] > 1)
+        lines.append(f"| `{group}` | {len(members)} | {forked} | {exclusive} |")
+    lines.append("")
+    lines.append("## Stack and family matrix")
+    lines.append("")
+    lines.append(
+        "One row per catalog recipe. `seq` is the authority sequence for in-scope "
+        "rows; the four larger topologies are listed last in ascending node count "
+        "and remain owned by the plan inventory's printed order. `rep` names the "
+        "risk-group representative, `repr` marks a representative, and `batch` is "
+        "`P<n>/L<lane>` for a paired lane, `X` for an exclusive dual-Spark row, or "
+        "`-` for an out-of-scope topology."
+    )
+    lines.append("")
+    lines.append(
+        "| seq | Recipe | Nodes | Group | Engine | Base image | Build context | "
+        "Model families | Quantization | Artifacts | rep | repr | batch |"
+    )
+    lines.append("|---:|---|---:|---|---|---|---|---|---|---:|---|---|---|")
+    for row in rows:
+        sequence = str(row["authority"]["sequence"]) if row["authority"] else "—"
+        image = row["stack"]["base_image"]
+        image_label = f"`{image['repository']}@{image['digest'][:12]}`"
+        representative = row["representative_for"] or (
+            "—" if not row["representative"] else ""
+        )
+        schedule = row["schedule"] or {}
+        if schedule.get("kind") == "paired-batch":
+            batch_label = f"P{schedule['batch']}/L{schedule['lane']}"
+        elif schedule.get("kind") == "exclusive":
+            batch_label = "X"
+        else:
+            batch_label = "—"
+        lines.append(
+            f"| {sequence} | `{row['key']}` | {row['node_count']} | "
+            f"`{row['coverage_group']}` | `{row['engine']}` | {image_label} | "
+            f"`{row['stack']['build_context']}` | {_row_group(row)} | "
+            f"{', '.join(row['quantizations'])} | {_gib(row['declared_artifact_bytes'])} | "
+            f"{representative} | {'yes' if row['representative'] else ''} | {batch_label} |"
+        )
+    lines.append("")
+    lines.append("## Representative selection")
+    lines.append("")
+    lines.append(
+        "Each risk group below is one exact stack plus model family, quantization and "
+        "node count. The representative is the member with the smallest declared "
+        "artifact footprint; every other member keeps its own physical inference and "
+        "assertions."
+    )
+    lines.append("")
+    lines.append("| Risk group | Group | Representative | Members | Artifacts |")
+    lines.append("|---|---|---|---|---:|")
+    for entry in matrix["representatives"]:
+        lines.append(
+            f"| `{entry['risk_group_id']}` | `{entry['coverage_group']}` | "
+            f"`{entry['representative']}` | {len(entry['members'])} | "
+            f"{_gib(entry['declared_artifact_bytes'])} |"
+        )
+    lines.append("")
+    lines.append("## Paired single-Spark batches")
+    lines.append("")
+    lines.append(
+        "Two independent single-Spark recipes share the two Sparks under one "
+        "whole-fleet profile. A batch is admissible only after fresh per-lane "
+        "previews prove fit, and while both Sparks are healthy and idle for "
+        "inference. With fewer than two available Sparks only exclusive single-lane "
+        "work is admissible."
+    )
+    lines.append("")
+    lines.append(
+        "| Batch | Lane 1 | Lane 2 | Shared stack | Shared models | Combined artifacts |"
+    )
+    lines.append("|---:|---|---|---|---|---:|")
+    for batch in matrix["paired_batches"]:
+        lanes = batch["lanes"]
+        lane_label = [
+            f"`{lane['recipe']}`" + (" (rep)" if lane["representative"] else "")
+            for lane in lanes
+        ]
+        while len(lane_label) < 2:
+            lane_label.append("—")
+        lines.append(
+            f"| {batch['batch']} | {lane_label[0]} | {lane_label[1]} | "
+            f"{'yes' if batch['shared_stack_id'] else 'no'} | "
+            f"{'yes' if batch['shared_model_identity'] else 'no'} | "
+            f"{_gib(batch['combined_declared_artifact_bytes'])} |"
+        )
+    lines.append("")
+    lines.append("## Exclusive schedule")
+    lines.append("")
+    lines.append(
+        "Dual-Spark rows reserve both Sparks; disruptive recovery checks run "
+        "exclusively after the other lane is stopped and its release is observed."
+    )
+    lines.append("")
+    lines.append("| Kind | Recipe | Nodes | Group |")
+    lines.append("|---|---|---:|---|")
+    for entry in matrix["exclusive_schedule"]:
+        lines.append(
+            f"| `{entry['kind']}` | `{entry['recipe']}` | {entry['node_count']} | "
+            f"`{entry['coverage_group']}` |"
+        )
+    lines.append("")
+    lines.append("## Recovery-coverage mapping")
+    lines.append("")
+    lines.append(
+        "Grouped by exact build identity plus declared failure signature, because "
+        "equivalence for platform recovery means an identical runtime stack and "
+        "topology. The exact operator checkpoint sequence stays owned by "
+        f"[the plan]({matrix['recovery_coverage']['ladder_owner'].split('#')[0]}#"
+        f"{matrix['recovery_coverage']['ladder_owner'].split('#')[1]}). Shared "
+        "recovery evidence is a proposal only, is never enforceable until typed "
+        "runner support exists, and any cluster spanning more than one recipe still "
+        "needs an explicit model-specific recovery review."
+    )
+    lines.append("")
+    lines.append(
+        "| Signature | Stack | Nodes | Backend | Rank loss | Recovery | Families | "
+        "Recipes | Shared candidate | Dedicated | Model review |"
+    )
+    lines.append("|---|---|---:|---|---|---|---|---:|---|---|---|")
+    for entry in matrix["recovery_coverage"]["signatures"]:
+        shared = (
+            _rows_label(len(entry["candidate_recipes"]))
+            if entry["shared_coverage_candidate"]
+            else "no"
+        )
+        dedicated = (
+            _rows_label(len(entry["dedicated_required"]))
+            if entry["dedicated_required"]
+            else "none"
+        )
+        families = ", ".join(entry["families"]) if entry["families"] else "-"
+        lines.append(
+            f"| `{entry['recovery_signature']}` | `{entry['stack_id']}` | "
+            f"{entry['node_count']} | `{entry['backend']}` | `{entry['rank_loss']}` | "
+            f"`{entry['recovery']}` | {families} | {len(entry['recipes'])} | "
+            f"{shared} | {dedicated} | "
+            f"{'required' if entry['model_specific_review_required'] else 'n/a'} |"
+        )
+    lines.append("")
+    lines.append("## Bound-authority divergence")
+    lines.append("")
+    catalog_binding = matrix["catalog"]
+    if catalog_binding["catalog_binding_current"]:
+        lines.append(
+            "The current catalog index is byte-identical to the index bound by the "
+            "authority."
+        )
+    else:
+        lines.append(
+            f"The authority binds catalog index "
+            f"`{str(catalog_binding['bound_catalog_index_sha256'])[:16]}` "
+            f"({catalog_binding['bound_release_tag']} at "
+            f"`{str(catalog_binding['bound_catalog_commit'])[:12]}`); the current index "
+            f"is `{catalog_binding['catalog_index_sha256'][:16]}`. The authority must be "
+            "refreshed before the changed rows are physically executed."
+        )
+    lines.append("")
+    diverged = [row for row in rows if row["authority_divergence"]]
+    if diverged:
+        lines.append(
+            "These rows changed after the bound authority was built, so their bound "
+            "version, content digest and package digest no longer apply."
+        )
+        lines.append("")
+        lines.append(
+            "| Recipe | Bound version | Current version | Bound content | Current content |"
+        )
+        lines.append("|---|---|---|---|---|")
+        for row in diverged:
+            divergence = row["authority_divergence"]
+            lines.append(
+                f"| `{row['key']}` | {divergence['bound_recipe_version']} | "
+                f"{row['recipe_version']} | "
+                f"`{divergence['bound_content_sha256'][:16]}` | "
+                f"`{row['content_sha256'][:16]}` |"
+            )
+    else:
+        lines.append("Every in-scope row matches its bound authority identity.")
+    lines.append("")
+    lines.append("## Not claimed here")
+    lines.append("")
+    for note in (
+        (
+            "Cache readiness: missing model or image assets remain actionable blockers "
+            "owned by the plan's file-closure section and the live cache surface."
+        ),
+        (
+            "Structural validity: passing contract validation is not compilation, build "
+            "or image evidence."
+        ),
+        "Deployment: the installed runner is still the sequential one-recipe path.",
+        (
+            "Physical acceptance: every recipe still needs its own attributable inference, "
+            "smoke and recovery evidence."
+        ),
+        (
+            "Capacity: declared artifact footprints are recipe declarations, not a live "
+            "fit decision; admission still requires a fresh whole-fleet preview."
+        ),
+    ):
+        lines.append(f"- {note}")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="fail if the committed coverage matrix or report is stale",
+    )
+    args = parser.parse_args()
+    try:
+        outputs = _build()
+        stale = [
+            path
+            for path, expected in outputs.items()
+            if not path.exists() or path.read_bytes() != expected
+        ]
+        if args.check:
+            if stale:
+                raise ValueError(
+                    "family-aware coverage outputs are stale: "
+                    + ", ".join(path.relative_to(ROOT).as_posix() for path in stale)
+                )
+            print("family-aware coverage is current (85 recipes)")
+            return 0
+        for path, content in outputs.items():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(content)
+        print("refreshed family-aware coverage matrix and report (85 recipes)")
+        return 0
+    except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+        print(f"build-family-aware-coverage: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
