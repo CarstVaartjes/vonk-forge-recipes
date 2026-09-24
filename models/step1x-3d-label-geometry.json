@@ -20,16 +20,97 @@
     },
     "schema_version": 2
   },
-  "dependencies": [],
+  "dependencies": [
+    {
+      "content_sha256": "094dcfa95ee3a9b21992b64c4cf4e94f9114ba8942116dc63713243ecdbaa491",
+      "kind": "model",
+      "publisher": "facebook",
+      "slug": "dinov2-with-registers-large"
+    },
+    {
+      "content_sha256": "f191c9bc10ca5743f076737e5306d589b9f73a91acc1e347c7d090dbebb79e94",
+      "kind": "model",
+      "publisher": "openai",
+      "slug": "clip-vit-large-patch14"
+    }
+  ],
   "files": [
     {
-      "id": "snapshot",
-      "path": "snapshot",
-      "roles": [
-        "entrypoint"
-      ],
-      "sha256": "c29549a3132bd8b69bb20c162853cfa651c59ad99607b63eba86eda5582be3db",
-      "size_bytes": 19640984131
+      "id": "label-encoder-config",
+      "path": "Step1X-3D-Geometry-Label-1300m/label_encoder/config.json",
+      "roles": ["configuration"],
+      "sha256": "28c2aa7548924c879ca989c53ac0d30fbc0ed68ab4a4c7e469c7c36b75c6a2e3",
+      "size_bytes": 121
+    },
+    {
+      "id": "label-encoder-weights",
+      "path": "Step1X-3D-Geometry-Label-1300m/label_encoder/diffusion_pytorch_model.safetensors",
+      "roles": ["weights"],
+      "sha256": "1d7d76cfe4bc95f264421fa34076826bada5a218e63febabe69461d8c2607e4b",
+      "size_bytes": 33104
+    },
+    {
+      "id": "model-index",
+      "path": "Step1X-3D-Geometry-Label-1300m/model_index.json",
+      "roles": ["configuration"],
+      "sha256": "c8bf6e56216eca5e6d4655f0412727e53f5d3605360a03a53ef6468e5c55d9a7",
+      "size_bytes": 746
+    },
+    {
+      "id": "scheduler-config",
+      "path": "Step1X-3D-Geometry-Label-1300m/scheduler/scheduler_config.json",
+      "roles": ["configuration"],
+      "sha256": "5ba6f9985d62d7262ae945543862205db29370844d120eec843fd5fefccd9c82",
+      "size_bytes": 414
+    },
+    {
+      "id": "transformer-config",
+      "path": "Step1X-3D-Geometry-Label-1300m/transformer/config.json",
+      "roles": ["configuration"],
+      "sha256": "1a343b719f971d3e53896ac0c0d7387f2f3226026fd0f0f34ce5e9ca03e5ef3e",
+      "size_bytes": 434
+    },
+    {
+      "id": "transformer-weights",
+      "path": "Step1X-3D-Geometry-Label-1300m/transformer/diffusion_pytorch_model.safetensors",
+      "roles": ["weights"],
+      "sha256": "0df096288471320f3fd566e94db628c3a36a697ae6fa55e60152b236fd5918aa",
+      "size_bytes": 5086980952
+    },
+    {
+      "id": "vae-config",
+      "path": "Step1X-3D-Geometry-Label-1300m/vae/config.json",
+      "roles": ["configuration"],
+      "sha256": "eb3a6c7598bdc4061d9d4593d7218de2c054868346bf2c9300d38a1e5b2a88fb",
+      "size_bytes": 749
+    },
+    {
+      "id": "vae-weights",
+      "path": "Step1X-3D-Geometry-Label-1300m/vae/diffusion_pytorch_model.safetensors",
+      "roles": ["weights"],
+      "sha256": "a9d764b4e3fdf377f1ba960215f2e91800fa6bf86ec5243340b96e22a0a7f781",
+      "size_bytes": 766401652
+    },
+    {
+      "id": "visual-processor",
+      "path": "Step1X-3D-Geometry-Label-1300m/visual_eature_extractor/preprocessor_config.json",
+      "roles": ["processor"],
+      "sha256": "f200462fd341e9336a013fa61695f349dff32f75409c659831f30b9e8a5d3428",
+      "size_bytes": 465
+    },
+    {
+      "id": "visual-encoder-config",
+      "path": "Step1X-3D-Geometry-Label-1300m/visual_encoder/config.json",
+      "roles": ["configuration"],
+      "sha256": "8cbd2be1de38d95864c0dd03e75446dbb2f8f659aed48c62a1ced10d05006b6f",
+      "size_bytes": 504
+    },
+    {
+      "id": "visual-encoder-weights",
+      "path": "Step1X-3D-Geometry-Label-1300m/visual_encoder/diffusion_pytorch_model.safetensors",
+      "roles": ["weights"],
+      "sha256": "f9b22f50296f1f63841c92a724c732bffee8051b59e830e9eac9a99af8d0e65e",
+      "size_bytes": 2928089212
     }
   ],
   "format": {
@@ -80,7 +161,7 @@
     }
   },
   "metadata": {
-    "description": "Immutable public snapshot at bf708449.",
+    "description": "Exact immutable label-geometry pipeline subtree at bf708449; DINOv2 and CLIP configs are separately selected without external encoder weights.",
     "tags": [
       "stepfun-ai",
       "three-d",

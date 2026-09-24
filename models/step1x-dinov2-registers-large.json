@@ -1,0 +1,99 @@
+{
+  "access": {
+    "authentication": "none",
+    "gated": false,
+    "visibility": "public"
+  },
+  "capabilities": {
+    "facts": [],
+    "provenance": {
+      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+      "source_revision": "e4c89a4e05589de9b3e188688a303d0f3c04d0f3",
+      "source_url": "https://huggingface.co/facebook/dinov2-with-registers-large"
+    },
+    "schema_version": 2
+  },
+  "dependencies": [],
+  "files": [
+    {
+      "id": "config",
+      "path": "config.json",
+      "roles": ["configuration"],
+      "sha256": "03eee42f646659a9480f8911a81fdd81efeedd7ff39083c8e36398068daf72f5",
+      "size_bytes": 1003
+    },
+    {
+      "id": "image-processor",
+      "path": "preprocessor_config.json",
+      "roles": ["processor"],
+      "sha256": "14e780d86fa1861f8751f868d7f45425b5feb55c38ca26f152ca5097ab30f828",
+      "size_bytes": 436
+    }
+  ],
+  "format": {
+    "container": "other",
+    "precision": "metadata",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "facebook",
+      "slug": "dinov2-with-registers",
+      "title": "DINOv2 with Registers"
+    },
+    "model": {
+      "architecture": "DINOv2 vision encoder configuration",
+      "publisher": "facebook",
+      "slug": "dinov2-with-registers-large",
+      "title": "DINOv2 with Registers Large"
+    },
+    "publisher": "facebook",
+    "slug": "dinov2-with-registers-large",
+    "variant": "Step1X geometry configuration and processor metadata only",
+    "version": "e4c89a4e05589de9b3e188688a303d0f3c04d0f3"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": ["facebook"],
+    "operator_acceptance_required": false,
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/facebook/dinov2-with-registers-large/blob/e4c89a4e05589de9b3e188688a303d0f3c04d0f3/README.md"
+  },
+  "limits": {
+    "context_tokens": null,
+    "frames": null,
+    "resolution_pixels": null,
+    "sample_rate_hz": null
+  },
+  "lineage": {
+    "derivation": "Pinned configuration and image-processor metadata only; Step1X carries and loads its encoder weights from its own selected checkpoint.",
+    "publisher": "facebook",
+    "relation": "official",
+    "source_model": {
+      "kind": "model",
+      "publisher": "facebook",
+      "slug": "dinov2-with-registers-large"
+    }
+  },
+  "metadata": {
+    "description": "Exact Step1X offline dependency closure for DINOv2 configuration and image preprocessing. No external DINOv2 weights are selected or required.",
+    "tags": ["facebook", "vision", "metadata-only", "step1x"]
+  },
+  "modalities": ["image"],
+  "parameters": {
+    "active": null,
+    "total": null
+  },
+  "provenance": {
+    "attribution": ["facebook"],
+    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
+    "source_revision": "e4c89a4e05589de9b3e188688a303d0f3c04d0f3",
+    "source_url": "https://huggingface.co/facebook/dinov2-with-registers-large"
+  },
+  "schema_version": 2,
+  "source": {
+    "repository": "https://huggingface.co/facebook/dinov2-with-registers-large",
+    "revision": "e4c89a4e05589de9b3e188688a303d0f3c04d0f3"
+  },
+  "supersedes": null
+}
