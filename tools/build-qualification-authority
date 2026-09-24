@@ -1,0 +1,500 @@
+#!/usr/bin/env python3
+"""Generate the exact ordered <=2-Spark qualification authority and campaign."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+import sys
+from pathlib import Path
+from typing import Any
+
+ROOT = Path(__file__).resolve().parents[1]
+QUALIFICATION = ROOT / "qualification"
+AUTHORITY_PATH = QUALIFICATION / "authorities/nl-sequential-2c118a99.json"
+CAMPAIGN_PATH = QUALIFICATION / "campaigns/nl-sequential-2c118a99.json"
+PLAN_PATH = ROOT / "docs/recipe-qualification-plan-2026-09-24.md"
+_RECIPE_ROW = re.compile(r"[a-z0-9][a-z0-9-]{0,62}/[a-z0-9][a-z0-9-]{0,62}\Z")
+_SHA256 = re.compile(r"[0-9a-f]{64}\Z")
+_COMMIT = re.compile(r"[0-9a-f]{40}\Z")
+_FIXTURE_MARKERS = {"$fixture_data_uri", "$fixture_base64"}
+
+
+def _document(path: Path) -> dict[str, Any]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise TypeError(f"{path.relative_to(ROOT)} must contain a JSON object")
+    return value
+
+
+def _file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _recipe_key(document: dict[str, Any]) -> str:
+    identity = document.get("identity")
+    if not isinstance(identity, dict):
+        raise TypeError("catalog recipe identity is malformed")
+    key = f"{identity.get('publisher')}/{identity.get('slug')}"
+    if _RECIPE_ROW.fullmatch(key) is None:
+        raise ValueError(f"catalog recipe key is malformed: {key}")
+    return key
+
+
+def _plan_rows(text: str) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        if not line.startswith("|"):
+            continue
+        fields = [part.strip() for part in line.strip().strip("|").split("|")]
+        if len(fields) != 6 or not fields[0].isdigit():
+            continue
+        match = re.fullmatch(r"`([^`]+)`", fields[1])
+        if match is None:
+            raise ValueError(f"plan row at line {line_number} lacks a recipe key")
+        key = match.group(1)
+        if _RECIPE_ROW.fullmatch(key) is None:
+            raise ValueError(f"plan row has a malformed recipe key: {key}")
+        rows.append(
+            {
+                "sequence": int(fields[0]),
+                "key": key,
+                "node_count": int(fields[2]),
+                "check": fields[3],
+                "old_gate": fields[4],
+                "source_review": fields[5],
+            }
+        )
+    if [row["sequence"] for row in rows] != list(range(1, len(rows) + 1)):
+        raise ValueError("plan rows must have unique contiguous sequence numbers")
+    return rows
+
+
+def _unique_fixture_ids(values: list[Any]) -> list[str]:
+    result: list[str] = []
+    for value in values:
+        if not isinstance(value, str):
+            raise TypeError("qualification fixture reference must be a string")
+        if value not in result:
+            result.append(value)
+    return result
+
+
+def _artifact_fixture_ids(item: dict[str, Any]) -> list[str]:
+    fixture_ids: list[str] = []
+    cases = [item, *item.get("cases", [])]
+    for case in cases:
+        inputs = case.get("inputs")
+        if not isinstance(inputs, list):
+            raise TypeError("artifact qualification inputs must be an array")
+        for fixture_input in inputs:
+            if not isinstance(fixture_input, dict):
+                raise TypeError("artifact qualification input must be an object")
+            fixture_ids.append(fixture_input.get("fixture"))
+    return _unique_fixture_ids(fixture_ids)
+
+
+def _service_fixture_ids(case_ids: list[str], templates: dict[str, Any]) -> list[str]:
+    fixture_ids: list[str] = []
+
+    def visit(value: Any) -> None:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                if key in _FIXTURE_MARKERS:
+                    fixture_ids.append(child)
+                else:
+                    visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    for case_id in case_ids:
+        template = templates.get(case_id)
+        if not isinstance(template, dict):
+            raise TypeError(f"service smoke case template is missing: {case_id}")
+        visit(template.get("body"))
+        visit(template.get("assertions"))
+    return _unique_fixture_ids(fixture_ids)
+
+
+def _model_license_refs(
+    recipe: dict[str, Any], models_by_digest: dict[str, dict[str, Any]]
+) -> list[dict[str, Any]]:
+    model_refs = recipe.get("models")
+    if not isinstance(model_refs, list):
+        raise TypeError("recipe model references must be an array")
+    result: list[dict[str, Any]] = []
+    for selected in model_refs:
+        if not isinstance(selected, dict) or not isinstance(
+            selected.get("model"), dict
+        ):
+            raise TypeError("recipe model selection is malformed")
+        reference = selected["model"]
+        digest = reference.get("content_sha256")
+        if not isinstance(digest, str) or _SHA256.fullmatch(digest) is None:
+            raise ValueError("recipe model selection lacks a content digest")
+        entity = models_by_digest.get(digest)
+        if entity is None or entity.get("content_sha256") != digest:
+            raise ValueError(f"recipe Model is absent from catalog: {digest}")
+        document = entity.get("document")
+        if not isinstance(document, dict) or document.get("kind") != "model":
+            raise ValueError(f"catalog identity is not a Model: {digest}")
+        identity = document.get("identity")
+        license_value = document.get("license")
+        if not isinstance(identity, dict) or not isinstance(license_value, dict):
+            raise TypeError(f"Model license is malformed: {digest}")
+        key = f"{identity.get('publisher')}/{identity.get('slug')}"
+        operator_acceptance_required = license_value.get("operator_acceptance_required")
+        spdx = license_value.get("spdx")
+        url = license_value.get("url")
+        attribution = license_value.get("attribution")
+        if (
+            key != f"{reference.get('publisher')}/{reference.get('slug')}"
+            or type(operator_acceptance_required) is not bool
+            or not isinstance(spdx, str)
+            or not spdx
+            or not isinstance(url, str)
+            or not url
+            or not isinstance(attribution, list)
+            or any(not isinstance(item, str) for item in attribution)
+        ):
+            raise ValueError(f"recipe Model identity or license does not match: {key}")
+        license_ref: dict[str, Any] = {
+            "key": key,
+            "content_sha256": digest,
+            "spdx": spdx,
+            "url": url,
+            "attribution": attribution,
+            "operator_acceptance_required": operator_acceptance_required,
+        }
+        restrictions = license_value.get("territorial_restrictions")
+        if restrictions is not None:
+            license_ref["territorial_restrictions"] = restrictions
+        result.append(license_ref)
+    return result
+
+
+def _campaign_gate(row: dict[str, Any]) -> str:
+    kinds = {gate["kind"] for gate in row["review_gates"]}
+    if row["node_count"] > 2:
+        return "out of scope (>2 Sparks)"
+    labels = ["single-Spark" if row["node_count"] == 1 else "dual-Spark"]
+    if "operator-acceptance-required" in kinds:
+        labels.append("operator acceptance required")
+    if "capacity-review" in kinds:
+        labels.append("capacity review")
+    return "; ".join(labels)
+
+
+def _refresh_plan(text: str, rows: list[dict[str, Any]]) -> str:
+    row_by_key = {row["key"]: row for row in rows}
+    result: list[str] = []
+    for line in text.splitlines(keepends=True):
+        if not line.startswith("|"):
+            result.append(line)
+            continue
+        fields = [part.strip() for part in line.strip().strip("|").split("|")]
+        if len(fields) == 6 and fields[0] == "#":
+            fields[4] = "Campaign gate"
+            result.append("| " + " | ".join(fields) + " |\n")
+            continue
+        if len(fields) != 6 or not fields[0].isdigit():
+            result.append(line)
+            continue
+        match = re.fullmatch(r"`([^`]+)`", fields[1])
+        if match is None:
+            raise ValueError(f"plan row {fields[0]} lacks a recipe key")
+        key = match.group(1)
+        row = row_by_key.get(key)
+        if row is None:
+            if int(fields[0]) <= 81:
+                raise ValueError(f"campaign row is absent from authority: {key}")
+            gate = "out of scope (>2 Sparks)"
+        else:
+            gate = _campaign_gate(row)
+        fields[4] = gate
+        result.append("| " + " | ".join(fields) + " |\n")
+    updated = "".join(result)
+    sequence_heading = "## One-by-one sequence\n"
+    sequence_note = (
+        "Rows 1–81 are the one-at-a-time campaign and are bound by the ordered "
+        "authority. Rows 82–85 close the catalog audit only; they require more "
+        "than two Sparks and are not in the campaign."
+    )
+    if sequence_heading not in updated:
+        raise ValueError("qualification plan lacks the one-by-one sequence heading")
+    updated = re.sub(
+        r"(?m)^Rows 1–81 are the one-at-a-time campaign.*\n(?:\n)?", "", updated
+    )
+    updated = updated.replace(
+        sequence_heading, f"{sequence_heading}\n{sequence_note}\n", 1
+    )
+    return updated
+
+
+def _build() -> dict[Path, bytes]:
+    catalog_path = ROOT / "catalog-index.json"
+    qualification_path = QUALIFICATION / "qualification-index.json"
+    plan_text = PLAN_PATH.read_text(encoding="utf-8")
+    plan_rows = _plan_rows(plan_text)
+    catalog = _document(catalog_path)
+    qualification = _document(qualification_path)
+    release = _document(QUALIFICATION / "catalog-release.json")
+    gate_review = _document(QUALIFICATION / "review-gates.json")
+
+    if release.get("schema_version") != 2 or gate_review.get("schema_version") != 2:
+        raise ValueError("qualification authority input schemas must be 2")
+    catalog_commit = release.get("commit")
+    release_tag = release.get("release_tag")
+    repository = release.get("repository")
+    if repository != "CarstVaartjes/vonk-forge-recipes":
+        raise ValueError("catalog release repository does not match this library")
+    if not isinstance(catalog_commit, str) or _COMMIT.fullmatch(catalog_commit) is None:
+        raise ValueError("catalog release commit must be a full Git SHA")
+    if not isinstance(release_tag, str) or not re.fullmatch(
+        r"v[0-9]+\.[0-9]+\.[0-9]+", release_tag
+    ):
+        raise ValueError("catalog release tag is invalid")
+
+    catalog_recipes: dict[str, dict[str, Any]] = {}
+    for entry in catalog.get("recipes", []):
+        if not isinstance(entry, dict) or not isinstance(entry.get("document"), dict):
+            raise TypeError("catalog recipe entry is malformed")
+        key = _recipe_key(entry["document"])
+        if key in catalog_recipes:
+            raise ValueError(f"catalog contains duplicate recipe key: {key}")
+        catalog_recipes[key] = entry
+
+    models_by_digest: dict[str, dict[str, Any]] = {}
+    for entity in catalog.get("catalog_entities", []):
+        if not isinstance(entity, dict) or not isinstance(entity.get("document"), dict):
+            continue
+        if entity["document"].get("kind") != "model":
+            continue
+        digest = entity.get("content_sha256")
+        if not isinstance(digest, str) or digest in models_by_digest:
+            raise ValueError("catalog Model content identities must be unique")
+        models_by_digest[digest] = entity
+
+    capacity_reviews = gate_review.get("capacity_reviews")
+    if not isinstance(capacity_reviews, dict):
+        raise TypeError("capacity_reviews must be an object")
+    plan_keys = [row["key"] for row in plan_rows]
+    if len(plan_keys) != len(set(plan_keys)) or set(plan_keys) != set(catalog_recipes):
+        raise ValueError("qualification plan must cover every catalog recipe once")
+    if set(capacity_reviews) - set(catalog_recipes):
+        raise ValueError("capacity review references an absent catalog recipe")
+
+    indexed_recipes = qualification.get("recipes")
+    service_recipes = qualification.get("service_recipes")
+    service_templates = qualification.get("service_case_templates")
+    fixtures = qualification.get("fixtures")
+    if not all(
+        isinstance(value, dict)
+        for value in (indexed_recipes, service_recipes, service_templates, fixtures)
+    ):
+        raise ValueError("qualification index is missing a required object")
+
+    campaign_rows: list[dict[str, Any]] = []
+    out_of_scope: list[str] = []
+    for plan_row in plan_rows:
+        key = plan_row["key"]
+        recipe_entry = catalog_recipes[key]
+        recipe = recipe_entry["document"]
+        topology = recipe.get("topology")
+        package = recipe_entry.get("package")
+        if not isinstance(topology, dict) or not isinstance(package, dict):
+            raise TypeError(f"catalog topology or package is malformed: {key}")
+        node_count = topology.get("node_count")
+        if node_count != plan_row["node_count"]:
+            raise ValueError(f"plan topology differs from catalog for {key}")
+        if node_count > 2:
+            out_of_scope.append(key)
+            continue
+        if node_count not in (1, 2):
+            raise ValueError(f"campaign topology is unsupported: {key}")
+
+        content_sha256 = recipe_entry.get("content_sha256")
+        if (
+            not isinstance(content_sha256, str)
+            or _SHA256.fullmatch(content_sha256) is None
+        ):
+            raise ValueError(f"recipe content digest is malformed: {key}")
+        indexed = indexed_recipes.get(key)
+        service = service_recipes.get(key)
+        if (indexed is None) == (service is None):
+            raise ValueError(f"recipe must have exactly one qualification row: {key}")
+        if indexed is not None:
+            if (
+                not isinstance(indexed, dict)
+                or indexed.get("content_sha256") != content_sha256
+            ):
+                raise ValueError(f"artifact qualification digest differs for {key}")
+            cases = indexed.get("cases", [])
+            if not isinstance(cases, list):
+                raise ValueError(f"artifact qualification cases are malformed: {key}")
+            smoke_cases = ["default", *[case.get("id") for case in cases]]
+            qualification_inputs = _artifact_fixture_ids(indexed)
+            interface = indexed.get("interface")
+        else:
+            if (
+                not isinstance(service, dict)
+                or service.get("content_sha256") != content_sha256
+            ):
+                raise ValueError(f"service qualification digest differs for {key}")
+            smoke_cases = service.get("smoke_cases")
+            if not isinstance(smoke_cases, list) or not smoke_cases:
+                raise ValueError(f"service smoke cases are malformed: {key}")
+            qualification_inputs = _service_fixture_ids(smoke_cases, service_templates)
+            interface = "openai-service"
+        if any(not isinstance(case_id, str) for case_id in smoke_cases):
+            raise ValueError(f"qualification smoke case ID is malformed: {key}")
+        if any(fixture_id not in fixtures for fixture_id in qualification_inputs):
+            raise ValueError(f"qualification fixture reference is absent for {key}")
+
+        license_refs = _model_license_refs(recipe, models_by_digest)
+        operator_acceptance_required = any(
+            ref["operator_acceptance_required"] for ref in license_refs
+        )
+        review_gates: list[dict[str, str]] = []
+        if operator_acceptance_required:
+            review_gates.append(
+                {
+                    "kind": "operator-acceptance-required",
+                    "reason": (
+                        "At least one exact referenced Model declares "
+                        "operator_acceptance_required=true. An operator must "
+                        "explicitly acknowledge the displayed license terms for "
+                        "this recipe before physical execution; territorial "
+                        "metadata is informational and is not an admission rule."
+                    ),
+                }
+            )
+        capacity_reason = capacity_reviews.get(key)
+        if capacity_reason is not None:
+            if not isinstance(capacity_reason, str) or not capacity_reason:
+                raise ValueError(f"capacity review reason is invalid: {key}")
+            review_gates.append({"kind": "capacity-review", "reason": capacity_reason})
+        disposition = (
+            "operator-acceptance-required"
+            if operator_acceptance_required
+            else "capacity-review"
+            if capacity_reason is not None
+            else "actionable"
+        )
+        row: dict[str, Any] = {
+            "sequence": len(campaign_rows) + 1,
+            "key": key,
+            "recipe_version": recipe.get("release", {}).get("version"),
+            "content_sha256": content_sha256,
+            "package": {
+                "path": package.get("path"),
+                "sha256": package.get("sha256"),
+                "expected_bytes": package.get("expected_bytes"),
+                "media_type": package.get("media_type"),
+            },
+            "node_count": node_count,
+            "interface": interface,
+            "disposition": disposition,
+            "operator_acceptance_required": operator_acceptance_required,
+            "model_license_refs": license_refs,
+            "qualification_inputs": qualification_inputs,
+            "smoke_cases": smoke_cases,
+            "review_gates": review_gates,
+        }
+        if review_gates:
+            row["disposition_reason"] = "; ".join(
+                gate["reason"] for gate in review_gates
+            )
+        campaign_rows.append(row)
+
+    if len(campaign_rows) != 81 or len(out_of_scope) != 4:
+        raise ValueError(
+            "catalog topology must produce 81 in-scope and 4 wider recipes"
+        )
+    if any(
+        key not in {row["key"] for row in campaign_rows} for key in capacity_reviews
+    ):
+        raise ValueError("capacity review must only name an in-scope campaign recipe")
+
+    source_commit = catalog.get("source_commit")
+    if not isinstance(source_commit, str) or _COMMIT.fullmatch(source_commit) is None:
+        raise ValueError("catalog source_commit must be a full Git SHA")
+    authority = {
+        "schema_version": 3,
+        "authority_id": "nl-sequential-2c118a99",
+        "catalog": {
+            "repository": repository,
+            "commit": catalog_commit,
+            "release_tag": release_tag,
+            "source_commit": source_commit,
+            "catalog_index_sha256": _file_sha256(catalog_path),
+            "qualification_index_sha256": _file_sha256(qualification_path),
+            "recipe_count": len(catalog_recipes),
+        },
+        "scope": {
+            "maximum_node_count": 2,
+            "recipe_count": len(campaign_rows),
+            "excluded_topology_recipe_keys": out_of_scope,
+        },
+        "recipes": campaign_rows,
+    }
+    campaign = {
+        "schema_version": 2,
+        "qualification_authority": "../authorities/nl-sequential-2c118a99.json",
+        "fixture_manifest": "../qualification-index.json",
+        "options": {
+            "cleanup": "stop",
+            "operation_timeout_seconds": 86400,
+            "poll_interval_seconds": 5,
+        },
+    }
+    plan_output = _refresh_plan(plan_text, campaign_rows).encode("utf-8")
+    return {
+        AUTHORITY_PATH: (
+            json.dumps(authority, ensure_ascii=False, indent=2) + "\n"
+        ).encode("utf-8"),
+        CAMPAIGN_PATH: (
+            json.dumps(campaign, ensure_ascii=False, indent=2) + "\n"
+        ).encode("utf-8"),
+        PLAN_PATH: plan_output,
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="fail if the committed authority, campaign, or plan is stale",
+    )
+    args = parser.parse_args()
+    try:
+        outputs = _build()
+        stale = [
+            path
+            for path, expected in outputs.items()
+            if not path.exists() or path.read_bytes() != expected
+        ]
+        if args.check:
+            if stale:
+                raise ValueError(
+                    "qualification authority outputs are stale: "
+                    + ", ".join(path.relative_to(ROOT).as_posix() for path in stale)
+                )
+            print("qualification authority is current (81 recipes)")
+            return 0
+        for path, content in outputs.items():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(content)
+        print("refreshed qualification authority and sequential campaign (81 recipes)")
+        return 0
+    except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+        print(f"build-qualification-authority: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

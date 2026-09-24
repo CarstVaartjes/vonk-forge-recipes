@@ -1250,30 +1250,6 @@
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
-      "file": "tests/test_qualification_index.py",
-      "rule": "reportArgumentType",
-      "count": 1,
-      "reason": "The test deliberately passes partial or malformed values to prove the producer refuses them."
-    },
-    {
-      "file": "tests/test_qualification_index.py",
-      "rule": "reportGeneralTypeIssues",
-      "count": 1,
-      "reason": "The fixture is intentionally ungrown so a malformed-input path can be exercised."
-    },
-    {
-      "file": "tests/test_qualification_index.py",
-      "rule": "reportIndexIssue",
-      "count": 4,
-      "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
-    },
-    {
-      "file": "tests/test_qualification_index.py",
-      "rule": "reportOperatorIssue",
-      "count": 2,
-      "reason": "The test operates on fixture values whose runtime types are wider than the annotations."
-    },
-    {
       "file": "tests/test_qwen36_nvfp4_recipe.py",
       "rule": "reportIndexIssue",
       "count": 5,

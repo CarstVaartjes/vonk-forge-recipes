@@ -1,0 +1,10 @@
+{
+  "schema_version": 2,
+  "qualification_authority": "../authorities/nl-sequential-2c118a99.json",
+  "fixture_manifest": "../qualification-index.json",
+  "options": {
+    "cleanup": "stop",
+    "operation_timeout_seconds": 86400,
+    "poll_interval_seconds": 5
+  }
+}
