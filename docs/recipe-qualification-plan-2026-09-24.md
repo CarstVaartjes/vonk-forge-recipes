@@ -31,6 +31,26 @@ implementation lacks a closed and requalified Vonk source/image path.
 
 ## Per-recipe procedure
 
+### File-closure blockers found during cache preparation
+
+The cache audit found authored aggregate paths (`snapshot` and
+`filtered-snapshot`) that are not upstream files. Exact per-file manifests and
+companion selections must replace them before those revisions can run. The
+following unresolved rows remain in the sequence, without a physical pass:
+
+- **LTX 2.5:** its 28 selected files require authentic per-file SHA-256 values.
+  The official pinned `audio_vae/config.json` at
+  `426936f8b22dc28e4def61e515478b0b7e4a53cc` returned HTTP 401. Authorized
+  Hugging Face access is required; an aggregate checksum is not a substitute.
+- **TRELLIS 2 and Pixal3D:** their Meta DINOv3 dependency at
+  `ea8dc2863c51be0a264bab82070e3e8836b02d51` requires provider approval and
+  authenticated access. A public mirror must not silently replace that source.
+- **Pixal3D additionally:** its official NAF checkpoint is a GitHub release
+  asset, while the current model-cache provider only resolves Hugging Face
+  model files. Its source needs a supported cache contract before execution.
+
+### Ordered execution
+
 For each row below, finish all gates before starting the next row. Platform PR #881 (`e7810dac`) merged the plan-digest-bound load API and sequential runner; PR #882 (`0123eeb4`) repairs the release acceptance caller. Source merge is not deployment: the campaign remains preview-only until an accepted release containing these changes is deployed and verified against the live Controller.
 
 1. Run `scripts/qualify-recipe --level structural` against the exact platform and recipe commits. Bind its result to the authority row's recipe content digest and package SHA-256.
