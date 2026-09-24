@@ -241,17 +241,6 @@
           ]
         },
         {
-          "file_id": "file-87055d22e185",
-          "id": "primary-file-87055d22e185",
-          "mount": {
-            "read_only": true,
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
           "file_id": "file-e65182345640",
           "id": "primary-file-e65182345640",
           "mount": {
@@ -287,7 +276,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "cd6dc1e0db2bb213beaee4283fe4ac8c181a4a953f9971c19d3e4d271bc56a17",
+        "content_sha256": "f2a225023fae4d2e0ddacbc9d92f426d7ffbf602a2ff5426f62a2c73d3279a91",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan3d-omni"
@@ -348,6 +337,22 @@
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "At the pinned Hunyuan3D-Omni loader, variant=None selects model/pytorch_model.bin; model/pytorch_model_ema.bin is loaded only for variant='ema'. The adapter passes no variant, so the unused EMA weights are removed from the exact Model manifest and recipe selection.",
+            "kind": "fix",
+            "references": [
+              "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/blob/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8/hy3dshape/pipelines/pipeline_generation_sit_omni.py"
+            ],
+            "summary": "Limit Hunyuan3D-Omni to the adapter's default checkpoint."
+          }
+        ],
+        "prior_recipe_content_sha256": "90621fdd536f27e8eb5503055c301ca73fca7a2a9861f46aec623159bcf6115d",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "reprepare",
+        "version": "2.0.10"
+      },
       {
         "changes": [
           {
@@ -583,7 +588,7 @@
       }
     ],
     "released_at": "2026-09-24",
-    "version": "2.0.9"
+    "version": "2.0.10"
   },
   "runtime": {
     "arguments": [

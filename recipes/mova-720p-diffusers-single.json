@@ -444,7 +444,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "28ef0535f476b64926c6cbf40a64bed10df6d3fdc3e6a6213f6b8939db9347d9",
+        "content_sha256": "d2cd61dcd4d6eca1c0755fb6292346588974be8903fc06d333020f51b254566b",
         "kind": "model",
         "publisher": "openmoss",
         "slug": "mova-720p"
@@ -460,6 +460,22 @@
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "The exact pinned model card declares Apache-2.0; this snapshot does not contain a LICENSE file, so the license link now targets the card that carries the declaration.",
+            "kind": "metadata",
+            "references": [
+              "https://huggingface.co/OpenMOSS-Team/MOVA-720p/blob/8462bea9a317a3591279faeedfd3ca01b055cb59/README.md"
+            ],
+            "summary": "Link the license declaration to the exact pinned MOVA model card."
+          }
+        ],
+        "prior_recipe_content_sha256": "891e70bebe5f91139246d25054582b74e13ada68acecbfa45d86d682eacd29a0",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "none",
+        "version": "2.0.11"
+      },
       {
         "changes": [
           {
@@ -685,7 +701,7 @@
       }
     ],
     "released_at": "2026-09-24",
-    "version": "2.0.10"
+    "version": "2.0.11"
   },
   "runtime": {
     "arguments": [

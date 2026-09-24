@@ -78,15 +78,6 @@
       "size_bytes": 1278
     },
     {
-      "id": "file-6736cd72a818",
-      "path": "hunyuanvideo_foley.pth",
-      "roles": [
-        "weights"
-      ],
-      "sha256": "2900021f8ee562a8175b2f1a3fafb06b9e9e848f11f4c6d4d5d72e126f7c0475",
-      "size_bytes": 10301204679
-    },
-    {
       "id": "file-38117435414b",
       "path": "hunyuanvideo_foley_xl.pth",
       "roles": [
@@ -115,7 +106,7 @@
     }
   ],
   "format": {
-    "container": "safetensors",
+    "container": "other",
     "precision": "bf16",
     "quantization": "none"
   },
