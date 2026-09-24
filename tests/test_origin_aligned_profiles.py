@@ -5,6 +5,7 @@ import runpy
 import sys
 import unittest
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
@@ -16,8 +17,8 @@ def read(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def model(recipe: dict[str, object], index: int = 0) -> dict[str, object]:
-    return read(ROOT / "models" / f"{recipe['models'][index]['model']['slug']}.json")  # type: ignore[index]
+def model(recipe: dict[str, Any], index: int = 0) -> dict[str, object]:
+    return read(ROOT / "models" / f"{recipe['models'][index]['model']['slug']}.json")
 
 
 class OriginAlignedProfileTests(unittest.TestCase):
@@ -51,7 +52,7 @@ class OriginAlignedProfileTests(unittest.TestCase):
         )
         args = {
             item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]
-        }  # type: ignore[index]
+        }
         self.assertEqual(args["block-size"], 7168)
         self.assertEqual(args["kv-cache-dtype"], "nvfp4_ds_mla")
         self.assertEqual(args["tensor-parallel-size"], 2)
@@ -63,7 +64,7 @@ class OriginAlignedProfileTests(unittest.TestCase):
         recipe = read(ROOT / "recipes/deepseek-v4-flash-0731-mia-dual.json")
         args = {
             item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]
-        }  # type: ignore[index]
+        }
         self.assertEqual(args["kv-cache-dtype"], "nvfp4_ds_mla")
         self.assertEqual(args["max-num-batched-tokens"], 8192)
         self.assertEqual(args["moe-backend"], "flashinfer_b12x")

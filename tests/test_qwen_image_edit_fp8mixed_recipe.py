@@ -4,6 +4,7 @@ import json
 import sys
 import unittest
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
@@ -14,8 +15,8 @@ def read(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def model_for(recipe: dict[str, object]) -> dict[str, object]:
-    slug = recipe["models"][0]["model"]["slug"]  # type: ignore[index]
+def model_for(recipe: dict[str, Any]) -> dict[str, object]:
+    slug = recipe["models"][0]["model"]["slug"]
     return read(ROOT / "models" / f"{slug}.json")
 
 
@@ -30,7 +31,8 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
         )
         self.assertEqual(model["format"]["quantization"], "fp8mixed")
         self.assertEqual(len(recipe["models"]), 1)
-        self.assertEqual(len(recipe["models"][0]["files"]), 1)  # type: ignore[index]
+        models: Any = recipe["models"]
+        self.assertEqual(len(models[0]["files"]), 1)
         self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")
         self.assertEqual(recipe["runtime"]["engine"], "comfyui")
 
@@ -38,13 +40,14 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
         recipe = read(self.path)
         args = {
             item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]
-        }  # type: ignore[index]
+        }
         self.assertTrue(args["workflow"].endswith("qwen-image-edit-2511-fp8mixed.json"))
         self.assertEqual(len(args["workflow-sha256"]), 64)
         self.assertIn(
             recipe["execution"]["build"]["network"]["mode"], {"none", "public"}
-        )  # type: ignore[index]
-        resources = recipe["topology"]["roles"][0]["resources"]  # type: ignore[index]
+        )
+        topology: Any = recipe["topology"]
+        resources = topology["roles"][0]["resources"]
         self.assertLessEqual(
             resources["memory"]["startup_peak_bytes"]
             + resources["memory"]["system_reserve_bytes"],
@@ -57,9 +60,9 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
                 recipe = read(path)
                 self.assertEqual(recipe["runtime"]["engine"], "comfyui")
                 for selection in recipe["models"]:
-                    model = read(ROOT / "models" / f"{selection['model']['slug']}.json")  # type: ignore[index]
+                    model = read(ROOT / "models" / f"{selection['model']['slug']}.json")
                     canonical = content_sha256(ModelDefinition.model_validate(model))
-                    self.assertEqual(selection["model"]["content_sha256"], canonical)  # type: ignore[index]
+                    self.assertEqual(selection["model"]["content_sha256"], canonical)
 
 
 if __name__ == "__main__":

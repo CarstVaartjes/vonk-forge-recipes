@@ -202,10 +202,10 @@ def _safe_file(path: Path) -> bool:
 
 
 def _recipe_closure(
-    recipe: dict[str, object], recipe_path: Path, entities: dict[str, dict[str, Any]]
+    recipe: dict[str, Any], recipe_path: Path, entities: dict[str, dict[str, Any]]
 ) -> list[tuple[str, bytes]]:
     files: dict[str, bytes] = {"recipe.json": canonical(recipe)}
-    pending = [selection["model"] for selection in recipe["models"]]  # type: ignore[index]
+    pending = [selection["model"] for selection in recipe["models"]]
     seen_models: set[str] = set()
     while pending:
         reference = pending.pop(0)
@@ -220,10 +220,10 @@ def _recipe_closure(
         pending.extend(model.get("dependencies", []))
         if model.get("supersedes") is not None:
             pending.append(model["supersedes"])
-    execution = recipe["execution"]  # type: ignore[index]
-    if execution["mode"] == "build":  # type: ignore[index]
-        build = execution["build"]  # type: ignore[index]
-        context = ROOT / build["context"]["path"]  # type: ignore[index]
+    execution = recipe["execution"]
+    if execution["mode"] == "build":
+        build = execution["build"]
+        context = ROOT / build["context"]["path"]
         if not context.is_dir():
             raise SystemExit(
                 f"package source context is missing: {context.relative_to(ROOT)}"
@@ -242,13 +242,13 @@ def _recipe_closure(
         for name in (
             build["dockerfile"],
             *(patch["path"] for patch in build["patches"]),
-        ):  # type: ignore[index]
+        ):
             source = ROOT / name
             if not _safe_file(source):
                 raise SystemExit(f"package source file is missing: {name}")
             files[name] = source.read_bytes()
-    for check in recipe["validation"]["serving"]["checks"]:  # type: ignore[index]
-        request = check["request"]  # type: ignore[index]
+    for check in recipe["validation"]["serving"]["checks"]:
+        request = check["request"]
         if request.get("transport") != "job":
             continue
         required = [request["fixture"], *request.get("input_slots", {}).values()]
@@ -361,8 +361,8 @@ def validate_recipe_archive(
     )
     execution = expected_recipe_document["execution"]
     source_context: PurePosixPath | None = None
-    if execution["mode"] == "build":  # type: ignore[index]
-        source_context = PurePosixPath(str(execution["build"]["context"]["path"]))  # type: ignore[index]
+    if execution["mode"] == "build":
+        source_context = PurePosixPath(str(execution["build"]["context"]["path"]))
 
     def is_source_member(name: str) -> bool:
         path = PurePosixPath(name)
@@ -553,33 +553,33 @@ def validate_recipe_archive(
             if model.supersedes is not None:
                 pending_models.append(model.supersedes)
         paths = set(names)
-        if execution["mode"] == "build":  # type: ignore[index]
-            build = execution["build"]  # type: ignore[index]
-            context = build["context"]["path"]  # type: ignore[index]
+        if execution["mode"] == "build":
+            build = execution["build"]
+            context = build["context"]["path"]
             if not any(name.startswith(context + "/") for name in paths):
                 raise SystemExit(f"recipe package build context is missing: {context}")
             required = [
                 build["dockerfile"],
                 *(patch["path"] for patch in build["patches"]),
-            ]  # type: ignore[index]
+            ]
             missing = sorted(name for name in required if name not in paths)
             if missing:
                 raise SystemExit(
                     f"recipe package source closure is missing: {', '.join(missing)}"
                 )
-            dockerfile_member = archive.extractfile(build["dockerfile"])  # type: ignore[index]
+            dockerfile_member = archive.extractfile(build["dockerfile"])
             if dockerfile_member is None:
                 raise SystemExit("recipe package Dockerfile is missing")
             inputs = _dockerfile_build_inputs(
                 dockerfile_member.read(), label=build["dockerfile"]
-            )  # type: ignore[index]
+            )
             manifest_inputs = manifest.get("build_inputs")
             if manifest_inputs != inputs:
                 raise SystemExit("recipe package build inputs are stale")
-            base = build["base_image"]  # type: ignore[index]
-            base_digest = base["digest"]  # type: ignore[index]
-            base_repository = base["repository"]  # type: ignore[index]
-            base_platform = base["platform"]  # type: ignore[index]
+            base = build["base_image"]
+            base_digest = base["digest"]
+            base_repository = base["repository"]
+            base_platform = base["platform"]
 
             def matches_base(item: dict[str, str]) -> bool:
                 repository, digest = item["reference"].rsplit("@sha256:", 1)
@@ -611,8 +611,8 @@ def validate_recipe_archive(
                 raise SystemExit(
                     "recipe package base image is absent from Dockerfile build inputs"
                 )
-        for check in expected_recipe_document["validation"]["serving"]["checks"]:  # type: ignore[index]
-            request = check["request"]  # type: ignore[index]
+        for check in expected_recipe_document["validation"]["serving"]["checks"]:
+            request = check["request"]
             if request.get("transport") == "job":
                 required = [
                     request["fixture"],
@@ -640,7 +640,7 @@ def recipe_package(
     recipe_digest = content_sha256(validated)
     recipe_path = (
         recipe_path or ROOT / "recipes" / f"{document['identity']['slug']}.json"
-    )  # type: ignore[index]
+    )
     entities = entity_documents or _catalog_entity_documents()
     files = _recipe_closure(document, recipe_path, entities)
     manifest_files = [
@@ -659,8 +659,8 @@ def recipe_package(
         "files": manifest_files,
     }
     execution = document["execution"]
-    if execution["mode"] == "build":  # type: ignore[index]
-        dockerfile_path = execution["build"]["dockerfile"]  # type: ignore[index]
+    if execution["mode"] == "build":
+        dockerfile_path = execution["build"]["dockerfile"]
         dockerfile_payload = dict(files)[dockerfile_path]
         manifest["build_inputs"] = _dockerfile_build_inputs(
             dockerfile_payload, label=dockerfile_path
@@ -675,7 +675,7 @@ def recipe_package(
         "path": f"packages/{document['identity']['slug']}.tar.gz",
         "recipe_content_sha256": recipe_digest,
         "minimum_consumer_schema": 2,
-    }  # type: ignore[index]
+    }
     return payload, metadata
 
 

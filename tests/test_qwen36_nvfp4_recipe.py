@@ -38,7 +38,7 @@ class Qwen36Nvfp4RecipeTests(unittest.TestCase):
         args = {
             item["name"]: item.get("value")
             for item in raw_recipe["runtime"]["arguments"]
-        }  # type: ignore[index]
+        }
         self.assertEqual(args["max-num-batched-tokens"], 8192)
         self.assertEqual(args["moe-backend"], "marlin")
         self.assertEqual(raw_recipe["topology"]["node_count"], 1)

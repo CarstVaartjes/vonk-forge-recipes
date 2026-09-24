@@ -4,6 +4,7 @@ import json
 import sys
 import unittest
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
@@ -21,13 +22,13 @@ def digest(document: dict[str, object]) -> str:
     return content_sha256(ModelDefinition.model_validate(document))
 
 
-def model_for(recipe: dict[str, object], index: int = 0) -> dict[str, object]:
-    slug = recipe["models"][index]["model"]["slug"]  # type: ignore[index]
+def model_for(recipe: dict[str, Any], index: int = 0) -> dict[str, object]:
+    slug = recipe["models"][index]["model"]["slug"]
     return read(ROOT / "models" / f"{slug}.json")
 
 
-def args(recipe: dict[str, object]) -> dict[str, object]:
-    return {item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]}  # type: ignore[index]
+def args(recipe: dict[str, Any]) -> dict[str, object]:
+    return {item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]}
 
 
 class NvidiaSingleRecipeAuditTests(unittest.TestCase):
@@ -87,8 +88,8 @@ class NvidiaSingleRecipeAuditTests(unittest.TestCase):
 
     def test_single_spark_memory_admission_and_representative_checks(self) -> None:
         for path in (SUPER_RECIPE, FLASH_RECIPE):
-            recipe = read(path)
-            resources = recipe["topology"]["roles"][0]["resources"]  # type: ignore[index]
+            recipe: dict[str, Any] = read(path)
+            resources = recipe["topology"]["roles"][0]["resources"]
             memory = resources["memory"]
             self.assertLessEqual(
                 memory["startup_peak_bytes"] + memory["system_reserve_bytes"],
@@ -100,7 +101,7 @@ class NvidiaSingleRecipeAuditTests(unittest.TestCase):
                 + memory["system_reserve_bytes"],
                 128_000_000_000,
             )
-            self.assertGreaterEqual(len(recipe["validation"]["serving"]["checks"]), 1)  # type: ignore[index]
+            self.assertGreaterEqual(len(recipe["validation"]["serving"]["checks"]), 1)
 
 
 if __name__ == "__main__":
