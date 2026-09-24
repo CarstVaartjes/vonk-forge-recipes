@@ -9,7 +9,7 @@
     "out_of_scope_recipe_count": 4,
     "in_scope_maximum_node_count": 2,
     "authority_id": "nl-sequential-2c118a99",
-    "catalog_index_sha256": "3cacde1cd3b07b0b0df06480af730d05d36c1c53bdb0a52fb11beea0aa1a00d1",
+    "catalog_index_sha256": "cb9626b2b8c1a07a9a926b005313eb92bf071cb572bbd2c2ac9236b55a1a618b",
     "bound_catalog_index_sha256": "0aed0c8410dea9f798992f7be37d7ace8236d0cdceb7030e0e5532b1a2020e9e",
     "bound_release_tag": "v1.0.14",
     "bound_catalog_commit": "a6255140bb6ecbec3b3813c88b7df41cc81cd8e1",
@@ -2127,7 +2127,7 @@
       "content_sha256": "c04779955e788b666e2e6933408fad7ed3d0e96ba5215a55b58382852beb2e5f",
       "package": {
         "path": "packages/ltx-2-19b-dev-bf16-diffusers-single.tar.gz",
-        "sha256": "b42dfb2a732c260b35d4e88118513d14a0a9288ea8305cebf1f9f76637375f8f"
+        "sha256": "94282aa2df4a4b60db6db1dbe0df24da1291738da4ffe2e3dd0fa09e9dacddc3"
       },
       "in_scope": true,
       "node_count": 1,
@@ -2248,7 +2248,12 @@
           "generic-prompt-text"
         ]
       },
-      "authority_divergence": null,
+      "authority_divergence": {
+        "bound_recipe_version": "3.2.9",
+        "bound_content_sha256": "c04779955e788b666e2e6933408fad7ed3d0e96ba5215a55b58382852beb2e5f",
+        "bound_package_sha256": "b42dfb2a732c260b35d4e88118513d14a0a9288ea8305cebf1f9f76637375f8f",
+        "reason": "catalog identity changed after the authority was built"
+      },
       "representative": false,
       "representative_for": "vonk-forge/ltx-2-3-22b-distilled-1-1-diffusers-single",
       "schedule": {
@@ -2877,7 +2882,7 @@
       "content_sha256": "9a14a11bc10f0f37eef0ea738c834b25ac8ee093448b9afda010a33414e077bb",
       "package": {
         "path": "packages/ltx-2-3-22b-distilled-1-1-diffusers-single.tar.gz",
-        "sha256": "54691634f8c35bede6c70692687ee1e7e1c01e3f9668e1d230b97baa492e65ac"
+        "sha256": "b2960f7857f595dca5acb0cd22eb4aef6fc66ee170d6f7252e2e48ab085202ef"
       },
       "in_scope": true,
       "node_count": 1,
@@ -2998,7 +3003,12 @@
           "generic-prompt-text"
         ]
       },
-      "authority_divergence": null,
+      "authority_divergence": {
+        "bound_recipe_version": "3.2.10",
+        "bound_content_sha256": "9a14a11bc10f0f37eef0ea738c834b25ac8ee093448b9afda010a33414e077bb",
+        "bound_package_sha256": "54691634f8c35bede6c70692687ee1e7e1c01e3f9668e1d230b97baa492e65ac",
+        "reason": "catalog identity changed after the authority was built"
+      },
       "representative": true,
       "representative_for": null,
       "schedule": {
@@ -3135,7 +3145,7 @@
       "content_sha256": "98308df9432d0ab6ecdcfd43e29fa5c011606a4504d9d0f0b419c29cdb57a55c",
       "package": {
         "path": "packages/ltx-2-19b-distilled-fp8-diffusers-single.tar.gz",
-        "sha256": "b3f1e00e2fed6de3c1292cd7b861f1077ce13b77160881be1d1a867f7c8dd0bd"
+        "sha256": "42e42aebb2f3a6a1d1f92f8c3cf2514d7d8ce0a5a412fbf50dcc0f816679f44f"
       },
       "in_scope": true,
       "node_count": 1,
@@ -3258,7 +3268,12 @@
           "generic-prompt-text"
         ]
       },
-      "authority_divergence": null,
+      "authority_divergence": {
+        "bound_recipe_version": "3.1.9",
+        "bound_content_sha256": "98308df9432d0ab6ecdcfd43e29fa5c011606a4504d9d0f0b419c29cdb57a55c",
+        "bound_package_sha256": "b3f1e00e2fed6de3c1292cd7b861f1077ce13b77160881be1d1a867f7c8dd0bd",
+        "reason": "catalog identity changed after the authority was built"
+      },
       "representative": true,
       "representative_for": null,
       "schedule": {
@@ -4870,7 +4885,7 @@
       "content_sha256": "1c45e749d797c0a21c944c79162edaafd578ee116f935f45f648e7818611a55b",
       "package": {
         "path": "packages/ltx-2-19b-distilled-diffusers-single.tar.gz",
-        "sha256": "a55c2eae9ed1010e98bf14d8a38c2451f51e1c151c5aaecd9feba30d9c879727"
+        "sha256": "4604072703527aec6b29efcc11bec65ca97683f667d8473b13c2652d4fd41308"
       },
       "in_scope": true,
       "node_count": 1,
@@ -4991,7 +5006,12 @@
           "generic-prompt-text"
         ]
       },
-      "authority_divergence": null,
+      "authority_divergence": {
+        "bound_recipe_version": "3.1.9",
+        "bound_content_sha256": "1c45e749d797c0a21c944c79162edaafd578ee116f935f45f648e7818611a55b",
+        "bound_package_sha256": "a55c2eae9ed1010e98bf14d8a38c2451f51e1c151c5aaecd9feba30d9c879727",
+        "reason": "catalog identity changed after the authority was built"
+      },
       "representative": true,
       "representative_for": null,
       "schedule": {

@@ -24,7 +24,7 @@ def load(path: Path) -> dict:
 
 class LtxSyncAuthorityTests(unittest.TestCase):
     def test_native_adapters_bundle_the_same_protocol_wheel(self) -> None:
-        wheel_name = "vonk_agent_protocol-2.2.0-py3-none-any.whl"
+        wheel_name = "vonk_agent_protocol-3.0.0-py3-none-any.whl"
         first = (ROOT / "adapters/video/ltx2-sync-native" / wheel_name).read_bytes()
         second = (
             ROOT / "adapters/video/ltx23-sync-native-disk" / wheel_name
