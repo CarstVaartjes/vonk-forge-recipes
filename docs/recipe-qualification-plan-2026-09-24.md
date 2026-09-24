@@ -70,7 +70,19 @@ For each row below, finish all gates before starting the next row. Platform PR #
 7. Use `vonk-fleet-qualify-campaign --manifest qualification/campaigns/nl-sequential-2c118a99.json --library-root RECIPE_ROOT --ledger LEDGER_OUTSIDE_INPUTS.jsonl --profile-number N --recipe RECIPE_KEY --observe` to record the full recovery ladder; observe mode takes no Spark, failure-Spark or review-acknowledgement flags and is available only for an already-recorded canary/checkpoint. For a one-Spark row, first capture the passing canary, then record the host offline, perform the offline restart, and observe the Spark returning with a different boot ID from serialized Fleet telemetry; stop the workload after the restart evidence is complete. For a dual-Spark row, observe failure-rank loss and route withdrawal, then rank recovery and recovered serving/smoke; stop the workload, then record and perform sequential offline restarts of both selected Sparks and verify both changed boot IDs. Preserve the exact sequence and recovery evidence; a workload restart alone is not acceptance.
 8. Retain verified model files, recipe images and compatible partial-transfer checkpoints. Record pass, blocked or fail before starting the next sequence number. A capacity-review row remains in sequence and may proceed only when its fresh live preview proves fit and its explicit `--accept-capacity-review RECIPE_KEY` acknowledgement is present.
 
-The refreshed authority is `qualification/authorities/nl-sequential-2c118a99.json`; it binds the 85-recipe v1.0.8 catalog and lists every 1- or 2-Spark recipe in sequence. Its campaign manifest has no fixed Spark IDs or concurrent lanes. Rows with `operator_acceptance_required` need an explicit per-recipe operator acknowledgement before physical execution; none is implied by structural validation or by this plan. Territorial license notices remain user information and do not create geographic admission denials. Capacity review is a fresh live-preview gate, not a permanent exclusion. The four 3+-Spark recipes are listed after the 81 in-scope rows only to make the catalog boundary auditable.
+The refreshed authority is `qualification/authorities/nl-sequential-2c118a99.json`;
+it binds the 85-recipe v1.0.9 catalog at release commit
+`0af39819fccd9bef9d506ec7624b900d7a0fb3ae` and lists every 1- or 2-Spark
+recipe in sequence. Publication completed on 2026-09-24 after all release
+checks passed. This closes the recipe publication prerequisite, not cache
+readiness or physical acceptance. The campaign manifest has no fixed Spark IDs
+or concurrent lanes. Rows with `operator_acceptance_required` need an explicit
+per-recipe operator acknowledgement before physical execution; none is implied
+by structural validation or by this plan. Territorial license notices remain
+user information and do not create geographic admission denials. Capacity
+review is a fresh live-preview gate, not a permanent exclusion. The four
+3+-Spark recipes are listed after the 81 in-scope rows only to make the catalog
+boundary auditable.
 
 ## One-by-one sequence
 
