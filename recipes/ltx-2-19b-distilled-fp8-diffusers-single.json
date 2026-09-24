@@ -407,6 +407,23 @@
       {
         "changes": [
           {
+            "details": "Replaced the stale bundled protocol wheel with the Controller's current platform wheel (sha256 7555df9ec0f576ac0530d1e6abdd2f3845614cf397a7bc2c8dcd01bc86967565). The previous copy rejected a Controller-produced schema-2 plan with 518 valid argv entries; the current shared contract accepts it. Model weights and upstream LTX engine pins are unchanged.",
+            "kind": "runtime",
+            "references": [
+              "https://github.com/CarstVaartjes/vonk-forge/blob/0123eeb46a36f828d57b293c0b6704f5aa13d5f2/agent_protocol/src/vonk_agent_protocol/compiled_execution_plan.py",
+              "https://github.com/CarstVaartjes/vonk-forge/blob/0123eeb46a36f828d57b293c0b6704f5aa13d5f2/inventory/sbom/manifest.json"
+            ],
+            "summary": "Align the bundled protocol wheel with the current Controller contract."
+          }
+        ],
+        "prior_recipe_content_sha256": "9494c1aaaf349561d88e5758b403974605b89d65def2f308e3e1d0e4d1fbdd38",
+        "released_at": "2026-09-24",
+        "upgrade_effect": "rebuild",
+        "version": "3.1.8"
+      },
+      {
+        "changes": [
+          {
             "details": "The native adapter validates the compiled runtime plan and job input manifest with the bundled authoritative Pydantic protocol package, then reads only the declared prompt file. This repairs job input handling and removes duplicate runtime parsing; model weights and upstream engine pins are unchanged.",
             "kind": "runtime",
             "references": [],
@@ -664,8 +681,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-08",
-    "version": "3.1.7"
+    "released_at": "2026-09-24",
+    "version": "3.1.8"
   },
   "runtime": {
     "arguments": [
