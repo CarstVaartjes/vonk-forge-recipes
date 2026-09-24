@@ -10,10 +10,10 @@
     "in_scope_maximum_node_count": 2,
     "authority_id": "nl-sequential-2c118a99",
     "catalog_index_sha256": "cb9626b2b8c1a07a9a926b005313eb92bf071cb572bbd2c2ac9236b55a1a618b",
-    "bound_catalog_index_sha256": "0aed0c8410dea9f798992f7be37d7ace8236d0cdceb7030e0e5532b1a2020e9e",
-    "bound_release_tag": "v1.0.14",
-    "bound_catalog_commit": "a6255140bb6ecbec3b3813c88b7df41cc81cd8e1",
-    "catalog_binding_current": false
+    "bound_catalog_index_sha256": "cb9626b2b8c1a07a9a926b005313eb92bf071cb572bbd2c2ac9236b55a1a618b",
+    "bound_release_tag": "v1.0.16",
+    "bound_catalog_commit": "7b23f1a1569e16f8f2728ddd6846cf4f7c58f0f7",
+    "catalog_binding_current": true
   },
   "coverage_group_order": [
     "vllm",
@@ -136,9 +136,9 @@
       "authority": {
         "authority_id": "nl-sequential-2c118a99",
         "sequence": 1,
-        "recipe_version": "1.2.14",
-        "content_sha256": "94e763a68277381b9ed61127ec4ec639312ac7849318b6d0e1e2b1b22ef66433",
-        "package_sha256": "aa1fa15875d2987fd35f0197af132b147a713b47424d2c2003042ce8105917e5",
+        "recipe_version": "1.2.15",
+        "content_sha256": "e887c7886746df03335bba51cbd5db4133ed155eba0d0b3842ae5fb602b187ec",
+        "package_sha256": "78016ad9cad00ee89346e4d666b832daddc33030a9a3b54f093789478bc56b82",
         "disposition": "operator-acceptance-required",
         "operator_acceptance_required": true,
         "review_gate_kinds": [
@@ -151,12 +151,7 @@
           "generic-image-png"
         ]
       },
-      "authority_divergence": {
-        "bound_recipe_version": "1.2.14",
-        "bound_content_sha256": "94e763a68277381b9ed61127ec4ec639312ac7849318b6d0e1e2b1b22ef66433",
-        "bound_package_sha256": "aa1fa15875d2987fd35f0197af132b147a713b47424d2c2003042ce8105917e5",
-        "reason": "catalog identity changed after the authority was built"
-      },
+      "authority_divergence": null,
       "representative": true,
       "representative_for": null,
       "schedule": {
@@ -300,9 +295,9 @@
       "authority": {
         "authority_id": "nl-sequential-2c118a99",
         "sequence": 2,
-        "recipe_version": "1.2.14",
-        "content_sha256": "01eabc505d9290a7d09df5506e491edad3248b2b5c2a59c4418317396467ee00",
-        "package_sha256": "21e1d9997ba06b68f5e54fad5e4199601d80400f338c5633cb81d034bbdcb0b3",
+        "recipe_version": "1.2.15",
+        "content_sha256": "dad16ecb2470ee39a4da7b5e182fcd89442d07f6e9096fe07f97dba52aa2f150",
+        "package_sha256": "7376291e28f00b8a4f815ca3e47fcdd566b6631dc6380211090d605edb2b6eda",
         "disposition": "operator-acceptance-required",
         "operator_acceptance_required": true,
         "review_gate_kinds": [
@@ -315,12 +310,7 @@
           "generic-image-png"
         ]
       },
-      "authority_divergence": {
-        "bound_recipe_version": "1.2.14",
-        "bound_content_sha256": "01eabc505d9290a7d09df5506e491edad3248b2b5c2a59c4418317396467ee00",
-        "bound_package_sha256": "21e1d9997ba06b68f5e54fad5e4199601d80400f338c5633cb81d034bbdcb0b3",
-        "reason": "catalog identity changed after the authority was built"
-      },
+      "authority_divergence": null,
       "representative": true,
       "representative_for": null,
       "schedule": {
@@ -2235,7 +2225,7 @@
         "sequence": 18,
         "recipe_version": "3.2.9",
         "content_sha256": "c04779955e788b666e2e6933408fad7ed3d0e96ba5215a55b58382852beb2e5f",
-        "package_sha256": "b42dfb2a732c260b35d4e88118513d14a0a9288ea8305cebf1f9f76637375f8f",
+        "package_sha256": "94282aa2df4a4b60db6db1dbe0df24da1291738da4ffe2e3dd0fa09e9dacddc3",
         "disposition": "operator-acceptance-required",
         "operator_acceptance_required": true,
         "review_gate_kinds": [
@@ -2248,12 +2238,7 @@
           "generic-prompt-text"
         ]
       },
-      "authority_divergence": {
-        "bound_recipe_version": "3.2.9",
-        "bound_content_sha256": "c04779955e788b666e2e6933408fad7ed3d0e96ba5215a55b58382852beb2e5f",
-        "bound_package_sha256": "b42dfb2a732c260b35d4e88118513d14a0a9288ea8305cebf1f9f76637375f8f",
-        "reason": "catalog identity changed after the authority was built"
-      },
+      "authority_divergence": null,
       "representative": false,
       "representative_for": "vonk-forge/ltx-2-3-22b-distilled-1-1-diffusers-single",
       "schedule": {
@@ -2990,7 +2975,7 @@
         "sequence": 24,
         "recipe_version": "3.2.10",
         "content_sha256": "9a14a11bc10f0f37eef0ea738c834b25ac8ee093448b9afda010a33414e077bb",
-        "package_sha256": "54691634f8c35bede6c70692687ee1e7e1c01e3f9668e1d230b97baa492e65ac",
+        "package_sha256": "b2960f7857f595dca5acb0cd22eb4aef6fc66ee170d6f7252e2e48ab085202ef",
         "disposition": "operator-acceptance-required",
         "operator_acceptance_required": true,
         "review_gate_kinds": [
@@ -3003,12 +2988,7 @@
           "generic-prompt-text"
         ]
       },
-      "authority_divergence": {
-        "bound_recipe_version": "3.2.10",
-        "bound_content_sha256": "9a14a11bc10f0f37eef0ea738c834b25ac8ee093448b9afda010a33414e077bb",
-        "bound_package_sha256": "54691634f8c35bede6c70692687ee1e7e1c01e3f9668e1d230b97baa492e65ac",
-        "reason": "catalog identity changed after the authority was built"
-      },
+      "authority_divergence": null,
       "representative": true,
       "representative_for": null,
       "schedule": {
@@ -3255,7 +3235,7 @@
         "sequence": 26,
         "recipe_version": "3.1.9",
         "content_sha256": "98308df9432d0ab6ecdcfd43e29fa5c011606a4504d9d0f0b419c29cdb57a55c",
-        "package_sha256": "b3f1e00e2fed6de3c1292cd7b861f1077ce13b77160881be1d1a867f7c8dd0bd",
+        "package_sha256": "42e42aebb2f3a6a1d1f92f8c3cf2514d7d8ce0a5a412fbf50dcc0f816679f44f",
         "disposition": "operator-acceptance-required",
         "operator_acceptance_required": true,
         "review_gate_kinds": [
@@ -3268,12 +3248,7 @@
           "generic-prompt-text"
         ]
       },
-      "authority_divergence": {
-        "bound_recipe_version": "3.1.9",
-        "bound_content_sha256": "98308df9432d0ab6ecdcfd43e29fa5c011606a4504d9d0f0b419c29cdb57a55c",
-        "bound_package_sha256": "b3f1e00e2fed6de3c1292cd7b861f1077ce13b77160881be1d1a867f7c8dd0bd",
-        "reason": "catalog identity changed after the authority was built"
-      },
+      "authority_divergence": null,
       "representative": true,
       "representative_for": null,
       "schedule": {
@@ -3418,9 +3393,9 @@
       "authority": {
         "authority_id": "nl-sequential-2c118a99",
         "sequence": 27,
-        "recipe_version": "1.2.14",
-        "content_sha256": "b38718781701fd244368aa1287be11b4a54d6b798d654b819549a8f40700f9d5",
-        "package_sha256": "ac3a3b8c1b5d9086cbf83796f6a14a380fa13c47770461226ebb5256d1dc7683",
+        "recipe_version": "1.2.15",
+        "content_sha256": "05216c92bca43543122ec483bc4a1d30f9eb656eb7bb0b75af9ed5ba7e74cf66",
+        "package_sha256": "9793a960ac5ab164e48d24ce2bd8b683b2947ec8581843787cfbebf290441fe4",
         "disposition": "operator-acceptance-required",
         "operator_acceptance_required": true,
         "review_gate_kinds": [
@@ -3434,12 +3409,7 @@
           "generic-mesh-glb"
         ]
       },
-      "authority_divergence": {
-        "bound_recipe_version": "1.2.14",
-        "bound_content_sha256": "b38718781701fd244368aa1287be11b4a54d6b798d654b819549a8f40700f9d5",
-        "bound_package_sha256": "ac3a3b8c1b5d9086cbf83796f6a14a380fa13c47770461226ebb5256d1dc7683",
-        "reason": "catalog identity changed after the authority was built"
-      },
+      "authority_divergence": null,
       "representative": true,
       "representative_for": null,
       "schedule": {
@@ -4993,7 +4963,7 @@
         "sequence": 40,
         "recipe_version": "3.1.9",
         "content_sha256": "1c45e749d797c0a21c944c79162edaafd578ee116f935f45f648e7818611a55b",
-        "package_sha256": "a55c2eae9ed1010e98bf14d8a38c2451f51e1c151c5aaecd9feba30d9c879727",
+        "package_sha256": "4604072703527aec6b29efcc11bec65ca97683f667d8473b13c2652d4fd41308",
         "disposition": "operator-acceptance-required",
         "operator_acceptance_required": true,
         "review_gate_kinds": [
@@ -5006,12 +4976,7 @@
           "generic-prompt-text"
         ]
       },
-      "authority_divergence": {
-        "bound_recipe_version": "3.1.9",
-        "bound_content_sha256": "1c45e749d797c0a21c944c79162edaafd578ee116f935f45f648e7818611a55b",
-        "bound_package_sha256": "a55c2eae9ed1010e98bf14d8a38c2451f51e1c151c5aaecd9feba30d9c879727",
-        "reason": "catalog identity changed after the authority was built"
-      },
+      "authority_divergence": null,
       "representative": true,
       "representative_for": null,
       "schedule": {

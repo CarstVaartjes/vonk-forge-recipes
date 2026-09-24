@@ -3,11 +3,11 @@
   "authority_id": "nl-sequential-2c118a99",
   "catalog": {
     "repository": "CarstVaartjes/vonk-forge-recipes",
-    "commit": "a6255140bb6ecbec3b3813c88b7df41cc81cd8e1",
-    "release_tag": "v1.0.14",
-    "source_commit": "f267238def47ea3ffd8d54b72a0ad491c3425aad",
-    "catalog_index_sha256": "0aed0c8410dea9f798992f7be37d7ace8236d0cdceb7030e0e5532b1a2020e9e",
-    "qualification_index_sha256": "b107f5aeb2d68b0f9c123e4b8bd643ca9c836431277ae2dfea39bebfc6f3b5a4",
+    "commit": "7b23f1a1569e16f8f2728ddd6846cf4f7c58f0f7",
+    "release_tag": "v1.0.16",
+    "source_commit": "a0ffd8735270c35b0c99b5b04cfe8956ce8c351d",
+    "catalog_index_sha256": "cb9626b2b8c1a07a9a926b005313eb92bf071cb572bbd2c2ac9236b55a1a618b",
+    "qualification_index_sha256": "e30d9d4f3b679a18d0f11a13235ad1fcc926a867bb782e69b627a51d59556f39",
     "recipe_count": 85
   },
   "scope": {
@@ -24,12 +24,12 @@
     {
       "sequence": 1,
       "key": "vonk-forge/step1x-3d-geometry-pytorch-single",
-      "recipe_version": "1.2.14",
-      "content_sha256": "94e763a68277381b9ed61127ec4ec639312ac7849318b6d0e1e2b1b22ef66433",
+      "recipe_version": "1.2.15",
+      "content_sha256": "e887c7886746df03335bba51cbd5db4133ed155eba0d0b3842ae5fb602b187ec",
       "package": {
         "path": "packages/step1x-3d-geometry-pytorch-single.tar.gz",
-        "sha256": "aa1fa15875d2987fd35f0197af132b147a713b47424d2c2003042ce8105917e5",
-        "expected_bytes": 26555,
+        "sha256": "78016ad9cad00ee89346e4d666b832daddc33030a9a3b54f093789478bc56b82",
+        "expected_bytes": 26713,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -75,12 +75,12 @@
     {
       "sequence": 2,
       "key": "vonk-forge/step1x-3d-label-geometry-pytorch-single",
-      "recipe_version": "1.2.14",
-      "content_sha256": "01eabc505d9290a7d09df5506e491edad3248b2b5c2a59c4418317396467ee00",
+      "recipe_version": "1.2.15",
+      "content_sha256": "dad16ecb2470ee39a4da7b5e182fcd89442d07f6e9096fe07f97dba52aa2f150",
       "package": {
         "path": "packages/step1x-3d-label-geometry-pytorch-single.tar.gz",
-        "sha256": "21e1d9997ba06b68f5e54fad5e4199601d80400f338c5633cb81d034bbdcb0b3",
-        "expected_bytes": 27415,
+        "sha256": "7376291e28f00b8a4f815ca3e47fcdd566b6631dc6380211090d605edb2b6eda",
+        "expected_bytes": 27570,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -753,8 +753,8 @@
       "content_sha256": "c04779955e788b666e2e6933408fad7ed3d0e96ba5215a55b58382852beb2e5f",
       "package": {
         "path": "packages/ltx-2-19b-dev-bf16-diffusers-single.tar.gz",
-        "sha256": "b42dfb2a732c260b35d4e88118513d14a0a9288ea8305cebf1f9f76637375f8f",
-        "expected_bytes": 89810,
+        "sha256": "94282aa2df4a4b60db6db1dbe0df24da1291738da4ffe2e3dd0fa09e9dacddc3",
+        "expected_bytes": 90092,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1025,8 +1025,8 @@
       "content_sha256": "9a14a11bc10f0f37eef0ea738c834b25ac8ee093448b9afda010a33414e077bb",
       "package": {
         "path": "packages/ltx-2-3-22b-distilled-1-1-diffusers-single.tar.gz",
-        "sha256": "54691634f8c35bede6c70692687ee1e7e1c01e3f9668e1d230b97baa492e65ac",
-        "expected_bytes": 90059,
+        "sha256": "b2960f7857f595dca5acb0cd22eb4aef6fc66ee170d6f7252e2e48ab085202ef",
+        "expected_bytes": 90343,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1115,8 +1115,8 @@
       "content_sha256": "98308df9432d0ab6ecdcfd43e29fa5c011606a4504d9d0f0b419c29cdb57a55c",
       "package": {
         "path": "packages/ltx-2-19b-distilled-fp8-diffusers-single.tar.gz",
-        "sha256": "b3f1e00e2fed6de3c1292cd7b861f1077ce13b77160881be1d1a867f7c8dd0bd",
-        "expected_bytes": 89303,
+        "sha256": "42e42aebb2f3a6a1d1f92f8c3cf2514d7d8ce0a5a412fbf50dcc0f816679f44f",
+        "expected_bytes": 89549,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1163,12 +1163,12 @@
     {
       "sequence": 27,
       "key": "vonk-forge/step1x-3d-texture-pytorch-single",
-      "recipe_version": "1.2.14",
-      "content_sha256": "b38718781701fd244368aa1287be11b4a54d6b798d654b819549a8f40700f9d5",
+      "recipe_version": "1.2.15",
+      "content_sha256": "05216c92bca43543122ec483bc4a1d30f9eb656eb7bb0b75af9ed5ba7e74cf66",
       "package": {
         "path": "packages/step1x-3d-texture-pytorch-single.tar.gz",
-        "sha256": "ac3a3b8c1b5d9086cbf83796f6a14a380fa13c47770461226ebb5256d1dc7683",
-        "expected_bytes": 28212,
+        "sha256": "9793a960ac5ab164e48d24ce2bd8b683b2947ec8581843787cfbebf290441fe4",
+        "expected_bytes": 28346,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
@@ -1696,8 +1696,8 @@
       "content_sha256": "1c45e749d797c0a21c944c79162edaafd578ee116f935f45f648e7818611a55b",
       "package": {
         "path": "packages/ltx-2-19b-distilled-diffusers-single.tar.gz",
-        "sha256": "a55c2eae9ed1010e98bf14d8a38c2451f51e1c151c5aaecd9feba30d9c879727",
-        "expected_bytes": 89272,
+        "sha256": "4604072703527aec6b29efcc11bec65ca97683f667d8473b13c2652d4fd41308",
+        "expected_bytes": 89519,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "node_count": 1,
