@@ -166,7 +166,7 @@
     {
       "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/config/cache.py",
       "rule": "reportMissingImports",
-      "count": 5,
+      "count": 4,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
@@ -178,7 +178,7 @@
     {
       "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/config/vllm.py",
       "rule": "reportMissingImports",
-      "count": 60,
+      "count": 59,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
@@ -456,12 +456,6 @@
       "rule": "reportArgumentType",
       "count": 1,
       "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
-    },
-    {
-      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_apc_no_store.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
       "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_apc_no_store.py",
@@ -855,12 +849,6 @@
     },
     {
       "file": "adapters/video/ltx2-sync-native/run.py",
-      "rule": "reportMissingImports",
-      "count": 3,
-      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
-    },
-    {
-      "file": "adapters/video/ltx2-sync-native/run.py",
       "rule": "reportReturnType",
       "count": 1,
       "reason": "The return crosses an untyped upstream boundary; the surrounding caller validates the shape."
@@ -870,12 +858,6 @@
       "rule": "reportArgumentType",
       "count": 8,
       "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
-    },
-    {
-      "file": "adapters/video/ltx23-sync-native-disk/run.py",
-      "rule": "reportMissingImports",
-      "count": 3,
-      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
       "file": "adapters/video/ltx23-sync-native-disk/run.py",
@@ -980,102 +962,6 @@
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
-      "file": "contracts/src/vonk_forge_contracts/_schema_version.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "The contracts package is type-checked without its full optional dependency set installed in the host environment."
-    },
-    {
-      "file": "contracts/src/vonk_forge_contracts/model.py",
-      "rule": "reportInvalidTypeForm",
-      "count": 16,
-      "reason": "The annotated form is valid Pydantic runtime typing that pyright's basic mode does not model."
-    },
-    {
-      "file": "contracts/src/vonk_forge_contracts/model.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "The contracts package is type-checked without its full optional dependency set installed in the host environment."
-    },
-    {
-      "file": "contracts/src/vonk_forge_contracts/recipe.py",
-      "rule": "reportArgumentType",
-      "count": 1,
-      "reason": "The argument is narrowed by a validator before reaching the typed callee."
-    },
-    {
-      "file": "contracts/src/vonk_forge_contracts/recipe.py",
-      "rule": "reportAttributeAccessIssue",
-      "count": 1,
-      "reason": "The attribute is provided by the Pydantic model machinery rather than declared on the class body."
-    },
-    {
-      "file": "contracts/src/vonk_forge_contracts/recipe.py",
-      "rule": "reportCallIssue",
-      "count": 1,
-      "reason": "The callable is a Pydantic or jsonschema entry point without complete stubs."
-    },
-    {
-      "file": "contracts/src/vonk_forge_contracts/recipe.py",
-      "rule": "reportInvalidTypeForm",
-      "count": 25,
-      "reason": "The annotated form is valid Pydantic runtime typing that pyright's basic mode does not model."
-    },
-    {
-      "file": "contracts/src/vonk_forge_contracts/recipe.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "The contracts package is type-checked without its full optional dependency set installed in the host environment."
-    },
-    {
-      "file": "contracts/src/vonk_forge_contracts/recipe.py",
-      "rule": "reportOperatorIssue",
-      "count": 1,
-      "reason": "The operator combines constrained contract values whose runtime types are wider than the annotations."
-    },
-    {
-      "file": "contracts/src/vonk_forge_contracts/recipe.py",
-      "rule": "reportOptionalIterable",
-      "count": 1,
-      "reason": "The iterable is validated as present before iteration."
-    },
-    {
-      "file": "contracts/src/vonk_forge_contracts/recipe.py",
-      "rule": "reportOptionalMemberAccess",
-      "count": 1,
-      "reason": "The member is reached only after an explicit guard that pyright cannot follow through the validator."
-    },
-    {
-      "file": "contracts/src/vonk_forge_contracts/recipe.py",
-      "rule": "reportOptionalSubscript",
-      "count": 1,
-      "reason": "The value is subscripted after a validator has established its shape."
-    },
-    {
-      "file": "contracts/src/vonk_forge_contracts/recipe_test_report.py",
-      "rule": "reportInvalidTypeForm",
-      "count": 8,
-      "reason": "The annotated form is valid Pydantic runtime typing that pyright's basic mode does not model, exactly as for model.py and recipe.py."
-    },
-    {
-      "file": "contracts/src/vonk_forge_contracts/recipe_test_report.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "The contracts package is type-checked without its full optional dependency set installed in the host environment."
-    },
-    {
-      "file": "tests/fixtures/canonical-synthetic-canary/context/request_contract.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
-      "file": "tests/fixtures/canonical-synthetic-canary/context/server.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
       "file": "tests/test_canonical_synthetic_canary.py",
       "rule": "reportIndexIssue",
       "count": 2,
@@ -1084,7 +970,7 @@
     {
       "file": "tests/test_canonical_synthetic_canary.py",
       "rule": "reportMissingImports",
-      "count": 2,
+      "count": 1,
       "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
@@ -1116,12 +1002,6 @@
       "rule": "reportIndexIssue",
       "count": 25,
       "reason": "Contract tests index into canonical documents they build from literals; the structure is asserted explicitly alongside."
-    },
-    {
-      "file": "tests/test_contracts.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
       "file": "tests/test_glm_wrapper_argv.py",
@@ -1164,24 +1044,6 @@
       "rule": "reportAttributeAccessIssue",
       "count": 2,
       "reason": "The attribute is reached through a dynamically loaded adapter module or a dict-backed fixture."
-    },
-    {
-      "file": "tests/test_ltx_job_inputs.py",
-      "rule": "reportMissingImports",
-      "count": 2,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
-      "file": "tests/test_ltx_spark_fit.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
-      "file": "tests/test_ltx_sync_adapter.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
     },
     {
       "file": "tests/test_media_image_coverage.py",
@@ -1416,12 +1278,6 @@
       "rule": "reportCallIssue",
       "count": 1,
       "reason": "The call target is loaded dynamically in the test."
-    },
-    {
-      "file": "tests/test_test_report_contract.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "The tests are type-checked without the optional pydantic and pytest dependencies installed in the checking environment."
     },
     {
       "file": "tests/test_three_d_glb_validation.py",
