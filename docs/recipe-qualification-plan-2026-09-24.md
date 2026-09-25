@@ -229,11 +229,18 @@ deployment and Fleet state; earlier observations are not current evidence.
    lane, record the offline host and changed boot ID, then observe the recovered
    smoke. For a dual-Spark lane, select `--failure-spark` in the initial batch
    preview; observe rank loss and route withdrawal, restore the failed rank,
-   verify recovered serving and smoke, then complete each required host restart.
+   verify recovered serving and smoke, then explicitly stop the dual workload
+   before sequentially restarting the two idle hosts and recording both changed
+   boot IDs. Single-Spark recovery retains its exact active workload through
+   the restart; the dual ladder separately proves active rank-loss recovery.
    These physical actions remain operator-run; `--observe` only records and
    reconciles their evidence.
 7. Retain verified model files, recipe images and compatible partial-transfer
-   checkpoints. Reconcile cleanup and the completion of both lane receipts
+   checkpoints. Preview cleanup with `--cleanup-lane LANE`, then apply its
+   reviewed digest with `--apply --cleanup-lane LANE --campaign-digest DIGEST`.
+   After all required recovery checkpoints, that explicit cleanup apply records
+   the terminal lane result and releases the batch; observation alone does not
+   finalize it. Reconcile cleanup and the completion of both lane receipts
    before advancing to the next batch. A failure local to one lane stays local
    in the evidence; integrity, authority, changed-plan and whole-Fleet ownership
    failures stop the batch.
