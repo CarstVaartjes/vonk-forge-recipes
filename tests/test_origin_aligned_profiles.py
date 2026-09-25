@@ -39,7 +39,7 @@ class OriginAlignedProfileTests(unittest.TestCase):
             with self.subTest(recipe=path.name):
                 recipe = RecipeDefinition.model_validate(read(path))
                 validate_recipe_models(recipe, models)
-                self.assertEqual(recipe.execution.mode, "build")
+                assert recipe.execution.mode == "build"
                 self.assertIn(recipe.execution.build.network.mode, {"none", "public"})
                 context = ROOT / recipe.execution.build.context.path
                 _archive, _, digest = tool["source_bundle"](context)
