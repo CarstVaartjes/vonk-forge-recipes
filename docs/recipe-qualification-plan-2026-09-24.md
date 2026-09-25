@@ -128,29 +128,55 @@ conditions.
   exclusive recovery, resumable batches, fleet ownership, stale plans,
   wrong-recipe/node evidence, duplicate apply after disconnect and premature
   lane replacement. Platform PR #893 merged as `4c8cf45540bca1f32c6c9b1b963c68783aa644bb`; required CI run `36089768144` passed. This records source and CI completion, not successful physical recovery.
-- [ ] Verify deployed end-to-end consumption of explicit recovery-coverage
-  references. A post-deployment review found the consumer comparing the recipe
-  tar-package SHA-256 with the Spark agent Debian-package SHA-256. These identify
-  different artifacts; the canonical recovery contract binds
-  `agent_build_sha256`. Keep recovery receipt consumption unverified until this
-  consumer boundary and its producer/consumer checks are reconciled.
-- [x] Complete review, required CI, accepted publication and Controller/CLI
-  deployment, and review the current authority/order bound to recipe release
-  v1.0.17. Signed schema-2 publication run `36090614107` accepted generation
+- [x] Merge the approved recovery identity correction and real-PostgreSQL
+  contention fix. Platform PR #894 merged as
+  `1b1e10f9847ed185ab1e2f4f006e4c797ca9b5a1`; final source head was
+  `e7188a946219684fa2c24b4a8f4a66dce212876d`. Required CI run `36106444427`
+  passed. Six focused availability cases included one real-PostgreSQL
+  contention/recovery case; the other five covered explicit retry and model-child
+  behavior. There were also 26 provenance tests, one receipt-builder test and
+  106 earlier identity tests. Type checking reported one existing exception;
+  there was no database schema change.
+- [x] Accept the signed PR #894 publication. Installer acceptance workflow
+  `36107593799` accepted generation
+  `bad7e9e7d903eac0db3acb41ad21d444f61283a2f696c66cb4f01a4d0c6f4abf` for
+  source `1b1e10f9847ed185ab1e2f4f006e4c797ca9b5a1`; development-image workflow
+  `36106900488` also succeeded.
+- [x] Complete the PR #894 NAS deployment and verify the Controller/CLI state.
+  Deployment verification reports 11 healthy services, nine retained
+  containers, two replaced containers (API and worker), preserved volume mounts
+  and no added paths. The live bundle hashes match staging without a rewrite;
+  the API reports the signed source commit. The installed CLI updated from
+  `4c8cf45540bca1f32c6c9b1b963c68783aa644bb` to
+  `1b1e10f9847ed185ab1e2f4f006e4c797ca9b5a1`. The staged `.env` and 62 secret
+  files are unchanged. No agent rollout was needed because the accepted package
+  digest matches the previous package.
+- [x] Verify the installed CLI helper consumes fresh Controller provenance
+  under the canonical `agent_build_sha256` identity. Both Sparks passed at
+  `07:39:16 UTC`; their observed agent build digests match the signed target.
+  This verifies the identity boundary only. No physical inference or recovery
+  receipt is implied, and the Controller's own publication boundary remains
+  unknown.
+- [ ] Execute and record the campaign's exact-identity physical recovery work.
+  No physical fault/restart has been injected and no current recovery receipt
+  exists. Keep the receipt count at zero until a real physical result is
+  captured.
+- [x] Complete the initial signed publication and Controller/CLI deployment
+  for platform PR #893, and review the authority bound to recipe release
+  v1.0.17. Publication run `36090614107` accepted generation
   `f057a9e59058d7beb7098d721fd21c07fbddd9ca39b1327babd9557e4756095e` for source
-  `4c8cf45540bca1f32c6c9b1b963c68783aa644bb`. The NAS deployment and CLI update
-  completed on 2026-09-25 at 03:45 UTC. This does not complete physical
+  `4c8cf45540bca1f32c6c9b1b963c68783aa644bb`; deployment completed on 2026-09-25
+  at 03:45 UTC. This is the prior baseline and does not complete physical
   qualification.
 - [ ] Reconcile earlier GLM receipts against current identities, then run ready
-  representative batches and variants; schedule dual-Spark and recovery work
-  exclusively. Step1X's exact cache and image preparation are now recorded, but
-  current-identity inference and recovery remain unproven. Provider and capacity
-  blockers remain explicit.
+  representative batches and variants; schedule dual-Spark work exclusively.
+  The latest cache scan is recorded in the report. Current-identity inference
+  remains unproven; provider and capacity blockers remain.
 - [ ] Produce the final per-recipe report after physical execution. The current
   snapshot at `qualification/reports/recipe-evidence-inventory-2026-09-25.md`
-  and its JSON companion separate historical source freshness, structural
-  validation, timestamped cache evidence, inference and recovery state; refresh
-  it as the campaign progresses.
+  and its JSON companion separate source freshness, structural validation,
+  timestamped cache evidence, inference and recovery state; refresh it as the
+  campaign progresses.
 
 Use bounded GPT-6 Luna Max agents for independent audits or implementation,
 each in its own task-owned worktree. Avoid agents for routine polling, duplicate
@@ -161,53 +187,109 @@ not after every intermediate failed build.
 
 ## Execution status snapshot — 2026-09-25
 
-The accepted recipe release is v1.0.17 (`efbbba29bd4c706c73d295d24047787be3f36d78`);
-the current recipe checkout is `784bda637a45c9fab6b18fc0cd2faa2669ab9800`.
-Platform PR #893 merged as `4c8cf45540bca1f32c6c9b1b963c68783aa644bb`; required
-CI run `36089768144` passed, with no database schema change. Structural
-validation passed all 85 exact recipe identities against that platform merge and
-recipe checkout `784bda637a45c9fab6b18fc0cd2faa2669ab9800` at
-`2026-09-25T03:29:03.058743Z`. Structural success makes no physical
-qualification claim.
+The accepted recipe release remains v1.0.17
+(`efbbba29bd4c706c73d295d24047787be3f36d78`); recipe `main` includes the prior
+report update through `506a4af6f9c8c52acf0213aba7f2ab63bbad254f`. The structural
+evidence remains bound to recipe checkout
+`784bda637a45c9fab6b18fc0cd2faa2669ab9800` and platform PR #893 merge
+`4c8cf45540bca1f32c6c9b1b963c68783aa644bb`. Required CI run `36089768144`
+passed with no database schema change; structural validation passed all 85 exact
+recipe identities at `2026-09-25T03:29:03.058743Z`. Structural success makes no
+physical qualification claim.
 
-Signed schema-2 publication run `36090614107` accepted generation
+Platform PR #894 merged as `1b1e10f9847ed185ab1e2f4f006e4c797ca9b5a1` at
+07:17:31 UTC; its final source head is `e7188a946219684fa2c24b4a8f4a66dce212876d`.
+Required CI run `36106444427` passed. Six focused availability cases included
+one real-PostgreSQL contention/recovery case; the other five covered explicit
+retry and model-child behavior. There were also 26 provenance tests, one
+receipt-builder test and 106 earlier identity tests. Type checking reported one
+existing exception, and no database schema changed. Development-image workflow
+`36106900488` and installer acceptance workflow `36107593799` succeeded.
+
+The installer accepted signed generation
+`bad7e9e7d903eac0db3acb41ad21d444f61283a2f696c66cb4f01a4d0c6f4abf` for source
+`1b1e10f9847ed185ab1e2f4f006e4c797ca9b5a1` (release
+`0.1.1~dev.611+gf2be83c2f165`). The accepted API digest is
+`sha256:c56a3bac9cc625bcff74a3cf9482efcb3b93c128d2f09eede85bbeaa4aead4b7`; all
+four image digests are retained in the JSON report. The agent package digest
+`0dd85a2fc642fb5143a8c7fc8f04430108286e27c7e579d0035b427c7a168c71` matches the
+previous package, so no agent rollout was needed. Staging preserved `.env` and
+all 62 secret files with no Compose diff. Deployment verification found 11
+healthy services, nine retained containers, two replaced containers (API and
+worker), preserved volume mounts and no added paths. API build provenance matches
+the accepted source and all staged bundle hashes match the live bundle; the CLI
+updated from platform source `4c8cf45540bca1f32c6c9b1b963c68783aa644bb` to
+`1b1e10f9847ed185ab1e2f4f006e4c797ca9b5a1`.
+
+The installed site-packages helper passed fresh Controller-provenance validation
+at `2026-09-25T07:39:16.008465Z` on Spark 3542 and
+`2026-09-25T07:39:16.021975Z` on Spark 2297. Both observations bind Controller
+image `sha256:c56a3bac9cc625bcff74a3cf9482efcb3b93c128d2f09eede85bbeaa4aead4b7`
+and agent build `f1198ce592e940e17c7bbe017f4c9755df25f74351163851279c4eb95fe713bf`;
+optional package receipts are absent on both nodes. The Controller's own
+publication boundary remains unknown. This proves the corrected identity-bound
+producer/consumer path, not physical inference or recovery; no physical recovery
+receipt exists.
+
+The prior signed schema-2 publication run `36090614107` accepted generation
 `f057a9e59058d7beb7098d721fd21c07fbddd9ca39b1327babd9557e4756095e` for source
-`4c8cf45540bca1f32c6c9b1b963c68783aa644bb`. NAS deployment and Controller CLI
-update completed at 03:45 UTC. The verified API image is
-`sha256:519cf084dba79fd79c35f89053bd000f10e4f05d290d769e8ea50dfff5e16344`; all
-11 NAS services were healthy. The 03:45:45 UTC Fleet snapshot shows both Sparks
-online and ready with no loaded workloads.
+`4c8cf45540bca1f32c6c9b1b963c68783aa644bb`; the NAS deployment and Controller
+CLI update completed at 03:45 UTC. The verified API image was
+`sha256:519cf084dba79fd79c35f89053bd000f10e4f05d290d769e8ea50dfff5e16344`, with
+all 11 NAS services healthy. These facts describe the PR #893 baseline, not the
+merged PR #894 follow-up.
 
-The 85-row cache matrix is a historical snapshot from 2026-09-24
-23:06:56–23:07:49 UTC: 1 ready, 38 blocked and 46 unavailable. Unavailable rows
-are unknown, not missing, and these counts were not refreshed after deployment.
-The report includes later exact Step1X and GLM cache observations. Step1X's
-latest exact detail and successful `force=false` preparation are recorded in the
-per-recipe procedure below; its preview fits only on Spark 2297.
+The latest complete exact-identity cache assessment finished at
+`2026-09-25T07:03:08.790476+00:00`. Its 85 summary observations span
+`06:59:39.098475`–`07:03:06.507613 UTC`; all 85 identities matched with zero
+mismatches and zero command errors. The scan reports 3 cache-ready and 82
+blocked rows. The ready recipes are Step1X geometry, Step1X label geometry and
+GLM-5-3 Flash EXL3 DFlash2. Cache state is only a timestamped observation; it
+does not establish fit, inference, recovery or availability after the scan.
+Earlier Sep 24 counts are retained as historical evidence in the JSON report.
 
-The physical campaign remains incomplete. Five installed plans on Spark 3542
-still fail canonical parsing because required `memory_floor_bytes` and
-`memory_kind` placement fields are missing. Their aggregate disk reservation is
-1,320,491,003,815 bytes; 0 bytes are proven discountable. No supported repair or
-per-installation uninstall assessment was available. Do not edit saved plans or
-discount those claims to bypass admission. LTX 2.5 file hashes, gated Meta
-DINOv3 access for TRELLIS 2/Pixal3D, and Pixal3D's unsupported GitHub-release NAF
-cache path remain provider/source blockers from the plan.
+Step1X label geometry's no-force preparation request
+`8800c9b1-39f8-4a37-9c65-998cf780919f` has parent operation
+`ed53ea64-ae62-490c-9b44-1a787d3d09ab`, recorded as failed and non-retryable
+with PostgreSQL `55P03` (`model_cache_operations` row-lock error). Later child
+progress showed the runtime-image child (13,611,009,024 bytes) and model-cache
+child (8,781,511,993 bytes across 14 items) succeeded, totaling
+22,392,521,017 bytes at `06:45:47.300430 UTC`. The full scan found this recipe
+identity cache-ready at `06:59:39.098659 UTC` (detail assessment
+`06:59:40.790032Z`). A separate fresh no-force request
+`86f1b561-3132-4342-b0e0-498fe9459fe7` then succeeded as operation
+`93795a0e-3f4e-44b8-b92a-1c152d0732f8` at `07:40:23.428405 UTC`, returning the
+same model-cache child and the same build/image identity for 22,392,521,017
+completed bytes. Its exact detail at `07:41:14.794466Z` remained cache-ready and
+fit only Spark 2297. Keep the original failed parent receipt intact; the later
+successful preparation and fit do not establish inference or recovery. Step1X
+geometry's earlier successful no-force preparation remains bound to its own
+recipe identity.
 
-The Controller refused the Spark agent upgrade request with HTTP 409 because
-Spark 3542 already ran the requested build. Authenticated contacts from both
-agents report binary and build digests matching the signed target. The optional
-package receipt/provenance remains an evidence gap, not an established physical
-campaign blocker.
+The physical campaign remains incomplete. Fresh node snapshots at 07:38–07:39
+UTC show both Sparks online and ready, with zero loaded workloads, five installed
+records each, and disk reservations of 1,320,491,003,815 bytes on each node. On
+Spark 3542, five installed plans still fail canonical parsing because required
+`memory_floor_bytes` and `memory_kind` placement fields are absent; no capacity
+was discounted. No supported repair or per-installation uninstall assessment
+was available. LTX 2.5 per-file
+hashes, gated Meta DINOv3 access for TRELLIS 2/Pixal3D, and Pixal3D's unsupported
+GitHub-release NAF cache path remain provider/source blockers from the plan.
 
-No current-identity inference or physical recovery receipts have been recorded.
-No approved physical restart or rank-fault mechanism was found, and no fault was
-injected. Recovery receipt consumption remains unverified while the cross-artifact
-comparison is reconciled against the canonical `agent_build_sha256` contract.
-Historical GLM 1.6.6 results remain valid only for their exact prior recipe,
-image and run identity. The 85-row snapshot at
-`qualification/reports/recipe-evidence-inventory-2026-09-25.md` and `.json` is
-not the final post-campaign report.
+The PR #893 deployment snapshot showed Spark 3542 already running the requested
+agent build and the Controller refusing another upgrade with HTTP 409. Authenticated
+binary/build digests matched the then-signed target; the optional agent package
+receipt remained an evidence gap, not a proven campaign blocker. No current-
+identity inference or physical recovery receipt has been recorded. The historical
+GLM 1.6.6 results remain valid only for their exact prior recipe, image and run
+identity. The 85-row report remains a progress snapshot, not the final
+post-campaign report.
+
+After the operator's subsequent Docker update, the Fleet read at
+`2026-09-25T07:51:08.014673Z` showed both Sparks online with no loaded workloads.
+The NAS check found all 11 services healthy, accepted Vonk image identities
+unchanged, and prior volume mounts preserved. Docker reported 29.6.2. This later
+health snapshot does not change the physical qualification or admission gaps.
 
 ## Current per-recipe procedure
 
