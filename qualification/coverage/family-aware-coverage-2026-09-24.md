@@ -10,8 +10,8 @@ This artifact records catalog structure, byte-bound execution stacks, batch assi
 |---|---|
 | Plan | `docs/recipe-qualification-plan-2026-09-24.md` |
 | Catalog | CarstVaartjes/vonk-forge-recipes — 85 recipe documents |
-| Catalog release | v1.0.16 at `7b23f1a1569e16f8f2728ddd6846cf4f7c58f0f7` |
-| Catalog source_commit metadata | `a0ffd8735270c35b0c99b5b04cfe8956ce8c351d` |
+| Catalog release | v1.0.17 at `efbbba29bd4c706c73d295d24047787be3f36d78` |
+| Catalog source_commit metadata | `7b4ef279d4e531e51408ad08c11efd80483912e5` |
 | Qualification authority | `nl-family-aware-20260924` |
 | Scope | 81 recipes within 2 Sparks; 4 larger topologies listed for audit only |
 
@@ -375,7 +375,7 @@ These definitions are validated against the current Pydantic authority contract.
 
 ## Indexed package comparison
 
-The accepted release binds catalog index `cb9626b2b8c1a07a` (v1.0.16); the working index is `400bc65b6a723e0c`. Refresh the authority after the changed catalog has been accepted.
+The working catalog index matches the accepted release index.
 
 Every current indexed package build stack matches its accepted runtime-stack identity.
 
