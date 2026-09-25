@@ -249,17 +249,24 @@ in this release. The four recipes requiring more than two Sparks remain
 explicit exclusions. Operator acceptance and capacity review remain row-level
 gates, and territorial license notices are informational. Refresh authority
 and coverage only after the exact new catalog and packages have been accepted;
-the generators read the accepted catalog pin and record current authored-versus-
-published divergences until then.
+the generators read the accepted catalog pin and record current indexed-package-
+versus-accepted stack divergences until then.
 
-The matrix reports four authored-tree-vs-published build-source divergences in
-the LTX 2.19B/2.3 recipes. Their authority identities hash the accepted
-published source bytes, while the matrix separately hashes the newer authored
-tree. Reconcile these rows against the next accepted catalog before physical
-execution. Step1X geometry 1.2.15 completed its native build on 2026-09-24 at
-14:44 UTC (operation `6a5acb3b-d397-4fb2-8500-21779b854ebf`); this is not an
-inference or recovery pass. Reconcile its exact image receipt before applying
-it.
+The v1.0.16 catalog's `source_commit` metadata points to `a0ffd873…`, whose LTX
+2.19B build context contains protocol wheel 2.2.0 (SHA-256
+`7555df9ec0f576ac0530d1e6abdd2f3845614cf397a7bc2c8dcd01bc86967565`). The
+digest-verified package pinned by that same catalog commit contains protocol
+wheel 3.0.0 (SHA-256
+`519484690b626f03e27efabad787ad1040a7d527404f2dd4faa3e2d84c40d116`). This is
+a stale source-pointer metadata discrepancy, not evidence that the released LTX
+package lacks the newer wheel. Runtime-stack identities now hash the selected
+regular files from each exact catalog-pinned package. The generated matrix
+compares those identities with the current indexed package artifacts and lists
+any per-recipe stack differences; it does not infer build-source differences
+from the catalog's `source_commit` field. Step1X geometry 1.2.15 completed its
+native build on 2026-09-24 at 14:44 UTC (operation
+`6a5acb3b-d397-4fb2-8500-21779b854ebf`); this is not an inference or recovery
+pass. Reconcile its exact image receipt before applying it.
 
 ## Complete inventory and current batch assignments
 

@@ -83,10 +83,10 @@ def test_every_catalog_recipe_appears_once_with_its_topology() -> None:
         assert row["coverage_group"] in groups
         assert len(row["runtime_stack_sha256"]) == 64
         assert len(row["topology_sha256"]) == 64
-        assert len(row["authored_tree_stack_sha256"]) == 64
+        assert len(row["current_package_stack_sha256"]) == 64
         assert len(row["published_build_source_sha256"]) == 64
         assert row["published_build_source_file_count"] > 0
-        assert isinstance(row["authored_tree_matches_published"], bool)
+        assert isinstance(row["current_package_stack_matches_accepted"], bool)
     assert sorted(row["node_count"] for row in rows.values()) == (
         [1] * 72 + [2] * 9 + [3, 4, 4, 8]
     )

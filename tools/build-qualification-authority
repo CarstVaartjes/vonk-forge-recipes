@@ -32,7 +32,7 @@ from vonk_forge_contracts.qualification_authority import (
     recovery_coverage_id,
 )
 
-from qualification.catalog_source import pinned_catalog_source_tree
+from qualification.catalog_source import pinned_catalog_package_tree
 from qualification.coverage_identity import execution_stack_identity
 
 AUTHORITY_ID = "nl-family-aware-20260924"
@@ -444,27 +444,27 @@ def _recovery_coverage_definitions(
 
 
 def _pinned_stack_identities(
-    catalog_recipes: dict[str, dict[str, Any]], source_commit: str
+    catalog_commit: str,
+    catalog_recipes: dict[str, dict[str, Any]],
+    model_documents: dict[str, dict[str, Any]],
 ) -> dict[str, dict[str, Any]]:
-    """Hash every recipe stack against the source commit in the published index."""
+    """Hash each published stack from the exact package blob in the pinned catalog."""
 
-    recipes = {
-        key: RecipeDefinition.model_validate(entry["document"])
-        for key, entry in catalog_recipes.items()
-    }
-    with pinned_catalog_source_tree(
-        ROOT, source_commit, list(recipes.values())
-    ) as source_root:
-        identities: dict[str, dict[str, Any]] = {}
-        for key, recipe in recipes.items():
-            if recipe.execution.mode != "build":
-                raise ValueError(
-                    f"qualification stack requires a build execution: {key}"
-                )
+    identities: dict[str, dict[str, Any]] = {}
+    for key, entry in catalog_recipes.items():
+        recipe = RecipeDefinition.model_validate(entry["document"])
+        if recipe.execution.mode != "build":
+            raise ValueError(f"qualification stack identity requires a build: {key}")
+        package = entry.get("package")
+        if not isinstance(package, dict):
+            raise TypeError(f"published recipe package is missing: {key}")
+        with pinned_catalog_package_tree(
+            ROOT, catalog_commit, package, recipe, model_documents
+        ) as package_root:
             identities[key] = execution_stack_identity(
-                source_root, recipe, recipe.execution.build
+                package_root, recipe, recipe.execution.build
             )
-        return identities
+    return identities
 
 
 def _refresh_plan(text: str, authority: dict[str, Any]) -> str:
@@ -570,6 +570,7 @@ def _build() -> dict[Path, bytes]:
         catalog_recipes[key] = entry
 
     models_by_digest: dict[str, dict[str, Any]] = {}
+    model_documents: dict[str, dict[str, Any]] = {}
     for entity in catalog.get("catalog_entities", []):
         if not isinstance(entity, dict) or not isinstance(entity.get("document"), dict):
             continue
@@ -579,8 +580,21 @@ def _build() -> dict[Path, bytes]:
         if not isinstance(digest, str) or digest in models_by_digest:
             raise ValueError("catalog Model content identities must be unique")
         models_by_digest[digest] = entity
+        identity = entity["document"].get("identity")
+        if not isinstance(identity, dict):
+            raise TypeError("catalog Model identity is malformed")
+        publisher = identity.get("publisher")
+        slug = identity.get("slug")
+        if not isinstance(publisher, str) or not isinstance(slug, str):
+            raise TypeError("catalog Model identity is malformed")
+        model_key = f"{publisher}/{slug}"
+        if model_key in model_documents:
+            raise ValueError(f"catalog Model identity is duplicated: {model_key}")
+        model_documents[model_key] = entity["document"]
 
-    stack_identities = _pinned_stack_identities(catalog_recipes, source_commit)
+    stack_identities = _pinned_stack_identities(
+        catalog_commit, catalog_recipes, model_documents
+    )
 
     capacity_reviews = gate_review.get("capacity_reviews")
     if not isinstance(capacity_reviews, dict):

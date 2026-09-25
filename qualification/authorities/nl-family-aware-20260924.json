@@ -757,11 +757,11 @@
         "V7"
       ],
       "review_gates": [],
-      "runtime_stack_sha256": "e93f81a32f62a1841a36adb0bdbf0935cb0005be6d95ee3cc72fd7c230dd64db",
+      "runtime_stack_sha256": "81247b8e5118a9ec9e6e95810febf85d970006bb9f4abde55afce33b69df9f28",
       "topology_sha256": "72f893bd42106f94db22f3ea020353e5042a7dd4745b8529a39aeb71937057c2",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "0e0d4aa0f81a028a46c9b99ecf6c8166fbc1368498f667dcc9f4785ad9c13df1",
+          "coverage_id": "b61057454a1f90d73e7c28ad660289d2e12dbc136e8c3939974fc4322e2dd8b9",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/qwen3-8-27b-fp8-vllm-single",
           "role": "dedicated"
@@ -966,11 +966,11 @@
           "reason": "At least one exact referenced Model declares operator_acceptance_required=true. An operator must explicitly acknowledge the displayed license terms for this recipe before physical execution; territorial metadata is informational and is not an admission rule."
         }
       ],
-      "runtime_stack_sha256": "0ce64ce4e51f21355063a7714359a6bbc973953c6e4be62d7bd463105c296461",
+      "runtime_stack_sha256": "488290dc79fc76b2cdb440e01d67393705df046ff53869bd1f98aab65df26824",
       "topology_sha256": "58dd5b9e525e807f7838ff90d9ad7abd83f3465656f4817a71acc77ac9031620",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "7655e723ee062434b5a1fd9d978e2b866017461fe20622a810bb63452330352d",
+          "coverage_id": "3e17ae83ca97901bbe1741ea58c44006ec426a903b24feca3ead43c6f30bc67d",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/ltx-2-19b-dev-bf16-diffusers-single",
           "role": "dedicated"
@@ -1236,11 +1236,11 @@
           "reason": "At least one exact referenced Model declares operator_acceptance_required=true. An operator must explicitly acknowledge the displayed license terms for this recipe before physical execution; territorial metadata is informational and is not an admission rule."
         }
       ],
-      "runtime_stack_sha256": "f7b5ce6e2fb4fe454a1c757e45119bda7f165d8c4897ab0bf6ebaa73e16a5a7b",
+      "runtime_stack_sha256": "2d35cda156dc546d34b0d9fb883656a770fa644277ab3bde41440c288c6943dc",
       "topology_sha256": "3d794e62f9ae35b98b485335625e26d1c51720174968aad8ca45eeea93b73d38",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "8eae8cb0b9413e9eb2a8516eb1e4e347483e02ea9240ee3d58be90df4200fcc9",
+          "coverage_id": "e42d3d84339b165c9019e544a887fbd06087aa66c429bafd032982efb14c6afb",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single",
           "role": "dedicated"
@@ -1298,11 +1298,11 @@
           "reason": "At least one exact referenced Model declares operator_acceptance_required=true. An operator must explicitly acknowledge the displayed license terms for this recipe before physical execution; territorial metadata is informational and is not an admission rule."
         }
       ],
-      "runtime_stack_sha256": "0ce64ce4e51f21355063a7714359a6bbc973953c6e4be62d7bd463105c296461",
+      "runtime_stack_sha256": "488290dc79fc76b2cdb440e01d67393705df046ff53869bd1f98aab65df26824",
       "topology_sha256": "f41e9d83a9e6134f9fec1962264ee348c51a7bbafbbe82eb84385b9b997b6766",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "972bd2b180bd8857c00c141919afd2300cd9ad21cfad78e7ce6b71a7375a8362",
+          "coverage_id": "6973b77549c1030ca4ce871d34c9d1b4438bf935d1a965c194964ceda65f2f04",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/ltx-2-3-22b-distilled-1-1-diffusers-single",
           "role": "dedicated"
@@ -1347,11 +1347,11 @@
         "V7"
       ],
       "review_gates": [],
-      "runtime_stack_sha256": "9d6c80428d9389f430712fbdba185ca31273b354f2298faeb055e8ea685d52af",
+      "runtime_stack_sha256": "6c4502702ef43440fca1a366b3844f5e5907202ed9fb997a27870749f8f51e11",
       "topology_sha256": "53db0b70b5bbe7cdddcfa00efd9e31f7018701b4e7c7624cb75b4b96c179ce01",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "47f2b805ad0020757af05b08d3f91c297a3f1c1ab87a60201ca398a76d14e871",
+          "coverage_id": "625c425874376f7446c52dd926c4d46b8472be0c907dc108c78c67663bb4f153",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/qwen3-6-27b-vllm-single",
           "role": "dedicated"
@@ -1408,11 +1408,11 @@
           "reason": "At least one exact referenced Model declares operator_acceptance_required=true. An operator must explicitly acknowledge the displayed license terms for this recipe before physical execution; territorial metadata is informational and is not an admission rule."
         }
       ],
-      "runtime_stack_sha256": "619a141fab505bcf4d0d6153b7e99c3653f883bd667715d64e5ea66ec8ee8384",
+      "runtime_stack_sha256": "51f8214b9cf16aed1aad68560ff15373b6c978645680de3684b014c4388ca269",
       "topology_sha256": "97456e1f4c2ebc6adca21a7b1b4db33da55d7a7582cd50949e2ff1019836dde8",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "84cc874a097d44b2fd50c182f9c0bbec38ec0286f462862f7e82fc7d8d2793f8",
+          "coverage_id": "190d08f5f25c5619d4bcf261c5910f39d918db0a198ad061aa1f0de9f0d5c6fe",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/ltx-2-19b-distilled-fp8-diffusers-single",
           "role": "dedicated"
@@ -1778,11 +1778,11 @@
         "UI_ACTION"
       ],
       "review_gates": [],
-      "runtime_stack_sha256": "a2b49554df0411ff77b8ae576da0f142d03a22f0bea1c81ac643e02446add929",
+      "runtime_stack_sha256": "91cbb4cae67b8db716b3698ab5ee79e6fad6b096790ee94e4ecf5edba6db9a06",
       "topology_sha256": "1025e30e06a71cd1ab5d07bcec1756cff3df5382b0a28a08898fe814ebb6fd3e",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "4503ed55994eb51ce0de272f0d6f6a106095783fd2f25ac8113cd91b76e2f603",
+          "coverage_id": "ef77713db5331b3933c38fd58868afc6d1a99a4bef68aa9411e49448a3fc6909",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/ui-mate-27b-vllm-single",
           "role": "dedicated"
@@ -1874,11 +1874,11 @@
         "V7"
       ],
       "review_gates": [],
-      "runtime_stack_sha256": "a5b1c42ad41adc1256e8c3b003221c3c65d7b8d429370ddb0d96ca3c177e0820",
+      "runtime_stack_sha256": "8be6776c93ff52210ac8b4908e2240d7acb12d48f1dc854927e09c5d567e6123",
       "topology_sha256": "50b83ea936ebba597793b28c8c76d99791dba0640f4bc098378d47219ff06946",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "7a26c3feb87b0587db39b0586babe7fc17eadc08cf200ca3bd343b446287b640",
+          "coverage_id": "237960bdfd01abb868351917841f195aefbead1aa1f6ec18010ca1ee9cc1ae57",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/qwen3-8-27b-vllm-single",
           "role": "dedicated"
@@ -1924,11 +1924,11 @@
           "reason": "At least one exact referenced Model declares operator_acceptance_required=true. An operator must explicitly acknowledge the displayed license terms for this recipe before physical execution; territorial metadata is informational and is not an admission rule."
         }
       ],
-      "runtime_stack_sha256": "552636943bf688ec3f4cb5e774b6d3e91a51b293a8a5f4c296ab39eb905bf598",
+      "runtime_stack_sha256": "6a28716bbd540e35dd6776c9421786d2f53dbcacaed0a8bbdf691a7930b0f1d8",
       "topology_sha256": "40fb18475b1c7f7a4d50bee11ffe9aec87f8728781b8f87fbe78ae7633f3fa82",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "2513669007435c452feafbdefb958d1b51c727740f1b7fba84da320cdd8c5b51",
+          "coverage_id": "6d06c51d57622fa4ce1b05edbb7487717227818c7cfa735319aa8642f70a7029",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/ltx-2-5-22b-distilled-fp8-cast-diffusers-single",
           "role": "dedicated"
@@ -2129,11 +2129,11 @@
           "reason": "At least one exact referenced Model declares operator_acceptance_required=true. An operator must explicitly acknowledge the displayed license terms for this recipe before physical execution; territorial metadata is informational and is not an admission rule."
         }
       ],
-      "runtime_stack_sha256": "619a141fab505bcf4d0d6153b7e99c3653f883bd667715d64e5ea66ec8ee8384",
+      "runtime_stack_sha256": "51f8214b9cf16aed1aad68560ff15373b6c978645680de3684b014c4388ca269",
       "topology_sha256": "cca987bdbed03b50e4c50c0582dfafa62b7b22a88b18a5304556ca9f676a0b21",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "5013b360f39b801be9455c81b7dbd8e64f62f01eedf9e480d93d2c6cc14f672f",
+          "coverage_id": "2e276f137543ce53222b0d4dfb7f49d0c3aebbae62809b10321260180f7bb506",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/ltx-2-19b-distilled-diffusers-single",
           "role": "dedicated"
@@ -3010,11 +3010,11 @@
           "reason": "At least one exact referenced Model declares operator_acceptance_required=true. An operator must explicitly acknowledge the displayed license terms for this recipe before physical execution; territorial metadata is informational and is not an admission rule."
         }
       ],
-      "runtime_stack_sha256": "8d4358765558b1c3a1ab86fb8ac9f8a07c943c9c18f6d0b76196b0253dd79325",
+      "runtime_stack_sha256": "3fe1554af713d52b64f47eba546b3c688a0c357db48bee16aa10a06ce496394e",
       "topology_sha256": "4179751737a362107ba38864463cfb89bc88cd4eb4a1ebccc3acc6771b528d13",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "4f8fc22fe9525da05d4beb9e37b243483c80a5684af245e86f55875f9f456797",
+          "coverage_id": "20d38dc16bf2630350ce15538608541e8a41f80dc8d8ecdaf5613ee3980a8827",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/ling-3-0-flash-dspark-sglang-single",
           "role": "dedicated"
@@ -3058,11 +3058,11 @@
         "A391"
       ],
       "review_gates": [],
-      "runtime_stack_sha256": "e73555ad9aca0a5c848e29bf22ff8c93330ad0cae24ee7749c386cac8e7044c8",
+      "runtime_stack_sha256": "1c44347673c739be97f2017d0a4b560bea8d0b75b508e38edb35faddb28706d9",
       "topology_sha256": "2efe2ddb2096fd2e48f6520067bf10b5272ddd702b4817855b396072b1d522c7",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "fedb188dbd16708497581bf62a17bd597a306969917e5e269387843ead3f38b7",
+          "coverage_id": "9052ad1694d15885aa5c029619a2075e0651d86ba5561c859813684676b810c5",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-mia-sparkinfer-single",
           "role": "dedicated"
@@ -3704,11 +3704,11 @@
           "reason": "This recipe was retained for capacity review. Require a fresh whole-fleet profile preview to establish exact current memory and storage fit before loading."
         }
       ],
-      "runtime_stack_sha256": "61efe31f36c897f5dda5fc26b22b82e428e0c4646f19573809fa1ec9026012f8",
+      "runtime_stack_sha256": "cc4b0f4684654c5c4c7d9f540a87d6b9310961208cd5054ba96b6b8ab45267ee",
       "topology_sha256": "d3b484fefa14d1adf1f4f193289825244bd5ee9da42342b9cc0a394119bd003d",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "b059d8206d454237bd9ea245f5bd1b1579a6a1dfeaa7ca3929de79b8e319132e",
+          "coverage_id": "0b55f77341493cb6a17b79407aaca59d44df96893c85f594da38b7b6b119d2f0",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/ltx-2-5-22b-distilled-bf16-diffusers-single",
           "role": "dedicated"
@@ -3980,17 +3980,17 @@
         "T_REPORT"
       ],
       "review_gates": [],
-      "runtime_stack_sha256": "7089159c4116ae07dc8db45ad3046d89e6c7c9ba64e1d4435656629d8776f9d3",
+      "runtime_stack_sha256": "69b84ce289e114e19eae7b5b97b68209fdf4f4396e7323b43e3e40f33f659840",
       "topology_sha256": "ece89e677fa9cb43656edbc50f306602c94c91408c7decfa27ddeb530b15eb5e",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "2b51d1349ae3f8e60b755e5c76156fa7a8dc64d37f7dde26af845c2a03f290e0",
+          "coverage_id": "0843c9963e0a668257ad470e399480d2b785b0f5051afe641e5decaa8a643f75",
           "failure_mode": "dual-host-restart",
           "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
           "role": "dedicated"
         },
         {
-          "coverage_id": "1990facff7069a913cd91fb06eef3218eb780805a2bfc3170d5147ae926af6c6",
+          "coverage_id": "2ae1b792b2ad6d1329ba727d452b4c9169fd2a736a7e63af8ba056554017becf",
           "failure_mode": "dual-rank-loss-recovery",
           "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
           "role": "dedicated"
@@ -4034,17 +4034,17 @@
         "V_RED"
       ],
       "review_gates": [],
-      "runtime_stack_sha256": "8398db004640c9896c83eb3d473952a079884102f54b9b99c3cf0c159ffda9e9",
+      "runtime_stack_sha256": "47ab1cda38464ce9357b46545bdc640f54ef6e662bf760fb6a83ff27964add61",
       "topology_sha256": "7bd7b36dc2c8f9de7020946fc1c943ab98f2c77288793927f52f08e4e64105d8",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "a3dab006b3d1dfefe3eee369faa51a8035efd61d3ba27cd896105e3d45e64f18",
+          "coverage_id": "39816cadd4a85ef3934d099f91047ed78dfd05ca060e5963a2914e4f3bb8723e",
           "failure_mode": "dual-host-restart",
           "representative_recipe": "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual",
           "role": "dedicated"
         },
         {
-          "coverage_id": "17290e7c68662175d8c476eaaf151b59b2f21bb4c7bce204e371fc6180f46271",
+          "coverage_id": "f974bfa5c18609bfa9810ebf4ab807efe1ecbe91562c4df587d3d1649275d73a",
           "failure_mode": "dual-rank-loss-recovery",
           "representative_recipe": "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual",
           "role": "dedicated"
@@ -4106,17 +4106,17 @@
           "reason": "At least one exact referenced Model declares operator_acceptance_required=true. An operator must explicitly acknowledge the displayed license terms for this recipe before physical execution; territorial metadata is informational and is not an admission rule."
         }
       ],
-      "runtime_stack_sha256": "2ec2863393543d56912af230d25fa8dbf1dbc553bae9fc627300a02784730746",
+      "runtime_stack_sha256": "f7e96613148caded3a80dcdf3ef6a8e927349fcb24e7fa97da9a44577f80c827",
       "topology_sha256": "9ede88ff044e783cb50a88a0e56117400ee85983181d51ded8a946524ab4febc",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "2447c28b8e9fdbb61a42198d6540a15dfffb77496d7279297344c0babd367a9f",
+          "coverage_id": "2270742c1c0db40bc9c7381a13f0c8d775ac36194ea773d0ab285181b5dd2759",
           "failure_mode": "dual-host-restart",
           "representative_recipe": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
           "role": "dedicated"
         },
         {
-          "coverage_id": "0fe3abfea57b595718222cd1e341685c935bd55b6d58a37c539d740c3de4049a",
+          "coverage_id": "845a428566ea3af35cfdf700838597e21866bee14b3c38b1ab875224ddac680f",
           "failure_mode": "dual-rank-loss-recovery",
           "representative_recipe": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
           "role": "dedicated"
@@ -4161,17 +4161,17 @@
         "V_RED"
       ],
       "review_gates": [],
-      "runtime_stack_sha256": "3ec760a159699a940a162e48d3c4ea131e0af23252dfe976eee242ac3a2c4c53",
+      "runtime_stack_sha256": "7f56d1cbefb486aa688695c1cfeb915c75c1742395f317957358525dd5f2c3e8",
       "topology_sha256": "48e9176eaf3df733e27a9f89abd6d74282f32722731dd5fa48f6a9df16ab3b08",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "3a9a47af3aaafd82a5b225d8f739b04ee652614fd4cc9998e0b623fdca6fd192",
+          "coverage_id": "995f6e1a20b7520c2974d770cb810fd35375c192269bee87d29d2a4c0cb8e0ff",
           "failure_mode": "dual-host-restart",
           "representative_recipe": "vonk-forge/inkling-small-nvfp4-sglang-dual",
           "role": "dedicated"
         },
         {
-          "coverage_id": "f22b441b8ccd0a599ed8a9c6f0fea0f3cd63acf51aa583c208afb2dacb12bf2d",
+          "coverage_id": "d6422305062b52f83c2a3fdad05a9e91df345f006790b473eaa55327bcfe0982",
           "failure_mode": "dual-rank-loss-recovery",
           "representative_recipe": "vonk-forge/inkling-small-nvfp4-sglang-dual",
           "role": "dedicated"
@@ -4221,17 +4221,17 @@
           "reason": "At least one exact referenced Model declares operator_acceptance_required=true. An operator must explicitly acknowledge the displayed license terms for this recipe before physical execution; territorial metadata is informational and is not an admission rule."
         }
       ],
-      "runtime_stack_sha256": "de7ddb1e48167a87d81a69c103d124c97f592fac41c46530ca039db067a250c8",
+      "runtime_stack_sha256": "089ab633ed499d1fb4d6441cb06d2e8e9f4b7390dfdd5a458c8be763ac5265a4",
       "topology_sha256": "4a180b8d92edec29344913235599336122836c1b93a4f52d1d7b844271c5384d",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "81a4d3e7311df4c5f109a09a26ec17e1335109aa3e8338d7813b0362b682ed96",
+          "coverage_id": "d898184858b022af46e6d67a85450f9060d87c889e095a92e5655823ea510697",
           "failure_mode": "dual-host-restart",
           "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
           "role": "dedicated"
         },
         {
-          "coverage_id": "9c124690497e549cd24927fe1715b633f7bce8ecbe0521ce03438c456ab7c372",
+          "coverage_id": "ac24437b055e67f9232b0142f527dbed5c9646d12dc0235e3f72856a27108637",
           "failure_mode": "dual-rank-loss-recovery",
           "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
           "role": "dedicated"
@@ -4282,17 +4282,17 @@
           "reason": "At least one exact referenced Model declares operator_acceptance_required=true. An operator must explicitly acknowledge the displayed license terms for this recipe before physical execution; territorial metadata is informational and is not an admission rule."
         }
       ],
-      "runtime_stack_sha256": "1f77ebfff8c4eba994f026991bf1c0e2b18ce4281fdf5e7fee48680c1bc05cb6",
+      "runtime_stack_sha256": "eacd5c56485e1f611a4f0caadd2bea4b038516b4567fd2d72cd4874eb9883bea",
       "topology_sha256": "4a180b8d92edec29344913235599336122836c1b93a4f52d1d7b844271c5384d",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "e7ad8f1614fa5aa2e274be34f167e3fe2b2e2f34cb41ce2a8ec9d3b4793a1d56",
+          "coverage_id": "b6768300095b91d5c9b0192d8eea9086b38f8517117d480b5159f316f0cf873d",
           "failure_mode": "dual-host-restart",
           "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
           "role": "dedicated"
         },
         {
-          "coverage_id": "4788aaee4b5ac010d5367f8642f15c75c026cbc57b287946d21b4d2e0a1ee561",
+          "coverage_id": "6f468d3fdffef1c6dd6b64dbbe0686c5aa7dcccea22e5e165d00c0e592362b3f",
           "failure_mode": "dual-rank-loss-recovery",
           "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
           "role": "dedicated"
@@ -4343,17 +4343,17 @@
           "reason": "At least one exact referenced Model declares operator_acceptance_required=true. An operator must explicitly acknowledge the displayed license terms for this recipe before physical execution; territorial metadata is informational and is not an admission rule."
         }
       ],
-      "runtime_stack_sha256": "788912675095ab12d4c34245067b801dfc92c12a238c58e29db65fb74d5b0b1c",
+      "runtime_stack_sha256": "4dfe6c1dd614b2d4bb7c79dd7b4cd0cc57699aad7aba7e323f6d7b3eea928c83",
       "topology_sha256": "51bce0753d3d28ec926d3ee6a760379da553e1327881f65c2a13b24a8ab4c26a",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "27868f7bf1719e80cb989c73d141c6686ef7bc2a91e4d55e345b325a76e42ac0",
+          "coverage_id": "f41e0612d88f2c3dd61414021f0622dacb743c9ad2ab19836a688f54a39ae641",
           "failure_mode": "dual-host-restart",
           "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
           "role": "dedicated"
         },
         {
-          "coverage_id": "dec6eb2540e86922af47fda3d12dabd8203c505911163089219830c89a79c8b5",
+          "coverage_id": "64a10e7879f82c5da36141e2eebbfb8063dff56684015e8ca0c7ab83d2b542cf",
           "failure_mode": "dual-rank-loss-recovery",
           "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
           "role": "dedicated"
@@ -4416,17 +4416,17 @@
           "reason": "At least one exact referenced Model declares operator_acceptance_required=true. An operator must explicitly acknowledge the displayed license terms for this recipe before physical execution; territorial metadata is informational and is not an admission rule."
         }
       ],
-      "runtime_stack_sha256": "787931847f39d9c1c69fb129a507767975c1404b8caafa24968f533fcaca3a91",
+      "runtime_stack_sha256": "7ea314f0cb5a8ad03d27db9a2499b80d89107dedce3242bf655d68125eccdadc",
       "topology_sha256": "d2c8091f8b229bb1cdc8d6e615d95b828a21c7f8993b3954f07fd26d2c45cc7f",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "14766703c3081e551763b6c4b20bf933225ca1cb56f7add5b64477b4cf9af1ca",
+          "coverage_id": "fb7920a1f70f4616eacbb3d3ae09213a43e1f6bff853d062c4e240f4464337e1",
           "failure_mode": "dual-host-restart",
           "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
           "role": "dedicated"
         },
         {
-          "coverage_id": "2a72e60b1f2f42f9520955b4b86a23267219ba2e7c3918b3cd9ed163f8792d67",
+          "coverage_id": "bac87c73dfbb7ce73f5e4d60a7bc81a4dc2ede1db8fa878ccbdea6ab558424be",
           "failure_mode": "dual-rank-loss-recovery",
           "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
           "role": "dedicated"
@@ -4479,17 +4479,17 @@
           "reason": "At least one exact referenced Model declares operator_acceptance_required=true. An operator must explicitly acknowledge the displayed license terms for this recipe before physical execution; territorial metadata is informational and is not an admission rule."
         }
       ],
-      "runtime_stack_sha256": "6ef7d52db3cf453a295c01e7cafbc771ce0f5db1a1ff778a908368b9a5b6d36a",
+      "runtime_stack_sha256": "3c109014bf1abb53ece0e20fbee66acfa32a0cd45c5452b1555039ba987ae363",
       "topology_sha256": "9034950dbdc442673592fc59f060e84d16a5f5c83e7e7202bc0a7113b5150747",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "0e1d72dbd67aed252a0a0aafd11750120237e57615b43464883a3d4839cdc8ef",
+          "coverage_id": "588957170fde712981e2d3e831b5d4c069d2dd8e24499388501f32dadd2aa86f",
           "failure_mode": "dual-host-restart",
           "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual",
           "role": "dedicated"
         },
         {
-          "coverage_id": "cc3da824f444134a7c7cfe66df3178562b49d918b7158a71f0903e865450937f",
+          "coverage_id": "b191f68e7d80356dfbcdb7885246abcd80f94459f7a60b8328a8df8144690a45",
           "failure_mode": "dual-rank-loss-recovery",
           "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual",
           "role": "dedicated"
@@ -5223,16 +5223,16 @@
   "recovery_coverage": [
     {
       "failure_mode": "dual-host-restart",
-      "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
+      "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
       "members": [
         {
-          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
-          "recipe_content_sha256": "7c621825010661bfbb87ea364df6280d597be0407fe11a846fc3f95963dfc988",
-          "package_sha256": "22dcba963c944d98c162a435b533d5a541454c271ddb1d3e4f9267db5647300f",
+          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
+          "recipe_content_sha256": "2b5758027ac2747f18ae4057386a841d96b99349ec6d1a6ea500406699efe5c4",
+          "package_sha256": "19f97528d53fd083e173e6dfd2a1fb2f8d9f630930a49dc7f4de5fd3e5d65444",
           "model_content_sha256s": [
             "0f2c8617255df59583d6def4f71cb20ec63709aaf7c801ae8ce71f6a18e5edc4"
           ],
-          "runtime_stack_sha256": "1f77ebfff8c4eba994f026991bf1c0e2b18ce4281fdf5e7fee48680c1bc05cb6",
+          "runtime_stack_sha256": "089ab633ed499d1fb4d6441cb06d2e8e9f4b7390dfdd5a458c8be763ac5265a4",
           "topology_sha256": "4a180b8d92edec29344913235599336122836c1b93a4f52d1d7b844271c5384d"
         }
       ],
@@ -5251,72 +5251,7 @@
         "target_node_ids",
         "smoke_receipt_sha256"
       ],
-      "coverage_id": "e7ad8f1614fa5aa2e274be34f167e3fe2b2e2f34cb41ce2a8ec9d3b4793a1d56"
-    },
-    {
-      "failure_mode": "dual-host-restart",
-      "representative_recipe": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
-      "members": [
-        {
-          "recipe": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
-          "recipe_content_sha256": "37c28a06e308965d2ea141b530b1fa304006befa816ec757f0de9b3496bb85a8",
-          "package_sha256": "979da4916e23c36cfe098cfd080668ffe265dd34eebf3e1eb739d905e8cfe4a6",
-          "model_content_sha256s": [
-            "7cbdbeba4e0779aabd54af3114bb909c11fdc0a50de6b0719384e24bf045fa6b",
-            "ff9a00c5ea74761b0417e90e63211fde544e4b37fec85030c7174ac25f444cd7"
-          ],
-          "runtime_stack_sha256": "2ec2863393543d56912af230d25fa8dbf1dbc553bae9fc627300a02784730746",
-          "topology_sha256": "9ede88ff044e783cb50a88a0e56117400ee85983181d51ded8a946524ab4febc"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "2447c28b8e9fdbb61a42198d6540a15dfffb77496d7279297344c0babd367a9f"
-    },
-    {
-      "failure_mode": "dual-host-restart",
-      "representative_recipe": "vonk-forge/inkling-small-nvfp4-sglang-dual",
-      "members": [
-        {
-          "recipe": "vonk-forge/inkling-small-nvfp4-sglang-dual",
-          "recipe_content_sha256": "d58fef1e3a7b61f07f67968f6b21d042bea34b3b4dd9151613200ab21b4da17b",
-          "package_sha256": "a687bf6b96638a9eeeba23dc65e47e7d531f18902017fcea145acf4660ae6a72",
-          "model_content_sha256s": [
-            "f99f4a83029a7f149236d8d3f95ade96ebf99a600fa930c8fee949a9e8fec87a"
-          ],
-          "runtime_stack_sha256": "3ec760a159699a940a162e48d3c4ea131e0af23252dfe976eee242ac3a2c4c53",
-          "topology_sha256": "48e9176eaf3df733e27a9f89abd6d74282f32722731dd5fa48f6a9df16ab3b08"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "3a9a47af3aaafd82a5b225d8f739b04ee652614fd4cc9998e0b623fdca6fd192"
+      "coverage_id": "d898184858b022af46e6d67a85450f9060d87c889e095a92e5655823ea510697"
     },
     {
       "failure_mode": "dual-host-restart",
@@ -5329,7 +5264,7 @@
           "model_content_sha256s": [
             "49a8aa751db894e9bf87631acf420dcd66dd6a801d8beaedba6e3b708c56b9ff"
           ],
-          "runtime_stack_sha256": "6ef7d52db3cf453a295c01e7cafbc771ce0f5db1a1ff778a908368b9a5b6d36a",
+          "runtime_stack_sha256": "3c109014bf1abb53ece0e20fbee66acfa32a0cd45c5452b1555039ba987ae363",
           "topology_sha256": "9034950dbdc442673592fc59f060e84d16a5f5c83e7e7202bc0a7113b5150747"
         }
       ],
@@ -5348,104 +5283,7 @@
         "target_node_ids",
         "smoke_receipt_sha256"
       ],
-      "coverage_id": "0e1d72dbd67aed252a0a0aafd11750120237e57615b43464883a3d4839cdc8ef"
-    },
-    {
-      "failure_mode": "dual-host-restart",
-      "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
-      "members": [
-        {
-          "recipe": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
-          "recipe_content_sha256": "e50452a4c43358549f66a161ef821aa24b334f784d2f6877c18b47ef80f4cd40",
-          "package_sha256": "3665eccdb8cf1c91e290b47f6b8a27f37b6b6a6b814a2a7d68f8536077e5d70f",
-          "model_content_sha256s": [
-            "57ec8e1313e745e466e3707e81ee608e0025257126faabfc45252b8edf972fdf"
-          ],
-          "runtime_stack_sha256": "7089159c4116ae07dc8db45ad3046d89e6c7c9ba64e1d4435656629d8776f9d3",
-          "topology_sha256": "ece89e677fa9cb43656edbc50f306602c94c91408c7decfa27ddeb530b15eb5e"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "2b51d1349ae3f8e60b755e5c76156fa7a8dc64d37f7dde26af845c2a03f290e0"
-    },
-    {
-      "failure_mode": "dual-host-restart",
-      "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
-      "members": [
-        {
-          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
-          "recipe_content_sha256": "07e04efb62c99d63d9043e1b3c9857b26fcf92249c4995184bc0532da58d2387",
-          "package_sha256": "5ef16a3b28d27f86d2635daf3e8c1f1f602cfd1f36bc337df29210640391f31c",
-          "model_content_sha256s": [
-            "5e60039481b9622ded8d8b4388d7d182edbb3b14c779de8a6d7cb12f44dbde4c",
-            "ff9a00c5ea74761b0417e90e63211fde544e4b37fec85030c7174ac25f444cd7"
-          ],
-          "runtime_stack_sha256": "787931847f39d9c1c69fb129a507767975c1404b8caafa24968f533fcaca3a91",
-          "topology_sha256": "d2c8091f8b229bb1cdc8d6e615d95b828a21c7f8993b3954f07fd26d2c45cc7f"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "14766703c3081e551763b6c4b20bf933225ca1cb56f7add5b64477b4cf9af1ca"
-    },
-    {
-      "failure_mode": "dual-host-restart",
-      "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
-      "members": [
-        {
-          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
-          "recipe_content_sha256": "ed4bbd737acead3034f4b073cb32a75717c08fc135a2bf382f36a47ee35e5016",
-          "package_sha256": "e2218da596f566df9f9f3c0873d5009801a113b6a89f01e5894730a906656ac6",
-          "model_content_sha256s": [
-            "ce35afdd95706981bb695759cb14bf4ecaa3f9cf34af083e2723b11f69fc55ad"
-          ],
-          "runtime_stack_sha256": "788912675095ab12d4c34245067b801dfc92c12a238c58e29db65fb74d5b0b1c",
-          "topology_sha256": "51bce0753d3d28ec926d3ee6a760379da553e1327881f65c2a13b24a8ab4c26a"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "27868f7bf1719e80cb989c73d141c6686ef7bc2a91e4d55e345b325a76e42ac0"
+      "coverage_id": "588957170fde712981e2d3e831b5d4c069d2dd8e24499388501f32dadd2aa86f"
     },
     {
       "failure_mode": "dual-host-restart",
@@ -5458,7 +5296,7 @@
           "model_content_sha256s": [
             "077c62df5f8c60f7a5fe4380fc53a2ff66df1b2e1f6209068fefb16ef3515604"
           ],
-          "runtime_stack_sha256": "8398db004640c9896c83eb3d473952a079884102f54b9b99c3cf0c159ffda9e9",
+          "runtime_stack_sha256": "47ab1cda38464ce9357b46545bdc640f54ef6e662bf760fb6a83ff27964add61",
           "topology_sha256": "7bd7b36dc2c8f9de7020946fc1c943ab98f2c77288793927f52f08e4e64105d8"
         }
       ],
@@ -5477,21 +5315,21 @@
         "target_node_ids",
         "smoke_receipt_sha256"
       ],
-      "coverage_id": "a3dab006b3d1dfefe3eee369faa51a8035efd61d3ba27cd896105e3d45e64f18"
+      "coverage_id": "39816cadd4a85ef3934d099f91047ed78dfd05ca060e5963a2914e4f3bb8723e"
     },
     {
       "failure_mode": "dual-host-restart",
-      "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
+      "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
       "members": [
         {
-          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
-          "recipe_content_sha256": "2b5758027ac2747f18ae4057386a841d96b99349ec6d1a6ea500406699efe5c4",
-          "package_sha256": "19f97528d53fd083e173e6dfd2a1fb2f8d9f630930a49dc7f4de5fd3e5d65444",
+          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
+          "recipe_content_sha256": "ed4bbd737acead3034f4b073cb32a75717c08fc135a2bf382f36a47ee35e5016",
+          "package_sha256": "e2218da596f566df9f9f3c0873d5009801a113b6a89f01e5894730a906656ac6",
           "model_content_sha256s": [
-            "0f2c8617255df59583d6def4f71cb20ec63709aaf7c801ae8ce71f6a18e5edc4"
+            "ce35afdd95706981bb695759cb14bf4ecaa3f9cf34af083e2723b11f69fc55ad"
           ],
-          "runtime_stack_sha256": "de7ddb1e48167a87d81a69c103d124c97f592fac41c46530ca039db067a250c8",
-          "topology_sha256": "4a180b8d92edec29344913235599336122836c1b93a4f52d1d7b844271c5384d"
+          "runtime_stack_sha256": "4dfe6c1dd614b2d4bb7c79dd7b4cd0cc57699aad7aba7e323f6d7b3eea928c83",
+          "topology_sha256": "51bce0753d3d28ec926d3ee6a760379da553e1327881f65c2a13b24a8ab4c26a"
         }
       ],
       "shared": false,
@@ -5509,21 +5347,21 @@
         "target_node_ids",
         "smoke_receipt_sha256"
       ],
-      "coverage_id": "81a4d3e7311df4c5f109a09a26ec17e1335109aa3e8338d7813b0362b682ed96"
+      "coverage_id": "f41e0612d88f2c3dd61414021f0622dacb743c9ad2ab19836a688f54a39ae641"
     },
     {
-      "failure_mode": "dual-rank-loss-recovery",
-      "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
+      "failure_mode": "dual-host-restart",
+      "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
       "members": [
         {
-          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
-          "recipe_content_sha256": "7c621825010661bfbb87ea364df6280d597be0407fe11a846fc3f95963dfc988",
-          "package_sha256": "22dcba963c944d98c162a435b533d5a541454c271ddb1d3e4f9267db5647300f",
+          "recipe": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
+          "recipe_content_sha256": "e50452a4c43358549f66a161ef821aa24b334f784d2f6877c18b47ef80f4cd40",
+          "package_sha256": "3665eccdb8cf1c91e290b47f6b8a27f37b6b6a6b814a2a7d68f8536077e5d70f",
           "model_content_sha256s": [
-            "0f2c8617255df59583d6def4f71cb20ec63709aaf7c801ae8ce71f6a18e5edc4"
+            "57ec8e1313e745e466e3707e81ee608e0025257126faabfc45252b8edf972fdf"
           ],
-          "runtime_stack_sha256": "1f77ebfff8c4eba994f026991bf1c0e2b18ce4281fdf5e7fee48680c1bc05cb6",
-          "topology_sha256": "4a180b8d92edec29344913235599336122836c1b93a4f52d1d7b844271c5384d"
+          "runtime_stack_sha256": "69b84ce289e114e19eae7b5b97b68209fdf4f4396e7323b43e3e40f33f659840",
+          "topology_sha256": "ece89e677fa9cb43656edbc50f306602c94c91408c7decfa27ddeb530b15eb5e"
         }
       ],
       "shared": false,
@@ -5541,22 +5379,22 @@
         "target_node_ids",
         "smoke_receipt_sha256"
       ],
-      "coverage_id": "4788aaee4b5ac010d5367f8642f15c75c026cbc57b287946d21b4d2e0a1ee561"
+      "coverage_id": "0843c9963e0a668257ad470e399480d2b785b0f5051afe641e5decaa8a643f75"
     },
     {
-      "failure_mode": "dual-rank-loss-recovery",
-      "representative_recipe": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
+      "failure_mode": "dual-host-restart",
+      "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
       "members": [
         {
-          "recipe": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
-          "recipe_content_sha256": "37c28a06e308965d2ea141b530b1fa304006befa816ec757f0de9b3496bb85a8",
-          "package_sha256": "979da4916e23c36cfe098cfd080668ffe265dd34eebf3e1eb739d905e8cfe4a6",
+          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
+          "recipe_content_sha256": "07e04efb62c99d63d9043e1b3c9857b26fcf92249c4995184bc0532da58d2387",
+          "package_sha256": "5ef16a3b28d27f86d2635daf3e8c1f1f602cfd1f36bc337df29210640391f31c",
           "model_content_sha256s": [
-            "7cbdbeba4e0779aabd54af3114bb909c11fdc0a50de6b0719384e24bf045fa6b",
+            "5e60039481b9622ded8d8b4388d7d182edbb3b14c779de8a6d7cb12f44dbde4c",
             "ff9a00c5ea74761b0417e90e63211fde544e4b37fec85030c7174ac25f444cd7"
           ],
-          "runtime_stack_sha256": "2ec2863393543d56912af230d25fa8dbf1dbc553bae9fc627300a02784730746",
-          "topology_sha256": "9ede88ff044e783cb50a88a0e56117400ee85983181d51ded8a946524ab4febc"
+          "runtime_stack_sha256": "7ea314f0cb5a8ad03d27db9a2499b80d89107dedce3242bf655d68125eccdadc",
+          "topology_sha256": "d2c8091f8b229bb1cdc8d6e615d95b828a21c7f8993b3954f07fd26d2c45cc7f"
         }
       ],
       "shared": false,
@@ -5574,10 +5412,10 @@
         "target_node_ids",
         "smoke_receipt_sha256"
       ],
-      "coverage_id": "0fe3abfea57b595718222cd1e341685c935bd55b6d58a37c539d740c3de4049a"
+      "coverage_id": "fb7920a1f70f4616eacbb3d3ae09213a43e1f6bff853d062c4e240f4464337e1"
     },
     {
-      "failure_mode": "dual-rank-loss-recovery",
+      "failure_mode": "dual-host-restart",
       "representative_recipe": "vonk-forge/inkling-small-nvfp4-sglang-dual",
       "members": [
         {
@@ -5587,7 +5425,7 @@
           "model_content_sha256s": [
             "f99f4a83029a7f149236d8d3f95ade96ebf99a600fa930c8fee949a9e8fec87a"
           ],
-          "runtime_stack_sha256": "3ec760a159699a940a162e48d3c4ea131e0af23252dfe976eee242ac3a2c4c53",
+          "runtime_stack_sha256": "7f56d1cbefb486aa688695c1cfeb915c75c1742395f317957358525dd5f2c3e8",
           "topology_sha256": "48e9176eaf3df733e27a9f89abd6d74282f32722731dd5fa48f6a9df16ab3b08"
         }
       ],
@@ -5606,181 +5444,20 @@
         "target_node_ids",
         "smoke_receipt_sha256"
       ],
-      "coverage_id": "f22b441b8ccd0a599ed8a9c6f0fea0f3cd63acf51aa583c208afb2dacb12bf2d"
+      "coverage_id": "995f6e1a20b7520c2974d770cb810fd35375c192269bee87d29d2a4c0cb8e0ff"
     },
     {
-      "failure_mode": "dual-rank-loss-recovery",
-      "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual",
+      "failure_mode": "dual-host-restart",
+      "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
       "members": [
         {
-          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual",
-          "recipe_content_sha256": "ab3944a1e7b681b055bad7f5d9937270d2b8421d7a24facd69fe805172cf0858",
-          "package_sha256": "1cfb55657c0b624dbd4733b6e45dfb415dcfae3ef89a5a50639b3f3112f8cc1f",
-          "model_content_sha256s": [
-            "49a8aa751db894e9bf87631acf420dcd66dd6a801d8beaedba6e3b708c56b9ff"
-          ],
-          "runtime_stack_sha256": "6ef7d52db3cf453a295c01e7cafbc771ce0f5db1a1ff778a908368b9a5b6d36a",
-          "topology_sha256": "9034950dbdc442673592fc59f060e84d16a5f5c83e7e7202bc0a7113b5150747"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "cc3da824f444134a7c7cfe66df3178562b49d918b7158a71f0903e865450937f"
-    },
-    {
-      "failure_mode": "dual-rank-loss-recovery",
-      "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
-      "members": [
-        {
-          "recipe": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
-          "recipe_content_sha256": "e50452a4c43358549f66a161ef821aa24b334f784d2f6877c18b47ef80f4cd40",
-          "package_sha256": "3665eccdb8cf1c91e290b47f6b8a27f37b6b6a6b814a2a7d68f8536077e5d70f",
-          "model_content_sha256s": [
-            "57ec8e1313e745e466e3707e81ee608e0025257126faabfc45252b8edf972fdf"
-          ],
-          "runtime_stack_sha256": "7089159c4116ae07dc8db45ad3046d89e6c7c9ba64e1d4435656629d8776f9d3",
-          "topology_sha256": "ece89e677fa9cb43656edbc50f306602c94c91408c7decfa27ddeb530b15eb5e"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "1990facff7069a913cd91fb06eef3218eb780805a2bfc3170d5147ae926af6c6"
-    },
-    {
-      "failure_mode": "dual-rank-loss-recovery",
-      "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
-      "members": [
-        {
-          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
-          "recipe_content_sha256": "07e04efb62c99d63d9043e1b3c9857b26fcf92249c4995184bc0532da58d2387",
-          "package_sha256": "5ef16a3b28d27f86d2635daf3e8c1f1f602cfd1f36bc337df29210640391f31c",
-          "model_content_sha256s": [
-            "5e60039481b9622ded8d8b4388d7d182edbb3b14c779de8a6d7cb12f44dbde4c",
-            "ff9a00c5ea74761b0417e90e63211fde544e4b37fec85030c7174ac25f444cd7"
-          ],
-          "runtime_stack_sha256": "787931847f39d9c1c69fb129a507767975c1404b8caafa24968f533fcaca3a91",
-          "topology_sha256": "d2c8091f8b229bb1cdc8d6e615d95b828a21c7f8993b3954f07fd26d2c45cc7f"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "2a72e60b1f2f42f9520955b4b86a23267219ba2e7c3918b3cd9ed163f8792d67"
-    },
-    {
-      "failure_mode": "dual-rank-loss-recovery",
-      "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
-      "members": [
-        {
-          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
-          "recipe_content_sha256": "ed4bbd737acead3034f4b073cb32a75717c08fc135a2bf382f36a47ee35e5016",
-          "package_sha256": "e2218da596f566df9f9f3c0873d5009801a113b6a89f01e5894730a906656ac6",
-          "model_content_sha256s": [
-            "ce35afdd95706981bb695759cb14bf4ecaa3f9cf34af083e2723b11f69fc55ad"
-          ],
-          "runtime_stack_sha256": "788912675095ab12d4c34245067b801dfc92c12a238c58e29db65fb74d5b0b1c",
-          "topology_sha256": "51bce0753d3d28ec926d3ee6a760379da553e1327881f65c2a13b24a8ab4c26a"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "dec6eb2540e86922af47fda3d12dabd8203c505911163089219830c89a79c8b5"
-    },
-    {
-      "failure_mode": "dual-rank-loss-recovery",
-      "representative_recipe": "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual",
-      "members": [
-        {
-          "recipe": "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual",
-          "recipe_content_sha256": "d117856fe0f8ad083c9ae2adeab0b998b41aef260707ef684e0e8832dece9df4",
-          "package_sha256": "87e706aad67880471cd0244404545a2c8a10f5bdc280218da8e527bcc866cdb0",
-          "model_content_sha256s": [
-            "077c62df5f8c60f7a5fe4380fc53a2ff66df1b2e1f6209068fefb16ef3515604"
-          ],
-          "runtime_stack_sha256": "8398db004640c9896c83eb3d473952a079884102f54b9b99c3cf0c159ffda9e9",
-          "topology_sha256": "7bd7b36dc2c8f9de7020946fc1c943ab98f2c77288793927f52f08e4e64105d8"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "17290e7c68662175d8c476eaaf151b59b2f21bb4c7bce204e371fc6180f46271"
-    },
-    {
-      "failure_mode": "dual-rank-loss-recovery",
-      "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
-      "members": [
-        {
-          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
-          "recipe_content_sha256": "2b5758027ac2747f18ae4057386a841d96b99349ec6d1a6ea500406699efe5c4",
-          "package_sha256": "19f97528d53fd083e173e6dfd2a1fb2f8d9f630930a49dc7f4de5fd3e5d65444",
+          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
+          "recipe_content_sha256": "7c621825010661bfbb87ea364df6280d597be0407fe11a846fc3f95963dfc988",
+          "package_sha256": "22dcba963c944d98c162a435b533d5a541454c271ddb1d3e4f9267db5647300f",
           "model_content_sha256s": [
             "0f2c8617255df59583d6def4f71cb20ec63709aaf7c801ae8ce71f6a18e5edc4"
           ],
-          "runtime_stack_sha256": "de7ddb1e48167a87d81a69c103d124c97f592fac41c46530ca039db067a250c8",
+          "runtime_stack_sha256": "eacd5c56485e1f611a4f0caadd2bea4b038516b4567fd2d72cd4874eb9883bea",
           "topology_sha256": "4a180b8d92edec29344913235599336122836c1b93a4f52d1d7b844271c5384d"
         }
       ],
@@ -5799,7 +5476,330 @@
         "target_node_ids",
         "smoke_receipt_sha256"
       ],
-      "coverage_id": "9c124690497e549cd24927fe1715b633f7bce8ecbe0521ce03438c456ab7c372"
+      "coverage_id": "b6768300095b91d5c9b0192d8eea9086b38f8517117d480b5159f316f0cf873d"
+    },
+    {
+      "failure_mode": "dual-host-restart",
+      "representative_recipe": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
+      "members": [
+        {
+          "recipe": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
+          "recipe_content_sha256": "37c28a06e308965d2ea141b530b1fa304006befa816ec757f0de9b3496bb85a8",
+          "package_sha256": "979da4916e23c36cfe098cfd080668ffe265dd34eebf3e1eb739d905e8cfe4a6",
+          "model_content_sha256s": [
+            "7cbdbeba4e0779aabd54af3114bb909c11fdc0a50de6b0719384e24bf045fa6b",
+            "ff9a00c5ea74761b0417e90e63211fde544e4b37fec85030c7174ac25f444cd7"
+          ],
+          "runtime_stack_sha256": "f7e96613148caded3a80dcdf3ef6a8e927349fcb24e7fa97da9a44577f80c827",
+          "topology_sha256": "9ede88ff044e783cb50a88a0e56117400ee85983181d51ded8a946524ab4febc"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "2270742c1c0db40bc9c7381a13f0c8d775ac36194ea773d0ab285181b5dd2759"
+    },
+    {
+      "failure_mode": "dual-rank-loss-recovery",
+      "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
+      "members": [
+        {
+          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
+          "recipe_content_sha256": "2b5758027ac2747f18ae4057386a841d96b99349ec6d1a6ea500406699efe5c4",
+          "package_sha256": "19f97528d53fd083e173e6dfd2a1fb2f8d9f630930a49dc7f4de5fd3e5d65444",
+          "model_content_sha256s": [
+            "0f2c8617255df59583d6def4f71cb20ec63709aaf7c801ae8ce71f6a18e5edc4"
+          ],
+          "runtime_stack_sha256": "089ab633ed499d1fb4d6441cb06d2e8e9f4b7390dfdd5a458c8be763ac5265a4",
+          "topology_sha256": "4a180b8d92edec29344913235599336122836c1b93a4f52d1d7b844271c5384d"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "ac24437b055e67f9232b0142f527dbed5c9646d12dc0235e3f72856a27108637"
+    },
+    {
+      "failure_mode": "dual-rank-loss-recovery",
+      "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual",
+      "members": [
+        {
+          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual",
+          "recipe_content_sha256": "ab3944a1e7b681b055bad7f5d9937270d2b8421d7a24facd69fe805172cf0858",
+          "package_sha256": "1cfb55657c0b624dbd4733b6e45dfb415dcfae3ef89a5a50639b3f3112f8cc1f",
+          "model_content_sha256s": [
+            "49a8aa751db894e9bf87631acf420dcd66dd6a801d8beaedba6e3b708c56b9ff"
+          ],
+          "runtime_stack_sha256": "3c109014bf1abb53ece0e20fbee66acfa32a0cd45c5452b1555039ba987ae363",
+          "topology_sha256": "9034950dbdc442673592fc59f060e84d16a5f5c83e7e7202bc0a7113b5150747"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "b191f68e7d80356dfbcdb7885246abcd80f94459f7a60b8328a8df8144690a45"
+    },
+    {
+      "failure_mode": "dual-rank-loss-recovery",
+      "representative_recipe": "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual",
+      "members": [
+        {
+          "recipe": "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual",
+          "recipe_content_sha256": "d117856fe0f8ad083c9ae2adeab0b998b41aef260707ef684e0e8832dece9df4",
+          "package_sha256": "87e706aad67880471cd0244404545a2c8a10f5bdc280218da8e527bcc866cdb0",
+          "model_content_sha256s": [
+            "077c62df5f8c60f7a5fe4380fc53a2ff66df1b2e1f6209068fefb16ef3515604"
+          ],
+          "runtime_stack_sha256": "47ab1cda38464ce9357b46545bdc640f54ef6e662bf760fb6a83ff27964add61",
+          "topology_sha256": "7bd7b36dc2c8f9de7020946fc1c943ab98f2c77288793927f52f08e4e64105d8"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "f974bfa5c18609bfa9810ebf4ab807efe1ecbe91562c4df587d3d1649275d73a"
+    },
+    {
+      "failure_mode": "dual-rank-loss-recovery",
+      "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
+      "members": [
+        {
+          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
+          "recipe_content_sha256": "ed4bbd737acead3034f4b073cb32a75717c08fc135a2bf382f36a47ee35e5016",
+          "package_sha256": "e2218da596f566df9f9f3c0873d5009801a113b6a89f01e5894730a906656ac6",
+          "model_content_sha256s": [
+            "ce35afdd95706981bb695759cb14bf4ecaa3f9cf34af083e2723b11f69fc55ad"
+          ],
+          "runtime_stack_sha256": "4dfe6c1dd614b2d4bb7c79dd7b4cd0cc57699aad7aba7e323f6d7b3eea928c83",
+          "topology_sha256": "51bce0753d3d28ec926d3ee6a760379da553e1327881f65c2a13b24a8ab4c26a"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "64a10e7879f82c5da36141e2eebbfb8063dff56684015e8ca0c7ab83d2b542cf"
+    },
+    {
+      "failure_mode": "dual-rank-loss-recovery",
+      "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
+      "members": [
+        {
+          "recipe": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
+          "recipe_content_sha256": "e50452a4c43358549f66a161ef821aa24b334f784d2f6877c18b47ef80f4cd40",
+          "package_sha256": "3665eccdb8cf1c91e290b47f6b8a27f37b6b6a6b814a2a7d68f8536077e5d70f",
+          "model_content_sha256s": [
+            "57ec8e1313e745e466e3707e81ee608e0025257126faabfc45252b8edf972fdf"
+          ],
+          "runtime_stack_sha256": "69b84ce289e114e19eae7b5b97b68209fdf4f4396e7323b43e3e40f33f659840",
+          "topology_sha256": "ece89e677fa9cb43656edbc50f306602c94c91408c7decfa27ddeb530b15eb5e"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "2ae1b792b2ad6d1329ba727d452b4c9169fd2a736a7e63af8ba056554017becf"
+    },
+    {
+      "failure_mode": "dual-rank-loss-recovery",
+      "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
+      "members": [
+        {
+          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
+          "recipe_content_sha256": "07e04efb62c99d63d9043e1b3c9857b26fcf92249c4995184bc0532da58d2387",
+          "package_sha256": "5ef16a3b28d27f86d2635daf3e8c1f1f602cfd1f36bc337df29210640391f31c",
+          "model_content_sha256s": [
+            "5e60039481b9622ded8d8b4388d7d182edbb3b14c779de8a6d7cb12f44dbde4c",
+            "ff9a00c5ea74761b0417e90e63211fde544e4b37fec85030c7174ac25f444cd7"
+          ],
+          "runtime_stack_sha256": "7ea314f0cb5a8ad03d27db9a2499b80d89107dedce3242bf655d68125eccdadc",
+          "topology_sha256": "d2c8091f8b229bb1cdc8d6e615d95b828a21c7f8993b3954f07fd26d2c45cc7f"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "bac87c73dfbb7ce73f5e4d60a7bc81a4dc2ede1db8fa878ccbdea6ab558424be"
+    },
+    {
+      "failure_mode": "dual-rank-loss-recovery",
+      "representative_recipe": "vonk-forge/inkling-small-nvfp4-sglang-dual",
+      "members": [
+        {
+          "recipe": "vonk-forge/inkling-small-nvfp4-sglang-dual",
+          "recipe_content_sha256": "d58fef1e3a7b61f07f67968f6b21d042bea34b3b4dd9151613200ab21b4da17b",
+          "package_sha256": "a687bf6b96638a9eeeba23dc65e47e7d531f18902017fcea145acf4660ae6a72",
+          "model_content_sha256s": [
+            "f99f4a83029a7f149236d8d3f95ade96ebf99a600fa930c8fee949a9e8fec87a"
+          ],
+          "runtime_stack_sha256": "7f56d1cbefb486aa688695c1cfeb915c75c1742395f317957358525dd5f2c3e8",
+          "topology_sha256": "48e9176eaf3df733e27a9f89abd6d74282f32722731dd5fa48f6a9df16ab3b08"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "d6422305062b52f83c2a3fdad05a9e91df345f006790b473eaa55327bcfe0982"
+    },
+    {
+      "failure_mode": "dual-rank-loss-recovery",
+      "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
+      "members": [
+        {
+          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
+          "recipe_content_sha256": "7c621825010661bfbb87ea364df6280d597be0407fe11a846fc3f95963dfc988",
+          "package_sha256": "22dcba963c944d98c162a435b533d5a541454c271ddb1d3e4f9267db5647300f",
+          "model_content_sha256s": [
+            "0f2c8617255df59583d6def4f71cb20ec63709aaf7c801ae8ce71f6a18e5edc4"
+          ],
+          "runtime_stack_sha256": "eacd5c56485e1f611a4f0caadd2bea4b038516b4567fd2d72cd4874eb9883bea",
+          "topology_sha256": "4a180b8d92edec29344913235599336122836c1b93a4f52d1d7b844271c5384d"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "6f468d3fdffef1c6dd6b64dbbe0686c5aa7dcccea22e5e165d00c0e592362b3f"
+    },
+    {
+      "failure_mode": "dual-rank-loss-recovery",
+      "representative_recipe": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
+      "members": [
+        {
+          "recipe": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
+          "recipe_content_sha256": "37c28a06e308965d2ea141b530b1fa304006befa816ec757f0de9b3496bb85a8",
+          "package_sha256": "979da4916e23c36cfe098cfd080668ffe265dd34eebf3e1eb739d905e8cfe4a6",
+          "model_content_sha256s": [
+            "7cbdbeba4e0779aabd54af3114bb909c11fdc0a50de6b0719384e24bf045fa6b",
+            "ff9a00c5ea74761b0417e90e63211fde544e4b37fec85030c7174ac25f444cd7"
+          ],
+          "runtime_stack_sha256": "f7e96613148caded3a80dcdf3ef6a8e927349fcb24e7fa97da9a44577f80c827",
+          "topology_sha256": "9ede88ff044e783cb50a88a0e56117400ee85983181d51ded8a946524ab4febc"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "845a428566ea3af35cfdf700838597e21866bee14b3c38b1ab875224ddac680f"
     },
     {
       "failure_mode": "single-host-restart",
@@ -5864,72 +5864,6 @@
         "smoke_receipt_sha256"
       ],
       "coverage_id": "14895d5f282df7b52d855be13be6b029acc76eceb89c63fdcb98ff23a572f067"
-    },
-    {
-      "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/ltx-2-19b-dev-bf16-diffusers-single",
-      "members": [
-        {
-          "recipe": "vonk-forge/ltx-2-19b-dev-bf16-diffusers-single",
-          "recipe_content_sha256": "c04779955e788b666e2e6933408fad7ed3d0e96ba5215a55b58382852beb2e5f",
-          "package_sha256": "94282aa2df4a4b60db6db1dbe0df24da1291738da4ffe2e3dd0fa09e9dacddc3",
-          "model_content_sha256s": [
-            "026faa26a1388553b64c0800e798c50d14f667820989e2c34e98164560d17030",
-            "7e2a7f11358c47cfc033a5bac76db52c9d953d2b5de3deb968c65c169af01a99"
-          ],
-          "runtime_stack_sha256": "0ce64ce4e51f21355063a7714359a6bbc973953c6e4be62d7bd463105c296461",
-          "topology_sha256": "58dd5b9e525e807f7838ff90d9ad7abd83f3465656f4817a71acc77ac9031620"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "7655e723ee062434b5a1fd9d978e2b866017461fe20622a810bb63452330352d"
-    },
-    {
-      "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/ltx-2-3-22b-distilled-1-1-diffusers-single",
-      "members": [
-        {
-          "recipe": "vonk-forge/ltx-2-3-22b-distilled-1-1-diffusers-single",
-          "recipe_content_sha256": "9a14a11bc10f0f37eef0ea738c834b25ac8ee093448b9afda010a33414e077bb",
-          "package_sha256": "b2960f7857f595dca5acb0cd22eb4aef6fc66ee170d6f7252e2e48ab085202ef",
-          "model_content_sha256s": [
-            "36d7be4dba996d7243aa5aec7f158296aefdfa6da4b904ac125a2f14d4348e87",
-            "7e2a7f11358c47cfc033a5bac76db52c9d953d2b5de3deb968c65c169af01a99"
-          ],
-          "runtime_stack_sha256": "0ce64ce4e51f21355063a7714359a6bbc973953c6e4be62d7bd463105c296461",
-          "topology_sha256": "f41e9d83a9e6134f9fec1962264ee348c51a7bbafbbe82eb84385b9b997b6766"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "972bd2b180bd8857c00c141919afd2300cd9ad21cfad78e7ce6b71a7375a8362"
     },
     {
       "failure_mode": "single-host-restart",
@@ -6159,6 +6093,38 @@
     },
     {
       "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-mia-sparkinfer-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/deepseek-v4-flash-0731-mia-sparkinfer-single",
+          "recipe_content_sha256": "ce71403841584a2bc5b8e34f4763ff3f2528b6174ab1e78e6d95fc2bd622a3ad",
+          "package_sha256": "65d5af83fbf99b81ba028c20a05666234e284fa46ae33ec8f07dfafb7f64b255",
+          "model_content_sha256s": [
+            "613962daa428589a2d0a364582ca94d4ecb6ecaa73224354d4778c8efb12dc30"
+          ],
+          "runtime_stack_sha256": "1c44347673c739be97f2017d0a4b560bea8d0b75b508e38edb35faddb28706d9",
+          "topology_sha256": "2efe2ddb2096fd2e48f6520067bf10b5272ddd702b4817855b396072b1d522c7"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "9052ad1694d15885aa5c029619a2075e0651d86ba5561c859813684676b810c5"
+    },
+    {
+      "failure_mode": "single-host-restart",
       "representative_recipe": "vonk-forge/qwen-image-2512-lightning-diffusers-single",
       "members": [
         {
@@ -6189,6 +6155,39 @@
         "smoke_receipt_sha256"
       ],
       "coverage_id": "f00b7407b4dbe3833b09d4bb5d87bdc42cacc52d824d74fea7d7f6edf2075898"
+    },
+    {
+      "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single",
+          "recipe_content_sha256": "c9a73baf25f23af63f3d9558debb18c6b1278d2136795e2f4d1df5f32b4067db",
+          "package_sha256": "a62f75dc4af6734a5470a53c60fe24b23740d7113d068dc5edc90fd224f48788",
+          "model_content_sha256s": [
+            "29b9d51b0a6dde0c2acae929c6d2a5651d19fb8a7572915f4c096e3b5bc5329b",
+            "4091ffe98645f39f163c52efe1228f5385970df1d631df050eea1628b6721888"
+          ],
+          "runtime_stack_sha256": "2d35cda156dc546d34b0d9fb883656a770fa644277ab3bde41440c288c6943dc",
+          "topology_sha256": "3d794e62f9ae35b98b485335625e26d1c51720174968aad8ca45eeea93b73d38"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "e42d3d84339b165c9019e544a887fbd06087aa66c429bafd032982efb14c6afb"
     },
     {
       "failure_mode": "single-host-restart",
@@ -6419,6 +6418,105 @@
     },
     {
       "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/ling-3-0-flash-dspark-sglang-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/ling-3-0-flash-dspark-sglang-single",
+          "recipe_content_sha256": "089bfa0ef80281e2d3af9e435bc8c81025e45bfb33e139b932d2dd0ee2c07340",
+          "package_sha256": "e939f48ce437ff65a255965e6b9cf3efb7bfc9731714d0743ca9b7e2c1d76f21",
+          "model_content_sha256s": [
+            "b1be64baee75c5fb09fb194f66f54d7e19e9dbcc8a4ddb0ffd928f590757e672",
+            "f2a326fd31b35fbcd3c6bf8ff0c16980a11900fe88d6fc37964cbb2429212d26"
+          ],
+          "runtime_stack_sha256": "3fe1554af713d52b64f47eba546b3c688a0c357db48bee16aa10a06ce496394e",
+          "topology_sha256": "4179751737a362107ba38864463cfb89bc88cd4eb4a1ebccc3acc6771b528d13"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "20d38dc16bf2630350ce15538608541e8a41f80dc8d8ecdaf5613ee3980a8827"
+    },
+    {
+      "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/ltx-2-19b-dev-bf16-diffusers-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/ltx-2-19b-dev-bf16-diffusers-single",
+          "recipe_content_sha256": "c04779955e788b666e2e6933408fad7ed3d0e96ba5215a55b58382852beb2e5f",
+          "package_sha256": "94282aa2df4a4b60db6db1dbe0df24da1291738da4ffe2e3dd0fa09e9dacddc3",
+          "model_content_sha256s": [
+            "026faa26a1388553b64c0800e798c50d14f667820989e2c34e98164560d17030",
+            "7e2a7f11358c47cfc033a5bac76db52c9d953d2b5de3deb968c65c169af01a99"
+          ],
+          "runtime_stack_sha256": "488290dc79fc76b2cdb440e01d67393705df046ff53869bd1f98aab65df26824",
+          "topology_sha256": "58dd5b9e525e807f7838ff90d9ad7abd83f3465656f4817a71acc77ac9031620"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "3e17ae83ca97901bbe1741ea58c44006ec426a903b24feca3ead43c6f30bc67d"
+    },
+    {
+      "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/ltx-2-3-22b-distilled-1-1-diffusers-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/ltx-2-3-22b-distilled-1-1-diffusers-single",
+          "recipe_content_sha256": "9a14a11bc10f0f37eef0ea738c834b25ac8ee093448b9afda010a33414e077bb",
+          "package_sha256": "b2960f7857f595dca5acb0cd22eb4aef6fc66ee170d6f7252e2e48ab085202ef",
+          "model_content_sha256s": [
+            "36d7be4dba996d7243aa5aec7f158296aefdfa6da4b904ac125a2f14d4348e87",
+            "7e2a7f11358c47cfc033a5bac76db52c9d953d2b5de3deb968c65c169af01a99"
+          ],
+          "runtime_stack_sha256": "488290dc79fc76b2cdb440e01d67393705df046ff53869bd1f98aab65df26824",
+          "topology_sha256": "f41e9d83a9e6134f9fec1962264ee348c51a7bbafbbe82eb84385b9b997b6766"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "6973b77549c1030ca4ce871d34c9d1b4438bf935d1a965c194964ceda65f2f04"
+    },
+    {
+      "failure_mode": "single-host-restart",
       "representative_recipe": "vonk-forge/laguna-s-2-1-nvfp4-vllm-single",
       "members": [
         {
@@ -6451,6 +6549,72 @@
     },
     {
       "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/ltx-2-19b-distilled-fp8-diffusers-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/ltx-2-19b-distilled-fp8-diffusers-single",
+          "recipe_content_sha256": "98308df9432d0ab6ecdcfd43e29fa5c011606a4504d9d0f0b419c29cdb57a55c",
+          "package_sha256": "42e42aebb2f3a6a1d1f92f8c3cf2514d7d8ce0a5a412fbf50dcc0f816679f44f",
+          "model_content_sha256s": [
+            "7e2a7f11358c47cfc033a5bac76db52c9d953d2b5de3deb968c65c169af01a99",
+            "b37404695542c0df90b11852d515600ada40c514a7fa30d284a02133a793219f"
+          ],
+          "runtime_stack_sha256": "51f8214b9cf16aed1aad68560ff15373b6c978645680de3684b014c4388ca269",
+          "topology_sha256": "97456e1f4c2ebc6adca21a7b1b4db33da55d7a7582cd50949e2ff1019836dde8"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "190d08f5f25c5619d4bcf261c5910f39d918db0a198ad061aa1f0de9f0d5c6fe"
+    },
+    {
+      "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/ltx-2-19b-distilled-diffusers-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/ltx-2-19b-distilled-diffusers-single",
+          "recipe_content_sha256": "1c45e749d797c0a21c944c79162edaafd578ee116f935f45f648e7818611a55b",
+          "package_sha256": "4604072703527aec6b29efcc11bec65ca97683f667d8473b13c2652d4fd41308",
+          "model_content_sha256s": [
+            "439475e4ea1f74d30859af33a3a493047b9c039b34ac8033d5ddbbcaa5162a7c",
+            "7e2a7f11358c47cfc033a5bac76db52c9d953d2b5de3deb968c65c169af01a99"
+          ],
+          "runtime_stack_sha256": "51f8214b9cf16aed1aad68560ff15373b6c978645680de3684b014c4388ca269",
+          "topology_sha256": "cca987bdbed03b50e4c50c0582dfafa62b7b22a88b18a5304556ca9f676a0b21"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "2e276f137543ce53222b0d4dfb7f49d0c3aebbae62809b10321260180f7bb506"
+    },
+    {
+      "failure_mode": "single-host-restart",
       "representative_recipe": "vonk-forge/moss-vl-realtime-11b-pytorch-single",
       "members": [
         {
@@ -6480,38 +6644,6 @@
         "smoke_receipt_sha256"
       ],
       "coverage_id": "802ee16f2e4cc14ffa032f64d1db4c94b722ba0f8fd1c1e0c0f6f96348f3a91f"
-    },
-    {
-      "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/ltx-2-5-22b-distilled-fp8-cast-diffusers-single",
-      "members": [
-        {
-          "recipe": "vonk-forge/ltx-2-5-22b-distilled-fp8-cast-diffusers-single",
-          "recipe_content_sha256": "c86e27c58f1946598f56b172dc31c9e61860540a592869efb8fcc5345b00bc91",
-          "package_sha256": "67d13bf489b3a3f4fb63f876680f874d8f45992768fa80ba228f87e7e9b650a6",
-          "model_content_sha256s": [
-            "758426bfab8f18020222df86fb395d9cb8cbacfeb7b0e7105c990fd75a21812a"
-          ],
-          "runtime_stack_sha256": "552636943bf688ec3f4cb5e774b6d3e91a51b293a8a5f4c296ab39eb905bf598",
-          "topology_sha256": "40fb18475b1c7f7a4d50bee11ffe9aec87f8728781b8f87fbe78ae7633f3fa82"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "2513669007435c452feafbdefb958d1b51c727740f1b7fba84da320cdd8c5b51"
     },
     {
       "failure_mode": "single-host-restart",
@@ -6579,104 +6711,6 @@
     },
     {
       "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/ltx-2-19b-distilled-fp8-diffusers-single",
-      "members": [
-        {
-          "recipe": "vonk-forge/ltx-2-19b-distilled-fp8-diffusers-single",
-          "recipe_content_sha256": "98308df9432d0ab6ecdcfd43e29fa5c011606a4504d9d0f0b419c29cdb57a55c",
-          "package_sha256": "42e42aebb2f3a6a1d1f92f8c3cf2514d7d8ce0a5a412fbf50dcc0f816679f44f",
-          "model_content_sha256s": [
-            "7e2a7f11358c47cfc033a5bac76db52c9d953d2b5de3deb968c65c169af01a99",
-            "b37404695542c0df90b11852d515600ada40c514a7fa30d284a02133a793219f"
-          ],
-          "runtime_stack_sha256": "619a141fab505bcf4d0d6153b7e99c3653f883bd667715d64e5ea66ec8ee8384",
-          "topology_sha256": "97456e1f4c2ebc6adca21a7b1b4db33da55d7a7582cd50949e2ff1019836dde8"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "84cc874a097d44b2fd50c182f9c0bbec38ec0286f462862f7e82fc7d8d2793f8"
-    },
-    {
-      "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/ltx-2-19b-distilled-diffusers-single",
-      "members": [
-        {
-          "recipe": "vonk-forge/ltx-2-19b-distilled-diffusers-single",
-          "recipe_content_sha256": "1c45e749d797c0a21c944c79162edaafd578ee116f935f45f648e7818611a55b",
-          "package_sha256": "4604072703527aec6b29efcc11bec65ca97683f667d8473b13c2652d4fd41308",
-          "model_content_sha256s": [
-            "439475e4ea1f74d30859af33a3a493047b9c039b34ac8033d5ddbbcaa5162a7c",
-            "7e2a7f11358c47cfc033a5bac76db52c9d953d2b5de3deb968c65c169af01a99"
-          ],
-          "runtime_stack_sha256": "619a141fab505bcf4d0d6153b7e99c3653f883bd667715d64e5ea66ec8ee8384",
-          "topology_sha256": "cca987bdbed03b50e4c50c0582dfafa62b7b22a88b18a5304556ca9f676a0b21"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "5013b360f39b801be9455c81b7dbd8e64f62f01eedf9e480d93d2c6cc14f672f"
-    },
-    {
-      "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/ltx-2-5-22b-distilled-bf16-diffusers-single",
-      "members": [
-        {
-          "recipe": "vonk-forge/ltx-2-5-22b-distilled-bf16-diffusers-single",
-          "recipe_content_sha256": "6f9694eb6a5ff4eb1b898d6f7b5ff1157f623e0089c8e624b8289d8b6684456a",
-          "package_sha256": "1e62729937bb0670e367af93b9ad6c58248736280d6591d1c1ae3c812814a5ac",
-          "model_content_sha256s": [
-            "758426bfab8f18020222df86fb395d9cb8cbacfeb7b0e7105c990fd75a21812a"
-          ],
-          "runtime_stack_sha256": "61efe31f36c897f5dda5fc26b22b82e428e0c4646f19573809fa1ec9026012f8",
-          "topology_sha256": "d3b484fefa14d1adf1f4f193289825244bd5ee9da42342b9cc0a394119bd003d"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "b059d8206d454237bd9ea245f5bd1b1579a6a1dfeaa7ca3929de79b8e319132e"
-    },
-    {
-      "failure_mode": "single-host-restart",
       "representative_recipe": "vonk-forge/nemotron-3-nano-omni-30b-a3b-vllm-single",
       "members": [
         {
@@ -6709,6 +6743,38 @@
     },
     {
       "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/ltx-2-5-22b-distilled-fp8-cast-diffusers-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/ltx-2-5-22b-distilled-fp8-cast-diffusers-single",
+          "recipe_content_sha256": "c86e27c58f1946598f56b172dc31c9e61860540a592869efb8fcc5345b00bc91",
+          "package_sha256": "67d13bf489b3a3f4fb63f876680f874d8f45992768fa80ba228f87e7e9b650a6",
+          "model_content_sha256s": [
+            "758426bfab8f18020222df86fb395d9cb8cbacfeb7b0e7105c990fd75a21812a"
+          ],
+          "runtime_stack_sha256": "6a28716bbd540e35dd6776c9421786d2f53dbcacaed0a8bbdf691a7930b0f1d8",
+          "topology_sha256": "40fb18475b1c7f7a4d50bee11ffe9aec87f8728781b8f87fbe78ae7633f3fa82"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "6d06c51d57622fa4ce1b05edbb7487717227818c7cfa735319aa8642f70a7029"
+    },
+    {
+      "failure_mode": "single-host-restart",
       "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-ds4-single",
       "members": [
         {
@@ -6738,6 +6804,38 @@
         "smoke_receipt_sha256"
       ],
       "coverage_id": "9234d31d40d270768c8c71cc7cf38cc6b3067aa3e23ac3a1f057f48f04148a4b"
+    },
+    {
+      "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/qwen3-6-27b-vllm-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/qwen3-6-27b-vllm-single",
+          "recipe_content_sha256": "9d86fafea72f531da0a9811f68786936816972dbc1b9405aa57693563624a3bd",
+          "package_sha256": "aa8fd30b3b25af78fefe6eb62b8160106c57d91c64ba56c8ea17fa0db6be48e6",
+          "model_content_sha256s": [
+            "d70f3b435d9f6992878f48b1ed4b6dd92dc88e6e1aa8f2302f54bc78cfc0d394"
+          ],
+          "runtime_stack_sha256": "6c4502702ef43440fca1a366b3844f5e5907202ed9fb997a27870749f8f51e11",
+          "topology_sha256": "53db0b70b5bbe7cdddcfa00efd9e31f7018701b4e7c7624cb75b4b96c179ce01"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "625c425874376f7446c52dd926c4d46b8472be0c907dc108c78c67663bb4f153"
     },
     {
       "failure_mode": "single-host-restart",
@@ -6902,6 +7000,38 @@
     },
     {
       "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/qwen3-8-27b-fp8-vllm-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/qwen3-8-27b-fp8-vllm-single",
+          "recipe_content_sha256": "5c76bd4e2c88912372d1b9162cbceeeaa4d9c55e36d983859e6380c8864baeed",
+          "package_sha256": "3fcfff93b1e0cbc36f519d9fb7b1a23f7ad12220ab918cf7944c7bddf8c262e4",
+          "model_content_sha256s": [
+            "40229ea3ca056ff024a38782a3ca201a7404e0ad2f869709798795a646449532"
+          ],
+          "runtime_stack_sha256": "81247b8e5118a9ec9e6e95810febf85d970006bb9f4abde55afce33b69df9f28",
+          "topology_sha256": "72f893bd42106f94db22f3ea020353e5042a7dd4745b8529a39aeb71937057c2"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "b61057454a1f90d73e7c28ad660289d2e12dbc136e8c3939974fc4322e2dd8b9"
+    },
+    {
+      "failure_mode": "single-host-restart",
       "representative_recipe": "vonk-forge/flux-2-klein-4b-comfyui-single",
       "members": [
         {
@@ -6998,18 +7128,17 @@
     },
     {
       "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/ling-3-0-flash-dspark-sglang-single",
+      "representative_recipe": "vonk-forge/qwen3-8-27b-vllm-single",
       "members": [
         {
-          "recipe": "vonk-forge/ling-3-0-flash-dspark-sglang-single",
-          "recipe_content_sha256": "089bfa0ef80281e2d3af9e435bc8c81025e45bfb33e139b932d2dd0ee2c07340",
-          "package_sha256": "e939f48ce437ff65a255965e6b9cf3efb7bfc9731714d0743ca9b7e2c1d76f21",
+          "recipe": "vonk-forge/qwen3-8-27b-vllm-single",
+          "recipe_content_sha256": "79dd365e2bfc97559a189b253e420fef545f0c5944e69f371a68de543644283d",
+          "package_sha256": "d5d225bbfef2194d18a4ec626da3fbb4accc07232e553f87ffbc108d63d91388",
           "model_content_sha256s": [
-            "b1be64baee75c5fb09fb194f66f54d7e19e9dbcc8a4ddb0ffd928f590757e672",
-            "f2a326fd31b35fbcd3c6bf8ff0c16980a11900fe88d6fc37964cbb2429212d26"
+            "a06e2046c6f4dc53de2647431ba47e469caa4863c7ffbb7713b44dbfb852caea"
           ],
-          "runtime_stack_sha256": "8d4358765558b1c3a1ab86fb8ac9f8a07c943c9c18f6d0b76196b0253dd79325",
-          "topology_sha256": "4179751737a362107ba38864463cfb89bc88cd4eb4a1ebccc3acc6771b528d13"
+          "runtime_stack_sha256": "8be6776c93ff52210ac8b4908e2240d7acb12d48f1dc854927e09c5d567e6123",
+          "topology_sha256": "50b83ea936ebba597793b28c8c76d99791dba0640f4bc098378d47219ff06946"
         }
       ],
       "shared": false,
@@ -7027,7 +7156,39 @@
         "target_node_ids",
         "smoke_receipt_sha256"
       ],
-      "coverage_id": "4f8fc22fe9525da05d4beb9e37b243483c80a5684af245e86f55875f9f456797"
+      "coverage_id": "237960bdfd01abb868351917841f195aefbead1aa1f6ec18010ca1ee9cc1ae57"
+    },
+    {
+      "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/ui-mate-27b-vllm-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/ui-mate-27b-vllm-single",
+          "recipe_content_sha256": "0abb280fb0d549cbbe01234490128474f375413942d862e709ef04de6ae0cf18",
+          "package_sha256": "4b7cdbbe7d13d780a2b61bd31f373457cdeb3baaf1d514d8dff69f23bd2164b4",
+          "model_content_sha256s": [
+            "cfe6da349131bb28fb2dbaed4593eb2dcdb29ae2a0be70eeec128e5a9cf6f4eb"
+          ],
+          "runtime_stack_sha256": "91cbb4cae67b8db716b3698ab5ee79e6fad6b096790ee94e4ecf5edba6db9a06",
+          "topology_sha256": "1025e30e06a71cd1ab5d07bcec1756cff3df5382b0a28a08898fe814ebb6fd3e"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "ef77713db5331b3933c38fd58868afc6d1a99a4bef68aa9411e49448a3fc6909"
     },
     {
       "failure_mode": "single-host-restart",
@@ -7097,38 +7258,6 @@
     },
     {
       "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/qwen3-6-27b-vllm-single",
-      "members": [
-        {
-          "recipe": "vonk-forge/qwen3-6-27b-vllm-single",
-          "recipe_content_sha256": "9d86fafea72f531da0a9811f68786936816972dbc1b9405aa57693563624a3bd",
-          "package_sha256": "aa8fd30b3b25af78fefe6eb62b8160106c57d91c64ba56c8ea17fa0db6be48e6",
-          "model_content_sha256s": [
-            "d70f3b435d9f6992878f48b1ed4b6dd92dc88e6e1aa8f2302f54bc78cfc0d394"
-          ],
-          "runtime_stack_sha256": "9d6c80428d9389f430712fbdba185ca31273b354f2298faeb055e8ea685d52af",
-          "topology_sha256": "53db0b70b5bbe7cdddcfa00efd9e31f7018701b4e7c7624cb75b4b96c179ce01"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "47f2b805ad0020757af05b08d3f91c297a3f1c1ab87a60201ca398a76d14e871"
-    },
-    {
-      "failure_mode": "single-host-restart",
       "representative_recipe": "vonk-forge/nemotron-3-super-120b-a12b-vllm-single",
       "members": [
         {
@@ -7159,38 +7288,6 @@
         "smoke_receipt_sha256"
       ],
       "coverage_id": "8340e7e034cf48d56c9b5bbbc6bcab21459b584f7951ad126aec0e118530ffa6"
-    },
-    {
-      "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/ui-mate-27b-vllm-single",
-      "members": [
-        {
-          "recipe": "vonk-forge/ui-mate-27b-vllm-single",
-          "recipe_content_sha256": "0abb280fb0d549cbbe01234490128474f375413942d862e709ef04de6ae0cf18",
-          "package_sha256": "4b7cdbbe7d13d780a2b61bd31f373457cdeb3baaf1d514d8dff69f23bd2164b4",
-          "model_content_sha256s": [
-            "cfe6da349131bb28fb2dbaed4593eb2dcdb29ae2a0be70eeec128e5a9cf6f4eb"
-          ],
-          "runtime_stack_sha256": "a2b49554df0411ff77b8ae576da0f142d03a22f0bea1c81ac643e02446add929",
-          "topology_sha256": "1025e30e06a71cd1ab5d07bcec1756cff3df5382b0a28a08898fe814ebb6fd3e"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "4503ed55994eb51ce0de272f0d6f6a106095783fd2f25ac8113cd91b76e2f603"
     },
     {
       "failure_mode": "single-host-restart",
@@ -7255,38 +7352,6 @@
         "smoke_receipt_sha256"
       ],
       "coverage_id": "daedf7fe8274c75355e433ea5289d93372e9e357cd55f4ea850e81bae4b06c2a"
-    },
-    {
-      "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/qwen3-8-27b-vllm-single",
-      "members": [
-        {
-          "recipe": "vonk-forge/qwen3-8-27b-vllm-single",
-          "recipe_content_sha256": "79dd365e2bfc97559a189b253e420fef545f0c5944e69f371a68de543644283d",
-          "package_sha256": "d5d225bbfef2194d18a4ec626da3fbb4accc07232e553f87ffbc108d63d91388",
-          "model_content_sha256s": [
-            "a06e2046c6f4dc53de2647431ba47e469caa4863c7ffbb7713b44dbfb852caea"
-          ],
-          "runtime_stack_sha256": "a5b1c42ad41adc1256e8c3b003221c3c65d7b8d429370ddb0d96ca3c177e0820",
-          "topology_sha256": "50b83ea936ebba597793b28c8c76d99791dba0640f4bc098378d47219ff06946"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "7a26c3feb87b0587db39b0586babe7fc17eadc08cf200ca3bd343b446287b640"
     },
     {
       "failure_mode": "single-host-restart",
@@ -7577,6 +7642,38 @@
         "smoke_receipt_sha256"
       ],
       "coverage_id": "9be3f2966a553be745ca996fd23ded1b27749724817e0061a2e7b7222cd999f4"
+    },
+    {
+      "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/ltx-2-5-22b-distilled-bf16-diffusers-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/ltx-2-5-22b-distilled-bf16-diffusers-single",
+          "recipe_content_sha256": "6f9694eb6a5ff4eb1b898d6f7b5ff1157f623e0089c8e624b8289d8b6684456a",
+          "package_sha256": "1e62729937bb0670e367af93b9ad6c58248736280d6591d1c1ae3c812814a5ac",
+          "model_content_sha256s": [
+            "758426bfab8f18020222df86fb395d9cb8cbacfeb7b0e7105c990fd75a21812a"
+          ],
+          "runtime_stack_sha256": "cc4b0f4684654c5c4c7d9f540a87d6b9310961208cd5054ba96b6b8ab45267ee",
+          "topology_sha256": "d3b484fefa14d1adf1f4f193289825244bd5ee9da42342b9cc0a394119bd003d"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "invalidated_by": [
+        "recipe_content_sha256",
+        "package_sha256",
+        "model_content_sha256s",
+        "runtime_stack_sha256",
+        "topology_sha256",
+        "coverage_membership",
+        "runtime_image_digest",
+        "platform_build_sha256",
+        "agent_build_sha256",
+        "target_node_ids",
+        "smoke_receipt_sha256"
+      ],
+      "coverage_id": "0b55f77341493cb6a17b79407aaca59d44df96893c85f594da38b7b6b119d2f0"
     },
     {
       "failure_mode": "single-host-restart",
@@ -7871,70 +7968,6 @@
     },
     {
       "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-mia-sparkinfer-single",
-      "members": [
-        {
-          "recipe": "vonk-forge/deepseek-v4-flash-0731-mia-sparkinfer-single",
-          "recipe_content_sha256": "ce71403841584a2bc5b8e34f4763ff3f2528b6174ab1e78e6d95fc2bd622a3ad",
-          "package_sha256": "65d5af83fbf99b81ba028c20a05666234e284fa46ae33ec8f07dfafb7f64b255",
-          "model_content_sha256s": [
-            "613962daa428589a2d0a364582ca94d4ecb6ecaa73224354d4778c8efb12dc30"
-          ],
-          "runtime_stack_sha256": "e73555ad9aca0a5c848e29bf22ff8c93330ad0cae24ee7749c386cac8e7044c8",
-          "topology_sha256": "2efe2ddb2096fd2e48f6520067bf10b5272ddd702b4817855b396072b1d522c7"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "fedb188dbd16708497581bf62a17bd597a306969917e5e269387843ead3f38b7"
-    },
-    {
-      "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/qwen3-8-27b-fp8-vllm-single",
-      "members": [
-        {
-          "recipe": "vonk-forge/qwen3-8-27b-fp8-vllm-single",
-          "recipe_content_sha256": "5c76bd4e2c88912372d1b9162cbceeeaa4d9c55e36d983859e6380c8864baeed",
-          "package_sha256": "3fcfff93b1e0cbc36f519d9fb7b1a23f7ad12220ab918cf7944c7bddf8c262e4",
-          "model_content_sha256s": [
-            "40229ea3ca056ff024a38782a3ca201a7404e0ad2f869709798795a646449532"
-          ],
-          "runtime_stack_sha256": "e93f81a32f62a1841a36adb0bdbf0935cb0005be6d95ee3cc72fd7c230dd64db",
-          "topology_sha256": "72f893bd42106f94db22f3ea020353e5042a7dd4745b8529a39aeb71937057c2"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "0e0d4aa0f81a028a46c9b99ecf6c8166fbc1368498f667dcc9f4785ad9c13df1"
-    },
-    {
-      "failure_mode": "single-host-restart",
       "representative_recipe": "vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-single",
       "members": [
         {
@@ -7964,39 +7997,6 @@
         "smoke_receipt_sha256"
       ],
       "coverage_id": "e50213bb3da4e41390ef6ab4f46e166c78d70429cf600b71e7b9e295ce97cac5"
-    },
-    {
-      "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single",
-      "members": [
-        {
-          "recipe": "vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single",
-          "recipe_content_sha256": "c9a73baf25f23af63f3d9558debb18c6b1278d2136795e2f4d1df5f32b4067db",
-          "package_sha256": "a62f75dc4af6734a5470a53c60fe24b23740d7113d068dc5edc90fd224f48788",
-          "model_content_sha256s": [
-            "29b9d51b0a6dde0c2acae929c6d2a5651d19fb8a7572915f4c096e3b5bc5329b",
-            "4091ffe98645f39f163c52efe1228f5385970df1d631df050eea1628b6721888"
-          ],
-          "runtime_stack_sha256": "f7b5ce6e2fb4fe454a1c757e45119bda7f165d8c4897ab0bf6ebaa73e16a5a7b",
-          "topology_sha256": "3d794e62f9ae35b98b485335625e26d1c51720174968aad8ca45eeea93b73d38"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "invalidated_by": [
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256"
-      ],
-      "coverage_id": "8eae8cb0b9413e9eb2a8516eb1e4e347483e02ea9240ee3d58be90df4200fcc9"
     },
     {
       "failure_mode": "single-host-restart",

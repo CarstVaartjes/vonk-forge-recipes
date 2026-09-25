@@ -14,6 +14,9 @@ from typing import Any, cast
 import pytest
 from vonk_forge_contracts import RecipeDefinition, content_sha256
 
+from qualification.catalog_source import pinned_catalog_package_tree, pinned_git_blob
+from qualification.coverage_identity import execution_stack_identity
+
 ROOT = Path(__file__).resolve().parents[1]
 QUALIFICATION_ROOT = ROOT / "qualification"
 PLAN_PATH = ROOT / "docs/recipe-qualification-plan-2026-09-24.md"
@@ -452,6 +455,72 @@ def test_batched_authority_binds_every_recipe_with_at_most_two_nodes() -> None:
     assert not (QUALIFICATION_ROOT / "campaigns/nl-single-spark-7173cb48.json").exists()
     assert not (QUALIFICATION_ROOT / "authorities/nl-sequential-2c118a99.json").exists()
     assert not (QUALIFICATION_ROOT / "campaigns/nl-sequential-2c118a99.json").exists()
+
+
+def test_published_stack_identity_uses_exact_package_not_stale_source_commit() -> None:
+    """The release-bound package, not its stale source pointer, owns source bytes."""
+
+    # Keep the reproducer on the release with the stale pointer; the active
+    # campaign pin must be free to advance to corrected future releases.
+    catalog_commit = "7b23f1a1569e16f8f2728ddd6846cf4f7c58f0f7"
+    catalog = json.loads(_git_blob(catalog_commit, "catalog-index.json"))
+    source_commit = catalog["source_commit"]
+    assert isinstance(source_commit, str)
+    entry = next(
+        item
+        for item in catalog["recipes"]
+        if item["document"]["identity"]["slug"]
+        == "ltx-2-19b-distilled-diffusers-single"
+    )
+    recipe = RecipeDefinition.model_validate(entry["document"])
+    assert recipe.execution.mode == "build"
+    model_documents: dict[str, dict[str, Any]] = {}
+    for entity in catalog["catalog_entities"]:
+        document = entity["document"]
+        if document.get("kind") == "model":
+            identity = document["identity"]
+            key = f"{identity['publisher']}/{identity['slug']}"
+            model_documents[key] = document
+
+    with pinned_catalog_package_tree(
+        ROOT, catalog_commit, entry["package"], recipe, model_documents
+    ) as package_root:
+        package_wheel = (
+            package_root
+            / "adapters/video/ltx2-sync-native/vonk_agent_protocol-3.0.0-py3-none-any.whl"
+        )
+        package_wheel_bytes = package_wheel.read_bytes()
+        assert hashlib.sha256(package_wheel_bytes).hexdigest() == (
+            "519484690b626f03e27efabad787ad1040a7d527404f2dd4faa3e2d84c40d116"
+        )
+        package_identity = execution_stack_identity(
+            package_root, recipe, recipe.execution.build
+        )
+
+    stale_source_wheel = pinned_git_blob(
+        ROOT,
+        source_commit,
+        "adapters/video/ltx2-sync-native/vonk_agent_protocol-2.2.0-py3-none-any.whl",
+    )
+    assert hashlib.sha256(stale_source_wheel).hexdigest() == (
+        "7555df9ec0f576ac0530d1e6abdd2f3845614cf397a7bc2c8dcd01bc86967565"
+    )
+    assert stale_source_wheel != package_wheel_bytes
+
+    key = "vonk-forge/ltx-2-19b-distilled-diffusers-single"
+    generated = AUTHORITY_TOOL["_pinned_stack_identities"](
+        catalog_commit, {key: entry}, model_documents
+    )
+    assert generated[key] == package_identity
+
+    mismatched_package = {**entry["package"], "sha256": "0" * 64}
+    with (
+        pytest.raises(ValueError, match="package digest differs"),
+        pinned_catalog_package_tree(
+            ROOT, catalog_commit, mismatched_package, recipe, model_documents
+        ),
+    ):
+        pass
 
 
 def _authority_document() -> dict[str, Any]:

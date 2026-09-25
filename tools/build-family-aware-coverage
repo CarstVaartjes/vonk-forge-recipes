@@ -8,6 +8,7 @@ owns:
 
 * ``catalog-index.json`` - the producer index and its content/package digests;
 * ``recipes/*.json`` and ``models/*.json`` - the authored contract documents;
+* ``packages/*.tar.gz`` - the current indexed packages and their build closures;
 * ``qualification/authorities/nl-family-aware-20260924.json`` - the current
   paired authority, its per-row gates and its smoke/fixture references.
 
@@ -37,7 +38,11 @@ from vonk_forge_contracts import (
 from vonk_forge_contracts.qualification_authority import QualificationAuthority
 from vonk_forge_contracts.recipe import RecipeBuildDefinition
 
-from qualification.catalog_source import pinned_catalog_source_tree
+from qualification.catalog_source import (
+    current_catalog_package_tree,
+    pinned_catalog_package_tree,
+    pinned_git_blob,
+)
 from qualification.coverage_identity import execution_stack_identity
 
 CATALOG_PATH = ROOT / "catalog-index.json"
@@ -136,6 +141,7 @@ def _indexed_recipes() -> dict[str, dict[str, Any]]:
         indexed[key] = {
             "recipe": recipe,
             "content_sha256": digest,
+            "package": package,
             "package_path": package.get("path"),
             "package_sha256": package.get("sha256"),
         }
@@ -282,7 +288,7 @@ def _row(
     models: dict[str, ModelDefinition],
     authority: dict[str, Any],
     stack_identity: dict[str, Any],
-    authored_tree_stack_identity: dict[str, Any],
+    current_package_stack_identity: dict[str, Any],
     batch_by_recipe: dict[str, tuple[str, int, str]],
     recovery_by_recipe: dict[str, list[dict[str, Any]]],
 ) -> dict[str, Any]:
@@ -347,16 +353,16 @@ def _row(
         "stack_id": stack_identity["runtime_stack_sha256"][:16],
         "runtime_stack_sha256": stack_identity["runtime_stack_sha256"],
         "topology_sha256": stack_identity["topology_sha256"],
-        "authored_tree_stack_sha256": authored_tree_stack_identity[
+        "current_package_stack_sha256": current_package_stack_identity[
             "runtime_stack_sha256"
         ],
-        "authored_tree_build_source_sha256": authored_tree_stack_identity[
+        "current_package_build_source_sha256": current_package_stack_identity[
             "build_source_sha256"
         ],
         "published_build_source_sha256": stack_identity["build_source_sha256"],
         "published_build_source_file_count": stack_identity["build_source_file_count"],
-        "authored_tree_matches_published": (
-            authored_tree_stack_identity["runtime_stack_sha256"]
+        "current_package_stack_matches_accepted": (
+            current_package_stack_identity["runtime_stack_sha256"]
             == stack_identity["runtime_stack_sha256"]
         ),
         "topology": {
@@ -443,8 +449,8 @@ def _row(
         divergences.append("published runtime stack")
     if binding["topology_sha256"] != row["topology_sha256"]:
         divergences.append("published topology")
-    if not row["authored_tree_matches_published"]:
-        divergences.append("authored build source")
+    if not row["current_package_stack_matches_accepted"]:
+        divergences.append("current indexed package stack")
     if recipe.topology.node_count != authority_row["node_count"]:
         divergences.append("topology node count")
     if divergences:
@@ -453,8 +459,10 @@ def _row(
             "bound_content_sha256": binding["content_sha256"],
             "bound_package_sha256": binding["package_sha256"],
             "bound_runtime_stack_sha256": binding["runtime_stack_sha256"],
-            "current_runtime_stack_sha256": row["runtime_stack_sha256"],
-            "reason": "authored source differs from published in: "
+            "current_runtime_stack_sha256": current_package_stack_identity[
+                "runtime_stack_sha256"
+            ],
+            "reason": "current indexed recipe stack differs from accepted in: "
             + ", ".join(divergences),
         }
     return row
@@ -655,17 +663,85 @@ def _build() -> dict[Path, bytes]:
         raise ValueError("authority scope does not match the in-scope node bound")
 
     ordered_metadata = sorted(indexed.items(), key=lambda item: item[0])
-    recipes = [metadata["recipe"] for _, metadata in ordered_metadata]
-    source_commit = authority["catalog"]["source_commit"]
+    catalog_commit = authority["catalog"]["commit"]
+    if not isinstance(catalog_commit, str):
+        raise TypeError("authority catalog commit is malformed")
+    pinned_catalog_bytes = pinned_git_blob(ROOT, catalog_commit, "catalog-index.json")
+    if hashlib.sha256(pinned_catalog_bytes).hexdigest() != authority["catalog"].get(
+        "catalog_index_sha256"
+    ):
+        raise ValueError("pinned catalog bytes disagree with the authority digest")
+    pinned_catalog = _require_object(
+        json.loads(pinned_catalog_bytes.decode("utf-8")), "pinned catalog-index.json"
+    )
+    pinned_entries = pinned_catalog.get("recipes")
+    pinned_entities = pinned_catalog.get("catalog_entities")
+    if not isinstance(pinned_entries, list) or not isinstance(pinned_entities, list):
+        raise TypeError("pinned catalog is missing recipes or catalog entities")
+    pinned_recipes: dict[str, dict[str, Any]] = {}
+    for entry in pinned_entries:
+        if not isinstance(entry, dict) or not isinstance(entry.get("document"), dict):
+            raise TypeError("pinned catalog recipe entry is malformed")
+        published_recipe = RecipeDefinition.model_validate(entry["document"])
+        key = _recipe_key(published_recipe)
+        if key in pinned_recipes:
+            raise ValueError(f"pinned catalog contains duplicate recipe key: {key}")
+        pinned_recipes[key] = entry
+    if set(pinned_recipes) != set(indexed):
+        raise ValueError("pinned catalog recipe inventory disagrees with the matrix")
+
+    published_models: dict[str, dict[str, Any]] = {}
+    for entity in pinned_entities:
+        if not isinstance(entity, dict) or not isinstance(entity.get("document"), dict):
+            raise TypeError("pinned catalog entity is malformed")
+        document = entity["document"]
+        if document.get("kind") != "model":
+            continue
+        identity = document.get("identity")
+        if not isinstance(identity, dict):
+            raise TypeError("pinned catalog Model identity is malformed")
+        publisher = identity.get("publisher")
+        slug = identity.get("slug")
+        if not isinstance(publisher, str) or not isinstance(slug, str):
+            raise TypeError("pinned catalog Model identity is malformed")
+        key = f"{publisher}/{slug}"
+        if key in published_models:
+            raise ValueError(f"pinned catalog Model identity is duplicated: {key}")
+        published_models[key] = document
+
     stack_identities: dict[str, dict[str, Any]] = {}
-    authored_tree_identities: dict[str, dict[str, Any]] = {}
-    with pinned_catalog_source_tree(ROOT, source_commit, recipes) as source_root:
-        for key, metadata in ordered_metadata:
-            recipe = metadata["recipe"]
-            build = _build_definition(recipe)
-            stack_identities[key] = execution_stack_identity(source_root, recipe, build)
-            authored_tree_identities[key] = execution_stack_identity(
-                ROOT, recipe, build
+    current_package_identities: dict[str, dict[str, Any]] = {}
+    current_model_documents = {
+        key: model.model_dump(mode="json", exclude_unset=False, exclude_none=False)
+        for key, model in models.items()
+    }
+    for key, metadata in ordered_metadata:
+        recipe = metadata["recipe"]
+        published_entry = pinned_recipes[key]
+        published_recipe = RecipeDefinition.model_validate(published_entry["document"])
+        package = published_entry.get("package")
+        if not isinstance(package, dict):
+            raise TypeError(f"pinned recipe package is missing: {key}")
+        if published_recipe.execution.mode != "build":
+            raise ValueError(f"qualification stack identity requires a build: {key}")
+        with pinned_catalog_package_tree(
+            ROOT,
+            catalog_commit,
+            package,
+            published_recipe,
+            published_models,
+        ) as package_root:
+            stack_identities[key] = execution_stack_identity(
+                package_root, published_recipe, published_recipe.execution.build
+            )
+        current_package = metadata["package"]
+        if not isinstance(current_package, dict):
+            raise TypeError(f"current indexed package is malformed: {key}")
+        with current_catalog_package_tree(
+            ROOT, current_package, recipe, current_model_documents
+        ) as current_package_root:
+            current_package_identities[key] = execution_stack_identity(
+                current_package_root, recipe, _build_definition(recipe)
             )
 
     batch_lookup: dict[str, tuple[str, int, str]] = {}
@@ -690,7 +766,7 @@ def _build() -> dict[Path, bytes]:
             models,
             authority,
             stack_identities[key],
-            authored_tree_identities[key],
+            current_package_identities[key],
             batch_lookup,
             recovery_lookup,
         )
@@ -829,7 +905,7 @@ def _render_report(matrix: dict[str, Any]) -> str:
             f"{matrix['catalog']['recipe_count']} recipe documents |"
         ),
         f"| Catalog release | {matrix['catalog']['bound_release_tag']} at `{matrix['catalog']['bound_catalog_commit']}` |",
-        f"| Catalog source commit | `{matrix['catalog']['source_commit']}` |",
+        f"| Catalog source_commit metadata | `{matrix['catalog']['source_commit']}` |",
         f"| Qualification authority | `{matrix['catalog']['authority_id']}` |",
         (
             f"| Scope | {matrix['catalog']['in_scope_recipe_count']} recipes within "
@@ -843,12 +919,21 @@ def _render_report(matrix: dict[str, Any]) -> str:
         (
             "Every recipe and Model document is validated through the canonical "
             "contract; its content digest must match both the producer index and the "
-            "authored tree document."
+            "authored tree document. The current indexed package is checked against "
+            "its declared size and SHA-256, then validated through the canonical "
+            "package validator. Authored-source consistency remains the "
+            "`tools/build-catalog-index --check` gate."
         ),
         (
             "`runtime_stack_sha256` binds the full runtime/build contract and the "
-            "bytes of every regular file in its build context, Dockerfile and patches "
-            "at the accepted catalog source commit."
+            "bytes/modes of every selected regular file in the digest-verified recipe "
+            "package at the accepted catalog commit."
+        ),
+        (
+            "The catalog `source_commit` is provenance metadata, not the source-byte "
+            "authority. Published identities use each package blob pinned by the "
+            "catalog commit; current indexed package identities use the local package "
+            "after its size, digest and canonical closure validate."
         ),
         (
             "Specialized forks stay distinct from generic engine evidence. Every "
@@ -894,7 +979,7 @@ def _render_report(matrix: dict[str, Any]) -> str:
                 "identity."
             ),
             "",
-            "| Seq | Recipe | Nodes | Group | Engine | Base image | Build context | Families | Quantization | Artifacts | Rep | Batch/lane | Authored source matches published |",
+            "| Seq | Recipe | Nodes | Group | Engine | Base image | Build context | Families | Quantization | Artifacts | Rep | Batch/lane | Current package stack matches accepted |",
             "|---:|---|---:|---|---|---|---|---|---|---:|---|---|---|",
         ]
     )
@@ -920,7 +1005,7 @@ def _render_report(matrix: dict[str, Any]) -> str:
             f"`{row['stack']['build_context']}` | {_row_group(row)} | "
             f"{', '.join(row['quantizations'])} | {_gib(row['declared_artifact_bytes'])} | "
             f"{representative} | {batch_label} | "
-            f"{'yes' if row['authored_tree_matches_published'] else 'no'} |"
+            f"{'yes' if row['current_package_stack_matches_accepted'] else 'no'} |"
         )
 
     lines.extend(
@@ -1020,9 +1105,10 @@ def _render_report(matrix: dict[str, Any]) -> str:
     divergences = [
         row
         for row in rows
-        if row["authority_divergence"] or not row["authored_tree_matches_published"]
+        if row["authority_divergence"]
+        or not row["current_package_stack_matches_accepted"]
     ]
-    lines.extend(["", "## Published source comparison", ""])
+    lines.extend(["", "## Indexed package comparison", ""])
     catalog_binding = matrix["catalog"]
     if catalog_binding["catalog_binding_current"]:
         lines.append("The working catalog index matches the accepted release index.")
@@ -1038,9 +1124,9 @@ def _render_report(matrix: dict[str, Any]) -> str:
     if divergences:
         lines.extend(
             [
-                "The following rows differ from the accepted recipe or build-source identity.",
+                "The following rows differ between the current indexed package stack and the accepted recipe identity.",
                 "",
-                "| Recipe | Difference | Published stack | Working stack |",
+                "| Recipe | Difference | Accepted stack | Current package stack |",
                 "|---|---|---|---|",
             ]
         )
@@ -1048,16 +1134,16 @@ def _render_report(matrix: dict[str, Any]) -> str:
             reason = (
                 row["authority_divergence"]["reason"]
                 if row["authority_divergence"]
-                else "authored-tree build source differs from published bytes"
+                else "current indexed package stack differs from accepted bytes"
             )
             lines.append(
                 f"| `{row['key']}` | {reason} | "
                 f"`{row['runtime_stack_sha256'][:16]}` | "
-                f"`{row['authored_tree_stack_sha256'][:16]}` |"
+                f"`{row['current_package_stack_sha256'][:16]}` |"
             )
     else:
         lines.append(
-            "Every row's working build-source bytes match the accepted source commit."
+            "Every current indexed package build stack matches its accepted runtime-stack identity."
         )
 
     lines.extend(
