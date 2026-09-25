@@ -3,10 +3,10 @@
   "authority_id": "nl-family-aware-20260924",
   "catalog": {
     "repository": "CarstVaartjes/vonk-forge-recipes",
-    "commit": "7b23f1a1569e16f8f2728ddd6846cf4f7c58f0f7",
-    "release_tag": "v1.0.16",
-    "source_commit": "a0ffd8735270c35b0c99b5b04cfe8956ce8c351d",
-    "catalog_index_sha256": "cb9626b2b8c1a07a9a926b005313eb92bf071cb572bbd2c2ac9236b55a1a618b",
+    "commit": "efbbba29bd4c706c73d295d24047787be3f36d78",
+    "release_tag": "v1.0.17",
+    "source_commit": "7b4ef279d4e531e51408ad08c11efd80483912e5",
+    "catalog_index_sha256": "400bc65b6a723e0ce674e0c0e604893b52bfb0c1168fd1a095aef48098e29f5c",
     "qualification_index_sha256": "e30d9d4f3b679a18d0f11a13235ad1fcc926a867bb782e69b627a51d59556f39",
     "recipe_count": 85
   },

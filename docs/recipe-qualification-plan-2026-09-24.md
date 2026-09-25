@@ -247,9 +247,9 @@ deployment and Fleet state; earlier observations are not current evidence.
 
 The current authority is
 `qualification/authorities/nl-family-aware-20260924.json`. It binds the
-85-recipe v1.0.16 catalog from tag `v1.0.16` (catalog commit
-`7b23f1a1569e16f8f2728ddd6846cf4f7c58f0f7`, source commit
-`a0ffd8735270c35b0c99b5b04cfe8956ce8c351d`), assigns 72 single-Spark recipes
+85-recipe v1.0.17 catalog from tag `v1.0.17` (catalog commit
+`efbbba29bd4c706c73d295d24047787be3f36d78`, source commit
+`7b4ef279d4e531e51408ad08c11efd80483912e5`), assigns 72 single-Spark recipes
 to 36 paired batches and schedules nine dual-Spark recipes exclusively. It
 contains 90 recipe-specific recovery definitions; no recovery group is shared
 in this release. The four recipes requiring more than two Sparks remain
@@ -257,7 +257,10 @@ explicit exclusions. Operator acceptance and capacity review remain row-level
 gates, and territorial license notices are informational. Refresh authority
 and coverage only after the exact new catalog and packages have been accepted;
 the generators read the accepted catalog pin and record current indexed-package-
-versus-accepted stack divergences until then.
+versus-accepted stack divergences until then. Recipe PR #124 merged the typed
+contracts and generators; release workflow `36078172793` published v1.0.17 on
+2026-09-25 at 00:37 UTC. This closes recipe publication, not platform runner
+deployment or physical qualification.
 
 The v1.0.16 catalog's `source_commit` metadata points to `a0ffd873…`, whose LTX
 2.19B build context contains protocol wheel 2.2.0 (SHA-256
