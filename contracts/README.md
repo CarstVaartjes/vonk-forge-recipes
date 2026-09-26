@@ -10,12 +10,12 @@ The schema describes the structure. Adding a family, model, version or quantizat
 
 - A unique record identity, with family and logical model information for grouping, plus version and variant labels.
 - Modalities, format, precision and quantization; parameter counts and applicable limits when known.
-- Source repository and immutable revision, license and provenance.
+- Source identity, license and provenance. Git-backed sources bind an immutable revision; a GitHub release source binds a release ID and the asset IDs for the files below.
 - Access requirements, without credentials; official, derived or quantized lineage; exact companion Model references and an optional superseded Model reference.
 - A canonical file manifest: file ID, relative path, SHA-256, exact byte length and purpose such as weights or tokenizer.
 - Capability facts with their evidence status. Unknown support remains unknown. Capability evidence can come from a different source or revision than the weights.
 
-The file manifest is the only source for file hashes and byte lengths. Download/cache totals are computed from it, including content deduplication. Recipes do not repeat these facts.
+The file manifest is the only source for file hashes and byte lengths. Download/cache totals are computed from it, including content deduplication. Recipes do not repeat these facts. A GitHub release locator names only the public release and asset; this source branch uses anonymous access and does not accept provider credentials. It does not replace the file's SHA-256 or byte length.
 
 License terms, including territorial restrictions, are information for the user. They do not require Controller location settings or block downloads and runs. A provider may still require the user's account to have access and a token stored in Controller secrets.
 

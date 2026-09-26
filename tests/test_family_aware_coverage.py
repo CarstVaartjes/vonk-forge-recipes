@@ -10,13 +10,14 @@ of its own risk group.
 from __future__ import annotations
 
 import json
+import runpy
 import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
-from vonk_forge_contracts import RecipeDefinition
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
 from qualification.coverage_identity import execution_stack_identity
 
@@ -62,6 +63,28 @@ def test_committed_matrix_matches_the_derivation() -> None:
     )
     assert result.returncode == 0, result.stderr
     assert REPORT_PATH.exists()
+
+
+def test_coverage_source_projection_keeps_release_identity_out_of_commit_field() -> (
+    None
+):
+    example_path = (
+        ROOT / "contracts/src/vonk_forge_contracts/examples/model-definition.json"
+    )
+    document = json.loads(example_path.read_text(encoding="utf-8"))
+    document["source"] = {
+        "provider": "github-release",
+        "repository": "https://github.com/valeoai/NAF",
+        "release_id": 264676230,
+        "assets": [{"file_id": document["files"][0]["id"], "asset_id": 320107386}],
+    }
+    model = ModelDefinition.model_validate(document)
+    tool = runpy.run_path(str(ROOT / TOOL))
+
+    assert tool["_model_source_projection"](model) == (
+        "https://github.com/valeoai/NAF",
+        "github-release:264676230",
+    )
 
 
 def test_every_catalog_recipe_appears_once_with_its_topology() -> None:

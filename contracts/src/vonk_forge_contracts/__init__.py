@@ -10,7 +10,7 @@ authority.
 from __future__ import annotations
 
 from .canonical import content_sha256
-from .model import ModelDefinition
+from .model import GitHubReleaseAsset, GitHubReleaseSource, ModelDefinition
 from .qualification_authority import (
     QualificationAuthority,
     QualificationBatch,
@@ -43,6 +43,8 @@ __version__ = "0.1.0"
 CONTRACT_VERSION = 2
 
 __all__ = [
+    "GitHubReleaseAsset",
+    "GitHubReleaseSource",
     "ModelDefinition",
     "QualificationAuthority",
     "QualificationBatch",

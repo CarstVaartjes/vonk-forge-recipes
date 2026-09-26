@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256
+from vonk_forge_contracts.model import ModelSource
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL_RECIPE_PAIRS = {
@@ -32,6 +33,7 @@ class ExplicitHuggingFaceManifestTests(unittest.TestCase):
                     path.read_text(encoding="utf-8")
                 )
                 self.assertEqual(model.identity.slug, path.stem)
+                assert isinstance(model.source, ModelSource)
                 self.assertNotIn("snapshot", {item.path for item in model.files})
                 readme = next(item for item in model.files if item.path == "README.md")
                 evidence_url = (
