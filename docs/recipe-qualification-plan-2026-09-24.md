@@ -7,6 +7,29 @@ dual-Qwen preparation path, and selected DeepSeek/GLM dual-runtime backports.
 It deliberately keeps source review, repository validation, publication,
 Controller deployment, and physical Spark acceptance as separate evidence gates.
 
+## Execution checkpoint — 2026-09-26
+
+Platform PR #912 merged as `1b685415695d79dadf4d418a48844bc81bc1e6a5`, and the
+deployed Controller runs accepted signed generation
+`f8081e89e13c9e52c9e3ea39095c3d55355e4b0098824494a286f9c8f18a47f7`. The latest
+live profile 1 attempt for Mia GLM 5.3 failed during persisted application review
+because the reviewed digest was inconsistent. Current serving and physical
+acceptance have not been proven.
+
+Platform [PR #913](https://github.com/CarstVaartjes/vonk-forge/pull/913) remains
+open at head `638c4828460979fa7bd2a3b1fdc2348f7852c2b7`. Its initial CI passed;
+further implementation and review are ongoing, and it is not merged or deployed.
+Recovery must persist and resume requests after a crash, preserve the reviewed
+plan and application digests, fence late outcomes so newer overlapping intent
+supersedes older retries, bound heartbeat-contention retries, recheck authority
+before effects, schedule due retries fairly, and detect constraint drift at
+startup with its cause visible. The initial 116 relevant tests passed before
+later edits; those edits still need combined validation.
+
+The dated cache and health observations below remain historical evidence. Reuse
+model and recipe-image artifacts by their exact bound identities; a changed
+platform source SHA alone does not invalidate those artifacts.
+
 ## Upstream audit outcome
 
 The live audit checked 178 watched model and recipe sources at
@@ -157,10 +180,6 @@ conditions.
   This verifies the identity boundary only. No physical inference or recovery
   receipt is implied, and the Controller's own publication boundary remains
   unknown.
-- [ ] Execute and record the campaign's exact-identity physical recovery work.
-  No physical fault/restart has been injected and no current recovery receipt
-  exists. Keep the receipt count at zero until a real physical result is
-  captured.
 - [x] Complete the initial signed publication and Controller/CLI deployment
   for platform PR #893, and review the authority bound to recipe release
   v1.0.17. Publication run `36090614107` accepted generation
@@ -168,10 +187,24 @@ conditions.
   `4c8cf45540bca1f32c6c9b1b963c68783aa644bb`; deployment completed on 2026-09-25
   at 03:45 UTC. This is the prior baseline and does not complete physical
   qualification.
-- [ ] Reconcile earlier GLM receipts against current identities, then run ready
-  representative batches and variants; schedule dual-Spark work exclusively.
-  The latest cache scan is recorded in the report. Current-identity inference
-  remains unproven; provider and capacity blockers remain.
+- [x] Complete platform PR #912 publication and deployment. It merged as
+  `1b685415695d79dadf4d418a48844bc81bc1e6a5`; accepted generation
+  `f8081e89e13c9e52c9e3ea39095c3d55355e4b0098824494a286f9c8f18a47f7` is live.
+  The profile 1 Mia GLM 5.3 application review failure remains unresolved and
+  this deployment does not prove serving or physical acceptance.
+- [ ] Finish combined regression and review for platform PR #913 against the
+  recovery requirements above. The PR is open at
+  `638c4828460979fa7bd2a3b1fdc2348f7852c2b7`; initial CI was green, but later
+  edits remain unvalidated. Keep recovery open until the current combined
+  changes pass review and validation.
+- [ ] Merge PR #913, verify its accepted publication, and deploy it before
+  retrying profile 1. Create a fresh reviewed application for Mia GLM 5.3 and
+  verify the exact reviewed digest is accepted and the workload loads.
+- [ ] Record exact-identity physical recovery proof for profile 1 after the
+  fresh load. Then reconcile historical GLM receipts against current recipe,
+  model, image, topology and platform evidence; resume representative batches
+  and variants, with paired single-Spark lanes and exclusive dual-Spark work.
+  Reuse completed cache work when its exact artifact identity matches.
 - [ ] Produce the final per-recipe report after physical execution. The current
   snapshot at `qualification/reports/recipe-evidence-inventory-2026-09-25.md`
   and its JSON companion separate source freshness, structural validation,
@@ -185,7 +218,11 @@ run focused regression checks during iteration and the required combined gates
 before release. Refresh campaign authority after relevant artifacts settle,
 not after every intermediate failed build.
 
-## Execution status snapshot — 2026-09-25
+## Historical execution status snapshot — 2026-09-25
+
+The live cache, Fleet, node, fit, and health observations in this snapshot are
+dated evidence from 2026-09-25. Refresh them before making current admission or
+readiness decisions.
 
 The accepted recipe release remains v1.0.17
 (`efbbba29bd4c706c73d295d24047787be3f36d78`); recipe `main` includes the prior
@@ -410,7 +447,7 @@ wheel 3.0.0. Recipe release v1.0.17 corrected the catalog source pointer to
 to bind the selected regular-file bytes in the exact catalog-pinned package;
 the `source_commit` field alone does not establish those bytes.
 
-Step1X geometry 1.2.15 has exact post-deployment cache evidence. Its detail at
+Historical cache evidence for Step1X geometry 1.2.15 is exact. Its detail at
 `2026-09-25T03:48:58.288046Z` reports the recipe cache ready and fit allowed
 only on Spark 2297. A normal `force=false` preparation completed at
 `03:49:48.966382Z`, returned image digest
