@@ -7,24 +7,26 @@ dual-Qwen preparation path, and selected DeepSeek/GLM dual-runtime backports.
 It deliberately keeps source review, repository validation, publication,
 Controller deployment, and physical Spark acceptance as separate evidence gates.
 
-## Execution checkpoint — 2026-09-26
+## Execution checkpoint — 2026-09-27
 
-Platform PR #912 merged as `1b685415695d79dadf4d418a48844bc81bc1e6a5`, and the
-deployed Controller runs accepted signed generation
-`f8081e89e13c9e52c9e3ea39095c3d55355e4b0098824494a286f9c8f18a47f7`. The latest
-live profile 1 attempt for Mia GLM 5.3 failed during persisted application review
-because the reviewed digest was inconsistent. Current serving and physical
-acceptance have not been proven.
+Platform PR #912 remains the deployed baseline: accepted signed generation
+`f8081e89e13c9e52c9e3ea39095c3d55355e4b0098824494a286f9c8f18a47f7`. Platform
+[PR #913](https://github.com/CarstVaartjes/vonk-forge/pull/913) merged as
+`03b2d6cddbf2a13c922ed15c5e65a0322766afed`, with final head
+`e326429f7f884167f43cd04ac192be9ed9177da1`. Required CI run `36275927334`
+succeeded. The affected real-PostgreSQL profile suite passed 272 tests with no
+failures or skips; the final typed pair and same-key cases also passed (2/2).
+This completes the source and CI gates.
 
-Platform [PR #913](https://github.com/CarstVaartjes/vonk-forge/pull/913) remains
-open at head `638c4828460979fa7bd2a3b1fdc2348f7852c2b7`. Its initial CI passed;
-further implementation and review are ongoing, and it is not merged or deployed.
-Recovery must persist and resume requests after a crash, preserve the reviewed
-plan and application digests, fence late outcomes so newer overlapping intent
-supersedes older retries, bound heartbeat-contention retries, recheck authority
-before effects, schedule due retries fairly, and detect constraint drift at
-startup with its cause visible. The initial 116 relevant tests passed before
-later edits; those edits still need combined validation.
+The signed development channel still points to PR #912's generation. The PR #913
+development-image run `36276218398` is in progress, so publication acceptance,
+deployment, and physical qualification remain pending. Its recovery scope covers
+crash resume, reviewed-digest preservation, stale-outcome fencing and newer
+intent supersession, bounded heartbeat-contention retries, authority rechecks,
+fair due scheduling, and startup detection with visible constraint-drift cause.
+The last live profile 1 attempt for Mia GLM 5.3 failed during persisted
+application review because the reviewed digest was inconsistent; current
+serving and physical acceptance have not been proven.
 
 The dated cache and health observations below remain historical evidence. Reuse
 model and recipe-image artifacts by their exact bound identities; a changed
@@ -192,14 +194,13 @@ conditions.
   `f8081e89e13c9e52c9e3ea39095c3d55355e4b0098824494a286f9c8f18a47f7` is live.
   The profile 1 Mia GLM 5.3 application review failure remains unresolved and
   this deployment does not prove serving or physical acceptance.
-- [ ] Finish combined regression and review for platform PR #913 against the
-  recovery requirements above. The PR is open at
-  `638c4828460979fa7bd2a3b1fdc2348f7852c2b7`; initial CI was green, but later
-  edits remain unvalidated. Keep recovery open until the current combined
-  changes pass review and validation.
-- [ ] Merge PR #913, verify its accepted publication, and deploy it before
-  retrying profile 1. Create a fresh reviewed application for Mia GLM 5.3 and
-  verify the exact reviewed digest is accepted and the workload loads.
+- [x] Merge platform PR #913 and complete its combined source/CI validation;
+  merge, final-head, and test evidence are recorded in the execution checkpoint
+  above.
+- [ ] Complete the accepted PR #913 development-image publication and deploy
+  it. Workflow run `36276218398` is in progress. Then create a fresh reviewed
+  application for Mia GLM 5.3 and verify the exact reviewed digest is accepted
+  and the workload loads.
 - [ ] Record exact-identity physical recovery proof for profile 1 after the
   fresh load. Then reconcile historical GLM receipts against current recipe,
   model, image, topology and platform evidence; resume representative batches
