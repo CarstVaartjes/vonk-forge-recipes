@@ -7,24 +7,40 @@ dual-Qwen preparation path, and selected DeepSeek/GLM dual-runtime backports.
 It deliberately keeps source review, repository validation, publication,
 Controller deployment, and physical Spark acceptance as separate evidence gates.
 
-## Execution checkpoint — 2026-09-26
+## Execution checkpoint — 2026-09-27
 
-Platform PR #912 merged as `1b685415695d79dadf4d418a48844bc81bc1e6a5`, and the
-deployed Controller runs accepted signed generation
-`f8081e89e13c9e52c9e3ea39095c3d55355e4b0098824494a286f9c8f18a47f7`. The latest
-live profile 1 attempt for Mia GLM 5.3 failed during persisted application review
-because the reviewed digest was inconsistent. Current serving and physical
-acceptance have not been proven.
+Platform [PR #913](https://github.com/CarstVaartjes/vonk-forge/pull/913) merged
+as `03b2d6cddbf2a13c922ed15c5e65a0322766afed`, with final head
+`e326429f7f884167f43cd04ac192be9ed9177da1`. Required CI run `36275927334`
+succeeded. The affected real-PostgreSQL profile suite passed 272 tests with no
+failures or skips; the final typed pair and same-key cases also passed (2/2).
+Development-image run `36276218398` and signed installer-acceptance run
+`36276601591` succeeded, accepting signed generation
+`a9fc4cf592dcf67f2ea0b54b1a8b1f4353835f8c135a70ca77609009f7a97629` for source
+`03b2d6cddbf2a13c922ed15c5e65a0322766afed`. PR #913's recovery scope includes
+crash resume, reviewed-digest preservation, fencing late outcomes so newer
+intent supersedes older retries, bounded heartbeat-contention retries,
+pre-effect authority rechecks, fair due scheduling, and startup constraint-drift
+detection with its cause visible.
 
-Platform [PR #913](https://github.com/CarstVaartjes/vonk-forge/pull/913) remains
-open at head `638c4828460979fa7bd2a3b1fdc2348f7852c2b7`. Its initial CI passed;
-further implementation and review are ongoing, and it is not merged or deployed.
-Recovery must persist and resume requests after a crash, preserve the reviewed
-plan and application digests, fence late outcomes so newer overlapping intent
-supersedes older retries, bound heartbeat-contention retries, recheck authority
-before effects, schedule due retries fairly, and detect constraint drift at
-startup with its cause visible. The initial 116 relevant tests passed before
-later edits; those edits still need combined validation.
+The approved NAS helper deployed that generation. All 11 services are healthy;
+only the API and worker containers were recreated. The environment file, secret
+files, and named-volume identities match before and after deployment. The
+captured Controller image digest is
+`sha256:25b83b51cb4b81f3340ba993a820c1a98f936342ecac8115e2863dbb82a27012`.
+
+Fresh structural, catalog, authority, and coverage checks passed for all 85
+recipes using platform source `03b2d6cddbf2a13c922ed15c5e65a0322766afed` and
+recipe checkout `303eaf35e0e7949eb858d9e50b35aa3a4d7f2dc0`. The 81 recipes that
+require one or two Sparks remain in scope; the four wider topologies remain
+excluded from physical execution.
+
+A fresh profile 1 review for Mia GLM 5.3 allowed plan digest
+`361cf7d673838a2323ed74eb5cfbfa7d68743344a03fb2c01ab89567987988f4`. Application
+`3e865d60-acd6-405f-b2e5-7891772668d9`, request
+`17f0e0fb-de96-4a8b-88c4-817dff7ea6e3`, ordinal 79, was observed queued at
+`2026-09-26T22:45:12.931660Z`. This is dated queue evidence only; current load,
+serving, inference, and physical recovery remain unproven.
 
 The dated cache and health observations below remain historical evidence. Reuse
 model and recipe-image artifacts by their exact bound identities; a changed
@@ -189,22 +205,27 @@ conditions.
   qualification.
 - [x] Complete platform PR #912 publication and deployment. It merged as
   `1b685415695d79dadf4d418a48844bc81bc1e6a5`; accepted generation
-  `f8081e89e13c9e52c9e3ea39095c3d55355e4b0098824494a286f9c8f18a47f7` is live.
-  The profile 1 Mia GLM 5.3 application review failure remains unresolved and
-  this deployment does not prove serving or physical acceptance.
-- [ ] Finish combined regression and review for platform PR #913 against the
-  recovery requirements above. The PR is open at
-  `638c4828460979fa7bd2a3b1fdc2348f7852c2b7`; initial CI was green, but later
-  edits remain unvalidated. Keep recovery open until the current combined
-  changes pass review and validation.
-- [ ] Merge PR #913, verify its accepted publication, and deploy it before
-  retrying profile 1. Create a fresh reviewed application for Mia GLM 5.3 and
-  verify the exact reviewed digest is accepted and the workload loads.
-- [ ] Record exact-identity physical recovery proof for profile 1 after the
-  fresh load. Then reconcile historical GLM receipts against current recipe,
-  model, image, topology and platform evidence; resume representative batches
-  and variants, with paired single-Spark lanes and exclusive dual-Spark work.
-  Reuse completed cache work when its exact artifact identity matches.
+  `f8081e89e13c9e52c9e3ea39095c3d55355e4b0098824494a286f9c8f18a47f7` was the
+  deployed baseline before PR #913 superseded it. This deployment did not prove
+  serving or physical acceptance.
+- [x] Merge platform PR #913 and complete its combined source/CI validation;
+  merge, final-head, and test evidence are recorded in the execution checkpoint
+  above.
+- [x] Complete PR #913 signed publication and NAS deployment. Accepted
+  generation, health, replacement, preserved-state, and Controller-image
+  evidence are recorded in the execution checkpoint above. This completes
+  deployment only; load, inference, and physical recovery remain open.
+- [ ] Reconcile the accepted profile 1 request
+  `17f0e0fb-de96-4a8b-88c4-817dff7ea6e3` using its original identity until the
+  workload is loaded. Then run Mia GLM 5.3's declared serving and inference
+  checks. Its `2026-09-26T22:45:12.931660Z` queued state is not completion
+  evidence.
+- [ ] After successful load and inference, record exact-identity physical
+  recovery proof for profile 1. Reconcile historical GLM receipts against
+  current recipe, model, image, topology, and platform identities; resume
+  representative batches and variants with paired single-Spark lanes and
+  exclusive dual-Spark work. Reuse completed cache work when its exact artifact
+  identity matches.
 - [ ] Produce the final per-recipe report after physical execution. The current
   snapshot at `qualification/reports/recipe-evidence-inventory-2026-09-25.md`
   and its JSON companion separate source freshness, structural validation,
