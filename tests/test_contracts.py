@@ -16,6 +16,7 @@ import sys
 
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import (
+    GitHubReleaseSource,
     ModelDefinition,
     RecipeDefinition,
     content_sha256,
@@ -37,11 +38,89 @@ from vonk_forge_contracts.resolver import (
 )
 
 
-def load(name: str) -> dict[str, object]:
+def load(name: str) -> dict[str, Any]:
+    """Load an unvalidated JSON fixture for contract mutation tests."""
+
     return json.loads(
         (
             ROOT / "contracts" / "src" / "vonk_forge_contracts" / "examples" / name
         ).read_text()
+    )
+
+
+def test_github_release_source_binds_all_model_files_and_unique_assets() -> None:
+    document = cast(Any, load("model-definition.json"))
+    document["files"].append(
+        {**document["files"][0], "id": "second-file", "path": "second.bin"}
+    )
+    document["source"] = {
+        "provider": "github-release",
+        "repository": "https://github.com/valeoai/NAF",
+        "release_id": 264676230,
+        "assets": [
+            {"file_id": item["id"], "asset_id": index + 1}
+            for index, item in enumerate(document["files"])
+        ],
+    }
+
+    model = ModelDefinition.model_validate(document)
+    assert isinstance(model.source, GitHubReleaseSource)
+    assert model.source.provider == "github-release"
+    assert model.source.release_id == 264676230
+    baseline_digest = content_sha256(model)
+    round_tripped = ModelDefinition.model_validate_json(model.model_dump_json())
+    assert isinstance(round_tripped.source, GitHubReleaseSource)
+    assert content_sha256(round_tripped) == baseline_digest
+
+    reordered = copy.deepcopy(document)
+    reordered["source"]["assets"].reverse()
+    assert content_sha256(ModelDefinition.model_validate(reordered)) == baseline_digest
+
+    changed_release = copy.deepcopy(document)
+    changed_release["source"]["release_id"] += 1
+    assert (
+        content_sha256(ModelDefinition.model_validate(changed_release))
+        != baseline_digest
+    )
+
+    changed_asset = copy.deepcopy(document)
+    changed_asset["source"]["assets"][0]["asset_id"] += 100
+    assert (
+        content_sha256(ModelDefinition.model_validate(changed_asset)) != baseline_digest
+    )
+
+    for mutation in (
+        lambda source: source["assets"].pop(),
+        lambda source: source["assets"][1].update(
+            asset_id=source["assets"][0]["asset_id"]
+        ),
+        lambda source: source["assets"][0].update(asset_id=0),
+        lambda source: source["assets"][0].update(file_id="missing-file"),
+        lambda source: source.update(repository="https://github.com/valeoai/NAF/"),
+        lambda source: source.update(
+            repository="https://github.com.evil.invalid/valeoai/NAF"
+        ),
+    ):
+        invalid = copy.deepcopy(document)
+        mutation(invalid["source"])
+        with pytest.raises(ValidationError):
+            ModelDefinition.model_validate(invalid)
+
+    restricted = copy.deepcopy(document)
+    restricted["access"].update(
+        visibility="restricted", gated=True, authentication="token"
+    )
+    with pytest.raises(ValidationError, match="public, anonymous"):
+        ModelDefinition.model_validate(restricted)
+
+
+def test_hugging_face_source_and_model_digest_remain_unchanged() -> None:
+    document = json.loads((ROOT / "models/pixal3d.json").read_text(encoding="utf-8"))
+    model = ModelDefinition.model_validate(document)
+
+    assert model.source.model_dump(mode="json") == document["source"]
+    assert content_sha256(model) == (
+        "5024ad990a4784b4ededb23ead3d9a31906c0aa088ee4dc8541be5a8724fbabf"
     )
 
 
@@ -200,7 +279,7 @@ def test_schema_version_is_strict_for_json_numbers_and_booleans() -> None:
         ModelDefinition.model_validate_json(json.dumps(model))
 
 
-def _build_execution() -> dict[str, object]:
+def _build_execution() -> dict[str, Any]:
     return {
         "mode": "build",
         "build": {

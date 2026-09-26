@@ -8,6 +8,7 @@ document is self describing when it is copied into a recipe package.
 from __future__ import annotations
 
 import hashlib
+import re
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
@@ -94,6 +95,63 @@ class ModelSource(_ModelContract):
     @classmethod
     def repository_url(cls, value: str) -> str:
         return _https_or_http(value, "source.repository")
+
+
+class GitHubReleaseAsset(_ModelContract):
+    """One GitHub release asset selected for an existing model file."""
+
+    file_id: StrictStr = Field(
+        min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]{0,63}$"
+    )
+    asset_id: StrictInt = Field(gt=0)
+
+
+class GitHubReleaseSource(_ModelContract):
+    """An exact asset from one release in a canonical GitHub repository."""
+
+    provider: Literal["github-release"]
+    repository: StrictStr = Field(min_length=1, max_length=512)
+    release_id: StrictInt = Field(gt=0)
+    assets: list[GitHubReleaseAsset] = Field(min_length=1)
+
+    @field_validator("repository")
+    @classmethod
+    def canonical_github_repository(cls, value: str) -> str:
+        parsed = urlsplit(value)
+        path = parsed.path.removeprefix("/")
+        parts = path.split("/")
+        if (
+            parsed.scheme != "https"
+            or parsed.netloc != "github.com"
+            or parsed.query
+            or parsed.fragment
+            or len(parts) != 2
+            or any(
+                not part
+                or part in {".", ".."}
+                or part.lower().endswith(".git")
+                or re.fullmatch(r"[A-Za-z0-9_.-]+", part) is None
+                for part in parts
+            )
+            or value != f"https://github.com/{parts[0]}/{parts[1]}"
+        ):
+            raise ValueError(
+                "source.repository must be a canonical GitHub repository URL"
+            )
+        return value
+
+    @field_validator("assets")
+    @classmethod
+    def unique_asset_locators(
+        cls, value: list[GitHubReleaseAsset]
+    ) -> list[GitHubReleaseAsset]:
+        file_ids = [asset.file_id for asset in value]
+        asset_ids = [asset.asset_id for asset in value]
+        if len(file_ids) != len(set(file_ids)):
+            raise ValueError("GitHub release asset file IDs must be unique")
+        if len(asset_ids) != len(set(asset_ids)):
+            raise ValueError("GitHub release asset IDs must be unique")
+        return sorted(value, key=lambda asset: asset.file_id)
 
 
 class ModelFile(_ModelContract):
@@ -316,7 +374,7 @@ class ModelDefinition(_ModelContract):
     modalities: list[Literal["text", "image", "audio", "video", "3d", "embeddings"]] = (
         Field(min_length=1, max_length=6)
     )
-    source: ModelSource
+    source: ModelSource | GitHubReleaseSource
     format: ModelFormat
     parameters: ModelParameters
     limits: ModelLimits
@@ -331,6 +389,15 @@ class ModelDefinition(_ModelContract):
         paths = [item.path for item in self.files]
         if len(ids) != len(set(ids)):
             raise ValueError("file IDs must be unique")
+        if isinstance(self.source, GitHubReleaseSource):
+            if self.access.visibility != "public":
+                raise ValueError(
+                    "GitHub release sources require public, anonymous model access"
+                )
+            if {asset.file_id for asset in self.source.assets} != set(ids):
+                raise ValueError(
+                    "GitHub release asset file IDs must exactly cover the model files"
+                )
         if len(paths) != len(set(paths)):
             raise ValueError("file paths must be unique")
         if len(self.modalities) != len(set(self.modalities)):

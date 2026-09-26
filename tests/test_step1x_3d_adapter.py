@@ -9,9 +9,10 @@ import tempfile
 import types
 import unittest
 from pathlib import Path
+from typing import Protocol, cast
 
 from vonk_forge_contracts.canonical import content_sha256
-from vonk_forge_contracts.model import ModelDefinition
+from vonk_forge_contracts.model import ModelDefinition, ModelSource
 from vonk_forge_contracts.recipe import RecipeDefinition
 from vonk_forge_contracts.resolver import (
     validate_model_references,
@@ -23,6 +24,10 @@ ADAPTER_ROOT = ROOT / "adapters/three-d/step1x-3d"
 PREPARE_PATH = ADAPTER_ROOT / "prepare_upstream.py"
 RUN_PATH = ADAPTER_ROOT / "run.py"
 DOCKERFILE_PATH = ADAPTER_ROOT / "Dockerfile"
+
+
+class GeometryLabelEncoder(Protocol):
+    def encode_label(self, label: dict[str, str]) -> object: ...
 
 
 def _model_definitions() -> dict[tuple[str, str], ModelDefinition]:
@@ -329,8 +334,10 @@ def remove_degenerate_face(mesh):
             "import_mesh",
             "remove_degenerate_face",
         ):
-            self.assertIsInstance(functions[name].body[0], ast.Import)
-            self.assertEqual(functions[name].body[0].names[0].name, "pymeshlab")
+            first_statement = functions[name].body[0]
+            self.assertIsInstance(first_statement, ast.Import)
+            assert isinstance(first_statement, ast.Import)
+            self.assertEqual(first_statement.names[0].name, "pymeshlab")
 
         namespace: dict[str, object] = {}
         exec(compile(source, str(pipeline_path), "exec"), namespace)
@@ -364,7 +371,14 @@ class LabelEncoder:
         namespace: dict[str, object] = {}
         source = encoder_path.read_text(encoding="utf-8")
         exec(compile(source, str(encoder_path), "exec"), namespace)
-        encoder = namespace["LabelEncoder"]()
+        label_encoder = namespace["LabelEncoder"]
+        self.assertTrue(callable(label_encoder))
+        assert callable(label_encoder)
+        encoder_value = label_encoder()
+        encode_label = getattr(encoder_value, "encode_label", None)
+        self.assertTrue(callable(encode_label))
+        assert callable(encode_label)
+        encoder = cast(GeometryLabelEncoder, encoder_value)
         normal = encoder.encode_label({"geometry_type": "normal"})
         sharp = encoder.encode_label({"geometry_type": "sharp"})
         self.assertNotEqual(normal, sharp)
@@ -582,6 +596,7 @@ class LabelEncoder:
         for identity, evidence_path in evidence_files.items():
             with self.subTest(model=identity):
                 model = models[identity]
+                assert isinstance(model.source, ModelSource)
                 source_file = next(
                     item for item in model.files if item.path == evidence_path
                 )

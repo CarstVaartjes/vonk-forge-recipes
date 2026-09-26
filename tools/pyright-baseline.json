@@ -962,46 +962,10 @@
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
-      "file": "tests/test_canonical_synthetic_canary.py",
-      "rule": "reportIndexIssue",
-      "count": 2,
-      "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
-    },
-    {
-      "file": "tests/test_canonical_synthetic_canary.py",
-      "rule": "reportMissingImports",
-      "count": 1,
-      "reason": "Tests import adapter or optional modules that only resolve inside the recipe container, and exercise import failure paths instead."
-    },
-    {
-      "file": "tests/test_canonical_synthetic_canary.py",
-      "rule": "reportOptionalMemberAccess",
-      "count": 1,
-      "reason": "The test dereferences a value after asserting it exists; pyright cannot follow the assertion."
-    },
-    {
       "file": "tests/test_catalog_hf_model.py",
       "rule": "reportArgumentType",
       "count": 1,
       "reason": "The test deliberately passes partial or malformed values to prove the producer refuses them."
-    },
-    {
-      "file": "tests/test_contracts.py",
-      "rule": "reportAttributeAccessIssue",
-      "count": 1,
-      "reason": "The attribute is reached through a dynamically loaded adapter module or a dict-backed fixture."
-    },
-    {
-      "file": "tests/test_contracts.py",
-      "rule": "reportGeneralTypeIssues",
-      "count": 1,
-      "reason": "The fixture is intentionally ungrown so a malformed-input path can be exercised."
-    },
-    {
-      "file": "tests/test_contracts.py",
-      "rule": "reportIndexIssue",
-      "count": 25,
-      "reason": "Contract tests index into canonical documents they build from literals; the structure is asserted explicitly alongside."
     },
     {
       "file": "tests/test_glm_wrapper_argv.py",
@@ -1266,18 +1230,6 @@
       "rule": "reportIndexIssue",
       "count": 12,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
-    },
-    {
-      "file": "tests/test_step1x_3d_adapter.py",
-      "rule": "reportAttributeAccessIssue",
-      "count": 1,
-      "reason": "The attribute is reached through a dynamically loaded adapter module or a dict-backed fixture."
-    },
-    {
-      "file": "tests/test_step1x_3d_adapter.py",
-      "rule": "reportCallIssue",
-      "count": 1,
-      "reason": "The call target is loaded dynamically in the test."
     },
     {
       "file": "tests/test_three_d_glb_validation.py",

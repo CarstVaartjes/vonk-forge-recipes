@@ -2,6 +2,68 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://api.vonkforge.ai/contracts/model-definition-v2.schema.json",
   "$defs": {
+    "GitHubReleaseAsset": {
+      "additionalProperties": false,
+      "description": "One GitHub release asset selected for an existing model file.",
+      "properties": {
+        "file_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "File Id",
+          "type": "string"
+        },
+        "asset_id": {
+          "exclusiveMinimum": 0,
+          "title": "Asset Id",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "file_id",
+        "asset_id"
+      ],
+      "title": "GitHubReleaseAsset",
+      "type": "object"
+    },
+    "GitHubReleaseSource": {
+      "additionalProperties": false,
+      "description": "An exact asset from one release in a canonical GitHub repository.",
+      "properties": {
+        "provider": {
+          "const": "github-release",
+          "title": "Provider",
+          "type": "string"
+        },
+        "repository": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Repository",
+          "type": "string"
+        },
+        "release_id": {
+          "exclusiveMinimum": 0,
+          "title": "Release Id",
+          "type": "integer"
+        },
+        "assets": {
+          "items": {
+            "$ref": "#/$defs/GitHubReleaseAsset"
+          },
+          "minItems": 1,
+          "title": "Assets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "provider",
+        "repository",
+        "release_id",
+        "assets"
+      ],
+      "title": "GitHubReleaseSource",
+      "type": "object"
+    },
     "ModelAccess": {
       "additionalProperties": false,
       "properties": {
@@ -779,7 +841,15 @@
       "type": "array"
     },
     "source": {
-      "$ref": "#/$defs/ModelSource"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ModelSource"
+        },
+        {
+          "$ref": "#/$defs/GitHubReleaseSource"
+        }
+      ],
+      "title": "Source"
     },
     "format": {
       "$ref": "#/$defs/ModelFormat"

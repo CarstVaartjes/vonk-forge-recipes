@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from vonk_forge_contracts.canonical import content_sha256
-from vonk_forge_contracts.model import ModelDefinition
+from vonk_forge_contracts.model import ModelDefinition, ModelSource
 from vonk_forge_contracts.recipe import RecipeDefinition
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -82,6 +82,7 @@ class ExactModelFileClosureTests(unittest.TestCase):
                     load_json(ROOT / "models" / f"{model_slug}.json")
                 )
                 self.assertEqual(model.license.spdx, "Apache-2.0")
+                assert isinstance(model.source, ModelSource)
                 self.assertEqual(
                     model.license.url,
                     f"{model.source.repository}/blob/{model.source.revision}/README.md",

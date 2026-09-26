@@ -31,6 +31,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import (
+    GitHubReleaseSource,
     ModelDefinition,
     RecipeDefinition,
     content_sha256,
@@ -106,6 +107,15 @@ def _recipe_key(recipe: RecipeDefinition) -> str:
 
 def _model_key(model: ModelDefinition) -> str:
     return f"{model.identity.publisher}/{model.identity.slug}"
+
+
+def _model_source_projection(model: ModelDefinition) -> tuple[str, str]:
+    """Project exact source identity without presenting a release as a commit."""
+
+    source = model.source
+    if isinstance(source, GitHubReleaseSource):
+        return source.repository, f"github-release:{source.release_id}"
+    return source.repository, source.revision
 
 
 def _require_object(value: Any, description: str) -> dict[str, Any]:
@@ -310,6 +320,7 @@ def _row(
         model = models.get(model_key)
         if model is None:
             raise ValueError(f"recipe references an undocumented Model: {model_key}")
+        source_repository, source_revision = _model_source_projection(model)
         selections.append(
             {
                 "key": model_key,
@@ -326,8 +337,8 @@ def _row(
                 "visibility": model.access.visibility,
                 "gated": model.access.gated,
                 "license_spdx": model.license.spdx,
-                "source_repository": model.source.repository,
-                "source_revision": model.source.revision,
+                "source_repository": source_repository,
+                "source_revision": source_revision,
             }
         )
     node_count = recipe.topology.node_count

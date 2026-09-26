@@ -64,11 +64,15 @@ Reuse an existing exact Model when appropriate. Create a distinct version or
 variant record when the underlying model identity changes. Family names and
 new versions are data; they do not require new Python classes.
 
-Resolve an immutable source revision and enumerate the files needed to load
+Resolve an immutable source identity and enumerate the files needed to load
 the model, including configuration, tokenizer, companion data, and license.
-Record actual file paths, IDs, SHA-256 hashes, byte sizes, and purposes. Preserve
-legitimate empty supporting files with their real empty-content digest. Do not
-invent hashes, sizes, capabilities, context limits, or memory measurements.
+For GitHub release assets, bind the numeric release ID and each file's numeric
+asset ID; do not use a mutable tag or browser download URL as the source
+identity. This provider supports public, anonymous assets only. Keep the file
+path, SHA-256, and byte size in the Model file manifest. Record actual file
+paths, IDs, hashes, sizes, and purposes. Preserve legitimate
+empty supporting files with their real empty-content digest. Do not invent
+hashes, sizes, capabilities, context limits, or memory measurements.
 
 Describe capabilities with evidence and keep unknowns honest. A source model's
 vision capability does not prove that every engine recipe can serve images.
