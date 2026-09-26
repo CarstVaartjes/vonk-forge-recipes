@@ -10,12 +10,15 @@ import tarfile
 import time
 import urllib.error
 import urllib.request
+from importlib import import_module
 from io import BytesIO
 from pathlib import Path
+from typing import Any
 
 import pytest
 from pydantic import ValidationError
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256
+from vonk_forge_contracts.model import ModelSource
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests/fixtures/canonical-synthetic-canary"
@@ -26,9 +29,7 @@ ChatRequest = runpy.run_path(str(FIXTURE / "context/request_contract.py"))[
 ]
 
 
-def _documents() -> tuple[
-    dict[str, object], dict[str, object], dict[str, dict[str, object]]
-]:
+def _documents() -> tuple[dict[str, Any], dict[str, Any], dict[str, dict[str, Any]]]:
     model = json.loads((FIXTURE / "model.json").read_text(encoding="utf-8"))
     model = ModelDefinition.model_validate(model).model_dump(
         mode="json", exclude_unset=False, exclude_none=False
@@ -43,6 +44,7 @@ def test_canonical_canary_is_schema2_and_excluded_from_public_catalog() -> None:
     model = ModelDefinition.model_validate(model_document)
     recipe = RecipeDefinition.model_validate(recipe_document)
 
+    assert isinstance(model.source, ModelSource)
     assert model.identity.publisher == recipe.identity.publisher == "vonk-forge-test"
     assert recipe.identity.slug == "canonical-synthetic-canary"
     assert recipe_document["models"][0]["model"]["content_sha256"] == content_sha256(
@@ -97,13 +99,15 @@ def test_canonical_canary_huggingface_source_is_accepted_by_model_cache() -> Non
     sys.path.insert(0, str(control_source))
     try:
         try:
-            from vonk_control.model_cache import _source_for_catalog_artifact
+            model_cache = import_module("vonk_control.model_cache")
         except ImportError:
             pytest.skip("platform ModelCache dependencies are unavailable")
+        source_for_catalog_artifact = model_cache._source_for_catalog_artifact
         model_document, _, _ = _documents()
         model = ModelDefinition.model_validate(model_document)
+        assert isinstance(model.source, ModelSource)
         model_file = model.files[0]
-        source, revision = _source_for_catalog_artifact(
+        source, revision = source_for_catalog_artifact(
             {
                 "kind": "huggingface.file",
                 "repository": model.source.repository,
@@ -147,13 +151,11 @@ def test_canonical_canary_package_has_exact_source_and_model_closure() -> None:
             path.relative_to(ROOT).as_posix()
             for path in (FIXTURE / "context/wheels").glob("*.whl")
         }
-        dockerfile = (
-            archive.extractfile(
-                "tests/fixtures/canonical-synthetic-canary/context/Dockerfile"
-            )
-            .read()
-            .decode()
+        dockerfile_member = archive.extractfile(
+            "tests/fixtures/canonical-synthetic-canary/context/Dockerfile"
         )
+        assert dockerfile_member is not None
+        dockerfile = dockerfile_member.read().decode()
         assert "USER 10001:10001" in dockerfile
         assert (
             "@sha256:9bb659dc6d5218917236f3711e866a5634bb4c2f208de9d4533aa4863f57c1d3"
