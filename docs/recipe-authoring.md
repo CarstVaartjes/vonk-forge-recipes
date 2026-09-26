@@ -193,6 +193,17 @@ to a commit that predates its authored inputs or invent a digest to avoid
 regeneration. Follow the generator and publication workflow if their procedure
 changes. Re-run freshness checks before pushing.
 
+Install the repository hook once per checkout to regenerate and stage package
+archives and indexes before relevant commits:
+
+```bash
+scripts/install-git-hooks
+```
+
+The hook also runs the pinned Python lint, format, and type checks for staged
+Python files. It requires tracked edits to be staged together before it
+regenerates outputs; CI remains the authoritative full-repository verification.
+
 When a pull request carries authored sources and their generated catalog,
 preserve the source commit in `main` with a merge commit; do not squash it,
 because publication verifies that the bound source commit is in the merged

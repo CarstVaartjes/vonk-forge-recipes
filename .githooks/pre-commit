@@ -1,0 +1,36 @@
+#!/bin/sh
+set -eu
+
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+
+staged=$(git diff --cached --name-only)
+if ! printf '%s\n' "$staged" | grep -Eq '^(models/|recipes/|adapters/|contracts/|qualification/|catalog-index\.json|tools/build-catalog-index$|tools/generate-)'; then
+    exit 0
+fi
+
+# Generated packages and indexes must describe the exact tree being committed.
+if [ -n "$(git diff --name-only)" ]; then
+    echo "recipe hook: stage all tracked edits before committing" >&2
+    exit 1
+fi
+
+source_commit=$(git rev-parse HEAD)
+UV_CACHE_DIR="${UV_CACHE_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-cache}" \
+    uv run --python 3.14 --no-project --with-editable contracts \
+    tools/build-catalog-index --source-commit "$source_commit"
+git add catalog-index.json qualification/qualification-index.json packages
+UV_TOOL_DIR="${UV_TOOL_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-tools}" \
+    tools/check-python-lint
+UV_TOOL_DIR="${UV_TOOL_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-tools}" \
+    tools/check-python-format
+changed_python=$(git diff --cached --name-only -- '*.py')
+if [ -n "$changed_python" ]; then
+    printf '%s\n' "$changed_python" | xargs uv run --python 3.14 --no-project \
+        --with pyright==1.1.408 --with pydantic==2.13.4 \
+        --with 'pytest>=8,<9' --with-editable contracts \
+        pyright --project pyproject.toml
+fi
+UV_CACHE_DIR="${UV_CACHE_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-cache}" \
+    uv run --python 3.14 --no-project --with-editable contracts \
+    tools/build-catalog-index --check
