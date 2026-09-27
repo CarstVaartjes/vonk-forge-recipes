@@ -311,7 +311,12 @@ conditions.
   or duplicate an active request. If the operation is terminal, reconcile exact
   effects before a fresh explicitly authorized request. Prove final verification
   completes, the workload loads, its endpoint is published, and Mia GLM 5.3
-  passes declared serving/inference checks before claiming physical recovery.
+  passes declared serving/inference checks; that proves inference, not
+  recovery.
+- [ ] Obtain the pending explicit fault-injection authorization before using
+  the authorized mechanism. Exercise recovery after a recoverable fault clears
+  and capture an attributable exact-identity fault-to-recovery receipt. Do not
+  claim physical recovery from serving/inference or metadata alone.
 - [ ] After profile 1 physical recovery, complete PR #914's accepted
   publication and deployment. Then add the official NAF checkpoint as a
   canonical Pixal3D Model selection, use the next recipe revision, regenerate
