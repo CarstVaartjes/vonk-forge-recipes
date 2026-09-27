@@ -9,38 +9,82 @@ Controller deployment, and physical Spark acceptance as separate evidence gates.
 
 ## Execution checkpoint — 2026-09-27
 
-Platform [PR #913](https://github.com/CarstVaartjes/vonk-forge/pull/913) merged
-as `03b2d6cddbf2a13c922ed15c5e65a0322766afed`, with final head
-`e326429f7f884167f43cd04ac192be9ed9177da1`. Required CI run `36275927334`
-succeeded. The affected real-PostgreSQL profile suite passed 272 tests with no
-failures or skips; the final typed pair and same-key cases also passed (2/2).
-Development-image run `36276218398` and signed installer-acceptance run
-`36276601591` succeeded, accepting signed generation
-`a9fc4cf592dcf67f2ea0b54b1a8b1f4353835f8c135a70ca77609009f7a97629` for source
-`03b2d6cddbf2a13c922ed15c5e65a0322766afed`. PR #913's recovery scope includes
-crash resume, reviewed-digest preservation, fencing late outcomes so newer
-intent supersedes older retries, bounded heartbeat-contention retries,
-pre-effect authority rechecks, fair due scheduling, and startup constraint-drift
-detection with its cause visible.
+Platform [PR #913](https://github.com/CarstVaartjes/vonk-forge/pull/913) is
+merged and deployed. Merge `03b2d6cddbf2a13c922ed15c5e65a0322766afed`, final head
+`e326429f7f884167f43cd04ac192be9ed9177da1`, and required CI run `36275927334`
+succeeded. The affected real-PostgreSQL profile suite passed 272 tests, with
+zero failures and zero skips; the final typed pair/same-key tests passed 2/2.
+Development-image run `36276218398` and installer-acceptance run
+`36276601591` accepted
+generation `a9fc4cf592dcf67f2ea0b54b1a8b1f4353835f8c135a70ca77609009f7a97629`
+for that source. Merged recovery behavior covers crash resume, reviewed-digest
+preservation, late-outcome fencing and newer-intent supersession, bounded
+contention retries, pre-effect authority rechecks, fair due scheduling, and
+visible startup constraint drift.
 
-The approved NAS helper deployed that generation. All 11 services are healthy;
-only the API and worker containers were recreated. The environment file, secret
-files, and named-volume identities match before and after deployment. The
-captured Controller image digest is
-`sha256:25b83b51cb4b81f3340ba993a820c1a98f936342ecac8115e2863dbb82a27012`.
+Deployment verification found 11 healthy services; only API and worker
+containers were recreated. The `.env`, `secrets/`, and
+named-volume identities match before and after. Captured Controller image
+digest: `sha256:25b83b51cb4b81f3340ba993a820c1a98f936342ecac8115e2863dbb82a27012`.
 
 Fresh structural, catalog, authority, and coverage checks passed for all 85
-recipes using platform source `03b2d6cddbf2a13c922ed15c5e65a0322766afed` and
-recipe checkout `303eaf35e0e7949eb858d9e50b35aa3a4d7f2dc0`. The 81 recipes that
-require one or two Sparks remain in scope; the four wider topologies remain
-excluded from physical execution.
+recipes on platform `03b2d6cddbf2a13c922ed15c5e65a0322766afed` and recipe
+checkout `303eaf35e0e7949eb858d9e50b35aa3a4d7f2dc0`: 81 recipes require one or
+two Sparks; four wider topologies remain outside physical scope.
 
-A fresh profile 1 review for Mia GLM 5.3 allowed plan digest
-`361cf7d673838a2323ed74eb5cfbfa7d68743344a03fb2c01ab89567987988f4`. Application
-`3e865d60-acd6-405f-b2e5-7891772668d9`, request
-`17f0e0fb-de96-4a8b-88c4-817dff7ea6e3`, ordinal 79, was observed queued at
-`2026-09-26T22:45:12.931660Z`. This is dated queue evidence only; current load,
-serving, inference, and physical recovery remain unproven.
+The fresh profile 1 review for Mia GLM 5.3 allowed plan digest
+`361cf7d673838a2323ed74eb5cfbfa7d68743344a03fb2c01ab89567987988f4`;
+application `3e865d60-acd6-405f-b2e5-7891772668d9`, request
+`17f0e0fb-de96-4a8b-88c4-817dff7ea6e3`, ordinal 79, was queued at
+`2026-09-26T22:45:12.931660Z`. At
+`2026-09-27T00:02:25.769583Z`, the original application was observed running
+with endpoint `not-published-yet`; its persisted start deadline was
+`2026-09-27T00:21:28.173639Z`. These are dated observations. Re-read the durable
+operation before continuing; do not treat them as current or extend the deadline.
+No load, serving, inference, or physical recovery has been proven.
+
+Read-only checks on both Sparks found current run
+`1f444de3-99aa-41b1-a417-f61409fdc7ca` metadata and installed spec/runtime valid;
+historical run `e85c4710-e437-4d12-8191-499596aa2a4c` fails current parsing at
+`/` and `/runtime/placement`. These checks show metadata compatibility and a
+poisoned historical record, not successful inference or recovery.
+
+Recovery follow-ups remain unintegrated and not deployed:
+
+- Observer isolation is on `codex/run-observation-isolation` with five
+  uncommitted Rust files based on `03b2d6c`. `cargo fmt --check`, diff check,
+  the focused current-receipt regression, and the full serialized Linux
+  `vonk-agent` suite pass. The earlier planner-integration regression failed
+  before the per-run isolation fix and passed after it; the focused
+  current-receipt test was only verified after the change. Parallel package
+  runs hit `ReconciliationBusy` and still need investigation. The observer must
+  isolate malformed history per run, retain valid current receipts, and keep
+  incomplete/all-failed inventory unknown rather than reporting empty or
+  success.
+- Truthful child-progress and claim-refusal changes are on
+  `codex/profile-child-progress`, seven uncommitted files based on `03b2d6c`.
+  Distributed-start tests passed 4 (98 deselected), local claim refusal passed,
+  and PostgreSQL claim-refusal/profile-to-switch projection tests passed 2/2.
+  Pinned Ruff 0.16.1 and format passed for the seven files; types retain one
+  existing reviewed exception and the coordination scan found zero reviewed
+  sites. These changes are not integrated or deployed.
+- Canonical stop/helper work on `codex/authoritative-stop-recovery` is partial
+  and uncompiled. The accepted design must bind the full authorized stop effects,
+  hooks, exact plan digest, and `run_generation` through Controller and helper;
+  the Controller validates against durable operation state and signs the
+  canonical plan, and the helper reconstructs the exact compiled stop/hook
+  arguments from the shared projection. Bind generation on both start and stop
+  so a delayed old stop cannot affect a replacement; preserve one-shot markers
+  and uncertain post-stop outcomes; reject stale authority before effects. The
+  current Controller payload lacks stop spec/hook context, agent stop
+  preparation parses poisoned lifecycle state before it sends the helper
+  request, and the 1 MiB request-file limit conflicts with the 16 MiB canonical
+  plan ceiling. No producer-to-helper stop proof has passed.
+
+These results are component evidence, not a shipped end-to-end self-healing
+path. Recovery must preserve actionable blockers for revoked authority,
+integrity failures, changed plans, unavailable resources, and provider/license
+gaps.
 
 The dated cache and health observations below remain historical evidence. Reuse
 model and recipe-image artifacts by their exact bound identities; a changed
@@ -215,17 +259,46 @@ conditions.
   generation, health, replacement, preserved-state, and Controller-image
   evidence are recorded in the execution checkpoint above. This completes
   deployment only; load, inference, and physical recovery remain open.
-- [ ] Reconcile the accepted profile 1 request
-  `17f0e0fb-de96-4a8b-88c4-817dff7ea6e3` using its original identity until the
-  workload is loaded. Then run Mia GLM 5.3's declared serving and inference
-  checks. Its `2026-09-26T22:45:12.931660Z` queued state is not completion
-  evidence.
+- [ ] Integrate observer isolation and truthful child-progress/claim-refusal
+  behavior. A malformed historical row must not hide valid current receipts;
+  an incomplete or all-failed inventory must remain unknown/refused. Complete
+  canonical stop/helper binding to the full reviewed effects and hooks, exact
+  plan digest, and `run_generation`, including late-stop fencing and explicit
+  uncertain post-stop reconciliation. Resolve the request-size/canonical-plan
+  limit conflict without truncating or rejecting a permitted plan.
+- [ ] Run combined producer-to-Controller-to-agent/helper-to-receipt tests with
+  real PostgreSQL and processes for newer-intent supersession, delayed old
+  stops, process death/restart, partial storage, busy slots, heartbeat
+  contention, truthful child progress, and refusal of wrong node/plan/image/
+  hook/generation or stale authority before effects. Investigate parallel
+  `ReconciliationBusy`; a serialized package pass is not blanket green. Rerun
+  pinned lint, format, types, generators, coordination checks, and required CI
+  on the integrated result.
+- [ ] After review and CI, merge the integrated recovery source, accept its
+  signed publication, and deploy through the Controller-authorized path. Verify
+  the installed signed agent on both Sparks records valid current receipts
+  while the malformed historical run remains unknown; do not infer serving
+  from metadata or container health.
+- [ ] Reconcile the original profile 1 request
+  `17f0e0fb-de96-4a8b-88c4-817dff7ea6e3` against its durable operation and
+  persisted deadline. If it remains active, reconnect to that request without
+  extending the deadline or duplicating it. If it is terminal, reconcile exact
+  effects before making a fresh explicitly authorized request. Verify the
+  workload loads, its endpoint is published, and Mia GLM 5.3 passes declared
+  serving/inference checks before claiming physical acceptance.
+- [ ] After the integrated recovery release, complete PR #914's accepted
+  publication and deployment. Then add the official NAF checkpoint as a
+  canonical Pixal3D Model selection, use the next recipe revision, regenerate
+  and validate package/catalog/qualification outputs, publish the catalog, and
+  refresh the reviewed authority. Keep NAF cache preparation, upstream asset
+  verification, and runtime use as separate proof gates.
 - [ ] After successful load and inference, record exact-identity physical
   recovery proof for profile 1. Reconcile historical GLM receipts against
-  current recipe, model, image, topology, and platform identities; resume
-  representative batches and variants with paired single-Spark lanes and
-  exclusive dual-Spark work. Reuse completed cache work when its exact artifact
-  identity matches.
+  current recipe, model, image, topology, and platform identities; resume the
+  full in-scope campaign across all 81 one- and two-Spark recipes, using paired
+  single-Spark lanes and exclusive dual-Spark work. Keep provider, license,
+  authority, integrity, and actual resource blockers visible; reuse completed
+  cache work only when its exact artifact identity matches.
 - [ ] Produce the final per-recipe report after physical execution. The current
   snapshot at `qualification/reports/recipe-evidence-inventory-2026-09-25.md`
   and its JSON companion separate source freshness, structural validation,
@@ -370,20 +443,37 @@ pass:
   The official pinned `audio_vae/config.json` at
   `426936f8b22dc28e4def61e515478b0b7e4a53cc` returned HTTP 401. Authorized
   Hugging Face access is required; an aggregate checksum is not a substitute.
-- **TRELLIS 2 and Pixal3D:** their Meta DINOv3 dependency at
+- **TRELLIS 2 and Pixal3D DINOv3:** the pinned Meta source at
   `ea8dc2863c51be0a264bab82070e3e8836b02d51` requires provider approval and
-  authenticated access. A public mirror must not silently replace that source.
-- **Pixal3D additionally:** its official NAF checkpoint is a GitHub release
-  asset, while the current model-cache provider only resolves Hugging Face
-  model files. Its source needs a supported cache contract before execution.
+  authenticated access. Pixal3D's current aggregate Hugging Face snapshot is a
+  separate unresolved source path; do not substitute a public mirror.
+- **Pixal3D NAF checkpoint:** the [official NAF release](https://github.com/valeoai/NAF/releases/tag/model)
+  confirms release `264676230`, asset `320107386`, file `naf_release.pth`,
+  2,664,431 bytes, SHA-256
+  `c096c1ab2217a5c3ac136365f721685e2201379cb69d509cfb0261183847c98f`. Recipe
+  main `f16d092a8644f3604fc8c7f9fca42088783f3774` now has the typed GitHub
+  release-source contract, but still has no canonical NAF Model document or
+  Pixal3D selection. Platform PR #914 remains draft; provider resolution,
+  package/catalog closure, cache preparation, and runtime use are unverified.
+  The accepted authority still binds Pixal3D 2.0.9, content digest
+  `286221bcbfaf2419497cc6eff661b1493281bf8388d789671b171bcc5419d26b`, and
+  package digest `bad9f8a39e2618bda305a10d82badc32c1ae5f27f6c57f2fb9044aa608851c8e`.
+  A NAF selection requires the next recipe revision, a rebuilt package, and
+  regenerated catalog and qualification artifacts followed by a reviewed
+  authority refresh. The repository LICENSE is Apache 2.0 text with a blank
+  copyright placeholder, and no checkpoint-specific terms were found. License
+  disposition remains uncertain; apply the operator decision required by the
+  canonical Model/authority contract, without inferring an extra acceptance
+  requirement from the placeholder or claiming license clearance.
 
 ### Current batch execution gates
 
-The batch runner and authority source implementation are ready for the paired
-workflow, but source merge is not platform acceptance or deployment. Before
-execution, verify the compatible accepted platform release is running and that
-the recipe catalog publication matches the reviewed authority. Recheck current
-deployment and Fleet state; earlier observations are not current evidence.
+The paired runner and authority baseline are accepted and deployed, but the
+observer, progress, and stop-path recovery follow-ups in the current checkpoint
+are not integrated or deployed. Complete those gates before starting a new
+physical batch. Then verify the compatible signed platform release and
+recipe-catalog/authority match, and recheck current deployment and Fleet state;
+earlier observations are not current admission evidence.
 
 1. Run `scripts/qualify-recipe --level structural` for each exact recipe and
    bind the result to its authority row's content digest and package SHA-256.
