@@ -36,13 +36,14 @@ The fresh profile 1 review for Mia GLM 5.3 allowed plan digest
 `361cf7d673838a2323ed74eb5cfbfa7d68743344a03fb2c01ab89567987988f4`;
 application `3e865d60-acd6-405f-b2e5-7891772668d9`, request
 `17f0e0fb-de96-4a8b-88c4-817dff7ea6e3`, ordinal 79, was queued at
-`2026-09-26T22:45:12.931660Z`. The latest supplied read, at
-`2026-09-27T04:01:09Z`, observed the application running in `final-verify` with
-endpoint `not-published-yet`; its persisted start deadline
-`2026-09-27T00:21:28.173639Z` had expired. This is dated evidence, not current
-state. No later live mutation or inference result is recorded. Re-read the
-durable operation and reconcile exact effects; do not extend its deadline.
-Load, serving, inference, and physical recovery remain unproven.
+`2026-09-26T22:45:12.931660Z`. A detailed read at `2026-09-27T04:01:09Z`
+observed the application running in `final-verify` with endpoint
+`not-published-yet`; its persisted start deadline
+`2026-09-27T00:21:28.173639Z` had expired. Root reported a later read-only
+observation at `2026-09-27T08:22:00Z`; its operation details are not recorded
+here, so no current state is inferred from it. Re-read the durable operation
+and reconcile exact effects; do not extend its deadline. Load, serving,
+inference, and physical recovery remain unproven in the evidence recorded here.
 
 Earlier read-only checks on both Sparks found current run
 `1f444de3-99aa-41b1-a417-f61409fdc7ca` metadata and installed spec/runtime valid;
@@ -50,17 +51,11 @@ historical run `e85c4710-e437-4d12-8191-499596aa2a4c` failed current parsing at
 `/` and `/runtime/placement`. These dated checks prove metadata compatibility
 only, not inference or recovery.
 
-The platform recovery integration branch `codex/recovery-integration` is based
-on PR #913's merge `03b2d6c`. It contains commits `c67a1731`, `72db35de`,
-`c42125f2`, `4e389582`, and `d5ae373f`; observer-isolation and truthful
-child-progress components are committed there but remain unpublished. The
-latest integration checkpoint has only the tracked Controller donor patch
-applied, partially staged, with unresolved conflicts in `distributed_recovery.py`
-and `recipe_operations.py`. The helper/agent donor is not applied and its
-worktree remains preserved. Read-only comparison confirmed that held proposals
-are absent; integration waits for this plan checkpoint before conflict
-resolution. No tests or code generation ran after this Controller patch, and
-no process is active. Luna Max owns bounded implementation; root owns design
+As of 2026-09-27, the main recovery integration tree is active, with narrow
+profile-owned JobRun Stop work in progress. Degraded multi-group and
+selected-profile workers are continuing in separate trees. The documentation
+target is not shipped. This checkpoint claims neither green integrated tests
+nor physical acceptance. Luna Max owns implementation; root owns design
 decisions and review.
 
 Earlier component-branch evidence is not integration acceptance. The observer
@@ -190,6 +185,27 @@ profiles: every profile always owns the entire fleet, including idle nodes.
   the original operation and completed lane receipts instead of duplicating
   loads or rerunning already-proven work unnecessarily.
 
+### Standing full-fleet profile target (not shipped)
+
+This target describes persistent full-fleet desired state, not the campaign
+runner's paired-batch barrier above. That barrier remains a qualification policy:
+preserve both lane results and reconcile cleanup before starting the next pair.
+
+Under the standing-profile target, a newly added Spark joins the current roster
+implicitly idle, while an independently removed Spark is ignored. If a
+multi-Spark model loses a roster member, withdraw that model as incomplete and
+stop its reachable remaining ranks; report a model-specific error and continue
+unrelated work. Do not try to stop the missing node or rewrite the saved profile.
+Keep the removed node's historical claim out of live-fleet capacity accounting
+and reconcile a same-ID rejoin before placing work on that node.
+
+Every particular preview and load must revalidate the current roster. Continuing
+an ongoing standing selection requires one durable singleton selected-profile
+record pointing at the immutable accepted application snapshot; a saved profile
+or earlier preview is not that record.
+This is target behavior, not shipped behavior. Implementation and physical
+evidence remain pending.
+
 ### Evidence reuse and recovery coverage
 
 Earlier working GLM-5.3 runs remain historical physical evidence; this campaign
@@ -273,25 +289,26 @@ conditions.
   deployment only; load, inference, and physical recovery remain open.
 - [x] Commit and integrate observer-isolation and truthful child-progress/
   claim-refusal components on `codex/recovery-integration`. This is unpublished
-  source progress only; the later Controller patch still has conflicts, and no
-  combined checks have run after that patch.
-- [ ] After root reviews this checkpoint, resolve the conflicts in
-  `distributed_recovery.py` and `recipe_operations.py` and integrate the
-  preserved helper/agent donor within approved scope. Keep Controller cleanup
-  authority, old-Stop dependency adoption, helper generation closure after
-  Stop, and replacement of the 16 MiB aggregate parent-payload cap as
-  unapproved proposals unless explicitly authorized; do not apply the rejected
-  per-hook rollback. Preserve strict `phases: null` handling and the shared
-  recovery predicate. Require the Controller to validate the durable exact
+  source progress only. The main integration tree is active; profile-owned
+  JobRun Stop work remains in progress, while degraded multi-group and
+  selected-profile work continues in separate trees.
+- [ ] Continue the active profile-owned JobRun Stop integration and bring the
+  degraded multi-group and selected-profile work through root review. Keep
+  Controller cleanup authority, old-Stop dependency adoption, helper generation
+  closure after Stop, and replacement of the 16 MiB aggregate parent-payload
+  cap as unapproved proposals unless explicitly authorized; do not apply the
+  rejected per-hook rollback. Preserve strict `phases: null` handling and the
+  shared recovery predicate. Require the Controller to validate the durable exact
   Stop plan and sign its digest, and the helper to reconstruct and enforce the
   complete stop/hook argv. Bind `run_generation` on Start and Stop so a late
   Stop cannot affect a replacement; reject stale authority before effects;
   retain one-shot hook markers and reconcile uncertain outcomes without
   replaying completed hooks.
-- [ ] Fix the helper/agent donor's three current hook compile errors
-  (`begin_post_stop_hooks`, `PostStopHookProgress.execution`, and the incomplete
-  `Execute` permit), then complete compilation, generated parity, and integrated
-  producer-to-Controller-to-agent/helper-to-receipt regressions. Use real
+- [ ] Verify compilation and resolve any remaining hook gaps recorded in the
+  earlier helper/agent donor (`begin_post_stop_hooks`,
+  `PostStopHookProgress.execution`, and the incomplete `Execute` permit), then
+  complete generated parity and integrated producer-to-Controller-to-agent/
+  helper-to-receipt regressions. Use real
   PostgreSQL and processes to cover valid current receipts beside malformed
   history, unknown results for incomplete/all-failed inventory, newer-intent supersession,
   delayed old Stops, process death/restart, partial storage, busy slots,
@@ -501,11 +518,13 @@ pass:
 ### Current batch execution gates
 
 The paired runner and authority baseline are accepted and deployed. Observer
-and child-progress components are now committed in the unpublished recovery
-integration, but its Controller conflicts remain unresolved and helper/agent
-stop work is unapplied; the combined branch has no post-integration test or
-generation evidence. Complete and release the integrated recovery path, then
-prove profile 1 physical recovery before beginning the provider sequence: PR
+and child-progress components are committed in the unpublished recovery
+integration. The main integration tree is active with profile-owned JobRun Stop
+work in progress; degraded multi-group and selected-profile work continues in
+separate trees. Integrated regression, release, and physical acceptance remain
+gates; this checkpoint records no green integrated test or physical-acceptance
+result. Complete and release the recovery path, then prove profile 1 physical
+recovery before beginning the provider sequence: PR
 #914 accepted publication/deployment, followed by the NAF Model/recipe/catalog
 and authority refresh. Recheck signed release, catalog/authority match,
 deployment, and Fleet state before each batch; earlier observations are not
