@@ -48,12 +48,27 @@ worker containers; `.env`, secrets, and named-volume identities were preserved.
 That health check is historical and the Controller has not been redeployed to
 PR #916.
 
-The last recorded structural, catalog, authority, and coverage validation
-passed all 85 recipes on platform `03b2d6cddbf2a13c922ed15c5e65a0322766afed`
-and recipe checkout `303eaf35e0e7949eb858d9e50b35aa3a4d7f2dc0`. It predates
-PR #916 and is not validation against the new platform source. The inventory
-contains 81 one- or two-Spark recipes and four wider topologies outside physical
-scope.
+Fresh repository validation on 2026-09-27 passed all 85 recipes against platform
+`0ccd225620c1ed2c1e1660f355274010b9188fbe` and recipe checkout
+`1066cdda984865c58d8f793b9e00cce69ca9ee8a`. Per-recipe structural qualification
+passed 85/85 in 57 seconds. `tools/build-catalog-index --check` reported both
+indexes current for 85 recipes; `scripts/validate-recipe-library --json` passed
+with 102 catalog entities, identity-verified packages, and a passing secret
+scan. The campaign still schedules 81 one- or two-Spark recipes (72 single-Spark
+recipes in 36 paired batches and nine exclusive dual-Spark recipes); four wider
+topologies remain outside physical scope.
+
+`catalog_binding_current=false`: the accepted campaign authority remains bound
+to v1.0.17 at catalog commit `efbbba29bd4c706c73d295d24047787be3f36d78` and
+catalog-index digest
+`400bc65b6a723e0ce674e0c0e604893b52bfb0c1168fd1a095aef48098e29f5c`. The
+current checkout's catalog index digest is
+`9fa5b698e3d0600cce086fcfa761295e94bd03f07e634032d67a4f0529cd2b4d`; its
+qualification-index digest remains the authority-bound
+`e30d9d4f3b679a18d0f11a13235ad1fcc926a867bb782e69b627a51d59556f39`. Structural
+validation and current index checks are repository evidence; they do not publish
+a catalog, refresh the authority, establish Controller deployment, or prove
+physical inference or recovery.
 
 PR #916 changes the source schema, so deploying it requires a separate decision
 for the currently deployed database. No database reset is authorized. The
