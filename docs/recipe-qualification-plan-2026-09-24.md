@@ -9,32 +9,37 @@ Controller deployment, and physical Spark acceptance as separate evidence gates.
 
 ## Execution checkpoint — 2026-09-27
 
+The live application status below was refreshed through 2026-09-27
+19:03:43 UTC. Re-read durable operations before acting; this timed snapshot
+is not a completion claim.
+
 Platform [PR #916](https://github.com/CarstVaartjes/vonk-forge/pull/916)
 merged as `575f1e42a978507641d182d5bf4b7d1d442f4a6d`; its final PR head was
 `14c6e1ee`, and all required CI checks passed. Installer publication run
 `36334662903` accepted and promoted development generation
 `9e950b346c0bba0e8266a5ba8929399d8171df79cc8ec8a5daf2bdc0ac836560`, with NAS
-and ARM64 candidate acceptance. This is publication and candidate-acceptance
-evidence. PR #916 completes the source and CI path for exact Stop handling,
-including fail-closed handling of hook-bearing plans, selected whole-fleet
-reconciliation, degraded recovery, singleton host-reboot recovery, startup
-retry, and final-verify expiry with actionable logging. The live Controller
-has not been redeployed to this release.
+and ARM64 candidate acceptance. PR #916 completes the source and CI path for
+exact Stop handling, including fail-closed handling of hook-bearing plans,
+selected whole-fleet reconciliation, degraded recovery, singleton host-reboot
+recovery, startup retry, and final-verify expiry with actionable logging.
 
 Platform [PR #914](https://github.com/CarstVaartjes/vonk-forge/pull/914) was
 conflict-resolved and auto-merged as
 `0ccd225620c1ed2c1e1660f355274010b9188fbe`, ahead of the physical gate as
-requested. Development-image run `36335738730` succeeded. Signed installer
-acceptance/publication run `36336301588` succeeded: NAS and ARM64 candidate
-acceptance, signed receipt, and promotion all passed. Public dev
-`current.manifest` is schema 2, generation
+requested. Its source contains the PR #916 merge commit
+`575f1e42a978507641d182d5bf4b7d1d442f4a6d`. Development-image run
+`36335738730` succeeded. Signed installer acceptance/publication run
+`36336301588` succeeded: NAS and ARM64 candidate acceptance, signed receipt,
+and promotion all passed. Public dev `current.manifest` is schema 2, generation
 `e2ee090625a9101425e89aa02b6fecc20b51dcb5b36cd4473edd452ab5dfcfb1`, source
-`0ccd225620c1ed2c1e1660f355274010b9188fbe`. Its version string
-`0.1.1~dev.617+g575f1e42a978` reuses the agent package version and is not the
-Controller source identity; use the manifest source and generation for
-provenance. This acceptance does not establish Controller deployment.
+`0ccd225620c1ed2c1e1660f355274010b9188fbe`; this exact signed generation is
+confirmed deployed on the NAS and includes the merged #916 source. The separately
+accepted #916 generation above remains its own publication evidence and is not
+the manifest identity for this deployment. Version string
+`0.1.1~dev.617+g575f1e42a978` reuses the agent package version; use the manifest
+source and generation for provenance.
 
-The last deployment recorded in this plan was platform PR #913: merge
+The preceding platform PR #913 deployment was merge
 `03b2d6cddbf2a13c922ed15c5e65a0322766afed`, accepted generation
 `a9fc4cf592dcf67f2ea0b54b1a8b1f4353835f8c135a70ca77609009f7a97629`, and
 Controller image `sha256:25b83b51cb4b81f3340ba993a820c1a98f936342ecac8115e2863dbb82a27012`.
@@ -42,11 +47,10 @@ Its final PR head was `e326429f7f884167f43cd04ac192be9ed9177da1`; required CI ru
 `36275927334` passed, including 272 affected real-PostgreSQL profile tests with
 zero failures or skips and two final typed pair/same-key tests. Development
 image run `36276218398` and installer acceptance run `36276601591` accepted the
-generation above.
-Its deployment check found 11 healthy services and recreated only API and
-worker containers; `.env`, secrets, and named-volume identities were preserved.
-That health check is historical and the Controller has not been redeployed to
-PR #916.
+generation above. Its deployment check found 11 healthy services and recreated
+only API and worker containers; `.env`, secrets, and named-volume identities
+were preserved. These are historical #913 details, not current post-reset
+health counts.
 
 Fresh repository validation on 2026-09-27 passed all 85 recipes against platform
 `0ccd225620c1ed2c1e1660f355274010b9188fbe` and recipe checkout
@@ -58,40 +62,56 @@ scan. The campaign still schedules 81 one- or two-Spark recipes (72 single-Spark
 recipes in 36 paired batches and nine exclusive dual-Spark recipes); four wider
 topologies remain outside physical scope.
 
-`catalog_binding_current=false`: the accepted campaign authority remains bound
-to v1.0.17 at catalog commit `efbbba29bd4c706c73d295d24047787be3f36d78` and
-catalog-index digest
+`catalog_binding_current=false` for the checked-in campaign authority: it remains
+bound to v1.0.17 at catalog commit
+`efbbba29bd4c706c73d295d24047787be3f36d78` and catalog-index digest
 `400bc65b6a723e0ce674e0c0e604893b52bfb0c1168fd1a095aef48098e29f5c`. The
-current checkout's catalog index digest is
+current checkout's catalog-index digest is
 `9fa5b698e3d0600cce086fcfa761295e94bd03f07e634032d67a4f0529cd2b4d`; its
 qualification-index digest remains the authority-bound
-`e30d9d4f3b679a18d0f11a13235ad1fcc926a867bb782e69b627a51d59556f39`. Structural
-validation and current index checks are repository evidence; they do not publish
-a catalog, refresh the authority, establish Controller deployment, or prove
-physical inference or recovery.
+`e30d9d4f3b679a18d0f11a13235ad1fcc926a867bb782e69b627a51d59556f39`. These
+repository checks do not publish a catalog or refresh the campaign authority.
+The successful live profile preview below is separate from that authority
+refresh and does not prove physical inference or recovery.
 
-PR #916 changes the source schema, so deploying it requires a separate decision
-for the currently deployed database. No database reset is authorized. The
-Controller remains on its prior deployment. Read-only evidence at
-2026-09-27 16:46 UTC showed profile 1 application
-`3e865d60-acd6-405f-b2e5-7891772668d9` still running in `final-verify` after
-its persisted start deadline `2026-09-27T00:21:28.173639Z` expired. The original
-request is `17f0e0fb-de96-4a8b-88c4-817dff7ea6e3`; it was queued under plan
-digest `361cf7d673838a2323ed74eb5cfbfa7d68743344a03fb2c01ab89567987988f4`.
-Re-read its durable operation and reconcile exact effects; do not extend its
-deadline or duplicate an active request.
+After authorization, the logical Controller database was dropped and recreated
+in full. A later clarification described the intended scope as removing only
+the troublesome tables; record the full database recreation as the action that
+actually occurred, not as a table-scoped reset. Other named volumes and separate
+databases were preserved. The old profile application and operation records
+are gone: the profile-1 application
+`3e865d60-acd6-405f-b2e5-7891772668d9` and request
+`17f0e0fb-de96-4a8b-88c4-817dff7ea6e3` were not reconciled before that reset and
+must not be reported as completed or still running.
+
+Both Sparks were manually re-enrolled with their original Controller node IDs
+and are online-ready. As post-reset bootstrap, the orphan managed vLLM
+container on Spark2 was stopped after its exact label was checked. That stop
+does not establish new inference or physical recovery. A new profile 1 revision
+2 has the exact two-Spark GLM assignment. Model cache preparation succeeded for
+149/149 artifacts. Runtime-image build job `993a875b` succeeded at
+2026-09-27 18:58:51 UTC with exact image
+`sha256:02a7342b3ac67f031dc93b7bc8e839aa857d9b45ec4498a5b45f54f78501f88f`;
+cache operation `08fc3b7c` (request-key prefix `7cb8da8e`) still reported
+`running/build-wait` at 18:59 UTC. By 19:00 UTC the Controller cache reported
+ready, and a fresh profile preview was allowed with zero blockers.
+
+The reviewed profile-1 application was submitted with plan-digest prefix
+`113a6635` and request key
+`07ad74ac-2cfe-43ce-bac1-d9fbe0412cec`; application
+`36d22487-a750-468c-944b-92d9a3e81419` was running at 19:01:31 UTC in the
+`target-copy` phase with 143,748,166,088 bytes complete of approximately
+398,196,823,414 planned. By 19:03:43 UTC it had transferred 360.9 GB of
+398.2 GB planned and was still running. Re-read this same durable operation
+before retrying or making a new request. No workload-ready state, published endpoint, inference, or fault-to-recovery
+result is established yet.
 
 The physical campaign still covers 81 one- and two-Spark recipes; four wider
-topologies remain outside physical scope. No current-identity physical inference
-or fault-to-recovery result is recorded. Serving, inference, fault injection,
-and physical recovery remain separate gates; retain the explicit authorization
-gate before fault injection.
-
-PR #916's required CI passed, but neither CI nor candidate acceptance establishes
-live deployment or physical use. Earlier source-integration and component-test
-observations below are dated evidence; pre-merge donor compile gaps are
-superseded by #916's merged, CI-complete source and are not current blockers.
-No physical inference or fault-to-recovery result is recorded.
+topologies remain outside physical scope. No current-identity physical
+inference or fault-to-recovery result is recorded. First complete the current
+profile application and its declared serving/inference checks. Fault injection
+and physical recovery remain separate gates; retain the pending explicit
+authorization before fault injection.
 
 Earlier read-only checks on both Sparks found current run
 `1f444de3-99aa-41b1-a417-f61409fdc7ca` metadata and installed spec/runtime valid;
@@ -101,10 +121,10 @@ only, not inference or recovery.
 
 Earlier component-branch results remain historical: observer isolation,
 child-progress, refusal, helper, and protocol cases were tested independently
-before integration. PR #916 now merges the core exact-Stop, whole-fleet,
+before integration. PR #916 merges the core exact-Stop, whole-fleet,
 degraded-recovery, reboot, startup-retry, and final-verify/logging path with all
-required CI passing. Its publication is accepted, but it has not been deployed;
-no live recovery or physical acceptance is established.
+required CI passing. Its source is included in the deployed #914 manifest; no
+live recovery or physical acceptance is established.
 
 Signed-hook support and replacement of the 16 MiB aggregate parent-payload cap
 remain explicit held/future proposals, not blockers to the merged #916 release.
@@ -313,38 +333,42 @@ conditions.
   #916: exact Stop plans fail closed when they contain hooks the path cannot
   safely execute; selected whole-fleet reconciliation; degraded recovery;
   singleton host-reboot recovery; startup retry; and final-verify expiry with
-  actionable logging. Required CI passed. This is source/CI completion, not live
-  deployment or physical recovery.
+  actionable logging. Required CI passed. Its source is included in the
+  deployed #914 manifest recorded below; physical recovery remains open.
 - [x] Accept and promote the signed PR #916 development publication, including
   NAS and ARM64 candidate acceptance. Generation and run are recorded above.
 - [x] Merge platform PR #914 as `0ccd225620c1ed2c1e1660f355274010b9188fbe`,
   build its development image in run `36335738730`, and complete signed
   installer acceptance/publication in run `36336301588`, including NAS/ARM64
-  candidate acceptance, signed receipt, and promotion. Generation and source
-  are recorded above. This is not deployment evidence.
-- [ ] Before deployment of the PR #916 schema change, obtain the separate
-  decision for the currently deployed database. No database reset is
-  authorized.
-- [ ] After that database decision, deploy the applicable exact signed
-  Controller/agent release through the Controller-authorized path. Verify the
-  installed source and artifact identities and live health. No deployment of
-  PR #916 or #914 is recorded at this checkpoint.
-- [ ] Reconcile profile 1 request
-  `17f0e0fb-de96-4a8b-88c4-817dff7ea6e3`, which was still running in
-  `final-verify` past its persisted deadline at 2026-09-27 16:46 UTC. After the
-  signed release is deployed, re-read its durable operation and exact effects;
-  do not extend the deadline or duplicate an active request. If the operation
-  is terminal, reconcile exact effects before a fresh explicitly authorized
-  request. Prove final verification
-  completes, the workload loads, its endpoint is published, and Mia GLM 5.3
-  passes declared serving/inference checks; that proves inference, not
-  recovery.
+  candidate acceptance, signed receipt, and promotion. The exact signed
+  generation `e2ee090625a9101425e89aa02b6fecc20b51dcb5b36cd4473edd452ab5dfcfb1`
+  is deployed on the NAS; its source contains merged PR #916.
+- [x] The authorized logical Controller database reset dropped and recreated the
+  full database. A later clarification specified only troublesome tables as the
+  intended scope. Other named volumes and separate databases were preserved.
+  The previous profile application and operation records were lost rather than
+  reconciled.
+- [x] Both Sparks were manually re-enrolled with their original Controller node
+  IDs and are online-ready. The exact-label-verified orphan managed vLLM
+  container on Spark2 was stopped as post-reset bootstrap. This is not inference
+  or recovery evidence.
+- [x] Profile 1 revision 2 was recreated with the exact two-Spark GLM assignment;
+  its model cache preparation succeeded (149/149 artifacts). The exact runtime
+  image is
+  `sha256:02a7342b3ac67f031dc93b7bc8e839aa857d9b45ec4498a5b45f54f78501f88f`;
+  the fresh preview is allowed with zero blockers.
+- [ ] Complete the current profile-1 application and verify its declared serving
+  and inference checks. At 2026-09-27 19:03:43 UTC application
+  `36d22487-a750-468c-944b-92d9a3e81419` was still in `target-copy`, with
+  360.9 GB transferred of approximately 398.2 GB planned. Its reviewed plan
+  digest starts `113a6635`, and its request key is
+  `07ad74ac-2cfe-43ce-bac1-d9fbe0412cec`; reconnect to this operation instead
+  of duplicating it. No inference result is recorded.
 - [ ] Obtain the pending explicit fault-injection authorization before using
   the authorized mechanism. A physical single-Spark reboot fault remains
-  unproved and blocked on deployment of the exact signed Controller/agent
-  release. Exercise recovery after a recoverable fault clears and capture an
+  unproved. Exercise recovery after a recoverable fault clears and capture an
   attributable exact-identity fault-to-recovery receipt. Do not claim physical
-  recovery from serving/inference or metadata alone.
+  recovery from serving, inference, or metadata alone.
 - [ ] After profile 1 physical recovery, add the official NAF checkpoint as a
   canonical Pixal3D Model selection, use the next recipe revision, regenerate
   and validate package/catalog/qualification outputs, publish the catalog, and
@@ -514,8 +538,9 @@ pass:
   Pixal3D selection. PR #914's provider-support source and signed publication
   are accepted at generation
   `e2ee090625a9101425e89aa02b6fecc20b51dcb5b36cd4473edd452ab5dfcfb1`; its
-  deployment is not recorded. Provider resolution, package/catalog closure,
-  cache preparation, and runtime use are unverified.
+  deployment is confirmed as recorded above. Provider resolution,
+  package/catalog closure, cache preparation, and runtime use remain
+  unverified.
   The accepted authority still binds Pixal3D 2.0.9, content digest
   `286221bcbfaf2419497cc6eff661b1493281bf8388d789671b171bcc5419d26b`, and
   package digest `bad9f8a39e2618bda305a10d82badc32c1ae5f27f6c57f2fb9044aa608851c8e`.
@@ -532,23 +557,25 @@ pass:
 The paired runner and authority baseline are accepted and deployed. PR #916's
 exact-Stop, selected whole-fleet, degraded-recovery, singleton reboot, startup-
 retry, and final-verify/logging source is merged and required CI is complete.
-Its signed development publication passed NAS and ARM64 candidate acceptance.
-PR #914's signed development publication is also accepted as recorded above.
-Neither release is recorded as deployed. The physical reboot and fault-to-
-recovery path remain unproved. Do not schedule a physical reboot until the
-separate database decision is resolved and the exact signed Controller/agent
-release is deployed; retain the explicit fault-injection authorization gate.
+Its source is included in the currently deployed signed #914 generation
+`e2ee090625a9101425e89aa02b6fecc20b51dcb5b36cd4473edd452ab5dfcfb1` with
+manifest source `0ccd225620c1ed2c1e1660f355274010b9188fbe`. The physical reboot
+and fault-to-recovery path remain unproved; the pending explicit fault-injection
+authorization remains required.
 
-At 2026-09-27 16:46 UTC, read-only evidence showed profile 1 still running in
-`final-verify` after its deadline. After deployment, re-read and reconcile its
-durable operation and exact effects, then prove the workload loads, publishes
-its endpoint, and passes declared serving/inference checks. Only after that live
-profile/inference gate should fault injection and physical recovery proceed.
-PR #914's merge and publication are complete ahead of the physical gate; its
-deployment remains unverified. After profile 1 physical recovery, begin the NAF
-Model/recipe/catalog and authority refresh. Recheck signed release,
-catalog/authority match, deployment, and Fleet state before each batch; earlier
-observations are not current admission evidence.
+The old profile-1 application shown at 2026-09-27 16:46 UTC in the historical
+snapshot was lost when the full logical Controller database was recreated; do
+not reconcile or report that old request as complete. Current profile 1 revision
+2 has the exact two-Spark GLM assignment. At 19:00 UTC its preview was allowed
+with zero blockers and the exact image was cache-ready. The current application
+`36d22487-a750-468c-944b-92d9a3e81419` was still in `target-copy` at 19:03:43
+UTC with 360.9 GB of approximately 398.2 GB planned complete. Re-read the same
+operation, then prove the workload loads, publishes its endpoint, and passes
+declared serving/inference checks. Only after that live profile/inference gate
+should fault injection and physical recovery proceed. After profile-1 physical
+recovery, begin the NAF Model/recipe/catalog and authority refresh. Recheck
+signed release, catalog/authority match, deployment, and Fleet state before
+each batch; earlier observations are not current admission evidence.
 
 1. Run `scripts/qualify-recipe --level structural` for each exact recipe and
    bind the result to its authority row's content digest and package SHA-256.
@@ -599,10 +626,11 @@ observations are not current admission evidence.
    before sequentially restarting the two idle hosts and recording both changed
    boot IDs. Single-Spark recovery retains its exact active workload through
    the restart; the dual ladder separately proves active rank-loss recovery.
-   Do not schedule any physical host reboot until the separate deployed-DB
-   decision is resolved, the exact signed agent and Controller are deployed,
-   and explicit fault-injection authorization is in place. Required source/CI
-   completion does not satisfy this physical gate. If certificate re-enrollment
+   The deployed-DB decision and reset are recorded above. Before a physical
+   host reboot, re-verify the exact signed Controller/agent source and artifact
+   identities currently deployed, complete the profile inference gate, and
+   obtain explicit fault-injection authorization. Required source/CI completion
+   and deployment do not satisfy this physical gate. If certificate re-enrollment
    is needed after more than 24 hours offline,
    preserve the existing Controller node ID and campaign ledger and require an
    explicit authorized grant; never bypass trust automatically or mint a
@@ -632,8 +660,9 @@ and coverage only after the exact new catalog and packages have been accepted;
 the generators read the accepted catalog pin and record current indexed-package-
 versus-accepted stack divergences until then. Recipe PR #124 merged the typed
 contracts and generators; release workflow `36078172793` published v1.0.17 on
-2026-09-25 at 00:37 UTC. This closes recipe publication, not platform runner
-deployment or physical qualification.
+2026-09-25 at 00:37 UTC. At that time this closed recipe publication, not
+platform runner deployment or physical qualification. The current platform deployment is recorded above; physical qualification
+remains open.
 
 The previous v1.0.16 catalog had a stale `source_commit` pointer to
 `a0ffd873…`, while the digest-verified LTX 2.19B package contained protocol
