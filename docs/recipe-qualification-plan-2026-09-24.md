@@ -36,55 +36,67 @@ The fresh profile 1 review for Mia GLM 5.3 allowed plan digest
 `361cf7d673838a2323ed74eb5cfbfa7d68743344a03fb2c01ab89567987988f4`;
 application `3e865d60-acd6-405f-b2e5-7891772668d9`, request
 `17f0e0fb-de96-4a8b-88c4-817dff7ea6e3`, ordinal 79, was queued at
-`2026-09-26T22:45:12.931660Z`. At
-`2026-09-27T00:02:25.769583Z`, the original application was observed running
-with endpoint `not-published-yet`; its persisted start deadline was
-`2026-09-27T00:21:28.173639Z`. These are dated observations. Re-read the durable
-operation before continuing; do not treat them as current or extend the deadline.
-No load, serving, inference, or physical recovery has been proven.
+`2026-09-26T22:45:12.931660Z`. The latest supplied read, at
+`2026-09-27T04:01:09Z`, observed the application running in `final-verify` with
+endpoint `not-published-yet`; its persisted start deadline
+`2026-09-27T00:21:28.173639Z` had expired. This is dated evidence, not current
+state. No later live mutation or inference result is recorded. Re-read the
+durable operation and reconcile exact effects; do not extend its deadline.
+Load, serving, inference, and physical recovery remain unproven.
 
-Read-only checks on both Sparks found current run
+Earlier read-only checks on both Sparks found current run
 `1f444de3-99aa-41b1-a417-f61409fdc7ca` metadata and installed spec/runtime valid;
-historical run `e85c4710-e437-4d12-8191-499596aa2a4c` fails current parsing at
-`/` and `/runtime/placement`. These checks show metadata compatibility and a
-poisoned historical record, not successful inference or recovery.
+historical run `e85c4710-e437-4d12-8191-499596aa2a4c` failed current parsing at
+`/` and `/runtime/placement`. These dated checks prove metadata compatibility
+only, not inference or recovery.
 
-Recovery follow-ups remain unintegrated and not deployed:
+The platform recovery integration branch `codex/recovery-integration` is based
+on PR #913's merge `03b2d6c`. It contains commits `c67a1731`, `72db35de`,
+`c42125f2`, `4e389582`, and `d5ae373f`; observer-isolation and truthful
+child-progress components are committed there but remain unpublished. The
+latest integration checkpoint has only the tracked Controller donor patch
+applied, partially staged, with unresolved conflicts in `distributed_recovery.py`
+and `recipe_operations.py`. The helper/agent donor is not applied and its
+worktree remains preserved. Read-only comparison confirmed that held proposals
+are absent; integration waits for this plan checkpoint before conflict
+resolution. No tests or code generation ran after this Controller patch, and
+no process is active. Luna Max owns bounded implementation; root owns design
+decisions and review.
 
-- Observer isolation is on `codex/run-observation-isolation` with five
-  uncommitted Rust files based on `03b2d6c`. `cargo fmt --check`, diff check,
-  the focused current-receipt regression, and the full serialized Linux
-  `vonk-agent` suite pass. The earlier planner-integration regression failed
-  before the per-run isolation fix and passed after it; the focused
-  current-receipt test was only verified after the change. Parallel package
-  runs hit `ReconciliationBusy` and still need investigation. The observer must
-  isolate malformed history per run, retain valid current receipts, and keep
-  incomplete/all-failed inventory unknown rather than reporting empty or
-  success.
-- Truthful child-progress and claim-refusal changes are on
-  `codex/profile-child-progress`, seven uncommitted files based on `03b2d6c`.
-  Distributed-start tests passed 4 (98 deselected), local claim refusal passed,
-  and PostgreSQL claim-refusal/profile-to-switch projection tests passed 2/2.
-  Pinned Ruff 0.16.1 and format passed for the seven files; types retain one
-  existing reviewed exception and the coordination scan found zero reviewed
-  sites. These changes are not integrated or deployed.
-- Canonical stop/helper work on `codex/authoritative-stop-recovery` is partial
-  and uncompiled. The accepted design must bind the full authorized stop effects,
-  hooks, exact plan digest, and `run_generation` through Controller and helper;
-  the Controller validates against durable operation state and signs the
-  canonical plan, and the helper reconstructs the exact compiled stop/hook
-  arguments from the shared projection. Bind generation on both start and stop
-  so a delayed old stop cannot affect a replacement; preserve one-shot markers
-  and uncertain post-stop outcomes; reject stale authority before effects. The
-  current Controller payload lacks stop spec/hook context, agent stop
-  preparation parses poisoned lifecycle state before it sends the helper
-  request, and the 1 MiB request-file limit conflicts with the 16 MiB canonical
-  plan ceiling. No producer-to-helper stop proof has passed.
+Earlier component-branch evidence is not integration acceptance. The observer
+branch's planner-integration regression was red before per-run isolation and
+passed after it; its separate current-receipt test was only checked after the
+fix. The serialized Linux `vonk-agent` package suite passed, while parallel
+package runs hit `ReconciliationBusy` and still need investigation. The
+child-progress donor passed four distributed-start cases (98 deselected), local
+claim-refusal, and two real-PostgreSQL claim-refusal/progress-projection cases;
+pinned Ruff and format passed, types retain one existing reviewed exception,
+and the coordination scan found zero reviewed sites. The separate
+helper/protocol donor passed 61 protocol, 79 helper, 11 helper-binary, 12 Python
+response, and one focused Controller test; generated parity, Ruff, Rustfmt,
+and its oversized-invocation red/green regression passed. These results have
+not been rerun against the integration branch. The preserved helper/agent
+donor's full agent compile still has three hook-work-in-progress errors:
+`begin_post_stop_hooks` is missing, `PostStopHookProgress.execution` is missing,
+and the `Execute` permit is incomplete. The integration is not release-ready.
 
-These results are component evidence, not a shipped end-to-end self-healing
-path. Recovery must preserve actionable blockers for revoked authority,
-integrity failures, changed plans, unavailable resources, and provider/license
-gaps.
+Several stop-authority and size proposals remain unapproved and unapplied:
+Controller cleanup authority over generation/deadline/node eligibility;
+adoption of an exact old recovery Stop by a newer explicit Stop; durable helper
+generation closure after Stop, including `Stop(false)`; and replacement of the
+16 MiB aggregate parent-payload cap. The size proposal still needs caller
+integration and tests, and its automatic review raised a memory-exhaustion
+concern. The proposed rollback of per-hook receipts was rejected because it
+would weaken crash/restart safeguards; keep those safeguards intact. Preserve
+strict `phases: null` handling and use the shared recovery predicate during
+integration. Bind the exact reviewed stop effects and plan digest, plus
+`run_generation` on Start and Stop; preserve one-shot hook markers and uncertain
+post-stop outcomes. Goal continuation does not approve any held proposal.
+
+These are component and integration-worktree observations, not a shipped
+end-to-end self-healing path. Recovery must preserve actionable blockers for
+revoked authority, integrity failures, changed plans, unavailable resources,
+and provider/license gaps.
 
 The dated cache and health observations below remain historical evidence. Reuse
 model and recipe-image artifacts by their exact bound identities; a changed
@@ -259,46 +271,65 @@ conditions.
   generation, health, replacement, preserved-state, and Controller-image
   evidence are recorded in the execution checkpoint above. This completes
   deployment only; load, inference, and physical recovery remain open.
-- [ ] Integrate observer isolation and truthful child-progress/claim-refusal
-  behavior. A malformed historical row must not hide valid current receipts;
-  an incomplete or all-failed inventory must remain unknown/refused. Complete
-  canonical stop/helper binding to the full reviewed effects and hooks, exact
-  plan digest, and `run_generation`, including late-stop fencing and explicit
-  uncertain post-stop reconciliation. Resolve the request-size/canonical-plan
-  limit conflict without truncating or rejecting a permitted plan.
-- [ ] Run combined producer-to-Controller-to-agent/helper-to-receipt tests with
-  real PostgreSQL and processes for newer-intent supersession, delayed old
-  stops, process death/restart, partial storage, busy slots, heartbeat
-  contention, truthful child progress, and refusal of wrong node/plan/image/
-  hook/generation or stale authority before effects. Investigate parallel
-  `ReconciliationBusy`; a serialized package pass is not blanket green. Rerun
-  pinned lint, format, types, generators, coordination checks, and required CI
-  on the integrated result.
-- [ ] After review and CI, merge the integrated recovery source, accept its
+- [x] Commit and integrate observer-isolation and truthful child-progress/
+  claim-refusal components on `codex/recovery-integration`. This is unpublished
+  source progress only; the later Controller patch still has conflicts, and no
+  combined checks have run after that patch.
+- [ ] After root reviews this checkpoint, resolve the conflicts in
+  `distributed_recovery.py` and `recipe_operations.py` and integrate the
+  preserved helper/agent donor within approved scope. Keep Controller cleanup
+  authority, old-Stop dependency adoption, helper generation closure after
+  Stop, and replacement of the 16 MiB aggregate parent-payload cap as
+  unapproved proposals unless explicitly authorized; do not apply the rejected
+  per-hook rollback. Preserve strict `phases: null` handling and the shared
+  recovery predicate. Require the Controller to validate the durable exact
+  Stop plan and sign its digest, and the helper to reconstruct and enforce the
+  complete stop/hook argv. Bind `run_generation` on Start and Stop so a late
+  Stop cannot affect a replacement; reject stale authority before effects;
+  retain one-shot hook markers and reconcile uncertain outcomes without
+  replaying completed hooks.
+- [ ] Fix the helper/agent donor's three current hook compile errors
+  (`begin_post_stop_hooks`, `PostStopHookProgress.execution`, and the incomplete
+  `Execute` permit), then complete compilation, generated parity, and integrated
+  producer-to-Controller-to-agent/helper-to-receipt regressions. Use real
+  PostgreSQL and processes to cover valid current receipts beside malformed
+  history, unknown results for incomplete/all-failed inventory, newer-intent supersession,
+  delayed old Stops, process death/restart, partial storage, busy slots,
+  heartbeat contention, truthful child progress, and refusal of wrong
+  node/plan/image/hook/generation or stale authority before effects. Resolve
+  the parent-payload bound with its memory-safety and caller/tests review;
+  investigate parallel `ReconciliationBusy`. Then run pinned lint, format,
+  types, generators, coordination checks, and required CI on the combined tree.
+- [ ] After review and CI, merge the integrated recovery release, accept its
   signed publication, and deploy through the Controller-authorized path. Verify
-  the installed signed agent on both Sparks records valid current receipts
-  while the malformed historical run remains unknown; do not infer serving
-  from metadata or container health.
-- [ ] Reconcile the original profile 1 request
-  `17f0e0fb-de96-4a8b-88c4-817dff7ea6e3` against its durable operation and
-  persisted deadline. If it remains active, reconnect to that request without
-  extending the deadline or duplicating it. If it is terminal, reconcile exact
-  effects before making a fresh explicitly authorized request. Verify the
-  workload loads, its endpoint is published, and Mia GLM 5.3 passes declared
-  serving/inference checks before claiming physical acceptance.
-- [ ] After the integrated recovery release, complete PR #914's accepted
+  the signed agent on both Sparks records valid current receipts while the
+  malformed historical run remains unknown; metadata and container health do
+  not prove serving.
+- [ ] Reconcile profile 1 request
+  `17f0e0fb-de96-4a8b-88c4-817dff7ea6e3` after the persisted deadline expired.
+  Re-read its durable operation and exact effects; do not extend the deadline
+  or duplicate an active request. If the operation is terminal, reconcile exact
+  effects before a fresh explicitly authorized request. Prove final verification
+  completes, the workload loads, its endpoint is published, and Mia GLM 5.3
+  passes declared serving/inference checks; that proves inference, not
+  recovery.
+- [ ] Obtain the pending explicit fault-injection authorization before using
+  the authorized mechanism. Exercise recovery after a recoverable fault clears
+  and capture an attributable exact-identity fault-to-recovery receipt. Do not
+  claim physical recovery from serving/inference or metadata alone.
+- [ ] After profile 1 physical recovery, complete PR #914's accepted
   publication and deployment. Then add the official NAF checkpoint as a
   canonical Pixal3D Model selection, use the next recipe revision, regenerate
   and validate package/catalog/qualification outputs, publish the catalog, and
   refresh the reviewed authority. Keep NAF cache preparation, upstream asset
-  verification, and runtime use as separate proof gates.
-- [ ] After successful load and inference, record exact-identity physical
-  recovery proof for profile 1. Reconcile historical GLM receipts against
-  current recipe, model, image, topology, and platform identities; resume the
-  full in-scope campaign across all 81 one- and two-Spark recipes, using paired
-  single-Spark lanes and exclusive dual-Spark work. Keep provider, license,
-  authority, integrity, and actual resource blockers visible; reuse completed
-  cache work only when its exact artifact identity matches.
+  verification, runtime use, and license disposition as separate gates.
+- [ ] After the provider gates, resume the full physical campaign across all
+  81 one- and two-Spark recipes, using paired single-Spark lanes and exclusive
+  dual-Spark work. Keep the four wider topologies out of scope. Reconcile
+  historical receipts against current recipe, model, image, topology, and
+  platform identities; preserve provider, license, authority, integrity, and
+  actual-resource blockers; reuse completed cache work only for its exact
+  bound artifact identity.
 - [ ] Produce the final per-recipe report after physical execution. The current
   snapshot at `qualification/reports/recipe-evidence-inventory-2026-09-25.md`
   and its JSON companion separate source freshness, structural validation,
@@ -453,8 +484,9 @@ pass:
   `c096c1ab2217a5c3ac136365f721685e2201379cb69d509cfb0261183847c98f`. Recipe
   main `f16d092a8644f3604fc8c7f9fca42088783f3774` now has the typed GitHub
   release-source contract, but still has no canonical NAF Model document or
-  Pixal3D selection. Platform PR #914 remains draft; provider resolution,
-  package/catalog closure, cache preparation, and runtime use are unverified.
+  Pixal3D selection. PR #914's provider-support path still requires accepted
+  publication and deployment; provider resolution, package/catalog closure,
+  cache preparation, and runtime use are unverified.
   The accepted authority still binds Pixal3D 2.0.9, content digest
   `286221bcbfaf2419497cc6eff661b1493281bf8388d789671b171bcc5419d26b`, and
   package digest `bad9f8a39e2618bda305a10d82badc32c1ae5f27f6c57f2fb9044aa608851c8e`.
@@ -468,12 +500,16 @@ pass:
 
 ### Current batch execution gates
 
-The paired runner and authority baseline are accepted and deployed, but the
-observer, progress, and stop-path recovery follow-ups in the current checkpoint
-are not integrated or deployed. Complete those gates before starting a new
-physical batch. Then verify the compatible signed platform release and
-recipe-catalog/authority match, and recheck current deployment and Fleet state;
-earlier observations are not current admission evidence.
+The paired runner and authority baseline are accepted and deployed. Observer
+and child-progress components are now committed in the unpublished recovery
+integration, but its Controller conflicts remain unresolved and helper/agent
+stop work is unapplied; the combined branch has no post-integration test or
+generation evidence. Complete and release the integrated recovery path, then
+prove profile 1 physical recovery before beginning the provider sequence: PR
+#914 accepted publication/deployment, followed by the NAF Model/recipe/catalog
+and authority refresh. Recheck signed release, catalog/authority match,
+deployment, and Fleet state before each batch; earlier observations are not
+current admission evidence.
 
 1. Run `scripts/qualify-recipe --level structural` for each exact recipe and
    bind the result to its authority row's content digest and package SHA-256.
