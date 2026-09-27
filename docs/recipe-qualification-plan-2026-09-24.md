@@ -41,9 +41,11 @@ observed the application running in `final-verify` with endpoint
 `not-published-yet`; its persisted start deadline
 `2026-09-27T00:21:28.173639Z` had expired. Root reported a later read-only
 observation at `2026-09-27T08:22:00Z`; its operation details are not recorded
-here, so no current state is inferred from it. Re-read the durable operation
-and reconcile exact effects; do not extend its deadline. Load, serving,
-inference, and physical recovery remain unproven in the evidence recorded here.
+here. At 2026-09-27 11:32 UTC, read-only evidence showed profile 1 overdue;
+recheck before reconciliation. The source fixes below are separate and do not
+reconcile or extend it. Re-read the durable operation and reconcile exact
+effects; do not extend its deadline. Load, serving, inference, and physical
+recovery remain unproven in the evidence recorded here.
 
 Earlier read-only checks on both Sparks found current run
 `1f444de3-99aa-41b1-a417-f61409fdc7ca` metadata and installed spec/runtime valid;
@@ -317,8 +319,15 @@ conditions.
   the parent-payload bound with its memory-safety and caller/tests review;
   investigate parallel `ReconciliationBusy`. Then run pinned lint, format,
   types, generators, coordination checks, and required CI on the combined tree.
-- [ ] After review and CI, merge the integrated recovery release, accept its
-  signed publication, and deploy through the Controller-authorized path. Verify
+- [ ] Complete the source and deployment prerequisites for physical
+  single-Spark host-reboot recovery: host-reboot recovery, agent startup
+  resilience, and final-verify expiry with actionable logging remain in
+  progress. Pass process and systemd tests for the exact combined build. Do not
+  schedule a physical reboot until those tests pass and the matching signed
+  Controller/agent release is deployed.
+- [ ] After review and CI, once those prerequisites and tests pass, merge the
+  integrated recovery release, accept its signed publication, and deploy
+  through the Controller-authorized path. Verify
   the signed agent on both Sparks records valid current receipts while the
   malformed historical run remains unknown; metadata and container health do
   not prove serving.
@@ -331,8 +340,10 @@ conditions.
   passes declared serving/inference checks; that proves inference, not
   recovery.
 - [ ] Obtain the pending explicit fault-injection authorization before using
-  the authorized mechanism. Exercise recovery after a recoverable fault clears
-  and capture an attributable exact-identity fault-to-recovery receipt. Do not
+  the authorized mechanism. A physical single-Spark reboot fault remains
+  blocked on the signed Controller/agent deployment and passing process and
+  systemd tests above. Exercise recovery after a recoverable fault clears and
+  capture an attributable exact-identity fault-to-recovery receipt. Do not
   claim physical recovery from serving/inference or metadata alone.
 - [ ] After profile 1 physical recovery, complete PR #914's accepted
   publication and deployment. Then add the official NAF checkpoint as a
@@ -523,8 +534,13 @@ integration. The main integration tree is active with profile-owned JobRun Stop
 work in progress; degraded multi-group and selected-profile work continues in
 separate trees. Integrated regression, release, and physical acceptance remain
 gates; this checkpoint records no green integrated test or physical-acceptance
-result. Complete and release the recovery path, then prove profile 1 physical
-recovery before beginning the provider sequence: PR
+result. Host-reboot recovery, agent startup resilience, and final-verify
+expiry/logging remain source and deployment prerequisites. Do not schedule a
+physical reboot until the signed agent and matching Controller are deployed
+and process/systemd tests pass. At 2026-09-27 11:32 UTC, read-only evidence
+showed profile 1 overdue; recheck before reconciliation, separately from those
+source fixes. Complete and release the recovery path, then prove profile 1
+physical recovery before beginning the provider sequence: PR
 #914 accepted publication/deployment, followed by the NAF Model/recipe/catalog
 and authority refresh. Recheck signed release, catalog/authority match,
 deployment, and Fleet state before each batch; earlier observations are not
@@ -554,9 +570,11 @@ current admission evidence.
    ```
 
    The preview saves the complete batch assignments into the dedicated profile
-   but does not load the profile or start workloads. Use fresh node IDs and, if
-   a foreign workload would be stopped, acknowledge only its exact current run
-   with `--replace-run-id RUN_ID`.
+   but does not load the profile or start workloads. Use IDs from the current
+   active Controller Fleet inventory; “fresh node IDs” means verified current
+   Controller IDs, not newly assigned identities. If a foreign workload would
+   be stopped, acknowledge only its exact current run with
+   `--replace-run-id RUN_ID`.
 5. **Deployment gate — do not load the batch profile until verified.** Apply
    only the reviewed preview using `--apply --campaign-digest DIGEST`, plus
    `--accept-operator-gate RECIPE_KEY` and/or
@@ -577,8 +595,13 @@ current admission evidence.
    before sequentially restarting the two idle hosts and recording both changed
    boot IDs. Single-Spark recovery retains its exact active workload through
    the restart; the dual ladder separately proves active rank-loss recovery.
-   These physical actions remain operator-run; `--observe` only records and
-   reconciles their evidence.
+   Do not schedule any physical host reboot until the matching signed agent
+   and Controller are deployed and the required process/systemd tests pass. If
+   certificate re-enrollment is needed after more than 24 hours offline,
+   preserve the existing Controller node ID and campaign ledger and require an
+   explicit authorized grant; never bypass trust automatically or mint a
+   replacement identity. These physical actions remain operator-run;
+   `--observe` only records and reconciles their evidence.
 7. Retain verified model files, recipe images and compatible partial-transfer
    checkpoints. Preview cleanup with `--cleanup-lane LANE`, then apply its
    reviewed digest with `--apply --cleanup-lane LANE --campaign-digest DIGEST`.
