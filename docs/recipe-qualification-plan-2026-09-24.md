@@ -7,6 +7,59 @@ dual-Qwen preparation path, and selected DeepSeek/GLM dual-runtime backports.
 It deliberately keeps source review, repository validation, publication,
 Controller deployment, and physical Spark acceptance as separate evidence gates.
 
+## Operating principles (owner direction, 2026-09-28)
+
+These override older wording elsewhere in this plan:
+
+- **Requests lead; the fleet converges.** The platform must be fault tolerant,
+  self-healing, robust and eventually consistent. A failure is retried with
+  backoff, recovered automatically or reported as a visible degraded state with
+  the next automatic step; it must not end in a terminal state or an operator
+  wait when the system could converge on its own.
+- **No blockers.** A local problem (one recipe, one lane, one stale record)
+  stays local and must not stop unrelated work. Only real security boundaries
+  (authentication, mTLS identity, signature/digest verification of downloaded
+  artifacts) may refuse work.
+- **Audit trails are not important.** A recipe is qualified when it loads,
+  serves or produces valid output for its declared checks, and recovers from
+  the declared fault. Operation IDs, receipts and ledgers are useful for
+  debugging, not acceptance criteria; missing bookkeeping never blocks a batch.
+- **Standing authorization.** The owner authorized proceeding without waiting
+  for per-step approval, including fault injection (host restart, rank loss)
+  on the two Sparks, on 2026-09-28.
+
+## Execution checkpoint — 2026-09-28
+
+Platform [PR #924](https://github.com/CarstVaartjes/vonk-forge/pull/924) merged
+as `8763b517d` (resilience and usability): 30-day agent certificates (renewal at
+~day 20, so a Controller outage of up to ~10 days needs no re-enrollment),
+worker route-lease renewal independent of image preparation with helper
+timeouts and a worker watchdog, agent systemd watchdog and in-process startup
+retry, bounded single-Spark crash recovery with automatic resume, a drift check
+for running profiles, a 15-minute final-verify bound that hands the run to
+recovery, verified backups, LAN-only lab install, a web enrollment form and
+`vonkctl run`. Development images and installer publication succeeded. It is
+not yet running on the NAS: its Controller refuses to start on a database whose
+schema differs from the models, so a Controller schema self-healing change is in
+progress before that deployment (no database wipe or re-enrollment).
+
+Profile-1 application `36d22487-a750-468c-944b-92d9a3e81419` **failed** at
+2026-09-27 20:32 UTC in `final-verify` ("Run/Switch child returned waiting";
+route publication never happened). Root cause: on both Sparks the deployed agent
+reports `exact recipe observation failed … (metadata)` every minute because one
+historical run directory (`e85c4710…`, already known to fail current parsing)
+makes the fail-closed observation report empty for all runs. The Controller
+therefore never sees the GLM ranks running and its recovery stops and restarts
+them every ~4 minutes. Fix in progress: per-run observation isolation plus
+automatic cleanup of stale run directories in the agent. Stale Controller-build
+runtime-image receipts lacking an adapter are also logged every scan; they are
+skipped and will be cleaned automatically.
+
+Revised order (see *Implementation and execution order*): deploy the agent and
+Controller fixes, then reload profile 1 and in parallel start the single-Spark
+job batches, beginning with Step1X-3D geometry (batch-001). Job batches do not
+depend on the GLM dual-Spark gate.
+
 ## Execution checkpoint — 2026-09-27
 
 The live application status below was refreshed through 2026-09-27
@@ -364,12 +417,22 @@ conditions.
   digest starts `113a6635`, and its request key is
   `07ad74ac-2cfe-43ce-bac1-d9fbe0412cec`; reconnect to this operation instead
   of duplicating it. No inference result is recorded.
-- [ ] Obtain the pending explicit fault-injection authorization before using
+- [ ] Deploy the per-run agent observation fix (fleet agent upgrade) and the
+  Controller schema self-healing release, then the #924 generation, preserving
+  the database and enrollments. Reload profile 1 and verify serving and
+  inference.
+- [ ] In parallel with the GLM gate, run single-Spark job batches starting with
+  batch-001 (Step1X-3D geometry and label-geometry: cache ready as of
+  2026-09-25; re-check after the database reset) to prove the job path
+  end to end on hardware: profile load, artifact-job create/upload/submit,
+  agent JobRun, GLB download and validation. Then batch-003/002/004 as their
+  caches and provider gates clear.
+- [ ] Fault injection is authorized (see *Operating principles*); run it with
   the authorized mechanism. A physical single-Spark reboot fault remains
   unproved. Exercise recovery after a recoverable fault clears and capture an
   attributable exact-identity fault-to-recovery receipt. Do not claim physical
   recovery from serving, inference, or metadata alone.
-- [ ] After profile 1 physical recovery, add the official NAF checkpoint as a
+- [ ] Independently of profile 1, add the official NAF checkpoint as a
   canonical Pixal3D Model selection, use the next recipe revision, regenerate
   and validate package/catalog/qualification outputs, publish the catalog, and
   refresh the reviewed authority. Keep NAF cache preparation, upstream asset
@@ -630,11 +693,11 @@ each batch; earlier observations are not current admission evidence.
    host reboot, re-verify the exact signed Controller/agent source and artifact
    identities currently deployed, complete the profile inference gate, and
    obtain explicit fault-injection authorization. Required source/CI completion
-   and deployment do not satisfy this physical gate. If certificate re-enrollment
-   is needed after more than 24 hours offline,
-   preserve the existing Controller node ID and campaign ledger and require an
-   explicit authorized grant; never bypass trust automatically or mint a
-   replacement identity. These physical actions remain operator-run;
+   and deployment do not satisfy this physical gate. Agent certificates last 30 days
+   and renew at about day 20; re-enrollment is only needed after roughly ten
+   days offline. If it is needed, preserve the existing Controller node ID and
+   use a fresh enrollment grant; never bypass trust or mint a replacement
+   identity. These physical actions remain operator-run;
    `--observe` only records and reconciles their evidence.
 7. Retain verified model files, recipe images and compatible partial-transfer
    checkpoints. Preview cleanup with `--cleanup-lane LANE`, then apply its
@@ -779,13 +842,15 @@ The authority assigns 72 one-Spark recipes to 36 batches and 9 two-Spark recipes
 
 ## Evidence and stop rules
 
-A recipe passes only with the exact structural record, published package identity,
-Controller preparation/apply operation IDs, per-node transfer/start receipts,
-declared serving/job assertions, and cleanup result. A repository test or healthy
-container is not physical acceptance. A blocked recipe remains in its assigned
+A recipe passes when it loads on its declared topology, passes its declared
+serving/job assertions (valid output, not merely a healthy container) and
+recovers from its declared fault. Operation IDs and receipts are recorded when
+available for debugging; missing bookkeeping does not fail a recipe. A blocked recipe remains in its assigned
 batch with its named blocker; it is never omitted to make the campaign green.
 
-Stop the campaign on an integrity mismatch, malformed contract, denied authority,
-unexpected model/image substitution, or a failure that could affect another recipe.
+Stop the campaign only on a real integrity or security failure (digest or
+signature mismatch, unexpected model/image substitution). Everything else is
+retried, recovered or recorded as that recipe's blocker while the campaign
+continues.
 A local capacity shortfall blocks only that row. Preserve completed downloads,
 verified images, and exact failure evidence so the row can resume after repair.
