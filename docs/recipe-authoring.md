@@ -74,6 +74,17 @@ paths, IDs, hashes, sizes, and purposes. Preserve legitimate
 empty supporting files with their real empty-content digest. Do not invent
 hashes, sizes, capabilities, context limits, or memory measurements.
 
+For a Hugging Face model, `tools/catalog-hf-model` drafts that record. It pins
+`--revision` (or the current head), lists every file in the snapshot with its
+LFS SHA-256 and size (downloading and hashing small non-LFS files, and refusing
+non-LFS files over 16 MiB), and writes a validated, canonical
+`models/<--version-slug>.json`. It prints the pinned revision, the Model
+content digest to use in recipe model references, and the total bytes. You
+still supply identity, license, access and lineage through its flags; it
+leaves `capabilities.facts` empty. Review the file list and roles, drop files
+the model does not need, and add evidence-backed capabilities before you use
+the Model in a recipe.
+
 Describe capabilities with evidence and keep unknowns honest. A source model's
 vision capability does not prove that every engine recipe can serve images.
 

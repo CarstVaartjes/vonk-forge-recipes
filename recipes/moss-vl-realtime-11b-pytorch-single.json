@@ -405,7 +405,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "751b6b65ceba6b68f3a2d138c25932619d805da7637ded9ace59c29a0d1cd108",
+        "content_sha256": "8b06634e9ff9fe35c269929935b67faf4fd984a02dd67f4384bd1a6538fbaf7b",
         "kind": "model",
         "publisher": "openmoss",
         "slug": "moss-vl-realtime-11b-bf16-d1f71a58"
@@ -421,6 +421,20 @@
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "The exact openmoss/moss-vl-realtime-11b-bf16-d1f71a58 Model no longer declares that it supersedes the revision 25e81cb9 record, which was removed from the catalog because no recipe selected it. That changes the Model's content digest, so this recipe's exact model reference moves to the new digest. Weights, files, and runtime are unchanged.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Rebound the exact model reference after the superseded model record was removed; runtime behavior is unchanged."
+          }
+        ],
+        "prior_recipe_content_sha256": "80036fc05bf4808d5af3209696880a21c35a7b36db5d061ae2dbcdc72eb45b8c",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "none",
+        "version": "1.2.4"
+      },
       {
         "changes": [
           {
@@ -622,8 +636,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-24",
-    "version": "1.2.3"
+    "released_at": "2026-09-28",
+    "version": "1.2.4"
   },
   "runtime": {
     "arguments": [

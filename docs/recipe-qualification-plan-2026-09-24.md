@@ -445,11 +445,13 @@ conditions.
   platform identities; preserve provider, license, authority, integrity, and
   actual-resource blockers; reuse completed cache work only for its exact
   bound artifact identity.
-- [ ] Produce the final per-recipe report after physical execution. The current
-  snapshot at `qualification/reports/recipe-evidence-inventory-2026-09-25.md`
-  and its JSON companion separate source freshness, structural validation,
-  timestamped cache evidence, inference and recovery state; refresh it as the
-  campaign progresses.
+- [ ] Produce the final per-recipe report after physical execution, separating
+  source freshness, structural validation, timestamped cache evidence,
+  inference and recovery state. The 2026-09-25 evidence-inventory snapshot was
+  removed because it went stale; build the report from the live sources
+  instead: the recipes and models on `main`, the qualification authority and
+  campaign under `qualification/`, the signed release assets, and the
+  Controller's qualification receipts.
 
 Use bounded GPT-6 Luna Max agents for independent audits or implementation,
 each in its own task-owned worktree. Avoid agents for routine polling, duplicate
