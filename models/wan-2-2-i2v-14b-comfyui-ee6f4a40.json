@@ -18,7 +18,7 @@
       }
     ],
     "provenance": {
-      "source_revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+      "source_revision": "ee6f4a40737a995bf5818954cfce6d59443b0f04",
       "source_url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
     },
     "schema_version": 2
@@ -80,9 +80,9 @@
       "title": "Wan 2.2 I2V 14B"
     },
     "publisher": "wan-ai",
-    "slug": "wan-2-2-i2v-14b-comfyui-c4f60d30",
-    "variant": "Wan 2.2 I2V 14B ComfyUI revision c4f60d30",
-    "version": "comfyui-c4f60d30"
+    "slug": "wan-2-2-i2v-14b-comfyui-ee6f4a40",
+    "variant": "Wan 2.2 I2V 14B ComfyUI revision ee6f4a40",
+    "version": "comfyui-ee6f4a40"
   },
   "kind": "model",
   "license": {
@@ -134,13 +134,13 @@
       "Wan-AI",
       "Comfy-Org"
     ],
-    "source_revision": "c4f60d30c55a624e35427060fdd217579a6c1d77",
+    "source_revision": "ee6f4a40737a995bf5818954cfce6d59443b0f04",
     "source_url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
   },
   "schema_version": 2,
   "source": {
     "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged",
-    "revision": "c4f60d30c55a624e35427060fdd217579a6c1d77"
+    "revision": "ee6f4a40737a995bf5818954cfce6d59443b0f04"
   },
   "supersedes": null
 }
