@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4",
+        "digest": "e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e",
         "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
@@ -37,7 +37,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate binding of NVIDIA's official agent-ready Qwen3.6 35B-A3B NVFP4 checkpoint and stable vLLM 0.28 ARM64 image for one DGX Spark. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
+    "description": "Executable Candidate binding of NVIDIA's official agent-ready Qwen3.6 35B-A3B NVFP4 checkpoint and stable vLLM 0.30 ARM64 image for one DGX Spark. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
     "tags": [
       "executable",
       "candidate",
@@ -272,6 +272,25 @@
   "release": {
     "history": [
       {
+        "version": "1.1.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "d2b3984c3f82147c0f9a88266cb0c5b573dd4ba24243e90a29e256f67baae20b",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Refresh the pinned official vLLM ARM64 runtime from 0.28.0 to stable 0.30.0.",
+            "details": "Moves from v0.28.0-aarch64-ubuntu2404 (41b54fb42c66) to v0.30.0-aarch64-ubuntu2404 (e06f024cf1dd), build commit ced6857a. Upstream v0.29 makes Model Runner V2 the default and deprecates V1; v0.29/v0.30 removals (PyAV video decoder, api_server module entrypoint, VLLM_PREFIX_CACHE_RETENTION_INTERVAL, VLLM_MM_HASHER_ALGORITHM, GPTQ g_idx) are not used here. Every runtime option in this recipe still exists at v0.30.0. v0.30 prefers W4A4 NVFP4 over weight-only kernels on SM120/121 (#55170); MoE layers stay on the explicit marlin backend. --attention-backend flashinfer, fastsafetensors loading, MTP speculative-config and qwen3_xml parsing still exist. Image revision label corrected to the pinned model revision 1355db6a. Needs Spark re-qualification.",
+            "references": [
+              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
+              "https://github.com/vllm-project/vllm/compare/v0.28.0...v0.30.0",
+              "https://hub.docker.com/r/vllm/vllm-openai/tags?name=v0.30.0-aarch64"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": null,
@@ -363,8 +382,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.0.5"
+    "released_at": "2026-09-28",
+    "version": "1.1.0"
   },
   "runtime": {
     "arguments": [

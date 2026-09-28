@@ -1,10 +1,10 @@
-FROM docker.io/vllm/vllm-openai@sha256:41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4
+FROM docker.io/vllm/vllm-openai@sha256:e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e
 
 LABEL org.opencontainers.image.source="https://huggingface.co/google/gemma-4-26B-A4B-it" \
       org.opencontainers.image.revision="4d7ae4984b7db7de8f8457170b3f1a419ee76d52" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      org.opencontainers.image.description="Offline vLLM 0.28 ARM64 image-chat adapter for Gemma 4 26B-A4B IT" \
-      io.vonk.vllm.build-commit="2cf0a6915ce544dc493a0990f2ea38d81601128a"
+      org.opencontainers.image.description="Offline vLLM 0.30 ARM64 image-chat adapter for Gemma 4 26B-A4B IT" \
+      io.vonk.vllm.build-commit="ced6857afa0ea7b2e3f0846a62e1394e90f15607"
 
 COPY model-interface-smoke.py /tmp/model-interface-smoke.py
 COPY --chmod=0755 vllm-wrapper.sh /opt/vonk/bin/vllm
