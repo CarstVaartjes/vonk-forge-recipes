@@ -58,6 +58,17 @@ The [Pydantic definitions](../contracts/src/vonk_forge_contracts) are the source
 of truth. Use the [examples](../contracts/src/vonk_forge_contracts/examples) for
 structure only; replace synthetic identities and data with verified inputs.
 
+Contract compatibility: vonk-forge follows the newest signed release at
+runtime, so new or changed models and recipes never need a vonk-forge release.
+A change to the contract itself does. Within one `schema_version`, only make
+additive changes: add an optional field, or make a field optional. Removing a
+field, making one required, or changing a field's meaning is breaking: bump
+`schema_version` and coordinate a vonk-forge release. Documents are strict and
+`content_sha256` hashes the whole normalized document, so even an additive
+change takes effect only after vonk-forge pins the new contracts commit. Until
+then its Controller skips each document it cannot validate, reports it in
+sync-status, and applies the rest.
+
 ### Model: the exact files and their capabilities
 
 Reuse an existing exact Model when appropriate. Create a distinct version or
