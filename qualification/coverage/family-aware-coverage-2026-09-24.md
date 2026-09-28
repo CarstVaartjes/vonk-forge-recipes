@@ -375,7 +375,7 @@ These definitions are validated against the current Pydantic authority contract.
 
 ## Indexed package comparison
 
-The accepted release binds catalog index `400bc65b6a723e0c` (v1.0.17); the working index is `9fa5b698e3d0600c`. Refresh the authority after the changed catalog has been accepted.
+The accepted release binds catalog index `400bc65b6a723e0c` (v1.0.17); the working index is `5bac801e433a74ef`. Refresh the authority after the changed catalog has been accepted.
 
 Every current indexed package build stack matches its accepted runtime-stack identity.
 
