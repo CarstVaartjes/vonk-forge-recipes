@@ -314,7 +314,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f99f4a83029a7f149236d8d3f95ade96ebf99a600fa930c8fee949a9e8fec87a",
+        "content_sha256": "dfde69f61b91011afb0e32a466d2486f959d15824694b40d0dac1f98c07ac2ba",
         "kind": "model",
         "publisher": "thinkingmachines",
         "slug": "inkling-small-nvfp4"

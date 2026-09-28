@@ -8,19 +8,16 @@
     "facts": [
       {
         "capability": "audio-generation",
-        "evidence_digest": "f0116a90332496bdfcc827320c603a26b849c73bf804f2674d03682fbbd2334a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "video-generation",
-        "evidence_digest": "f0116a90332496bdfcc827320c603a26b849c73bf804f2674d03682fbbd2334a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "f0116a90332496bdfcc827320c603a26b849c73bf804f2674d03682fbbd2334a",
       "source_revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
       "source_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/README.md"
     },
@@ -2627,7 +2624,6 @@
     "attribution": [
       "minimax"
     ],
-    "evidence_digest": "f0116a90332496bdfcc827320c603a26b849c73bf804f2674d03682fbbd2334a",
     "source_revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
     "source_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/README.md"
   },

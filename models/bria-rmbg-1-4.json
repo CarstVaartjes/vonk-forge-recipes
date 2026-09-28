@@ -8,13 +8,11 @@
     "facts": [
       {
         "capability": "image-understanding",
-        "evidence_digest": "24e08231e4a1f467f69fd9a5f279c259544212dbeb581c710700f27effd07875",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "24e08231e4a1f467f69fd9a5f279c259544212dbeb581c710700f27effd07875",
       "source_revision": "2ceba5a5efaec153162aedea169f76caf9b46cf8",
       "source_url": "https://huggingface.co/briaai/RMBG-1.4/blob/2ceba5a5efaec153162aedea169f76caf9b46cf8/README.md"
     },
@@ -270,7 +268,6 @@
     "attribution": [
       "BRIA AI"
     ],
-    "evidence_digest": "24e08231e4a1f467f69fd9a5f279c259544212dbeb581c710700f27effd07875",
     "source_revision": "2ceba5a5efaec153162aedea169f76caf9b46cf8",
     "source_url": "https://huggingface.co/briaai/RMBG-1.4/blob/2ceba5a5efaec153162aedea169f76caf9b46cf8/README.md"
   },

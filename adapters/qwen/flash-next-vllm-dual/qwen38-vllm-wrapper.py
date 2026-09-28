@@ -23,9 +23,6 @@ PREPARED = PREPARED_ROOT / "current"
 PATCHER = Path("/opt/vonk/build/patch_checkpoint_config.py")
 DETECT = Path("/opt/vonk/build/detect_ple_dtype.py")
 UPSTREAM_REVISION = "c2325b22602b51a5faf55fc2bebccc34f3f80b9f"
-MODEL_DOCUMENT_SHA256 = (
-    "0f2c8617255df59583d6def4f71cb20ec63709aaf7c801ae8ce71f6a18e5edc4"
-)
 METADATA_HASH_LIMIT = 16 * 1024 * 1024
 PREPARATION_LOCK_TIMEOUT_SECONDS = 60.0
 PREPARATION_LOCK_POLL_SECONDS = 0.25
@@ -47,12 +44,10 @@ def _source_fingerprint(source: Path) -> str:
 
     Large weight payloads are Controller-selected immutable artifacts. Their
     relative paths and byte sizes are included here while configs, indexes,
-    tokenizers, and other small files are content-hashed. The canonical Model
-    document digest is included so a different selected model cannot reuse a
-    prepared configuration directory.
+    tokenizers, and other small files are content-hashed, so a different
+    selected model cannot reuse a prepared configuration directory.
     """
     digest = hashlib.sha256()
-    digest.update(f"model-document:{MODEL_DOCUMENT_SHA256}\n".encode())
     digest.update(f"upstream:{UPSTREAM_REVISION}\n".encode())
     entries = sorted(
         (item for item in source.rglob("*") if item.is_file()),
@@ -187,7 +182,6 @@ def _marker(path: Path) -> dict[str, str] | None:
 def _publish_prepared(source_fingerprint: str) -> None:
     published = PREPARED_ROOT / f"model-{source_fingerprint}"
     expected_marker = {
-        "model_document_sha256": MODEL_DOCUMENT_SHA256,
         "source_fingerprint": source_fingerprint,
         "upstream_revision": UPSTREAM_REVISION,
     }
@@ -248,7 +242,6 @@ def prepare_model() -> str:
     source_fingerprint = _source_fingerprint(SOURCE)
     with _preparation_lock(PREPARED_ROOT):
         expected = {
-            "model_document_sha256": MODEL_DOCUMENT_SHA256,
             "source_fingerprint": source_fingerprint,
             "upstream_revision": UPSTREAM_REVISION,
         }

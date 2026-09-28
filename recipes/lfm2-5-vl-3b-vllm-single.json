@@ -173,7 +173,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "4f79212c95556739f491ed99646496bd7a2d4c7e9c090082bb1780b9b82c2552",
+        "content_sha256": "aa74e7c9210ee2e6d5139f9b2bdc16dfd5bcd5cb4ca83f7436a95e370c47c858",
         "kind": "model",
         "publisher": "liquidai",
         "slug": "lfm2-5-vl-3b-bf16-a3af5799"

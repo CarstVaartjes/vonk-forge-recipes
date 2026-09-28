@@ -1016,18 +1016,6 @@
       "reason": "The attribute is reached through a dynamically loaded adapter module or a dict-backed fixture."
     },
     {
-      "file": "tests/test_media_image_coverage.py",
-      "rule": "reportGeneralTypeIssues",
-      "count": 4,
-      "reason": "The fixture is intentionally ungrown so a malformed-input path can be exercised."
-    },
-    {
-      "file": "tests/test_media_image_coverage.py",
-      "rule": "reportIndexIssue",
-      "count": 6,
-      "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
-    },
-    {
       "file": "tests/test_minimax_h3_adapter.py",
       "rule": "reportAttributeAccessIssue",
       "count": 1,

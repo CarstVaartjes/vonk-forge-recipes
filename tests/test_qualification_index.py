@@ -495,18 +495,8 @@ def test_published_stack_identity_uses_exact_package_not_stale_source_commit(
     )
     recipe = RecipeDefinition.model_validate(entry["document"])
     assert recipe.execution.mode == "build"
-    model_documents: dict[str, dict[str, Any]] = {}
-    for entity in catalog["catalog_entities"]:
-        document = entity["document"]
-        if document.get("kind") == "model":
-            identity = document["identity"]
-            key = f"{identity['publisher']}/{identity['slug']}"
-            model_documents[key] = document
-
     payload = _git_blob(catalog_commit, entry["package"]["path"])
-    with package_tree(
-        entry["package"], recipe, model_documents, payload
-    ) as package_root:
+    with package_tree(entry["package"], recipe, payload) as package_root:
         package_wheel = (
             package_root
             / "adapters/video/ltx2-sync-native/vonk_agent_protocol-3.0.0-py3-none-any.whl"
@@ -534,14 +524,14 @@ def test_published_stack_identity_uses_exact_package_not_stale_source_commit(
     (tmp_path / "packages").mkdir()
     (tmp_path / entry["package"]["path"]).write_bytes(payload)
     generated = AUTHORITY_TOOL["_pinned_stack_identities"](
-        "v0.0.0", {key: entry}, model_documents, tmp_path
+        "v0.0.0", {key: entry}, tmp_path
     )
     assert generated[key] == package_identity
 
     mismatched_package = {**entry["package"], "sha256": "0" * 64}
     with (
         pytest.raises(ValueError, match="package digest differs"),
-        package_tree(mismatched_package, recipe, model_documents, payload),
+        package_tree(mismatched_package, recipe, payload),
     ):
         pass
 

@@ -730,7 +730,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ef10af22eca2bb3d93e4d8425d511773310212a0c9916685ac71447553d11e5c",
+        "content_sha256": "1fe9a3e71830c6c8862243e241818973b1b127ab74c46893dfcc5f78abb82058",
         "kind": "model",
         "publisher": "poolside",
         "slug": "laguna-s-2-1-nvfp4-826aacdf"

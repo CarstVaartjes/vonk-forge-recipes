@@ -157,7 +157,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "335f0f9dabbbb8115ca76533ddb7ece8b18e272b0393b6512c40251303e9e667",
+        "content_sha256": "c93a5679414f357f2dd7e73045a5cb5289a07269b573950d5ea2e8c4cdd54c88",
         "kind": "model",
         "publisher": "wan-ai",
         "slug": "wan-2-2-t2v-14b-comfyui-c4f60d30"

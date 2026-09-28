@@ -7,7 +7,6 @@
   "capabilities": {
     "facts": [],
     "provenance": {
-      "evidence_digest": "8a09b467700c58138c29d53c605b34ebc69beaadd13274a8a2af8ad2c2f4032a",
       "source_revision": "32bd64288804d66eefd0ccbe215aa642df71cc41",
       "source_url": "https://huggingface.co/openai/clip-vit-large-patch14/blob/32bd64288804d66eefd0ccbe215aa642df71cc41/config.json"
     },
@@ -18,7 +17,9 @@
     {
       "id": "config",
       "path": "config.json",
-      "roles": ["configuration"],
+      "roles": [
+        "configuration"
+      ],
       "sha256": "8a09b467700c58138c29d53c605b34ebc69beaadd13274a8a2af8ad2c2f4032a",
       "size_bytes": 4519
     }
@@ -47,7 +48,9 @@
   },
   "kind": "model",
   "license": {
-    "attribution": ["openai"],
+    "attribution": [
+      "openai"
+    ],
     "operator_acceptance_required": false,
     "spdx": "MIT",
     "url": "https://github.com/openai/CLIP/blob/d05afc436d78f1c48dc0dbf8e5980a9d471f35f6/LICENSE"
@@ -70,16 +73,24 @@
   },
   "metadata": {
     "description": "Exact Step1X label-geometry offline dependency closure for CLIP configuration. No external CLIP weights are selected or required. The pinned model card cautions against deployed use; this is recorded separately from the upstream MIT license.",
-    "tags": ["openai", "vision", "metadata-only", "step1x"]
+    "tags": [
+      "openai",
+      "vision",
+      "metadata-only",
+      "step1x"
+    ]
   },
-  "modalities": ["image"],
+  "modalities": [
+    "image"
+  ],
   "parameters": {
     "active": null,
     "total": null
   },
   "provenance": {
-    "attribution": ["openai"],
-    "evidence_digest": "8a09b467700c58138c29d53c605b34ebc69beaadd13274a8a2af8ad2c2f4032a",
+    "attribution": [
+      "openai"
+    ],
     "source_revision": "32bd64288804d66eefd0ccbe215aa642df71cc41",
     "source_url": "https://huggingface.co/openai/clip-vit-large-patch14/blob/32bd64288804d66eefd0ccbe215aa642df71cc41/config.json"
   },

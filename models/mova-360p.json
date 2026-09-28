@@ -8,19 +8,16 @@
     "facts": [
       {
         "capability": "audio-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "video-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "eab4aa91d6d5eb515e259a0c8533c90062b117a5",
       "source_url": "https://huggingface.co/OpenMOSS-Team/MOVA-360p"
     },
@@ -348,7 +345,6 @@
     "attribution": [
       "openmoss"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "eab4aa91d6d5eb515e259a0c8533c90062b117a5",
     "source_url": "https://huggingface.co/OpenMOSS-Team/MOVA-360p"
   },

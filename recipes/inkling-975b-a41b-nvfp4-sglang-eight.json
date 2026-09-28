@@ -602,7 +602,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d5939fdd15e49eb9a726635f3d2aadc5f58944760fe60499e8a44a5e8b5e3771",
+        "content_sha256": "2b672f5d7dfbc95fa50c42ab70764bdc7a9ad50494361825aa9e060b174da0ff",
         "kind": "model",
         "publisher": "thinkingmachines",
         "slug": "inkling-975b-a41b-nvfp4"

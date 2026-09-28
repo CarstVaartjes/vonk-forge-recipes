@@ -8,19 +8,16 @@
     "facts": [
       {
         "capability": "reasoning",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "text-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "ff433f5493e25d631c9f12b5d55c674229923d02",
       "source_url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4"
     },
@@ -420,7 +417,6 @@
     "attribution": [
       "NVIDIA Corporation"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "ff433f5493e25d631c9f12b5d55c674229923d02",
     "source_url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4"
   },

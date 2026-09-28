@@ -8,25 +8,21 @@
     "facts": [
       {
         "capability": "code-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "image-understanding",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "reasoning",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
       "source_url": "https://huggingface.co/Qwen/Qwen3.8-27B"
     },
@@ -390,7 +386,6 @@
     "attribution": [
       "Qwen"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
     "source_url": "https://huggingface.co/Qwen/Qwen3.8-27B"
   },

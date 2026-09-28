@@ -4,7 +4,6 @@ import unittest
 from pathlib import Path
 
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256
-from vonk_forge_contracts.model import ModelSource
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL_RECIPE_PAIRS = {
@@ -25,33 +24,6 @@ FULL_MODEL_SELECTIONS = {
 
 
 class ExplicitHuggingFaceManifestTests(unittest.TestCase):
-    def test_model_provenance_binds_an_exact_pinned_readme_digest(self) -> None:
-        for slug in (*MODEL_RECIPE_PAIRS, "bria-rmbg-1-4"):
-            with self.subTest(model=slug):
-                path = ROOT / "models" / f"{slug}.json"
-                model = ModelDefinition.model_validate_json(
-                    path.read_text(encoding="utf-8")
-                )
-                self.assertEqual(model.identity.slug, path.stem)
-                assert isinstance(model.source, ModelSource)
-                self.assertNotIn("snapshot", {item.path for item in model.files})
-                readme = next(item for item in model.files if item.path == "README.md")
-                evidence_url = (
-                    f"{model.source.repository}/blob/{model.source.revision}/README.md"
-                )
-                self.assertEqual(model.provenance.source_url, evidence_url)
-                self.assertEqual(model.provenance.evidence_digest, readme.sha256)
-                self.assertEqual(model.capabilities.provenance.source_url, evidence_url)
-                self.assertEqual(
-                    model.capabilities.provenance.evidence_digest, readme.sha256
-                )
-                self.assertTrue(
-                    all(
-                        fact.evidence_digest == readme.sha256
-                        for fact in model.capabilities.facts
-                    )
-                )
-
     def test_recipe_file_selectors_resolve_exact_models_and_offline_closure(
         self,
     ) -> None:

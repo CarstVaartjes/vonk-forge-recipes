@@ -1765,7 +1765,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c1d5007864c30d7a2e80f6662c00d2219f732d4286409082cc556a3d57c07356",
+        "content_sha256": "a7e87477437b83050787b09a339486847992d4c2c9f32ff63abe8a58ce4b55e1",
         "kind": "model",
         "publisher": "quanttrio",
         "slug": "glm-5-2-int4-int8mix"

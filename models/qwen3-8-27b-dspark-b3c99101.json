@@ -7,7 +7,6 @@
   "capabilities": {
     "facts": [],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "8da79f23859810bbb806e7a25eaf70489a9441c5",
       "source_url": "https://github.com/CarstVaartjes/vonk-forge-recipes"
     },
@@ -139,7 +138,6 @@
       "Qwen",
       "RadixArk"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "b3c9910194dc7ae53fea3d95a1959b654f495416",
     "source_url": "https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark"
   },

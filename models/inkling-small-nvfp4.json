@@ -8,25 +8,21 @@
     "facts": [
       {
         "capability": "audio-understanding",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "image-understanding",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "text-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "b6a99534467840620d411e4cd4ad5819b2610d9c",
       "source_url": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4"
     },
@@ -298,7 +294,6 @@
     "attribution": [
       "Thinking Machines Lab"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "b6a99534467840620d411e4cd4ad5819b2610d9c",
     "source_url": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4"
   },

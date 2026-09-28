@@ -239,7 +239,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "92bdd6669b05b45442df655d97c0dc2e2dd46235b6f0992dd11841ef52fe3128",
+        "content_sha256": "38ecbb708f8acd9856eec19f5e3d30057c1c5d49823f8a15726f2dd161cdd8bc",
         "kind": "model",
         "publisher": "vast-ai",
         "slug": "triposg"
@@ -272,7 +272,7 @@
       ],
       "id": "background-removal",
       "model": {
-        "content_sha256": "f7c9e356bfe62fcce55d6a31d4e4c86fe2631bfa661829e4c5e11df3d372a74e",
+        "content_sha256": "c520c30b856805e176290e9ebf2820871e8c2dd6b38671ebeb67504fdfa7322a",
         "kind": "model",
         "publisher": "bria-ai",
         "slug": "bria-rmbg-1-4"

@@ -834,7 +834,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1aa425dc5585daad4a4042787a60a14c4b7467e8dce829a903e136815bab6bb3",
+        "content_sha256": "f3b49fed55bcd4f957f141923b896362c05500d2595a449930dfa57bfbb9e9e4",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4"
@@ -911,7 +911,7 @@
       ],
       "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark",
       "model": {
-        "content_sha256": "d1634d4d6d2fc7c780a0f3030c70a485def00503ae9ba4c5e9b88e3aa93e7473",
+        "content_sha256": "c171a74d79cb757d7bd984b08de3f3f2826d0d4fc7a84bc38800b2ffa6e42274",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark"
