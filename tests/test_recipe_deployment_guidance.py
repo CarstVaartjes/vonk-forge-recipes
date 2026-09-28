@@ -120,7 +120,7 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
                 )
                 package = entry["package"]
                 self.assertEqual(package["recipe_content_sha256"], digest)
-                package_path = ROOT / package["path"]
+                package_path = GENERATED / package["path"]
                 payload = package_path.read_bytes()
                 self.assertEqual(len(payload), package["expected_bytes"])
                 self.assertEqual(hashlib.sha256(payload).hexdigest(), package["sha256"])

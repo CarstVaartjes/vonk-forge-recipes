@@ -129,7 +129,7 @@ class SparkInferSingleRecipeTests(unittest.TestCase):
         )
         package = entry["package"]
         self.assertEqual(package["recipe_content_sha256"], recipe_digest)
-        payload = (ROOT / package["path"]).read_bytes()
+        payload = (GENERATED / package["path"]).read_bytes()
         self.assertEqual(len(payload), package["expected_bytes"])
         self.assertEqual(hashlib.sha256(payload).hexdigest(), package["sha256"])
 
