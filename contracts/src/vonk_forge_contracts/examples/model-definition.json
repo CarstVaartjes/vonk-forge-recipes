@@ -1,28 +1,8 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "image-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "fedcba9876543210fedcba9876543210fedcba98",
-      "source_url": "https://example.com/evidence/synthetic-tiny"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "image-generation",
+    "text-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -36,7 +16,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "fp16",
     "quantization": "none"
   },
@@ -47,7 +26,6 @@
       "title": "Synthetic"
     },
     "model": {
-      "architecture": "synthetic-transformer",
       "publisher": "vonk-forge",
       "slug": "synthetic-tiny",
       "title": "Synthetic Tiny"
@@ -62,22 +40,8 @@
     "attribution": [
       "Vonk Forge"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://www.apache.org/licenses/LICENSE-2.0"
-  },
-  "limits": {
-    "context_tokens": 1024
-  },
-  "lineage": {
-    "derivation": "Synthetic contract example.",
-    "publisher": "vonk-forge",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "vonk-forge",
-      "slug": "synthetic-tiny-image"
-    }
   },
   "metadata": {
     "description": "A small model used only for contract examples.",
@@ -90,21 +54,9 @@
     "text",
     "image"
   ],
-  "parameters": {
-    "active": 1024,
-    "total": 1024
-  },
-  "provenance": {
-    "attribution": [
-      "Vonk Forge"
-    ],
-    "source_revision": "0123456789abcdef0123456789abcdef01234567",
-    "source_url": "https://example.com/models/synthetic-tiny"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://example.com/models/synthetic-tiny",
     "revision": "0123456789abcdef0123456789abcdef01234567"
-  },
-  "supersedes": null
+  }
 }

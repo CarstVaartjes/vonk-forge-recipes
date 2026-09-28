@@ -64,141 +64,6 @@
       "title": "GitHubReleaseSource",
       "type": "object"
     },
-    "ModelAccess": {
-      "additionalProperties": false,
-      "properties": {
-        "visibility": {
-          "enum": [
-            "public",
-            "restricted"
-          ],
-          "title": "Visibility",
-          "type": "string"
-        },
-        "gated": {
-          "title": "Gated",
-          "type": "boolean"
-        },
-        "authentication": {
-          "enum": [
-            "none",
-            "token"
-          ],
-          "title": "Authentication",
-          "type": "string"
-        }
-      },
-      "required": [
-        "visibility",
-        "gated",
-        "authentication"
-      ],
-      "title": "ModelAccess",
-      "type": "object"
-    },
-    "ModelCapabilities": {
-      "additionalProperties": false,
-      "properties": {
-        "schema_version": {
-          "const": 2,
-          "default": 2,
-          "title": "Schema Version",
-          "type": "integer"
-        },
-        "facts": {
-          "items": {
-            "$ref": "#/$defs/ModelCapabilityFact"
-          },
-          "maxItems": 64,
-          "title": "Facts",
-          "type": "array"
-        },
-        "provenance": {
-          "$ref": "#/$defs/ModelCapabilityProvenance"
-        }
-      },
-      "required": [
-        "facts",
-        "provenance"
-      ],
-      "title": "ModelCapabilities",
-      "type": "object"
-    },
-    "ModelCapabilityFact": {
-      "additionalProperties": false,
-      "properties": {
-        "capability": {
-          "enum": [
-            "chat",
-            "text-generation",
-            "text-understanding",
-            "reasoning",
-            "tool-use",
-            "code-generation",
-            "ocr",
-            "image-generation",
-            "image-understanding",
-            "image-editing",
-            "video-generation",
-            "video-understanding",
-            "audio-generation",
-            "audio-understanding",
-            "embeddings",
-            "3d-generation"
-          ],
-          "title": "Capability",
-          "type": "string"
-        },
-        "support": {
-          "enum": [
-            "supported",
-            "unsupported",
-            "unknown"
-          ],
-          "title": "Support",
-          "type": "string"
-        },
-        "evidence_status": {
-          "enum": [
-            "declared",
-            "tested",
-            "contradicted",
-            "unknown"
-          ],
-          "title": "Evidence Status",
-          "type": "string"
-        }
-      },
-      "required": [
-        "capability",
-        "support",
-        "evidence_status"
-      ],
-      "title": "ModelCapabilityFact",
-      "type": "object"
-    },
-    "ModelCapabilityProvenance": {
-      "additionalProperties": false,
-      "properties": {
-        "source_url": {
-          "maxLength": 512,
-          "minLength": 1,
-          "title": "Source Url",
-          "type": "string"
-        },
-        "source_revision": {
-          "pattern": "^[a-f0-9]{40,64}$",
-          "title": "Source Revision",
-          "type": "string"
-        }
-      },
-      "required": [
-        "source_url",
-        "source_revision"
-      ],
-      "title": "ModelCapabilityProvenance",
-      "type": "object"
-    },
     "ModelFamily": {
       "additionalProperties": false,
       "properties": {
@@ -282,16 +147,6 @@
     "ModelFormat": {
       "additionalProperties": false,
       "properties": {
-        "container": {
-          "enum": [
-            "gguf",
-            "safetensors",
-            "onnx",
-            "other"
-          ],
-          "title": "Container",
-          "type": "string"
-        },
         "precision": {
           "maxLength": 64,
           "minLength": 1,
@@ -308,7 +163,6 @@
         }
       },
       "required": [
-        "container",
         "precision",
         "quantization"
       ],
@@ -386,10 +240,6 @@
           "title": "Attribution",
           "type": "array"
         },
-        "operator_acceptance_required": {
-          "title": "Operator Acceptance Required",
-          "type": "boolean"
-        },
         "territorial_restrictions": {
           "anyOf": [
             {
@@ -405,136 +255,9 @@
       "required": [
         "spdx",
         "url",
-        "attribution",
-        "operator_acceptance_required"
+        "attribution"
       ],
       "title": "ModelLicense",
-      "type": "object"
-    },
-    "ModelLimits": {
-      "additionalProperties": false,
-      "properties": {
-        "context_tokens": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Context Tokens"
-        },
-        "resolution_pixels": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Resolution Pixels"
-        },
-        "frames": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Frames"
-        },
-        "sample_rate_hz": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Sample Rate Hz"
-        }
-      },
-      "title": "ModelLimits",
-      "type": "object"
-    },
-    "ModelLineage": {
-      "additionalProperties": false,
-      "properties": {
-        "publisher": {
-          "maxLength": 128,
-          "minLength": 1,
-          "title": "Publisher",
-          "type": "string"
-        },
-        "relation": {
-          "enum": [
-            "official",
-            "derived",
-            "quantized"
-          ],
-          "title": "Relation",
-          "type": "string"
-        },
-        "source_model": {
-          "$ref": "#/$defs/ModelLineageSource"
-        },
-        "derivation": {
-          "maxLength": 2000,
-          "minLength": 1,
-          "title": "Derivation",
-          "type": "string"
-        }
-      },
-      "required": [
-        "publisher",
-        "relation",
-        "source_model",
-        "derivation"
-      ],
-      "title": "ModelLineage",
-      "type": "object"
-    },
-    "ModelLineageSource": {
-      "additionalProperties": false,
-      "properties": {
-        "kind": {
-          "const": "model",
-          "default": "model",
-          "title": "Kind",
-          "type": "string"
-        },
-        "publisher": {
-          "maxLength": 128,
-          "minLength": 1,
-          "title": "Publisher",
-          "type": "string"
-        },
-        "slug": {
-          "maxLength": 63,
-          "minLength": 2,
-          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
-          "title": "Slug",
-          "type": "string"
-        }
-      },
-      "required": [
-        "publisher",
-        "slug"
-      ],
-      "title": "ModelLineageSource",
       "type": "object"
     },
     "ModelMetadata": {
@@ -563,70 +286,6 @@
       "title": "ModelMetadata",
       "type": "object"
     },
-    "ModelParameters": {
-      "additionalProperties": false,
-      "properties": {
-        "total": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Total"
-        },
-        "active": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Active"
-        }
-      },
-      "title": "ModelParameters",
-      "type": "object"
-    },
-    "ModelProvenance": {
-      "additionalProperties": false,
-      "properties": {
-        "source_url": {
-          "maxLength": 512,
-          "minLength": 1,
-          "title": "Source Url",
-          "type": "string"
-        },
-        "source_revision": {
-          "pattern": "^[a-f0-9]{40,64}$",
-          "title": "Source Revision",
-          "type": "string"
-        },
-        "attribution": {
-          "items": {
-            "type": "string"
-          },
-          "maxItems": 32,
-          "title": "Attribution",
-          "type": "array"
-        }
-      },
-      "required": [
-        "source_url",
-        "source_revision",
-        "attribution"
-      ],
-      "title": "ModelProvenance",
-      "type": "object"
-    },
     "ModelRecord": {
       "additionalProperties": false,
       "properties": {
@@ -649,19 +308,12 @@
           "minLength": 1,
           "title": "Title",
           "type": "string"
-        },
-        "architecture": {
-          "maxLength": 128,
-          "minLength": 1,
-          "title": "Architecture",
-          "type": "string"
         }
       },
       "required": [
         "publisher",
         "slug",
-        "title",
-        "architecture"
+        "title"
       ],
       "title": "ModelRecord",
       "type": "object"
@@ -755,12 +407,6 @@
   "additionalProperties": false,
   "description": "One exact model version and variant, including its complete manifest.",
   "properties": {
-    "schema_version": {
-      "const": 2,
-      "default": 2,
-      "title": "Schema Version",
-      "type": "integer"
-    },
     "kind": {
       "const": "model",
       "default": "model",
@@ -773,11 +419,9 @@
     "metadata": {
       "$ref": "#/$defs/ModelMetadata"
     },
-    "access": {
-      "$ref": "#/$defs/ModelAccess"
-    },
-    "lineage": {
-      "$ref": "#/$defs/ModelLineage"
+    "requires_token": {
+      "title": "Requires Token",
+      "type": "boolean"
     },
     "dependencies": {
       "items": {
@@ -786,17 +430,6 @@
       "maxItems": 32,
       "title": "Dependencies",
       "type": "array"
-    },
-    "supersedes": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/ModelReference"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
     },
     "modalities": {
       "items": {
@@ -829,12 +462,6 @@
     "format": {
       "$ref": "#/$defs/ModelFormat"
     },
-    "parameters": {
-      "$ref": "#/$defs/ModelParameters"
-    },
-    "limits": {
-      "$ref": "#/$defs/ModelLimits"
-    },
     "license": {
       "$ref": "#/$defs/ModelLicense"
     },
@@ -847,27 +474,28 @@
       "type": "array"
     },
     "capabilities": {
-      "$ref": "#/$defs/ModelCapabilities"
-    },
-    "provenance": {
-      "$ref": "#/$defs/ModelProvenance"
+      "items": {
+        "maxLength": 40,
+        "minLength": 1,
+        "pattern": "^[a-z0-9][a-z0-9-]{0,39}$",
+        "type": "string"
+      },
+      "maxItems": 64,
+      "title": "Capabilities",
+      "type": "array"
     }
   },
   "required": [
     "identity",
     "metadata",
-    "access",
-    "lineage",
+    "requires_token",
     "dependencies",
     "modalities",
     "source",
     "format",
-    "parameters",
-    "limits",
     "license",
     "files",
-    "capabilities",
-    "provenance"
+    "capabilities"
   ],
   "title": "ModelDefinition",
   "type": "object"

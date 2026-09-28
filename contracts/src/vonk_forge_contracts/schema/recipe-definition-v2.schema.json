@@ -2,41 +2,6 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://api.vonkforge.ai/contracts/recipe-definition-v2.schema.json",
   "$defs": {
-    "BuildArgument": {
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "maxLength": 64,
-          "minLength": 1,
-          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
-          "title": "Name",
-          "type": "string"
-        },
-        "value": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "integer"
-            },
-            {
-              "type": "boolean"
-            },
-            {
-              "type": "number"
-            }
-          ],
-          "title": "Value"
-        }
-      },
-      "required": [
-        "name",
-        "value"
-      ],
-      "title": "BuildArgument",
-      "type": "object"
-    },
     "BuildContext": {
       "additionalProperties": false,
       "properties": {
@@ -56,14 +21,6 @@
     "BuildNetwork": {
       "additionalProperties": false,
       "properties": {
-        "mode": {
-          "enum": [
-            "none",
-            "public"
-          ],
-          "title": "Mode",
-          "type": "string"
-        },
         "hosts": {
           "items": {
             "type": "string"
@@ -74,7 +31,6 @@
         }
       },
       "required": [
-        "mode",
         "hosts"
       ],
       "title": "BuildNetwork",
@@ -163,50 +119,6 @@
       "title": "ModelReference",
       "type": "object"
     },
-    "RecipeBenchmark": {
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "maxLength": 64,
-          "minLength": 1,
-          "title": "Name",
-          "type": "string"
-        },
-        "framework": {
-          "maxLength": 64,
-          "minLength": 1,
-          "title": "Framework",
-          "type": "string"
-        },
-        "configuration": {
-          "additionalProperties": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "integer"
-              },
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "number"
-              }
-            ]
-          },
-          "title": "Configuration",
-          "type": "object"
-        }
-      },
-      "required": [
-        "name",
-        "framework",
-        "configuration"
-      ],
-      "title": "RecipeBenchmark",
-      "type": "object"
-    },
     "RecipeBuildDefinition": {
       "additionalProperties": false,
       "properties": {
@@ -230,27 +142,6 @@
           "title": "Patches",
           "type": "array"
         },
-        "target": {
-          "anyOf": [
-            {
-              "maxLength": 64,
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Target"
-        },
-        "arguments": {
-          "items": {
-            "$ref": "#/$defs/BuildArgument"
-          },
-          "maxItems": 64,
-          "title": "Arguments",
-          "type": "array"
-        },
         "network": {
           "$ref": "#/$defs/BuildNetwork"
         }
@@ -260,29 +151,9 @@
         "context",
         "dockerfile",
         "patches",
-        "arguments",
         "network"
       ],
       "title": "RecipeBuildDefinition",
-      "type": "object"
-    },
-    "RecipeBuildExecution": {
-      "additionalProperties": false,
-      "properties": {
-        "mode": {
-          "const": "build",
-          "title": "Mode",
-          "type": "string"
-        },
-        "build": {
-          "$ref": "#/$defs/RecipeBuildDefinition"
-        }
-      },
-      "required": [
-        "mode",
-        "build"
-      ],
-      "title": "RecipeBuildExecution",
       "type": "object"
     },
     "RecipeDiskResources": {
@@ -298,19 +169,9 @@
           "title": "Artifact Bytes",
           "type": "integer"
         },
-        "staging_bytes": {
+        "working_bytes": {
           "minimum": 0,
-          "title": "Staging Bytes",
-          "type": "integer"
-        },
-        "cache_bytes": {
-          "minimum": 0,
-          "title": "Cache Bytes",
-          "type": "integer"
-        },
-        "rollback_bytes": {
-          "minimum": 0,
-          "title": "Rollback Bytes",
+          "title": "Working Bytes",
           "type": "integer"
         },
         "safety_margin_bytes": {
@@ -322,9 +183,7 @@
       "required": [
         "image_bytes",
         "artifact_bytes",
-        "staging_bytes",
-        "cache_bytes",
-        "rollback_bytes",
+        "working_bytes",
         "safety_margin_bytes"
       ],
       "title": "RecipeDiskResources",
@@ -381,57 +240,18 @@
       "title": "RecipeEmbeddingSettings",
       "type": "object"
     },
-    "RecipeFabric": {
+    "RecipeExecution": {
       "additionalProperties": false,
+      "description": "The platform builds every recipe image from its pinned base and context.",
       "properties": {
-        "connectivity": {
-          "enum": [
-            "none",
-            "connected",
-            "full_mesh",
-            "switch"
-          ],
-          "title": "Connectivity",
-          "type": "string"
-        },
-        "minimum_bandwidth_mbps": {
-          "minimum": 0,
-          "title": "Minimum Bandwidth Mbps",
-          "type": "integer"
+        "build": {
+          "$ref": "#/$defs/RecipeBuildDefinition"
         }
       },
       "required": [
-        "connectivity",
-        "minimum_bandwidth_mbps"
+        "build"
       ],
-      "title": "RecipeFabric",
-      "type": "object"
-    },
-    "RecipeFailurePolicy": {
-      "additionalProperties": false,
-      "properties": {
-        "rank_loss": {
-          "enum": [
-            "not-applicable",
-            "withdraw-endpoint"
-          ],
-          "title": "Rank Loss",
-          "type": "string"
-        },
-        "recovery": {
-          "enum": [
-            "restart-entrypoint",
-            "restart-worker-then-entrypoint"
-          ],
-          "title": "Recovery",
-          "type": "string"
-        }
-      },
-      "required": [
-        "rank_loss",
-        "recovery"
-      ],
-      "title": "RecipeFailurePolicy",
+      "title": "RecipeExecution",
       "type": "object"
     },
     "RecipeGenerationSettings": {
@@ -576,38 +396,13 @@
           "pattern": "^[a-f0-9]{64}$",
           "title": "Digest",
           "type": "string"
-        },
-        "platform": {
-          "const": "linux/arm64",
-          "title": "Platform",
-          "type": "string"
         }
       },
       "required": [
         "repository",
-        "digest",
-        "platform"
+        "digest"
       ],
       "title": "RecipeImage",
-      "type": "object"
-    },
-    "RecipeImageExecution": {
-      "additionalProperties": false,
-      "properties": {
-        "mode": {
-          "const": "image",
-          "title": "Mode",
-          "type": "string"
-        },
-        "image": {
-          "$ref": "#/$defs/RecipeImage"
-        }
-      },
-      "required": [
-        "mode",
-        "image"
-      ],
-      "title": "RecipeImageExecution",
       "type": "object"
     },
     "RecipeInputSlot": {
@@ -715,11 +510,6 @@
     "RecipeJobInput": {
       "additionalProperties": false,
       "properties": {
-        "path": {
-          "const": "/inputs",
-          "title": "Path",
-          "type": "string"
-        },
         "required": {
           "title": "Required",
           "type": "boolean"
@@ -758,7 +548,6 @@
         }
       },
       "required": [
-        "path",
         "required",
         "media_types",
         "max_bytes"
@@ -780,11 +569,6 @@
           "title": "Adapter",
           "type": "string"
         },
-        "path": {
-          "const": "/outputs",
-          "title": "Path",
-          "type": "string"
-        },
         "input": {
           "anyOf": [
             {
@@ -802,7 +586,6 @@
       },
       "required": [
         "adapter",
-        "path",
         "output"
       ],
       "title": "RecipeJobInterface",
@@ -811,11 +594,6 @@
     "RecipeJobOutput": {
       "additionalProperties": false,
       "properties": {
-        "path": {
-          "const": "/outputs",
-          "title": "Path",
-          "type": "string"
-        },
         "max_total_bytes": {
           "maximum": 2147483648,
           "minimum": 1,
@@ -833,7 +611,6 @@
         }
       },
       "required": [
-        "path",
         "max_total_bytes",
         "slots"
       ],
@@ -842,6 +619,7 @@
     },
     "RecipeJobServingRequest": {
       "additionalProperties": false,
+      "description": "A job check stages its fixture as the input when the interface has one.",
       "properties": {
         "transport": {
           "const": "job",
@@ -853,19 +631,6 @@
           "pattern": "^(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*)(?:/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*))*$",
           "title": "Fixture",
           "type": "string"
-        },
-        "input_path": {
-          "anyOf": [
-            {
-              "const": "/inputs",
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Input Path"
         },
         "input_slots": {
           "maxProperties": 32,
@@ -883,11 +648,6 @@
           "title": "Input Slots",
           "type": "object"
         },
-        "output_path": {
-          "const": "/outputs",
-          "title": "Output Path",
-          "type": "string"
-        },
         "output_slot": {
           "maxLength": 64,
           "minLength": 1,
@@ -899,7 +659,6 @@
       "required": [
         "transport",
         "fixture",
-        "output_path",
         "output_slot"
       ],
       "title": "RecipeJobServingRequest",
@@ -948,57 +707,14 @@
     "RecipeLifecycle": {
       "additionalProperties": false,
       "properties": {
-        "pre_start": {
-          "items": {
-            "items": {
-              "maxLength": 65536,
-              "minLength": 1,
-              "type": "string"
-            },
-            "maxItems": 64,
-            "minItems": 1,
-            "type": "array"
-          },
-          "maxItems": 16,
-          "title": "Pre Start",
-          "type": "array"
-        },
-        "post_stop": {
-          "items": {
-            "items": {
-              "maxLength": 65536,
-              "minLength": 1,
-              "type": "string"
-            },
-            "maxItems": 64,
-            "minItems": 1,
-            "type": "array"
-          },
-          "maxItems": 16,
-          "title": "Post Stop",
-          "type": "array"
-        },
         "stop_timeout_seconds": {
           "maximum": 600,
           "minimum": 1,
           "title": "Stop Timeout Seconds",
           "type": "integer"
-        },
-        "failure": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/RecipeFailurePolicy"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
         }
       },
       "required": [
-        "pre_start",
-        "post_stop",
         "stop_timeout_seconds"
       ],
       "title": "RecipeLifecycle",
@@ -1006,43 +722,22 @@
     },
     "RecipeMemoryResources": {
       "additionalProperties": false,
+      "description": "Unified (DGX Spark) memory one role needs.",
       "properties": {
-        "kind": {
-          "enum": [
-            "unified",
-            "host",
-            "accelerator"
-          ],
-          "title": "Kind",
-          "type": "string"
-        },
-        "startup_peak_bytes": {
+        "peak_bytes": {
           "minimum": 1,
-          "title": "Startup Peak Bytes",
+          "title": "Peak Bytes",
           "type": "integer"
         },
-        "steady_state_bytes": {
-          "minimum": 1,
-          "title": "Steady State Bytes",
-          "type": "integer"
-        },
-        "runtime_growth_bytes": {
+        "reserve_bytes": {
           "minimum": 0,
-          "title": "Runtime Growth Bytes",
-          "type": "integer"
-        },
-        "system_reserve_bytes": {
-          "minimum": 0,
-          "title": "System Reserve Bytes",
+          "title": "Reserve Bytes",
           "type": "integer"
         }
       },
       "required": [
-        "kind",
-        "startup_peak_bytes",
-        "steady_state_bytes",
-        "runtime_growth_bytes",
-        "system_reserve_bytes"
+        "peak_bytes",
+        "reserve_bytes"
       ],
       "title": "RecipeMemoryResources",
       "type": "object"
@@ -1176,16 +871,10 @@
           "pattern": "^/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*)(?:/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*|\\.[A-Za-z0-9_-][A-Za-z0-9._-]*))*$",
           "title": "Target",
           "type": "string"
-        },
-        "read_only": {
-          "const": true,
-          "title": "Read Only",
-          "type": "boolean"
         }
       },
       "required": [
-        "target",
-        "read_only"
+        "target"
       ],
       "title": "RecipeMount",
       "type": "object"
@@ -1311,11 +1000,6 @@
     "RecipeParallelism": {
       "additionalProperties": false,
       "properties": {
-        "world_size": {
-          "minimum": 1,
-          "title": "World Size",
-          "type": "integer"
-        },
         "tensor": {
           "minimum": 1,
           "title": "Tensor",
@@ -1339,7 +1023,6 @@
         }
       },
       "required": [
-        "world_size",
         "tensor",
         "pipeline",
         "data",
@@ -1351,16 +1034,6 @@
     "RecipeProvenance": {
       "additionalProperties": false,
       "properties": {
-        "source_kind": {
-          "enum": [
-            "local",
-            "workload_run",
-            "global",
-            "fork"
-          ],
-          "title": "Source Kind",
-          "type": "string"
-        },
         "source_reference": {
           "anyOf": [
             {
@@ -1384,7 +1057,6 @@
         }
       },
       "required": [
-        "source_kind",
         "attribution"
       ],
       "title": "RecipeProvenance",
@@ -1392,11 +1064,12 @@
     },
     "RecipeRelease": {
       "additionalProperties": false,
+      "description": "The version this recipe runs.\n\nWhen the upstream project publishes versions, this is the upstream version\nand its release date (for example ``1.6`` released 2026-09-17). A recipe\nwhose upstream has no versions carries its own semantic version instead.\nThe recipe library's own version follows the contract, not recipe content.",
       "properties": {
         "version": {
           "maxLength": 64,
-          "minLength": 5,
-          "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$",
+          "minLength": 1,
+          "pattern": "^[0-9A-Za-z][0-9A-Za-z.+_-]{0,63}$",
           "title": "Version",
           "type": "string"
         },
@@ -1404,136 +1077,13 @@
           "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
           "title": "Released At",
           "type": "string"
-        },
-        "history": {
-          "items": {
-            "$ref": "#/$defs/RecipeReleaseHistoryEntry"
-          },
-          "maxItems": 32,
-          "minItems": 1,
-          "title": "History",
-          "type": "array"
         }
       },
       "required": [
         "version",
-        "released_at",
-        "history"
+        "released_at"
       ],
       "title": "RecipeRelease",
-      "type": "object"
-    },
-    "RecipeReleaseChange": {
-      "additionalProperties": false,
-      "properties": {
-        "kind": {
-          "enum": [
-            "initial",
-            "model",
-            "runtime",
-            "performance",
-            "fix",
-            "security",
-            "compatibility",
-            "breaking",
-            "metadata"
-          ],
-          "title": "Kind",
-          "type": "string"
-        },
-        "summary": {
-          "maxLength": 160,
-          "minLength": 1,
-          "title": "Summary",
-          "type": "string"
-        },
-        "details": {
-          "anyOf": [
-            {
-              "maxLength": 1000,
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Details"
-        },
-        "references": {
-          "items": {
-            "maxLength": 500,
-            "minLength": 1,
-            "pattern": "^https://[^\\s]+$",
-            "type": "string"
-          },
-          "maxItems": 8,
-          "title": "References",
-          "type": "array"
-        }
-      },
-      "required": [
-        "kind",
-        "summary"
-      ],
-      "title": "RecipeReleaseChange",
-      "type": "object"
-    },
-    "RecipeReleaseHistoryEntry": {
-      "additionalProperties": false,
-      "properties": {
-        "version": {
-          "maxLength": 64,
-          "minLength": 5,
-          "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$",
-          "title": "Version",
-          "type": "string"
-        },
-        "released_at": {
-          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
-          "title": "Released At",
-          "type": "string"
-        },
-        "prior_recipe_content_sha256": {
-          "anyOf": [
-            {
-              "pattern": "^[a-f0-9]{64}$",
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Prior Recipe Content Sha256"
-        },
-        "upgrade_effect": {
-          "enum": [
-            "none",
-            "restart",
-            "reprepare",
-            "rebuild"
-          ],
-          "title": "Upgrade Effect",
-          "type": "string"
-        },
-        "changes": {
-          "items": {
-            "$ref": "#/$defs/RecipeReleaseChange"
-          },
-          "maxItems": 16,
-          "minItems": 1,
-          "title": "Changes",
-          "type": "array"
-        }
-      },
-      "required": [
-        "version",
-        "released_at",
-        "upgrade_effect",
-        "changes"
-      ],
-      "title": "RecipeReleaseHistoryEntry",
       "type": "object"
     },
     "RecipeRoleResources": {
@@ -1670,29 +1220,14 @@
             },
             {
               "type": "number"
-            },
-            {
-              "type": "null"
             }
           ],
-          "default": null,
           "title": "Value"
-        },
-        "secret": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Secret"
         }
       },
       "required": [
-        "name"
+        "name",
+        "value"
       ],
       "title": "RecipeRuntimeEnvironment",
       "type": "object"
@@ -1769,25 +1304,12 @@
     },
     "RecipeTopology": {
       "additionalProperties": false,
+      "description": "Roles and their start order; everything else follows from node_count.\n\nOne node runs alone. More nodes share one connected fabric: losing a rank\nwithdraws the endpoint, recovery restarts the workers and then the\nentrypoint, and stopping always starts with the endpoint owner.",
       "properties": {
         "name": {
           "maxLength": 64,
           "minLength": 1,
           "title": "Name",
-          "type": "string"
-        },
-        "mode": {
-          "enum": [
-            "single",
-            "distributed",
-            "tensor_parallel",
-            "pipeline_parallel",
-            "data_parallel",
-            "hybrid",
-            "ray",
-            "mpi"
-          ],
-          "title": "Mode",
           "type": "string"
         },
         "node_count": {
@@ -1807,9 +1329,6 @@
         "parallelism": {
           "$ref": "#/$defs/RecipeParallelism"
         },
-        "fabric": {
-          "$ref": "#/$defs/RecipeFabric"
-        },
         "start_order": {
           "items": {
             "type": "string"
@@ -1818,26 +1337,14 @@
           "minItems": 1,
           "title": "Start Order",
           "type": "array"
-        },
-        "stop_order": {
-          "items": {
-            "type": "string"
-          },
-          "maxItems": 32,
-          "minItems": 1,
-          "title": "Stop Order",
-          "type": "array"
         }
       },
       "required": [
         "name",
-        "mode",
         "node_count",
         "roles",
         "parallelism",
-        "fabric",
-        "start_order",
-        "stop_order"
+        "start_order"
       ],
       "title": "RecipeTopology",
       "type": "object"
@@ -1876,20 +1383,11 @@
     "RecipeValidation": {
       "additionalProperties": false,
       "properties": {
-        "benchmarks": {
-          "items": {
-            "$ref": "#/$defs/RecipeBenchmark"
-          },
-          "maxItems": 32,
-          "title": "Benchmarks",
-          "type": "array"
-        },
         "serving": {
           "$ref": "#/$defs/RecipeServingValidation"
         }
       },
       "required": [
-        "benchmarks",
         "serving"
       ],
       "title": "RecipeValidation",
@@ -2002,12 +1500,6 @@
   "additionalProperties": false,
   "description": "The sole public recipe authoring contract.",
   "properties": {
-    "schema_version": {
-      "const": 2,
-      "default": 2,
-      "title": "Schema Version",
-      "type": "integer"
-    },
     "kind": {
       "const": "recipe",
       "default": "recipe",
@@ -2030,22 +1522,7 @@
       "type": "array"
     },
     "execution": {
-      "discriminator": {
-        "mapping": {
-          "build": "#/$defs/RecipeBuildExecution",
-          "image": "#/$defs/RecipeImageExecution"
-        },
-        "propertyName": "mode"
-      },
-      "oneOf": [
-        {
-          "$ref": "#/$defs/RecipeImageExecution"
-        },
-        {
-          "$ref": "#/$defs/RecipeBuildExecution"
-        }
-      ],
-      "title": "Execution"
+      "$ref": "#/$defs/RecipeExecution"
     },
     "runtime": {
       "$ref": "#/$defs/RecipeRuntime"
