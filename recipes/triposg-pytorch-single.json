@@ -289,6 +289,23 @@
   "release": {
     "history": [
       {
+        "version": "2.0.14",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "9e014270e34516d054f171f69d30fcbbfae1fc70d02daf0610595b45ad87a1ee",
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Build diso 0.1.4 with its CUDA kernels for sm_121 instead of a CPU-only or failed build.",
+            "details": "diso ships only an sdist whose setup.py imports torch and compiles the CUDA marching-cubes kernels only when a GPU is visible or FORCE_CUDA=1. The image now installs it after torch 2.14.0 with FORCE_CUDA=1 and --no-build-isolation under TORCH_CUDA_ARCH_LIST=12.1, then checks at build time that diso._C imports and contains sm_121 code. diso sets no -std flag, so PyTorch's C++20 default applies.",
+            "references": [
+              "https://pypi.org/project/diso/0.1.4/",
+              "https://github.com/SarahWeiii/diso"
+            ]
+          }
+        ]
+      },
+      {
         "version": "2.0.13",
         "released_at": "2026-09-28",
         "upgrade_effect": "rebuild",
@@ -587,7 +604,7 @@
       }
     ],
     "released_at": "2026-09-28",
-    "version": "2.0.13"
+    "version": "2.0.14"
   },
   "runtime": {
     "arguments": [

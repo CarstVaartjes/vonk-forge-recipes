@@ -1095,12 +1095,6 @@
     },
     {
       "file": "tests/test_qwen_image_edit_fp8mixed_recipe.py",
-      "rule": "reportArgumentType",
-      "count": 1,
-      "reason": "The test deliberately passes partial or malformed values to prove the producer refuses them."
-    },
-    {
-      "file": "tests/test_qwen_image_edit_fp8mixed_recipe.py",
       "rule": "reportGeneralTypeIssues",
       "count": 1,
       "reason": "The fixture is intentionally ungrown so a malformed-input path can be exercised."

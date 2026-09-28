@@ -149,6 +149,39 @@
         "publisher": "qwen",
         "slug": "qwen-image-2512-comfyui-fp8-1f12b17b"
       }
+    },
+    {
+      "files": [
+        {
+          "file_id": "text-encoder",
+          "id": "dependency-qwen-image-2512-comfyui-1f12b17b-text-encoder",
+          "mount": {
+            "read_only": true,
+            "target": "/models/text-encoder"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vae",
+          "id": "dependency-qwen-image-2512-comfyui-1f12b17b-vae",
+          "mount": {
+            "read_only": true,
+            "target": "/models/vae"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "dependency-qwen-image-2512-comfyui-1f12b17b",
+      "model": {
+        "content_sha256": "9bdcdc28eab0c863db8053d4e1a407da6fcadaec6ce5ee7bfdfc9974368c9109",
+        "kind": "model",
+        "publisher": "qwen",
+        "slug": "qwen-image-2512-comfyui-1f12b17b"
+      }
     }
   ],
   "provenance": {
@@ -163,6 +196,22 @@
   },
   "release": {
     "history": [
+      {
+        "version": "1.1.1",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "reprepare",
+        "prior_recipe_content_sha256": "18bb5e90c3e8f9e0430fb2d314f4b309890bb8696ab94f98dedea7e577cb47ff",
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Mount the scaled-FP8 Qwen2.5-VL text encoder and Qwen Image VAE that the pinned workflow loads; the job previously failed at model linking.",
+            "details": "The workflow maps artifacts text-encoder (qwen_2.5_vl_7b_fp8_scaled.safetensors) and vae (qwen_image_vae.safetensors), but only /models/target was mounted, so comfyui_job.py raised FileNotFoundError. The recipe now selects both files from the existing Comfy-Org/Qwen-Image_ComfyUI Model at head revision 1f12b17b and mounts them at /models/text-encoder and /models/vae, matching the upstream ComfyUI Qwen Image workflow. The declared disk envelope already counted these files.",
+            "references": [
+              "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/tree/1f12b17be14c89b026c51a91d67c32f84bb047bc/split_files"
+            ]
+          }
+        ]
+      },
       {
         "version": "1.1.0",
         "released_at": "2026-09-28",
@@ -334,7 +383,7 @@
       }
     ],
     "released_at": "2026-09-28",
-    "version": "1.1.0"
+    "version": "1.1.1"
   },
   "runtime": {
     "arguments": [
