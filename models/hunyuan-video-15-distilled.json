@@ -8,13 +8,11 @@
     "facts": [
       {
         "capability": "video-generation",
-        "evidence_digest": "ad9eb478916a63bbbb86d7736eef6e5b34443d22be2bab69832d68ae325b390b",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "ad9eb478916a63bbbb86d7736eef6e5b34443d22be2bab69832d68ae325b390b",
       "source_revision": "1abb14f06518f37448dcf3a6917dd086dd7045c7",
       "source_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_t2v_distilled/blob/1abb14f06518f37448dcf3a6917dd086dd7045c7/README.md"
     },
@@ -412,7 +410,6 @@
     "attribution": [
       "tencent"
     ],
-    "evidence_digest": "ad9eb478916a63bbbb86d7736eef6e5b34443d22be2bab69832d68ae325b390b",
     "source_revision": "1abb14f06518f37448dcf3a6917dd086dd7045c7",
     "source_url": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_t2v_distilled/blob/1abb14f06518f37448dcf3a6917dd086dd7045c7/README.md"
   },

@@ -167,25 +167,12 @@
           ],
           "title": "Evidence Status",
           "type": "string"
-        },
-        "evidence_digest": {
-          "anyOf": [
-            {
-              "pattern": "^[a-f0-9]{64}$",
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "title": "Evidence Digest"
         }
       },
       "required": [
         "capability",
         "support",
-        "evidence_status",
-        "evidence_digest"
+        "evidence_status"
       ],
       "title": "ModelCapabilityFact",
       "type": "object"
@@ -203,17 +190,11 @@
           "pattern": "^[a-f0-9]{40,64}$",
           "title": "Source Revision",
           "type": "string"
-        },
-        "evidence_digest": {
-          "pattern": "^[a-f0-9]{64}$",
-          "title": "Evidence Digest",
-          "type": "string"
         }
       },
       "required": [
         "source_url",
-        "source_revision",
-        "evidence_digest"
+        "source_revision"
       ],
       "title": "ModelCapabilityProvenance",
       "type": "object"
@@ -629,11 +610,6 @@
           "title": "Source Revision",
           "type": "string"
         },
-        "evidence_digest": {
-          "pattern": "^[a-f0-9]{64}$",
-          "title": "Evidence Digest",
-          "type": "string"
-        },
         "attribution": {
           "items": {
             "type": "string"
@@ -646,7 +622,6 @@
       "required": [
         "source_url",
         "source_revision",
-        "evidence_digest",
         "attribution"
       ],
       "title": "ModelProvenance",

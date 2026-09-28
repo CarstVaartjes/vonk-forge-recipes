@@ -447,7 +447,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "5e60039481b9622ded8d8b4388d7d182edbb3b14c779de8a6d7cb12f44dbde4c",
+        "content_sha256": "782f169e835149cecca8fce987b72f4af0238a5f466d4bd8ea34ff8e511e54d0",
         "kind": "model",
         "publisher": "drowzeys",
         "slug": "glm-5-3-flash-nvfp4-ablit-l15-43-mtp-l45-80b6d18d"
@@ -518,7 +518,7 @@
       ],
       "id": "dependency-glm-5-3-flash-dflash2-bf582e4e",
       "model": {
-        "content_sha256": "ff9a00c5ea74761b0417e90e63211fde544e4b37fec85030c7174ac25f444cd7",
+        "content_sha256": "b8070ed88ec4e098ae05d7b50befd6a0c17ae0a378a68860409daf71244d2abc",
         "kind": "model",
         "publisher": "incoai",
         "slug": "glm-5-3-flash-dflash2-bf582e4e"

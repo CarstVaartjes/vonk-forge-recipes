@@ -24,10 +24,6 @@ def _sha256(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def _canonical(document: object) -> bytes:
-    return json.dumps(document, sort_keys=True, separators=(",", ":")).encode()
-
-
 def _get_json(url: str) -> object:
     request = Request(url, headers={"User-Agent": "vonk-forge-recipe-library/1"})
     with urlopen(request, timeout=60) as response:
@@ -208,15 +204,6 @@ def main() -> int:
     )
     if modality not in {"text", "image", "audio", "video", "3d", "embeddings"}:
         raise SystemExit(f"unsupported model modality: {args.modality}")
-    evidence_digest = _sha256(
-        _canonical(
-            {
-                "repository": args.repository,
-                "revision": revision,
-                "artifacts": artifacts,
-            }
-        )
-    )
     lineage_publisher = args.lineage_publisher or args.publisher
     source_model_publisher = args.source_model_publisher or args.publisher
     source_model_slug = args.source_model_slug or args.model_slug
@@ -307,13 +294,11 @@ def main() -> int:
             "provenance": {
                 "source_url": f"https://huggingface.co/{args.repository}",
                 "source_revision": revision,
-                "evidence_digest": evidence_digest,
             },
         },
         "provenance": {
             "source_url": f"https://huggingface.co/{args.repository}",
             "source_revision": revision,
-            "evidence_digest": evidence_digest,
             "attribution": args.attribution,
         },
     }

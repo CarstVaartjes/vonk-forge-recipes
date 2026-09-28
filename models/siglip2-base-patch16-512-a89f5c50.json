@@ -8,13 +8,11 @@
     "facts": [
       {
         "capability": "image-understanding",
-        "evidence_digest": null,
         "evidence_status": "unknown",
         "support": "unknown"
       }
     ],
     "provenance": {
-      "evidence_digest": "c4baa8dc31bf7b64476f373f2c646c04b0122495de39e1d3a6144c936d5a3ebd",
       "source_revision": "a89f5c5093f902bf39d3cd4d81d2c09867f0724b",
       "source_url": "https://huggingface.co/google/siglip2-base-patch16-512/blob/a89f5c5093f902bf39d3cd4d81d2c09867f0724b/README.md"
     },
@@ -153,7 +151,6 @@
     "attribution": [
       "google"
     ],
-    "evidence_digest": "c4baa8dc31bf7b64476f373f2c646c04b0122495de39e1d3a6144c936d5a3ebd",
     "source_revision": "a89f5c5093f902bf39d3cd4d81d2c09867f0724b",
     "source_url": "https://huggingface.co/google/siglip2-base-patch16-512/blob/a89f5c5093f902bf39d3cd4d81d2c09867f0724b/README.md"
   },

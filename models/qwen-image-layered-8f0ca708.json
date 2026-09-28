@@ -8,13 +8,11 @@
     "facts": [
       {
         "capability": "image-editing",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf",
       "source_url": "https://huggingface.co/Qwen/Qwen-Image-Layered"
     },
@@ -390,7 +388,6 @@
     "attribution": [
       "Qwen"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf",
     "source_url": "https://huggingface.co/Qwen/Qwen-Image-Layered"
   },

@@ -8,19 +8,16 @@
     "facts": [
       {
         "capability": "audio-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "video-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
       "source_url": "https://huggingface.co/Lightricks/LTX-2"
     },
@@ -28,7 +25,7 @@
   },
   "dependencies": [
     {
-      "content_sha256": "7e2a7f11358c47cfc033a5bac76db52c9d953d2b5de3deb968c65c169af01a99",
+      "content_sha256": "f431b07dc9945d9683df64dfc2cbbc1e2bf2bfd79376c39b36011982553ce24e",
       "kind": "model",
       "publisher": "lightricks",
       "slug": "ltx-2-gemma3-text-encoder-dfcc2108"
@@ -132,7 +129,6 @@
     "attribution": [
       "Lightricks"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
     "source_url": "https://huggingface.co/Lightricks/LTX-2"
   },

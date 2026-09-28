@@ -8,25 +8,21 @@
     "facts": [
       {
         "capability": "chat",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "code-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "text-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "1d3bcfe5ec549ecd000fd80b37f191183842e983",
       "source_url": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix"
     },
@@ -1382,7 +1378,6 @@
       "Z.ai",
       "QuantTrio"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "1d3bcfe5ec549ecd000fd80b37f191183842e983",
     "source_url": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix"
   },

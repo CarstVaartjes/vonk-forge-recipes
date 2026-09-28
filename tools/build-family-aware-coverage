@@ -727,10 +727,6 @@ def _build(catalog_root: Path) -> dict[str, bytes]:
 
     stack_identities: dict[str, dict[str, Any]] = {}
     current_package_identities: dict[str, dict[str, Any]] = {}
-    current_model_documents = {
-        key: model.model_dump(mode="json", exclude_unset=False, exclude_none=False)
-        for key, model in models.items()
-    }
     for key, metadata in ordered_metadata:
         recipe = metadata["recipe"]
         published_entry = pinned_recipes[key]
@@ -744,7 +740,6 @@ def _build(catalog_root: Path) -> dict[str, bytes]:
             release_tag,
             package,
             published_recipe,
-            published_models,
             catalog_root=catalog_root,
         ) as package_root:
             stack_identities[key] = execution_stack_identity(
@@ -754,7 +749,7 @@ def _build(catalog_root: Path) -> dict[str, bytes]:
         if not isinstance(current_package, dict):
             raise TypeError(f"current indexed package is malformed: {key}")
         with current_catalog_package_tree(
-            catalog_root, current_package, recipe, current_model_documents
+            catalog_root, current_package, recipe
         ) as current_package_root:
             current_package_identities[key] = execution_stack_identity(
                 current_package_root, recipe, _build_definition(recipe)

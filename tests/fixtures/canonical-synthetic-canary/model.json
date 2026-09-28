@@ -35,14 +35,12 @@
       {
         "capability": "text-generation",
         "support": "supported",
-        "evidence_status": "declared",
-        "evidence_digest": null
+        "evidence_status": "declared"
       }
     ],
     "provenance": {
       "source_url": "https://huggingface.co/Qwen/Qwen3.6-27B",
-      "source_revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9",
-      "evidence_digest": "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0"
+      "source_revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9"
     }
   },
   "format": {
@@ -95,7 +93,6 @@
   "provenance": {
     "source_url": "https://huggingface.co/Qwen/Qwen3.6-27B/resolve/6a9e13bd6fc8f0983b9b99948120bc37f49c13e9/configuration.json",
     "source_revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9",
-    "evidence_digest": "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0",
     "attribution": [
       "Qwen"
     ]

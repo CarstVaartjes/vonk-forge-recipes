@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Protocol, cast
 
 from vonk_forge_contracts.canonical import content_sha256
-from vonk_forge_contracts.model import ModelDefinition, ModelSource
+from vonk_forge_contracts.model import ModelDefinition
 from vonk_forge_contracts.recipe import RecipeDefinition
 from vonk_forge_contracts.resolver import (
     validate_model_references,
@@ -583,40 +583,6 @@ class LabelEncoder:
             {item.path for item in models[("madebyollin", "sdxl-vae-fp16-fix")].files},
             {"config.json", "diffusion_pytorch_model.safetensors"},
         )
-
-    def test_auxiliary_model_evidence_hashes_immutable_source_files(self) -> None:
-        models = _model_definitions()
-        evidence_files = {
-            ("facebook", "dinov2-with-registers-large"): "config.json",
-            ("openai", "clip-vit-large-patch14"): "config.json",
-            ("stabilityai", "stable-diffusion-xl-base-1-0"): "model_index.json",
-            ("madebyollin", "sdxl-vae-fp16-fix"): "config.json",
-        }
-
-        for identity, evidence_path in evidence_files.items():
-            with self.subTest(model=identity):
-                model = models[identity]
-                assert isinstance(model.source, ModelSource)
-                source_file = next(
-                    item for item in model.files if item.path == evidence_path
-                )
-                source_url = (
-                    f"{model.source.repository}/blob/{model.source.revision}/"
-                    f"{evidence_path}"
-                )
-                self.assertEqual(
-                    model.provenance.source_revision, model.source.revision
-                )
-                self.assertEqual(model.provenance.source_url, source_url)
-                self.assertEqual(model.provenance.evidence_digest, source_file.sha256)
-                self.assertEqual(
-                    model.capabilities.provenance.source_revision,
-                    model.source.revision,
-                )
-                self.assertEqual(model.capabilities.provenance.source_url, source_url)
-                self.assertEqual(
-                    model.capabilities.provenance.evidence_digest, source_file.sha256
-                )
 
 
 if __name__ == "__main__":

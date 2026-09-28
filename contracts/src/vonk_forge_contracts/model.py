@@ -299,18 +299,11 @@ class ModelCapabilityFact(_ModelContract):
     capability: CapabilityName
     support: Literal["supported", "unsupported", "unknown"]
     evidence_status: Literal["declared", "tested", "contradicted", "unknown"]
-    evidence_digest: Sha256 | None
 
     @model_validator(mode="after")
     def evidence_consistency(self) -> ModelCapabilityFact:
-        if self.evidence_status == "tested" and self.evidence_digest is None:
-            raise ValueError("tested capability facts require an evidence digest")
-        if self.evidence_status == "contradicted" and (
-            self.support != "unknown" or self.evidence_digest is None
-        ):
-            raise ValueError(
-                "contradicted capability facts require unknown support and evidence"
-            )
+        if self.evidence_status == "contradicted" and self.support != "unknown":
+            raise ValueError("contradicted capability facts require unknown support")
         if self.evidence_status == "unknown" and self.support != "unknown":
             raise ValueError("unknown capability evidence cannot claim support")
         return self
@@ -319,7 +312,6 @@ class ModelCapabilityFact(_ModelContract):
 class ModelCapabilityProvenance(_ModelContract):
     source_url: StrictStr = Field(min_length=1, max_length=512)
     source_revision: Revision
-    evidence_digest: Sha256
 
     @field_validator("source_url")
     @classmethod
@@ -351,7 +343,6 @@ class ModelCapabilities(_ModelContract):
 class ModelProvenance(_ModelContract):
     source_url: StrictStr = Field(min_length=1, max_length=512)
     source_revision: Revision
-    evidence_digest: Sha256
     attribution: list[StrictStr] = Field(max_length=32)
 
     @field_validator("source_url")

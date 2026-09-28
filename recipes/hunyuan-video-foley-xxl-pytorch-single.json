@@ -212,7 +212,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "25b5a80263e60f99b67da19df41246391067bf650a8f54e513936f9194b4b4fe",
+        "content_sha256": "6bb450ee553f2e1d89f238d0121418c2ef38a2e41672d02d8b11cb01820ac071",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan-video-foley-xxl"
@@ -300,7 +300,7 @@
       ],
       "id": "siglip2",
       "model": {
-        "content_sha256": "03ac77b98291a22708284c014ae7138397bef11607dcc67d2affceab77f7e8af",
+        "content_sha256": "a2402aa7e09d5f5fcf0bf4ba9f76ed8922c6f947facdb6510cd01ff5fcb9a174",
         "kind": "model",
         "publisher": "google",
         "slug": "siglip2-base-patch16-512-a89f5c50"
@@ -399,7 +399,7 @@
       ],
       "id": "clap",
       "model": {
-        "content_sha256": "0a4563c618c820ebf9dbbe9e32b674d477010039dbd6ce1da511329fc26dcd67",
+        "content_sha256": "78f14aa76f1bbb6aac675cd3c0ad6fddc9d0dad9b791a75b8494a732cc5aaf91",
         "kind": "model",
         "publisher": "laion",
         "slug": "larger-clap-general-ada0c23a"

@@ -278,7 +278,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f2a225023fae4d2e0ddacbc9d92f426d7ffbf602a2ff5426f62a2c73d3279a91",
+        "content_sha256": "1f53515b99b0551e4439a6591965067e6b387d02a85b151c8ac4e777c894dd20",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan3d-omni"
@@ -322,7 +322,7 @@
       ],
       "id": "dinov2-large",
       "model": {
-        "content_sha256": "5754fd1f85131102730496ee4e5fc842ef5b7b96e8308bce45a527beab8b4364",
+        "content_sha256": "e6677e219057077a66271e4ca809d688b79985b207e1c21f59d6233d22eea788",
         "kind": "model",
         "publisher": "facebook",
         "slug": "dinov2-large-47b73eef"

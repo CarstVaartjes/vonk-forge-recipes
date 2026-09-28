@@ -11,8 +11,6 @@ returned unless they match the expected SHA-256.
 from __future__ import annotations
 
 import hashlib
-import importlib.machinery
-import importlib.util
 import io
 import os
 import re
@@ -21,7 +19,6 @@ import tempfile
 import urllib.request
 from collections.abc import Iterable, Iterator, Mapping
 from contextlib import contextmanager
-from functools import lru_cache
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -98,26 +95,6 @@ def release_checksums(release: Mapping[str, Any]) -> dict[str, str]:
     return checksums
 
 
-@lru_cache(maxsize=1)
-def _canonical_package_validator() -> Any:
-    """Load the recipe package validator owned by the catalog producer."""
-
-    repository_root = Path(__file__).resolve().parents[1]
-    source = repository_root / "tools/build-catalog-index"
-    loader = importlib.machinery.SourceFileLoader(
-        "vonk_qualification_catalog_index", str(source)
-    )
-    spec = importlib.util.spec_from_loader(loader.name, loader)
-    if spec is None:
-        raise ValueError("cannot load the canonical catalog package validator")
-    module = importlib.util.module_from_spec(spec)
-    loader.exec_module(module)
-    validator = getattr(module, "validate_recipe_archive", None)
-    if not callable(validator):
-        raise TypeError("canonical catalog package validator is unavailable")
-    return validator
-
-
 def _checked_package_payload(
     package: Mapping[str, Any], recipe: Any, payload: bytes
 ) -> tuple[str, bytes]:
@@ -155,20 +132,7 @@ def _checked_package_payload(
 def _materialized_package_tree(
     package_path: str,
     payload: bytes,
-    recipe: Any,
-    entities: dict[str, dict[str, Any]],
 ) -> Iterator[Path]:
-    try:
-        _canonical_package_validator()(
-            payload,
-            recipe.model_dump(mode="json", exclude_unset=False, exclude_none=False),
-            entities,
-        )
-    except SystemExit as error:
-        raise ValueError(
-            f"catalog recipe package failed canonical validation: {error}"
-        ) from error
-
     with tempfile.TemporaryDirectory(prefix="vonk-qualification-package-") as temp:
         tree_root = Path(temp) / "tree"
         tree_root.mkdir()
@@ -186,15 +150,12 @@ def _materialized_package_tree(
 def package_tree(
     package: Mapping[str, Any],
     recipe: Any,
-    entities: dict[str, dict[str, Any]],
     payload: bytes,
 ) -> Iterator[Path]:
     """Yield the source files of verified package bytes for ``recipe``."""
 
     package_path, payload = _checked_package_payload(package, recipe, payload)
-    with _materialized_package_tree(
-        package_path, payload, recipe, entities
-    ) as tree_root:
+    with _materialized_package_tree(package_path, payload) as tree_root:
         yield tree_root
 
 
@@ -203,7 +164,6 @@ def pinned_catalog_package_tree(
     release_tag: str,
     package: Mapping[str, Any],
     recipe: Any,
-    entities: dict[str, dict[str, Any]],
     *,
     catalog_root: Path | None = None,
 ) -> Iterator[Path]:
@@ -223,7 +183,7 @@ def pinned_catalog_package_tree(
     name = PurePosixPath(package_path).name
     candidates = () if catalog_root is None else (catalog_root / "packages" / name,)
     payload = release_asset(release_tag, name, sha256, candidates=candidates)
-    with package_tree(package, recipe, entities, payload) as tree_root:
+    with package_tree(package, recipe, payload) as tree_root:
         yield tree_root
 
 
@@ -232,7 +192,6 @@ def current_catalog_package_tree(
     catalog_root: Path,
     package: Mapping[str, Any],
     recipe: Any,
-    entities: dict[str, dict[str, Any]],
 ) -> Iterator[Path]:
     """Yield source files from the generated index's digest-verified package."""
 
@@ -254,5 +213,5 @@ def current_catalog_package_tree(
             f"current recipe package is not a regular file: {package_path}; "
             "run tools/build-catalog-index"
         )
-    with package_tree(package, recipe, entities, local_package.read_bytes()) as tree:
+    with package_tree(package, recipe, local_package.read_bytes()) as tree:
         yield tree

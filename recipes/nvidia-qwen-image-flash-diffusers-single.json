@@ -370,7 +370,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "9329edef09f643513ae66560e080f6215b0c76dee2f5b7cc02ffa9b997ddd85f",
+        "content_sha256": "fc8ddb0e88fc0f376dddd68f7674a4f353ebccddfc3040d81e470e4281140dd7",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nvidia-qwen-image-flash"

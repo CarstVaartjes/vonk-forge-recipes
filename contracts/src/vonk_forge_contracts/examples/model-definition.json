@@ -8,19 +8,16 @@
     "facts": [
       {
         "capability": "image-generation",
-        "evidence_digest": null,
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "text-generation",
-        "evidence_digest": null,
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "source_revision": "fedcba9876543210fedcba9876543210fedcba98",
       "source_url": "https://example.com/evidence/synthetic-tiny"
     },
@@ -101,7 +98,6 @@
     "attribution": [
       "Vonk Forge"
     ],
-    "evidence_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
     "source_revision": "0123456789abcdef0123456789abcdef01234567",
     "source_url": "https://example.com/models/synthetic-tiny"
   },

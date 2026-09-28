@@ -401,7 +401,6 @@ def _recovery_coverage_definitions(
 def _pinned_stack_identities(
     release_tag: str,
     catalog_recipes: dict[str, dict[str, Any]],
-    model_documents: dict[str, dict[str, Any]],
     catalog_root: Path | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Hash each published stack from the exact package in the pinned release."""
@@ -415,7 +414,7 @@ def _pinned_stack_identities(
         if not isinstance(package, dict):
             raise TypeError(f"published recipe package is missing: {key}")
         with pinned_catalog_package_tree(
-            release_tag, package, recipe, model_documents, catalog_root=catalog_root
+            release_tag, package, recipe, catalog_root=catalog_root
         ) as package_root:
             identities[key] = execution_stack_identity(
                 package_root, recipe, recipe.execution.build
@@ -552,7 +551,7 @@ def _build(catalog_root: Path | None = None) -> dict[Path, bytes]:
         model_documents[model_key] = entity["document"]
 
     stack_identities = _pinned_stack_identities(
-        release_tag, catalog_recipes, model_documents, catalog_root
+        release_tag, catalog_recipes, catalog_root
     )
 
     capacity_reviews = gate_review.get("capacity_reviews")

@@ -7,7 +7,6 @@
   "capabilities": {
     "facts": [],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "8da79f23859810bbb806e7a25eaf70489a9441c5",
       "source_url": "https://github.com/CarstVaartjes/vonk-forge-recipes"
     },
@@ -148,7 +147,6 @@
     "attribution": [
       "NVIDIA Corporation"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "c929f8a55d0527fea9f58b4cedc9e0c855cfc421",
     "source_url": "https://huggingface.co/nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2"
   },

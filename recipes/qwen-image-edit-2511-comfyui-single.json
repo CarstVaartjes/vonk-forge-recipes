@@ -145,7 +145,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d6276b4923751aae9ce5a07169db935a2360d33d44a6215229db3f2f74baf10e",
+        "content_sha256": "a188a6c5c1adae21966f416ca7ff442362498033b050b146b80479ee6720b687",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-comfyui-b6a07947"

@@ -8,25 +8,21 @@
     "facts": [
       {
         "capability": "code-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "reasoning",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "tool-use",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "826aacdf6d8b2699d4e367def6f17c83b06044c2",
       "source_url": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4"
     },
@@ -650,7 +646,6 @@
     "attribution": [
       "Poolside"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "826aacdf6d8b2699d4e367def6f17c83b06044c2",
     "source_url": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4"
   },

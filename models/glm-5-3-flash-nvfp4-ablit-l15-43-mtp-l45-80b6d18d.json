@@ -8,37 +8,31 @@
     "facts": [
       {
         "capability": "chat",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "code-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "image-understanding",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "text-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "video-understanding",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "80b6d18d77e3020f2384597081d405f19893f101",
       "source_url": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45"
     },
@@ -46,7 +40,7 @@
   },
   "dependencies": [
     {
-      "content_sha256": "ff9a00c5ea74761b0417e90e63211fde544e4b37fec85030c7174ac25f444cd7",
+      "content_sha256": "b8070ed88ec4e098ae05d7b50befd6a0c17ae0a378a68860409daf71244d2abc",
       "kind": "model",
       "publisher": "incoai",
       "slug": "glm-5-3-flash-dflash2-bf582e4e"
@@ -423,7 +417,6 @@
       "DealignAI",
       "drowzeys"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "80b6d18d77e3020f2384597081d405f19893f101",
     "source_url": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45"
   },

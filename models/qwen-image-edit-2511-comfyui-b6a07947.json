@@ -8,13 +8,11 @@
     "facts": [
       {
         "capability": "image-editing",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "b6a0794717d3f5600f85c5edcdcd0c0eb93d7446",
       "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI"
     },
@@ -104,7 +102,6 @@
       "Qwen",
       "Comfy-Org"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "b6a0794717d3f5600f85c5edcdcd0c0eb93d7446",
     "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI"
   },
