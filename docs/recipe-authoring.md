@@ -170,9 +170,11 @@ The required checks cover:
 - Complete build and serving-fixture closure. Each recipe archive contains
   exactly one `recipe.json`, its exact Model snapshots, and required supporting
   files; member bytes and manifest digests agree.
-- Deterministic package/index generation and a non-mutating
-  `tools/build-catalog-index --check`. Contract changes also regenerate/check
-  schemas and examples and exercise the standalone package.
+- Deterministic package/index generation: CI builds the release asset set twice
+  and requires identical bytes, derives family-aware coverage against the
+  accepted release, and runs the platform validator on the built outputs.
+  Contract changes also regenerate/check schemas and examples and exercise the
+  standalone package.
 - Focused adapter/build tests relevant to the change and `git diff --check`.
 
 Retain representative serving tests. Vision tests need an image; audio/video/3D
@@ -190,40 +192,53 @@ evidence or add an unrelated formal approval gate.
 
 ## 6. Generate, publish, and report
 
-Inspect the scoped diff and commit authored sources first. Generate packages
-and indexes with `tools/build-catalog-index --source-commit` bound to that
-actual source commit, then commit the generated outputs. Do not bind an index
-to a commit that predates its authored inputs or invent a digest to avoid
-regeneration. Follow the generator and publication workflow if their procedure
-changes. Re-run freshness checks before pushing.
+Commit authored sources only. `catalog-index.json`,
+`qualification/qualification-index.json`, `packages/` and
+`qualification/coverage/` are build outputs: Git ignores them, CI builds and
+validates them for every pull request, and publication builds them from the
+release commit. Build them locally with one command when a tool or test outside
+the suite needs them:
 
-Install the repository hook once per checkout to regenerate and stage package
-archives and indexes before relevant commits:
+```bash
+uv run --python 3.14 --no-project --with-editable contracts tools/build-catalog-index
+```
+
+It writes them in place, recording the checkout's `HEAD` as `source_commit`.
+`tools/build-family-aware-coverage` then derives the coverage matrix and report
+into `qualification/coverage/`. The test suite builds its own copy once per
+session in a temporary directory and never reads outputs from the checkout.
+
+Install the repository hook once per checkout to run the pinned Python lint,
+format, and type checks before commits:
 
 ```bash
 scripts/install-git-hooks
 ```
 
-The hook also runs the pinned Python lint, format, and type checks for staged
-Python files. It requires tracked edits to be staged together before it
-regenerates outputs; CI remains the authoritative full-repository verification.
+It requires tracked edits to be staged together; CI remains the authoritative
+full-repository verification.
 
-When a pull request carries authored sources and their generated catalog,
-preserve the source commit in `main` with a merge commit; do not squash it,
-because publication verifies that the bound source commit is in the merged
-ancestry. If the change is squashed, regenerate packages and indexes against
-the actual merged source commit before publication. Keep the ancestry check
-intact.
-
-Publication builds the release asset set from the release commit with
-`tools/build-catalog-index --release-dir`: `catalog-index.json`,
-`qualification-index.json`, one `<slug>.tar.gz` per recipe and a `SHA256SUMS`
-listing all of them. The workflow attests `SHA256SUMS` with a keyless GitHub
-artifact attestation (Sigstore) and attaches it as `SHA256SUMS.sigstore.json`.
-Control planes accept a release only when that attestation names this
-repository's `publish.yml` on `refs/heads/main` and every asset matches its
-listed digest; verify a release with
+Publication (`.github/workflows/publish.yml`, run on `main` with a new
+`vMAJOR.MINOR.PATCH` tag) builds the release asset set from the release commit
+with `tools/build-catalog-index --release-dir`: `catalog-index.json`,
+`qualification-index.json`, one `<slug>.tar.gz` per recipe, the family-aware
+coverage matrix and report, and a `SHA256SUMS` listing all of them. The
+workflow attests `SHA256SUMS` with a keyless GitHub artifact attestation
+(Sigstore) and attaches it as `SHA256SUMS.sigstore.json`, then publishes the
+draft release as latest. Control planes accept a release only when that
+attestation names this repository's `publish.yml` on `refs/heads/main` and
+every asset matches its listed digest; verify a release with
 `gh attestation verify SHA256SUMS -R CarstVaartjes/vonk-forge-recipes`.
+Rebuilding the tagged commit reproduces the release's index and packages byte
+for byte.
+
+The qualification authority binds an accepted release rather than committed
+files. `qualification/catalog-release.json` records its tag, commit and the
+SHA-256 of its `SHA256SUMS`; `tools/build-qualification-authority` reads the
+release's indexes (downloaded once into `.artifacts/releases/<tag>/`, or taken
+from generated packages with the same digest) and pins their digests in the
+authority. To bind a new release, update that record and regenerate the
+authority.
 
 Open or update the PR with exact before/after sources, the reason for changes,
 version notes, validation results, and any retained pins. Complete CI, merge,

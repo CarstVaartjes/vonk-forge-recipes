@@ -1161,12 +1161,6 @@
     },
     {
       "file": "tests/test_recipe_deployment_guidance.py",
-      "rule": "reportGeneralTypeIssues",
-      "count": 1,
-      "reason": "The fixture is intentionally ungrown so a malformed-input path can be exercised."
-    },
-    {
-      "file": "tests/test_recipe_deployment_guidance.py",
       "rule": "reportIndexIssue",
       "count": 26,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
@@ -1320,12 +1314,6 @@
       "rule": "reportIndexIssue",
       "count": 8,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
-    },
-    {
-      "file": "tests/test_vllm028_model_variants.py",
-      "rule": "reportGeneralTypeIssues",
-      "count": 1,
-      "reason": "The fixture is intentionally ungrown so a malformed-input path can be exercised."
     },
     {
       "file": "tests/test_vllm028_model_variants.py",

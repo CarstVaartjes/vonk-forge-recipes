@@ -5,6 +5,8 @@ import json
 import unittest
 from pathlib import Path
 
+from generated_catalog import GENERATED
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -55,7 +57,7 @@ class MuseGlimmerRecipeTests(unittest.TestCase):
         self.assertIn("@sha256:", dockerfile)
         self.assertNotIn("huggingface.co", dockerfile)
         recipe = load(ROOT / "recipes/muse-glimmer-30b-bf16-vllm-single.json")
-        index = load(ROOT / "catalog-index.json")
+        index = load(GENERATED / "catalog-index.json")
         entry = next(
             item
             for item in index["recipes"]

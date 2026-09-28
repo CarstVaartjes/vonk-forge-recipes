@@ -49,6 +49,36 @@ def test_release_manifest_covers_every_asset_and_matches_the_index(
     }
 
 
+def test_included_files_are_listed_and_cannot_shadow_an_asset(tmp_path: Path) -> None:
+    report = tmp_path / "coverage.md"
+    report.write_text("coverage\n", encoding="utf-8")
+    digests = TOOL["write_release"](
+        tmp_path / "release", source_commit=SOURCE_COMMIT, include=(report,)
+    )
+    assert digests["coverage.md"] == hashlib.sha256(b"coverage\n").hexdigest()
+
+    shadow = tmp_path / "catalog-index.json"
+    shadow.write_text("{}", encoding="utf-8")
+    with pytest.raises(SystemExit, match="not unique: catalog-index.json"):
+        TOOL["write_release"](
+            tmp_path / "shadowed", source_commit=SOURCE_COMMIT, include=(shadow,)
+        )
+
+
+def test_checkout_outputs_drop_packages_of_removed_recipes(tmp_path: Path) -> None:
+    stale = tmp_path / "packages" / "removed-recipe.tar.gz"
+    stale.parent.mkdir()
+    stale.write_bytes(b"stale")
+    document = TOOL["write_outputs"](tmp_path, source_commit=SOURCE_COMMIT)
+    assert not stale.exists()
+    assert {path.name for path in (tmp_path / "packages").iterdir()} == {
+        PurePosixPath(row["package"]["path"]).name for row in document["recipes"]
+    }
+    assert (tmp_path / "qualification" / "qualification-index.json").is_file()
+    index = json.loads((tmp_path / "catalog-index.json").read_text(encoding="utf-8"))
+    assert index["source_commit"] == SOURCE_COMMIT
+
+
 def test_release_refuses_to_mix_with_existing_files(tmp_path: Path) -> None:
     (tmp_path / "stale.tar.gz").write_bytes(b"stale")
     with pytest.raises(SystemExit, match="release directory must be empty"):

@@ -13,17 +13,17 @@ import json
 import runpy
 import subprocess
 import sys
+from functools import cache
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
+from generated_catalog import GENERATED
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
 from qualification.coverage_identity import execution_stack_identity
 
 ROOT = Path(__file__).resolve().parents[1]
-MATRIX_PATH = ROOT / "qualification/coverage/family-aware-coverage-2026-09-24.json"
-REPORT_PATH = ROOT / "qualification/coverage/family-aware-coverage-2026-09-24.md"
 TOOL = "tools/build-family-aware-coverage"
 
 # The stock upstream image per engine. Any other image is a declared fork.
@@ -33,8 +33,35 @@ STOCK_IMAGES = {
 }
 
 
+@cache
+def _coverage() -> Path:
+    """Derive the matrix and report once from the session's generated catalog."""
+    output = GENERATED / "coverage"
+    result = subprocess.run(
+        [
+            sys.executable,
+            TOOL,
+            "--catalog-root",
+            str(GENERATED),
+            "--output-dir",
+            str(output),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=180,
+    )
+    assert result.returncode == 0, result.stderr
+    return output
+
+
 def _matrix() -> dict[str, Any]:
-    value = json.loads(MATRIX_PATH.read_text(encoding="utf-8"))
+    value = json.loads(
+        (_coverage() / "family-aware-coverage-2026-09-24.json").read_text(
+            encoding="utf-8"
+        )
+    )
     assert isinstance(value, dict)
     return value
 
@@ -51,18 +78,20 @@ def _catalog() -> dict[str, RecipeDefinition]:
     return recipes
 
 
-def test_committed_matrix_matches_the_derivation() -> None:
-    """A stale or hand-edited matrix must fail instead of passing review."""
-    result = subprocess.run(
-        [sys.executable, TOOL, "--check"],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-        timeout=180,
+def test_matrix_derives_from_the_generated_catalog_and_accepted_release() -> None:
+    """The derivation must succeed against the authority's pinned release."""
+    matrix = _matrix()
+    assert (_coverage() / "family-aware-coverage-2026-09-24.md").is_file()
+    authority = json.loads(
+        (ROOT / "qualification/authorities/nl-family-aware-20260924.json").read_text(
+            encoding="utf-8"
+        )
     )
-    assert result.returncode == 0, result.stderr
-    assert REPORT_PATH.exists()
+    assert matrix["catalog"]["bound_release_tag"] == authority["catalog"]["release_tag"]
+    assert (
+        matrix["catalog"]["bound_catalog_index_sha256"]
+        == authority["catalog"]["catalog_index_sha256"]
+    )
 
 
 def test_coverage_source_projection_keeps_release_identity_out_of_commit_field() -> (

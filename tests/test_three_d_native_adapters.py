@@ -12,6 +12,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from generated_catalog import GENERATED
+
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG_TOOL = ROOT / "tools/build-catalog-index"
 LOADER = importlib.machinery.SourceFileLoader("three_d_catalog_tool", str(CATALOG_TOOL))
@@ -67,7 +69,7 @@ def read_recipe(slug: str) -> dict[str, object]:
 
 
 def read_package(slug: str) -> tuple[dict[str, object], dict[str, bytes]]:
-    package = ROOT / f"packages/{slug}.tar.gz"
+    package = GENERATED / f"packages/{slug}.tar.gz"
     with tarfile.open(package, mode="r:gz") as archive:
         payloads = {
             member.name: archive.extractfile(member).read()

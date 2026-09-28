@@ -5,6 +5,8 @@ import json
 import unittest
 from pathlib import Path
 
+from generated_catalog import GENERATED
+
 ROOT = Path(__file__).resolve().parents[1]
 RECIPES = {
     "glm-5-2-aqlm-vllm-triple": 3,
@@ -108,7 +110,7 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
         self.assertNotIn("nfs", operational.lower())
 
     def test_catalog_packages_bind_the_exact_current_recipes(self) -> None:
-        index = load(ROOT / "catalog-index.json")
+        index = load(GENERATED / "catalog-index.json")
         entries = {Path(item["source_path"]).stem: item for item in index["recipes"]}
         for slug in RECIPES:
             if slug == "glm-5-3-flash-nvfp4-vllm-four":

@@ -5,6 +5,8 @@ import json
 import unittest
 from pathlib import Path
 
+from generated_catalog import GENERATED
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -21,7 +23,7 @@ def digest(document: dict) -> str:
 
 
 def catalog_digest(recipe: dict) -> str:
-    index = load("catalog-index.json")
+    index = json.loads((GENERATED / "catalog-index.json").read_text(encoding="utf-8"))
     entry = next(
         item
         for item in index["recipes"]

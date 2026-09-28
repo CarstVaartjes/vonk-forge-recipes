@@ -6,6 +6,8 @@ import types
 import unittest
 from pathlib import Path
 
+from generated_catalog import GENERATED
+
 ROOT = Path(__file__).resolve().parents[1]
 CANARY_SLUG = "ltx-2-5-22b-distilled-fp8-cast-diffusers-single"
 BF16_SLUG = "ltx-2-5-22b-distilled-bf16-diffusers-single"
@@ -67,7 +69,7 @@ class Ltx25Fp8CanaryTests(unittest.TestCase):
             "adapters/video/ltx25-diffusers-fp8-canary",
         )
         self.assertTrue(bundle_digest and len(archive) > 0)
-        index = load(ROOT / "catalog-index.json")
+        index = load(GENERATED / "catalog-index.json")
         entry = next(
             item
             for item in index["recipes"]

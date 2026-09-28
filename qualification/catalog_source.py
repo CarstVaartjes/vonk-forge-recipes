@@ -1,4 +1,12 @@
-"""Read exact published recipe packages and safely materialize their inputs."""
+"""Read exact published recipe releases and safely materialize their packages.
+
+A qualification authority binds a signed GitHub release of this repository by
+tag and by the digests of its catalog and qualification indexes. The release
+assets are the published bytes: they are read from a local file whose digest
+matches (such as the checkout's generated package), from the
+``.artifacts/releases/<tag>/`` cache, or downloaded from GitHub, and are never
+returned unless they match the expected SHA-256.
+"""
 
 from __future__ import annotations
 
@@ -8,10 +16,10 @@ import importlib.util
 import io
 import os
 import re
-import subprocess
 import tarfile
 import tempfile
-from collections.abc import Iterator, Mapping
+import urllib.request
+from collections.abc import Iterable, Iterator, Mapping
 from contextlib import contextmanager
 from functools import lru_cache
 from pathlib import Path, PurePosixPath
@@ -19,64 +27,75 @@ from typing import Any
 
 from vonk_forge_contracts import content_sha256
 
-_COMMIT = re.compile(r"[0-9a-f]{40}\Z")
+RELEASE_REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
+RELEASE_CHECKSUMS = "SHA256SUMS"
+RELEASE_CACHE = Path(__file__).resolve().parents[1] / ".artifacts" / "releases"
+_TAG = re.compile(r"v[0-9]+\.[0-9]+\.[0-9]+\Z")
+_ASSET = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}\Z")
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
-_GIT_OBJECT_TIMEOUT_SECONDS = 10
+_CHECKSUM_LINE = re.compile(r"([0-9a-f]{64})  ([A-Za-z0-9][A-Za-z0-9._-]{0,127})\Z")
 _PACKAGE_MEDIA_TYPE = "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
+_DOWNLOAD_TIMEOUT_SECONDS = 120
 
 
-def pinned_git_blob(repository_root: Path, commit: str, path: str) -> bytes:
-    """Read one immutable Git blob after validating its commit and path."""
-
-    if _COMMIT.fullmatch(commit) is None:
-        raise ValueError("catalog commit must be a full Git SHA")
-    relative_path = PurePosixPath(path)
-    if (
-        not path
-        or relative_path.as_posix() != path
-        or relative_path.is_absolute()
-        or any(part in {"", ".", ".."} for part in relative_path.parts)
-    ):
-        raise ValueError(f"catalog blob path is not repository-relative: {path}")
-    environment = os.environ.copy()
-    for name in (
-        "GIT_DIR",
-        "GIT_WORK_TREE",
-        "GIT_INDEX_FILE",
-        "GIT_COMMON_DIR",
-        "GIT_OBJECT_DIRECTORY",
-        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
-    ):
-        environment.pop(name, None)
-    environment.update(
-        {
-            "GIT_NO_REPLACE_OBJECTS": "1",
-            "GIT_NO_LAZY_FETCH": "1",
-            "GIT_OPTIONAL_LOCKS": "0",
-            "GIT_TERMINAL_PROMPT": "0",
-        }
-    )
-    object_name = f"{commit}:{relative_path.as_posix()}"
+def _download(tag: str, name: str) -> bytes:
+    url = f"https://github.com/{RELEASE_REPOSITORY}/releases/download/{tag}/{name}"
     try:
-        result = subprocess.run(
-            ["git", "--no-replace-objects", "cat-file", "blob", object_name],
-            cwd=repository_root,
-            env=environment,
-            check=False,
-            capture_output=True,
-            timeout=_GIT_OBJECT_TIMEOUT_SECONDS,
-        )
-    except subprocess.TimeoutExpired as error:
-        raise ValueError(
-            f"timed out reading catalog blob {object_name} after "
-            f"{_GIT_OBJECT_TIMEOUT_SECONDS} seconds"
-        ) from error
+        with urllib.request.urlopen(url, timeout=_DOWNLOAD_TIMEOUT_SECONDS) as response:
+            return response.read()
     except OSError as error:
-        raise ValueError(f"cannot read catalog blob {object_name}: {error}") from error
-    if result.returncode != 0:
-        detail = result.stderr.decode("utf-8", errors="replace").strip()
-        raise ValueError(f"cannot read catalog blob {object_name}: {detail}")
-    return result.stdout
+        raise ValueError(
+            f"cannot download release asset {tag}/{name}: {error}"
+        ) from error
+
+
+def release_asset(
+    tag: str, name: str, sha256: str, *, candidates: Iterable[Path] = ()
+) -> bytes:
+    """Return the bytes of one release asset, proven by ``sha256``."""
+
+    if (
+        _TAG.fullmatch(tag) is None
+        or _ASSET.fullmatch(name) is None
+        or _SHA256.fullmatch(sha256) is None
+    ):
+        raise ValueError(f"release asset reference is invalid: {tag}/{name}")
+    cached = RELEASE_CACHE / tag / name
+    for path in (*candidates, cached):
+        try:
+            payload = path.read_bytes()
+        except OSError:
+            continue
+        if hashlib.sha256(payload).hexdigest() == sha256:
+            return payload
+    payload = _download(tag, name)
+    if hashlib.sha256(payload).hexdigest() != sha256:
+        raise ValueError(f"release asset {tag}/{name} differs from its pinned digest")
+    cached.parent.mkdir(parents=True, exist_ok=True)
+    temporary = cached.with_name(f".{name}.{os.getpid()}.tmp")
+    temporary.write_bytes(payload)
+    os.replace(temporary, cached)
+    return payload
+
+
+def release_checksums(release: Mapping[str, Any]) -> dict[str, str]:
+    """Return the asset digests of an accepted release record.
+
+    ``release`` is ``qualification/catalog-release.json``: it pins the tag and
+    the SHA-256 of that release's signed ``SHA256SUMS``.
+    """
+
+    tag, digest = release.get("release_tag"), release.get("sha256sums_sha256")
+    if not isinstance(tag, str) or not isinstance(digest, str):
+        raise TypeError("accepted release must pin release_tag and sha256sums_sha256")
+    text = release_asset(tag, RELEASE_CHECKSUMS, digest).decode("ascii")
+    checksums: dict[str, str] = {}
+    for line in text.splitlines():
+        match = _CHECKSUM_LINE.fullmatch(line)
+        if match is None or match.group(2) in checksums:
+            raise ValueError(f"release {tag} SHA256SUMS is malformed")
+        checksums[match.group(2)] = match.group(1)
+    return checksums
 
 
 @lru_cache(maxsize=1)
@@ -164,26 +183,14 @@ def _materialized_package_tree(
 
 
 @contextmanager
-def pinned_catalog_package_tree(
-    repository_root: Path,
-    catalog_commit: str,
+def package_tree(
     package: Mapping[str, Any],
     recipe: Any,
     entities: dict[str, dict[str, Any]],
+    payload: bytes,
 ) -> Iterator[Path]:
-    """Yield source files from the digest-verified package blob in a catalog.
+    """Yield the source files of verified package bytes for ``recipe``."""
 
-    The catalog's ``source_commit`` can be stale or inconsistent with a released
-    archive. Never use it as source-byte authority: validate the exact package
-    bytes pinned at ``catalog_commit`` and hash the selected regular members.
-    """
-
-    package_path = package.get("path")
-    if not isinstance(package_path, str):
-        raise TypeError("published recipe package path is invalid")
-    if package_path != f"packages/{recipe.identity.slug}.tar.gz":
-        raise ValueError("published recipe package path does not match its identity")
-    payload = pinned_git_blob(repository_root, catalog_commit, package_path)
     package_path, payload = _checked_package_payload(package, recipe, payload)
     with _materialized_package_tree(
         package_path, payload, recipe, entities
@@ -192,13 +199,42 @@ def pinned_catalog_package_tree(
 
 
 @contextmanager
+def pinned_catalog_package_tree(
+    release_tag: str,
+    package: Mapping[str, Any],
+    recipe: Any,
+    entities: dict[str, dict[str, Any]],
+    *,
+    catalog_root: Path | None = None,
+) -> Iterator[Path]:
+    """Yield source files from the digest-verified package of a release.
+
+    The catalog's ``source_commit`` is never source-byte authority: the exact
+    published package bytes are. A generated package under ``catalog_root``
+    with the same digest is the same bytes and avoids a download.
+    """
+
+    package_path = package.get("path")
+    sha256 = package.get("sha256")
+    if not isinstance(package_path, str) or not isinstance(sha256, str):
+        raise TypeError("published recipe package metadata is invalid")
+    if package_path != f"packages/{recipe.identity.slug}.tar.gz":
+        raise ValueError("published recipe package path does not match its identity")
+    name = PurePosixPath(package_path).name
+    candidates = () if catalog_root is None else (catalog_root / "packages" / name,)
+    payload = release_asset(release_tag, name, sha256, candidates=candidates)
+    with package_tree(package, recipe, entities, payload) as tree_root:
+        yield tree_root
+
+
+@contextmanager
 def current_catalog_package_tree(
-    repository_root: Path,
+    catalog_root: Path,
     package: Mapping[str, Any],
     recipe: Any,
     entities: dict[str, dict[str, Any]],
 ) -> Iterator[Path]:
-    """Yield source files from the current index's digest-verified package."""
+    """Yield source files from the generated index's digest-verified package."""
 
     package_path = package.get("path")
     if not isinstance(package_path, str):
@@ -206,13 +242,7 @@ def current_catalog_package_tree(
     if package_path != f"packages/{recipe.identity.slug}.tar.gz":
         raise ValueError("current recipe package path does not match its identity")
     relative_path = PurePosixPath(package_path)
-    if (
-        relative_path.as_posix() != package_path
-        or relative_path.is_absolute()
-        or any(part in {"", ".", ".."} for part in relative_path.parts)
-    ):
-        raise ValueError(f"current recipe package path is unsafe: {package_path}")
-    local_package = repository_root
+    local_package = catalog_root
     for part in relative_path.parts:
         local_package = local_package / part
         if local_package.is_symlink():
@@ -221,11 +251,8 @@ def current_catalog_package_tree(
             )
     if not local_package.is_file():
         raise ValueError(
-            f"current recipe package is not a regular file: {package_path}"
+            f"current recipe package is not a regular file: {package_path}; "
+            "run tools/build-catalog-index"
         )
-    payload = local_package.read_bytes()
-    package_path, payload = _checked_package_payload(package, recipe, payload)
-    with _materialized_package_tree(
-        package_path, payload, recipe, entities
-    ) as tree_root:
-        yield tree_root
+    with package_tree(package, recipe, entities, local_package.read_bytes()) as tree:
+        yield tree

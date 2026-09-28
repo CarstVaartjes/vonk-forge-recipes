@@ -7,3 +7,9 @@ secrets/
 *.pem
 *.key
 *.token
+# Catalog build outputs: tools/build-catalog-index and
+# tools/build-family-aware-coverage generate them; signed releases publish them.
+/catalog-index.json
+/packages/
+/qualification/qualification-index.json
+/qualification/coverage/

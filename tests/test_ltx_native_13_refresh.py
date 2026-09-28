@@ -5,6 +5,8 @@ import runpy
 import unittest
 from pathlib import Path
 
+from generated_catalog import GENERATED
+
 ROOT = Path(__file__).resolve().parents[1]
 RECIPES = {
     "ltx-2-19b-dev-fp4-pytorch-single": "adapters/video/ltx2-pytorch",
@@ -28,7 +30,7 @@ class LtxNative13RefreshTests(unittest.TestCase):
             self.assertEqual(context["path"], adapter)
             _, _, bundle_digest = tool["source_bundle"](ROOT / adapter)
             self.assertTrue(bundle_digest)
-            index = load(ROOT / "catalog-index.json")
+            index = load(GENERATED / "catalog-index.json")
             entry = next(
                 item
                 for item in index["recipes"]

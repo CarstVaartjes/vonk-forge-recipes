@@ -5,6 +5,8 @@ import json
 import unittest
 from pathlib import Path
 
+from generated_catalog import GENERATED
+
 ROOT = Path(__file__).resolve().parents[1]
 PAIRS = (
     (
@@ -60,7 +62,7 @@ class LowMemoryCanaryRecipeTests(unittest.TestCase):
     def test_catalog_packages_pin_recipe_evidence(self) -> None:
         for _, slug in PAIRS:
             recipe = load(slug)
-            index = json.loads((ROOT / "catalog-index.json").read_text())
+            index = json.loads((GENERATED / "catalog-index.json").read_text())
             entry = next(
                 item
                 for item in index["recipes"]

@@ -11,6 +11,8 @@ import urllib.error
 from pathlib import Path
 from unittest import mock
 
+from generated_catalog import GENERATED
+
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/ltx25-diffusers"
 ADAPTER_PATH = ADAPTER_ROOT / "run.py"
@@ -82,7 +84,7 @@ class Ltx25CatalogTests(unittest.TestCase):
             ).encode()
         ).hexdigest()
         self.assertEqual(selection["model"]["content_sha256"], model_digest)
-        index = _document(ROOT / "catalog-index.json")
+        index = _document(GENERATED / "catalog-index.json")
         entry = next(
             item
             for item in index["recipes"]

@@ -6,11 +6,13 @@ representative selection, paired single-Spark batches and a recovery-coverage
 mapping.  Every field here is derived from documents this repository already
 owns:
 
-* ``catalog-index.json`` - the producer index and its content/package digests;
+* ``catalog-index.json`` - the generated producer index and its content/package
+  digests (``tools/build-catalog-index`` writes it; it is not committed);
 * ``recipes/*.json`` and ``models/*.json`` - the authored contract documents;
-* ``packages/*.tar.gz`` - the current indexed packages and their build closures;
+* ``packages/*.tar.gz`` - the current generated packages and their build closures;
 * ``qualification/authorities/nl-family-aware-20260924.json`` - the current
-  paired authority, its per-row gates and its smoke/fixture references.
+  paired authority, its per-row gates and its smoke/fixture references, bound
+  to the published release whose catalog and packages it pins by digest.
 
 The matrix records structure only.  Cache readiness, structural qualification,
 Controller deployment and physical Spark acceptance are separate evidence
@@ -42,16 +44,16 @@ from vonk_forge_contracts.recipe import RecipeBuildDefinition
 from qualification.catalog_source import (
     current_catalog_package_tree,
     pinned_catalog_package_tree,
-    pinned_git_blob,
+    release_asset,
 )
 from qualification.coverage_identity import execution_stack_identity
 
-CATALOG_PATH = ROOT / "catalog-index.json"
 RECIPE_DIRECTORY = ROOT / "recipes"
 MODEL_DIRECTORY = ROOT / "models"
 AUTHORITY_PATH = ROOT / "qualification/authorities/nl-family-aware-20260924.json"
-MATRIX_PATH = ROOT / "qualification/coverage/family-aware-coverage-2026-09-24.json"
-REPORT_PATH = ROOT / "qualification/coverage/family-aware-coverage-2026-09-24.md"
+OUTPUT_DIRECTORY = ROOT / "qualification/coverage"
+MATRIX_NAME = "family-aware-coverage-2026-09-24.json"
+REPORT_NAME = "family-aware-coverage-2026-09-24.md"
 PLAN_REFERENCE = "docs/recipe-qualification-plan-2026-09-24.md"
 
 IN_SCOPE_MAXIMUM_NODE_COUNT = 2
@@ -124,10 +126,12 @@ def _require_object(value: Any, description: str) -> dict[str, Any]:
     return value
 
 
-def _indexed_recipes() -> dict[str, dict[str, Any]]:
+def _indexed_recipes(catalog_root: Path) -> dict[str, dict[str, Any]]:
     """Validate every indexed recipe and prove the index matches the tree."""
 
-    catalog = _require_object(_json_document(CATALOG_PATH), "catalog-index.json")
+    catalog = _require_object(
+        _json_document(catalog_root / "catalog-index.json"), "catalog-index.json"
+    )
     entries = catalog.get("recipes")
     if not isinstance(entries, list):
         raise TypeError("catalog-index.json recipes must be an array")
@@ -158,10 +162,12 @@ def _indexed_recipes() -> dict[str, dict[str, Any]]:
     return indexed
 
 
-def _indexed_models() -> dict[str, ModelDefinition]:
+def _indexed_models(catalog_root: Path) -> dict[str, ModelDefinition]:
     """Validate every canonical Model document referenced by the catalog."""
 
-    catalog = _require_object(_json_document(CATALOG_PATH), "catalog-index.json")
+    catalog = _require_object(
+        _json_document(catalog_root / "catalog-index.json"), "catalog-index.json"
+    )
     entities = catalog.get("catalog_entities")
     if not isinstance(entities, list):
         raise TypeError("catalog-index.json catalog_entities must be an array")
@@ -666,22 +672,21 @@ def _recovery_coverage(
     )
 
 
-def _build() -> dict[Path, bytes]:
-    indexed = _indexed_recipes()
-    models = _indexed_models()
+def _build(catalog_root: Path) -> dict[str, bytes]:
+    indexed = _indexed_recipes(catalog_root)
+    models = _indexed_models(catalog_root)
     authority = _authority(set(indexed))
     if authority["maximum_node_count"] != IN_SCOPE_MAXIMUM_NODE_COUNT:
         raise ValueError("authority scope does not match the in-scope node bound")
 
     ordered_metadata = sorted(indexed.items(), key=lambda item: item[0])
-    catalog_commit = authority["catalog"]["commit"]
-    if not isinstance(catalog_commit, str):
-        raise TypeError("authority catalog commit is malformed")
-    pinned_catalog_bytes = pinned_git_blob(ROOT, catalog_commit, "catalog-index.json")
-    if hashlib.sha256(pinned_catalog_bytes).hexdigest() != authority["catalog"].get(
-        "catalog_index_sha256"
-    ):
-        raise ValueError("pinned catalog bytes disagree with the authority digest")
+    release_tag = authority["catalog"].get("release_tag")
+    bound_index_sha256 = authority["catalog"].get("catalog_index_sha256")
+    if not isinstance(release_tag, str) or not isinstance(bound_index_sha256, str):
+        raise TypeError("authority catalog release binding is malformed")
+    pinned_catalog_bytes = release_asset(
+        release_tag, "catalog-index.json", bound_index_sha256
+    )
     pinned_catalog = _require_object(
         json.loads(pinned_catalog_bytes.decode("utf-8")), "pinned catalog-index.json"
     )
@@ -736,11 +741,11 @@ def _build() -> dict[Path, bytes]:
         if published_recipe.execution.mode != "build":
             raise ValueError(f"qualification stack identity requires a build: {key}")
         with pinned_catalog_package_tree(
-            ROOT,
-            catalog_commit,
+            release_tag,
             package,
             published_recipe,
             published_models,
+            catalog_root=catalog_root,
         ) as package_root:
             stack_identities[key] = execution_stack_identity(
                 package_root, published_recipe, published_recipe.execution.build
@@ -749,7 +754,7 @@ def _build() -> dict[Path, bytes]:
         if not isinstance(current_package, dict):
             raise TypeError(f"current indexed package is malformed: {key}")
         with current_catalog_package_tree(
-            ROOT, current_package, recipe, current_model_documents
+            catalog_root, current_package, recipe, current_model_documents
         ) as current_package_root:
             current_package_identities[key] = execution_stack_identity(
                 current_package_root, recipe, _build_definition(recipe)
@@ -833,7 +838,9 @@ def _build() -> dict[Path, bytes]:
         if entry["representative"] not in entry["members"]:
             raise ValueError("a representative must belong to its risk group")
 
-    catalog_index_sha256 = hashlib.sha256(CATALOG_PATH.read_bytes()).hexdigest()
+    catalog_index_sha256 = hashlib.sha256(
+        (catalog_root / "catalog-index.json").read_bytes()
+    ).hexdigest()
     bound_catalog_index_sha256 = authority["catalog"].get("catalog_index_sha256")
     bound_recipe_count = authority["catalog"].get("recipe_count")
     if bound_recipe_count != len(rows):
@@ -873,10 +880,10 @@ def _build() -> dict[Path, bytes]:
         ],
     }
     return {
-        MATRIX_PATH: (json.dumps(matrix, ensure_ascii=False, indent=2) + "\n").encode(
+        MATRIX_NAME: (json.dumps(matrix, ensure_ascii=False, indent=2) + "\n").encode(
             "utf-8"
         ),
-        REPORT_PATH: _render_report(matrix).encode("utf-8"),
+        REPORT_NAME: _render_report(matrix).encode("utf-8"),
     }
 
 
@@ -932,8 +939,8 @@ def _render_report(matrix: dict[str, Any]) -> str:
             "contract; its content digest must match both the producer index and the "
             "authored tree document. The current indexed package is checked against "
             "its declared size and SHA-256, then validated through the canonical "
-            "package validator. Authored-source consistency remains the "
-            "`tools/build-catalog-index --check` gate."
+            "package validator. The index and packages are generated from the "
+            "authored tree by `tools/build-catalog-index`."
         ),
         (
             "`runtime_stack_sha256` binds the full runtime/build contract and the "
@@ -1176,30 +1183,26 @@ def _render_report(matrix: dict[str, Any]) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--check",
-        action="store_true",
-        help="fail if the committed coverage matrix or report is stale",
+        "--catalog-root",
+        type=Path,
+        default=ROOT,
+        help="directory holding the generated catalog-index.json and packages/ "
+        "(default: this checkout; run tools/build-catalog-index first)",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=OUTPUT_DIRECTORY,
+        help="write the coverage matrix and report here "
+        "(default: qualification/coverage, ignored by Git)",
     )
     args = parser.parse_args()
     try:
-        outputs = _build()
-        stale = [
-            path
-            for path, expected in outputs.items()
-            if not path.exists() or path.read_bytes() != expected
-        ]
-        if args.check:
-            if stale:
-                raise ValueError(
-                    "family-aware coverage outputs are stale: "
-                    + ", ".join(path.relative_to(ROOT).as_posix() for path in stale)
-                )
-            print("family-aware coverage is current (85 recipes)")
-            return 0
-        for path, content in outputs.items():
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(content)
-        print("refreshed family-aware coverage matrix and report (85 recipes)")
+        outputs = _build(args.catalog_root)
+        args.output_dir.mkdir(parents=True, exist_ok=True)
+        for name, content in outputs.items():
+            (args.output_dir / name).write_bytes(content)
+        print(f"wrote family-aware coverage matrix and report to {args.output_dir}")
         return 0
     except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
         print(f"build-family-aware-coverage: {error}", file=sys.stderr)

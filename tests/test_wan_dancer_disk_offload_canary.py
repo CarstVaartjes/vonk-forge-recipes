@@ -15,6 +15,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from generated_catalog import GENERATED
 from vonk_forge_contracts import (
     ModelDefinition,
     RecipeDefinition,
@@ -30,7 +31,7 @@ ARCHIVE = (
 )
 ARCHIVE_SHA256 = "5f0dfef5351341613e2c8ba96806bddb576e5e1f44aaa104c5d5c388cf44bc1b"
 DIFFSYNTH_REVISION = "84f93fc4907b6c193be5501bab0b5c37f383033c"
-PACKAGE = ROOT / "packages/wan-dancer-14b-disk-offload-pytorch-single.tar.gz"
+PACKAGE = GENERATED / "packages/wan-dancer-14b-disk-offload-pytorch-single.tar.gz"
 BASE_IMAGE = {
     "repository": "nvcr.io/nvidia/cuda",
     "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",

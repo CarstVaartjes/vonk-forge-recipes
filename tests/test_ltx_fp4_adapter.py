@@ -11,6 +11,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from generated_catalog import GENERATED
+
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/ltx2-pytorch"
 ADAPTER_PATH = ADAPTER_ROOT / "pipelines/run.py"
@@ -254,7 +256,7 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             "adapters/video/ltx2-pytorch",
         )
         self.assertTrue(digest and archive)
-        index = _document(ROOT / "catalog-index.json")
+        index = _document(GENERATED / "catalog-index.json")
         entry = next(
             item
             for item in index["recipes"]
