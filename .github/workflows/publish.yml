@@ -19,11 +19,11 @@ permissions:
 
 jobs:
   validate:
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@PLATFORM_REF_PLACEHOLDER
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@e97c0a0da43f9b42a46dc454b11e38130b8d2de2
     with:
       # Keep release validation on the same published Forge authority as PR
       # validation; recipe publication is independent of Forge release CI.
-      platform_ref: PLATFORM_REF_PLACEHOLDER
+      platform_ref: e97c0a0da43f9b42a46dc454b11e38130b8d2de2
 
   producer-contracts:
     name: Validate producer contracts and packages
