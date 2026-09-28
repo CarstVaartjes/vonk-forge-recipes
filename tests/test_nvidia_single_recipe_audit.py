@@ -8,7 +8,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, content_sha256
+from vonk_forge_contracts import document_sha256
 
 SUPER_RECIPE = ROOT / "recipes/nemotron-3-super-120b-a12b-vllm-single.json"
 FLASH_RECIPE = ROOT / "recipes/nvidia-qwen-image-flash-diffusers-single.json"
@@ -19,7 +19,7 @@ def read(path: Path) -> dict[str, object]:
 
 
 def digest(document: dict[str, object]) -> str:
-    return content_sha256(ModelDefinition.model_validate(document))
+    return document_sha256(document)
 
 
 def model_for(recipe: dict[str, Any], index: int = 0) -> dict[str, object]:
@@ -32,14 +32,12 @@ def args(recipe: dict[str, Any]) -> dict[str, object]:
 
 
 class NvidiaSingleRecipeAuditTests(unittest.TestCase):
-    def test_current_model_snapshots_require_operator_acceptance(self) -> None:
+    def test_current_model_snapshots_are_pinned(self) -> None:
         for recipe_path in (SUPER_RECIPE, FLASH_RECIPE):
             recipe = read(recipe_path)
             with self.subTest(recipe=recipe_path.name):
                 model = model_for(recipe)
                 self.assertRegex(model["source"]["revision"], r"^[a-f0-9]{40,64}$")
-                self.assertTrue(model["license"]["operator_acceptance_required"])
-                self.assertNotIn("token", json.dumps(model["license"]).lower())
 
     def test_qwen_flash_snapshot_and_job_contract(self) -> None:
         recipe = read(FLASH_RECIPE)
@@ -48,8 +46,6 @@ class NvidiaSingleRecipeAuditTests(unittest.TestCase):
             model["source"]["revision"], "eafac15f6140e6dd9c6031217d658ac10bfb604b"
         )
         self.assertEqual(len(model["files"]), 24)
-        self.assertEqual(model["parameters"]["total"], 28_850_000_000)
-        self.assertEqual(model["limits"]["resolution_pixels"], 1024 * 1024)
         self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest(model))
         self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")
         self.assertEqual(
@@ -84,7 +80,6 @@ class NvidiaSingleRecipeAuditTests(unittest.TestCase):
         self.assertEqual(
             json.loads(args(recipe)["speculative-config"])["model"], "/models/drafter"
         )
-        self.assertTrue(model_for(recipe)["license"]["operator_acceptance_required"])
 
     def test_single_spark_memory_admission_and_representative_checks(self) -> None:
         for path in (SUPER_RECIPE, FLASH_RECIPE):
@@ -92,14 +87,7 @@ class NvidiaSingleRecipeAuditTests(unittest.TestCase):
             resources = recipe["topology"]["roles"][0]["resources"]
             memory = resources["memory"]
             self.assertLessEqual(
-                memory["startup_peak_bytes"] + memory["system_reserve_bytes"],
-                128_000_000_000,
-            )
-            self.assertLessEqual(
-                memory["steady_state_bytes"]
-                + memory["runtime_growth_bytes"]
-                + memory["system_reserve_bytes"],
-                128_000_000_000,
+                memory["peak_bytes"] + memory["reserve_bytes"], 128_000_000_000
             )
             self.assertGreaterEqual(len(recipe["validation"]["serving"]["checks"]), 1)
 

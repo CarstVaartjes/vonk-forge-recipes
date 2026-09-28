@@ -42,7 +42,6 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
         self.assertEqual(
             len({item["id"] for item in self.model["files"]}), len(self.model["files"])
         )
-        self.assertEqual(self.model["parameters"]["total"], 304_646_824_126)
         self.assertTrue(all(item["sha256"] for item in self.model["files"]))
 
     def test_adapter_is_pinned_and_fail_closed(self) -> None:
@@ -56,11 +55,7 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
 
     def test_recipe_resolves_model_patch_and_dual_vision_profile(self) -> None:
         selected = self.recipe["models"][0]["model"]
-        from vonk_forge_contracts import ModelDefinition
-
-        canonical = ModelDefinition.model_validate(self.model).model_dump(mode="json")
-        self.assertEqual(selected["content_sha256"], digest_dict(canonical))
-        self.assertEqual(self.recipe["execution"]["mode"], "build")
+        self.assertEqual(selected["content_sha256"], digest_dict(self.model))
         self.assertEqual(self.recipe["topology"]["node_count"], 2)
         self.assertEqual(self.recipe["topology"]["parallelism"]["tensor"], 2)
         self.assertEqual(self.recipe["topology"]["parallelism"]["backend"], "mp")

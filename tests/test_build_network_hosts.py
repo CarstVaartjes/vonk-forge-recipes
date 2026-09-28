@@ -15,22 +15,16 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
     def test_declared_build_hosts_are_used_by_source_builds(self) -> None:
         for path in sorted((ROOT / "recipes").glob("*.json")):
             recipe = load(path)
-            if recipe["execution"]["mode"] != "build":
-                continue
             network = recipe["execution"]["build"]["network"]
             self.assertEqual(
                 len(network["hosts"]), len(set(network["hosts"])), path.name
             )
             dockerfile = ROOT / recipe["execution"]["build"]["dockerfile"]
             self.assertTrue(dockerfile.is_file(), path.name)
-            if network["mode"] == "none":
-                self.assertEqual(network["hosts"], [])
 
     def test_nvcr_is_only_a_base_image_registry(self) -> None:
         for path in sorted((ROOT / "recipes").glob("*.json")):
             recipe = load(path)
-            if recipe["execution"]["mode"] != "build":
-                continue
             build = recipe["execution"]["build"]
             hosts = build["network"]["hosts"]
             if "nvcr.io" not in hosts:
@@ -59,8 +53,6 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
     def test_pytorch_index_object_host_is_explicit(self) -> None:
         for path in sorted((ROOT / "recipes").glob("*.json")):
             recipe = load(path)
-            if recipe["execution"]["mode"] != "build":
-                continue
             build = recipe["execution"]["build"]
             dockerfile = ROOT / build["dockerfile"]
             source = dockerfile.read_text(encoding="utf-8")

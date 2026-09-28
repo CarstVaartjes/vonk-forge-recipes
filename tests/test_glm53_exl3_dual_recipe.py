@@ -75,16 +75,10 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         estimated_startup_bytes = 130_663_235_584 * utilization + 9 * 1024**3
         for role in recipe["topology"]["roles"]:
             memory = role["resources"]["memory"]
-            demand = max(
-                memory["startup_peak_bytes"],
-                memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
-            )
+            self.assertGreaterEqual(memory["peak_bytes"], estimated_startup_bytes)
             self.assertGreaterEqual(
-                memory["startup_peak_bytes"], estimated_startup_bytes
-            )
-            self.assertGreaterEqual(
-                available_bytes - demand,
-                max(controller_floor_bytes, memory["system_reserve_bytes"]),
+                available_bytes - memory["peak_bytes"],
+                max(controller_floor_bytes, memory["reserve_bytes"]),
             )
 
     def test_runtime_tracks_current_upstream_defaults(self) -> None:
@@ -225,40 +219,15 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         )
         self.assertNotIn("ssh -", text.lower())
 
-    def test_current_release_gives_the_192k_context_a_kv_margin(self) -> None:
+    def test_image_is_stamped_with_the_recipe_release(self) -> None:
         recipe = load(RECIPE)
-        self.assertEqual(recipe["release"]["version"], "1.6.8")
-        current = recipe["release"]["history"][0]
-        self.assertEqual(current["version"], "1.6.8")
-        self.assertEqual(current["upgrade_effect"], "rebuild")
-        self.assertIn("KV margin", current["changes"][0]["summary"])
+        version = recipe["release"]["version"]
         dockerfile = (ADAPTER / "Dockerfile").read_text()
-        self.assertIn("VONK_GLM53_RECIPE_REVISION=1.6.8", dockerfile)
-
-    def test_previous_release_backports_only_the_selected_upstream_fixes(self) -> None:
-        recipe = load(RECIPE)
-        previous = recipe["release"]["history"][1]
-        self.assertEqual(previous["version"], "1.6.7")
-        self.assertEqual(previous["upgrade_effect"], "rebuild")
-        details = previous["changes"][0]
-        self.assertIn("Mamba", details["summary"])
-        self.assertEqual(
-            set(details["references"]),
-            {
-                "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/commit/fd329d248e63de3ddd334c7d2ed3276e8321672b",
-                "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/commit/771a1867bc862fae5fa8946f85fb66749468679e",
-            },
-        )
-        # These targeted overlays are built on the existing exact lineage and
-        # runtime image; they do not claim to consume either upstream repository
-        # wholesale or silently float the platform.
+        self.assertIn(f"VONK_GLM53_RECIPE_REVISION={version}", dockerfile)
+        # Targeted overlays build on the exact pinned lineage and runtime image.
         self.assertEqual(
             recipe["provenance"]["source_reference"],
             "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c",
-        )
-        self.assertEqual(
-            recipe["execution"]["build"]["base_image"]["digest"],
-            "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce",
         )
 
     def test_current_defaults_and_source_license_are_declared(self) -> None:

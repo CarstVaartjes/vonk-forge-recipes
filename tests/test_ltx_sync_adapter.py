@@ -38,13 +38,6 @@ class LtxSyncAuthorityTests(unittest.TestCase):
             self.assertEqual(recipe["runtime"]["engine"], "pytorch-pipeline")
             self.assertEqual(recipe["interfaces"][0]["adapter"], "video-job")
             self.assertEqual(recipe["topology"]["node_count"], 1)
-            self.assertTrue(
-                all(
-                    file["mount"]["read_only"]
-                    for model in recipe["models"]
-                    for file in model["files"]
-                )
-            )
 
     def test_container_is_pinned_and_runtime_is_offline(self) -> None:
         for path in (

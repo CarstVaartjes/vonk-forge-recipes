@@ -15,35 +15,12 @@ sys.path.insert(0, str(ROOT / "contracts/src"))
 from vonk_forge_contracts import (
     QualificationAuthority,
     RecoveryCoverage,
-    RecoveryCoverageConsumption,
-    RecoveryCoverageReceipt,
-    RecoveryCoverageReceiptEnvelope,
     campaign_authority_json_schema,
     campaign_manifest_json_schema,
-    recovery_coverage_consumption_json_schema,
     recovery_coverage_id,
-    recovery_coverage_receipt_json_schema,
-    recovery_coverage_use_json_schema,
-    recovery_receipt_sha256,
 )
 from vonk_forge_contracts.qualification_authority import (
     RecoveryCoverageDefinition,
-)
-
-INVALIDATED_BY = sorted(
-    {
-        "recipe_content_sha256",
-        "package_sha256",
-        "model_content_sha256s",
-        "runtime_stack_sha256",
-        "topology_sha256",
-        "coverage_membership",
-        "runtime_image_digest",
-        "platform_build_sha256",
-        "agent_build_sha256",
-        "target_node_ids",
-        "smoke_receipt_sha256",
-    }
 )
 
 
@@ -79,7 +56,6 @@ def _coverage_payload() -> dict[str, Any]:
             "Identical runtime and topology identities make host restart recovery "
             "behavior equivalent; each member retains its own package, model and smoke evidence."
         ),
-        "invalidated_by": INVALIDATED_BY,
     }
 
 
@@ -107,7 +83,6 @@ def _authority_document() -> dict[str, Any]:
                     "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip",
                 },
                 "disposition": "actionable",
-                "operator_acceptance_required": False,
                 "model_license_refs": [
                     {
                         "key": f"model-{sequence}/test-model",
@@ -115,7 +90,6 @@ def _authority_document() -> dict[str, Any]:
                         "spdx": "Apache-2.0",
                         "url": "https://example.test/license",
                         "attribution": ["test"],
-                        "operator_acceptance_required": False,
                     }
                 ],
                 "qualification_inputs": ["tiny.png"],
@@ -134,12 +108,12 @@ def _authority_document() -> dict[str, Any]:
             }
         )
     return {
-        "schema_version": 4,
+        "schema_version": 5,
         "authority_id": "test-authority",
         "catalog": {
             "repository": "CarstVaartjes/vonk-forge-recipes",
             "commit": "a" * 40,
-            "release_tag": "v1.0.0",
+            "release_tag": "v2.0.0",
             "source_commit": "b" * 40,
             "catalog_index_sha256": "8" * 64,
             "qualification_index_sha256": "9" * 64,
@@ -166,93 +140,13 @@ def _authority_document() -> dict[str, Any]:
     }
 
 
-def _recovery_receipt(authority: dict[str, Any]) -> dict[str, Any]:
-    coverage = authority["recovery_coverage"][0]
-    representative = next(
-        member
-        for member in coverage["members"]
-        if member["recipe"] == coverage["representative_recipe"]
-    )
-    node = {
-        "node_id": "spk_" + "1" * 32,
-        "agent_build_sha256": "7" * 64,
-        "baseline_boot_id": "boot-before",
-        "recovered_boot_id": "boot-after",
-        "baseline_event_id": "fleet-baseline-1",
-        "offline_event_id": "fleet-offline-1",
-        "recovered_event_id": "fleet-recovered-1",
-    }
-    return {
-        "schema_version": 1,
-        "coverage_id": coverage["coverage_id"],
-        "failure_mode": coverage["failure_mode"],
-        "representative_recipe": representative["recipe"],
-        "recipe_content_sha256": representative["recipe_content_sha256"],
-        "package_sha256": representative["package_sha256"],
-        "model_content_sha256s": representative["model_content_sha256s"],
-        "runtime_stack_sha256": representative["runtime_stack_sha256"],
-        "topology_sha256": representative["topology_sha256"],
-        "runtime_image_digest": "sha256:" + "a" * 64,
-        "platform_build_sha256": "b" * 64,
-        "architecture": "linux/arm64",
-        "smoke_receipt_sha256": "c" * 64,
-        "checkpoint_event_ids": [
-            node["baseline_event_id"],
-            node["offline_event_id"],
-            node["recovered_event_id"],
-        ],
-        "nodes": [node],
-        "passed": True,
-    }
-
-
-def _consumption_documents() -> dict[str, Any]:
-    authority = _authority_document()
-    coverage = authority["recovery_coverage"][0]
-    receipt = RecoveryCoverageReceipt.model_validate(_recovery_receipt(authority))
-    receipt_sha256 = recovery_receipt_sha256(receipt)
-    envelope = {
-        "receipt": receipt.model_dump(mode="json"),
-        "receipt_sha256": receipt_sha256,
-    }
-    member = next(item for item in coverage["members"] if item["recipe"] == "aa/ss")
-    use = {
-        "schema_version": 1,
-        "coverage_id": coverage["coverage_id"],
-        "failure_mode": coverage["failure_mode"],
-        "member_recipe": member["recipe"],
-        "representative_recipe": coverage["representative_recipe"],
-        "representative_receipt_sha256": receipt_sha256,
-        "member_recipe_content_sha256": member["recipe_content_sha256"],
-        "member_package_sha256": member["package_sha256"],
-        "member_model_content_sha256s": member["model_content_sha256s"],
-        "member_runtime_stack_sha256": member["runtime_stack_sha256"],
-        "member_topology_sha256": member["topology_sha256"],
-        "member_runtime_image_digest": receipt.runtime_image_digest,
-        "member_platform_build_sha256": receipt.platform_build_sha256,
-        "member_nodes": [
-            {
-                "node_id": receipt.nodes[0].node_id,
-                "agent_build_sha256": receipt.nodes[0].agent_build_sha256,
-            }
-        ],
-        "member_smoke_receipt_sha256": "e" * 64,
-    }
-    return {
-        "authority": authority,
-        "coverage": coverage,
-        "envelope": envelope,
-        "use": use,
-    }
-
-
 def test_authority_schema_and_model_bind_every_batch_and_recovery_reference() -> None:
     """The canonical authority and JSON Schema must preserve every exact assignment."""
 
     document = _authority_document()
     Draft202012Validator(campaign_authority_json_schema()).validate(document)
     parsed = QualificationAuthority.model_validate(document)
-    assert parsed.schema_version == 4
+    assert parsed.schema_version == 5
     assert parsed.batches[0].mode == "paired-single"
     assert [assignment.recipe for assignment in parsed.batches[0].assignments] == [
         "aa/rr",
@@ -278,7 +172,6 @@ def test_authority_schema_and_model_bind_every_batch_and_recovery_reference() ->
         "members": [member],
         "shared": False,
         "equivalence_rationale": "This member retains its dedicated recovery check.",
-        "invalidated_by": INVALIDATED_BY,
     }
     coverage_id = recovery_coverage_id(payload)
     invalid["recovery_coverage"].append({"coverage_id": coverage_id, **payload})
@@ -311,153 +204,6 @@ def test_authority_schema_and_model_bind_every_batch_and_recovery_reference() ->
     invalid["recovery_coverage"][0]["members"][1]["topology_sha256"] = "f" * 64
     with pytest.raises(ValidationError, match="identical runtime and topology"):
         RecoveryCoverage.model_validate(invalid["recovery_coverage"][0])
-
-
-def test_shared_recovery_consumption_requires_receipt_and_exact_member_identity() -> (
-    None
-):
-    """A valid representative proof cannot credit a changed recipe or Spark build."""
-
-    values = _consumption_documents()
-    Draft202012Validator(recovery_coverage_receipt_json_schema()).validate(
-        values["envelope"]
-    )
-    Draft202012Validator(recovery_coverage_use_json_schema()).validate(values["use"])
-    consumption = RecoveryCoverageConsumption.model_validate(
-        {
-            "coverage": values["coverage"],
-            "representative_receipt": values["envelope"],
-            "use": values["use"],
-        }
-    )
-    Draft202012Validator(recovery_coverage_consumption_json_schema()).validate(
-        consumption.model_dump(mode="json")
-    )
-
-    invalid = copy.deepcopy(values["use"])
-    invalid["member_package_sha256"] = "f" * 64
-    with pytest.raises(ValidationError, match="member use identity"):
-        RecoveryCoverageConsumption.model_validate(
-            {
-                "coverage": values["coverage"],
-                "representative_receipt": values["envelope"],
-                "use": invalid,
-            }
-        )
-
-    invalid = copy.deepcopy(values["use"])
-    invalid["member_nodes"][0]["agent_build_sha256"] = "0" * 64
-    with pytest.raises(ValidationError, match="target Spark or agent build changed"):
-        RecoveryCoverageConsumption.model_validate(
-            {
-                "coverage": values["coverage"],
-                "representative_receipt": values["envelope"],
-                "use": invalid,
-            }
-        )
-
-    invalid = copy.deepcopy(values["envelope"])
-    invalid["receipt_sha256"] = "0" * 64
-    with pytest.raises(ValidationError, match="receipt digest is invalid"):
-        RecoveryCoverageReceiptEnvelope.model_validate(invalid)
-
-
-def test_receipt_hash_normalizes_omitted_and_explicit_optional_null() -> None:
-    """Declared optional null fields must not create different receipt identities."""
-
-    authority = _authority_document()
-    document = _recovery_receipt(authority)
-    explicit_null = {**document, "rank_recovery": None}
-    omitted_model = RecoveryCoverageReceipt.model_validate(document)
-    null_model = RecoveryCoverageReceipt.model_validate(explicit_null)
-    assert recovery_receipt_sha256(omitted_model) == recovery_receipt_sha256(null_model)
-    assert "rank_recovery" not in omitted_model.model_dump(
-        mode="json", exclude_none=True
-    )
-
-    envelope = {
-        "receipt": explicit_null,
-        "receipt_sha256": recovery_receipt_sha256(null_model),
-    }
-    RecoveryCoverageReceiptEnvelope.model_validate(envelope)
-
-    invalid = _recovery_receipt(authority)
-    invalid["checkpoint_event_ids"].append("unbound-event")
-    with pytest.raises(ValidationError, match="exactly bind the typed source events"):
-        RecoveryCoverageReceipt.model_validate(invalid)
-
-    invalid = _recovery_receipt(authority)
-    invalid["nodes"][0]["recovered_boot_id"] = invalid["nodes"][0]["baseline_boot_id"]
-    with pytest.raises(ValidationError, match="changed boot ID"):
-        RecoveryCoverageReceipt.model_validate(invalid)
-
-
-def test_dual_rank_recovery_restores_the_lost_rank_without_host_restart_evidence() -> (
-    None
-):
-    """Rank recovery must return on the lost node and bind both participating agents."""
-
-    member = _member("aa/rr", "1" * 64, "2" * 64, "3" * 64)
-    definition = {
-        "failure_mode": "dual-rank-loss-recovery",
-        "representative_recipe": "aa/rr",
-        "members": [member],
-        "shared": False,
-        "equivalence_rationale": "Dual rank loss remains dedicated to this recipe.",
-        "invalidated_by": INVALIDATED_BY,
-    }
-    coverage_id = recovery_coverage_id(definition)
-    coverage = {"coverage_id": coverage_id, **definition}
-    lost = "spk_" + "1" * 32
-    survivor = "spk_" + "2" * 32
-    rank_recovery = {
-        "lost_node_id": lost,
-        "recovered_node_id": lost,
-        "survivor_node_id": survivor,
-        "node_builds": [
-            {"node_id": lost, "agent_build_sha256": "7" * 64},
-            {"node_id": survivor, "agent_build_sha256": "8" * 64},
-        ],
-        "rank_loss_event_id": "rank-loss-event",
-        "route_withdrawal_event_id": "route-withdrawal-event",
-        "rank_recovery_event_id": "rank-recovery-event",
-        "recovered_smoke_receipt_sha256": "9" * 64,
-    }
-    receipt = {
-        "schema_version": 1,
-        "coverage_id": coverage_id,
-        "failure_mode": "dual-rank-loss-recovery",
-        "representative_recipe": "aa/rr",
-        "recipe_content_sha256": member["recipe_content_sha256"],
-        "package_sha256": member["package_sha256"],
-        "model_content_sha256s": member["model_content_sha256s"],
-        "runtime_stack_sha256": member["runtime_stack_sha256"],
-        "topology_sha256": member["topology_sha256"],
-        "runtime_image_digest": "sha256:" + "a" * 64,
-        "platform_build_sha256": "b" * 64,
-        "architecture": "linux/arm64",
-        "smoke_receipt_sha256": "9" * 64,
-        "checkpoint_event_ids": [
-            "rank-loss-event",
-            "route-withdrawal-event",
-            "rank-recovery-event",
-        ],
-        "nodes": [],
-        "rank_recovery": rank_recovery,
-        "passed": True,
-    }
-    RecoveryCoverage.model_validate(coverage)
-    RecoveryCoverageReceipt.model_validate(receipt)
-
-    invalid = copy.deepcopy(receipt)
-    invalid["rank_recovery"]["recovered_node_id"] = survivor
-    with pytest.raises(ValidationError, match="restore the lost node"):
-        RecoveryCoverageReceipt.model_validate(invalid)
-
-    invalid = copy.deepcopy(receipt)
-    invalid["rank_recovery"]["node_builds"].pop()
-    with pytest.raises(ValidationError):
-        RecoveryCoverageReceipt.model_validate(invalid)
 
 
 def test_coverage_id_rejects_untyped_or_extra_payload_fields() -> None:

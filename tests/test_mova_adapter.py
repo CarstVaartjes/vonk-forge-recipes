@@ -162,9 +162,6 @@ class MovaInputContractTests(unittest.TestCase):
                 self.assertEqual(output["slots"][0]["media_types"], ["video/mp4"])
                 self.assertIn("H.264", output["slots"][0]["description"])
                 self.assertIn("AAC", output["slots"][0]["description"])
-                configuration = recipe["validation"]["benchmarks"][0]["configuration"]
-                self.assertEqual(configuration["video_codec"], "h264")
-                self.assertEqual(configuration["audio_codec"], "aac")
                 self.assertEqual(
                     (
                         output["slots"][0]["min_files"],

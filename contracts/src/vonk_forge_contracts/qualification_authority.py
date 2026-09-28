@@ -47,6 +47,8 @@ RecoveryFailureMode = Literal[
     "dual-rank-loss-recovery",
     "dual-host-restart",
 ]
+
+
 class _QualificationContract(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
 

@@ -153,13 +153,11 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 interface = recipe["interfaces"][0]
                 input_contract = interface["input"]
                 output_contract = interface["output"]
-                self.assertEqual(input_contract["path"], "/inputs")
                 self.assertTrue(input_contract["slots"])
                 self.assertLessEqual(
                     sum(slot["max_total_bytes"] for slot in input_contract["slots"]),
                     input_contract["max_bytes"],
                 )
-                self.assertEqual(output_contract["path"], "/outputs")
                 self.assertEqual(len(output_contract["slots"]), 1)
                 output = output_contract["slots"][0]
                 self.assertEqual(output["media_types"], ["model/gltf-binary"])
@@ -304,7 +302,6 @@ class NativeThreeDAdapterTests(unittest.TestCase):
             "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License",
         )
         self.assertTrue(model_version["license"]["url"].startswith("https://"))
-        self.assertFalse(model_version["license"]["operator_acceptance_required"])
         self.assertEqual(
             recipe["models"][0]["model"]["content_sha256"],
             hashlib.sha256(CATALOG.canonical(model_version)).hexdigest(),

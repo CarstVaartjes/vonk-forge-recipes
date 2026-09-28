@@ -8,7 +8,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, content_sha256
+from vonk_forge_contracts import document_sha256
 
 
 def read(path: Path) -> dict[str, object]:
@@ -43,14 +43,10 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
         }
         self.assertTrue(args["workflow"].endswith("qwen-image-edit-2511-fp8mixed.json"))
         self.assertEqual(len(args["workflow-sha256"]), 64)
-        self.assertIn(
-            recipe["execution"]["build"]["network"]["mode"], {"none", "public"}
-        )
         topology: Any = recipe["topology"]
         resources = topology["roles"][0]["resources"]
         self.assertLessEqual(
-            resources["memory"]["startup_peak_bytes"]
-            + resources["memory"]["system_reserve_bytes"],
+            resources["memory"]["peak_bytes"] + resources["memory"]["reserve_bytes"],
             128_000_000_000,
         )
 
@@ -61,7 +57,7 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
                 self.assertEqual(recipe["runtime"]["engine"], "comfyui")
                 for selection in recipe["models"]:
                     model = read(ROOT / "models" / f"{selection['model']['slug']}.json")
-                    canonical = content_sha256(ModelDefinition.model_validate(model))
+                    canonical = document_sha256(model)
                     self.assertEqual(selection["model"]["content_sha256"], canonical)
 
 

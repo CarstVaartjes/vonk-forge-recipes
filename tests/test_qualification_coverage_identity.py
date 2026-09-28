@@ -28,8 +28,6 @@ def _recipe_for_root(root: Path) -> RecipeDefinition:
 
 
 def _build_definition(recipe: RecipeDefinition) -> RecipeBuildDefinition:
-    if recipe.execution.mode != "build":
-        raise AssertionError("source-build example must retain build execution")
     return recipe.execution.build
 
 

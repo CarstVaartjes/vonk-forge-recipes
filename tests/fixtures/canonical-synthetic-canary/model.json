@@ -1,5 +1,4 @@
 {
-  "schema_version": 2,
   "kind": "model",
   "identity": {
     "publisher": "vonk-forge-test",
@@ -14,8 +13,7 @@
     "model": {
       "publisher": "vonk-forge-test",
       "slug": "canonical-synthetic-http",
-      "title": "Canonical synthetic HTTP smoke",
-      "architecture": "deterministic-http-service"
+      "title": "Canonical synthetic HTTP smoke"
     }
   },
   "metadata": {
@@ -29,31 +27,12 @@
   "modalities": [
     "text"
   ],
-  "capabilities": {
-    "schema_version": 2,
-    "facts": [
-      {
-        "capability": "text-generation",
-        "support": "supported",
-        "evidence_status": "declared"
-      }
-    ],
-    "provenance": {
-      "source_url": "https://huggingface.co/Qwen/Qwen3.6-27B",
-      "source_revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9"
-    }
-  },
+  "capabilities": [
+    "text-generation"
+  ],
   "format": {
-    "container": "other",
     "precision": "utf8",
     "quantization": "none"
-  },
-  "parameters": {
-    "total": null,
-    "active": null
-  },
-  "limits": {
-    "context_tokens": 128
   },
   "files": [
     {
@@ -72,34 +51,11 @@
     "url": "https://huggingface.co/Qwen/Qwen3.6-27B/blob/6a9e13bd6fc8f0983b9b99948120bc37f49c13e9/LICENSE",
     "attribution": [
       "Qwen"
-    ],
-    "operator_acceptance_required": false
-  },
-  "access": {
-    "visibility": "public",
-    "gated": false,
-    "authentication": "none"
-  },
-  "lineage": {
-    "publisher": "vonk-forge-test",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "vonk-forge-test",
-      "slug": "canonical-synthetic-http"
-    },
-    "derivation": "Deterministic test-only HTTP smoke fixture reusing Qwen configuration.json solely to exercise immutable Hugging Face artifact resolution; no model weights are bundled."
-  },
-  "provenance": {
-    "source_url": "https://huggingface.co/Qwen/Qwen3.6-27B/resolve/6a9e13bd6fc8f0983b9b99948120bc37f49c13e9/configuration.json",
-    "source_revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9",
-    "attribution": [
-      "Qwen"
     ]
   },
   "source": {
     "repository": "https://huggingface.co/Qwen/Qwen3.6-27B",
     "revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9"
   },
-  "supersedes": null
+  "requires_token": false
 }

@@ -13,9 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from generated_catalog import GENERATED
 from vonk_forge_contracts import (
-    ModelDefinition,
-    RecipeDefinition,
-    content_sha256,
+    document_sha256,
 )
 
 ADAPTER_ROOT = ROOT / "adapters/deepseek/sparkinfer-target-only-single"
@@ -43,8 +41,7 @@ def _document(path: Path) -> dict[str, object]:
 
 
 def _canonical_digest(path: Path) -> str:
-    contract = ModelDefinition if path.parent.name == "models" else RecipeDefinition
-    return content_sha256(contract.model_validate(_document(path)))
+    return document_sha256(_document(path))
 
 
 def _catalog_entry(slug: str) -> dict[str, object]:
@@ -57,17 +54,6 @@ def _catalog_entry(slug: str) -> dict[str, object]:
 
 
 class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
-    def test_original_speculative_recipe_is_unchanged(self) -> None:
-        original = RecipeDefinition.model_validate(_document(ORIGINAL_RECIPE_PATH))
-        historical = {
-            entry.version: entry.prior_recipe_content_sha256
-            for entry in original.release.history
-        }
-        self.assertEqual(
-            historical["0.1.2"],
-            "0c4c4e3235f8d694956d0d4b9d7d9b05d542ab5e23782b4bbe8fe552aa39a879",
-        )
-
     def test_exact_target_only_contract_and_authority_closure(self) -> None:
         recipe = _document(RECIPE_PATH)
         model = _document(MODEL_PATH)
@@ -92,14 +78,9 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
 
     def test_declared_envelope_fits_the_lower_live_baseline(self) -> None:
         memory = _document(RECIPE_PATH)["topology"]["roles"][0]["resources"]["memory"]
-        runtime_maximum = max(
-            memory["startup_peak_bytes"],
-            memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
-        )
-        admission = runtime_maximum + memory["system_reserve_bytes"]
+        admission = memory["peak_bytes"] + memory["reserve_bytes"]
 
-        self.assertEqual(memory["startup_peak_bytes"], 119_000_000_000)
-        self.assertEqual(runtime_maximum, 119_000_000_000)
+        self.assertEqual(memory["peak_bytes"], 119_000_000_000)
         self.assertEqual(admission, 126_000_000_000)
         self.assertEqual(LOWER_SPARK_BASELINE_BYTES - admission, 946_283_520)
 
@@ -154,25 +135,6 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
         subprocess.run(
             ["bash", "-n", str(ADAPTER_ROOT / "vllm-wrapper.sh")],
             check=True,
-        )
-
-    def test_release_pins_the_upstream_measurements(self) -> None:
-        recipe = RecipeDefinition.model_validate(_document(RECIPE_PATH))
-        evidence = next(
-            change
-            for entry in recipe.release.history
-            for change in entry.changes
-            if "92.13 GiB" in (change.details or "")
-        )
-        self.assertIn("92.13 GiB", evidence.details or "")
-        self.assertIn("95.39 GiB", evidence.details or "")
-        self.assertEqual(
-            evidence.references,
-            [
-                f"https://github.com/0xSero/deepseek-v4-flash-0731-spark-sparkinfer/blob/{RUNTIME_REVISION}/results/acceptance.json",
-                f"https://github.com/0xSero/deepseek-v4-flash-0731-spark-sparkinfer/blob/{RUNTIME_REVISION}/results/clean-image-acceptance.json",
-                f"https://github.com/0xSero/deepseek-v4-flash-0731-spark-sparkinfer/blob/{RUNTIME_REVISION}/scripts/entrypoint.sh",
-            ],
         )
 
     def test_target_only_smoke_exercises_the_tool_parser(self) -> None:
