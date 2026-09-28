@@ -8334,8 +8334,8 @@
     "source_reference": "https://github.com/MiaAI-Lab/GLM-5.2-NVFP4-AQLM-Triple-DGX-Sparks/tree/5c85163ccb8d98d395880e71e2dbd03976a3f4ad"
   },
   "release": {
-    "released_at": "2026-09-16",
-    "version": "2.0.8"
+    "released_at": "2026-07-27",
+    "version": "4.5"
   },
   "runtime": {
     "arguments": [
