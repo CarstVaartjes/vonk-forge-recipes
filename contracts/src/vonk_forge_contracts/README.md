@@ -1,25 +1,19 @@
 # Vonk Forge public contracts
 
 `ModelDefinition` and `RecipeDefinition` are the two author-facing roots in
-this package. `TestReport` is the third shared contract: the execution evidence
-for one recipe revision, which the Controller validates and the catalog
-publishes. It is not authoring input. All three are strict Pydantic v2 models
-with pure semantic checks and no Controller, runtime, or platform imports. The
-checked-in JSON Schemas under `contracts/schema/` are generated from these
-models:
+this package; the qualification authority is the maintainer campaign's input.
+All are strict Pydantic v2 models with pure semantic checks and no Controller,
+runtime, or platform imports. The checked-in JSON Schemas under `schema/` are
+generated from these models:
 
 ```bash
 tools/generate-contract-schemas
 tools/generate-contract-schemas --check
 ```
 
-`TestReport` is schema 1 while the authoring roots are schema 2: each document
-owns its own version, and no document accepts two versions.
-
-The package is consumed in-repository during this greenfield transition. The
-platform and catalog builds should refresh the package from the latest
-`vonk-forge-recipes` `main` source before frozen dependency resolution, then
-record the resolved Git commit in build metadata. A manually maintained source
-revision pin is intentionally unnecessary; contract changes trigger dependent
-schema, catalog, and Controller checks. A future wheel can use the same
-package without changing the document authority.
+`CONTRACT_VERSION` is the semantic version of the Model and Recipe contracts
+and of the recipe library release that publishes them. An additive change is a
+minor release and a breaking change a major one. Model and Recipe documents
+carry no schema version of their own. Consumers read published documents with
+`read_model`/`read_recipe` and identify each by the `document_sha256` of its
+published JSON.

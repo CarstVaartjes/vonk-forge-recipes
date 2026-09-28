@@ -58,16 +58,21 @@ The [Pydantic definitions](../contracts/src/vonk_forge_contracts) are the source
 of truth. Use the [examples](../contracts/src/vonk_forge_contracts/examples) for
 structure only; replace synthetic identities and data with verified inputs.
 
-Contract compatibility: vonk-forge follows the newest signed release at
-runtime, so new or changed models and recipes never need a vonk-forge release.
-A change to the contract itself does. Within one `schema_version`, only make
-additive changes: add an optional field, or make a field optional. Removing a
-field, making one required, or changing a field's meaning is breaking: bump
-`schema_version` and coordinate a vonk-forge release. Documents are strict and
-`content_sha256` hashes the whole normalized document, so even an additive
-change takes effect only after vonk-forge pins the new contracts commit. Until
-then its Controller skips each document it cannot validate, reports it in
-sync-status, and applies the rest.
+Contract compatibility: the library's release version is the contract's
+semantic version (`CONTRACT_VERSION`, release `v2.0.0`). New or changed models
+and recipes never change it: publication updates that release in place and
+records when it was last updated, and vonk-forge follows the newest release
+within its contract major version, so recipe changes never need a vonk-forge
+release. A change to the contract itself bumps `CONTRACT_VERSION`:
+
+- **Additive (minor, `2.1.0`):** add an optional field, or make a field
+  optional. The Controller reads published documents with `read_model` and
+  `read_recipe`, which ignore fields they do not know, and identifies each
+  document by the `document_sha256` of its published JSON, so an older
+  Controller keeps working and picks the field up when vonk-forge upgrades.
+- **Breaking (major, `3.0.0`):** remove or rename a field, make one required,
+  or change a field's meaning. Coordinate a vonk-forge release; Controllers on
+  the previous major keep following the previous major's release.
 
 ### Model: the exact files and their capabilities
 
@@ -88,16 +93,17 @@ hashes, sizes, capabilities, context limits, or memory measurements.
 For a Hugging Face model, `tools/catalog-hf-model` drafts that record. It pins
 `--revision` (or the current head), lists every file in the snapshot with its
 LFS SHA-256 and size (downloading and hashing small non-LFS files, and refusing
-non-LFS files over 16 MiB), and writes a validated, canonical
-`models/<--version-slug>.json`. It prints the pinned revision, the Model
-content digest to use in recipe model references, and the total bytes. You
-still supply identity, license, access and lineage through its flags; it
-leaves `capabilities.facts` empty. Review the file list and roles, drop files
-the model does not need, and add evidence-backed capabilities before you use
-the Model in a recipe.
+non-LFS files over 16 MiB), and writes a validated
+`models/<--version-slug>.json`. It prints the pinned revision, the Model's
+`document_sha256` to use in recipe model references, and the total bytes. You
+still supply identity, license, `--requires-token` for a gated repository and
+`--capability` names through its flags. Review the file list and roles, drop
+files the model does not need, and list only capabilities the model supports
+before you use the Model in a recipe.
 
-Describe capabilities with evidence and keep unknowns honest. A source model's
-vision capability does not prove that every engine recipe can serve images.
+`capabilities` is the list of capability names the model supports. Leave out
+what is unknown. A source model's vision capability does not prove that every
+engine recipe can serve images.
 
 Preserve upstream license terms, territorial notices, and their source links
 as information for the user. License compliance decisions belong to the user;
@@ -108,21 +114,31 @@ credential requirements and report provider access errors accurately.
 
 ### Recipe: a complete way to run those files
 
-Reference exact validated Model documents and their file IDs; do not duplicate
-their manifests. Select read-only mounts for the required topology roles.
-Choose either a pinned final image or a recipe-owned source build. Include all
-required local build inputs, patches, entrypoints, wrappers, and test fixtures.
-Model weights and container image bytes stay outside the recipe package.
+Reference exact validated Model documents by the `document_sha256` of their
+published JSON, and their file IDs; do not duplicate their manifests. Mount
+the selected files for the required topology roles; model mounts are always
+read-only. Every recipe builds its image from a digest-pinned ARM64 base image
+and a recipe-owned build context, Dockerfile and patches. The build reaches
+only the hosts in `execution.build.network.hosts`; an empty list builds
+offline. Include all required local build inputs, patches, entrypoints,
+wrappers, and test fixtures. Model weights and container image bytes stay
+outside the recipe package.
 
 Leave out unused optional fields. For optional fields with a `None` default,
 explicit `null` and omission have the same meaning; required nullable fields
 must still be written, even when their value is `null`. Do not remove false,
-zero, empty values or engine-owned JSON nulls as if they were absent. Use the
-shared canonical serializer for identities rather than changing raw payloads
-independently of their model.
+zero, empty values or engine-owned JSON nulls as if they were absent. A
+document's identity is the `document_sha256` of its JSON (key order and
+whitespace aside), so any value change changes it. Keep documents in the
+repository's sorted, two-space-indented form.
 
 Preserve launch behavior: executable, ordered arguments, environment, topology,
-ports, model aliases, resource envelope, and lifecycle intent. Bind tunable
+ports, model aliases, resource envelope, and stop timeout. Declare per-role
+unified memory as `peak_bytes` (the most the workload uses at any time,
+startup or steady state) plus `reserve_bytes`, and disk as image, artifact,
+working (staging plus caches) and safety-margin bytes. Declare `node_count`,
+roles and their start order; the single/distributed mode, fabric requirement,
+failure handling and stop order follow from them. Bind tunable
 arguments to the corresponding declared settings instead of maintaining two
 copies of a default. Respect the contract's automatic/unspecified settings;
 benchmark request counts are not engine concurrency limits. If a wrapper
@@ -142,7 +158,8 @@ Keep non-root execution, a read-only root, and declared writable volumes. If an
 engine needs an additional invariant, fix the central engine implementation
 and exercise actual writes and cache reuse; do not scatter recipe workarounds.
 
-Artifact jobs receive their declared files plus `/inputs/manifest.json`. Read
+Artifact jobs receive their declared files under `/inputs`, plus
+`/inputs/manifest.json`, and write their outputs under `/outputs`. Read
 the manifest with the platform's `RecipeJobInputManifest` Pydantic model and
 select files by their declared slot. Do not assume the input directory contains
 only the prompt. Reject undeclared files and unsafe paths; preserve valid file
@@ -152,26 +169,25 @@ changing this shared contract, rebuild that wheel from the platform's
 `agent_protocol` source, replace both adapter copies, and run the actual
 manifest-producer-to-adapter tests before rebuilding the catalog.
 
-## 4. Explain what changed
+## 4. Version and explain what changed
 
-For an update, write a short summary and a few useful highlights: new model
-capabilities, corrected behavior, engine compatibility, memory or startup
-changes, and changes an operator will notice. Separate Model changes from
-Recipe/runtime changes. Use release notes where available and inspect commits
-between the exact old and new pins. Link each claim to its supporting release,
-comparison, commit, or diff. Label performance claims as upstream claims until
-measured here. Do not infer a speedup or quality gain from a commit title.
+`release.version` and `release.released_at` name what the recipe runs. When
+the upstream project publishes versions (GitHub releases or tags at the pinned
+commit, or a versioned changelog entry), use the upstream version as upstream
+spells it, without a leading `v`, and its release date. Otherwise keep the
+recipe's own semantic version and bump it with each change. The recipe
+document carries no release history; the Git history and the pull request
+hold it.
 
-Store notes in the shared contract's optional changelog metadata when that
-field is available. If the current contract does not yet support it, include
-the same evidence in the PR and report that catalog notes are pending; do not
-invent an unvalidated JSON field or a third authored catalog document. Missing
-or incomplete upstream notes do not prevent a usable recipe from publishing.
-
-Keep notes bounded; link to the full history instead of embedding it. If two
-pins cannot be compared, explain the source change without inventing a commit
-range. A notes-only edit must not invalidate cached model files or runtime
-images, although the document/package content digest will change.
+For an update, write a short summary and a few useful highlights in the pull
+request: new model capabilities, corrected behavior, engine compatibility,
+memory or startup changes, and changes an operator will notice. Separate Model
+changes from Recipe/runtime changes. Use release notes where available and
+inspect commits between the exact old and new pins. Link each claim to its
+supporting release, comparison, commit, or diff. Label performance claims as
+upstream claims until measured here. Do not infer a speedup or quality gain
+from a commit title. Missing or incomplete upstream notes do not prevent a
+usable recipe from publishing.
 
 ## 5. Validate and exercise the result
 
@@ -241,29 +257,31 @@ It requires tracked edits to be staged together; CI remains the authoritative
 full-repository verification.
 
 Publication (`.github/workflows/publish.yml`) runs on every merge to `main`
-that changes more than Markdown, tags the next patch version (a manual run can
-pick a `vMAJOR.MINOR.PATCH` tag instead) and builds the release asset set from the release commit
-with `tools/build-catalog-index --release-dir`: `catalog-index.json`,
-`qualification-index.json`, one `<slug>.tar.gz` per recipe, the family-aware
-coverage matrix and report, and a `SHA256SUMS` listing all of them. The
-workflow attests `SHA256SUMS` with a keyless GitHub artifact attestation
-(Sigstore) and attaches it as `SHA256SUMS.sigstore.json`, then publishes the
-draft release as latest. Control planes accept a release only when that
-attestation names this repository's `publish.yml` on `refs/heads/main` and
-every asset matches its listed digest; verify a release with
-`gh attestation verify SHA256SUMS -R CarstVaartjes/vonk-forge-recipes`.
+that changes more than Markdown and builds the release asset set from the
+merge commit with `tools/build-catalog-index --release-dir`:
+`catalog-index.json`, `qualification-index.json`, one `<slug>.tar.gz` per
+recipe, the family-aware coverage matrix and report, and a `SHA256SUMS`
+listing all of them. `catalog-index.json` records the `contract_version`, the
+`source_commit` and `updated_at`, that commit's time. The release tag is
+`v<CONTRACT_VERSION>`. When that release does not exist yet (a new contract
+version), the workflow creates it; otherwise it moves the tag to the new
+commit and replaces the release's assets in place, uploading the content
+first and `SHA256SUMS` last, then deleting assets it no longer lists. A run
+whose `SHA256SUMS` equals the published one changes nothing. The workflow
+attests `SHA256SUMS` with a keyless GitHub artifact attestation (Sigstore) and
+attaches it as `SHA256SUMS.sigstore.json`. Control planes accept a release
+only when that attestation names this repository's `publish.yml` on
+`refs/heads/main` and every asset matches its listed digest; verify a release
+with `gh attestation verify SHA256SUMS -R CarstVaartjes/vonk-forge-recipes`.
 Rebuilding the tagged commit reproduces the release's index and packages byte
 for byte.
 
-The qualification authority binds an accepted release rather than committed
-files. `qualification/catalog-release.json` records its tag, commit and the
-SHA-256 of its `SHA256SUMS`; `tools/build-qualification-authority` reads the
-release's indexes (downloaded once into `.artifacts/releases/<tag>/`, or taken
-from generated packages with the same digest) and pins their digests in the
-authority. To bind a new release, update that record and regenerate the
-authority. Only that manual regeneration downloads release assets, with a short
-retry; CI and publication never do. Coverage hashes the current packages and
-reports rows whose stack differs from the authority as divergences.
+The qualification authority binds the catalog generated from a commit of this
+repository. Build the catalog (`tools/build-catalog-index`), then run
+`tools/build-qualification-authority`: it pins that catalog's source commit,
+contract release tag, index digests and every package's stack identity.
+Coverage hashes the current packages and reports rows whose stack differs from
+the authority as divergences.
 
 Open or update the PR with exact before/after sources, the reason for changes,
 version notes, validation results, and any retained pins. Complete CI, merge,
