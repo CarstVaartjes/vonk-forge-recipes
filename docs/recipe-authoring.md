@@ -229,8 +229,9 @@ scripts/install-git-hooks
 It requires tracked edits to be staged together; CI remains the authoritative
 full-repository verification.
 
-Publication (`.github/workflows/publish.yml`, run on `main` with a new
-`vMAJOR.MINOR.PATCH` tag) builds the release asset set from the release commit
+Publication (`.github/workflows/publish.yml`) runs on every merge to `main`
+that changes more than Markdown, tags the next patch version (a manual run can
+pick a `vMAJOR.MINOR.PATCH` tag instead) and builds the release asset set from the release commit
 with `tools/build-catalog-index --release-dir`: `catalog-index.json`,
 `qualification-index.json`, one `<slug>.tar.gz` per recipe, the family-aware
 coverage matrix and report, and a `SHA256SUMS` listing all of them. The
