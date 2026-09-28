@@ -475,10 +475,5 @@
     "repository": "https://huggingface.co/tencent/HunyuanOCR",
     "revision": "47644ecc4fc854efa4f505155158831f36773ee4"
   },
-  "supersedes": {
-    "content_sha256": "18744fc638c2f6fb1af02c49b57f61dc5fbed677ac2d17eef396564d6594e49e",
-    "kind": "model",
-    "publisher": "tencent",
-    "slug": "hunyuanocr-1-5-449e7d47"
-  }
+  "supersedes": null
 }

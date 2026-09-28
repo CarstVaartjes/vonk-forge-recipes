@@ -740,12 +740,6 @@
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
-      "file": "adapters/media/upstream-native/run.py",
-      "rule": "reportMissingImports",
-      "count": 2,
-      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
-    },
-    {
       "file": "adapters/ocr/hunyuanocr-1-5-vllm-dflash/run.py",
       "rule": "reportAttributeAccessIssue",
       "count": 2,

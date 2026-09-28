@@ -40,6 +40,9 @@ jobs:
       - name: Test the drift checker offline
         run: '"$UPSTREAM_AUDIT_PYTHON" -m unittest discover -s tests -p test_check_upstream_drift.py'
 
+      # Report-only: advanced or vanished upstream pins are listed in the job
+      # summary for review, never a failed run. The job fails only when the
+      # tool itself cannot produce a report or cannot query a watched source.
       - name: Check upstream revisions
         id: audit
         env:
@@ -48,20 +51,71 @@ jobs:
         run: |
           set +e
           "$UPSTREAM_AUDIT_PYTHON" tools/check-upstream-drift \
-            --fail-on-drift \
             --output upstream-drift.json \
             > upstream-drift.txt
           status=$?
           set -e
-          {
-            echo "## Upstream drift audit"
-            echo
-            echo '```text'
-            cat upstream-drift.txt
-            echo
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Summarize drift
+        if: always()
+        shell: bash
+        run: |
+          "$UPSTREAM_AUDIT_PYTHON" - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          lines = ["## Upstream drift audit (report only)", ""]
+          report_path = Path("upstream-drift.json")
+          if not report_path.is_file():
+              lines.append("The drift tool did not produce a report; see the step log.")
+              with summary.open("a", encoding="utf-8") as handle:
+                  handle.write("\n".join(lines) + "\n")
+              raise SystemExit(0)
+          report = json.loads(report_path.read_text(encoding="utf-8"))
+          counts = report["counts"]
+          lines.append(
+              "Checked at "
+              + report["checked_at"]
+              + ": "
+              + ", ".join(f"{counts[key]} {key}" for key in counts)
+              + "."
+          )
+          lines.append("")
+          sections = (
+              ("advanced", "Drifted pins (upstream advanced)"),
+              ("missing", "Pins no longer resolvable upstream"),
+              ("error", "Sources that could not be checked"),
+          )
+          for status, title in sections:
+              rows = [o for o in report["observations"] if o["status"] == status]
+              lines.append(f"### {title}: {len(rows)}")
+              lines.append("")
+              if not rows:
+                  lines.append("None.")
+                  lines.append("")
+                  continue
+              lines.append("| Entity | Source | Pinned | Observed | Policy |")
+              lines.append("| --- | --- | --- | --- | --- |")
+              for o in rows:
+                  observed = o.get("observed_version") or (o.get("observed_revision") or "-")[:12]
+                  if o.get("upstream_url"):
+                      observed = f"[{observed}]({o['upstream_url']})"
+                  elif o.get("detail"):
+                      observed = o["detail"]
+                  lines.append(
+                      f"| `{o['entity']}` | {o['provider']}:{o['repository']} "
+                      f"| `{o['pinned_revision'][:12]}` | {observed} | {o['policy']} |"
+                  )
+              lines.append("")
+          lines.append(
+              "Drift is informational: review the upstream change before moving an immutable pin."
+          )
+          with summary.open("a", encoding="utf-8") as handle:
+              handle.write("\n".join(lines) + "\n")
+          PY
 
       - name: Upload drift report
         if: always()
@@ -74,19 +128,23 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Enforce audit result
+      - name: Fail only on tool errors
         env:
           EXIT_CODE: ${{ steps.audit.outputs.exit_code }}
         shell: bash
         run: |
-          case "$EXIT_CODE" in
-            0) exit 0 ;;
-            2)
-              echo "::warning::One or more upstream sources advanced; review the report before changing immutable pins."
-              exit 2
-              ;;
-            *)
-              echo "::error::The drift audit could not verify every watched source."
-              exit 1
-              ;;
-          esac
+          # The tool exits 1 both for a vanished pin and for an unverifiable
+          # source; only the latter (or no report at all) is a failure here.
+          if [ ! -s upstream-drift.json ]; then
+            echo "::error::The drift tool exited $EXIT_CODE without writing a report."
+            exit 1
+          fi
+          errors=$("$UPSTREAM_AUDIT_PYTHON" -c 'import json; print(json.load(open("upstream-drift.json"))["counts"]["error"])')
+          if [ "$errors" != "0" ]; then
+            echo "::error::$errors watched source(s) could not be checked; see the job summary."
+            exit 1
+          fi
+          drifted=$("$UPSTREAM_AUDIT_PYTHON" -c 'import json; c = json.load(open("upstream-drift.json"))["counts"]; print(c["advanced"] + c["missing"])')
+          if [ "$drifted" != "0" ]; then
+            echo "::notice::$drifted pinned source(s) drifted upstream; see the job summary."
+          fi

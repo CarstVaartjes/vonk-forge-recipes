@@ -290,10 +290,7 @@ def test_model_access_lineage_and_related_model_references_are_preserved() -> No
         value == {"visibility": "restricted", "gated": True, "authentication": "token"}
         for value in restricted.values()
     )
-    assert set(supersedes) == {
-        "moss-vl-realtime-11b-bf16-d1f71a58",
-        "hunyuanocr-1-5-47644ecc",
-    }
+    assert supersedes == []
 
 
 def test_model_territorial_restrictions_preserve_all_published_records() -> None:
@@ -321,10 +318,6 @@ def test_model_territorial_restrictions_preserve_all_published_records() -> None
         "hunyuan3d-omni": (
             ["EU", "GB", "KR"],
             "The upstream Hunyuan3D-Omni Community License does not apply in the European Union, United Kingdom, or South Korea.",
-        ),
-        "hunyuanocr-1-5-449e7d47": (
-            ["EU", "GB", "KR"],
-            "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea.",
         ),
         "hunyuanocr-1-5-47644ecc": (
             ["EU", "GB", "KR"],

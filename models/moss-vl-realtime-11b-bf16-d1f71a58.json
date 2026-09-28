@@ -302,10 +302,5 @@
     "repository": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime",
     "revision": "d1f71a588deaf2b9b9cea7c6fff66cb10847cc86"
   },
-  "supersedes": {
-    "content_sha256": "86922089e21e3d91fc741ddf58c75a6cad69d91bed6be2695d2dbb3c2d7a9437",
-    "kind": "model",
-    "publisher": "openmoss",
-    "slug": "moss-vl-realtime-11b-bf16-25e81cb9"
-  }
+  "supersedes": null
 }
