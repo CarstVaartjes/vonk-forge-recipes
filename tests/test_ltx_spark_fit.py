@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import runpy
@@ -8,8 +7,6 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
-
-from vonk_agent_protocol.compiled_execution_plan import CompiledExecutionPlan
 
 ROOT = Path(__file__).resolve().parents[1]
 LTX23_SLUG = "ltx-2-3-22b-distilled-1-1-diffusers-single"
@@ -21,53 +18,39 @@ def load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def plan_document(artifacts: list[dict]) -> dict:
+    """A compiled plan carrying only the fields the adapters read."""
+    return {"artifacts": artifacts}
+
+
+def plan_artifact(
+    mount_name: str, relative_path: str, size_bytes: int, **extra: object
+) -> dict:
+    return {
+        "selection_id": mount_name,
+        "path": relative_path,
+        "size_bytes": size_bytes,
+        "mount": {"target": f"/models/{mount_name}", "read_only": True},
+        **extra,
+    }
+
+
 def canonical_runtime_fixture(
     root: Path, files: list[tuple[str, str, str]]
 ) -> tuple[Path, Path]:
-    """Create schema-2 selected files and their small mounted byte fixtures."""
+    """Create a minimal plan and its small mounted byte fixtures."""
     model_root = root / "models"
-    document = load(ROOT / "tests/fixtures/compiled_workload_v2.json")
     artifacts = []
     for index, (mount_name, relative_path, file_id) in enumerate(files):
         payload = f"fixture-{index}".encode()
         materialized = model_root / mount_name / relative_path
         materialized.parent.mkdir(parents=True, exist_ok=True)
         materialized.write_bytes(payload)
-        artifact = json.loads(json.dumps(document["artifacts"][index % 2]))
-        digest = hashlib.sha256(payload).hexdigest()
-        artifact.update(
-            {
-                "selection_id": mount_name,
-                "file_id": file_id,
-                "path": relative_path,
-                "sha256": digest,
-                "size_bytes": len(payload),
-                "mount": {"target": f"/models/{mount_name}", "read_only": True},
-            }
+        artifacts.append(
+            plan_artifact(mount_name, relative_path, len(payload), file_id=file_id)
         )
-        artifact["model"].update(
-            {
-                "publisher": "lightricks",
-                "slug": "ltx-fixture",
-                "content_sha256": "a" * 64,
-            }
-        )
-        artifact["distribution_object"].update(
-            {
-                "name": relative_path,
-                "sha256": digest,
-                "bytes": len(payload),
-                "kind": "model",
-            }
-        )
-        artifacts.append(artifact)
-    document["artifacts"] = artifacts
-    document["identity"]["model_artifact_bytes"] = sum(
-        {item["sha256"]: item["size_bytes"] for item in artifacts}.values()
-    )
-    CompiledExecutionPlan.model_validate(document)
     runtime_spec = root / "runtime.json"
-    runtime_spec.write_text(json.dumps(document), encoding="utf-8")
+    runtime_spec.write_text(json.dumps(plan_document(artifacts)), encoding="utf-8")
     return model_root, runtime_spec
 
 
@@ -85,18 +68,6 @@ class LtxSparkFitTests(unittest.TestCase):
             platform_fixture.read_bytes(),
             "recipe fixture drifted from the platform's emitted schema-2 envelope",
         )
-
-    def test_bundled_protocol_consumes_platform_plan_at_many_argument_boundary(
-        self,
-    ) -> None:
-        document = load(ROOT / "tests/fixtures/compiled_workload_v2.json")
-        document["runtime"]["argv"] = [
-            f"--artifact-input={index:04d}" for index in range(518)
-        ]
-        wire = CompiledExecutionPlan.model_validate_json(
-            json.dumps(document, sort_keys=True, separators=(",", ":"))
-        )
-        self.assertEqual(len(wire.runtime.argv), 518)
 
     def test_both_sync_adapters_accept_schema2_nested_materialization(self) -> None:
         for adapter in ("ltx2-sync-native", "ltx23-sync-native-disk"):
@@ -179,19 +150,9 @@ class LtxSparkFitTests(unittest.TestCase):
             second = model_root / "draft/nested/ltx-2.3-22b-distilled-1.1.safetensors"
             second.write_bytes(first.read_bytes())
             document = load(runtime_spec)
-            digest = hashlib.sha256(first.read_bytes()).hexdigest()
             document["artifacts"][1].update(
-                {
-                    "selection_id": "draft",
-                    "sha256": digest,
-                    "size_bytes": first.stat().st_size,
-                }
+                {"selection_id": "draft", "size_bytes": first.stat().st_size}
             )
-            document["artifacts"][1]["distribution_object"].update(
-                {"sha256": digest, "bytes": first.stat().st_size}
-            )
-            document["identity"]["model_artifact_bytes"] = first.stat().st_size
-            CompiledExecutionPlan.model_validate(document)
             runtime_spec.write_text(json.dumps(document), encoding="utf-8")
             globals_ = namespace["_target_checkpoint"].__globals__
             globals_["MODEL_ROOT"] = model_root

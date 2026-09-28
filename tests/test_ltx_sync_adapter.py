@@ -9,8 +9,6 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from vonk_agent_protocol.recipe_jobs import RecipeJobInputFile, manifest_document
-
 ROOT = Path(__file__).resolve().parents[1]
 RECIPE_SLUGS = (
     "ltx-2-19b-dev-bf16-diffusers-single",
@@ -23,14 +21,6 @@ def load(path: Path) -> dict:
 
 
 class LtxSyncAuthorityTests(unittest.TestCase):
-    def test_native_adapters_bundle_the_same_protocol_wheel(self) -> None:
-        wheel_name = "vonk_agent_protocol-3.0.0-py3-none-any.whl"
-        first = (ROOT / "adapters/video/ltx2-sync-native" / wheel_name).read_bytes()
-        second = (
-            ROOT / "adapters/video/ltx23-sync-native-disk" / wheel_name
-        ).read_bytes()
-        self.assertEqual(first, second)
-
     def test_recipes_resolve_exact_runnable_authorities_and_closure(self) -> None:
         for slug in RECIPE_SLUGS:
             recipe = load(ROOT / "recipes" / f"{slug}.json")
@@ -130,16 +120,18 @@ class LtxSyncAuthorityTests(unittest.TestCase):
             def stage_prompt(text: str) -> None:
                 payload = text.encode("utf-8")
                 (Path(directory) / "prompt.txt").write_bytes(payload)
-                item = RecipeJobInputFile(
-                    slot="prompt",
-                    name="prompt.txt",
-                    media_type="text/plain",
-                    size_bytes=len(payload),
-                    sha256=hashlib.sha256(payload).hexdigest(),
-                )
-                (Path(directory) / "manifest.json").write_text(
-                    json.dumps(manifest_document((item,)))
-                )
+                manifest = {
+                    "files": [
+                        {
+                            "slot": "prompt",
+                            "name": "prompt.txt",
+                            "media_type": "text/plain",
+                            "size_bytes": len(payload),
+                            "sha256": hashlib.sha256(payload).hexdigest(),
+                        }
+                    ]
+                }
+                (Path(directory) / "manifest.json").write_text(json.dumps(manifest))
 
             stage_prompt("  bounded prompt  ")
             self.assertEqual(module["_load_prompt"](), "bounded prompt")

@@ -80,10 +80,9 @@ tools/check-python-lint              # ruff check, plus extensionless entry poin
 tools/check-python-format            # ruff format, plus extensionless entry points
 scripts/check-python-types           # pyright==1.1.414, reviewed baseline
 
-# Producer suite (CI installs the same wheel and extras).
+# Producer suite (CI installs the same extras).
 uv run --python 3.14 --no-project --with pytest==9.1.1 \
   --with-editable contracts --with 'jsonschema>=4.24,<5' \
-  --with ./adapters/video/ltx2-sync-native/vonk_agent_protocol-3.0.0-py3-none-any.whl \
   python -m pytest -q -m "not lane"
 ```
 
