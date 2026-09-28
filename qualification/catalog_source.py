@@ -16,6 +16,8 @@ import os
 import re
 import tarfile
 import tempfile
+import time
+import urllib.error
 import urllib.request
 from collections.abc import Iterable, Iterator, Mapping
 from contextlib import contextmanager
@@ -33,17 +35,34 @@ _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 _CHECKSUM_LINE = re.compile(r"([0-9a-f]{64})  ([A-Za-z0-9][A-Za-z0-9._-]{0,127})\Z")
 _PACKAGE_MEDIA_TYPE = "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
 _DOWNLOAD_TIMEOUT_SECONDS = 120
+_DOWNLOAD_ATTEMPTS = 4
+
+
+class ReleaseAssetUnavailable(ValueError):
+    """A release asset could not be fetched now; retrying later may succeed."""
+
+
+def _transient(error: OSError) -> bool:
+    if isinstance(error, urllib.error.HTTPError):
+        return error.code >= 500 or error.code == 429
+    return True  # timeouts, resets and DNS failures
 
 
 def _download(tag: str, name: str) -> bytes:
     url = f"https://github.com/{RELEASE_REPOSITORY}/releases/download/{tag}/{name}"
-    try:
-        with urllib.request.urlopen(url, timeout=_DOWNLOAD_TIMEOUT_SECONDS) as response:
-            return response.read()
-    except OSError as error:
-        raise ValueError(
-            f"cannot download release asset {tag}/{name}: {error}"
-        ) from error
+    for attempt in range(_DOWNLOAD_ATTEMPTS):
+        try:
+            with urllib.request.urlopen(
+                url, timeout=_DOWNLOAD_TIMEOUT_SECONDS
+            ) as response:
+                return response.read()
+        except OSError as error:
+            if not _transient(error) or attempt + 1 == _DOWNLOAD_ATTEMPTS:
+                raise ReleaseAssetUnavailable(
+                    f"release asset {tag}/{name} is unavailable: {error}"
+                ) from error
+            time.sleep(2**attempt)
+    raise AssertionError("unreachable")
 
 
 def release_asset(

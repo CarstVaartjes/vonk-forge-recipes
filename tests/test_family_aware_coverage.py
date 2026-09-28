@@ -10,6 +10,7 @@ of its own risk group.
 from __future__ import annotations
 
 import json
+import os
 import runpy
 import subprocess
 import sys
@@ -35,8 +36,12 @@ STOCK_IMAGES = {
 
 @cache
 def _coverage() -> Path:
-    """Derive the matrix and report once from the session's generated catalog."""
+    """Derive the matrix and report once from the session's generated catalog.
+
+    A dead proxy makes any network fetch fail: coverage is derived offline.
+    """
     output = GENERATED / "coverage"
+    dead_proxy = "http://127.0.0.1:9"
     result = subprocess.run(
         [
             sys.executable,
@@ -51,6 +56,7 @@ def _coverage() -> Path:
         text=True,
         check=False,
         timeout=180,
+        env={**os.environ, "https_proxy": dead_proxy, "HTTPS_PROXY": dead_proxy},
     )
     assert result.returncode == 0, result.stderr
     return output
@@ -78,8 +84,8 @@ def _catalog() -> dict[str, RecipeDefinition]:
     return recipes
 
 
-def test_matrix_derives_from_the_generated_catalog_and_accepted_release() -> None:
-    """The derivation must succeed against the authority's pinned release."""
+def test_matrix_derives_offline_from_the_generated_catalog() -> None:
+    """The derivation needs only the current catalog and the committed authority."""
     matrix = _matrix()
     assert (_coverage() / "family-aware-coverage-2026-09-24.md").is_file()
     authority = json.loads(
@@ -135,10 +141,9 @@ def test_every_catalog_recipe_appears_once_with_its_topology() -> None:
         assert row["coverage_group"] in groups
         assert len(row["runtime_stack_sha256"]) == 64
         assert len(row["topology_sha256"]) == 64
-        assert len(row["current_package_stack_sha256"]) == 64
-        assert len(row["published_build_source_sha256"]) == 64
-        assert row["published_build_source_file_count"] > 0
-        assert isinstance(row["current_package_stack_matches_accepted"], bool)
+        assert len(row["build_source_sha256"]) == 64
+        assert row["build_source_file_count"] > 0
+        assert row["stack_matches_authority"] in (True, False, None)
     assert sorted(row["node_count"] for row in rows.values()) == (
         [1] * 72 + [2] * 9 + [3, 4, 4, 8]
     )
