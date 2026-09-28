@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/cuda:13.2.1-devel-ubuntu24.04@sha256:0e1392f431f89f143d0d6d0fa397a2b9a6a236f8b3628cfd3afbf21e15ab4a98
+FROM nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37
 
 LABEL org.opencontainers.image.source="https://github.com/stepfun-ai/Step1X-3D" \
       org.opencontainers.image.revision="cb5ac944709c6c913109070c7b90c3447f57f3d4" \

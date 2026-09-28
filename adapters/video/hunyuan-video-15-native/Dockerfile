@@ -1,9 +1,9 @@
-FROM nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4
+FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
 
 LABEL org.opencontainers.image.source="https://github.com/huggingface/diffusers" \
-      org.opencontainers.image.revision="a3608b512ed7248499a44c61d954965ed9bdae4d" \
+      org.opencontainers.image.revision="d035dcd7cc7c88e0a154609b62887d50bba9fdc2" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      io.vonk.diffusers.version="0.39.0"
+      io.vonk.diffusers.version="0.40.0"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     HF_HUB_OFFLINE=1 \

@@ -73,7 +73,7 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
             f'org.opencontainers.image.revision="{HARNESS_REVISION}"', dockerfile
         )
         self.assertIn(
-            'io.vonk.vllm.build-commit="2cf0a6915ce544dc493a0990f2ea38d81601128a"',
+            'io.vonk.vllm.build-commit="ced6857afa0ea7b2e3f0846a62e1394e90f15607"',
             dockerfile,
         )
         self.assertIn(
@@ -90,7 +90,7 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
         self.assertEqual(recipe["execution"]["mode"], "build")
         self.assertEqual(
             recipe["execution"]["build"]["base_image"]["digest"],
-            "41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4",
+            "e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e",
         )
         self.assertEqual(arguments["served-model-name"], "UI_Mate")
         self.assertIs(arguments["trust-remote-code"], True)
@@ -114,7 +114,7 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
     def test_adapter_build_is_offline_and_never_executes_actions(self) -> None:
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
         self.assertIn(
-            "FROM docker.io/vllm/vllm-openai@sha256:41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4",
+            "FROM docker.io/vllm/vllm-openai@sha256:e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e",
             dockerfile,
         )
         for cache in ("HOME", "HF_HOME", "VLLM_CACHE_ROOT", "TRITON_CACHE_DIR"):

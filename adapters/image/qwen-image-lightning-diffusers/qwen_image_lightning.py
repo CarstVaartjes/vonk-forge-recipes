@@ -83,7 +83,7 @@ def _pipeline(pipeline_name: str):
     transformer = QwenImageTransformer2DModel.from_pretrained(
         _BASE_DIR,
         subfolder="transformer",
-        torch_dtype=torch.bfloat16,
+        dtype=torch.bfloat16,
         local_files_only=True,
     )
     scheduler = FlowMatchEulerDiscreteScheduler.from_config(_scheduler_config())
@@ -91,7 +91,7 @@ def _pipeline(pipeline_name: str):
         _BASE_DIR,
         transformer=transformer,
         scheduler=scheduler,
-        torch_dtype=torch.bfloat16,
+        dtype=torch.bfloat16,
         local_files_only=True,
     )
     lora_name = (

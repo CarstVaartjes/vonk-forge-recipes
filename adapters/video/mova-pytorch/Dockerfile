@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/cuda:13.2.1-runtime-ubuntu24.04@sha256:a52783d8d73ace53998d4e740515e9942e73072dc7fbd5322917eb382a0bc7fb
+FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
 
 LABEL org.opencontainers.image.source="https://github.com/OpenMOSS/MOVA" \
       org.opencontainers.image.revision="83bcbe8eab55ded920889239af93c112834ee5b8" \
@@ -37,8 +37,8 @@ COPY requirements.lock /opt/vonk/build/requirements.lock
 RUN python3 -m pip install --break-system-packages --no-cache-dir \
         --constraint /opt/vonk/build/requirements.lock \
         --index-url https://download.pytorch.org/whl/cu132 \
-        torch==2.13.0 \
-        torchvision==0.28.0 \
+        torch==2.14.0 \
+        torchvision==0.29.0 \
     && python3 -m pip install --break-system-packages --no-cache-dir --no-deps \
         --constraint /opt/vonk/build/requirements.lock \
         --index-url https://download.pytorch.org/whl/test/cu132 \
@@ -46,12 +46,12 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
 
 RUN python3 -m pip install --break-system-packages --no-cache-dir \
         --constraint /opt/vonk/build/requirements.lock \
-        accelerate==1.14.0 \
+        accelerate==1.15.0 \
         descript-audiotools==0.7.2 \
-        diffusers==0.36.0 \
+        diffusers==0.39.0 \
         einops==0.8.2 \
         ftfy==6.3.1 \
-        huggingface-hub==0.36.0 \
+        huggingface-hub==0.36.2 \
         imageio==2.37.4 \
         imageio-ffmpeg==0.6.0 \
         mmengine==0.10.7 \

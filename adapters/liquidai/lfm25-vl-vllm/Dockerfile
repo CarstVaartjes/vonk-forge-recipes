@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1.7
-FROM docker.io/vllm/vllm-openai@sha256:1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c
+FROM docker.io/vllm/vllm-openai@sha256:4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56
 
 LABEL org.opencontainers.image.source="https://huggingface.co/LiquidAI/LFM2.5-VL-3B" \
       org.opencontainers.image.revision="a3af5799199acdd2a4f56ac4342816abb46c12a9" \
       org.opencontainers.image.licenses="LFM-1.0" \
       org.opencontainers.image.description="Offline CUDA 13 ARM64 OpenAI adapter for LFM2.5-VL-3B" \
-      io.vonk.vllm.build-commit="6e448d0ea9bf3d88d898b65449ca6dc2aec170ac"
+      io.vonk.vllm.build-commit="ced6857afa0ea7b2e3f0846a62e1394e90f15607"
 
 RUN install --directory --mode=0755 /opt/vonk/bin /inputs \
     && install --directory --mode=0770 --owner=10001 --group=10001 /outputs /state

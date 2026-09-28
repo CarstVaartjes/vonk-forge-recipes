@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+        "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
         "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
@@ -836,7 +836,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f3b49fed55bcd4f957f141923b896362c05500d2595a449930dfa57bfbb9e9e4",
+        "content_sha256": "c503688d7e69e80bc450910b81fb94b465dcca54319b47fda21099cfa883efa6",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4"
@@ -913,7 +913,7 @@
       ],
       "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark",
       "model": {
-        "content_sha256": "c171a74d79cb757d7bd984b08de3f3f2826d0d4fc7a84bc38800b2ffa6e42274",
+        "content_sha256": "3fe810c04fb01c0494f143691c1d0c9dc2a6ec641c93329d66c8bd06f68c000a",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark"
@@ -925,10 +925,45 @@
       "NVIDIA Corporation"
     ],
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/cc84af2fe71647d87f4486c064f320e1e7535243"
+    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/bee7596271d1495f6992ae224aefde4410e816b8"
   },
   "release": {
     "history": [
+      {
+        "version": "1.1.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "cecbc20c51f6c4af3e81b523278b769ae7cb0865dc39c472b92d3cbf66dfb788",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Moved to the official vLLM 0.30.0 ARM64 image from vLLM 0.27.1.",
+            "details": "docker.io/vllm/vllm-openai v0.30.0-aarch64 @sha256:4864d466 (build commit ced6857a, CUDA 13.0) replaces v0.27.1-aarch64 @sha256:1c8e60a0. Every launch option, parser and model architecture this recipe uses is present at v0.30.0. Upstream 0.29 makes Model Runner V2 the default and 0.28-0.30 remove only options this recipe does not use. NVIDIA's model card still names v0.27.1 for DGX Spark; its GB10 flags (Marlin MoE, FlashInfer Mamba backend, align Mamba cache mode) are unchanged at v0.30.0. Physical GB10 startup, memory and output acceptance is still required.",
+            "references": [
+              "https://github.com/vllm-project/vllm/releases/tag/v0.28.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
+              "https://github.com/vllm-project/vllm/compare/v0.27.1...v0.30.0"
+            ]
+          },
+          {
+            "kind": "model",
+            "summary": "Advanced the Lightning target to NVIDIA revision bee75962; only README.md changed.",
+            "details": "All weights, configuration, tokenizer and chat-template blobs are byte-identical to cc84af2f. The README adds VLLM_HUMMING_MOE_GEMM_TYPE=indexed to its H100 and W4A16 humming examples; the DGX Spark launch command this recipe follows is unchanged.",
+            "references": [
+              "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/commit/bee7596271d1495f6992ae224aefde4410e816b8"
+            ]
+          },
+          {
+            "kind": "model",
+            "summary": "Advanced the DSpark companion to NVIDIA revision 8a017711; only README.md changed.",
+            "details": "All drafter weights and configuration are byte-identical to d10c6ff4; the README adds a link to NVIDIA's public training-content summary.",
+            "references": [
+              "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark/commit/8a0177116d138011e63103110f136ec0ca09ebbf"
+            ]
+          }
+        ]
+      },
       {
         "changes": [
           {
@@ -983,8 +1018,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "1.0.2"
+    "released_at": "2026-09-28",
+    "version": "1.1.0"
   },
   "runtime": {
     "arguments": [

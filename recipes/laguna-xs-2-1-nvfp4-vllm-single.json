@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+        "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
         "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
@@ -263,6 +263,25 @@
   "release": {
     "history": [
       {
+        "version": "1.1.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "61ef9d8a3d00cd3d6abce84b3b26c04000e7fa09e7eff7452d1f5eaa7e475f43",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Moved to the official vLLM 0.30.0 ARM64 image from vLLM 0.27.1.",
+            "details": "docker.io/vllm/vllm-openai v0.30.0-aarch64 @sha256:4864d466 (build commit ced6857a, CUDA 13.0) replaces v0.27.1-aarch64 @sha256:1c8e60a0. Every launch option, parser and model architecture this recipe uses is present at v0.30.0. Upstream 0.29 makes Model Runner V2 the default and 0.28-0.30 remove only options this recipe does not use. Physical GB10 startup, memory and output acceptance is still required.",
+            "references": [
+              "https://github.com/vllm-project/vllm/releases/tag/v0.28.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
+              "https://github.com/vllm-project/vllm/compare/v0.27.1...v0.30.0"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": null,
@@ -380,8 +399,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.0.6"
+    "released_at": "2026-09-28",
+    "version": "1.1.0"
   },
   "runtime": {
     "arguments": [

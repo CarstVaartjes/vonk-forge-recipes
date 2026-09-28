@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "ae1de325b8ea670288c328460a95d3807838cd254e8e9961ea7f6a741ce2c563",
+        "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
         "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
@@ -37,7 +37,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B BF16, using an exact official vLLM development image and immutable local media inputs. Chat, vision, reasoning, and tool calling remain Candidate capabilities; combining reasoning with JSON-schema structured output is not supported by this pinned runtime.",
+    "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B BF16, using the official vLLM 0.30.0 ARM64 release image and immutable local media inputs. Chat, vision, reasoning, and tool calling remain Candidate capabilities; combining reasoning with JSON-schema structured output is not supported by this pinned runtime.",
     "tags": [
       "executable",
       "candidate",
@@ -52,7 +52,6 @@
       "bf16",
       "vllm",
       "openai",
-      "development-runtime",
       "structured-output-limited",
       "single",
       "spark"
@@ -225,6 +224,25 @@
   "release": {
     "history": [
       {
+        "version": "1.1.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "c0c96006272f1b40ce3e7cda9e6e71c63a3e60ee8c35be1845435960545b8fc7",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Replaced the Muse-specific vLLM development image with the official vLLM 0.30.0 ARM64 release.",
+            "details": "docker.io/vllm/vllm-openai v0.30.0-aarch64 @sha256:4864d466 (build commit ced6857a, CUDA 13.0) replaces the vendor tag muse-glimmer-arm64-cu130 @sha256:ae1de325 (build 99a10304). Official vLLM has registered MuseGlimmerForConditionalGeneration since v0.28.0 (#51655) and v0.30.0 ships the muse_glimmer reasoning and tool parsers, so the vendor image is no longer needed. Launch options are unchanged; physical GB10 acceptance is still required.",
+            "references": [
+              "https://github.com/vllm-project/vllm/releases/tag/v0.28.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
+              "https://github.com/vllm-project/vllm/pull/51655"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": null,
@@ -317,8 +335,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.0.5"
+    "released_at": "2026-09-28",
+    "version": "1.1.0"
   },
   "runtime": {
     "arguments": [

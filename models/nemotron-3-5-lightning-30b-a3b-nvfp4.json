@@ -18,7 +18,7 @@
       }
     ],
     "provenance": {
-      "source_revision": "cc84af2fe71647d87f4486c064f320e1e7535243",
+      "source_revision": "bee7596271d1495f6992ae224aefde4410e816b8",
       "source_url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4"
     },
     "schema_version": 2
@@ -58,8 +58,8 @@
       "roles": [
         "metadata"
       ],
-      "sha256": "2f4a22bcb8b9f7343af09759d7866e85c9607f5909b2d3cce2e2f4f4573e13a8",
-      "size_bytes": 89718
+      "sha256": "2f448de84ee82c38c1f5e3a96bd7e5c37d5cc9bea753f7704e557857295fc139",
+      "size_bytes": 89794
     },
     {
       "id": "metadata-accuracy-plot",
@@ -676,7 +676,7 @@
     "publisher": "nvidia",
     "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4",
     "variant": "Nemotron 3.5 Lightning 30B-A3B NVFP4",
-    "version": "nvfp4-cc84af2f"
+    "version": "nvfp4-bee75962"
   },
   "kind": "model",
   "license": {
@@ -726,13 +726,13 @@
     "attribution": [
       "NVIDIA Corporation"
     ],
-    "source_revision": "cc84af2fe71647d87f4486c064f320e1e7535243",
+    "source_revision": "bee7596271d1495f6992ae224aefde4410e816b8",
     "source_url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4"
   },
   "schema_version": 2,
   "source": {
     "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4",
-    "revision": "cc84af2fe71647d87f4486c064f320e1e7535243"
+    "revision": "bee7596271d1495f6992ae224aefde4410e816b8"
   },
   "supersedes": null
 }

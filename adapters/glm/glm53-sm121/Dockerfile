@@ -1,21 +1,16 @@
-FROM docker.io/vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce
+FROM docker.io/vllm/vllm-openai@sha256:4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/GLM-5.3-Flash-NVFP4-Dual-DGX-Spark" \
       org.opencontainers.image.revision="aed98a13ca75140d2691cc5c651ea5817d9a3e44" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0 AND BSD-3-Clause"
 
-# GLM 5.3's NoPE MLA path needs FlashInfer 0.6.18 on GB10. The nightly changes
-# NCCL and Cutlass transitively, so restore the versions physically exercised
-# by both upstream Spark profiles before applying their consolidated SM121 fix.
-RUN pip install -q --pre \
-      flashinfer-python==0.6.18.dev20260819 \
-      flashinfer-cubin==0.6.18.dev20260819 \
-      --extra-index-url https://flashinfer.ai/whl/nightly/ \
-    && pip uninstall -q -y flashinfer-jit-cache \
-    && pip install -q nvidia-nccl-cu13==2.30.7 nvidia-cutlass-dsl==4.6.2 \
-    && pip install --no-cache-dir "ray[default]==2.58.0" \
-    && pip show nvidia-nccl-cu13 | grep -q "Version: 2.30.7" \
-    && pip show nvidia-cutlass-dsl | grep -q "Version: 4.6.2"
+# vLLM v0.30.0 (aarch64, CUDA 13.0) is the first stable release with GLM-5.3-Flash
+# support and already ships FlashInfer 0.6.18.post1, which the NoPE MLA path needs
+# on GB10, plus NCCL 2.30.7, the version both upstream Spark profiles exercise.
+# Pin Ray and assert those versions before applying the consolidated SM121 fix.
+RUN pip install --no-cache-dir "ray[default]==2.58.0" \
+    && pip show flashinfer-python | grep -q "Version: 0.6.18.post1" \
+    && pip show nvidia-nccl-cu13 | grep -q "Version: 2.30.7"
 
 COPY glm53-flash_SM121.py /opt/vonk/build/glm53-flash_SM121.py
 COPY install-nccl.py verify-runtime.py /opt/vonk/build/

@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/cuda:13.0.1-devel-ubuntu24.04@sha256:5c36750138dc1447a17dafbb397674f167d3b44ce18d9160d769df114577b35d AS build
+FROM nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37 AS build
 
 WORKDIR /opt/src
 COPY vendor/ds4-f4d03f6cf9f11c1e7b630bcb160853acfba7c52a.tar.gz /tmp/ds4.tar.gz
@@ -9,7 +9,7 @@ RUN test "$(uname -m)" = aarch64 \
     && make -C ds4 cuda-spark \
     && test -x ds4/ds4-server
 
-FROM nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4
+FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
 
 LABEL org.opencontainers.image.source="https://github.com/antirez/ds4" \
       org.opencontainers.image.revision="f4d03f6cf9f11c1e7b630bcb160853acfba7c52a" \

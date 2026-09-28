@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "fc960102f1d2581b7dfa44885f6afcdfb107e84782e318cf33bbb2f219d0bd16",
+        "digest": "b0d8718a4424bb22e448e04407ab3ce5f7399a4c5fc702d6fbe36c3772ec8862",
         "platform": "linux/arm64",
         "repository": "docker.io/lmsysorg/sglang"
       },
@@ -519,6 +519,25 @@
   "release": {
     "history": [
       {
+        "version": "1.1.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "bfa161e0c880ccf2c39e52d9a067eb1cbcf93f6c4512b571e5702b379fddb412",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Moved the base image from the dev-Ling-3.0-flash branch build to the stable SGLang v0.5.20 CUDA 13 arm64 image.",
+            "details": "Base image lmsysorg/sglang dev-Ling-3.0-flash (arm64 sha256:fc960102f1d2, ling3-flash-dspark branch commit 0e5e40d8) is replaced by the stable v0.5.20 image (arm64 sha256:b0d8718a4424, commit 94602c9c). That branch was merged as PR #33561 (BailingMoeV3, DSpark target support, Ling3 parsers), and PR #35756 plus the KDA ReplaySSM ring-write kernel (#36821) are also in v0.5.20. All wrapper flags exist in v0.5.20. The MiaAI-Lab source pin ca840cb8 is unchanged; it has no tagged release.",
+            "references": [
+              "https://github.com/sgl-project/sglang/releases/tag/v0.5.20",
+              "https://github.com/sgl-project/sglang/pull/33561",
+              "https://github.com/sgl-project/sglang/pull/35756",
+              "https://github.com/sgl-project/sglang/pull/36821"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": null,
@@ -610,8 +629,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.0.5"
+    "released_at": "2026-09-28",
+    "version": "1.1.0"
   },
   "runtime": {
     "arguments": [

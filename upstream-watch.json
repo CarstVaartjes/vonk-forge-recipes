@@ -4,5 +4,12 @@
     "github": "default-branch",
     "huggingface": "default-branch"
   },
-  "overrides": {}
+  "overrides": {
+    "recipe/vonk-forge/inkling-975b-a41b-nvfp4-sglang-eight": {
+      "policy": "latest-release"
+    },
+    "recipe/vonk-forge/inkling-small-nvfp4-sglang-dual": {
+      "policy": "latest-release"
+    }
+  }
 }

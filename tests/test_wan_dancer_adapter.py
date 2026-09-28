@@ -29,7 +29,7 @@ ARCHIVE_SHA256 = "92c529d7727c75c6515ea990d27883a45bf566587cc9f5d325a0a488b9fa16
 PACKAGE = GENERATED / "packages/wan-dancer-14b-pytorch-single.tar.gz"
 BASE_IMAGE = {
     "repository": "nvcr.io/nvidia/cuda",
-    "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+    "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
     "platform": "linux/arm64",
 }
 BUILD_NETWORK_HOSTS = [
@@ -125,8 +125,8 @@ class WanDancerAuthorityTests(unittest.TestCase):
                 {
                     "kind": "oci-image",
                     "platform": "linux/arm64",
-                    "reference": "nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:"
-                    "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+                    "reference": "nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:"
+                    "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
                 }
             ],
         )

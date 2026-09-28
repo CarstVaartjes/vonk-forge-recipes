@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
         "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
@@ -168,10 +168,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "8491439d336019c246ad8112be6f11e54a047b53ff1f4f4657965192f2dc0b53",
+        "content_sha256": "cd52b26d60fd2f0a9f2da9aed75280811061765fd1ed47a146eaf70d0c5074ae",
         "kind": "model",
         "publisher": "wan-ai",
-        "slug": "wan-2-2-ti2v-5b-comfyui-c4f60d30"
+        "slug": "wan-2-2-ti2v-5b-comfyui-ee6f4a40"
       }
     }
   ],
@@ -181,10 +181,38 @@
       "Comfy-Org"
     ],
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77"
+    "source_reference": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/ee6f4a40737a995bf5818954cfce6d59443b0f04"
   },
   "release": {
     "history": [
+      {
+        "version": "1.1.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "9f744492fa9d48aad5e88b18765e1ff9f59dbb341af3ba8cadfd56c0913bea6b",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Rebuilt on ComfyUI v0.37.4, CUDA 13.4.1 runtime base, and PyTorch 2.14.0/torchvision 0.29.0 cu130.",
+            "details": "ComfyUI moves from main commit 250b2e95 to stable tag v0.37.4 (8ff6dc38, contains the old pin; archive SHA-256 recomputed). Every core node used by the workflow is still present with the same required inputs (CreateVideo and ModelSamplingAuraFlow only gained optional inputs with defaults), so the workflow JSON is unchanged. The base moves from nvcr.io/nvidia/cuda 13.0.1-runtime to 13.4.1-runtime (arm64 digest, same 580-series driver requirement); torchaudio stays 2.11.0. ComfyUI's unpinned requirements.txt now pins comfy-kitchen 0.2.35 and comfy-aimdo 0.5.5.",
+            "references": [
+              "https://github.com/comfyanonymous/ComfyUI/compare/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a...v0.37.4",
+              "https://github.com/comfyanonymous/ComfyUI/tree/v0.37.4",
+              "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.37.0",
+              "https://download.pytorch.org/whl/cu130/torch/"
+            ]
+          },
+          {
+            "kind": "model",
+            "summary": "Pinned Comfy-Org/Wan_2.2_ComfyUI_Repackaged at head ee6f4a40; the selected weight files are byte-identical.",
+            "details": "Upstream commits between c4f60d30 and ee6f4a40 only touch the README/workflow-template links or add unrelated files. The LFS SHA-256 and size of every file this recipe uses (TI2V 5B FP16 model, UMT5 encoder, Wan 2.2 VAE) are unchanged at the new revision, so model content is unchanged.",
+            "references": [
+              "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/commits/main",
+              "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/ee6f4a40737a995bf5818954cfce6d59443b0f04"
+            ]
+          }
+        ]
+      },
       {
         "changes": [
           {
@@ -381,8 +409,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-24",
-    "version": "1.0.12"
+    "released_at": "2026-09-28",
+    "version": "1.1.0"
   },
   "runtime": {
     "arguments": [

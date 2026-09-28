@@ -1,9 +1,9 @@
-FROM nvcr.io/nvidia/cuda:13.2.1-runtime-ubuntu24.04@sha256:a52783d8d73ace53998d4e740515e9942e73072dc7fbd5322917eb382a0bc7fb
+FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
 
 LABEL org.opencontainers.image.source="https://github.com/Lightricks/LTX-2" \
-      org.opencontainers.image.revision="a95ab856bf29407b6b066ede0abe1846050db56c" \
+      org.opencontainers.image.revision="598ab41247a77dbfe29b5186e915bcf4f9040ec7" \
       org.opencontainers.image.licenses="LTX-2 Community License Agreement" \
-      io.vonk.ltx2.source-archive-sha256="4698fc5f635196edc08e891f209402d6b80e0b64d6c55589266e2448966500e8"
+      io.vonk.ltx2.source-archive-sha256="946465dfba0094f97014a18eb53850214fb7445c88870889f4ea05fb20de56aa"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -33,9 +33,9 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
         --requirement /opt/vonk/source/requirements.lock \
     && curl --fail --location --silent --show-error \
         --output /tmp/ltx2-source.tar.gz \
-        https://github.com/Lightricks/LTX-2/archive/a95ab856bf29407b6b066ede0abe1846050db56c.tar.gz \
+        https://github.com/Lightricks/LTX-2/archive/598ab41247a77dbfe29b5186e915bcf4f9040ec7.tar.gz \
     && printf '%s  %s\n' \
-        4698fc5f635196edc08e891f209402d6b80e0b64d6c55589266e2448966500e8 \
+        946465dfba0094f97014a18eb53850214fb7445c88870889f4ea05fb20de56aa \
         /tmp/ltx2-source.tar.gz \
         | sha256sum --check --strict \
     && mkdir -p /opt/vonk/source/ltx2 \

@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4",
+        "digest": "e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e",
         "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
@@ -253,6 +253,25 @@
   "release": {
     "history": [
       {
+        "version": "1.2.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "4edd85dd980940a526a95b9fce9070cb475aed6649bd06c9cf749e8944140353",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Refresh the pinned official vLLM ARM64 runtime from 0.28.0 to stable 0.30.0.",
+            "details": "Moves from v0.28.0-aarch64-ubuntu2404 (41b54fb42c66) to v0.30.0-aarch64-ubuntu2404 (e06f024cf1dd), build commit ced6857a. Upstream v0.29 makes Model Runner V2 the default and deprecates V1; v0.29/v0.30 removals (PyAV video decoder, api_server module entrypoint, VLLM_PREFIX_CACHE_RETENTION_INTERVAL, VLLM_MM_HASHER_ALGORITHM, GPTQ g_idx) are not used here. Every runtime option in this recipe still exists at v0.30.0. Qwen3.5/Qwen3-Next Triton kernels and GDN gated RMSNorm are warmed at startup in v0.30 (#54797, #54251); the qwen3 reasoning parser and qwen3_coder tool parser are still registered. Model pin unchanged (HF head equals the pinned revision). Needs Spark re-qualification.",
+            "references": [
+              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
+              "https://github.com/vllm-project/vllm/compare/v0.28.0...v0.30.0",
+              "https://hub.docker.com/r/vllm/vllm-openai/tags?name=v0.30.0-aarch64"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": null,
@@ -389,8 +408,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.1.4"
+    "released_at": "2026-09-28",
+    "version": "1.2.0"
   },
   "runtime": {
     "arguments": [

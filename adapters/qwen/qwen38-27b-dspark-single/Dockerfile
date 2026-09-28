@@ -1,4 +1,4 @@
-FROM docker.io/lmsysorg/sglang@sha256:3c0abdf41ef22de9d7a859dc16ed71eae69452e36c91f071a25e60c85a6d1fc6
+FROM docker.io/lmsysorg/sglang@sha256:b0d8718a4424bb22e448e04407ab3ce5f7399a4c5fc702d6fbe36c3772ec8862
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark" \
       org.opencontainers.image.revision="9d21dcd331232792e7d39f4f84db7dd46635905d" \

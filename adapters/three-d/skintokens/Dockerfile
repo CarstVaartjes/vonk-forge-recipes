@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/cuda:13.2.1-devel-ubuntu24.04@sha256:0e1392f431f89f143d0d6d0fa397a2b9a6a236f8b3628cfd3afbf21e15ab4a98
+FROM nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37
 
 LABEL org.opencontainers.image.source="https://github.com/VAST-AI-Research/SkinTokens" \
       org.opencontainers.image.revision="273b691d35989d71cd17ff2895fdc735097b92d1" \
@@ -30,9 +30,9 @@ RUN apt-get update \
         --index-url https://download.pytorch.org/whl/cu132 \
         torch==2.13.0 torchvision==0.28.0 \
     && python3 -m pip install --break-system-packages --no-cache-dir \
-        transformers==5.15.1 diffusers==0.40.0 einops==0.8.2 \
-        omegaconf==2.3.1 lightning==2.6.5 scipy==1.18.1 \
-        trimesh==5.0.0 pygltflib==1.16.5 requests==2.32.5 \
+        transformers==5.17.0 diffusers==0.40.0 einops==0.8.2 \
+        omegaconf==2.3.1 lightning==2.6.6 scipy==1.18.1 \
+        trimesh==5.1.0 pygltflib==1.16.5 requests==2.34.2 \
         pillow==12.3.0 \
         flash-attn==2.8.3.post1 --no-build-isolation \
     && install --directory --mode=0755 /opt/vonk/bin /opt/vonk/source \

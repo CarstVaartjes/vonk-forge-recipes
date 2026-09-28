@@ -3,14 +3,14 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "871fc9b75a97dc6f58449bfb2aa30cab685c87a8bf6b4519a75c4760c1f8bcd8",
+        "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
         "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
-        "path": "adapters/nvidia/nemotron-vllm-0-20-0"
+        "path": "adapters/nvidia/nemotron"
       },
-      "dockerfile": "adapters/nvidia/nemotron-vllm-0-20-0/Dockerfile",
+      "dockerfile": "adapters/nvidia/nemotron/Dockerfile",
       "network": {
         "hosts": [],
         "mode": "none"
@@ -362,6 +362,25 @@
   "release": {
     "history": [
       {
+        "version": "2.1.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "36d285713b8248f2a071e138113cc2175ff71d066ab4e37395295b93469f6c51",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Moved to the official vLLM 0.30.0 ARM64 image from vLLM 0.20.0.",
+            "details": "docker.io/vllm/vllm-openai v0.30.0-aarch64 @sha256:4864d466 (build commit ced6857a, CUDA 13.0) replaces v0.20.0-aarch64 @sha256:871fc9b7. Every launch option, parser and model architecture this recipe uses is present at v0.30.0. Upstream 0.29 makes Model Runner V2 the default and 0.28-0.30 remove only options this recipe does not use. The build now uses the shared adapters/nvidia/nemotron wrapper; the version-named nemotron-vllm-0-20-0 adapter was removed. Physical GB10 startup, memory and output acceptance is still required.",
+            "references": [
+              "https://github.com/vllm-project/vllm/releases/tag/v0.28.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
+              "https://github.com/vllm-project/vllm/compare/v0.20.0...v0.30.0"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": null,
@@ -531,8 +550,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "2.0.7"
+    "released_at": "2026-09-28",
+    "version": "2.1.0"
   },
   "runtime": {
     "arguments": [

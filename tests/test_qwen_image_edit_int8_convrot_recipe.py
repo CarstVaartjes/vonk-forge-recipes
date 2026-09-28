@@ -23,7 +23,7 @@ class QwenImageEditINT8ConvRotRecipeTests(unittest.TestCase):
         selection = recipe["models"][0]
         model = read(ROOT / "models" / f"{selection['model']['slug']}.json")
         self.assertEqual(
-            model["source"]["revision"], "e9e85de74a8f48c1e3e2656617626348675a2f21"
+            model["source"]["revision"], "f68ace85e60b4a02a323e394253731947657b7d2"
         )
         self.assertEqual(model["format"]["quantization"], "int8_tensorwise_convrot")
         self.assertEqual(

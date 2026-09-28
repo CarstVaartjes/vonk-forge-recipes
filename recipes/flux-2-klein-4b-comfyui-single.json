@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
         "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
@@ -160,6 +160,25 @@
   },
   "release": {
     "history": [
+      {
+        "version": "1.1.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "314cc49f7b29c509b120f3fe51e9d8b62f305d315265763a4432c821c240c67a",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Rebuilt on ComfyUI v0.37.4, CUDA 13.4.1 runtime base, and PyTorch 2.14.0/torchvision 0.29.0 cu130.",
+            "details": "ComfyUI moves from main commit 250b2e95 to stable tag v0.37.4 (8ff6dc38, contains the old pin; archive SHA-256 recomputed). Every core node used by the workflow is still present with the same required inputs (CreateVideo and ModelSamplingAuraFlow only gained optional inputs with defaults), so the workflow JSON is unchanged. The base moves from nvcr.io/nvidia/cuda 13.0.1-runtime to 13.4.1-runtime (arm64 digest, same 580-series driver requirement); torchaudio stays 2.11.0. ComfyUI's unpinned requirements.txt now pins comfy-kitchen 0.2.35 and comfy-aimdo 0.5.5.",
+            "references": [
+              "https://github.com/comfyanonymous/ComfyUI/compare/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a...v0.37.4",
+              "https://github.com/comfyanonymous/ComfyUI/tree/v0.37.4",
+              "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.37.0",
+              "https://download.pytorch.org/whl/cu130/torch/"
+            ]
+          }
+        ]
+      },
       {
         "changes": [
           {
@@ -342,8 +361,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-24",
-    "version": "1.0.11"
+    "released_at": "2026-09-28",
+    "version": "1.1.0"
   },
   "runtime": {
     "arguments": [

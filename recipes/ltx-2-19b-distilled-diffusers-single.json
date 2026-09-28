@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "a52783d8d73ace53998d4e740515e9942e73072dc7fbd5322917eb382a0bc7fb",
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
         "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
@@ -406,6 +406,40 @@
   "release": {
     "history": [
       {
+        "version": "3.1.10",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "52e39eea1ecf7e7cbd561de29b71247d165e7a11745aad4bbdb1b119f7a9dbf2",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Pin the official LTX-2 v1.3.0 release tag (598ab412) instead of the untagged main sync commit a95ab856.",
+            "details": "Lightricks/LTX-2 v1.3.0 (2026-08-26) is the newest stable release. Its tagged commit 598ab41247a77dbfe29b5186e915bcf4f9040ec7 has the identical git tree (a10010cd) as the previously pinned main commit a95ab856, so ltx-core/ltx-pipelines code is unchanged; only the source identity and archive SHA-256 (946465df...) change. LTX-2 v1.3.0 still pins torch==2.13.0 (cu132) and transformers<5.15, so those stay.",
+            "references": [
+              "https://github.com/Lightricks/LTX-2/releases/tag/v1.3.0",
+              "https://github.com/Lightricks/LTX-2/compare/a95ab856bf29407b6b066ede0abe1846050db56c...598ab41247a77dbfe29b5186e915bcf4f9040ec7"
+            ]
+          },
+          {
+            "kind": "runtime",
+            "summary": "Move the base image to NVIDIA CUDA 13.4.1 runtime (Ubuntu 24.04, ARM64 digest-pinned).",
+            "details": "Base image moved from nvcr.io/nvidia/cuda:13.2.1-runtime-ubuntu24.04 to 13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962 (linux/arm64). Its NVIDIA_REQUIRE_CUDA keeps the driver>=580,<581 branch clause, so admission on the Spark driver is unchanged. PyTorch still ships its own CUDA user-space wheels.",
+            "references": [
+              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
+            ]
+          },
+          {
+            "kind": "runtime",
+            "summary": "Refresh accelerate to 1.15.0 and huggingface-hub to 1.33.0 (latest 1.x) in the locked closure.",
+            "details": "accelerate 1.14.0 -> 1.15.0 and huggingface-hub 1.28.0 -> 1.33.0. huggingface-hub 2.0.0 is not adopted because the pinned transformers 5.14.1 requires huggingface-hub<2.0; transformers stays at 5.14.1 because LTX-2 v1.3.0 declares transformers<5.15. Model files are unchanged.",
+            "references": [
+              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
+              "https://pypi.org/project/huggingface-hub/1.33.0/"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "kind": "fix",
@@ -698,8 +732,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-24",
-    "version": "3.1.9"
+    "released_at": "2026-09-28",
+    "version": "3.1.10"
   },
   "runtime": {
     "arguments": [

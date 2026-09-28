@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4",
+        "digest": "e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e",
         "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
@@ -322,6 +322,26 @@
   "release": {
     "history": [
       {
+        "version": "1.2.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "cd51021096b5399ae886c2c3061514aada6513c7556355cb8a65ac17b0d64897",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Refresh the pinned official vLLM ARM64 runtime from 0.28.0 to stable 0.30.0.",
+            "details": "Moves from v0.28.0-aarch64-ubuntu2404 (41b54fb42c66) to v0.30.0-aarch64-ubuntu2404 (e06f024cf1dd), build commit ced6857a. Upstream v0.29 makes Model Runner V2 the default and deprecates V1; v0.29/v0.30 removals (PyAV video decoder, api_server module entrypoint, VLLM_PREFIX_CACHE_RETENTION_INTERVAL, VLLM_MM_HASHER_ALGORITHM, GPTQ g_idx) are not used here. Every runtime option in this recipe still exists at v0.30.0. Qwen3_5ForConditionalGeneration and mm-encoder-tp-mode/chat-template-content-format options remain. The vendored Tencent/UI-Mate harness stays at d185dc9d: upstream has no tagged release and later commits only add benchmark suites and README edits. Needs Spark re-qualification.",
+            "references": [
+              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
+              "https://github.com/vllm-project/vllm/compare/v0.28.0...v0.30.0",
+              "https://hub.docker.com/r/vllm/vllm-openai/tags?name=v0.30.0-aarch64",
+              "https://github.com/Tencent/UI-Mate/compare/d185dc9d74cfcab3a890d7ffb2bb011ecdd64c64...1cb9e1e44c"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": null,
@@ -439,8 +459,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.1.4"
+    "released_at": "2026-09-28",
+    "version": "1.2.0"
   },
   "runtime": {
     "arguments": [

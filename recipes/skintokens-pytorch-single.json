@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "0e1392f431f89f143d0d6d0fa397a2b9a6a236f8b3628cfd3afbf21e15ab4a98",
+        "digest": "d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37",
         "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
@@ -150,6 +150,33 @@
   },
   "release": {
     "history": [
+      {
+        "version": "2.0.13",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "21c0037df2cd8e79977906ccf4b0969cb9a8ca774b94289d1131a7135e425ec3",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Moved the build base to NVIDIA CUDA 13.4.1 devel (Ubuntu 24.04, ARM64).",
+            "details": "nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04 ARM64 manifest sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37 replaces 13.2.1-devel; its NVIDIA_REQUIRE_CUDA keeps the driver>=580,<581 clause, so the Spark 580-series driver still admits it. flash-attn and other extensions now build with nvcc 13.4 for SM 12.1. Upstream source 273b691d and the model snapshot are unchanged.",
+            "references": [
+              "https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html",
+              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
+            ]
+          },
+          {
+            "kind": "runtime",
+            "summary": "Updated transformers, lightning, trimesh and requests to their latest stable releases; PyTorch held at 2.13.0.",
+            "details": "transformers 5.15.1->5.17.0, lightning 2.6.5->2.6.6, trimesh 5.0.0->5.1.0, requests 2.32.5->2.34.2. PyTorch stays at 2.13.0+cu132: PyTorch 2.14 ATen headers require C++20 and reject builds, while flash-attn 2.8.3.post1 (latest release; the C++20 fix is unreleased) pass -std=c++17 explicitly. nvcc 13.4 against the cu132 wheels is a same-major minor mismatch that torch.utils.cpp_extension only warns about.",
+            "references": [
+              "https://github.com/huggingface/transformers/releases/tag/v5.17.0",
+              "https://github.com/pytorch/pytorch/blob/v2.14.0/aten/src/ATen/ATen.h",
+              "https://github.com/Dao-AILab/flash-attention/pull/2879"
+            ]
+          }
+        ]
+      },
       {
         "changes": [
           {
@@ -414,8 +441,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-24",
-    "version": "2.0.12"
+    "released_at": "2026-09-28",
+    "version": "2.0.13"
   },
   "runtime": {
     "arguments": [

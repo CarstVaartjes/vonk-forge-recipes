@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4",
+        "digest": "e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e",
         "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
@@ -37,7 +37,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable single-Spark Candidate for Google's exact instruction-tuned Gemma 4 26B-A4B checkpoint on the pinned vLLM 0.28 ARM64 runtime, with bounded local-image chat and reasoning. The vLLM 0.27.1 recipe remains available as the fallback until physical Spark canary acceptance.",
+    "description": "Executable single-Spark Candidate for Google's exact instruction-tuned Gemma 4 26B-A4B checkpoint on the pinned vLLM 0.30 ARM64 runtime, with bounded local-image chat and reasoning. The original vllm-single recipe remains available as the fallback profile until physical Spark canary acceptance.",
     "tags": [
       "executable",
       "candidate",
@@ -53,7 +53,7 @@
       "single",
       "spark"
     ],
-    "title": "Gemma 4 26B-A4B IT vLLM 0.28 single Spark"
+    "title": "Gemma 4 26B-A4B IT vLLM 0.30 single Spark"
   },
   "models": [
     {
@@ -211,6 +211,25 @@
   "release": {
     "history": [
       {
+        "version": "1.1.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "5a7f2f2a0a15b7666d57d23659c50387f7a890aa0c2abbf5d26546166c599a0a",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Refresh the pinned official vLLM ARM64 runtime from 0.28.0 to stable 0.30.0.",
+            "details": "Moves from v0.28.0-aarch64-ubuntu2404 (41b54fb42c66) to v0.30.0-aarch64-ubuntu2404 (e06f024cf1dd), build commit ced6857a. Upstream v0.29 makes Model Runner V2 the default and deprecates V1; v0.29/v0.30 removals (PyAV video decoder, api_server module entrypoint, VLLM_PREFIX_CACHE_RETENTION_INTERVAL, VLLM_MM_HASHER_ALGORITHM, GPTQ g_idx) are not used here. Every runtime option in this recipe still exists at v0.30.0. Gemma 4 kernels are de-JITified at startup (#55768) and the Gemma 4 parser now accepts bare/malformed tool-call openers (#53444); this recipe still exposes plain image chat and reasoning only. The build-time Gemma4ForConditionalGeneration interface screen is unchanged. Needs Spark canary re-acceptance.",
+            "references": [
+              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
+              "https://github.com/vllm-project/vllm/compare/v0.28.0...v0.30.0",
+              "https://hub.docker.com/r/vllm/vllm-openai/tags?name=v0.30.0-aarch64"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
@@ -265,8 +284,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "1.0.2"
+    "released_at": "2026-09-28",
+    "version": "1.1.0"
   },
   "runtime": {
     "arguments": [

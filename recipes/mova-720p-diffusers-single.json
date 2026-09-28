@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "a52783d8d73ace53998d4e740515e9942e73072dc7fbd5322917eb382a0bc7fb",
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
         "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
@@ -461,6 +461,33 @@
   "release": {
     "history": [
       {
+        "version": "2.0.12",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "103f58ffa1826825fa02404367bf8f8cebd10d9143e579e037dd5ba851d02591",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Move the base image to NVIDIA CUDA 13.4.1 runtime (Ubuntu 24.04, ARM64 digest-pinned).",
+            "details": "Base image moved from nvcr.io/nvidia/cuda:13.2.1-runtime-ubuntu24.04 to 13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962 (linux/arm64). Its NVIDIA_REQUIRE_CUDA keeps the driver>=580,<581 branch clause, so admission on the Spark driver is unchanged. PyTorch still ships its own CUDA user-space wheels.",
+            "references": [
+              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
+            ]
+          },
+          {
+            "kind": "runtime",
+            "summary": "Update PyTorch to 2.14.0/torchvision 0.29.0 (cu132), diffusers to 0.39.0, accelerate to 1.15.0, huggingface-hub to 0.36.2.",
+            "details": "torch 2.13.0 -> 2.14.0 and torchvision 0.28.0 -> 0.29.0 (cu132), with the torch-required closure pins nvidia-cudnn-cu13 9.24.0.43, nvidia-nccl-cu13 2.30.7 and triton 3.8.0. diffusers 0.36.0 -> 0.39.0, the newest release compatible with MOVA's transformers<5: diffusers 0.40.0 requires huggingface-hub>=1.23 while transformers 4.57.6 needs huggingface-hub<1.0. MOVA source 83bcbe8e is kept (no tagged MOVA release exists).",
+            "references": [
+              "https://github.com/pytorch/pytorch/releases/tag/v2.14.0",
+              "https://github.com/huggingface/diffusers/releases/tag/v0.39.0",
+              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
+              "https://github.com/OpenMOSS/MOVA/blob/83bcbe8eab55ded920889239af93c112834ee5b8/pyproject.toml"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": "The exact pinned model card declares Apache-2.0; this snapshot does not contain a LICENSE file, so the license link now targets the card that carries the declaration.",
@@ -700,8 +727,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-24",
-    "version": "2.0.11"
+    "released_at": "2026-09-28",
+    "version": "2.0.12"
   },
   "runtime": {
     "arguments": [

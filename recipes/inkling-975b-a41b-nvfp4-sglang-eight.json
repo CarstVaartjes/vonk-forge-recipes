@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "c60f221f8f42929469bedf74716b4314a1951ff97556dd9e17d9e11040512ac6",
+        "digest": "b0d8718a4424bb22e448e04407ab3ce5f7399a4c5fc702d6fbe36c3772ec8862",
         "platform": "linux/arm64",
         "repository": "docker.io/lmsysorg/sglang"
       },
@@ -617,10 +617,29 @@
       "Vonk Forge"
     ],
     "source_kind": "global",
-    "source_reference": "https://github.com/sgl-project/sglang/tree/b7252cc6b0c78b25ecea7ee5efa91a6ae37d0f19"
+    "source_reference": "https://github.com/sgl-project/sglang/tree/94602c9c2b7cbdb8efd5c52802dac6a1c180089e"
   },
   "release": {
     "history": [
+      {
+        "version": "1.1.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "ab5aaaf93b239b6cfaec668c97a694f36f3704d3b691a47c2ef8ef28fa9d19e1",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Moved the base image from the dev-inkling-dspark branch build to the stable SGLang v0.5.20 CUDA 13 arm64 image.",
+            "details": "Base image lmsysorg/sglang dev-inkling-dspark (arm64 sha256:c60f221f8f42, dspark-integration branch commit b7252cc6) is replaced by the stable v0.5.20 image (arm64 sha256:b0d8718a4424, commit 94602c9c). The branch work landed on main as PR #31847 before v0.5.20; v0.5.20 ships the Inkling model, multimodal processor, parsers, SM121 Inkling MoE fix (#33108), and every launch flag this recipe uses. The build check now expects SGLANG_BUILD_COMMIT 94602c9c. The TP8 contract remains Pending without Spark evidence.",
+            "references": [
+              "https://github.com/sgl-project/sglang/releases/tag/v0.5.20",
+              "https://github.com/sgl-project/sglang/tree/94602c9c2b7cbdb8efd5c52802dac6a1c180089e",
+              "https://github.com/sgl-project/sglang/pull/31847",
+              "https://github.com/sgl-project/sglang/pull/33108"
+            ]
+          }
+        ]
+      },
       {
         "changes": [
           {
@@ -743,8 +762,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.0.7"
+    "released_at": "2026-09-28",
+    "version": "1.1.0"
   },
   "runtime": {
     "arguments": [

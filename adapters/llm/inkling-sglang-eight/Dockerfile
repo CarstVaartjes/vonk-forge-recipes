@@ -1,7 +1,7 @@
-FROM docker.io/lmsysorg/sglang@sha256:c60f221f8f42929469bedf74716b4314a1951ff97556dd9e17d9e11040512ac6
+FROM docker.io/lmsysorg/sglang@sha256:b0d8718a4424bb22e448e04407ab3ce5f7399a4c5fc702d6fbe36c3772ec8862
 
 LABEL org.opencontainers.image.source="https://github.com/sgl-project/sglang" \
-      org.opencontainers.image.revision="b7252cc6b0c78b25ecea7ee5efa91a6ae37d0f19" \
+      org.opencontainers.image.revision="94602c9c2b7cbdb8efd5c52802dac6a1c180089e" \
       org.opencontainers.image.licenses="Apache-2.0" \
       io.vonk.inkling.recipe="thinkingmachines/Inkling-NVFP4@42a75a99a40eb2ba1e0717db6357a0bf15205044"
 

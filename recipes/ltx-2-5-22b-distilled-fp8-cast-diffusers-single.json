@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
         "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
@@ -187,6 +187,33 @@
   "release": {
     "history": [
       {
+        "version": "1.0.8",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "36c28e1aa42bf582c3f9967c6f4864b9605d57737246bfb831609019f6397311",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Move the base image to NVIDIA CUDA 13.4.1 runtime (Ubuntu 24.04, ARM64 digest-pinned).",
+            "details": "Base image moved from nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04 to 13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962 (linux/arm64). Its NVIDIA_REQUIRE_CUDA keeps the driver>=580,<581 branch clause, so admission on the Spark driver is unchanged. PyTorch still ships its own CUDA user-space wheels.",
+            "references": [
+              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
+            ]
+          },
+          {
+            "kind": "runtime",
+            "summary": "Update PyTorch to 2.14.0/torchvision 0.29.0 (cu130), transformers to 5.17.0 and accelerate to 1.15.0.",
+            "details": "torch 2.13.0 -> 2.14.0 and torchvision 0.28.0 -> 0.29.0 from the cu130 ARM64 index; transformers 5.15.1 -> 5.17.0; accelerate 1.14.0 -> 1.15.0. diffusers stays at commit c5469b7c: it is 79 commits ahead of the latest release v0.40.0 (diverged), so no stable diffusers release contains it. Model revision 426936f8 is still the Hugging Face head.",
+            "references": [
+              "https://github.com/pytorch/pytorch/releases/tag/v2.14.0",
+              "https://github.com/huggingface/transformers/releases/tag/v5.17.0",
+              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
+              "https://github.com/huggingface/diffusers/compare/v0.40.0...c5469b7ceb606edd7ba6570dcd17d38590a18db6"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "kind": "fix",
@@ -311,8 +338,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-24",
-    "version": "1.0.7"
+    "released_at": "2026-09-28",
+    "version": "1.0.8"
   },
   "runtime": {
     "arguments": [

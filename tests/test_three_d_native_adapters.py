@@ -31,7 +31,7 @@ CASES = {
         "source_revision": "273b691d35989d71cd17ff2895fdc735097b92d1",
         "source_archive": "skintokens.tar.gz",
         "source_archive_sha256": "f886ce830f8f6ed5a3eabebb9399244812ac17a44d5b51fe8853c381a214e334",
-        "base_image": "nvcr.io/nvidia/cuda:13.2.1-devel-ubuntu24.04@sha256:0e1392f431f89f143d0d6d0fa397a2b9a6a236f8b3628cfd3afbf21e15ab4a98",
+        "base_image": "nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37",
     },
     "triposg-pytorch-single": {
         "context": "adapters/three-d/triposg",
@@ -40,7 +40,7 @@ CASES = {
         "source_revision": "fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c",
         "source_archive": "triposg.tar.gz",
         "source_archive_sha256": "3d06f11eb795bcabea7863e670e9cea02f96bfc6ec3e6db20e015e5710653682",
-        "base_image": "nvcr.io/nvidia/cuda:13.2.1-devel-ubuntu24.04@sha256:0e1392f431f89f143d0d6d0fa397a2b9a6a236f8b3628cfd3afbf21e15ab4a98",
+        "base_image": "nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37",
     },
     "hunyuan3d-omni-pytorch-single": {
         "context": "adapters/three-d/hunyuan3d-omni",
@@ -49,7 +49,7 @@ CASES = {
         "source_revision": "4d47c0cc2bd0c4281963a7314ab330a5af36bfa8",
         "source_archive": "hunyuan3d-omni.tar.gz",
         "source_archive_sha256": "1191700188114ac9fd257ed617c3a46bb523adc90a05316c2bbed433063e32d3",
-        "base_image": "nvcr.io/nvidia/cuda:13.2.1-runtime-ubuntu24.04@sha256:a52783d8d73ace53998d4e740515e9942e73072dc7fbd5322917eb382a0bc7fb",
+        "base_image": "nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
     },
 }
 SLOTTED_RECIPES = (
