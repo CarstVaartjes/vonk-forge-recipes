@@ -66,7 +66,7 @@ class Vllm028MigrationTests(unittest.TestCase):
         # silently dropped in 0.27.1 and 0.28.0. The fix (#53444) ships in
         # 0.30.0, the first runtime allowed to advertise the tool contract.
         recipe = load("recipes/gemma-4-26b-a4b-vllm-single.json")
-        dockerfile = (ROOT / recipe["execution"]["build"]["dockerfile"]).read_text()
+        dockerfile = (ROOT / "adapters/llm/vllm-openai/Dockerfile").read_text()
         self.assertIn("ced6857afa0ea7b2e3f0846a62e1394e90f15607", dockerfile)
         self.assertIn("tool-use", recipe["metadata"]["tags"])
         arguments = {
