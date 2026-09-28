@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "bbedab8cbf2d209b00f48f1e96ef4e9b638b98771477fa14e0e70d62679f383b",
+        "digest": "b0d8718a4424bb22e448e04407ab3ce5f7399a4c5fc702d6fbe36c3772ec8862",
         "platform": "linux/arm64",
         "repository": "docker.io/lmsysorg/sglang"
       },
@@ -37,7 +37,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate thin adaptation of SGLang's verified two-DGX-Spark Inkling Small NVFP4 TP2 profile. It serves text, image, and 16 kHz audio inputs through an offline OpenAI-compatible API with bounded 64K context; Candidate status is retained only for Vonk's physical canary.",
+    "description": "Executable Candidate thin adaptation of SGLang's verified two-DGX-Spark Inkling Small NVFP4 TP2 profile, rebased from its dedicated dev image onto the stable SGLang v0.5.20 release image. It serves text, image, and 16 kHz audio inputs through an offline OpenAI-compatible API with bounded 64K context; Candidate status is retained only for Vonk's physical canary.",
     "tags": [
       "executable",
       "candidate",
@@ -327,10 +327,28 @@
       "SGLang contributors"
     ],
     "source_kind": "global",
-    "source_reference": "https://github.com/sgl-project/sglang/blob/a74222ef6e690f851e2e4ff1c0be7dc1357be313/docs_new/src/snippets/configs/thinkingmachines/inkling-small.jsx"
+    "source_reference": "https://github.com/sgl-project/sglang/blob/94602c9c2b7cbdb8efd5c52802dac6a1c180089e/docs/src/snippets/configs/thinkingmachines/inkling-small.jsx"
   },
   "release": {
     "history": [
+      {
+        "version": "1.1.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "36d497f7724dc55798e060d28a971b16eca66642dbf42b183ad7ae9f3e8b1cf2",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Moved the base image from the dev-inkling-small-dgx-spark build to the stable SGLang v0.5.20 CUDA 13 arm64 image.",
+            "details": "Base image lmsysorg/sglang dev-inkling-small-dgx-spark (arm64 sha256:bbedab8cbf2d, unmerged branch commit a74222ef) is replaced by the stable v0.5.20 image (arm64 sha256:b0d8718a4424, commit 94602c9c). v0.5.20 contains the SM121 Inkling MoE support merged as PR #33108 and its Dockerfile installs nvidia-nccl-cu13 2.30.7, which the build check still enforces. The launch flags match the v0.5.20 DGX Spark cookbook cell unchanged. Upstream still documents the dedicated dev image for Spark, so Vonk physical acceptance remains pending.",
+            "references": [
+              "https://github.com/sgl-project/sglang/releases/tag/v0.5.20",
+              "https://github.com/sgl-project/sglang/blob/94602c9c2b7cbdb8efd5c52802dac6a1c180089e/docs/src/snippets/configs/thinkingmachines/inkling-small.jsx",
+              "https://github.com/sgl-project/sglang/pull/33108"
+            ]
+          }
+        ]
+      },
       {
         "changes": [
           {
@@ -423,8 +441,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.0.4"
+    "released_at": "2026-09-28",
+    "version": "1.1.0"
   },
   "runtime": {
     "arguments": [

@@ -6,7 +6,7 @@ import importlib.util
 import os
 from pathlib import Path
 
-EXPECTED_COMMIT = "b7252cc6b0c78b25ecea7ee5efa91a6ae37d0f19"
+EXPECTED_COMMIT = "94602c9c2b7cbdb8efd5c52802dac6a1c180089e"
 REQUIRED_MODULES = (
     "sglang",
     "sglang.launch_server",
