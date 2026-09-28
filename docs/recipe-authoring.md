@@ -215,6 +215,16 @@ ancestry. If the change is squashed, regenerate packages and indexes against
 the actual merged source commit before publication. Keep the ancestry check
 intact.
 
+Publication builds the release asset set from the release commit with
+`tools/build-catalog-index --release-dir`: `catalog-index.json`,
+`qualification-index.json`, one `<slug>.tar.gz` per recipe and a `SHA256SUMS`
+listing all of them. The workflow attests `SHA256SUMS` with a keyless GitHub
+artifact attestation (Sigstore) and attaches it as `SHA256SUMS.sigstore.json`.
+Control planes accept a release only when that attestation names this
+repository's `publish.yml` on `refs/heads/main` and every asset matches its
+listed digest; verify a release with
+`gh attestation verify SHA256SUMS -R CarstVaartjes/vonk-forge-recipes`.
+
 Open or update the PR with exact before/after sources, the reason for changes,
 version notes, validation results, and any retained pins. Complete CI, merge,
 and verify the published catalog and changed package downloads within the
