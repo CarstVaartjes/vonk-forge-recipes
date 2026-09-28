@@ -137,7 +137,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Coverage compares this build with the accepted release it binds.
+          # Coverage is derived offline from this build and the committed authority.
           "$RELEASE_TEST_PYTHON" tools/build-catalog-index --source-commit "$GITHUB_SHA"
           "$RELEASE_TEST_PYTHON" tools/build-family-aware-coverage
           "$RELEASE_TEST_PYTHON" tools/build-catalog-index \

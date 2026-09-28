@@ -182,8 +182,8 @@ The required checks cover:
   exactly one `recipe.json`, its exact Model snapshots, and required supporting
   files; member bytes and manifest digests agree.
 - Deterministic package/index generation: CI builds the release asset set twice
-  and requires identical bytes, derives family-aware coverage against the
-  accepted release, and runs the platform validator on the built outputs.
+  and requires identical bytes, derives family-aware coverage offline from
+  the current catalog, and runs the platform validator on the built outputs.
   Contract changes also regenerate/check schemas and examples and exercise the
   standalone package.
 - Focused adapter/build tests relevant to the change and `git diff --check`.
@@ -250,7 +250,9 @@ SHA-256 of its `SHA256SUMS`; `tools/build-qualification-authority` reads the
 release's indexes (downloaded once into `.artifacts/releases/<tag>/`, or taken
 from generated packages with the same digest) and pins their digests in the
 authority. To bind a new release, update that record and regenerate the
-authority.
+authority. Only that manual regeneration downloads release assets, with a short
+retry; CI and publication never do. Coverage hashes the current packages and
+reports rows whose stack differs from the authority as divergences.
 
 Open or update the PR with exact before/after sources, the reason for changes,
 version notes, validation results, and any retained pins. Complete CI, merge,
