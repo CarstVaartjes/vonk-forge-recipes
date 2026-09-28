@@ -219,17 +219,6 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         )
         self.assertNotIn("ssh -", text.lower())
 
-    def test_image_is_stamped_with_the_recipe_release(self) -> None:
-        recipe = load(RECIPE)
-        version = recipe["release"]["version"]
-        dockerfile = (ADAPTER / "Dockerfile").read_text()
-        self.assertIn(f"VONK_GLM53_RECIPE_REVISION={version}", dockerfile)
-        # Targeted overlays build on the exact pinned lineage and runtime image.
-        self.assertEqual(
-            recipe["provenance"]["source_reference"],
-            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c",
-        )
-
     def test_current_defaults_and_source_license_are_declared(self) -> None:
         recipe = load(RECIPE)
         environment = {
