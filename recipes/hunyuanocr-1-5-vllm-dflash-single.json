@@ -375,7 +375,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "cc853ace4c674727c45663ae409c0d885a6f2da1712a69a34288ccb6b8cd3015",
+        "content_sha256": "930cee892853eb1c5dd21db04f14bfae473ccb91e57bd0d82eec8f73f5c4fd48",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuanocr-1-5-47644ecc"
@@ -392,6 +392,20 @@
   },
   "release": {
     "history": [
+      {
+        "changes": [
+          {
+            "details": "The exact tencent/hunyuanocr-1-5-47644ecc Model no longer declares that it supersedes the revision 449e7d47 record, which was removed from the catalog because no recipe selected it. That changes the Model's content digest, so this recipe's exact model reference moves to the new digest. Weights, files, and runtime are unchanged.",
+            "kind": "metadata",
+            "references": [],
+            "summary": "Rebound the exact model reference after the superseded model record was removed; runtime behavior is unchanged."
+          }
+        ],
+        "prior_recipe_content_sha256": "e9cd42ac8d57932aaccc6cc296d9f48acd54eb9d2f080b7d863238c9ff5f0610",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "none",
+        "version": "1.2.4"
+      },
       {
         "changes": [
           {
@@ -513,8 +527,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.2.3"
+    "released_at": "2026-09-28",
+    "version": "1.2.4"
   },
   "runtime": {
     "arguments": [
