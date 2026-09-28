@@ -190,8 +190,8 @@
     {
       "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/config/vllm.py",
       "rule": "reportOptionalMemberAccess",
-      "count": 4,
-      "reason": "The member is reached only after an explicit guard on the same value; pyright loses that narrowing across the kernel branch."
+      "count": 12,
+      "reason": "The member is reached only after an explicit guard on the same value; pyright loses that narrowing across the kernel branch. Pyright 1.1.414 also reports the Optional kv_transfer_config and model_config members this vendored vLLM overlay dereferences inside branches that upstream vLLM only reaches after those configs are set."
     },
     {
       "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/envs.py",
@@ -324,6 +324,12 @@
       "rule": "reportMissingImports",
       "count": 17,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/glm/drowzeys-glm53-1m/overlays/official/sparse_attn_indexer_kpool.py",
+      "rule": "reportOptionalSubscript",
+      "count": 4,
+      "reason": "False positive since pyright 1.1.414: `k` is declared `torch.Tensor`, but torch is unresolvable on the host, so after the upstream `if k is not None:` guard pyright joins a None branch into the declared-Unknown type and flags the later `k[...]` subscripts. The overlay mirrors upstream vLLM kernel code and stays byte-stable."
     },
     {
       "file": "adapters/glm/glm53-sm121/glm53-flash_SM121.py",
@@ -600,6 +606,12 @@
       "rule": "reportMissingImports",
       "count": 17,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/glm/tonyd2wild-dflash2-dual/sparse_attn_indexer_kpool_sm121.py",
+      "rule": "reportOptionalSubscript",
+      "count": 4,
+      "reason": "False positive since pyright 1.1.414: `k` is declared `torch.Tensor`, but torch is unresolvable on the host, so after the upstream `if k is not None:` guard pyright joins a None branch into the declared-Unknown type and flags the later `k[...]` subscripts. The overlay mirrors upstream vLLM kernel code and stays byte-stable."
     },
     {
       "file": "adapters/glm/tonyd2wild-dflash2-dual/verify-runtime.py",

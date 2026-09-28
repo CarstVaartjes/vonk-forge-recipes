@@ -16,7 +16,7 @@ requires-python = ">=3.14"
 # adapters overlay still run 3.12, as does the platform copy of the shared
 # three-d GLB validator. Formatting at 3.12 keeps those files parseable in the
 # container and here.
-required-version = "==0.16.1"
+required-version = "==0.16.9"
 target-version = "py312"
 # Vendored third-party sources are byte-exact by contract, not authored here:
 # apply-build-patches.py hashes each DeepSeek V4 tokenizer encoding and fails

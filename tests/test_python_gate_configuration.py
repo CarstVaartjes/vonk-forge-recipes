@@ -33,7 +33,7 @@ def test_pyright_configuration_is_pinned() -> None:
 def test_ruff_configuration_is_pinned_and_documented() -> None:
     ruff = PYPROJECT.get("tool", {}).get("ruff")
     assert isinstance(ruff, dict), "pyproject.toml has no [tool.ruff] section"
-    assert ruff.get("required-version") == "==0.16.1"
+    assert ruff.get("required-version") == "==0.16.9"
     # Adapter sources are executed by the 3.12 interpreter inside the pinned
     # upstream images, so the formatter must keep emitting 3.12 syntax.
     assert ruff.get("target-version") == "py312"

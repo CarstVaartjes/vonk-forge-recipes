@@ -73,13 +73,13 @@ export VONK_RECIPE_LIBRARY_ROOT=/opt/vonk-forge-recipes
 # and all three cover the extensionless executables, not just `*.py`.
 tools/check-python-lint              # ruff check, plus extensionless entry points
 tools/check-python-format            # ruff format, plus extensionless entry points
-scripts/check-python-types           # pyright==1.1.408, reviewed baseline
+scripts/check-python-types           # pyright==1.1.414, reviewed baseline
 
 # Producer suite (CI installs the same wheel and extras).
 uv run --python 3.14 --no-project --with pytest==9.1.1 \
   --with-editable contracts --with 'jsonschema>=4.24,<5' \
   --with ./adapters/video/ltx2-sync-native/vonk_agent_protocol-3.0.0-py3-none-any.whl \
-  pytest -q -m "not lane"
+  python -m pytest -q -m "not lane"
 ```
 
 `tools/pyright-baseline.json` is a reviewed allowlist, not a per-file budget: an

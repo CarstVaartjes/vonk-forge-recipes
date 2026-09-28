@@ -9,7 +9,7 @@
     "out_of_scope_recipe_count": 4,
     "in_scope_maximum_node_count": 2,
     "authority_id": "nl-family-aware-20260924",
-    "catalog_index_sha256": "9fa5b698e3d0600cce086fcfa761295e94bd03f07e634032d67a4f0529cd2b4d",
+    "catalog_index_sha256": "5bac801e433a74ef95adbba50e46d95b9ce610ae85444025c181acfb8d9d50e9",
     "bound_catalog_index_sha256": "400bc65b6a723e0ce674e0c0e604893b52bfb0c1168fd1a095aef48098e29f5c",
     "bound_release_tag": "v1.0.17",
     "bound_catalog_commit": "efbbba29bd4c706c73d295d24047787be3f36d78",

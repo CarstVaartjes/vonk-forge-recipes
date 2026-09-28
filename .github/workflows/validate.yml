@@ -19,14 +19,14 @@ permissions:
 jobs:
   validate:
     if: ${{ !inputs.producer_only }}
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@e94b3c62d19633d518d1774d8cead728ca5c242d
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@cba85915be140362b9eab62be5c1b82f9d8f918c
     with:
       # Use the reviewed Forge validator for this launch contract. Its exact
       # published commit verifies declared source namespaces, Model payload
       # separation and archive identities independently of this recipe PR.
       # Pinned to the platform commit that runs the validator on Python 3.14,
       # the version the platform declares.
-      platform_ref: e94b3c62d19633d518d1774d8cead728ca5c242d
+      platform_ref: cba85915be140362b9eab62be5c1b82f9d8f918c
 
   catalog-index:
     if: ${{ !inputs.producer_only }}
@@ -40,9 +40,9 @@ jobs:
           fetch-depth: 0
 
       - name: Set up uv and Python
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          version: "0.12.1"
+          version: "0.12.19"
           python-version: "3.14"
           enable-cache: false
 
@@ -67,9 +67,9 @@ jobs:
           fetch-depth: 0
 
       - name: Set up uv and Python
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          version: "0.12.1"
+          version: "0.12.19"
           python-version: "3.14"
           enable-cache: false
 
@@ -83,7 +83,7 @@ jobs:
             -e contracts \
             adapters/video/ltx2-sync-native/vonk_agent_protocol-3.0.0-py3-none-any.whl \
             'jsonschema>=4.24,<5' \
-            'pytest>=8,<9'
+            'pytest==9.1.1'
           echo "RECIPE_TEST_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
 
       - name: Verify generated contract examples are current
@@ -169,9 +169,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up uv and Python
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          version: "0.12.1"
+          version: "0.12.19"
           python-version: "3.14"
           enable-cache: false
 
@@ -182,7 +182,7 @@ jobs:
           test_venv="$RUNNER_TEMP/contracts-test-venv"
           uv venv --python 3.14 "$test_venv"
           uv pip install --python "$test_venv/bin/python" \
-            'pydantic>=2.13,<3' 'jsonschema>=4.24,<5' 'pytest>=8,<9'
+            'pydantic>=2.13,<3' 'jsonschema>=4.24,<5' 'pytest==9.1.1'
           "$test_venv/bin/pytest" -q tests/test_contracts.py
           "$test_venv/bin/python" tools/generate-contract-schemas --check
           "$test_venv/bin/python" tools/generate-contract-examples

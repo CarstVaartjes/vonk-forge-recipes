@@ -32,8 +32,8 @@ UV_TOOL_DIR="${UV_TOOL_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-tools}" \
 changed_python=$(git diff --cached --name-only -- '*.py')
 if [ -n "$changed_python" ]; then
     printf '%s\n' "$changed_python" | xargs uv run --python 3.14 --no-project \
-        --with pyright==1.1.408 --with pydantic==2.13.4 \
-        --with 'pytest>=8,<9' --with-editable contracts \
+        --with pyright==1.1.414 --with pydantic==2.13.4 \
+        --with 'pytest==9.1.1' --with-editable contracts \
         pyright --project pyproject.toml
 fi
 UV_CACHE_DIR="${UV_CACHE_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-cache}" \
