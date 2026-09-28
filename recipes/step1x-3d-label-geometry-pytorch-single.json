@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "0e1392f431f89f143d0d6d0fa397a2b9a6a236f8b3628cfd3afbf21e15ab4a98",
+        "digest": "d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37",
         "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
@@ -248,6 +248,33 @@
   },
   "release": {
     "history": [
+      {
+        "version": "1.2.16",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "fa894e3eb17a0e72e5dc62c5743bc61ad5f82222974cf5ff3702ba4981237bfd",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Moved the build base to NVIDIA CUDA 13.4.1 devel (Ubuntu 24.04, ARM64).",
+            "details": "nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04 ARM64 manifest sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37 replaces 13.2.1-devel; its NVIDIA_REQUIRE_CUDA keeps the driver>=580,<581 clause, so the Spark 580-series driver still admits it. pytorch3d, nvdiffrast v0.4.0 and the Step1X custom_rasterizer and differentiable_renderer now build with nvcc 13.4 for SM 12.1. Step1X source cb5ac944 (newer than tag v.1.0.1) and the model snapshots are unchanged.",
+            "references": [
+              "https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html",
+              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
+            ]
+          },
+          {
+            "kind": "compatibility",
+            "summary": "Kept PyTorch 2.13.0 and the upstream-pinned Step1X Python stack because pytorch3d still forces C++17.",
+            "details": "PyTorch stays at 2.13.0+cu132: PyTorch 2.14 ATen headers require C++20 and reject builds, while pytorch3d (fdaf9bd, newer than v0.7.9) passes -std=c++17 explicitly. nvcc 13.4 against the cu132 wheels is a same-major minor mismatch that torch.utils.cpp_extension only warns about. Python packages keep the Step1X requirements.txt pins (transformers 4.48.0, diffusers 0.32.2, numpy 1.26.4); cupy 14 needs numpy>=2, so cupy-cuda13x stays at 13.6.0.",
+            "references": [
+              "https://github.com/pytorch/pytorch/blob/v2.14.0/aten/src/ATen/ATen.h",
+              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/requirements.txt",
+              "https://github.com/facebookresearch/pytorch3d/blob/fdaf9bd6fed7977e4c2056e7c77c640781e58fcd/setup.py"
+            ]
+          }
+        ]
+      },
       {
         "changes": [
           {
@@ -590,8 +617,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-24",
-    "version": "1.2.15"
+    "released_at": "2026-09-28",
+    "version": "1.2.16"
   },
   "runtime": {
     "arguments": [

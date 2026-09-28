@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/cuda:13.2.1-devel-ubuntu24.04@sha256:0e1392f431f89f143d0d6d0fa397a2b9a6a236f8b3628cfd3afbf21e15ab4a98
+FROM nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37
 
 LABEL org.opencontainers.image.source="https://github.com/VAST-AI-Research/TripoSG" \
       org.opencontainers.image.revision="fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c" \
@@ -23,13 +23,13 @@ RUN apt-get update \
     && rm /tmp/triposg.tar.gz \
     && python3 -m pip install --break-system-packages --no-cache-dir \
         --index-url https://download.pytorch.org/whl/cu132 \
-        torch==2.13.0 torchvision==0.28.0 \
+        torch==2.14.0 torchvision==0.29.0 \
     && python3 -m pip install --break-system-packages --no-cache-dir \
-        diffusers==0.40.0 transformers==5.15.1 einops==0.8.2 \
-        huggingface-hub==1.28.0 opencv-python-headless==5.0.0.93 \
-        trimesh==5.0.0 omegaconf==2.3.1 scikit-image==0.26.0 \
-        peft==0.20.0 jaxtyping==0.3.11 typeguard==4.6.0 \
-        pillow==12.3.0 safetensors==0.8.0 accelerate==1.14.0 \
+        diffusers==0.40.0 transformers==5.17.0 einops==0.8.2 \
+        huggingface-hub==1.33.0 opencv-python-headless==5.0.0.93 \
+        trimesh==5.1.0 omegaconf==2.3.1 scikit-image==0.26.0 \
+        peft==0.21.0 jaxtyping==0.3.11 typeguard==4.6.0 \
+        pillow==12.3.0 safetensors==0.8.0 accelerate==1.15.0 \
         diso==0.1.4 \
     && install --directory --mode=0755 /opt/vonk/bin /opt/vonk/source \
     && useradd --uid 10001 --create-home --shell /usr/sbin/nologin vonk
