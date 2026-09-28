@@ -30,7 +30,10 @@ RUN apt-get update \
         trimesh==5.1.0 omegaconf==2.3.1 scikit-image==0.26.0 \
         peft==0.21.0 jaxtyping==0.3.11 typeguard==4.6.0 \
         pillow==12.3.0 safetensors==0.8.0 accelerate==1.15.0 \
-        diso==0.1.4 \
+    && FORCE_CUDA=1 python3 -m pip install --break-system-packages --no-cache-dir \
+        --no-build-isolation diso==0.1.4 \
+    && python3 -c 'import diso._C as c; from diso import DiffDMC; assert hasattr(c, "CUDMCFloat")' \
+    && cuobjdump --list-elf "$(python3 -c 'import diso._C as c; print(c.__file__)')" | grep --quiet sm_121 \
     && install --directory --mode=0755 /opt/vonk/bin /opt/vonk/source \
     && useradd --uid 10001 --create-home --shell /usr/sbin/nologin vonk
 

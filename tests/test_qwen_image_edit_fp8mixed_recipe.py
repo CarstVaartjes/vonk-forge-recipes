@@ -30,8 +30,8 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
             model["source"]["revision"], "f68ace85e60b4a02a323e394253731947657b7d2"
         )
         self.assertEqual(model["format"]["quantization"], "fp8mixed")
-        self.assertEqual(len(recipe["models"]), 1)
         models: Any = recipe["models"]
+        self.assertEqual(models[0]["id"], "primary")
         self.assertEqual(len(models[0]["files"]), 1)
         self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")
         self.assertEqual(recipe["runtime"]["engine"], "comfyui")

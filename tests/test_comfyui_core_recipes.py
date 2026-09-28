@@ -132,6 +132,42 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
             self.assertNotIn("ComfyUI-Manager", dockerfile)
             self.assertNotIn("custom_nodes", dockerfile)
 
+    def test_mounted_models_are_exactly_what_each_workflow_loads(self) -> None:
+        # comfyui_job.link_models resolves every workflow model to
+        # /models/<artifact_id> and fails when that mount is absent.
+        recipes = [
+            recipe
+            for recipe in map(load, sorted((ROOT / "recipes").glob("*.json")))
+            if recipe["runtime"]["engine"] == "comfyui"
+        ]
+        self.assertGreaterEqual(len(recipes), len(COMFY_RECIPES))
+        for recipe in recipes:
+            with self.subTest(recipe=recipe["identity"]["slug"]):
+                arguments = {
+                    item["name"]: item["value"]
+                    for item in recipe["runtime"]["arguments"]
+                }
+                context = ROOT / recipe["execution"]["build"]["context"]["path"]
+                workflow = load(
+                    context / "workflows" / Path(arguments["workflow"]).name
+                )
+                mounted = {}
+                for selection in recipe["models"]:
+                    model = load(ROOT / "models" / f"{selection['model']['slug']}.json")
+                    paths = {item["id"]: item["path"] for item in model["files"]}
+                    for item in selection["files"]:
+                        mounted[item["mount"]["target"]] = paths[item["file_id"]]
+                expected = {
+                    f"/models/{item['artifact_id']}": item
+                    for item in workflow["models"]
+                }
+                self.assertEqual(set(mounted), set(expected))
+                for target, item in expected.items():
+                    if item["category"] != "diffusion_models":
+                        self.assertEqual(
+                            Path(mounted[target]).name, item["filename"], target
+                        )
+
     def test_qwen_2512_quality_defaults_remain_bounded(self) -> None:
         recipe = load(ROOT / "recipes/qwen-image-2512-comfyui-single.json")
         arguments = {

@@ -93,6 +93,16 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 )
                 self.assertNotIn("torchaudio", dockerfile)
 
+    def test_triposg_builds_diso_cuda_kernels_for_spark(self) -> None:
+        # diso ships only an sdist whose setup.py builds CUDA kernels only when
+        # a GPU is visible or FORCE_CUDA=1, and imports the installed torch.
+        dockerfile = (ROOT / "adapters/three-d/triposg/Dockerfile").read_text()
+        self.assertIn("TORCH_CUDA_ARCH_LIST=12.1", dockerfile)
+        install = dockerfile.index("--no-build-isolation diso==0.1.4")
+        self.assertLess(dockerfile.index("torch==2.14.0"), install)
+        self.assertIn("FORCE_CUDA=1 python3 -m pip install", dockerfile)
+        self.assertIn("grep --quiet sm_121", dockerfile)
+
     def test_trellis_and_pixal_reject_unsafe_or_oversized_images_before_model_load(
         self,
     ) -> None:
