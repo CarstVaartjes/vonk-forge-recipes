@@ -62,18 +62,20 @@ class Vllm028MigrationTests(unittest.TestCase):
                 self.assertEqual(arguments["max-num-batched-tokens"], batched_tokens)
                 self.assertEqual(arguments["max-cudagraph-capture-size"], graph_size)
 
-    def test_gemma_is_plain_chat_until_bare_opener_is_fixed(self) -> None:
-        # vLLM issue #53431: Gemma's canonical bare `:function` opener is silently
-        # dropped in both 0.27.1 and 0.28.0, so the installable recipe must not
-        # advertise a tool contract that its parser cannot honor.
+    def test_gemma_tool_contract_requires_the_bare_opener_fix(self) -> None:
+        # vLLM issue #53431: Gemma's canonical bare `:function` opener was
+        # silently dropped in 0.27.1 and 0.28.0. The fix (#53444) ships in
+        # 0.30.0, the first runtime allowed to advertise the tool contract.
         recipe = load("recipes/gemma-4-26b-a4b-vllm-single.json")
-        self.assertNotIn("tool-use", recipe["metadata"]["tags"])
+        dockerfile = (ROOT / recipe["execution"]["build"]["dockerfile"]).read_text()
+        self.assertIn("ced6857afa0ea7b2e3f0846a62e1394e90f15607", dockerfile)
+        self.assertIn("tool-use", recipe["metadata"]["tags"])
         arguments = {
             argument["name"]: argument["value"]
             for argument in recipe["runtime"]["arguments"]
         }
-        self.assertNotIn("tool-call-parser", arguments)
-        self.assertNotIn("enable-auto-tool-choice", arguments)
+        self.assertEqual(arguments["tool-call-parser"], "gemma4")
+        self.assertIs(arguments["enable-auto-tool-choice"], True)
         self.assertEqual(arguments["reasoning-parser"], "gemma4")
         self.assertEqual(
             recipe["runtime"]["engine"],

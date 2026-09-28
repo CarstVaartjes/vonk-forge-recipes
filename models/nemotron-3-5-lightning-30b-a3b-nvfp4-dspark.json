@@ -38,8 +38,8 @@
       "roles": [
         "metadata"
       ],
-      "sha256": "ef31e101956ab8f01c0e5a766c2f994088c7c786ba2c87e8dc1a2c284c015174",
-      "size_bytes": 13745
+      "sha256": "a615131355756d411f712678c0c7f58f713b6fa7dd235adeeff52c40da1bb388",
+      "size_bytes": 13979
     },
     {
       "id": "configuration",
@@ -89,7 +89,7 @@
     "publisher": "nvidia",
     "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark",
     "variant": "Nemotron 3.5 Lightning 30B-A3B NVFP4 DSpark companion",
-    "version": "nvfp4-dspark-d10c6ff4"
+    "version": "nvfp4-dspark-8a017711"
   },
   "kind": "model",
   "license": {
@@ -140,13 +140,13 @@
     "attribution": [
       "NVIDIA Corporation"
     ],
-    "source_revision": "d10c6ff40d6e69d1f92e407e027de3eafdb77645",
+    "source_revision": "8a0177116d138011e63103110f136ec0ca09ebbf",
     "source_url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark"
   },
   "schema_version": 2,
   "source": {
     "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark",
-    "revision": "d10c6ff40d6e69d1f92e407e027de3eafdb77645"
+    "revision": "8a0177116d138011e63103110f136ec0ca09ebbf"
   },
   "supersedes": null
 }

@@ -3,14 +3,14 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "871fc9b75a97dc6f58449bfb2aa30cab685c87a8bf6b4519a75c4760c1f8bcd8",
+        "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
         "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
-        "path": "adapters/nvidia/nemotron-vllm-0-20-0"
+        "path": "adapters/nvidia/nemotron"
       },
-      "dockerfile": "adapters/nvidia/nemotron-vllm-0-20-0/Dockerfile",
+      "dockerfile": "adapters/nvidia/nemotron/Dockerfile",
       "network": {
         "hosts": [],
         "mode": "none"
@@ -256,7 +256,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "0f82fff9fe9cc8b73d8ac4ec41934ea088ed1887a2849b8a4df86bd997d6d0cc",
+        "content_sha256": "845e3fc989a4abcaeef4fa91e583897b59dcd5fee26725d99003856e4cd9efad",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-nano-30b-a3b-nvfp4"
@@ -268,10 +268,46 @@
       "NVIDIA Corporation"
     ],
     "source_kind": "global",
-    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4/tree/ce1b118ae66ec705d02c241525192832eb045fd3"
+    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4/tree/6efb4a2a1c1fa277ce7b3df7a1416255011b1c99"
   },
   "release": {
     "history": [
+      {
+        "version": "2.1.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "5b23087920fc7a9dd4150b73faeed45309a50592166db0594ed300155b235529",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Moved to the official vLLM 0.30.0 ARM64 image from vLLM 0.20.0.",
+            "details": "docker.io/vllm/vllm-openai v0.30.0-aarch64 @sha256:4864d466 (build commit ced6857a, CUDA 13.0) replaces v0.20.0-aarch64 @sha256:871fc9b7. Every launch option, parser and model architecture this recipe uses is present at v0.30.0. Upstream 0.29 makes Model Runner V2 the default and 0.28-0.30 remove only options this recipe does not use. The build now uses the shared adapters/nvidia/nemotron wrapper; the version-named nemotron-vllm-0-20-0 adapter was removed. Physical GB10 startup, memory and output acceptance is still required.",
+            "references": [
+              "https://github.com/vllm-project/vllm/releases/tag/v0.28.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
+              "https://github.com/vllm-project/vllm/compare/v0.20.0...v0.30.0"
+            ]
+          },
+          {
+            "kind": "compatibility",
+            "summary": "Replaced the FlashInfer NVFP4 MoE env vars vLLM no longer reads with --moe-backend flashinfer_cutlass.",
+            "details": "VLLM_USE_FLASHINFER_MOE_FP4=1 with VLLM_FLASHINFER_MOE_BACKEND=throughput selected FlashInfer CUTLASS NVFP4 MoE in 0.20.0; both variables are gone from vllm/envs.py by 0.27.1. The explicit backend keeps NVIDIA's launch contract, and v0.30.0 lists the SM12x family as supported for that kernel.",
+            "references": [
+              "https://github.com/vllm-project/vllm/blob/v0.20.0/vllm/model_executor/layers/quantization/utils/flashinfer_utils.py",
+              "https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/model_executor/layers/fused_moe/experts/flashinfer_cutlass_moe.py"
+            ]
+          },
+          {
+            "kind": "model",
+            "summary": "Advanced the Nano checkpoint to NVIDIA revision 6efb4a2a; only README.md changed.",
+            "details": "Weights, configuration, tokenizer, remote code and the nano_v3 reasoning plugin are byte-identical to ce1b118a; the README adds a link to NVIDIA's public training-content summary.",
+            "references": [
+              "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4/commit/6efb4a2a1c1fa277ce7b3df7a1416255011b1c99"
+            ]
+          }
+        ]
+      },
       {
         "changes": [
           {
@@ -441,8 +477,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "2.0.6"
+    "released_at": "2026-09-28",
+    "version": "2.1.0"
   },
   "runtime": {
     "arguments": [
@@ -470,6 +506,11 @@
         "name": "kv-cache-dtype",
         "setting": null,
         "value": "fp8"
+      },
+      {
+        "name": "moe-backend",
+        "setting": null,
+        "value": "flashinfer_cutlass"
       },
       {
         "name": "enable-prefix-caching",
@@ -526,16 +567,6 @@
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
-        "value": "1"
-      },
-      {
-        "name": "VLLM_FLASHINFER_MOE_BACKEND",
-        "secret": null,
-        "value": "throughput"
-      },
-      {
-        "name": "VLLM_USE_FLASHINFER_MOE_FP4",
         "secret": null,
         "value": "1"
       }
