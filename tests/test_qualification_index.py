@@ -12,9 +12,11 @@ from pathlib import Path
 from typing import Any, cast
 
 import pytest
+from generated_catalog import GENERATED
 from vonk_forge_contracts import RecipeDefinition, content_sha256
 
-from qualification.catalog_source import pinned_catalog_package_tree, pinned_git_blob
+from qualification import catalog_source
+from qualification.catalog_source import package_tree, release_asset, release_checksums
 from qualification.coverage_identity import execution_stack_identity
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -86,17 +88,9 @@ def _bindings(document: dict[str, object]) -> dict[str, dict[str, object]]:
     return result
 
 
-def test_generated_qualification_index_is_current() -> None:
-    subprocess.run(
-        [sys.executable, "tools/build-catalog-index", "--check"],
-        cwd=ROOT,
-        check=True,
-    )
-
-
 def test_recipe_digests_are_generated_locally_and_cover_supported_topologies() -> None:
     definitions = _document(QUALIFICATION_ROOT / "definitions.json")
-    generated = _document(QUALIFICATION_ROOT / "qualification-index.json")
+    generated = _document(GENERATED / "qualification" / "qualification-index.json")
     source_bindings = _bindings(definitions)
     generated_bindings = _bindings(generated)
 
@@ -173,32 +167,48 @@ def test_skintokens_derivation_pins_upstream_and_transform() -> None:
     assert 'force="mesh", process=True' in source
 
 
-def test_authority_reads_both_indexes_from_the_release_commit(monkeypatch) -> None:
-    """Reading a working-tree index instead of the pinned commit must fail."""
+def test_authority_reads_both_indexes_from_the_accepted_release(monkeypatch) -> None:
+    """Indexes must come from the accepted release, proven by its SHA256SUMS."""
 
     release = _document(QUALIFICATION_ROOT / "catalog-release.json")
-    commit = release["commit"]
-    assert isinstance(commit, str)
-    calls: list[tuple[str, str]] = []
-    real_blob = AUTHORITY_TOOL["_git_blob"]
+    tag = release["release_tag"]
+    assert isinstance(tag, str)
+    checksums = release_checksums(release)
+    calls: list[tuple[str, str, str]] = []
+    real_asset = AUTHORITY_TOOL["release_asset"]
 
-    def spy(commit_arg: str, relative_path: str) -> bytes:
-        calls.append((commit_arg, relative_path))
-        return real_blob(commit_arg, relative_path)
+    def spy(tag_arg: str, name: str, sha256: str, **options: Any) -> bytes:
+        calls.append((tag_arg, name, sha256))
+        return real_asset(tag_arg, name, sha256, **options)
 
-    monkeypatch.setitem(AUTHORITY_TOOL, "_git_blob", spy)
-    AUTHORITY_TOOL["_build"]()
+    monkeypatch.setitem(AUTHORITY_TOOL, "release_asset", spy)
+    AUTHORITY_TOOL["_build"](GENERATED)
     assert calls == [
-        (commit, "catalog-index.json"),
-        (commit, "qualification/qualification-index.json"),
+        (tag, "catalog-index.json", checksums["catalog-index.json"]),
+        (tag, "qualification-index.json", checksums["qualification-index.json"]),
     ]
 
 
-def test_authority_fails_closed_on_an_unreadable_pin() -> None:
-    """Following an object that is not in this repository must fail closed."""
+def test_release_asset_that_differs_from_its_pin_fails_closed(
+    monkeypatch, tmp_path: Path
+) -> None:
+    """A downloaded or cached asset is never trusted without its pinned digest."""
 
-    with pytest.raises(ValueError, match="cannot read pinned Git object"):
-        AUTHORITY_TOOL["_git_blob"]("0" * 40, "catalog-index.json")
+    monkeypatch.setattr(catalog_source, "RELEASE_CACHE", tmp_path)
+    (tmp_path / "v9.9.9").mkdir()
+    (tmp_path / "v9.9.9" / "catalog-index.json").write_bytes(b"stale cache")
+    monkeypatch.setattr(catalog_source, "_download", lambda tag, name: b"tampered")
+    with pytest.raises(ValueError, match="differs from its pinned digest"):
+        release_asset("v9.9.9", "catalog-index.json", "0" * 64)
+    assert (tmp_path / "v9.9.9" / "catalog-index.json").read_bytes() == b"stale cache"
+
+    good = b"published bytes"
+    digest = hashlib.sha256(good).hexdigest()
+    monkeypatch.setattr(catalog_source, "_download", lambda tag, name: good)
+    assert release_asset("v9.9.9", "catalog-index.json", digest) == good
+    # The verified download is cached, so later reads need no network.
+    monkeypatch.setattr(catalog_source, "_download", None)
+    assert release_asset("v9.9.9", "catalog-index.json", digest) == good
 
 
 def test_authority_fails_closed_on_a_malformed_pin(monkeypatch) -> None:
@@ -231,7 +241,7 @@ def test_authority_writes_nothing_when_the_build_fails(
     )
     before = {path: path.read_bytes() for path in outputs}
 
-    def unavailable() -> dict[Path, bytes]:
+    def unavailable(catalog_root: Path | None = None) -> dict[Path, bytes]:
         raise ValueError("pinned catalog is unavailable")
 
     monkeypatch.setitem(AUTHORITY_TOOL, "_build", unavailable)
@@ -243,7 +253,13 @@ def test_authority_writes_nothing_when_the_build_fails(
 
 def test_batched_authority_binds_every_recipe_with_at_most_two_nodes() -> None:
     subprocess.run(
-        [sys.executable, "tools/build-qualification-authority", "--check"],
+        [
+            sys.executable,
+            "tools/build-qualification-authority",
+            "--check",
+            "--catalog-root",
+            str(GENERATED),
+        ],
         cwd=ROOT,
         check=True,
     )
@@ -253,11 +269,14 @@ def test_batched_authority_binds_every_recipe_with_at_most_two_nodes() -> None:
     campaign = cast(Any, _document(campaign_path))
     review_gates = cast(Any, _document(QUALIFICATION_ROOT / "review-gates.json"))
     release = cast(Any, _document(QUALIFICATION_ROOT / "catalog-release.json"))
-    catalog_commit = release["commit"]
-    assert isinstance(catalog_commit, str)
-    catalog_index_bytes = _git_blob(catalog_commit, "catalog-index.json")
-    qualification_bytes = _git_blob(
-        catalog_commit, "qualification/qualification-index.json"
+    checksums = release_checksums(release)
+    catalog_index_bytes = release_asset(
+        release["release_tag"], "catalog-index.json", checksums["catalog-index.json"]
+    )
+    qualification_bytes = release_asset(
+        release["release_tag"],
+        "qualification-index.json",
+        checksums["qualification-index.json"],
     )
     catalog_index = cast(Any, json.loads(catalog_index_bytes))
     qualification = cast(Any, json.loads(qualification_bytes))
@@ -457,7 +476,9 @@ def test_batched_authority_binds_every_recipe_with_at_most_two_nodes() -> None:
     assert not (QUALIFICATION_ROOT / "campaigns/nl-sequential-2c118a99.json").exists()
 
 
-def test_published_stack_identity_uses_exact_package_not_stale_source_commit() -> None:
+def test_published_stack_identity_uses_exact_package_not_stale_source_commit(
+    tmp_path: Path,
+) -> None:
     """The release-bound package, not its stale source pointer, owns source bytes."""
 
     # Keep the reproducer on the release with the stale pointer; the active
@@ -482,8 +503,9 @@ def test_published_stack_identity_uses_exact_package_not_stale_source_commit() -
             key = f"{identity['publisher']}/{identity['slug']}"
             model_documents[key] = document
 
-    with pinned_catalog_package_tree(
-        ROOT, catalog_commit, entry["package"], recipe, model_documents
+    payload = _git_blob(catalog_commit, entry["package"]["path"])
+    with package_tree(
+        entry["package"], recipe, model_documents, payload
     ) as package_root:
         package_wheel = (
             package_root
@@ -497,8 +519,7 @@ def test_published_stack_identity_uses_exact_package_not_stale_source_commit() -
             package_root, recipe, recipe.execution.build
         )
 
-    stale_source_wheel = pinned_git_blob(
-        ROOT,
+    stale_source_wheel = _git_blob(
         source_commit,
         "adapters/video/ltx2-sync-native/vonk_agent_protocol-2.2.0-py3-none-any.whl",
     )
@@ -508,17 +529,19 @@ def test_published_stack_identity_uses_exact_package_not_stale_source_commit() -
     assert stale_source_wheel != package_wheel_bytes
 
     key = "vonk-forge/ltx-2-19b-distilled-diffusers-single"
+    # The historical release had no assets; the byte-identical package under
+    # catalog_root stands in for the release asset, so nothing is downloaded.
+    (tmp_path / "packages").mkdir()
+    (tmp_path / entry["package"]["path"]).write_bytes(payload)
     generated = AUTHORITY_TOOL["_pinned_stack_identities"](
-        catalog_commit, {key: entry}, model_documents
+        "v0.0.0", {key: entry}, model_documents, tmp_path
     )
     assert generated[key] == package_identity
 
     mismatched_package = {**entry["package"], "sha256": "0" * 64}
     with (
         pytest.raises(ValueError, match="package digest differs"),
-        pinned_catalog_package_tree(
-            ROOT, catalog_commit, mismatched_package, recipe, model_documents
-        ),
+        package_tree(mismatched_package, recipe, model_documents, payload),
     ):
         pass
 

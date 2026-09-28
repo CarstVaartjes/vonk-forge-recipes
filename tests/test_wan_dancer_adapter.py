@@ -15,6 +15,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from generated_catalog import GENERATED
 from vonk_forge_contracts import (
     ModelDefinition,
     RecipeDefinition,
@@ -25,7 +26,7 @@ ADAPTER = ROOT / "adapters/video/wan-dancer-native"
 RECIPE = ROOT / "recipes/wan-dancer-14b-pytorch-single.json"
 MODEL = ROOT / "models/wan-dancer-14b.json"
 ARCHIVE_SHA256 = "92c529d7727c75c6515ea990d27883a45bf566587cc9f5d325a0a488b9fa1649"
-PACKAGE = ROOT / "packages/wan-dancer-14b-pytorch-single.tar.gz"
+PACKAGE = GENERATED / "packages/wan-dancer-14b-pytorch-single.tar.gz"
 BASE_IMAGE = {
     "repository": "nvcr.io/nvidia/cuda",
     "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",

@@ -36,8 +36,6 @@ jobs:
     steps:
       - name: Check out recipes
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
 
       - name: Set up uv and Python
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
@@ -46,14 +44,28 @@ jobs:
           python-version: "3.14"
           enable-cache: false
 
-      - name: Verify committed generated catalog index and package set
+      # The index and packages are build outputs, not committed files.
+      # Consumers reproduce a release by rebuilding its tagged commit, so two
+      # independent builds of this tree must produce identical bytes.
+      - name: Build the release asset set twice and require identical bytes
         shell: bash
         run: |
           set -euo pipefail
           test_venv="$RUNNER_TEMP/catalog-test-venv"
           uv venv --python 3.14 "$test_venv"
           uv pip install --python "$test_venv/bin/python" -e contracts
-          "$test_venv/bin/python" tools/build-catalog-index --check
+          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first"
+          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second"
+          diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
+          echo "RECIPE_CATALOG_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
+
+      - name: Derive family-aware coverage against the accepted release
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_CATALOG_PYTHON" tools/build-catalog-index
+          "$RECIPE_CATALOG_PYTHON" tools/build-family-aware-coverage
+          "$RECIPE_CATALOG_PYTHON" tools/build-qualification-authority --check
 
   producer-contracts:
     if: ${{ inputs.producer_only || github.event_name != 'workflow_call' }}

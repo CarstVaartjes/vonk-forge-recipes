@@ -4,41 +4,20 @@ set -eu
 root=$(git rev-parse --show-toplevel)
 cd "$root"
 
-staged=$(git diff --cached --name-only)
-if ! printf '%s\n' "$staged" | grep -Eq '^(models/|recipes/|adapters/|contracts/|qualification/|catalog-index\.json|tools/build-catalog-index$|tools/generate-)'; then
-    exit 0
-fi
-
-# Generated packages and indexes must describe the exact tree being committed.
+# The catalog index, packages and coverage are build outputs (ignored by Git);
+# CI builds and validates them. This hook only runs the pinned static checks.
 if [ -n "$(git diff --name-only)" ]; then
     echo "recipe hook: stage all tracked edits before committing" >&2
     exit 1
 fi
 
-source_commit=$(git rev-parse HEAD)
-UV_CACHE_DIR="${UV_CACHE_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-cache}" \
-    uv run --python 3.14 --no-project --with-editable contracts \
-    tools/build-catalog-index --source-commit "$source_commit"
-git add catalog-index.json qualification/qualification-index.json packages
-UV_CACHE_DIR="${UV_CACHE_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-cache}" \
-    uv run --python 3.14 --no-project --with-editable contracts \
-    tools/build-family-aware-coverage
-git add qualification/coverage/family-aware-coverage-2026-09-24.json \
-    qualification/coverage/family-aware-coverage-2026-09-24.md
 UV_TOOL_DIR="${UV_TOOL_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-tools}" \
     tools/check-python-lint
 UV_TOOL_DIR="${UV_TOOL_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-tools}" \
     tools/check-python-format
-changed_python=$(git diff --cached --name-only -- '*.py')
-if [ -n "$changed_python" ]; then
-    printf '%s\n' "$changed_python" | xargs uv run --python 3.14 --no-project \
-        --with pyright==1.1.414 --with pydantic==2.13.4 \
-        --with 'pytest==9.1.1' --with-editable contracts \
-        pyright --project pyproject.toml
+# The reviewed pyright baseline is the type gate; bare pyright on changed files
+# would fail on every accepted exception in them.
+if [ -n "$(git diff --cached --name-only --diff-filter=d -- '*.py')" ]; then
+    UV_CACHE_DIR="${UV_CACHE_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-cache}" \
+        scripts/check-python-types
 fi
-UV_CACHE_DIR="${UV_CACHE_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-cache}" \
-    uv run --python 3.14 --no-project --with-editable contracts \
-    tools/build-catalog-index --check
-UV_CACHE_DIR="${UV_CACHE_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-cache}" \
-    uv run --python 3.14 --no-project --with-editable contracts \
-    tools/build-family-aware-coverage --check

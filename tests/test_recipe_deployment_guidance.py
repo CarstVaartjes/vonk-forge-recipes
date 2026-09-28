@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from generated_catalog import GENERATED
 from vonk_forge_contracts import RecipeDefinition, content_sha256
 
 
@@ -20,7 +21,7 @@ def canonical_digest(path: str) -> str:
 
 
 def catalog_entry(slug: str) -> dict[str, object]:
-    catalog = load("catalog-index.json")
+    catalog = json.loads((GENERATED / "catalog-index.json").read_text(encoding="utf-8"))
     return next(
         item
         for item in catalog["recipes"]

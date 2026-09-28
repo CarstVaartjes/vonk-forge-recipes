@@ -11,6 +11,7 @@ from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from generated_catalog import GENERATED
 from vonk_forge_contracts import (
     ModelDefinition,
     RecipeDefinition,
@@ -47,7 +48,7 @@ def _canonical_digest(path: Path) -> str:
 
 
 def _catalog_entry(slug: str) -> dict[str, object]:
-    catalog = _document(ROOT / "catalog-index.json")
+    catalog = _document(GENERATED / "catalog-index.json")
     return next(
         item
         for item in catalog["recipes"]

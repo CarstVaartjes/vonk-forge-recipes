@@ -16,6 +16,8 @@ import json
 import unittest
 from pathlib import Path
 
+from generated_catalog import GENERATED
+
 ROOT = Path(__file__).resolve().parents[1]
 RECIPE = ROOT / "recipes/deepseek-v4-flash-0731-ds4-single.json"
 
@@ -57,7 +59,7 @@ class DeepseekDs4RecipeTests(unittest.TestCase):
         self.assertEqual(recipe["release"]["version"], "1.2.5")
 
     def test_release_binds_the_current_recipe_digest(self) -> None:
-        index = load(ROOT / "catalog-index.json")
+        index = load(GENERATED / "catalog-index.json")
         entry = next(
             item
             for item in index["recipes"]

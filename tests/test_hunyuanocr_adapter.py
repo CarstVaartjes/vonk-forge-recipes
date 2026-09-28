@@ -7,6 +7,8 @@ import unittest
 import zipfile
 from pathlib import Path
 
+from generated_catalog import GENERATED
+
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/ocr/hunyuanocr-1-5-vllm-dflash"
 ADAPTER_PATH = ADAPTER_ROOT / "run.py"
@@ -52,7 +54,7 @@ class HunyuanOCRAuthorityTests(unittest.TestCase):
         )
         self.assertEqual(recipe["topology"]["node_count"], 1)
         self.assertEqual(recipe["interfaces"][0]["adapter"], "artifact-job")
-        index = load(ROOT / "catalog-index.json")
+        index = load(GENERATED / "catalog-index.json")
         entry = next(
             item
             for item in index["recipes"]

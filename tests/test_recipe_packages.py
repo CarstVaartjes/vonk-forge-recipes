@@ -68,25 +68,10 @@ def test_full_catalog_packages_are_self_contained_and_deterministic(
             Path(str(item["package"]["path"])).name for item in catalog["recipes"]
         }
         assert package_names == {f"{slug}.tar.gz" for _, slug in source_recipes}
-    checked_index = json.loads((ROOT / "catalog-index.json").read_text())
-    assert {
-        (
-            item["document"]["identity"]["publisher"],
-            item["document"]["identity"]["slug"],
-        )
-        for item in checked_index["catalog_entities"]
-    } == source_models
-    assert {
-        (
-            item["document"]["identity"]["publisher"],
-            item["document"]["identity"]["slug"],
-        )
-        for item in checked_index["recipes"]
-    } == source_recipes
+    # The output directory holds exactly the packages the index names: a
+    # stale archive from a removed recipe must not survive a rebuild.
     expected_package_names = {f"{slug}.tar.gz" for _, slug in source_recipes}
-    assert {
-        path.name for path in ROOT.joinpath("packages").glob("*.tar.gz")
-    } == expected_package_names
+    assert {path.name for path in first_dir.glob("*.tar.gz")} == expected_package_names
 
     for first_row, second_row in zip(first["recipes"], second["recipes"], strict=True):
         first_package = first_row["package"]
