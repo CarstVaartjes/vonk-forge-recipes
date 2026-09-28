@@ -182,7 +182,7 @@ def main() -> None:
     )
     pipe = pipeline_class.from_pretrained(
         "/models",
-        torch_dtype=torch.bfloat16,
+        dtype=torch.bfloat16,
         local_files_only=True,
     )
     if pipe.__class__.__name__ != class_name:
