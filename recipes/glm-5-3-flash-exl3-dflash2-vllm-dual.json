@@ -44,7 +44,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public bc68f310 EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its 2x DGX Spark EXL3/TR3 4 bpw target with the retained bf582e4e DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 192k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. The build applies the GB10 persistent-topk overlay and verify-runtime.py fails closed unless its marker is present. Selected upstream fixes are vendored for bounded Mamba align-state retention, Mamba-block chunk checkpoints, and tool_choice:none decode masking while the source and runtime image pins remain fixed. A 320k context was refused by the engine's own KV check at the declared 0.84 GPU utilization, so 192k remains the current declared context. Vonk physical acceptance and checkpoint requalification remain pending.",
+    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public bc68f310 EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its 2x DGX Spark EXL3/TR3 4 bpw target with the retained bf582e4e DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 192k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. The build applies the GB10 persistent-topk overlay and verify-runtime.py fails closed unless its marker is present. Selected upstream fixes are vendored for bounded Mamba align-state retention, Mamba-block chunk checkpoints, and tool_choice:none decode masking while the source and runtime image pins remain fixed. A 320k context was refused by the engine's own KV check at 0.84 GPU utilization; the declared 0.845 utilization keeps the 192k context about 0.6 GiB inside the engine's measured KV budget. Vonk physical acceptance and checkpoint requalification remain pending.",
     "tags": [
       "candidate",
       "dflash2",
@@ -1888,6 +1888,20 @@
   "release": {
     "history": [
       {
+        "version": "1.6.8",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "37c28a06e308965d2ea141b530b1fa304006befa816ec757f0de9b3496bb85a8",
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Give the 192k context a real KV margin instead of a 0.01 GiB one.",
+            "details": "At 192k the engine measured 8.93 GiB of KV needed against 8.92 GiB available at gpu-memory-utilization 0.84, so a start could fail by 0.01 GiB; 1.6.6 had seen 9.05 GiB available on the same setting. The need is mostly fixed: 327680 tokens needed 9.76 GiB and 196608 needed 8.93, about 0.83 GiB per 128k, so 160k would free only about 0.2 GiB. Raising utilization by 0.005 adds 0.005 x 130.66 GB = 0.61 GiB, about 9.53 GiB available, a 0.60 GiB (6.7 percent) margin at the full 192k context. The startup estimate becomes 130.66 GB x 0.845 + 9 GiB = 120.07 GB, declared as 120.1 GB, leaving 1.4 GB against the nodes' 125.5 GB MemAvailable and 4 GB floor. The image marker becomes 1.6.8 so this revision gets its own build.",
+            "references": []
+          }
+        ]
+      },
+      {
         "version": "1.6.7",
         "released_at": "2026-09-23",
         "upgrade_effect": "rebuild",
@@ -2246,8 +2260,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-23",
-    "version": "1.6.7"
+    "released_at": "2026-09-28",
+    "version": "1.6.8"
   },
   "runtime": {
     "arguments": [
@@ -2284,7 +2298,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.84"
+        "value": "0.845"
       },
       {
         "name": "max-model-len",
@@ -2631,8 +2645,8 @@
           "memory": {
             "kind": "unified",
             "runtime_growth_bytes": 2500000000,
-            "startup_peak_bytes": 120000000000,
-            "steady_state_bytes": 117500000000,
+            "startup_peak_bytes": 120100000000,
+            "steady_state_bytes": 117600000000,
             "system_reserve_bytes": 2000000000
           }
         }
@@ -2653,8 +2667,8 @@
           "memory": {
             "kind": "unified",
             "runtime_growth_bytes": 2500000000,
-            "startup_peak_bytes": 120000000000,
-            "steady_state_bytes": 117500000000,
+            "startup_peak_bytes": 120100000000,
+            "steady_state_bytes": 117600000000,
             "system_reserve_bytes": 2000000000
           }
         }

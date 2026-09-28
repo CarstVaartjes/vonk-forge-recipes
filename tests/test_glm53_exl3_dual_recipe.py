@@ -100,10 +100,10 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         )
         # The declared envelope is sized so the node can actually cover it: the agent
         # requires MemAvailable >= reserved + 4 GB and the Sparks report ~125.5 GB.
-        self.assertEqual(arguments["gpu-memory-utilization"]["value"], "0.84")
-        # The engine measures its own ceiling: at gpu-memory-utilization 0.84 it
-        # offers 9.05 GiB of KV and estimates a maximum of 225792 tokens, so the
-        # declared context is the 192k that budget actually serves.
+        # At 0.84 the engine measured 8.93 GiB of KV needed for 192k against 8.92
+        # GiB available; 0.845 adds about 0.61 GiB (0.005 x 130.66 GB) of KV
+        # budget, a ~6.7% margin at the full declared 192k context.
+        self.assertEqual(arguments["gpu-memory-utilization"]["value"], "0.845")
         self.assertEqual(recipe["settings"]["context_tokens"]["value"], 196608)
         self.assertEqual(arguments["max-num-batched-tokens"]["value"], 7168)
         self.assertEqual(arguments["kv-cache-dtype"]["value"], "fp8")
@@ -225,11 +225,22 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         )
         self.assertNotIn("ssh -", text.lower())
 
-    def test_current_release_backports_only_the_selected_upstream_fixes(self) -> None:
+    def test_current_release_gives_the_192k_context_a_kv_margin(self) -> None:
         recipe = load(RECIPE)
-        self.assertEqual(recipe["release"]["version"], "1.6.7")
-        self.assertEqual(recipe["release"]["history"][0]["upgrade_effect"], "rebuild")
-        details = recipe["release"]["history"][0]["changes"][0]
+        self.assertEqual(recipe["release"]["version"], "1.6.8")
+        current = recipe["release"]["history"][0]
+        self.assertEqual(current["version"], "1.6.8")
+        self.assertEqual(current["upgrade_effect"], "rebuild")
+        self.assertIn("KV margin", current["changes"][0]["summary"])
+        dockerfile = (ADAPTER / "Dockerfile").read_text()
+        self.assertIn("VONK_GLM53_RECIPE_REVISION=1.6.8", dockerfile)
+
+    def test_previous_release_backports_only_the_selected_upstream_fixes(self) -> None:
+        recipe = load(RECIPE)
+        previous = recipe["release"]["history"][1]
+        self.assertEqual(previous["version"], "1.6.7")
+        self.assertEqual(previous["upgrade_effect"], "rebuild")
+        details = previous["changes"][0]
         self.assertIn("Mamba", details["summary"])
         self.assertEqual(
             set(details["references"]),
