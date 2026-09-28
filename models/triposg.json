@@ -8,13 +8,11 @@
     "facts": [
       {
         "capability": "3d-generation",
-        "evidence_digest": "0f4c34a1a17acdbcff02c259d7f4f7b5df1b8956395c625c28da97930eb82ef3",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "0f4c34a1a17acdbcff02c259d7f4f7b5df1b8956395c625c28da97930eb82ef3",
       "source_revision": "2c1c516d22d58db486a058d98d31bb6177344e06",
       "source_url": "https://huggingface.co/VAST-AI/TripoSG/blob/2c1c516d22d58db486a058d98d31bb6177344e06/README.md"
     },
@@ -22,7 +20,7 @@
   },
   "dependencies": [
     {
-      "content_sha256": "f7c9e356bfe62fcce55d6a31d4e4c86fe2631bfa661829e4c5e11df3d372a74e",
+      "content_sha256": "c520c30b856805e176290e9ebf2820871e8c2dd6b38671ebeb67504fdfa7322a",
       "kind": "model",
       "publisher": "bria-ai",
       "slug": "bria-rmbg-1-4"
@@ -196,7 +194,6 @@
     "attribution": [
       "vast-ai"
     ],
-    "evidence_digest": "0f4c34a1a17acdbcff02c259d7f4f7b5df1b8956395c625c28da97930eb82ef3",
     "source_revision": "2c1c516d22d58db486a058d98d31bb6177344e06",
     "source_url": "https://huggingface.co/VAST-AI/TripoSG/blob/2c1c516d22d58db486a058d98d31bb6177344e06/README.md"
   },

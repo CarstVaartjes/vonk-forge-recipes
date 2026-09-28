@@ -8,13 +8,11 @@
     "facts": [
       {
         "capability": "3d-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "af44b45f2e35a493886929c6d786e563ec68364d",
       "source_url": "https://huggingface.co/microsoft/TRELLIS.2-4B"
     },
@@ -98,7 +96,6 @@
     "attribution": [
       "microsoft"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "af44b45f2e35a493886929c6d786e563ec68364d",
     "source_url": "https://huggingface.co/microsoft/TRELLIS.2-4B"
   },

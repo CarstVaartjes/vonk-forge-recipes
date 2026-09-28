@@ -7,7 +7,6 @@
   "capabilities": {
     "facts": [],
     "provenance": {
-      "evidence_digest": "a5ef2c6b9205be34d0365ff54411f458d096e025e45527a0dfd58216bda1d689",
       "source_revision": "d1f71a588deaf2b9b9cea7c6fff66cb10847cc86",
       "source_url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime"
     },
@@ -293,7 +292,6 @@
     "attribution": [
       "OpenMOSS"
     ],
-    "evidence_digest": "a5ef2c6b9205be34d0365ff54411f458d096e025e45527a0dfd58216bda1d689",
     "source_revision": "d1f71a588deaf2b9b9cea7c6fff66cb10847cc86",
     "source_url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime"
   },

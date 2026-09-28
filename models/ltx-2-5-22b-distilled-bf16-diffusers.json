@@ -8,19 +8,16 @@
     "facts": [
       {
         "capability": "audio-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "video-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
       "source_url": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers"
     },
@@ -115,7 +112,6 @@
     "attribution": [
       "Lightricks"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "426936f8b22dc28e4def61e515478b0b7e4a53cc",
     "source_url": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers"
   },

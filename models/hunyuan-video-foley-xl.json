@@ -8,19 +8,16 @@
     "facts": [
       {
         "capability": "audio-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "video-understanding",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "3abd4e833b95b8db0fc9c687afc52483a48e9a97",
       "source_url": "https://huggingface.co/tencent/HunyuanVideo-Foley"
     },
@@ -28,13 +25,13 @@
   },
   "dependencies": [
     {
-      "content_sha256": "03ac77b98291a22708284c014ae7138397bef11607dcc67d2affceab77f7e8af",
+      "content_sha256": "a2402aa7e09d5f5fcf0bf4ba9f76ed8922c6f947facdb6510cd01ff5fcb9a174",
       "kind": "model",
       "publisher": "google",
       "slug": "siglip2-base-patch16-512-a89f5c50"
     },
     {
-      "content_sha256": "0a4563c618c820ebf9dbbe9e32b674d477010039dbd6ce1da511329fc26dcd67",
+      "content_sha256": "78f14aa76f1bbb6aac675cd3c0ad6fddc9d0dad9b791a75b8494a732cc5aaf91",
       "kind": "model",
       "publisher": "laion",
       "slug": "larger-clap-general-ada0c23a"
@@ -180,7 +177,6 @@
     "attribution": [
       "tencent"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "3abd4e833b95b8db0fc9c687afc52483a48e9a97",
     "source_url": "https://huggingface.co/tencent/HunyuanVideo-Foley"
   },

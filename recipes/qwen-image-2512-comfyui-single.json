@@ -142,7 +142,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c1b2d6e5e5dd88334706e56a80b23ac8ef77f965fe52a3062df73e9e26036eb7",
+        "content_sha256": "38857cd4a29bf264a3f89e9c791b8303b54401f7613c029da3528e44f63fb57b",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-2512-comfyui-7beb7b64"

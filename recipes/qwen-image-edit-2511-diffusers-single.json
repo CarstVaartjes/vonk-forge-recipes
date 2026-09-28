@@ -519,7 +519,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "28af40eca8ec322f2f0f4250d1e7c634bef0a133af8345e1bd474cde9ae772ad",
+        "content_sha256": "f94419b170c1ef011c5d38b89f4f7db960b0aef961c04f54d88f53b0bdc8ef2d",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-6f3ccc0b"

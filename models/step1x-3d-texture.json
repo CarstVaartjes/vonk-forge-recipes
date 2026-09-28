@@ -8,13 +8,11 @@
     "facts": [
       {
         "capability": "3d-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "bf7084495b3a72222f36549b7942948aa4d9daa7",
       "source_url": "https://huggingface.co/stepfun-ai/Step1X-3D"
     },
@@ -22,13 +20,13 @@
   },
   "dependencies": [
     {
-      "content_sha256": "bb39ed141bef5c04ae40b95d03647823f66ebb88c7087ad0d40de9c578db616e",
+      "content_sha256": "5b8786613e84bb99c81cab2b84323862b88027891ca21a812fcfc2e5fc01a3a0",
       "kind": "model",
       "publisher": "stabilityai",
       "slug": "stable-diffusion-xl-base-1-0"
     },
     {
-      "content_sha256": "f13cf97810053e567ec6c1d5a222479b0435c54a32275755ab3d3ec542e20e6b",
+      "content_sha256": "e992bbd17e832d35a5e9a3e6801d237fb378d79bb1188f47b03e59af109a6dff",
       "kind": "model",
       "publisher": "madebyollin",
       "slug": "sdxl-vae-fp16-fix"
@@ -38,7 +36,9 @@
     {
       "id": "ig2v-weights",
       "path": "Step1X-3D-Texture/step1x-3d-ig2v.safetensors",
-      "roles": ["weights"],
+      "roles": [
+        "weights"
+      ],
       "sha256": "05cd28096e875712c1f2489bb325a9bc7324a41cd3f367d7a38c63f1bea77964",
       "size_bytes": 3602537816
     }
@@ -109,7 +109,6 @@
     "attribution": [
       "stepfun-ai"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "bf7084495b3a72222f36549b7942948aa4d9daa7",
     "source_url": "https://huggingface.co/stepfun-ai/Step1X-3D"
   },

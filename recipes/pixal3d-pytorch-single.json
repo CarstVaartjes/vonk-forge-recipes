@@ -131,7 +131,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "5024ad990a4784b4ededb23ead3d9a31906c0aa088ee4dc8541be5a8724fbabf",
+        "content_sha256": "9c05718ac147b5d4a0a2fcb7971a55eda645932321240805b399651b48da1478",
         "kind": "model",
         "publisher": "tencentarc",
         "slug": "pixal3d"

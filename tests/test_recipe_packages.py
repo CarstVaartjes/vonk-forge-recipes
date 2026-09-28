@@ -232,41 +232,6 @@ def test_platform_owned_cache_variables_are_not_recipe_inputs() -> None:
         assert not PLATFORM_OWNED_ENVIRONMENT & names, path.name
 
 
-def test_models_bound_to_historical_capability_evidence_preserve_its_facts() -> None:
-    evidence = json.loads(
-        (ROOT / "docs/model-capability-evidence-2026-09-05.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    assert evidence["schema_version"] == 2
-    evidence_digest = evidence["evidence_digest"]
-    entries = {
-        (item["model_version"]["publisher"], item["model_version"]["slug"]): item
-        for item in evidence["entries"]
-    }
-    # This immutable snapshot owns only the facts explicitly bound to its digest.
-    # New models may bind their own pinned upstream evidence instead.
-    checked = 0
-    for path in sorted((ROOT / "models").glob("*.json")):
-        document = json.loads(path.read_text(encoding="utf-8"))
-        capabilities = document.get("capabilities")
-        key = (document["identity"]["publisher"], document["identity"]["slug"])
-        assert capabilities is not None
-        if (
-            not capabilities["facts"]
-            or capabilities["provenance"]["evidence_digest"] != evidence_digest
-        ):
-            continue
-        checked += 1
-        assert key in entries
-        facts = capabilities["facts"]
-        assert {item["capability"] for item in facts} == set(entries[key]["facts"])
-        assert all(item["support"] == "supported" for item in facts)
-        assert all(item["evidence_status"] == "declared" for item in facts)
-        assert all(item["evidence_digest"] in {None, evidence_digest} for item in facts)
-    assert checked > 0
-
-
 def test_model_access_lineage_and_related_model_references_are_preserved() -> None:
     restricted = {}
     supersedes = []

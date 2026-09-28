@@ -8,19 +8,16 @@
     "facts": [
       {
         "capability": "audio-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       },
       {
         "capability": "video-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
       "source_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3"
     },
@@ -669,7 +666,6 @@
     "attribution": [
       "minimax"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "42ed227ee7df40d41602854ae760620d6eb651fe",
     "source_url": "https://huggingface.co/MiniMaxAI/MiniMax-H3"
   },

@@ -8,13 +8,11 @@
     "facts": [
       {
         "capability": "audio-understanding",
-        "evidence_digest": null,
         "evidence_status": "unknown",
         "support": "unknown"
       }
     ],
     "provenance": {
-      "evidence_digest": "fa3c15ecc9a6753f06a51205a0ca5213ae7be96a962ed9b2b1c970aea3b3c56e",
       "source_revision": "ada0c23a36c4e8582805bb38fec3905903f18b41",
       "source_url": "https://huggingface.co/laion/larger_clap_general/blob/ada0c23a36c4e8582805bb38fec3905903f18b41/README.md"
     },
@@ -163,7 +161,6 @@
     "attribution": [
       "laion"
     ],
-    "evidence_digest": "fa3c15ecc9a6753f06a51205a0ca5213ae7be96a962ed9b2b1c970aea3b3c56e",
     "source_revision": "ada0c23a36c4e8582805bb38fec3905903f18b41",
     "source_url": "https://huggingface.co/laion/larger_clap_general/blob/ada0c23a36c4e8582805bb38fec3905903f18b41/README.md"
   },

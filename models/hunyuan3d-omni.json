@@ -8,13 +8,11 @@
     "facts": [
       {
         "capability": "3d-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "70e803bfb4e127d534049d8ab8c8cb511780d485",
       "source_url": "https://huggingface.co/tencent/Hunyuan3D-Omni"
     },
@@ -22,7 +20,7 @@
   },
   "dependencies": [
     {
-      "content_sha256": "5754fd1f85131102730496ee4e5fc842ef5b7b96e8308bce45a527beab8b4364",
+      "content_sha256": "e6677e219057077a66271e4ca809d688b79985b207e1c21f59d6233d22eea788",
       "kind": "model",
       "publisher": "facebook",
       "slug": "dinov2-large-47b73eef"
@@ -203,7 +201,6 @@
     "attribution": [
       "tencent"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "70e803bfb4e127d534049d8ab8c8cb511780d485",
     "source_url": "https://huggingface.co/tencent/Hunyuan3D-Omni"
   },

@@ -8,13 +8,11 @@
     "facts": [
       {
         "capability": "3d-generation",
-        "evidence_digest": "7aadc16361d4c5280865d0b5163fbf77aeb3e3af439eacbf05e0a316c159c375",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "7aadc16361d4c5280865d0b5163fbf77aeb3e3af439eacbf05e0a316c159c375",
       "source_revision": "79736cad0fd84de384d5eede659b4ebd24effe33",
       "source_url": "https://huggingface.co/VAST-AI/SkinTokens/blob/79736cad0fd84de384d5eede659b4ebd24effe33/README.md"
     },
@@ -126,7 +124,6 @@
     "attribution": [
       "vast-ai"
     ],
-    "evidence_digest": "7aadc16361d4c5280865d0b5163fbf77aeb3e3af439eacbf05e0a316c159c375",
     "source_revision": "79736cad0fd84de384d5eede659b4ebd24effe33",
     "source_url": "https://huggingface.co/VAST-AI/SkinTokens/blob/79736cad0fd84de384d5eede659b4ebd24effe33/README.md"
   },

@@ -120,7 +120,7 @@ def test_hugging_face_source_and_model_digest_remain_unchanged() -> None:
 
     assert model.source.model_dump(mode="json") == document["source"]
     assert content_sha256(model) == (
-        "5024ad990a4784b4ededb23ead3d9a31906c0aa088ee4dc8541be5a8724fbabf"
+        "9c05718ac147b5d4a0a2fcb7971a55eda645932321240805b399651b48da1478"
     )
 
 
@@ -211,7 +211,6 @@ def test_capability_facts_are_set_semantics_and_normalized() -> None:
             "capability": "chat",
             "support": "unknown",
             "evidence_status": "unknown",
-            "evidence_digest": None,
         }
     )
     facts.reverse()
@@ -226,7 +225,6 @@ def test_capability_facts_are_set_semantics_and_normalized() -> None:
             "capability": "chat",
             "support": "supported",
             "evidence_status": "declared",
-            "evidence_digest": None,
         }
     )
     with pytest.raises(ValidationError, match="duplicate or contradict"):

@@ -8,13 +8,11 @@
     "facts": [
       {
         "capability": "image-generation",
-        "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
         "evidence_status": "declared",
         "support": "supported"
       }
     ],
     "provenance": {
-      "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
       "source_revision": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
       "source_url": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning"
     },
@@ -109,7 +107,6 @@
       "lightx2v",
       "Qwen"
     ],
-    "evidence_digest": "c62d6734978c28c0d0e3f5f245e383cb70e977453fc178749f6eeb25fc97fc7a",
     "source_revision": "a52649c9d0f6e1a248bff13f0df33bb8a2abdb52",
     "source_url": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning"
   },

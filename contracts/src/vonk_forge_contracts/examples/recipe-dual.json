@@ -61,7 +61,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "e1e9de42be3e14bdb392cba65c9bbcbec6a4ea5b448597e0c32d187c5840029c",
+        "content_sha256": "1f771ebe96075186b972b481122838c95afca65bfd37223b62fca2c59afac656",
         "kind": "model",
         "publisher": "vonk-forge",
         "slug": "synthetic-tiny-fp16"
