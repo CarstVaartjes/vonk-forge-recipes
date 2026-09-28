@@ -1731,8 +1731,8 @@
     "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.6.8"
+    "released_at": "2026-09-17",
+    "version": "1.6.0"
   },
   "runtime": {
     "arguments": [
