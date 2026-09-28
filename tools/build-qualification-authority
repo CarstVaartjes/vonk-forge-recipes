@@ -6,9 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import re
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Literal
@@ -32,7 +30,11 @@ from vonk_forge_contracts.qualification_authority import (
     recovery_coverage_id,
 )
 
-from qualification.catalog_source import pinned_catalog_package_tree
+from qualification.catalog_source import (
+    pinned_catalog_package_tree,
+    release_asset,
+    release_checksums,
+)
 from qualification.coverage_identity import execution_stack_identity
 
 AUTHORITY_ID = "nl-family-aware-20260924"
@@ -45,7 +47,6 @@ _RECIPE_ROW = re.compile(r"[a-z0-9][a-z0-9-]{0,62}/[a-z0-9][a-z0-9-]{0,62}\Z")
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 _COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 _FIXTURE_MARKERS = {"$fixture_data_uri", "$fixture_base64"}
-_GIT_OBJECT_TIMEOUT_SECONDS = 10
 # The plan is authored prose wrapped around exactly one generated block.  The
 # markers make that boundary explicit: a prose edit, a renamed heading or a
 # moved paragraph cannot make the generator report the plan stale, and a plan
@@ -77,52 +78,6 @@ def _document_bytes(content: bytes, description: str) -> dict[str, Any]:
 
 def _document(path: Path) -> dict[str, Any]:
     return _document_bytes(path.read_bytes(), path.relative_to(ROOT).as_posix())
-
-
-def _git_blob(commit: str, relative_path: str) -> bytes:
-    environment = os.environ.copy()
-    for name in (
-        "GIT_DIR",
-        "GIT_WORK_TREE",
-        "GIT_INDEX_FILE",
-        "GIT_COMMON_DIR",
-        "GIT_OBJECT_DIRECTORY",
-        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
-    ):
-        environment.pop(name, None)
-    environment.update(
-        {
-            "GIT_NO_REPLACE_OBJECTS": "1",
-            "GIT_NO_LAZY_FETCH": "1",
-            "GIT_OPTIONAL_LOCKS": "0",
-            "GIT_TERMINAL_PROMPT": "0",
-        }
-    )
-    object_name = f"{commit}:{relative_path}"
-    try:
-        result = subprocess.run(
-            ["git", "--no-replace-objects", "cat-file", "blob", object_name],
-            cwd=ROOT,
-            env=environment,
-            check=False,
-            capture_output=True,
-            timeout=_GIT_OBJECT_TIMEOUT_SECONDS,
-        )
-    except subprocess.TimeoutExpired as error:
-        raise ValueError(
-            f"timed out reading pinned Git object {object_name} after "
-            f"{_GIT_OBJECT_TIMEOUT_SECONDS} seconds"
-        ) from error
-    except OSError as error:
-        raise ValueError(
-            f"cannot read pinned Git object {object_name}: {error}"
-        ) from error
-    if result.returncode != 0:
-        detail = result.stderr.decode("utf-8", errors="replace").strip()
-        if not detail:
-            detail = f"git exited with status {result.returncode}"
-        raise ValueError(f"cannot read pinned Git object {object_name}: {detail}")
-    return result.stdout
 
 
 def _recipe_key(document: dict[str, Any]) -> str:
@@ -444,11 +399,12 @@ def _recovery_coverage_definitions(
 
 
 def _pinned_stack_identities(
-    catalog_commit: str,
+    release_tag: str,
     catalog_recipes: dict[str, dict[str, Any]],
     model_documents: dict[str, dict[str, Any]],
+    catalog_root: Path | None = None,
 ) -> dict[str, dict[str, Any]]:
-    """Hash each published stack from the exact package blob in the pinned catalog."""
+    """Hash each published stack from the exact package in the pinned release."""
 
     identities: dict[str, dict[str, Any]] = {}
     for key, entry in catalog_recipes.items():
@@ -459,7 +415,7 @@ def _pinned_stack_identities(
         if not isinstance(package, dict):
             raise TypeError(f"published recipe package is missing: {key}")
         with pinned_catalog_package_tree(
-            ROOT, catalog_commit, package, recipe, model_documents
+            release_tag, package, recipe, model_documents, catalog_root=catalog_root
         ) as package_root:
             identities[key] = execution_stack_identity(
                 package_root, recipe, recipe.execution.build
@@ -528,7 +484,7 @@ def _refresh_plan(text: str, authority: dict[str, Any]) -> str:
     return text[:start] + "".join(lines) + text[stop:]
 
 
-def _build() -> dict[Path, bytes]:
+def _build(catalog_root: Path | None = None) -> dict[Path, bytes]:
     plan_text = PLAN_PATH.read_text(encoding="utf-8")
     plan_rows = _plan_rows(plan_text)
     release = _document(QUALIFICATION / "catalog-release.json")
@@ -548,17 +504,20 @@ def _build() -> dict[Path, bytes]:
     ):
         raise ValueError("catalog release tag is invalid")
 
-    catalog_bytes = _git_blob(catalog_commit, "catalog-index.json")
-    qualification_bytes = _git_blob(
-        catalog_commit, "qualification/qualification-index.json"
+    checksums = release_checksums(release)
+    catalog_bytes = release_asset(
+        release_tag, "catalog-index.json", checksums["catalog-index.json"]
+    )
+    qualification_bytes = release_asset(
+        release_tag, "qualification-index.json", checksums["qualification-index.json"]
     )
     catalog = _document_bytes(catalog_bytes, "pinned catalog-index.json")
     qualification = _document_bytes(
         qualification_bytes, "pinned qualification-index.json"
     )
     source_commit = catalog.get("source_commit")
-    if not isinstance(source_commit, str) or _COMMIT.fullmatch(source_commit) is None:
-        raise ValueError("catalog source_commit must be a full Git SHA")
+    if source_commit != catalog_commit:
+        raise ValueError("released catalog was not built from the release commit")
 
     catalog_recipes: dict[str, dict[str, Any]] = {}
     for entry in catalog.get("recipes", []):
@@ -593,7 +552,7 @@ def _build() -> dict[Path, bytes]:
         model_documents[model_key] = entity["document"]
 
     stack_identities = _pinned_stack_identities(
-        catalog_commit, catalog_recipes, model_documents
+        release_tag, catalog_recipes, model_documents, catalog_root
     )
 
     capacity_reviews = gate_review.get("capacity_reviews")
@@ -803,9 +762,16 @@ def main() -> int:
         action="store_true",
         help="fail if the committed authority, campaign, or plan is stale",
     )
+    parser.add_argument(
+        "--catalog-root",
+        type=Path,
+        default=ROOT,
+        help="directory of generated catalog outputs whose packages may stand "
+        "in for identical release assets (default: this checkout)",
+    )
     args = parser.parse_args()
     try:
-        outputs = _build()
+        outputs = _build(args.catalog_root)
         stale = [
             path
             for path, expected in outputs.items()

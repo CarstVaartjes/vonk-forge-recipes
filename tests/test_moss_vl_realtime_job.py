@@ -9,6 +9,8 @@ import types
 import unittest
 from pathlib import Path
 
+from generated_catalog import GENERATED
+
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/moss-vl-realtime"
 CONTRACT_PATH = ADAPTER_ROOT / "input_contract.py"
@@ -191,7 +193,9 @@ class MossRealtimeJobTests(unittest.TestCase):
         self.assertEqual(context["path"], "adapters/video/moss-vl-realtime")
         self.assertTrue(digest and archive)
 
-        index = json.loads((ROOT / "catalog-index.json").read_text(encoding="utf-8"))
+        index = json.loads(
+            (GENERATED / "catalog-index.json").read_text(encoding="utf-8")
+        )
         entry = next(
             item
             for item in index["recipes"]

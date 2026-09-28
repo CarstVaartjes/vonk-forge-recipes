@@ -5,6 +5,8 @@ import json
 import unittest
 from pathlib import Path
 
+from generated_catalog import GENERATED
+
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = ROOT / "models/deepseek-v4-flash-vision-exp-6821d6ad.json"
 RECIPE = ROOT / "recipes/deepseek-v4-flash-vision-exp-mia-dual.json"
@@ -71,7 +73,7 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
         self.assertEqual(self.recipe["interfaces"][0]["adapter"], "openai")
 
     def test_release_binds_the_current_recipe_digest(self) -> None:
-        index = load(ROOT / "catalog-index.json")
+        index = load(GENERATED / "catalog-index.json")
         entry = next(
             item
             for item in index["recipes"]

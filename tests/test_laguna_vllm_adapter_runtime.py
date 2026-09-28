@@ -6,6 +6,8 @@ import runpy
 import unittest
 from pathlib import Path
 
+from generated_catalog import GENERATED
+
 ROOT = Path(__file__).resolve().parents[1]
 DOCKERFILES = (
     ROOT / "adapters/llm/laguna-vllm/Dockerfile",
@@ -55,7 +57,7 @@ class LagunaVllmAdapterRuntimeTests(unittest.TestCase):
             context = recipe["execution"]["build"]["context"]
             archive, _, bundle_digest = tool["source_bundle"](ROOT / context["path"])
             self.assertTrue(bundle_digest and archive)
-            index = load(ROOT / "catalog-index.json")
+            index = load(GENERATED / "catalog-index.json")
             entry = next(
                 item
                 for item in index["recipes"]

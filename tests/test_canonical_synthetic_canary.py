@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from generated_catalog import GENERATED
 from pydantic import ValidationError
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256
 from vonk_forge_contracts.model import ModelSource
@@ -68,7 +69,9 @@ def test_canonical_canary_is_schema2_and_excluded_from_public_catalog() -> None:
     assert recipe.execution.build.base_image.digest != "0" * 64
     assert recipe.execution.build.base_image.digest != "f" * 64
 
-    public_index = json.loads((ROOT / "catalog-index.json").read_text(encoding="utf-8"))
+    public_index = json.loads(
+        (GENERATED / "catalog-index.json").read_text(encoding="utf-8")
+    )
     public_recipes = {
         row["document"]["identity"]["slug"] for row in public_index["recipes"]
     }
