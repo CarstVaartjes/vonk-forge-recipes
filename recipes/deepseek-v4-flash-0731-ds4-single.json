@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
         "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
@@ -88,6 +88,23 @@
   },
   "release": {
     "history": [
+      {
+        "version": "2.1.3",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "980583772d66a46b6524ccb0d0685e15b1b37234ad32ef4e00d14534bc36ed90",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Move the DS4 build and runtime stages from CUDA 13.0.1 to the CUDA 13.4.1 Ubuntu 24.04 devel/runtime images (arm64 digests).",
+            "details": "Build stage nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37, runtime stage 13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962. make cuda-spark emits sm_121a SASS only (no PTX JIT), and the 13.4.1 image keeps the driver>=580 requirement, so it stays admissible on the Spark 580-series driver. DS4 source stays at f4d03f6c: antirez/ds4 has no tagged release. A physical Spark build remains unverified.",
+            "references": [
+              "https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html",
+              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
+            ]
+          }
+        ]
+      },
       {
         "changes": [
           {
@@ -260,8 +277,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-06",
-    "version": "2.1.2"
+    "released_at": "2026-09-28",
+    "version": "2.1.3"
   },
   "runtime": {
     "arguments": [

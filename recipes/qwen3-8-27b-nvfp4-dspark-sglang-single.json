@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "3c0abdf41ef22de9d7a859dc16ed71eae69452e36c91f071a25e60c85a6d1fc6",
+        "digest": "b0d8718a4424bb22e448e04407ab3ce5f7399a4c5fc702d6fbe36c3772ec8862",
         "platform": "linux/arm64",
         "repository": "docker.io/lmsysorg/sglang"
       },
@@ -404,6 +404,24 @@
   "release": {
     "history": [
       {
+        "version": "1.2.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "9942bb8c98d4ec072735098aca836faa657b1d3136a247689c4f0bef8a9db07a",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Moved the base image from the qwen38-27b nightly build to the stable SGLang v0.5.20 CUDA 13 arm64 image.",
+            "details": "Base image lmsysorg/sglang:qwen38-27b (arm64 sha256:3c0abdf41ef2, nightly-dev-20260814 commit c4271c3f with a prebuilt FlashInfer 0.6.18 nightly overlay) is replaced by the stable v0.5.20 image (arm64 sha256:b0d8718a4424, commit 94602c9c, FlashInfer 0.6.18), which contains c4271c3f. The v0.5.20 Qwen3.8-27B cookbook runs DGX Spark on the stable image and reports its Spark DSPARK cells measured on v0.5.19. All wrapper flags exist unchanged. The MiaAI-Lab source pin and both model revisions are unchanged; the drafter head only changed README.md.",
+            "references": [
+              "https://github.com/sgl-project/sglang/releases/tag/v0.5.20",
+              "https://github.com/sgl-project/sglang/compare/c4271c3fe1262fc2adbd162c33b25de5255251c5...v0.5.20",
+              "https://github.com/sgl-project/sglang/blob/94602c9c2b7cbdb8efd5c52802dac6a1c180089e/docs/cookbook/autoregressive/Qwen/Qwen3.8-27B.mdx"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": "Rebased the specialized source bundle from 751e29eb6a3057ccfd8f992f87dfc260787e05a1 to 9d21dcd331232792e7d39f4f84db7dd46635905d. The DSpark launcher and .env.sample are byte-for-byte unchanged (start-dspark.sh Git blob 6d7cf28884235cc1d05bd16772ad1715eec25c06; .env.sample 9266fde52ab1949007ce3b7dc5b2f43059a4d903); the shared start.sh adds --sleep-on-idle, which the bundled DSpark adapter now carries. The upstream DFlash2 target/image changes remain outside this recipe path.",
@@ -512,8 +530,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.1.4"
+    "released_at": "2026-09-28",
+    "version": "1.2.0"
   },
   "runtime": {
     "arguments": [

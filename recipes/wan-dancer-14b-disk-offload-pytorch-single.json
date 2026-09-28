@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
         "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
@@ -458,6 +458,34 @@
   "release": {
     "history": [
       {
+        "version": "1.0.7",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "65a441d7fd7d262039d2f5acf38c4cd9c5b5a6ae36c25be1f83abebf2b60dd09",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Moved the CUDA runtime base from 13.0.1 to 13.4.1 (ubuntu24.04, arm64 digest 2eaf3468).",
+            "details": "The 13.4.1 runtime image keeps the brand=*,driver>=580,driver<581 requirement clause, so it stays admissible on the Spark 580-series driver. PyTorch continues to bring its own cu130 wheels.",
+            "references": [
+              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
+            ]
+          },
+          {
+            "kind": "runtime",
+            "summary": "Refreshed the PyTorch stack: torch 2.14.0, torchvision 0.29.0, accelerate 1.15.0, transformers 4.46.2 -> 5.17.0, huggingface-hub 0.36.0 -> 1.33.0.",
+            "details": "On this path transformers is used only for the umT5 AutoTokenizer; token IDs and masks for the bundled prompts plus multilingual edge cases are byte-identical under 4.46.2, 4.57.6 and 5.17.0, and the patched package imports cleanly. huggingface-hub 2.0 is excluded by transformers 5.17 (<2.0). Pillow stays 11.3.0 because moviepy 2.2.1 requires pillow<12. DiffSynth-Studio stays at 84f93fc4: its newest tag v1.1.9 is 423 commits older, and advancing main commits are not a release.",
+            "references": [
+              "https://github.com/pytorch/pytorch/releases/tag/v2.14.0",
+              "https://github.com/pytorch/vision/releases/tag/v0.29.0",
+              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
+              "https://github.com/huggingface/transformers/releases/tag/v5.17.0",
+              "https://github.com/huggingface/huggingface_hub/releases/tag/v1.33.0"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "kind": "fix",
@@ -572,8 +600,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-24",
-    "version": "1.0.6"
+    "released_at": "2026-09-28",
+    "version": "1.0.7"
   },
   "runtime": {
     "arguments": [

@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1.7
-FROM docker.io/vllm/vllm-openai@sha256:41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4
+FROM docker.io/vllm/vllm-openai@sha256:e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e
 
 LABEL org.opencontainers.image.source="https://huggingface.co/LiquidAI/LFM2.5-VL-3B" \
       org.opencontainers.image.revision="a3af5799199acdd2a4f56ac4342816abb46c12a9" \
       org.opencontainers.image.licenses="LFM-1.0" \
-      org.opencontainers.image.description="Offline vLLM 0.28 CUDA 13 ARM64 OpenAI adapter for LFM2.5-VL-3B" \
-      io.vonk.vllm.build-commit="2cf0a6915ce544dc493a0990f2ea38d81601128a"
+      org.opencontainers.image.description="Offline vLLM 0.30 CUDA 13 ARM64 OpenAI adapter for LFM2.5-VL-3B" \
+      io.vonk.vllm.build-commit="ced6857afa0ea7b2e3f0846a62e1394e90f15607"
 
 COPY model-interface-smoke.py /tmp/model-interface-smoke.py
 RUN install --directory --mode=0755 /opt/vonk/bin /inputs \

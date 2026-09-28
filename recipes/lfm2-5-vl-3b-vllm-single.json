@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+        "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
         "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
@@ -190,6 +190,27 @@
   "release": {
     "history": [
       {
+        "version": "1.2.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "d2d09207d27c88cc7f0b4313494819f7d4899386936a3ace00e3d8142dab9e34",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Refresh the pinned official vLLM ARM64 runtime from 0.27.1 to stable 0.30.0.",
+            "details": "Moves from v0.27.1-aarch64 (1c8e60a0841b) to v0.30.0-aarch64 (4864d46625cb), build commit ced6857a, spanning v0.28-v0.30. Upstream v0.28 bumps Transformers to 5.15 and drops reasoning_content output; v0.29 makes Model Runner V2 the default. Removed flags/env vars in v0.28-v0.30 are not used here; every runtime option in this recipe still exists at v0.30.0. LFM2-VL and the lfm2 tool parser remain native vLLM implementations. Model pin unchanged: upstream a3af5799 -> 35a118d9 only edits README.md. This recipe now shares the vLLM 0.30.0 release with lfm2-5-vl-3b-vllm028-single (different image flavor and tuning).",
+            "references": [
+              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.28.0",
+              "https://github.com/vllm-project/vllm/compare/v0.27.1...v0.30.0",
+              "https://hub.docker.com/r/vllm/vllm-openai/tags?name=v0.30.0-aarch64",
+              "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/commit/35a118d938ce6d123ac2d371649f24a8efb69058"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": null,
@@ -299,8 +320,8 @@
         "version": "1.0.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "1.1.3"
+    "released_at": "2026-09-28",
+    "version": "1.2.0"
   },
   "runtime": {
     "arguments": [

@@ -27,7 +27,7 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
         recipe = read(self.path)
         model = model_for(recipe)
         self.assertEqual(
-            model["source"]["revision"], "4c7c4ea236326cbae56d403d22a03c6cd86ad9a0"
+            model["source"]["revision"], "f68ace85e60b4a02a323e394253731947657b7d2"
         )
         self.assertEqual(model["format"]["quantization"], "fp8mixed")
         self.assertEqual(len(recipe["models"]), 1)

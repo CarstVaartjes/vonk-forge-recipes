@@ -1,9 +1,9 @@
-FROM docker.io/vllm/vllm-openai@sha256:41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4
+FROM docker.io/vllm/vllm-openai@sha256:e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e
 
 LABEL org.opencontainers.image.source="https://github.com/vllm-project/vllm" \
-      org.opencontainers.image.revision="2cf0a6915ce544dc493a0990f2ea38d81601128a" \
+      org.opencontainers.image.revision="ced6857afa0ea7b2e3f0846a62e1394e90f15607" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      io.vonk.vllm.build-commit="2cf0a6915ce544dc493a0990f2ea38d81601128a"
+      io.vonk.vllm.build-commit="ced6857afa0ea7b2e3f0846a62e1394e90f15607"
 
 COPY gemma4-parser-smoke.py /tmp/gemma4-parser-smoke.py
 RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \

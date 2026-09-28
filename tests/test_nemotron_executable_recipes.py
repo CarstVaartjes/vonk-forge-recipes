@@ -21,7 +21,7 @@ RECIPES = {
     }.items()
 }
 REVISIONS = {
-    "nano": "ce1b118ae66ec705d02c241525192832eb045fd3",
+    "nano": "6efb4a2a1c1fa277ce7b3df7a1416255011b1c99",
     "omni": "16993199e436da4ba75ddc410855f87e0d996ee6",
     "super": "ff433f5493e25d631c9f12b5d55c674229923d02",
 }

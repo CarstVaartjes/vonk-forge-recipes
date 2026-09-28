@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+        "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
         "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
@@ -37,7 +37,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable single-Spark OpenAI chat recipe for Google's exact instruction-tuned Gemma 4 26B-A4B checkpoint, using its pinned canonical chat template and vLLM's native Gemma 4 reasoning parser.",
+    "description": "Executable single-Spark OpenAI chat recipe for Google's exact instruction-tuned Gemma 4 26B-A4B checkpoint, using its pinned canonical chat template and vLLM's native Gemma 4 reasoning and tool-call parsers.",
     "tags": [
       "executable",
       "candidate",
@@ -46,6 +46,7 @@
       "multimodal",
       "instruction-tuned",
       "reasoning",
+      "tool-use",
       "vllm",
       "openai",
       "single",
@@ -208,6 +209,35 @@
   "release": {
     "history": [
       {
+        "version": "2.1.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "435c282dbf2fbd4d0ab70832edef9d49ebb2dad3a63ec7ac1469684567a5eca4",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Moved to the official vLLM 0.30.0 ARM64 image from vLLM 0.27.1.",
+            "details": "docker.io/vllm/vllm-openai v0.30.0-aarch64 @sha256:4864d466 (build commit ced6857a, CUDA 13.0) replaces v0.27.1-aarch64 @sha256:1c8e60a0. Every launch option, parser and model architecture this recipe uses is present at v0.30.0. Upstream 0.29 makes Model Runner V2 the default and 0.28-0.30 remove only options this recipe does not use. Physical GB10 startup, memory and output acceptance is still required.",
+            "references": [
+              "https://github.com/vllm-project/vllm/releases/tag/v0.28.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
+              "https://github.com/vllm-project/vllm/compare/v0.27.1...v0.30.0"
+            ]
+          },
+          {
+            "kind": "fix",
+            "summary": "Re-enabled Gemma 4 tool calling now that vLLM 0.30.0 parses the canonical bare tool-call opener.",
+            "details": "vLLM issue #53431 (bare <|tool_call> opener silently dropped) was fixed by #53444, which v0.30.0 contains. The recipe again passes --tool-call-parser gemma4 and --enable-auto-tool-choice and declares tool use. An opener without the call: marker is still handled only by the unmerged #54778.",
+            "references": [
+              "https://github.com/vllm-project/vllm/issues/53431",
+              "https://github.com/vllm-project/vllm/pull/53444",
+              "https://github.com/vllm-project/vllm/pull/54778"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
@@ -345,8 +375,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-03",
-    "version": "2.0.4"
+    "released_at": "2026-09-28",
+    "version": "2.1.0"
   },
   "runtime": {
     "arguments": [
@@ -374,6 +404,16 @@
         "name": "reasoning-parser",
         "setting": null,
         "value": "gemma4"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "gemma4"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
       },
       {
         "name": "default-chat-template-kwargs",

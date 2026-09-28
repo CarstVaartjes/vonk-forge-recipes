@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+        "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
         "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
@@ -37,7 +37,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate single-Spark recipe for NVIDIA's current Nemotron 3 Super NVFP4 contract. It binds vLLM 0.27.1, the immutable super_v3 parser, FP4/Marlin execution, FP8 KV, Mamba cache, and the separately pinned MTPv2 speculative-decoding head without runtime downloads.",
+    "description": "Executable Candidate single-Spark recipe for NVIDIA's current Nemotron 3 Super NVFP4 contract. It binds vLLM 0.30.0, the immutable super_v3 parser, FP4/Marlin execution, FP8 KV, Mamba cache, and the separately pinned MTPv2 speculative-decoding head without runtime downloads.",
     "tags": [
       "executable",
       "candidate",
@@ -557,6 +557,25 @@
   "release": {
     "history": [
       {
+        "version": "2.2.0",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "2775cd1cc96ef987b5056e546be6785b82044d2ab06712da8dfef9c10da3b080",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Moved to the official vLLM 0.30.0 ARM64 image from vLLM 0.27.1.",
+            "details": "docker.io/vllm/vllm-openai v0.30.0-aarch64 @sha256:4864d466 (build commit ced6857a, CUDA 13.0) replaces v0.27.1-aarch64 @sha256:1c8e60a0. Every launch option, parser and model architecture this recipe uses is present at v0.30.0. Upstream 0.29 makes Model Runner V2 the default and 0.28-0.30 remove only options this recipe does not use. NVIDIA's model card still names v0.27.1 for DGX Spark; its launch options used here are unchanged at v0.30.0 and the snapshot's super_v3 reasoning plugin imports resolve there. Physical GB10 startup, memory and output acceptance is still required.",
+            "references": [
+              "https://github.com/vllm-project/vllm/releases/tag/v0.28.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
+              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
+              "https://github.com/vllm-project/vllm/compare/v0.27.1...v0.30.0"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "details": null,
@@ -725,8 +744,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-05",
-    "version": "2.1.6"
+    "released_at": "2026-09-28",
+    "version": "2.2.0"
   },
   "runtime": {
     "arguments": [

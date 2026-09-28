@@ -1,4 +1,4 @@
-FROM docker.io/lmsysorg/sglang@sha256:fc960102f1d2581b7dfa44885f6afcdfb107e84782e318cf33bbb2f219d0bd16
+FROM docker.io/lmsysorg/sglang@sha256:b0d8718a4424bb22e448e04407ab3ce5f7399a4c5fc702d6fbe36c3772ec8862
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Ling-3.0-Flash-SGLang-DSpark-DGX-Spark" \
       org.opencontainers.image.revision="ca840cb8d032353e24648aeee06312b0938348f6" \

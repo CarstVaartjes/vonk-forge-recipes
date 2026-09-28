@@ -3,7 +3,7 @@
     "build": {
       "arguments": [],
       "base_image": {
-        "digest": "36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4",
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
         "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
@@ -3293,6 +3293,35 @@
   "release": {
     "history": [
       {
+        "version": "3.0.9",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "rebuild",
+        "prior_recipe_content_sha256": "a0e9837af5df96b23cbd6772025dbd558d8c7805fd4a8d3ed999d1b43865177f",
+        "changes": [
+          {
+            "kind": "runtime",
+            "summary": "Moved the CUDA runtime base to 13.4.1 and refreshed PyTorch 2.14.0, torchvision 0.29.0, Transformers 5.17.0 and Accelerate 1.15.0.",
+            "details": "Base image nvcr.io/nvidia/cuda 13.0.1-runtime-ubuntu24.04 -> 13.4.1-runtime-ubuntu24.04 (arm64 digest 2eaf346843c9); its NVIDIA_REQUIRE_CUDA keeps the driver>=580 branch clause. torch 2.13.0 -> 2.14.0 and torchvision 0.28.0 -> 0.29.0 (cu130 aarch64 wheels), transformers 5.15.1 -> 5.17.0, accelerate 1.14.0 -> 1.15.0. av 18.1.0, torchao 0.18.0 (pure-Python wheel on aarch64), Pillow 12.3.0, safetensors 0.8.0 and sentencepiece 0.2.2 are already the latest releases. Model revision and adapter settings are unchanged.",
+            "references": [
+              "https://github.com/pytorch/pytorch/releases/tag/v2.14.0",
+              "https://github.com/pytorch/vision/releases/tag/v0.29.0",
+              "https://github.com/huggingface/transformers/releases/tag/v5.17.0",
+              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
+              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
+            ]
+          },
+          {
+            "kind": "compatibility",
+            "summary": "Kept Diffusers at commit efabd60d61c2 because it is newer than the v0.40.0 release.",
+            "details": "The GitHub compare v0.40.0...efabd60d61c2 reports the pinned commit 15 commits ahead of the latest stable Diffusers tag (diverged only by the release-branch version commit), so no stable release contains it. Its MiniMax H3 modular encoder imports Qwen3VLForConditionalGeneration/Qwen3VLProcessor, which Transformers 5.17 keeps; only deprecated vision-helper methods were removed.",
+            "references": [
+              "https://github.com/huggingface/diffusers/compare/v0.40.0...efabd60d61c2b7aabf9f182bee6b5b6058980304",
+              "https://github.com/huggingface/transformers/pull/48367"
+            ]
+          }
+        ]
+      },
+      {
         "changes": [
           {
             "kind": "fix",
@@ -3605,8 +3634,8 @@
         "version": "0.1.0"
       }
     ],
-    "released_at": "2026-09-24",
-    "version": "3.0.8"
+    "released_at": "2026-09-28",
+    "version": "3.0.9"
   },
   "runtime": {
     "arguments": [

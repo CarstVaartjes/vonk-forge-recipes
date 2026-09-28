@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4
+FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
 
 LABEL org.opencontainers.image.source="https://github.com/OpenMOSS/MOSS-VL" \
       org.opencontainers.image.revision="288cc2dcd145e53a3baf9c11fc9be298cf1b30d7" \
