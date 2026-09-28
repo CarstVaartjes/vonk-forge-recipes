@@ -1,38 +1,10 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "chat",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "code-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "6821d6ad3681a4b137b066b76094fa82ebd0a380",
-      "source_url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -793,7 +765,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "fp4-fp8-bf16-mixed",
     "quantization": "moe-experts-fp4-remaining-fp8-vision-bf16"
   },
@@ -804,7 +775,6 @@
       "title": "DeepSeek Flash"
     },
     "model": {
-      "architecture": "DeepSeek V4 sparse MoE transformer with 32-layer vision encoder, aligner, and three-layer DSpark speculative module",
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-flash-vision-exp",
       "title": "DeepSeek V4 Flash Vision Experimental"
@@ -819,25 +789,8 @@
     "attribution": [
       "DeepSeek AI"
     ],
-    "operator_acceptance_required": false,
     "spdx": "MIT",
     "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp/blob/6821d6ad3681a4b137b066b76094fa82ebd0a380/LICENSE"
-  },
-  "limits": {
-    "context_tokens": 1048576,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "deepseek-ai",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "deepseek-ai",
-      "slug": "deepseek-v4-flash-vision-exp"
-    }
   },
   "metadata": {
     "description": "Complete 84-file official DeepSeek V4 Flash Vision Experimental snapshot at 6821d6ad: native interleaved image and text understanding, 48 mixed FP4/FP8/BF16 shards, a 32-layer ViT and aligner, three DSpark prediction layers, tokenizer, prompt encoder, and minimal inference reference.",
@@ -857,21 +810,9 @@
     "image",
     "text"
   ],
-  "parameters": {
-    "active": 13000000000,
-    "total": 304646824126
-  },
-  "provenance": {
-    "attribution": [
-      "DeepSeek AI"
-    ],
-    "source_revision": "6821d6ad3681a4b137b066b76094fa82ebd0a380",
-    "source_url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp",
     "revision": "6821d6ad3681a4b137b066b76094fa82ebd0a380"
-  },
-  "supersedes": null
+  }
 }

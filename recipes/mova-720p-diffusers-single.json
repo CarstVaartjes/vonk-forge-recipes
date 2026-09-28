@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -24,13 +22,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -47,7 +42,6 @@
           "image/png",
           "image/webp"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -89,7 +83,6 @@
       },
       "output": {
         "max_total_bytes": 536870912,
-        "path": "/outputs",
         "slots": [
           {
             "description": "Generated MP4 containing 1280x720 H.264 video at 24 fps and synchronized 48 kHz AAC audio.",
@@ -107,8 +100,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -137,7 +129,6 @@
           "file_id": "file-774ba70e0bf6",
           "id": "primary-file-774ba70e0bf6",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -148,7 +139,6 @@
           "file_id": "file-30ab13f8cdcf",
           "id": "primary-file-30ab13f8cdcf",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -159,7 +149,6 @@
           "file_id": "file-4092e5fbaa5d",
           "id": "primary-file-4092e5fbaa5d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -170,7 +159,6 @@
           "file_id": "file-40eb23f3c1f7",
           "id": "primary-file-40eb23f3c1f7",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -181,7 +169,6 @@
           "file_id": "file-b04a60c3412c",
           "id": "primary-file-b04a60c3412c",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -192,7 +179,6 @@
           "file_id": "file-070a6d84b57f",
           "id": "primary-file-070a6d84b57f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -203,7 +189,6 @@
           "file_id": "file-ee03ace9a3b1",
           "id": "primary-file-ee03ace9a3b1",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -214,7 +199,6 @@
           "file_id": "file-67ecb3dc37a8",
           "id": "primary-file-67ecb3dc37a8",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -225,7 +209,6 @@
           "file_id": "file-bcfd37e83e34",
           "id": "primary-file-bcfd37e83e34",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -236,7 +219,6 @@
           "file_id": "file-02972f2ff920",
           "id": "primary-file-02972f2ff920",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -247,7 +229,6 @@
           "file_id": "file-6ecf8bd4b949",
           "id": "primary-file-6ecf8bd4b949",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -258,7 +239,6 @@
           "file_id": "file-ab0456bfcf84",
           "id": "primary-file-ab0456bfcf84",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -269,7 +249,6 @@
           "file_id": "file-5fc12c01f9a5",
           "id": "primary-file-5fc12c01f9a5",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -280,7 +259,6 @@
           "file_id": "file-9a6c01131437",
           "id": "primary-file-9a6c01131437",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -291,7 +269,6 @@
           "file_id": "file-b87c178459f0",
           "id": "primary-file-b87c178459f0",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -302,7 +279,6 @@
           "file_id": "file-47a6faaf45c4",
           "id": "primary-file-47a6faaf45c4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -313,7 +289,6 @@
           "file_id": "file-976cf290b8a5",
           "id": "primary-file-976cf290b8a5",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -324,7 +299,6 @@
           "file_id": "file-b674cc4a53a5",
           "id": "primary-file-b674cc4a53a5",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -335,7 +309,6 @@
           "file_id": "file-bf7833160a82",
           "id": "primary-file-bf7833160a82",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -346,7 +319,6 @@
           "file_id": "file-fd2acdf4d0f2",
           "id": "primary-file-fd2acdf4d0f2",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -357,7 +329,6 @@
           "file_id": "file-501d75fe963c",
           "id": "primary-file-501d75fe963c",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -368,7 +339,6 @@
           "file_id": "file-6d4052c31672",
           "id": "primary-file-6d4052c31672",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -379,7 +349,6 @@
           "file_id": "file-df94b70014d4",
           "id": "primary-file-df94b70014d4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -390,7 +359,6 @@
           "file_id": "file-c17d43dd251b",
           "id": "primary-file-c17d43dd251b",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -401,7 +369,6 @@
           "file_id": "file-6a9ee3d258c2",
           "id": "primary-file-6a9ee3d258c2",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -412,7 +379,6 @@
           "file_id": "file-79c3fc8616e3",
           "id": "primary-file-79c3fc8616e3",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -423,7 +389,6 @@
           "file_id": "file-1f1c624bc410",
           "id": "primary-file-1f1c624bc410",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -434,7 +399,6 @@
           "file_id": "file-b899f9e2bead",
           "id": "primary-file-b899f9e2bead",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -444,7 +408,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "e662dfed219ea8c83c16142dd0a842ec451d1015451a7388efb57b21d2dac8ef",
+        "content_sha256": "e9ee5114179de6c3dafb94c922a0bb118bffcc6af73b8387cc3f2b14cd4ae50b",
         "kind": "model",
         "publisher": "openmoss",
         "slug": "mova-720p"
@@ -455,278 +419,9 @@
     "attribution": [
       "openmoss"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/OpenMOSS-Team/MOVA-720p/tree/8462bea9a317a3591279faeedfd3ca01b055cb59"
   },
   "release": {
-    "history": [
-      {
-        "version": "2.0.12",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "103f58ffa1826825fa02404367bf8f8cebd10d9143e579e037dd5ba851d02591",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Move the base image to NVIDIA CUDA 13.4.1 runtime (Ubuntu 24.04, ARM64 digest-pinned).",
-            "details": "Base image moved from nvcr.io/nvidia/cuda:13.2.1-runtime-ubuntu24.04 to 13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962 (linux/arm64). Its NVIDIA_REQUIRE_CUDA keeps the driver>=580,<581 branch clause, so admission on the Spark driver is unchanged. PyTorch still ships its own CUDA user-space wheels.",
-            "references": [
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "runtime",
-            "summary": "Update PyTorch to 2.14.0/torchvision 0.29.0 (cu132), diffusers to 0.39.0, accelerate to 1.15.0, huggingface-hub to 0.36.2.",
-            "details": "torch 2.13.0 -> 2.14.0 and torchvision 0.28.0 -> 0.29.0 (cu132), with the torch-required closure pins nvidia-cudnn-cu13 9.24.0.43, nvidia-nccl-cu13 2.30.7 and triton 3.8.0. diffusers 0.36.0 -> 0.39.0, the newest release compatible with MOVA's transformers<5: diffusers 0.40.0 requires huggingface-hub>=1.23 while transformers 4.57.6 needs huggingface-hub<1.0. MOVA source 83bcbe8e is kept (no tagged MOVA release exists).",
-            "references": [
-              "https://github.com/pytorch/pytorch/releases/tag/v2.14.0",
-              "https://github.com/huggingface/diffusers/releases/tag/v0.39.0",
-              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
-              "https://github.com/OpenMOSS/MOVA/blob/83bcbe8eab55ded920889239af93c112834ee5b8/pyproject.toml"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": "The exact pinned model card declares Apache-2.0; this snapshot does not contain a LICENSE file, so the license link now targets the card that carries the declaration.",
-            "kind": "metadata",
-            "references": [
-              "https://huggingface.co/OpenMOSS-Team/MOVA-720p/blob/8462bea9a317a3591279faeedfd3ca01b055cb59/README.md"
-            ],
-            "summary": "Link the license declaration to the exact pinned MOVA model card."
-          }
-        ],
-        "prior_recipe_content_sha256": "891e70bebe5f91139246d25054582b74e13ada68acecbfa45d86d682eacd29a0",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "none",
-        "version": "2.0.11"
-      },
-      {
-        "changes": [
-          {
-            "details": "Replaced the unsupported aggregate snapshot selector with every exact file from the pinned primary manifest and explicitly selected the adapter-required offline companion artifacts.",
-            "kind": "fix",
-            "references": [
-              "https://huggingface.co/OpenMOSS-Team/MOVA-720p/tree/8462bea9a317a3591279faeedfd3ca01b055cb59"
-            ],
-            "summary": "Bound the primary model and all required offline companion files by exact immutable file IDs."
-          }
-        ],
-        "prior_recipe_content_sha256": "96d319d04c5efd5b8a32c7331a2fd509ee07d8b4b5ac8b6ae7d0fcd85b5f3eef",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "reprepare",
-        "version": "2.0.10"
-      },
-      {
-        "changes": [
-          {
-            "details": "The official MOVA compare range from the pinned 83bcbe8e revision to current d5b7899d changes README.md only; the executable source, build patches, and model closure are unchanged.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/OpenMOSS/MOVA/compare/83bcbe8eab55ded920889239af93c112834ee5b8...d5b7899dd4dd4a92dfca610cafe70b978ead3064",
-              "https://github.com/OpenMOSS/MOVA/commit/d5b7899dd4dd4a92dfca610cafe70b978ead3064"
-            ],
-            "summary": "Retained the MOVA source pin because current upstream changes are documentation-only."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "2.0.9"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "2.0.8"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "be2bbdb3249c0c7c1da56d85a7250b94104101f1c67b6f53cfb931f4f30993f8",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.7"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "c7358901381ff01ba189d84c334f01f456399d282a253b459a2f5ba2780623e3",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "2.0.6"
-      },
-      {
-        "changes": [
-          {
-            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
-            "kind": "security",
-            "references": [],
-            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
-          }
-        ],
-        "prior_recipe_content_sha256": "aed23720acc1e5bb7f960a9974e2b5c53c735fed41b72d363924eaa961c88f56",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution and resource declarations are unchanged; the catalog now recommends 360p by default until the 720p physical memory canary passes.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Labeled the 720p recipe as the higher-resolution, memory-tight MOVA profile."
-          }
-        ],
-        "prior_recipe_content_sha256": "b52595b5efa9b9996327a9c29a0c9203e1ddc7ca6b8e50b3bf7a970c69665819",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "none",
-        "version": "2.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "Publication now requires one 1280x720 H.264 stream with 193 frames at 24 fps and one synchronized 48 kHz AAC stream in the MP4 container.",
-            "kind": "fix",
-            "references": [],
-            "summary": "Made synchronized MOVA media acceptance fail closed."
-          }
-        ],
-        "prior_recipe_content_sha256": "4315f72b4bb32e603339e4830d3cb729b0e5ae54217b22996058551e71f5b554",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": "The adapter now verifies the signed input manifest, reads the required bounded UTF-8 prompt before loading the model, and has no hidden default prompt.",
-            "kind": "fix",
-            "references": [],
-            "summary": "Added signed typed prompt, optional reference-image, and MP4 result slots."
-          }
-        ],
-        "prior_recipe_content_sha256": "e9d04b6f1a2e45d73f3bf551ab1017d30e2a57e6d8452057c3d77659b11f6e33",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Disambiguated the model title as MOVA 720p in catalog filters and details."
-          }
-        ],
-        "prior_recipe_content_sha256": "34e9c3b4db9fb931e478ab4cbb5abc65f48957c7e7a8702bb559df0ef3486531",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "2.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "runtime",
-            "references": [
-              "https://github.com/OpenMOSS/MOVA/tree/83bcbe8eab55ded920889239af93c112834ee5b8",
-              "https://huggingface.co/OpenMOSS-Team/MOVA-720p/tree/8462bea9a317a3591279faeedfd3ca01b055cb59"
-            ],
-            "summary": "Replaced the non-executable Diffusers placeholder with the exact official MOVA native pipeline and a pinned ARM64 runtime."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/OpenMOSS/MOVA/blob/83bcbe8eab55ded920889239af93c112834ee5b8/scripts/inference_single.py",
-              "https://github.com/OpenMOSS/MOVA/blob/83bcbe8eab55ded920889239af93c112834ee5b8/mova/utils/data.py"
-            ],
-            "summary": "Added optional image conditioning, the official white-frame T2VA fallback, and fail-closed synchronized video and 48 kHz audio verification."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Verified the fully pinned image build on linux/arm64 and kept the executable recipe Candidate pending only a physical single-Spark inference canary."
-          }
-        ],
-        "prior_recipe_content_sha256": "2cff8790712a1447c44e563ed3a02ab7636f79937a6056abd6af6e15174db556",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/OpenMOSS/MOVA"
-            ],
-            "summary": "Marked the metadata-only candidate as requiring an immutable native MOVA source bundle and synchronized video/audio adapter before acceptance."
-          }
-        ],
-        "prior_recipe_content_sha256": "a13e8475d8f1d3e8b715e500acd98504075de43688f42eeebbfa57e188f71165",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of MOVA 720p diffusers single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "c309c8884b43eb2b1edddaa50f6fb6bac1f7b8810451e3d1e68d909de807baf1",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "369423f57b3e3bde516d96be6c3fc5e2ebccc57eedc6afa0b7f497ca8e98afc6",
-        "released_at": "2026-08-17",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "2.0.12"
   },
@@ -760,40 +455,26 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -803,47 +484,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 77689755302,
-            "cache_bytes": 8000000000,
             "image_bytes": 6000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 155379510604
+            "working_bytes": 163379510604
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 8000000000,
-            "startup_peak_bytes": 118000000000,
-            "steady_state_bytes": 104000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "audio_codec": "aac",
-          "audio_sample_rate": 48000,
-          "fps": 24,
-          "frames": 193,
-          "height": 720,
-          "num_inference_steps": 50,
-          "timeout_seconds": 3600,
-          "video_codec": "h264",
-          "width": 1280
-        },
-        "framework": "mova-native",
-        "name": "bounded-synchronized-video"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -855,11 +511,9 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/prompt.txt",
-            "input_path": "/inputs",
             "input_slots": {
               "prompt": "qualification/fixtures/prompt.txt"
             },
-            "output_path": "/outputs",
             "output_slot": "video",
             "transport": "job"
           }

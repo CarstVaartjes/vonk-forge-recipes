@@ -1,23 +1,7 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "video-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "ee6f4a40737a995bf5818954cfce6d59443b0f04",
-      "source_url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "video-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -58,7 +42,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "fp8",
     "quantization": "fp8"
   },
@@ -69,7 +52,6 @@
       "title": "Wan 2.2"
     },
     "model": {
-      "architecture": "14B high- and low-noise expert video diffusion transformer",
       "publisher": "wan-ai",
       "slug": "wan-2-2-t2v-14b",
       "title": "Wan 2.2 T2V 14B"
@@ -85,25 +67,8 @@
       "Wan-AI",
       "Comfy-Org"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B/blob/c8c270b13ee05bfa474194ac9fb07a5868a97cea/LICENSE.txt"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Comfy-Org scaled-FP8 conversion of the official Wan 2.2 T2V A14B experts and required companions.",
-    "publisher": "Comfy-Org",
-    "relation": "derived",
-    "source_model": {
-      "kind": "model",
-      "publisher": "wan-ai",
-      "slug": "wan-2-2-t2v-14b"
-    }
   },
   "metadata": {
     "description": "Exact Comfy-Org scaled-FP8 high/low-noise T2V experts, encoder, and Wan VAE.",
@@ -119,22 +84,9 @@
   "modalities": [
     "video"
   ],
-  "parameters": {
-    "active": 14000000000,
-    "total": 14000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Wan-AI",
-      "Comfy-Org"
-    ],
-    "source_revision": "ee6f4a40737a995bf5818954cfce6d59443b0f04",
-    "source_url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged",
     "revision": "ee6f4a40737a995bf5818954cfce6d59443b0f04"
-  },
-  "supersedes": null
+  }
 }

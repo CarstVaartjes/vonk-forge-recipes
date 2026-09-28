@@ -1,38 +1,10 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "ocr",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "tool-use",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "a3af5799199acdd2a4f56ac4342816abb46c12a9",
-      "source_url": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "image-understanding",
+    "ocr",
+    "text-generation",
+    "tool-use"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -127,7 +99,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -138,7 +109,6 @@
       "title": "LiquidAI LFM2.5"
     },
     "model": {
-      "architecture": "LFM2.5 2.6B hybrid language backbone with 400M SigLIP2 NaFlex vision encoder",
       "publisher": "liquidai",
       "slug": "lfm2-5-vl-3b",
       "title": "LFM2.5-VL-3B"
@@ -153,25 +123,8 @@
     "attribution": [
       "Liquid AI"
     ],
-    "operator_acceptance_required": true,
     "spdx": "LicenseRef-LFM-1.0",
     "url": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/blob/a3af5799199acdd2a4f56ac4342816abb46c12a9/LICENSE"
-  },
-  "limits": {
-    "context_tokens": 32768,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "liquidai",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "liquidai",
-      "slug": "lfm2-5-vl-3b"
-    }
   },
   "metadata": {
     "description": "Exact public BF16 a3af5799 checkpoint.",
@@ -186,21 +139,9 @@
     "image",
     "text"
   ],
-  "parameters": {
-    "active": 3123483888,
-    "total": 3123483888
-  },
-  "provenance": {
-    "attribution": [
-      "Liquid AI"
-    ],
-    "source_revision": "a3af5799199acdd2a4f56ac4342816abb46c12a9",
-    "source_url": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B",
     "revision": "a3af5799199acdd2a4f56ac4342816abb46c12a9"
-  },
-  "supersedes": null
+  }
 }

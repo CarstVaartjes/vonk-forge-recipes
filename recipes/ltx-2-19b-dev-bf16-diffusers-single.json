@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -23,13 +21,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -43,7 +38,6 @@
         "media_types": [
           "text/plain"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -65,7 +59,6 @@
       },
       "output": {
         "max_total_bytes": 1073741824,
-        "path": "/outputs",
         "slots": [
           {
             "description": "Generated 768x512 H.264/AAC MP4 with exactly 65 frames at 24 fps and one synchronized 24 kHz stereo audio stream.",
@@ -83,8 +76,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -116,7 +108,6 @@
           "file_id": "target",
           "id": "primary-target",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -127,7 +118,6 @@
           "file_id": "distilled-lora",
           "id": "primary-distilled-lora",
           "mount": {
-            "read_only": true,
             "target": "/models/distilled-lora"
           },
           "roles": [
@@ -138,7 +128,6 @@
           "file_id": "spatial-upscaler",
           "id": "primary-spatial-upscaler",
           "mount": {
-            "read_only": true,
             "target": "/models/spatial-upscaler"
           },
           "roles": [
@@ -148,7 +137,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "415e88e0d4bb1e5bf14899bcb311af148ff9685aabb30c2b5e53f0113da20f3b",
+        "content_sha256": "339ed61b6c0fc256591398213ab3466db65d6d01087c2607f580cd1b01da423c",
         "kind": "model",
         "publisher": "lightricks",
         "slug": "ltx-2-19b-dev-bf16"
@@ -160,7 +149,6 @@
           "file_id": "gemma-config",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-config",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-config"
           },
           "roles": [
@@ -171,7 +159,6 @@
           "file_id": "gemma-generation-config",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-generation-c",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-generation-config"
           },
           "roles": [
@@ -182,7 +169,6 @@
           "file_id": "gemma-weight-01",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-01",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-weight-01"
           },
           "roles": [
@@ -193,7 +179,6 @@
           "file_id": "gemma-weight-02",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-02",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-weight-02"
           },
           "roles": [
@@ -204,7 +189,6 @@
           "file_id": "gemma-weight-03",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-03",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-weight-03"
           },
           "roles": [
@@ -215,7 +199,6 @@
           "file_id": "gemma-weight-04",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-04",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-weight-04"
           },
           "roles": [
@@ -226,7 +209,6 @@
           "file_id": "gemma-weight-05",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-05",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-weight-05"
           },
           "roles": [
@@ -237,7 +219,6 @@
           "file_id": "gemma-weight-06",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-06",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-weight-06"
           },
           "roles": [
@@ -248,7 +229,6 @@
           "file_id": "gemma-weight-07",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-07",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-weight-07"
           },
           "roles": [
@@ -259,7 +239,6 @@
           "file_id": "gemma-weight-08",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-08",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-weight-08"
           },
           "roles": [
@@ -270,7 +249,6 @@
           "file_id": "gemma-weight-09",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-09",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-weight-09"
           },
           "roles": [
@@ -281,7 +259,6 @@
           "file_id": "gemma-weight-10",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-10",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-weight-10"
           },
           "roles": [
@@ -292,7 +269,6 @@
           "file_id": "gemma-weight-11",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-weight-11",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-weight-11"
           },
           "roles": [
@@ -303,7 +279,6 @@
           "file_id": "gemma-model-index",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-model-index",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-model-index"
           },
           "roles": [
@@ -314,7 +289,6 @@
           "file_id": "gemma-added-tokens",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-added-tokens",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-added-tokens"
           },
           "roles": [
@@ -325,7 +299,6 @@
           "file_id": "gemma-chat-template",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-chat-templat",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-chat-template"
           },
           "roles": [
@@ -336,7 +309,6 @@
           "file_id": "gemma-preprocessor-config",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-preprocessor",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-preprocessor-config"
           },
           "roles": [
@@ -347,7 +319,6 @@
           "file_id": "gemma-processor-config",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-processor-co",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-processor-config"
           },
           "roles": [
@@ -358,7 +329,6 @@
           "file_id": "gemma-special-tokens-map",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-special-toke",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-special-tokens-map"
           },
           "roles": [
@@ -369,7 +339,6 @@
           "file_id": "gemma-tokenizer",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-tokenizer",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-tokenizer"
           },
           "roles": [
@@ -380,7 +349,6 @@
           "file_id": "gemma-tokenizer-model",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-tokenizer-mo",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-tokenizer-model"
           },
           "roles": [
@@ -391,7 +359,6 @@
           "file_id": "gemma-tokenizer-config",
           "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108-gemma-tokenizer-co",
           "mount": {
-            "read_only": true,
             "target": "/models/gemma-tokenizer-config"
           },
           "roles": [
@@ -401,7 +368,7 @@
       ],
       "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108",
       "model": {
-        "content_sha256": "f431b07dc9945d9683df64dfc2cbbc1e2bf2bfd79376c39b36011982553ce24e",
+        "content_sha256": "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
         "kind": "model",
         "publisher": "lightricks",
         "slug": "ltx-2-gemma3-text-encoder-dfcc2108"
@@ -412,355 +379,9 @@
     "attribution": [
       "Lightricks"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
   },
   "release": {
-    "history": [
-      {
-        "version": "3.2.10",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "6c43652f7358f4422a9794fcc5d858f73b148f4bd0be13cd059860fad21f31d3",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Pin the official LTX-2 v1.3.0 release tag (598ab412) instead of the untagged main sync commit a95ab856.",
-            "details": "Lightricks/LTX-2 v1.3.0 (2026-08-26) is the newest stable release. Its tagged commit 598ab41247a77dbfe29b5186e915bcf4f9040ec7 has the identical git tree (a10010cd) as the previously pinned main commit a95ab856, so ltx-core/ltx-pipelines code is unchanged; only the source identity and archive SHA-256 (946465df...) change. LTX-2 v1.3.0 still pins torch==2.13.0 (cu132) and transformers<5.15, so those stay.",
-            "references": [
-              "https://github.com/Lightricks/LTX-2/releases/tag/v1.3.0",
-              "https://github.com/Lightricks/LTX-2/compare/a95ab856bf29407b6b066ede0abe1846050db56c...598ab41247a77dbfe29b5186e915bcf4f9040ec7"
-            ]
-          },
-          {
-            "kind": "runtime",
-            "summary": "Move the base image to NVIDIA CUDA 13.4.1 runtime (Ubuntu 24.04, ARM64 digest-pinned).",
-            "details": "Base image moved from nvcr.io/nvidia/cuda:13.2.1-runtime-ubuntu24.04 to 13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962 (linux/arm64). Its NVIDIA_REQUIRE_CUDA keeps the driver>=580,<581 branch clause, so admission on the Spark driver is unchanged. PyTorch still ships its own CUDA user-space wheels.",
-            "references": [
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "runtime",
-            "summary": "Refresh accelerate to 1.15.0 and huggingface-hub to 1.33.0 (latest 1.x) in the locked closure.",
-            "details": "accelerate 1.14.0 -> 1.15.0 and huggingface-hub 1.28.0 -> 1.33.0. huggingface-hub 2.0.0 is not adopted because the pinned transformers 5.14.1 requires huggingface-hub<2.0; transformers stays at 5.14.1 because LTX-2 v1.3.0 declares transformers<5.15. Model files are unchanged.",
-            "references": [
-              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
-              "https://pypi.org/project/huggingface-hub/1.33.0/"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu132 metadata requires cuda-toolkit==13.2.1; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu132/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "c563ad2382fc25b4459136ab80e9a15293fd2270034a69f48dd30f9f5fa7f22a",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "3.2.9"
-      },
-      {
-        "changes": [
-          {
-            "details": "Replaced the stale bundled protocol wheel with the Controller's current platform wheel (sha256 7555df9ec0f576ac0530d1e6abdd2f3845614cf397a7bc2c8dcd01bc86967565). The previous copy rejected a Controller-produced schema-2 plan with 518 valid argv entries; the current shared contract accepts it. Model weights and upstream LTX engine pins are unchanged.",
-            "kind": "runtime",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge/blob/0123eeb46a36f828d57b293c0b6704f5aa13d5f2/agent_protocol/src/vonk_agent_protocol/compiled_execution_plan.py",
-              "https://github.com/CarstVaartjes/vonk-forge/blob/0123eeb46a36f828d57b293c0b6704f5aa13d5f2/inventory/sbom/manifest.json"
-            ],
-            "summary": "Align the bundled protocol wheel with the current Controller contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "c72038b39ac1552c6c9f6eb9b33145a7c40ada21129d8c3b87918b6f368665d9",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "3.2.8"
-      },
-      {
-        "changes": [
-          {
-            "details": "The native adapter validates the compiled runtime plan and job input manifest with the bundled authoritative Pydantic protocol package, then reads only the declared prompt file. This repairs job input handling and removes duplicate runtime parsing; model weights and upstream engine pins are unchanged.",
-            "kind": "runtime",
-            "references": [],
-            "summary": "Read declared prompt inputs through the shared platform contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "05196f8ee2ab7cd27763dd0e777122897d292cab1d34e1f3c5096f2e03040e34",
-        "released_at": "2026-09-08",
-        "upgrade_effect": "rebuild",
-        "version": "3.2.7"
-      },
-      {
-        "changes": [
-          {
-            "details": "The native runner now consumes only schema-2 selected-file identities, mount targets, and relative paths, relying on agent-verified readonly materialization while checking exact file sizes.",
-            "kind": "runtime",
-            "references": [],
-            "summary": "Ported LTX native model materialization to the canonical schema-2 runtime contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "33817fb7c2da6727b328e142e268b43936fe580934ede5e4f3ab00a0352064d1",
-        "released_at": "2026-09-06",
-        "upgrade_effect": "rebuild",
-        "version": "3.2.6"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "3.2.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "e11c5220794234cf5f09b75f58b3089d1616ebd58b07f0e0d56a07c77d86d429",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "3.2.4"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "0de7440d1bc1bfe00205cbbb1bd4cdac55fd2fd0c8785c6c63935a27ad2f8c21",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "3.2.3"
-      },
-      {
-        "changes": [
-          {
-            "details": "LTX-2.5 BF16 is the current fidelity baseline and its fixed FP8-cast sequential-offload variant is the current lower-memory canary. Runtime, artifacts, build context, topology, interfaces, validation, and provenance are unchanged.",
-            "kind": "metadata",
-            "references": [
-              "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
-              "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc"
-            ],
-            "summary": "Marked the historical LTX-2 profile superseded while retaining its directly deployable immutable execution contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "0addc2134149c337544fcc6c67d375e24b9a202f4ee88971c24826b3ae893f12",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "3.2.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
-            "kind": "security",
-            "references": [],
-            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
-          }
-        ],
-        "prior_recipe_content_sha256": "960b825735a830becc2e42f01fc92ff0edf4b6f2f7a812a0f6c706810f8614da",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "rebuild",
-        "version": "3.2.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now binds the separately signed disk-offload adapter instead of the shared CPU-offload context. Pinned upstream quantifies disk offload at about 5 GB host RAM plus 5 GB accelerator memory versus about 36 GB host RAM plus 5 GB accelerator memory for CPU offload. The conservative Candidate envelope subtracts only that documented 31 GB host-memory delta: startup 120 to 89 GB and steady 106 to 75 GB, with growth and system reserve unchanged at 8 GB each. Admission therefore requires 97 GB including reserve; physical acceptance remains pending.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/Lightricks/LTX-2/blob/a95ab856bf29407b6b066ede0abe1846050db56c/packages/ltx-pipelines/src/ltx_pipelines/utils/types.py",
-              "https://github.com/Lightricks/LTX-2/blob/a95ab856bf29407b6b066ede0abe1846050db56c/packages/ltx-pipelines/src/ltx_pipelines/utils/args.py"
-            ],
-            "summary": "Selected the pinned upstream's explicit disk-streaming offload mode for the LTX-2 19B dev BF16 single-Spark Candidate."
-          }
-        ],
-        "prior_recipe_content_sha256": "a8f88e67bdb9846f378ccca6afe8f6e3dccf724360d61ce4ed68a85f9a07db9b",
-        "released_at": "2026-08-31",
-        "upgrade_effect": "rebuild",
-        "version": "3.2.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "The adapter fails closed unless ltx-pipelines is version 1.3.0 and PipelineOutput exposes video, audio, num_frames, tiling_config, keyframes, and video_latent.",
-            "kind": "runtime",
-            "references": [
-              "https://github.com/Lightricks/LTX-2/tree/a95ab856bf29407b6b066ede0abe1846050db56c"
-            ],
-            "summary": "Refreshed the native two-stage pipeline from LTX 1.2 to exact 1.3.0 source and its named PipelineOutput contract."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Added the upstream-required TorchVision 0.28 and cuDNN 9.24 pins to the checksummed ARM64 source build."
-          },
-          {
-            "details": "LTX 1.3 contains DFR and keyframe-aware decode support, but this recipe does not claim those artifact-dependent paths and remains a physical-acceptance Candidate.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Kept the declared two-stage interface and conservative memory envelope while inheriting upstream decode-tiling OOM fixes."
-          }
-        ],
-        "prior_recipe_content_sha256": "aa04af6689b07c224aca55cbb3cd163e5126a553e636cc230c631f428bb33f23",
-        "released_at": "2026-08-31",
-        "upgrade_effect": "rebuild",
-        "version": "3.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "breaking",
-            "references": [],
-            "summary": "Replaced the hidden default prompt with one required bounded UTF-8 prompt file and declared exact synchronized-MP4 output bounds."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Validate the exact H.264/AAC codec, geometry, frame rate, frame count, duration, stereo audio rate, and synchronization before atomic publication."
-          }
-        ],
-        "prior_recipe_content_sha256": "f6626eb0313140e99d6b0aa0389ff3035c062650114c8c9eb7cb77a4f8e99692",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "3.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Resolved the spatial upscaler from the immutable runtime artifact set instead of hardcoding a companion filename."
-          }
-        ],
-        "prior_recipe_content_sha256": "3ad4f542a4a210609aae46f1da24cd8fe8dbdfb7acabcee6ff42fee5131647f3",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "f4f516c9721c1c84fe3f795c7f532efedf834f09f868a07aec026dafc7efe212",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "2.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/Lightricks/LTX-2/tree/400fd31054597515f47125691032c04b1c3ee24e"
-            ],
-            "summary": "Replaced the non-executable generic diffusers binding with the pinned official LTX 1.2 native ARM64 pipeline adapter."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [
-              "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
-            ],
-            "summary": "Bound the exact checkpoint, Gemma 3 encoder, tokenizer, upscaler, and optional distilled LoRA files by SHA-256 without unrelated repository downloads."
-          },
-          {
-            "details": null,
-            "kind": "runtime",
-            "references": [],
-            "summary": "Added offline synchronized audio-video MP4 generation with post-export video and audio stream verification."
-          }
-        ],
-        "prior_recipe_content_sha256": "8bc3d1266828539dd08a5b3aedcb405e53243942516ee098ec73ed698514545b",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "reprepare",
-        "version": "2.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [
-              "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
-            ],
-            "summary": "Corrected the complete immutable LTX-2 snapshot and dependent disk resource sizes."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Marked the candidate as requiring a model-specific synchronized video/audio adapter before acceptance."
-          }
-        ],
-        "prior_recipe_content_sha256": "9064db5cf17f2221d8644d0bee30af68174aa17531af6b56a139c5b71492eca5",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of LTX-2 19B dev BF16 diffusers single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "9ebbd7b19832a0c6fef288654a5399780e650012c78443b6cf5dc6c9fb6f01d5",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "bbf016f6b7424228727f0e53edf75f2cebc0acc01ffb469b4d6a164770aef2cc",
-        "released_at": "2026-08-17",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "3.2.10"
   },
@@ -794,45 +415,30 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "PYTORCH_CUDA_ALLOC_CONF",
-        "secret": null,
         "value": "expandable_segments:True"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -842,41 +448,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 100744167584,
-            "cache_bytes": 8000000000,
             "image_bytes": 8000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 201488335168
+            "working_bytes": 209488335168
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 8000000000,
-            "startup_peak_bytes": 89000000000,
-            "steady_state_bytes": 75000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 89000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "audio_stream_required": true,
-          "frames": 65,
-          "timeout_seconds": 3600
-        },
-        "framework": "ltx-pipelines",
-        "name": "bounded-synchronized-video"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -888,11 +475,9 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/prompt.txt",
-            "input_path": "/inputs",
             "input_slots": {
               "prompt": "qualification/fixtures/prompt.txt"
             },
-            "output_path": "/outputs",
             "output_slot": "video",
             "transport": "job"
           }

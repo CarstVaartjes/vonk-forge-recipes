@@ -1,46 +1,14 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "chat",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "code-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "video-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "25a44fdbf16862a46b7cc9921142c6c81350af2f",
-      "source_url": "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation",
+    "video-understanding"
+  ],
   "dependencies": [
     {
-      "content_sha256": "b8070ed88ec4e098ae05d7b50befd6a0c17ae0a378a68860409daf71244d2abc",
+      "content_sha256": "877e81d8d00e7561d56d1f8e57ac5b0c4b1bdbf17c03e790ad35ba6aed3c4e97",
       "kind": "model",
       "publisher": "incoai",
       "slug": "glm-5-3-flash-dflash2-bf582e4e"
@@ -1345,7 +1313,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "exl3-tr3-4bpw-plus-bf16-dflash2"
   },
@@ -1356,7 +1323,6 @@
       "title": "GLM 5.3 MiaAI-Lab"
     },
     "model": {
-      "architecture": "GLM5 Next sparse and linear attention multimodal MoE transformer with DFlash2 speculative drafter",
       "publisher": "mia-ai-lab",
       "slug": "glm-5-3-flash-exl3-tr3-dflash2",
       "title": "GLM 5.3 Flash EXL3 TR3 with DFlash2"
@@ -1374,25 +1340,8 @@
       "MiaAI-Lab",
       "IncoAI"
     ],
-    "operator_acceptance_required": true,
     "spdx": "LicenseRef-ShapleyMCG-1.0",
     "url": "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/blob/25a44fdbf16862a46b7cc9921142c6c81350af2f/LICENSE"
-  },
-  "limits": {
-    "context_tokens": 1048576,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "mia-ai-lab",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "mia-ai-lab",
-      "slug": "glm-5-3-flash-exl3-tr3-dflash2"
-    }
   },
   "metadata": {
     "description": "Exact public GLM 5.3 Flash EXL3 TR3 4bpw plus DFlash2 25a44fdb checkpoint.",
@@ -1410,24 +1359,9 @@
     "text",
     "video"
   ],
-  "parameters": {
-    "active": 18000000000,
-    "total": 321320000000
-  },
-  "provenance": {
-    "attribution": [
-      "Z.AI",
-      "Brandon M. Music",
-      "MiaAI-Lab",
-      "IncoAI"
-    ],
-    "source_revision": "25a44fdbf16862a46b7cc9921142c6c81350af2f",
-    "source_url": "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw",
     "revision": "25a44fdbf16862a46b7cc9921142c6c81350af2f"
-  },
-  "supersedes": null
+  }
 }

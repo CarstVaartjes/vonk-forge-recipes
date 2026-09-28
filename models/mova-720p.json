@@ -1,28 +1,8 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "audio-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "video-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "8462bea9a317a3591279faeedfd3ca01b055cb59",
-      "source_url": "https://huggingface.co/OpenMOSS-Team/MOVA-720p"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "audio-generation",
+    "video-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -279,7 +259,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -290,7 +269,6 @@
       "title": "MOVA"
     },
     "model": {
-      "architecture": "upstream-native generation pipeline",
       "publisher": "openmoss",
       "slug": "mova-720p",
       "title": "MOVA 720p"
@@ -305,25 +283,8 @@
     "attribution": [
       "openmoss"
     ],
-    "operator_acceptance_required": true,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/OpenMOSS-Team/MOVA-720p/blob/8462bea9a317a3591279faeedfd3ca01b055cb59/README.md"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Immutable public upstream snapshot at the pinned revision.",
-    "publisher": "openmoss",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "openmoss",
-      "slug": "mova-720p"
-    }
   },
   "metadata": {
     "description": "Immutable public snapshot at 8462bea9.",
@@ -337,21 +298,9 @@
     "audio",
     "video"
   ],
-  "parameters": {
-    "active": null,
-    "total": null
-  },
-  "provenance": {
-    "attribution": [
-      "openmoss"
-    ],
-    "source_revision": "8462bea9a317a3591279faeedfd3ca01b055cb59",
-    "source_url": "https://huggingface.co/OpenMOSS-Team/MOVA-720p"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/OpenMOSS-Team/MOVA-720p",
     "revision": "8462bea9a317a3591279faeedfd3ca01b055cb59"
-  },
-  "supersedes": null
+  }
 }

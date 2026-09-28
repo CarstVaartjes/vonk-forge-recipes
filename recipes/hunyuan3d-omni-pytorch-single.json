@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -22,13 +20,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -49,7 +44,6 @@
           "model/obj",
           "model/ply"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -112,7 +106,6 @@
       },
       "output": {
         "max_total_bytes": 536870912,
-        "path": "/outputs",
         "slots": [
           {
             "description": "The generated Hunyuan binary glTF mesh.",
@@ -130,8 +123,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -158,7 +150,6 @@
           "file_id": "file-7fb473f14fa7",
           "id": "primary-file-7fb473f14fa7",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -169,7 +160,6 @@
           "file_id": "file-ca940bab7168",
           "id": "primary-file-ca940bab7168",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -180,7 +170,6 @@
           "file_id": "file-70cd5123c386",
           "id": "primary-file-70cd5123c386",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -191,7 +180,6 @@
           "file_id": "file-9acfcd5fddca",
           "id": "primary-file-9acfcd5fddca",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -202,7 +190,6 @@
           "file_id": "file-587cb980af76",
           "id": "primary-file-587cb980af76",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -213,7 +200,6 @@
           "file_id": "file-fae5f923423e",
           "id": "primary-file-fae5f923423e",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -224,7 +210,6 @@
           "file_id": "file-f399b5c67982",
           "id": "primary-file-f399b5c67982",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -235,7 +220,6 @@
           "file_id": "file-e276db0b98e4",
           "id": "primary-file-e276db0b98e4",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -246,7 +230,6 @@
           "file_id": "file-e65182345640",
           "id": "primary-file-e65182345640",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -257,7 +240,6 @@
           "file_id": "file-101abd63dac6",
           "id": "primary-file-101abd63dac6",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -268,7 +250,6 @@
           "file_id": "file-ebe6bb69b509",
           "id": "primary-file-ebe6bb69b509",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -278,7 +259,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1f53515b99b0551e4439a6591965067e6b387d02a85b151c8ac4e777c894dd20",
+        "content_sha256": "47c7457924ffeb0fba78a6aa263930edde53d1838f8292eb2bd0d70602f77252",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan3d-omni"
@@ -290,7 +271,6 @@
           "file_id": "file-587cb980af76",
           "id": "dinov2-large-file-587cb980af76",
           "mount": {
-            "read_only": true,
             "target": "/models/dinov2-large"
           },
           "roles": [
@@ -301,7 +281,6 @@
           "file_id": "file-9d75c1098fc5",
           "id": "dinov2-large-file-9d75c1098fc5",
           "mount": {
-            "read_only": true,
             "target": "/models/dinov2-large"
           },
           "roles": [
@@ -312,7 +291,6 @@
           "file_id": "file-36afccab5d8d",
           "id": "dinov2-large-file-36afccab5d8d",
           "mount": {
-            "read_only": true,
             "target": "/models/dinov2-large"
           },
           "roles": [
@@ -322,7 +300,7 @@
       ],
       "id": "dinov2-large",
       "model": {
-        "content_sha256": "e6677e219057077a66271e4ca809d688b79985b207e1c21f59d6233d22eea788",
+        "content_sha256": "7a57f2c1944d3ffa5cf01b0d8396d759b072f576c259bb46b7f74730ef53759c",
         "kind": "model",
         "publisher": "facebook",
         "slug": "dinov2-large-47b73eef"
@@ -334,324 +312,9 @@
       "tencent",
       "Meta DINOv2 contributors"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/tencent/Hunyuan3D-Omni/tree/70e803bfb4e127d534049d8ab8c8cb511780d485"
   },
   "release": {
-    "history": [
-      {
-        "version": "2.0.13",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "4c681da6417be6708c1bc88c4335e3e6654f772cdeae1e1ef46dfd8024a6339c",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved the build base to NVIDIA CUDA 13.4.1 runtime (Ubuntu 24.04, ARM64).",
-            "details": "nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04 ARM64 manifest sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962 replaces 13.2.1-runtime; its NVIDIA_REQUIRE_CUDA keeps the driver>=580,<581 clause, so the Spark 580-series driver still admits it. Upstream source 4d47c0cc and the model snapshot are unchanged (no newer upstream release or commit).",
-            "references": [
-              "https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html",
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "runtime",
-            "summary": "Updated PyTorch to 2.14.0/torchvision 0.29.0 (cu132) and Python dependencies to their latest stable releases.",
-            "details": "torch 2.13.0->2.14.0, torchvision 0.28.0->0.29.0, transformers 5.15.1->5.17.0, accelerate 1.14.0->1.15.0, timm 1.0.28->1.0.30, pytorch-lightning 2.6.5->2.6.6, trimesh 5.0.0->5.1.0, tqdm 4.70.0->4.70.1. This image compiles no CUDA extensions. Physical GB10 acceptance is still pending.",
-            "references": [
-              "https://github.com/pytorch/pytorch/releases/tag/v2.14.0",
-              "https://github.com/huggingface/transformers/releases/tag/v5.17.0",
-              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
-              "https://download.pytorch.org/whl/cu132/torch/"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu132 metadata requires cuda-toolkit==13.2.1; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu132/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "444f4bdd7bfd3142648ecbbe69b4144dd062cda01c8f89c44712de80f43b04c8",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.12"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Declared the official cu132 PyTorch wheel host and removed an unused torchaudio install request.",
-            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host, which is now explicitly permitted. The pinned upstream adapter source does not import torchaudio, and the stable cu132 index has no Python 3.12 ARM64 torchaudio 2.11.0 wheel, so the unnecessary request was removed. Model and runtime image pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu132/torch/",
-              "https://download.pytorch.org/whl/cu132/torchvision/",
-              "https://download.pytorch.org/whl/cu132/torchaudio/",
-              "https://huggingface.co/tencent/Hunyuan3D-Omni/tree/70e803bfb4e127d534049d8ab8c8cb511780d485"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "5f1b198e461bddfc41986d5540036f5019bd0c624e0f5c4015e5bfadae67294c",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.11"
-      },
-      {
-        "changes": [
-          {
-            "details": "At the pinned Hunyuan3D-Omni loader, variant=None selects model/pytorch_model.bin; model/pytorch_model_ema.bin is loaded only for variant='ema'. The adapter passes no variant, so the unused EMA weights are removed from the exact Model manifest and recipe selection.",
-            "kind": "fix",
-            "references": [
-              "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/blob/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8/hy3dshape/pipelines/pipeline_generation_sit_omni.py"
-            ],
-            "summary": "Limit Hunyuan3D-Omni to the adapter's default checkpoint."
-          }
-        ],
-        "prior_recipe_content_sha256": "90621fdd536f27e8eb5503055c301ca73fca7a2a9861f46aec623159bcf6115d",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "reprepare",
-        "version": "2.0.10"
-      },
-      {
-        "changes": [
-          {
-            "details": "Replaced the unsupported aggregate snapshot selector with every exact file from the pinned primary manifest and explicitly selected the adapter-required offline companion artifacts.",
-            "kind": "fix",
-            "references": [
-              "https://huggingface.co/tencent/Hunyuan3D-Omni/tree/70e803bfb4e127d534049d8ab8c8cb511780d485",
-              "https://huggingface.co/facebook/dinov2-large/tree/47b73eefe95e8d44ec3623f8890bd894b6ea2d6c"
-            ],
-            "summary": "Bound the primary model and all required offline companion files by exact immutable file IDs."
-          }
-        ],
-        "prior_recipe_content_sha256": "26714eca6f379120c0788e8a22e3bcf6bb37d272a0e1f2dbb518dd7fb56c6a0b",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "reprepare",
-        "version": "2.0.9"
-      },
-      {
-        "changes": [
-          {
-            "details": "Upstream main remains at 4d47c0cc2bd0c4281963a7314ab330a5af36bfa8; the exact adapter source and model snapshot therefore remain unchanged.",
-            "kind": "metadata",
-            "references": [
-              "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/commit/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8"
-            ],
-            "summary": "Revalidated the Hunyuan3D-Omni source pin against upstream main."
-          }
-        ],
-        "prior_recipe_content_sha256": "6245be399863b05c7b97ad58673c6db3966377fb660b64c9785ea625928908df",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "2.0.8"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "2.0.7"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "35a1c8b6fcc8a6687467bd5a3adbc9d617bec8681750529b29ebe8c94dba8d8f",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.6"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "a7506dcf4ca4df0b0a66acf872678ce7b03dd9afd2542198368019f4c1df6d61",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "2.0.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
-            "kind": "security",
-            "references": [],
-            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
-          }
-        ],
-        "prior_recipe_content_sha256": "8d7af5d163132b8b2d65c46fea8540176606eeab2e5f8544b2049eb9b0dbdd9d",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Required a bounded reachable finite nondegenerate indexed triangle mesh before atomic GLB publication."
-          },
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Made the upstream EU, UK, and South Korea territorial restriction authoritative without an unrelated operator-acceptance gate."
-          }
-        ],
-        "prior_recipe_content_sha256": "efca27d07ffeb067256c428242fd281bbd915bbf9ac6b9bb57de71b3d98928df",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Added the exact official DINOv2-large companion snapshot and forced its offline local loading."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Seeded voxel surface sampling and structurally validated each GLB before atomic publication."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared exact manifest, image, control-geometry, and single-GLB job slots with bounded bytes."
-          },
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Encoded the upstream exclusions for the EU, United Kingdom, and South Korea for fail-closed admission."
-          }
-        ],
-        "prior_recipe_content_sha256": "70805f1d7c423199eb16597b863215d16ef310e38cfdeeec38b05ae7758f7e45",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "0b65145e91d02feacf54e5a773a5f2f9e49e9a9370581f8267f9c49e1c181736",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "2.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/tree/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8"
-            ],
-            "summary": "Replaced the metadata placeholder with the exact upstream Hunyuan3D-Omni controllable mesh pipeline."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Added bounded image, bounding-box, pose, point-cloud, and voxel job inputs with deterministic GLB output."
-          },
-          {
-            "details": null,
-            "kind": "runtime",
-            "references": [],
-            "summary": "Added the pinned CUDA 13.2 ARM64 native runtime and removed runtime model downloads."
-          }
-        ],
-        "prior_recipe_content_sha256": "80647d03505c3bb399b315eaf3f6396deac13e507ca3d65a495984bcbb6e6d01",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Marked the checkpoint binding non-executable because its custom control pipeline has no qualified ARM64 adapter."
-          },
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Corrected the license to the territory-restricted Tencent Hunyuan 3D Omni Community License."
-          }
-        ],
-        "prior_recipe_content_sha256": "fcbc133935efcb5d500a4f3b8d5c6e021492a0c63c1479adaa6f9703767fd8c6",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of Hunyuan3D-Omni pytorch-pipeline single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "e21c4e0bbb14275f87a7bdb0591ff70fa1aa50fa4bdf99b38fcfa26aac55a77e",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "af3206c722742b8500651e082aed4562a333d25688a6cd823dfdb4a97bb86eff",
-        "released_at": "2026-08-17",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "2.0.13"
   },
@@ -685,40 +348,26 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -728,39 +377,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 28164272158,
-            "cache_bytes": 8000000000,
             "image_bytes": 12000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 56328544316
+            "working_bytes": 64328544316
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 8000000000,
-            "startup_peak_bytes": 64000000000,
-            "steady_state_bytes": 48000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 64000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "timeout_seconds": 14400
-        },
-        "framework": "pytorch-pipeline",
-        "name": "bounded-startup"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -772,11 +404,9 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/tiny.png",
-            "input_path": "/inputs",
             "input_slots": {
               "image": "qualification/fixtures/tiny.png"
             },
-            "output_path": "/outputs",
             "output_slot": "mesh",
             "transport": "job"
           }

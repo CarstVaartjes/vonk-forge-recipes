@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -12,13 +10,10 @@
       },
       "dockerfile": "adapters/deepseek/ds4/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": []
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -61,7 +56,6 @@
           "file_id": "target",
           "id": "primary-target",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -72,7 +66,6 @@
           "file_id": "drafter",
           "id": "primary-drafter",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -82,7 +75,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c2014fa8a96ffddcff667c181aaaa207183d7aa7b4c356f0d70b45dd6658a6ce",
+        "content_sha256": "22859b6f9d0634714c6753defcef24ffaeca8828bf68e7a1f9cf4303c07f606d",
         "kind": "model",
         "publisher": "antirez",
         "slug": "deepseek-v4-flash-0731-ds4"
@@ -94,180 +87,9 @@
       "DeepSeek AI",
       "Salvatore Sanfilippo (antirez)"
     ],
-    "source_kind": "global",
     "source_reference": "https://github.com/antirez/ds4/tree/f4d03f6cf9f11c1e7b630bcb160853acfba7c52a"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.2.6",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "fbe879a03a1035fe52d62741d7055eb6ee4970cb7ef8a776d580a14eb1609a10",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Move the DS4 build and runtime stages from CUDA 13.0.1 to the CUDA 13.4.1 Ubuntu 24.04 devel/runtime images (arm64 digests).",
-            "details": "Build stage nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37, runtime stage 13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962. make cuda-spark emits sm_121a SASS only (no PTX JIT), and the 13.4.1 image keeps the driver>=580 requirement, so it stays admissible on the Spark 580-series driver. DS4 source stays at f4d03f6c: antirez/ds4 has no tagged release. A physical Spark build remains unverified.",
-            "references": [
-              "https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html",
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": "The runtime argument names now match the immutable DS4 parser at f4d03f6cf9f11c1e7b630bcb160853acfba7c52a; no compiler-side option rewriting is used.",
-            "kind": "fix",
-            "references": [
-              "https://github.com/antirez/ds4/tree/f4d03f6cf9f11c1e7b630bcb160853acfba7c52a"
-            ],
-            "summary": "Use the pinned DS4 parser option names for the DSpark latency target and MTP drafter."
-          }
-        ],
-        "prior_recipe_content_sha256": "42d803c8fc93c91f83846763cb6e6450b127612196be56a9974d6a432004df60",
-        "released_at": "2026-09-06",
-        "upgrade_effect": "reprepare",
-        "version": "1.2.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "The current antirez/deepseek-v4-gguf tree adds Vision artifacts but leaves the selected target and DSpark companion byte-for-byte unchanged. Their SHA-256 values remain ca22ae2f838e14077c22bc1c1417b71b45b5e5a3687bd96c2ac6e17fdb6261c0 and 7e319924541db3f7a163ed7e11d7532a70d48228ab59d36cb81e1d4511885360.",
-            "kind": "model",
-            "references": [
-              "https://huggingface.co/antirez/deepseek-v4-gguf/commit/f71f23d552d664e523b422157b2befbf74040380"
-            ],
-            "summary": "Bind the DS4 model manifest and exact artifacts to current upstream commit f71f23d5."
-          }
-        ],
-        "prior_recipe_content_sha256": "1aff07347340e595cfcdba539609bde28c102d6162dc8e534df4f6d893e8fb2a",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "reprepare",
-        "version": "1.2.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "Rebuilt from the shared vendored DS4 CUDA Spark source archive at f4d03f6cf9f11c1e7b630bcb160853acfba7c52a (archive SHA-256 d7964a627d4f4ed490a5f20704fff7e4021398289a941ffe292ac28dfcb46d37). The non-batched DSpark latency profile and its target/drafter contract remain unchanged; a physical Spark build and latency canary remain unverified.",
-            "kind": "runtime",
-            "references": [
-              "https://github.com/antirez/ds4/compare/c1d4597a80e300b803dc642519718f2c999589da...f4d03f6cf9f11c1e7b630bcb160853acfba7c52a",
-              "https://github.com/antirez/ds4/tree/f4d03f6cf9f11c1e7b630bcb160853acfba7c52a"
-            ],
-            "summary": "Advance the shared DS4 CUDA Spark source for the DSpark latency profile."
-          }
-        ],
-        "prior_recipe_content_sha256": "53909785a52b26ece6006858ffc961b5c037bfb9471a2a3305419ce4623f88e9",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.3"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.2"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "9ba5120371b5c0a0050f75a43b1e9c26a2a5cdf5ec8d99750af3b08fec33d694",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.2.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "runtime",
-            "references": [
-              "https://github.com/antirez/ds4/compare/84cc882352757baf628a1776badf7cc54d584e28...c1d4597a80e300b803dc642519718f2c999589da"
-            ],
-            "summary": "Rebuilt the non-batched profile from immutable DS4 revision c1d4597 with current DSpark sampling and verification code."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/antirez/ds4/blob/c1d4597a80e300b803dc642519718f2c999589da/README.md#dspark-speculative-decoding"
-            ],
-            "summary": "Kept bounded validation at greedy temperature zero; opportunistic and exact sampled decoding remain outside accepted recipe claims."
-          },
-          {
-            "details": null,
-            "kind": "model",
-            "references": [
-              "https://huggingface.co/antirez/deepseek-v4-gguf/commit/86bb38ce2ba7a98ab0e550359fec5f48859dc723"
-            ],
-            "summary": "Advanced the antirez repository revision while retaining the exact unchanged Flash 0731 target and drafter objects."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Kept the recipe Candidate pending physical DGX Spark CUDA, DSpark statistics, memory, latency, and response-quality canaries."
-          }
-        ],
-        "prior_recipe_content_sha256": "8f2bed91f9f95b01d4801d1f5e7039dc0c0832b48c39bba68159cb98f34028e9",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Mounted the target and DSpark companion at distinct immutable runtime paths so DS4 receives the intended files."
-          }
-        ],
-        "prior_recipe_content_sha256": "662c12a94639a6df83ebb11fbc9e8f3c52ca02220a72512c26edc86c6644edf7",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/antirez/ds4/blob/84cc882352757baf628a1776badf7cc54d584e28/README.md#dspark-speculative-decoding"
-            ],
-            "summary": "Added a non-batched single-Spark DSpark latency profile that actually enables the pinned experimental drafter for greedy decoding."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Published as Candidate pending physical GB10 build, DSpark statistics, memory, latency, and response-quality canaries."
-          }
-        ],
-        "prior_recipe_content_sha256": "8d9710a45523b6308dca8d62155015171917a9ed6749d78467fce45b08c594b4",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.2.6"
   },
@@ -296,26 +118,17 @@
     "environment": [
       {
         "name": "DS4_LOG_LEVEL",
-        "secret": null,
         "value": "INFO"
       },
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": {
       "change_effect": "restart",
@@ -330,19 +143,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -352,42 +159,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 92709225760,
-            "cache_bytes": 8000000000,
             "image_bytes": 10000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 10000000000,
-            "staging_bytes": 10000000000
+            "working_bytes": 18000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 4000000000,
-            "startup_peak_bytes": 115000000000,
-            "steady_state_bytes": 108000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 115000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "temperature": 0,
-          "timeout_seconds": 300
-        },
-        "framework": "openai",
-        "name": "bounded-greedy-chat"
-      }
-    ],
     "serving": {
       "checks": [
         {

@@ -1,38 +1,10 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "chat",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "ocr",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "47644ecc4fc854efa4f505155158831f36773ee4",
-      "source_url": "https://huggingface.co/tencent/HunyuanOCR"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "ocr",
+    "text-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -383,7 +355,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed_bf16_fp32",
     "quantization": "none"
   },
@@ -394,7 +365,6 @@
       "title": "HunyuanOCR"
     },
     "model": {
-      "architecture": "1B HunYuanVL multimodal autoregressive model with a native vision transformer and DFlash speculative-decoding companion",
       "publisher": "tencent",
       "slug": "hunyuanocr-1-5",
       "title": "HunyuanOCR 1.5"
@@ -409,7 +379,6 @@
     "attribution": [
       "Tencent Hunyuan"
     ],
-    "operator_acceptance_required": true,
     "spdx": "LicenseRef-Tencent-Hunyuan-Community",
     "territorial_restrictions": {
       "denied_jurisdictions": [
@@ -420,22 +389,6 @@
       "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
     },
     "url": "https://huggingface.co/tencent/HunyuanOCR/blob/47644ecc4fc854efa4f505155158831f36773ee4/LICENSE"
-  },
-  "limits": {
-    "context_tokens": 131072,
-    "frames": null,
-    "resolution_pixels": 16777216,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official HunyuanOCR 1.5 target checkpoint at the repository root plus the official DFlash draft under dflash/. This revision contains Tencent's corrected Transformers 5 native configuration; weights, draft, tokenizer, and license are byte-identical to revision 449e7d47. The immutable Hugging Face snapshot also retains the publisher's archived HunyuanOCR 1.0 files under v1.0/.",
-    "publisher": "Tencent Hunyuan",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "tencent",
-      "slug": "hunyuanocr-1-5"
-    }
   },
   "metadata": {
     "description": "Exact current official HunyuanOCR 1.5 BF16 target checkpoint with its lossless DFlash speculative-decoding draft, Transformers 5 native configuration, and archived 1.0 files from the immutable upstream snapshot.",
@@ -453,21 +406,9 @@
     "image",
     "text"
   ],
-  "parameters": {
-    "active": 1000000000,
-    "total": 1000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Tencent Hunyuan"
-    ],
-    "source_revision": "47644ecc4fc854efa4f505155158831f36773ee4",
-    "source_url": "https://huggingface.co/tencent/HunyuanOCR"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/tencent/HunyuanOCR",
     "revision": "47644ecc4fc854efa4f505155158831f36773ee4"
-  },
-  "supersedes": null
+  }
 }

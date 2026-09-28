@@ -1,17 +1,5 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [],
-    "provenance": {
-      "source_revision": "8da79f23859810bbb806e7a25eaf70489a9441c5",
-      "source_url": "https://github.com/CarstVaartjes/vonk-forge-recipes"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -52,7 +40,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -63,7 +50,6 @@
       "title": "Ling 3.0"
     },
     "model": {
-      "architecture": "Five-layer LingDSpark full-attention speculative decoder with confidence head",
       "publisher": "inclusionai",
       "slug": "ling-3-0-flash-dspark",
       "title": "Ling 3.0 Flash DSpark companion"
@@ -78,25 +64,8 @@
     "attribution": [
       "InclusionAI"
     ],
-    "operator_acceptance_required": true,
     "spdx": "LicenseRef-Ling-DSpark",
     "url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-dspark/blob/8e5d9988c9b09de13f1f7c9d999ff2bfa533a149/README.md"
-  },
-  "limits": {
-    "context_tokens": 262144,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "inclusionai",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "inclusionai",
-      "slug": "ling-3-0-flash-dspark"
-    }
   },
   "metadata": {
     "description": "Exact public Ling 3.0 Flash DSpark 8e5d9988 checkpoint.",
@@ -110,21 +79,9 @@
   "modalities": [
     "text"
   ],
-  "parameters": {
-    "active": 1363707905,
-    "total": 1363707905
-  },
-  "provenance": {
-    "attribution": [
-      "InclusionAI"
-    ],
-    "source_revision": "8e5d9988c9b09de13f1f7c9d999ff2bfa533a149",
-    "source_url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-dspark"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/inclusionAI/Ling-3.0-flash-dspark",
     "revision": "8e5d9988c9b09de13f1f7c9d999ff2bfa533a149"
-  },
-  "supersedes": null
+  }
 }

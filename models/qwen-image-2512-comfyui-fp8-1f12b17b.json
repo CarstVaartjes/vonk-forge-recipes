@@ -1,23 +1,7 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "image-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "1f12b17be14c89b026c51a91d67c32f84bb047bc",
-      "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "image-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -31,7 +15,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "fp8",
     "quantization": "fp8"
   },
@@ -42,7 +25,6 @@
       "title": "Qwen Image"
     },
     "model": {
-      "architecture": "20B multimodal diffusion transformer image-generation pipeline",
       "publisher": "qwen",
       "slug": "qwen-image-2512",
       "title": "Qwen Image 2512"
@@ -58,25 +40,8 @@
       "Qwen",
       "Comfy-Org"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen-Image-2512/blob/25468b98e3276ca6700de15c6628e51b7de54a26/LICENSE"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Comfy-Org's upstream-supported FP8 conversion of the exact Qwen Image 2512 transformer for native core-node ComfyUI execution.",
-    "publisher": "Comfy-Org",
-    "relation": "quantized",
-    "source_model": {
-      "kind": "model",
-      "publisher": "qwen",
-      "slug": "qwen-image-2512"
-    }
   },
   "metadata": {
     "description": "Exact Comfy-Org FP8 Qwen Image 2512 transformer selected by the pinned official ComfyUI blueprint.",
@@ -94,22 +59,9 @@
   "modalities": [
     "image"
   ],
-  "parameters": {
-    "active": null,
-    "total": 20000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Qwen",
-      "Comfy-Org"
-    ],
-    "source_revision": "1f12b17be14c89b026c51a91d67c32f84bb047bc",
-    "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI",
     "revision": "1f12b17be14c89b026c51a91d67c32f84bb047bc"
-  },
-  "supersedes": null
+  }
 }

@@ -1,28 +1,8 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "009632fef96dd349150baa780c984e62e70e91fe",
-      "source_url": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "image-understanding",
+    "text-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -225,7 +205,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "nvfp4-w4a4-bf16-lmhead"
   },
@@ -236,7 +215,6 @@
       "title": "RadixArk Qwen3.8 deployments"
     },
     "model": {
-      "architecture": "Qwen3.8 dense hybrid Gated DeltaNet and attention multimodal transformer",
       "publisher": "radixark",
       "slug": "qwen3-8-27b-nvfp4",
       "title": "Qwen3.8 27B NVFP4 BF16 LM head"
@@ -252,25 +230,8 @@
       "Qwen",
       "RadixArk"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead/blob/009632fef96dd349150baa780c984e62e70e91fe/LICENSE"
-  },
-  "limits": {
-    "context_tokens": 262144,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "radixark",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "radixark",
-      "slug": "qwen3-8-27b-nvfp4"
-    }
   },
   "metadata": {
     "description": "Exact public Qwen3.8 27B NVFP4 BF16 LM head 009632fe checkpoint.",
@@ -285,22 +246,9 @@
     "image",
     "text"
   ],
-  "parameters": {
-    "active": 27000000000,
-    "total": 27000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Qwen",
-      "RadixArk"
-    ],
-    "source_revision": "009632fef96dd349150baa780c984e62e70e91fe",
-    "source_url": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
     "revision": "009632fef96dd349150baa780c984e62e70e91fe"
-  },
-  "supersedes": null
+  }
 }

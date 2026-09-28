@@ -1,17 +1,5 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [],
-    "provenance": {
-      "source_revision": "e4c89a4e05589de9b3e188688a303d0f3c04d0f3",
-      "source_url": "https://huggingface.co/facebook/dinov2-with-registers-large/blob/e4c89a4e05589de9b3e188688a303d0f3c04d0f3/config.json"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -34,7 +22,6 @@
     }
   ],
   "format": {
-    "container": "other",
     "precision": "metadata",
     "quantization": "none"
   },
@@ -45,7 +32,6 @@
       "title": "DINOv2 with Registers"
     },
     "model": {
-      "architecture": "DINOv2 vision encoder configuration",
       "publisher": "facebook",
       "slug": "dinov2-with-registers-large",
       "title": "DINOv2 with Registers Large"
@@ -60,25 +46,8 @@
     "attribution": [
       "facebook"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/facebook/dinov2-with-registers-large/blob/e4c89a4e05589de9b3e188688a303d0f3c04d0f3/README.md"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Pinned configuration and image-processor metadata only; Step1X carries and loads its encoder weights from its own selected checkpoint.",
-    "publisher": "facebook",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "facebook",
-      "slug": "dinov2-with-registers-large"
-    }
   },
   "metadata": {
     "description": "Exact Step1X offline dependency closure for DINOv2 configuration and image preprocessing. No external DINOv2 weights are selected or required.",
@@ -92,21 +61,9 @@
   "modalities": [
     "image"
   ],
-  "parameters": {
-    "active": null,
-    "total": null
-  },
-  "provenance": {
-    "attribution": [
-      "facebook"
-    ],
-    "source_revision": "e4c89a4e05589de9b3e188688a303d0f3c04d0f3",
-    "source_url": "https://huggingface.co/facebook/dinov2-with-registers-large/blob/e4c89a4e05589de9b3e188688a303d0f3c04d0f3/config.json"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/facebook/dinov2-with-registers-large",
     "revision": "e4c89a4e05589de9b3e188688a303d0f3c04d0f3"
-  },
-  "supersedes": null
+  }
 }

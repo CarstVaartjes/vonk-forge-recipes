@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce",
-        "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
@@ -19,13 +17,10 @@
           "github.com",
           "codeload.github.com",
           "pypi.org"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -68,7 +63,6 @@
           "file_id": "metadata-d3b10d515fb2-618cd5b83d",
           "id": "primary-metadata-d3b10d515fb2-618cd5b83d",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -80,7 +74,6 @@
           "file_id": "license-9a354667162e-c693279643",
           "id": "primary-license-9a354667162e-c693279643",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -92,7 +85,6 @@
           "file_id": "manifest-45d35f1f3aa0-ac1a57d943",
           "id": "primary-manifest-45d35f1f3aa0-ac1a57d943",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -104,7 +96,6 @@
           "file_id": "mirror-2a30e3b7fde5-683682b54b",
           "id": "primary-mirror-2a30e3b7fde5-683682b54b",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -116,7 +107,6 @@
           "file_id": "original-model-card-f7adf502e7ac-58beb10032",
           "id": "primary-original-model-card-f7adf502e7ac-58beb10032",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -128,7 +118,6 @@
           "file_id": "provenance-749cd28826a4-4c0d27425c",
           "id": "primary-provenance-749cd28826a4-4c0d27425c",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -140,7 +129,6 @@
           "file_id": "readme-ad818d1fb7c0-b335630551",
           "id": "primary-readme-ad818d1fb7c0-b335630551",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -152,7 +140,6 @@
           "file_id": "sha256sums-cb0da1f97a53-e6351d3766",
           "id": "primary-sha256sums-cb0da1f97a53-e6351d3766",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -164,7 +151,6 @@
           "file_id": "b12x-apache-2-0-c71d239df917-cb29b566a3",
           "id": "primary-b12x-apache-2-0-c71d239df917-cb29b566a3",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -176,7 +162,6 @@
           "file_id": "third-party-notices-ccfbcf5e6725-d448b8e7fe",
           "id": "primary-third-party-notices-ccfbcf5e6725-d448b8e7fe",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -188,7 +173,6 @@
           "file_id": "chat-template-41cff9af7b3a-00824420d1",
           "id": "primary-chat-template-41cff9af7b3a-00824420d1",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -200,7 +184,6 @@
           "file_id": "config-4f5341e04898-587cb980af",
           "id": "primary-config-4f5341e04898-587cb980af",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -212,7 +195,6 @@
           "file_id": "exl3-mcg-storage-abi-c51ff4803f8d-c892c2a43f",
           "id": "primary-exl3-mcg-storage-abi-c51ff4803f8d-c892c2a43f",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -224,7 +206,6 @@
           "file_id": "generation-config-230c30609ecb-97dd3d578b",
           "id": "primary-generation-config-230c30609ecb-97dd3d578b",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -236,7 +217,6 @@
           "file_id": "materialization-receipt-afe588284702-3a0ab5fd20",
           "id": "primary-materialization-receipt-afe588284702-3a0ab5fd20",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -248,7 +228,6 @@
           "file_id": "model-00001-of-00120-46cc9e998975-12435431a4",
           "id": "primary-model-00001-of-00120-46cc9e998975-12435431a4",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -260,7 +239,6 @@
           "file_id": "model-00002-of-00120-b78eebdbee13-6e0fdf1ed7",
           "id": "primary-model-00002-of-00120-b78eebdbee13-6e0fdf1ed7",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -272,7 +250,6 @@
           "file_id": "model-00003-of-00120-d377c4b645e7-65e4a549ff",
           "id": "primary-model-00003-of-00120-d377c4b645e7-65e4a549ff",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -284,7 +261,6 @@
           "file_id": "model-00004-of-00120-65f841ba0f34-bc903b840f",
           "id": "primary-model-00004-of-00120-65f841ba0f34-bc903b840f",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -296,7 +272,6 @@
           "file_id": "model-00005-of-00120-d0425becf2a4-f881474d38",
           "id": "primary-model-00005-of-00120-d0425becf2a4-f881474d38",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -308,7 +283,6 @@
           "file_id": "model-00006-of-00120-3f6ded63fe3f-267cd49bdd",
           "id": "primary-model-00006-of-00120-3f6ded63fe3f-267cd49bdd",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -320,7 +294,6 @@
           "file_id": "model-00007-of-00120-a8e2cf2d869a-83d3802361",
           "id": "primary-model-00007-of-00120-a8e2cf2d869a-83d3802361",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -332,7 +305,6 @@
           "file_id": "model-00008-of-00120-eaaf3e209d6b-7450bccdde",
           "id": "primary-model-00008-of-00120-eaaf3e209d6b-7450bccdde",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -344,7 +316,6 @@
           "file_id": "model-00009-of-00120-ad30bcac854c-fccc730405",
           "id": "primary-model-00009-of-00120-ad30bcac854c-fccc730405",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -356,7 +327,6 @@
           "file_id": "model-00010-of-00120-35530edfbce7-e805fb3830",
           "id": "primary-model-00010-of-00120-35530edfbce7-e805fb3830",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -368,7 +338,6 @@
           "file_id": "model-00011-of-00120-686f13c81516-80b44e5aed",
           "id": "primary-model-00011-of-00120-686f13c81516-80b44e5aed",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -380,7 +349,6 @@
           "file_id": "model-00012-of-00120-79a19881d8a3-459b46eb61",
           "id": "primary-model-00012-of-00120-79a19881d8a3-459b46eb61",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -392,7 +360,6 @@
           "file_id": "model-00013-of-00120-d07940d68fc7-566b83c847",
           "id": "primary-model-00013-of-00120-d07940d68fc7-566b83c847",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -404,7 +371,6 @@
           "file_id": "model-00014-of-00120-ca3290268d13-0614f5f141",
           "id": "primary-model-00014-of-00120-ca3290268d13-0614f5f141",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -416,7 +382,6 @@
           "file_id": "model-00015-of-00120-2172d6d1c76e-16baedfbbf",
           "id": "primary-model-00015-of-00120-2172d6d1c76e-16baedfbbf",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -428,7 +393,6 @@
           "file_id": "model-00016-of-00120-b33392a8b5f6-4b1f2761e8",
           "id": "primary-model-00016-of-00120-b33392a8b5f6-4b1f2761e8",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -440,7 +404,6 @@
           "file_id": "model-00017-of-00120-b198f9d06069-5707f9098c",
           "id": "primary-model-00017-of-00120-b198f9d06069-5707f9098c",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -452,7 +415,6 @@
           "file_id": "model-00018-of-00120-b98e6fa60d19-e9e19650df",
           "id": "primary-model-00018-of-00120-b98e6fa60d19-e9e19650df",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -464,7 +426,6 @@
           "file_id": "model-00019-of-00120-1ac4f98e4a16-6f6796f688",
           "id": "primary-model-00019-of-00120-1ac4f98e4a16-6f6796f688",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -476,7 +437,6 @@
           "file_id": "model-00020-of-00120-db5f5e4bfe97-f6aa6660e2",
           "id": "primary-model-00020-of-00120-db5f5e4bfe97-f6aa6660e2",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -488,7 +448,6 @@
           "file_id": "model-00021-of-00120-94abdb9997af-0d2dd07b36",
           "id": "primary-model-00021-of-00120-94abdb9997af-0d2dd07b36",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -500,7 +459,6 @@
           "file_id": "model-00022-of-00120-d1c09ce5b40b-c45d9c4641",
           "id": "primary-model-00022-of-00120-d1c09ce5b40b-c45d9c4641",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -512,7 +470,6 @@
           "file_id": "model-00023-of-00120-e75296748bb0-ccfadcc7f3",
           "id": "primary-model-00023-of-00120-e75296748bb0-ccfadcc7f3",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -524,7 +481,6 @@
           "file_id": "model-00024-of-00120-f9fa4d4312b7-7442c3427d",
           "id": "primary-model-00024-of-00120-f9fa4d4312b7-7442c3427d",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -536,7 +492,6 @@
           "file_id": "model-00025-of-00120-6f94c10adb85-8ed483bed0",
           "id": "primary-model-00025-of-00120-6f94c10adb85-8ed483bed0",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -548,7 +503,6 @@
           "file_id": "model-00026-of-00120-0c65f0517b61-5d97013772",
           "id": "primary-model-00026-of-00120-0c65f0517b61-5d97013772",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -560,7 +514,6 @@
           "file_id": "model-00027-of-00120-af324d263111-02b1d50bd1",
           "id": "primary-model-00027-of-00120-af324d263111-02b1d50bd1",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -572,7 +525,6 @@
           "file_id": "model-00028-of-00120-5e031de67c3c-a8cf91ef44",
           "id": "primary-model-00028-of-00120-5e031de67c3c-a8cf91ef44",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -584,7 +536,6 @@
           "file_id": "model-00029-of-00120-bae837ec87ec-559d0bdebf",
           "id": "primary-model-00029-of-00120-bae837ec87ec-559d0bdebf",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -596,7 +547,6 @@
           "file_id": "model-00030-of-00120-bbe67349b260-8f79d9498d",
           "id": "primary-model-00030-of-00120-bbe67349b260-8f79d9498d",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -608,7 +558,6 @@
           "file_id": "model-00031-of-00120-3aebbcb6ef80-e39e3b7f41",
           "id": "primary-model-00031-of-00120-3aebbcb6ef80-e39e3b7f41",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -620,7 +569,6 @@
           "file_id": "model-00032-of-00120-cb9063b4790a-da4be29488",
           "id": "primary-model-00032-of-00120-cb9063b4790a-da4be29488",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -632,7 +580,6 @@
           "file_id": "model-00033-of-00120-598e794cb00f-778b1be96b",
           "id": "primary-model-00033-of-00120-598e794cb00f-778b1be96b",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -644,7 +591,6 @@
           "file_id": "model-00034-of-00120-fe68ce83f4b3-4afb689532",
           "id": "primary-model-00034-of-00120-fe68ce83f4b3-4afb689532",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -656,7 +602,6 @@
           "file_id": "model-00035-of-00120-5c439c150741-3f5f6d5470",
           "id": "primary-model-00035-of-00120-5c439c150741-3f5f6d5470",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -668,7 +613,6 @@
           "file_id": "model-00036-of-00120-bba2d7a1df63-ab57214a17",
           "id": "primary-model-00036-of-00120-bba2d7a1df63-ab57214a17",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -680,7 +624,6 @@
           "file_id": "model-00037-of-00120-39ac664b9906-ba8c769702",
           "id": "primary-model-00037-of-00120-39ac664b9906-ba8c769702",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -692,7 +635,6 @@
           "file_id": "model-00038-of-00120-26b70b8b6194-a1229f7aa6",
           "id": "primary-model-00038-of-00120-26b70b8b6194-a1229f7aa6",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -704,7 +646,6 @@
           "file_id": "model-00039-of-00120-c2599dd1cdc0-465f1fc086",
           "id": "primary-model-00039-of-00120-c2599dd1cdc0-465f1fc086",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -716,7 +657,6 @@
           "file_id": "model-00040-of-00120-e109dbf65aba-35b9241c1d",
           "id": "primary-model-00040-of-00120-e109dbf65aba-35b9241c1d",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -728,7 +668,6 @@
           "file_id": "model-00041-of-00120-bb85b9089116-83db938c1b",
           "id": "primary-model-00041-of-00120-bb85b9089116-83db938c1b",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -740,7 +679,6 @@
           "file_id": "model-00042-of-00120-a017885e3006-ddde0f96a9",
           "id": "primary-model-00042-of-00120-a017885e3006-ddde0f96a9",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -752,7 +690,6 @@
           "file_id": "model-00043-of-00120-04f3aeccb23c-a0911e015c",
           "id": "primary-model-00043-of-00120-04f3aeccb23c-a0911e015c",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -764,7 +701,6 @@
           "file_id": "model-00044-of-00120-fa5a385f7a82-eacbd9bde9",
           "id": "primary-model-00044-of-00120-fa5a385f7a82-eacbd9bde9",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -776,7 +712,6 @@
           "file_id": "model-00045-of-00120-b0b508dbd621-9e2ccf9390",
           "id": "primary-model-00045-of-00120-b0b508dbd621-9e2ccf9390",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -788,7 +723,6 @@
           "file_id": "model-00046-of-00120-c0e27a8d0a9e-39452e9f1d",
           "id": "primary-model-00046-of-00120-c0e27a8d0a9e-39452e9f1d",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -800,7 +734,6 @@
           "file_id": "model-00047-of-00120-5c471e072659-9dbed1f52d",
           "id": "primary-model-00047-of-00120-5c471e072659-9dbed1f52d",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -812,7 +745,6 @@
           "file_id": "model-00048-of-00120-1d957114322b-6ba4e39a5f",
           "id": "primary-model-00048-of-00120-1d957114322b-6ba4e39a5f",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -824,7 +756,6 @@
           "file_id": "model-00049-of-00120-895d22c61a55-9b2445d3f8",
           "id": "primary-model-00049-of-00120-895d22c61a55-9b2445d3f8",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -836,7 +767,6 @@
           "file_id": "model-00050-of-00120-c2bd099b71e3-8113571b37",
           "id": "primary-model-00050-of-00120-c2bd099b71e3-8113571b37",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -848,7 +778,6 @@
           "file_id": "model-00051-of-00120-1c30583b2edd-ccadd3fbd6",
           "id": "primary-model-00051-of-00120-1c30583b2edd-ccadd3fbd6",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -860,7 +789,6 @@
           "file_id": "model-00052-of-00120-7c800f2f476c-a50b27ab98",
           "id": "primary-model-00052-of-00120-7c800f2f476c-a50b27ab98",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -872,7 +800,6 @@
           "file_id": "model-00053-of-00120-43acf4bbb16d-2a720032ef",
           "id": "primary-model-00053-of-00120-43acf4bbb16d-2a720032ef",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -884,7 +811,6 @@
           "file_id": "model-00054-of-00120-98bb70809af0-81acda5e32",
           "id": "primary-model-00054-of-00120-98bb70809af0-81acda5e32",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -896,7 +822,6 @@
           "file_id": "model-00055-of-00120-285c605b3391-8545c387ba",
           "id": "primary-model-00055-of-00120-285c605b3391-8545c387ba",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -908,7 +833,6 @@
           "file_id": "model-00056-of-00120-6f825c25cd07-e79a0dea97",
           "id": "primary-model-00056-of-00120-6f825c25cd07-e79a0dea97",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -920,7 +844,6 @@
           "file_id": "model-00057-of-00120-9c7e6d5fd6d4-1e00c90a13",
           "id": "primary-model-00057-of-00120-9c7e6d5fd6d4-1e00c90a13",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -932,7 +855,6 @@
           "file_id": "model-00058-of-00120-0b73d4dc1f37-e1274be091",
           "id": "primary-model-00058-of-00120-0b73d4dc1f37-e1274be091",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -944,7 +866,6 @@
           "file_id": "model-00059-of-00120-c5e83b54c3f1-0cd8b27563",
           "id": "primary-model-00059-of-00120-c5e83b54c3f1-0cd8b27563",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -956,7 +877,6 @@
           "file_id": "model-00060-of-00120-c37b7e82d16a-8e37dd27e8",
           "id": "primary-model-00060-of-00120-c37b7e82d16a-8e37dd27e8",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -968,7 +888,6 @@
           "file_id": "model-00061-of-00120-ec26e65bf26f-1edadcbc6d",
           "id": "primary-model-00061-of-00120-ec26e65bf26f-1edadcbc6d",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -980,7 +899,6 @@
           "file_id": "model-00062-of-00120-98c6427e9b22-af5b3b5a00",
           "id": "primary-model-00062-of-00120-98c6427e9b22-af5b3b5a00",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -992,7 +910,6 @@
           "file_id": "model-00063-of-00120-dacdd78b8a4f-b274f2500a",
           "id": "primary-model-00063-of-00120-dacdd78b8a4f-b274f2500a",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1004,7 +921,6 @@
           "file_id": "model-00064-of-00120-7f134d623d5f-45e5d1381b",
           "id": "primary-model-00064-of-00120-7f134d623d5f-45e5d1381b",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1016,7 +932,6 @@
           "file_id": "model-00065-of-00120-16661291a3d2-0853f85c3d",
           "id": "primary-model-00065-of-00120-16661291a3d2-0853f85c3d",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1028,7 +943,6 @@
           "file_id": "model-00066-of-00120-e8c5392e733b-db56e63edc",
           "id": "primary-model-00066-of-00120-e8c5392e733b-db56e63edc",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1040,7 +954,6 @@
           "file_id": "model-00067-of-00120-f2fb7876faca-c67af1c565",
           "id": "primary-model-00067-of-00120-f2fb7876faca-c67af1c565",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1052,7 +965,6 @@
           "file_id": "model-00068-of-00120-abc3009f1052-b7b1187949",
           "id": "primary-model-00068-of-00120-abc3009f1052-b7b1187949",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1064,7 +976,6 @@
           "file_id": "model-00069-of-00120-ee4f3cb631ca-87f0277a07",
           "id": "primary-model-00069-of-00120-ee4f3cb631ca-87f0277a07",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1076,7 +987,6 @@
           "file_id": "model-00070-of-00120-8b60971fe302-34719a0903",
           "id": "primary-model-00070-of-00120-8b60971fe302-34719a0903",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1088,7 +998,6 @@
           "file_id": "model-00071-of-00120-9fb9f3581b0a-18d38f84b3",
           "id": "primary-model-00071-of-00120-9fb9f3581b0a-18d38f84b3",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1100,7 +1009,6 @@
           "file_id": "model-00072-of-00120-caec81374ed6-4256eae072",
           "id": "primary-model-00072-of-00120-caec81374ed6-4256eae072",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1112,7 +1020,6 @@
           "file_id": "model-00073-of-00120-313e11a85717-b71881032c",
           "id": "primary-model-00073-of-00120-313e11a85717-b71881032c",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1124,7 +1031,6 @@
           "file_id": "model-00074-of-00120-3c22a6012bb3-f7ab128788",
           "id": "primary-model-00074-of-00120-3c22a6012bb3-f7ab128788",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1136,7 +1042,6 @@
           "file_id": "model-00075-of-00120-55992a5b643d-79ed5c6d99",
           "id": "primary-model-00075-of-00120-55992a5b643d-79ed5c6d99",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1148,7 +1053,6 @@
           "file_id": "model-00076-of-00120-3dea15fd98ef-f975c5d2a8",
           "id": "primary-model-00076-of-00120-3dea15fd98ef-f975c5d2a8",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1160,7 +1064,6 @@
           "file_id": "model-00077-of-00120-fb6efae4033a-d5415f7104",
           "id": "primary-model-00077-of-00120-fb6efae4033a-d5415f7104",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1172,7 +1075,6 @@
           "file_id": "model-00078-of-00120-1f231a1c8149-1002291158",
           "id": "primary-model-00078-of-00120-1f231a1c8149-1002291158",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1184,7 +1086,6 @@
           "file_id": "model-00079-of-00120-84eb7df2440c-8a356bb7e9",
           "id": "primary-model-00079-of-00120-84eb7df2440c-8a356bb7e9",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1196,7 +1097,6 @@
           "file_id": "model-00080-of-00120-1008d2f310da-650a4f1960",
           "id": "primary-model-00080-of-00120-1008d2f310da-650a4f1960",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1208,7 +1108,6 @@
           "file_id": "model-00081-of-00120-30bb97e87009-f479bc5b9a",
           "id": "primary-model-00081-of-00120-30bb97e87009-f479bc5b9a",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1220,7 +1119,6 @@
           "file_id": "model-00082-of-00120-6314d366c0a9-317eacdbe4",
           "id": "primary-model-00082-of-00120-6314d366c0a9-317eacdbe4",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1232,7 +1130,6 @@
           "file_id": "model-00083-of-00120-424127fa0a70-90673ca661",
           "id": "primary-model-00083-of-00120-424127fa0a70-90673ca661",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1244,7 +1141,6 @@
           "file_id": "model-00084-of-00120-8f5be1a45eea-3b618208d5",
           "id": "primary-model-00084-of-00120-8f5be1a45eea-3b618208d5",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1256,7 +1152,6 @@
           "file_id": "model-00085-of-00120-22722c615db2-0853d5e2c5",
           "id": "primary-model-00085-of-00120-22722c615db2-0853d5e2c5",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1268,7 +1163,6 @@
           "file_id": "model-00086-of-00120-dcd025dc9e48-1912454f20",
           "id": "primary-model-00086-of-00120-dcd025dc9e48-1912454f20",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1280,7 +1174,6 @@
           "file_id": "model-00087-of-00120-c00bdc2031dd-dff6b21639",
           "id": "primary-model-00087-of-00120-c00bdc2031dd-dff6b21639",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1292,7 +1185,6 @@
           "file_id": "model-00088-of-00120-147abc2a72e6-33ad7c9c7b",
           "id": "primary-model-00088-of-00120-147abc2a72e6-33ad7c9c7b",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1304,7 +1196,6 @@
           "file_id": "model-00089-of-00120-5d2ec3fd271c-642aae040e",
           "id": "primary-model-00089-of-00120-5d2ec3fd271c-642aae040e",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1316,7 +1207,6 @@
           "file_id": "model-00090-of-00120-2bb2e9ab7859-02a4fd20ee",
           "id": "primary-model-00090-of-00120-2bb2e9ab7859-02a4fd20ee",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1328,7 +1218,6 @@
           "file_id": "model-00091-of-00120-8ccbc08c9dbc-35b959e7cc",
           "id": "primary-model-00091-of-00120-8ccbc08c9dbc-35b959e7cc",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1340,7 +1229,6 @@
           "file_id": "model-00092-of-00120-20422d9ea7e0-4b66476b42",
           "id": "primary-model-00092-of-00120-20422d9ea7e0-4b66476b42",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1352,7 +1240,6 @@
           "file_id": "model-00093-of-00120-753329dbb8d2-3d8663285c",
           "id": "primary-model-00093-of-00120-753329dbb8d2-3d8663285c",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1364,7 +1251,6 @@
           "file_id": "model-00094-of-00120-f08e09cb29e5-e8e5e16a67",
           "id": "primary-model-00094-of-00120-f08e09cb29e5-e8e5e16a67",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1376,7 +1262,6 @@
           "file_id": "model-00095-of-00120-c08536722ef0-f65795c4dc",
           "id": "primary-model-00095-of-00120-c08536722ef0-f65795c4dc",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1388,7 +1273,6 @@
           "file_id": "model-00096-of-00120-fafe3a925e79-98d23f1599",
           "id": "primary-model-00096-of-00120-fafe3a925e79-98d23f1599",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1400,7 +1284,6 @@
           "file_id": "model-00097-of-00120-e616de880c95-69cdd7375e",
           "id": "primary-model-00097-of-00120-e616de880c95-69cdd7375e",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1412,7 +1295,6 @@
           "file_id": "model-00098-of-00120-7c34ac45ffba-7f7b33ad93",
           "id": "primary-model-00098-of-00120-7c34ac45ffba-7f7b33ad93",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1424,7 +1306,6 @@
           "file_id": "model-00099-of-00120-9693db794a79-d3c07d5408",
           "id": "primary-model-00099-of-00120-9693db794a79-d3c07d5408",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1436,7 +1317,6 @@
           "file_id": "model-00100-of-00120-a19fb303a981-837f48f967",
           "id": "primary-model-00100-of-00120-a19fb303a981-837f48f967",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1448,7 +1328,6 @@
           "file_id": "model-00101-of-00120-c24ca6ae7ce0-161f149d02",
           "id": "primary-model-00101-of-00120-c24ca6ae7ce0-161f149d02",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1460,7 +1339,6 @@
           "file_id": "model-00102-of-00120-b5c8396800ac-b678e0095f",
           "id": "primary-model-00102-of-00120-b5c8396800ac-b678e0095f",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1472,7 +1350,6 @@
           "file_id": "model-00103-of-00120-09139292ba5a-2745b60dfe",
           "id": "primary-model-00103-of-00120-09139292ba5a-2745b60dfe",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1484,7 +1361,6 @@
           "file_id": "model-00104-of-00120-b0af3c5b38f0-48ccc4ff2a",
           "id": "primary-model-00104-of-00120-b0af3c5b38f0-48ccc4ff2a",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1496,7 +1372,6 @@
           "file_id": "model-00105-of-00120-f475efcce530-903301ab4f",
           "id": "primary-model-00105-of-00120-f475efcce530-903301ab4f",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1508,7 +1383,6 @@
           "file_id": "model-00106-of-00120-1059fe4a53c2-0166354ffc",
           "id": "primary-model-00106-of-00120-1059fe4a53c2-0166354ffc",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1520,7 +1394,6 @@
           "file_id": "model-00107-of-00120-57e1f9904438-1b8280fd52",
           "id": "primary-model-00107-of-00120-57e1f9904438-1b8280fd52",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1532,7 +1405,6 @@
           "file_id": "model-00108-of-00120-286de5d27896-973e69f3df",
           "id": "primary-model-00108-of-00120-286de5d27896-973e69f3df",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1544,7 +1416,6 @@
           "file_id": "model-00109-of-00120-b41955ae5e68-49a0a4a8cc",
           "id": "primary-model-00109-of-00120-b41955ae5e68-49a0a4a8cc",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1556,7 +1427,6 @@
           "file_id": "model-00110-of-00120-b2bd23f9b6d1-fec51613af",
           "id": "primary-model-00110-of-00120-b2bd23f9b6d1-fec51613af",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1568,7 +1438,6 @@
           "file_id": "model-00111-of-00120-091e1d588b89-43ea98efe2",
           "id": "primary-model-00111-of-00120-091e1d588b89-43ea98efe2",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1580,7 +1449,6 @@
           "file_id": "model-00112-of-00120-8a7c2486aa93-ec0c9f3e6f",
           "id": "primary-model-00112-of-00120-8a7c2486aa93-ec0c9f3e6f",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1592,7 +1460,6 @@
           "file_id": "model-00113-of-00120-8f3205a5dd7e-58771aaa44",
           "id": "primary-model-00113-of-00120-8f3205a5dd7e-58771aaa44",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1604,7 +1471,6 @@
           "file_id": "model-00114-of-00120-e3cf6f9ea4e0-6567bafe78",
           "id": "primary-model-00114-of-00120-e3cf6f9ea4e0-6567bafe78",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1616,7 +1482,6 @@
           "file_id": "model-00115-of-00120-347b2e08fca7-c4d9887778",
           "id": "primary-model-00115-of-00120-347b2e08fca7-c4d9887778",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1628,7 +1493,6 @@
           "file_id": "model-00116-of-00120-3d9c0120686a-298b0030ef",
           "id": "primary-model-00116-of-00120-3d9c0120686a-298b0030ef",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1640,7 +1504,6 @@
           "file_id": "model-00117-of-00120-48eca9375a20-f549a4dbfa",
           "id": "primary-model-00117-of-00120-48eca9375a20-f549a4dbfa",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1652,7 +1515,6 @@
           "file_id": "model-00118-of-00120-f7df8825ffec-7535a97079",
           "id": "primary-model-00118-of-00120-f7df8825ffec-7535a97079",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1664,7 +1526,6 @@
           "file_id": "model-00119-of-00120-8e393cfce320-16500d7d3f",
           "id": "primary-model-00119-of-00120-8e393cfce320-16500d7d3f",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1676,7 +1537,6 @@
           "file_id": "model-00120-of-00120-15ffa59ac9a3-0ba76d8e7c",
           "id": "primary-model-00120-of-00120-15ffa59ac9a3-0ba76d8e7c",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1688,7 +1548,6 @@
           "file_id": "model-safetensors-index-2f64d21c67c9-0a05be8238",
           "id": "primary-model-safetensors-index-2f64d21c67c9-0a05be8238",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1700,7 +1559,6 @@
           "file_id": "processor-config-aae38374c94b-27f0cb76af",
           "id": "primary-processor-config-aae38374c94b-27f0cb76af",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1712,7 +1570,6 @@
           "file_id": "source-model-revision-5d9aadd98432-e197d5450a",
           "id": "primary-source-model-revision-5d9aadd98432-e197d5450a",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1724,7 +1581,6 @@
           "file_id": "recipe-22bcfacf0f7e-7b84b405cf",
           "id": "primary-recipe-22bcfacf0f7e-7b84b405cf",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1736,7 +1592,6 @@
           "file_id": "quantization-config-1e5cdf56da19-6f24389fb3",
           "id": "primary-quantization-config-1e5cdf56da19-6f24389fb3",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1748,7 +1603,6 @@
           "file_id": "checkpoint-efeaed9daed8-44814fd7c0",
           "id": "primary-checkpoint-efeaed9daed8-44814fd7c0",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1760,7 +1614,6 @@
           "file_id": "runtime-results-v44-f47b8aad703c-49b1a1120b",
           "id": "primary-runtime-results-v44-f47b8aad703c-49b1a1120b",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1772,7 +1625,6 @@
           "file_id": "tokenizer-19e773648cb4-224931eb13",
           "id": "primary-tokenizer-19e773648cb4-224931eb13",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1784,7 +1636,6 @@
           "file_id": "tokenizer-config-98b1271574f4-94d5c6ba8f",
           "id": "primary-tokenizer-config-98b1271574f4-94d5c6ba8f",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -1795,7 +1646,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "dad7a430996f834d66235cbff4ec866bb4f7132f5ecc5d6343fb5fdba8208b24",
+        "content_sha256": "de7aff5993f2348592bc4fa7d273877fc0ea05771633114658b35e119fa13c60",
         "kind": "model",
         "publisher": "mia-ai-lab",
         "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-25a44fdb"
@@ -1807,7 +1658,6 @@
           "file_id": "metadata-70e0ed421d65-618cd5b83d",
           "id": "drafter-metadata-70e0ed421d65-618cd5b83d",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -1819,7 +1669,6 @@
           "file_id": "readme-2014434d3e36-b335630551",
           "id": "drafter-readme-2014434d3e36-b335630551",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -1831,7 +1680,6 @@
           "file_id": "dflash2-figure-6d8dcc9a9472-e520c8f797",
           "id": "drafter-dflash2-figure-6d8dcc9a9472-e520c8f797",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -1843,7 +1691,6 @@
           "file_id": "config-c4aeac010119-587cb980af",
           "id": "drafter-config-c4aeac010119-587cb980af",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -1855,7 +1702,6 @@
           "file_id": "model-b038e1d9d1e7-9d75c1098f",
           "id": "drafter-model-b038e1d9d1e7-9d75c1098f",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -1866,7 +1712,7 @@
       ],
       "id": "dependency-glm-5-3-flash-dflash2-bf582e4e",
       "model": {
-        "content_sha256": "b8070ed88ec4e098ae05d7b50befd6a0c17ae0a378a68860409daf71244d2abc",
+        "content_sha256": "877e81d8d00e7561d56d1f8e57ac5b0c4b1bdbf17c03e790ad35ba6aed3c4e97",
         "kind": "model",
         "publisher": "incoai",
         "slug": "glm-5-3-flash-dflash2-bf582e4e"
@@ -1882,384 +1728,9 @@
       "Turboderp",
       "vLLM contributors"
     ],
-    "source_kind": "global",
     "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.6.8",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "37c28a06e308965d2ea141b530b1fa304006befa816ec757f0de9b3496bb85a8",
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Give the 192k context a real KV margin instead of a 0.01 GiB one.",
-            "details": "At 192k the engine measured 8.93 GiB of KV needed against 8.92 GiB available at gpu-memory-utilization 0.84, so a start could fail by 0.01 GiB; 1.6.6 had seen 9.05 GiB available on the same setting. The need is mostly fixed: 327680 tokens needed 9.76 GiB and 196608 needed 8.93, about 0.83 GiB per 128k, so 160k would free only about 0.2 GiB. Raising utilization by 0.005 adds 0.005 x 130.66 GB = 0.61 GiB, about 9.53 GiB available, a 0.60 GiB (6.7 percent) margin at the full 192k context. The startup estimate becomes 130.66 GB x 0.845 + 9 GiB = 120.07 GB, declared as 120.1 GB, leaving 1.4 GB against the nodes' 125.5 GB MemAvailable and 4 GB floor. The image marker becomes 1.6.8 so this revision gets its own build.",
-            "references": []
-          }
-        ]
-      },
-      {
-        "version": "1.6.7",
-        "released_at": "2026-09-23",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "4e5255a78123f3052a4cbff993996a89262082de5c518c7e02eb906eee3e8665",
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Fix selected Mamba align and tool-choice runtime bugs.",
-            "details": "Backports upstream Mamba align state reclamation and block-size-aware chunking. The TP2 recipe exercises Mamba align mode with 7168-token scheduling and a smaller DFlash page, so superseded SSM state could accumulate and prefill checkpoints could land at the wrong Mamba boundary. It also masks the GLM47 <tool_call> opener at decode time for tool_choice:none; the recipe enables automatic tool choice and otherwise strips calls only after generation. The overlays and CPU regressions are vendored against the unchanged digest-pinned vLLM base. Model weights, topology, and runtime arguments are unchanged. Rebuild required; this is not physical Spark acceptance.",
-            "references": [
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/commit/fd329d248e63de3ddd334c7d2ed3276e8321672b",
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/commit/771a1867bc862fae5fa8946f85fb66749468679e"
-            ]
-          }
-        ]
-      },
-      {
-        "version": "1.6.6",
-        "released_at": "2026-09-20",
-        "upgrade_effect": "restart",
-        "prior_recipe_content_sha256": "85679aceb9ff27db9082bfd107a81be719343d6f416359d15b377b3d41f643ca",
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Declare a 192k context that fits the KV budget the engine actually measures.",
-            "details": "With the 320k context the engine started and refused it in its own KV sizing: \"To serve at least one request with the model's max seq len (327680), (9.76 GiB KV cache is needed, which is larger than the available KV cache memory (9.05 GiB). Based on the available memory, the estimated maximum model length is 225792.\" At gpu-memory-utilization 0.84 this node offers 9.05 GiB of KV, so the earlier estimate that scaled the 850k measurement down by context length was wrong: the need has a large fixed component beside the per-token part. 196608 (192k) sits about 13 percent below the engine's own 225792 ceiling, so it fits with margin, while utilization stays at 0.84 and the declared 120 GB envelope stays inside the node's measured 125.5 GB. The image carries VONK_GLM53_RECIPE_REVISION=1.6.6 so this revision gets its own build identity instead of reusing the previous archive. Only the declared context and that image marker change.",
-            "references": []
-          }
-        ]
-      },
-      {
-        "version": "1.6.5",
-        "released_at": "2026-09-20",
-        "upgrade_effect": "restart",
-        "prior_recipe_content_sha256": "af217c8fc6b2e7e3b9d05fbb6a75387348209f72b25d2fcbb28e825e08c69f34",
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Fit the declared memory envelope under the node's measured available memory.",
-            "details": "The start was refused with \"local memory capacity changed after run admission\": the agent requires MemAvailable to cover the plan's reserved memory plus a fixed 4 GB, and both Sparks report about 125.5 GB available against the 122 GB this recipe declared, so the workload missed by roughly half a gigabyte. A declared envelope derives from gpu-memory-utilization (130.66 GB times the fraction plus 9 GiB of initialization outside vLLM's budget), so the utilization comes down to 0.84 and the declared peak to 120 GB, which leaves 1.5 GB of slack on the measured nodes while the KV budget for the declared 320k context stays at about 9.6 GiB against the roughly 5.2 GiB that context needs. Only runtime arguments and the declared envelope change; the image is untouched, so an installed workload restarts. The image also carries VONK_GLM53_RECIPE_REVISION=1.6.5 so this revision gets its own build identity rather than reusing the previous archive.",
-            "references": []
-          }
-        ]
-      },
-      {
-        "version": "1.6.4",
-        "released_at": "2026-09-20",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "c52698cd3b67b038f0e311dff8ff244ae23a8c084918c2b2985df18dc61d8029",
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Give this revision its own build identity so the Controller can install it.",
-            "details": "A runtime-only successor reuses the earlier revision's verified archive, and the Controller then keeps that earlier revision's build identity. Install admission compares the selected build's recipe revision with the active one and refuses the plan with \"successful recipe build does not match the mapping\", so the profile could not switch to a revision whose only changes were runtime arguments. The image now carries VONK_GLM53_RECIPE_REVISION, which changes the build input and therefore produces a build bound to this revision, and it also makes the running image's recipe revision visible from inside the container.",
-            "references": []
-          }
-        ]
-      },
-      {
-        "version": "1.6.3",
-        "released_at": "2026-09-20",
-        "upgrade_effect": "restart",
-        "prior_recipe_content_sha256": "b0958b8ba0687c427013b5898988fd607690659a281669a7665c3a4fb650e336",
-        "changes": [
-          {
-            "kind": "breaking",
-            "summary": "Declare a 320k context the engine can actually serve on a GB10 node.",
-            "details": "The workload reaches engine initialization and dies in vLLM's own KV check: \"To serve at least one request with the model's max seq len (850000), (13.46 GiB KV cache is needed, which is larger than the available KV cache memory (10.24 GiB). Based on the available memory, the estimated maximum model length is 394240.\" The measured nodes report about 126 GB MemAvailable, and this envelope (122 GB startup peak, 2 GB system reserve, the Controller's 4 GB floor) allows a gpu-memory-utilization of at most about 0.86, roughly 10.9 GiB of KV. Fitting 850k would put the declared envelope above the node's measured free memory, so the declared context becomes 320k, about 17 percent below the engine's own 394240 estimate for this configuration. Only runtime arguments and the declared context change: the image, build inputs, base image, Dockerfile, environment and topology are untouched, so an installed workload restarts and needs no rebuild.",
-            "references": []
-          }
-        ]
-      },
-      {
-        "version": "1.6.2",
-        "released_at": "2026-09-19",
-        "upgrade_effect": "none",
-        "prior_recipe_content_sha256": "38b9a2a034de946e93dacdfd5ebc25a5eb916971daf15d1931e637fdb1384126",
-        "changes": [
-          {
-            "kind": "metadata",
-            "summary": "Record the build-time state of the GB10 topk overlay in the recipe metadata; no executable input changes.",
-            "details": "The 1.6.1 revision applies overlay/patch_glm_video_placeholders.py during the image build and verify-runtime.py fails closed unless the kpool guard carries the overlay marker, so the metadata now names that guarantee instead of leaving it implicit in the adapter. The build arguments, base image, Dockerfile, runtime arguments and environment are unchanged, so an installed 1.6.1 workload keeps its image and needs no restart, no re-preparation and no rebuild.",
-            "references": []
-          }
-        ]
-      },
-      {
-        "version": "1.6.1",
-        "released_at": "2026-09-18",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "529c33afd6c0cc08b5a023642ad9f4dc3b450321ede87440220a1b34496da731",
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Apply the overlay that disables the GB10 persistent_topk guard, and stop the loader's free-memory estimate from refusing a buffer the node can allocate.",
-            "details": "The image copied overlay/patch_glm_video_placeholders.py but never ran it: GLM53_OVERLAY_ORDER applies it first inside the container, and this platform runs the workload with a read-only root, so the one overlay that rewrites an installed vLLM file never landed. The workload then died in worker initialization with \"launch_persistent_topk, topk.cu:138, persistent_topk would oversubscribe and the FilteredTopK fallback requires >=128KB smem per block (have 101376)\". The build applies it now, and verify-runtime.py fails closed unless the kpool guard carries the overlay marker and is disabled. The loader's own estimate is relaxed too: --load-format instanttensor refused a 1,268,776,960 B buffer against about 950 MB of reported free memory on a node reporting 126 GB available, because that reading excludes reclaimable page cache. A budget estimate may warn but must not refuse work the node can satisfy, so INSTANTTENSOR_MAX_FREE_MEM_USAGE is 2.0 and the allocator decides.",
-            "references": [
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/blob/bc68f310/upstream-start.sh",
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/blob/bc68f310/upstream-README.md"
-            ]
-          }
-        ]
-      },
-      {
-        "version": "1.6.0",
-        "released_at": "2026-09-16",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "9bbff39d46917c16db78f237a24b11e2276cc424c66ff948c4eaf6b3c69e81f7",
-        "changes": [
-          {
-            "kind": "compatibility",
-            "summary": "Refreshed the vendored Mia GLM 5.3 EXL3 source to bc68f310.",
-            "details": "Re-synced the Dockerfile, overlays, host tests, launcher and env example from MiaAI-Lab's public bc68f310 tree. New overlays: per-group APC retention (patch_apc_per_group_retention.py), the per-request prefix-cache no-store flag (patch_apc_no_store.py), the boot KV-capacity breakdown log (patch_kv_capacity_log.py) and the narrow cache-reset route (patch_cache_reset.py). Adds the instanttensor==0.2.0 direct-I/O safetensors loader and the fair mixed-prefill scheduler policy. Model snapshots and topology are unchanged. Physical Spark acceptance remains a separate evidence boundary.",
-            "references": [
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c"
-            ]
-          },
-          {
-            "kind": "compatibility",
-            "summary": "Compiled the E3 grouped kernels into exllamav3_ext and retired exl3_fat_moe_ext.",
-            "details": "overlay/exl3.py resolves exllamav3_ext before the additive module, and upstream now binds exl3_moe, exl3_fat_gemm, exl3_fat_gemm_scatter and the five exl3_fat_moe entry points into that one extension. The recipe drops the additively built exl3_fat_moe_ext module and build_exl3_fat_moe_ext.py, checks all symbols on exllamav3_ext in the Dockerfile and in verify-runtime.py, and keeps the source-backed EXLLAMAV3_COMMIT rebuild. Nothing falls back to the retired layout.",
-            "references": [
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c"
-            ]
-          },
-          {
-            "kind": "fix",
-            "summary": "Corrected the FlashInfer autotune flag to --no-enable-flashinfer-autotune.",
-            "details": "The recipe declared disable-flashinfer-autotune, which is not a vLLM option; upstream main passes --no-enable-flashinfer-autotune. The Autotuner skip is what keeps SM120 sparse-MLA autotune from wedging rank 0 on GB10, so the corrected spelling is required, not cosmetic.",
-            "references": [
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c"
-            ]
-          },
-          {
-            "kind": "runtime",
-            "summary": "Aligned runtime arguments and knobs with upstream main's effective defaults.",
-            "details": "Adds --load-format instanttensor, --mm-processor-cache-gb 1 and --mm-processor-kwargs {\"max_image_tokens\":2048}; keeps max-model-len and max-num-seqs setting-bound to context_tokens=850000 and concurrency=4; keeps compilation-config cudagraph_capture_sizes [1,2,4,8,16,24,32], upstream's DFlash2 branch value (1 2 3 4 6 8 12 is the MTP branch this recipe does not take). Declares GLM53_MIXED_PREFILL_CHUNK=fair with GLM53_FAIR_PREFILL_*, GLM53_APC_NO_STORE=1, GLM53_KV_CAPACITY_LOG=1, GLM53_SPINWAIT_MS=stock and EXL3_FAT_KERNEL=1. Upstream's DEFAULT_MAX_NEW_TOKENS and GLM53_BOOT_SHAPE_WARMUP are deliberately not declared: the launcher applies them through overlay/patch_default_max_new_tokens.py and scripts/boot-shape-warmup.sh, which this recipe does not vendor or run, so declaring them here would be inert.",
-            "references": [
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c"
-            ]
-          }
-        ]
-      },
-      {
-        "version": "1.5.2",
-        "released_at": "2026-09-16",
-        "upgrade_effect": "restart",
-        "prior_recipe_content_sha256": "05a2d22d3f8933cc7bc8136467a558fd5e76a27ad6f773800ecc4e640a83c3f9",
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Correct the FlashInfer autotune flag name so the pinned vLLM accepts the launch arguments.",
-            "details": "The runtime argument list spelled the flag disable-flashinfer-autotune, which the pinned engine does not define, so vllm serve exited with 'unrecognized arguments' before loading the model and the two-Spark workload never started. The shipped upstream launcher passes --no-enable-flashinfer-autotune, the argparse negation of the engine's enable_flashinfer_autotune field in vllm/engine/arg_utils.py, and the recipe now uses that name. Serving options, settings, model files and the build context are unchanged, so the prepared image and its archive are reused and only the workload restarts.",
-            "references": [
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/blob/9c0794b68d7fc124f79104409ab434769503fb31/start.sh"
-            ]
-          }
-        ]
-      },
-      {
-        "version": "1.5.1",
-        "released_at": "2026-09-13",
-        "upgrade_effect": "reprepare",
-        "prior_recipe_content_sha256": "4d358240b89a6f6e37404ea5bef5b0da1f857d04db11f4c6640482484c895ce2",
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Aligned the declared memory envelope with the current 0.85 GPU budget.",
-            "details": "The prior 124 GB workload envelope was retained from the 0.87 GPU budget. Mia documents about 1.2 GiB more host headroom per 0.01 reduction; the current 0.85 default therefore supports a conservative 2 GB reduction to a declared 122 GB peak, while retaining 2.5 GB runtime growth and the Controller 4 GB free-memory floor. This is a source-derived estimate, not a new physical memory measurement. Model files, runtime source, 850K context and serving options are unchanged. Physical startup and inference remain to be verified.",
-            "references": [
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/blob/9c0794b68d7fc124f79104409ab434769503fb31/README.md#env"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": "Refreshes the vendored MiaAI-Lab source to 9c0794b, including the tested no-fast-math E3 additive grouped-expert extension, current launcher defaults (EXL3_FAT_GROUPED=1, rightsize, 0.85 GPU budget, 850k context), and optional adaptive-K/dense-FP8 patch inputs disabled by default. Updates the source license to AGPL-3.0 and retains pre-2026-09-07 MIT attribution in upstream-LICENSE-MIT. The EXL3 and DFlash2 weight revisions remain unchanged after comparison with the refreshed launcher and source records.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/9c0794b68d7fc124f79104409ab434769503fb31",
-              "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/tree/25a44fdbf16862a46b7cc9921142c6c81350af2f",
-              "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/tree/bf582e4eacc1810f76656d1811693ff6c6737d2a"
-            ],
-            "summary": "Refresh Mia GLM 5.3 EXL3 DFlash2 source and E3 runtime."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-09",
-        "upgrade_effect": "rebuild",
-        "version": "1.5.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "Extracts the inline Dockerfile Python scripts byte for byte into recipe-owned files so the Controller source scanner can inspect the build. Patch order, checks, upstream pins, and runtime arguments are unchanged.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Make runtime patch scripts explicit build inputs."
-          }
-        ],
-        "prior_recipe_content_sha256": "98066a8e94161343c51072abafaea802344dcdf6ffbcb75b088f781b118473d9",
-        "released_at": "2026-09-06",
-        "upgrade_effect": "rebuild",
-        "version": "1.4.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The authored runtime now carries EXL3 quantization, the vendored multimodal chat template, and the source-backed CUDA graph capture sizes. The placement-only wrapper preserves these and all explicit or opaque engine arguments.",
-            "kind": "runtime",
-            "references": [
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/3021f24c88a0904c768c46ff22a508407e31360a"
-            ],
-            "summary": "Move EXL3 engine defaults into the authored Recipe."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-06",
-        "upgrade_effect": "restart",
-        "version": "1.4.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "Rebuilds from MiaAI-Lab's complete public 3021f24 Dockerfile, overlay, test, launcher, and license source on the digest-pinned vLLM CUDA 13 base. The Controller wrapper translates the current two-rank worker-first launch without SSH: 1M context, max-num-seqs 4, 7168 batched tokens, FP8 sparse-MLA KV, CUDA graphs, and DFlash2 K7.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/3021f24c88a0904c768c46ff22a508407e31360a"
-            ],
-            "summary": "Ported the current public EXL3 source build and launcher profile."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-06",
-        "upgrade_effect": "rebuild",
-        "version": "1.4.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.3.2"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "bb7951702200d5a95b86a5c80f6b70fc15cd63ea8b1dd3264c40d741291ac86e",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.3.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "The complete 144-file target inventory is refreshed from 25a44fdb to 024db9f7. All model payload files are byte-identical; only the upstream README changed, increasing the exact inventory by 7 bytes. The pinned 493cb88f runtime image, tested 2,048-token prefill setting, and 126 GB admission contract remain unchanged; the newer upstream 7,168-token launcher default is deliberately not adopted until its newer runtime image is vendored and tested.",
-            "kind": "model",
-            "references": [
-              "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/commit/024db9f7e9871e8efdf21538ba55af7442be3cd5",
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/493cb88fc69f8ba73ac87404f429d763e2739d89"
-            ],
-            "summary": "Advanced the EXL3 target snapshot while retaining the tested prefill batching."
-          }
-        ],
-        "prior_recipe_content_sha256": "8b26e0c70aa6f2d78a5db0c4e8050db27bba423ed629dfb6aa20b17574986b02",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "reprepare",
-        "version": "1.3.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "The Dockerfile performs only local patching and verification after the digest-pinned base image is transferred separately.",
-            "kind": "security",
-            "references": [],
-            "summary": "Removed unnecessary public network access from the deterministic dual-Spark image build."
-          }
-        ],
-        "prior_recipe_content_sha256": "a068d343ca6c2962f1df66146280a245dd136c6c6cd28556e7b5f0da08853a04",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "The complete five-file snapshot is pinned at 2,342,460,697 bytes, including the changed b038e1d9 model payload. The target checkpoint and strict 126 GB Controller memory envelope are unchanged; acceptance rate, output equivalence, latency, and memory require a fresh physical two-Spark canary.",
-            "kind": "model",
-            "references": [
-              "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/commit/bf582e4eacc1810f76656d1811693ff6c6737d2a"
-            ],
-            "summary": "Advanced the DFlash2 companion to checkpoint bf582e4e."
-          },
-          {
-            "details": "The consumed Dockerfile and overlays are byte-identical to the prior pin. The newer source adds launcher numeric validation and a cold-prefill harness; the Controller wrapper already fixes and validates the exact numeric serving profile, and the recipe now declares the 8K through 300K cold-prefill ladder.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/493cb88fc69f8ba73ac87404f429d763e2739d89"
-            ],
-            "summary": "Aligned the runtime authority with MiaAI-Lab 493cb88f."
-          }
-        ],
-        "prior_recipe_content_sha256": "cff8d29ca0ec6cd3b233c424b5f7c2155d1701a7ac5e1819fb8a3538bf5496c3",
-        "released_at": "2026-08-31",
-        "upgrade_effect": "reprepare",
-        "version": "1.2.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "The image build applies and executes the exact fail-closed circular slot-map regression, updates DFlash2 to draft TP2, and preserves Controller-native rank-local GID injection with no SSH. The exact 25a44fdb target checkpoint and strict admission envelope remain unchanged.",
-            "kind": "fix",
-            "references": [
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/b5ab8091dec88e324c943deb96c2dfd957db9f36",
-              "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/tree/25a44fdbf16862a46b7cc9921142c6c81350af2f"
-            ],
-            "summary": "Advanced to MiaAI-Lab b5ab8091 with the K-pool tail slot-map correction."
-          }
-        ],
-        "prior_recipe_content_sha256": "43d54e87682fb898beddd4fcca8b8da7829ad9130e82409f9d6a8600dff44357",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "Pins runtime source 79f10b91, the resolved ARM64 GHCR digest, MiaAI-Lab's exact 25a44fdb EXL3/TR3 target pin and the complete dc77ff1c DFlash2 inventory, separate ShapleyMCG and CC BY-NC-ND operator acceptance, Controller-native mp deployment without SSH, and a conservative 126 GB per-node unified-memory admission envelope derived from MiaAI-Lab's measured 105.9 GiB post-init requirement and 18.67 GiB KV pool. Physical Vonk acceptance remains pending.",
-            "kind": "initial",
-            "references": [
-              "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/79f10b91f84779b2b1ff2c9327b1a5847cd97f70",
-              "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/tree/25a44fdbf16862a46b7cc9921142c6c81350af2f",
-              "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/tree/dc77ff1c99eeb2df044ee3d4f0094eb033fee410"
-            ],
-            "summary": "Added the directly installable MiaAI-Lab GLM 5.3 Flash EXL3 DFlash2 two-Spark Candidate."
-          }
-        ],
-        "prior_recipe_content_sha256": "915fa81e1b2424ec396d3073be066d92084d13633ad3bd724f54d6b11fba599a",
-        "released_at": "2026-08-29",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.6.8"
   },
@@ -2395,211 +1866,165 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "DO_NOT_TRACK",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "VLLM_ENGINE_READY_TIMEOUT_S",
-        "secret": null,
         "value": "3600"
       },
       {
         "name": "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS",
-        "secret": null,
         "value": "1800"
       },
       {
         "name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "GLM53_SUPPRESS_STOPS_IN_REASONING",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "GLM53_MIXED_PREFILL_CHUNK",
-        "secret": null,
         "value": "fair"
       },
       {
         "name": "GLM53_FAIR_PREFILL_CHUNK",
-        "secret": null,
         "value": "256"
       },
       {
         "name": "GLM53_FAIR_PREFILL_SHARE",
-        "secret": null,
         "value": "0.30"
       },
       {
         "name": "GLM53_FAIR_PREFILL_MAX_INTERVAL_MS",
-        "secret": null,
         "value": "2000"
       },
       {
         "name": "GLM53_FAIR_PREFILL_MAX_STEP_MS",
-        "secret": null,
         "value": "2000"
       },
       {
         "name": "GLM53_FAIR_PREFILL_MAX_CHUNKS",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "EXL3_FUSED_MOE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "EXL3_MOE_ROW_TILE",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "EXL3_TEMP_ROWS_FUSED",
-        "secret": null,
         "value": "32"
       },
       {
         "name": "EXL3_FAT_GROUPED",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "EXL3_FAT_KERNEL",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "GLM53_INDEXER_WORKSPACE",
-        "secret": null,
         "value": "rightsize"
       },
       {
         "name": "GLM53_ADAPTIVE_K",
-        "secret": null,
         "value": "off"
       },
       {
         "name": "GLM53_DENSE_FP8",
-        "secret": null,
         "value": "off"
       },
       {
         "name": "GLM53_APC_NO_STORE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "GLM53_KV_CAPACITY_LOG",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "GLM53_SPINWAIT_MS",
-        "secret": null,
         "value": "stock"
       },
       {
         "name": "TORCH_CUDA_ARCH_LIST",
-        "secret": null,
         "value": "12.1a"
       },
       {
         "name": "FLASHINFER_CUDA_ARCH_LIST",
-        "secret": null,
         "value": "12.1a"
       },
       {
         "name": "FLASHINFER_DISABLE_VERSION_CHECK",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "PYTORCH_CUDA_ALLOC_CONF",
-        "secret": null,
         "value": "expandable_segments:True"
       },
       {
         "name": "NCCL_IB_DISABLE",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "NCCL_IB_ROCE_VERSION_NUM",
-        "secret": null,
         "value": "2"
       },
       {
         "name": "NCCL_NET",
-        "secret": null,
         "value": "IB"
       },
       {
         "name": "NCCL_NET_PLUGIN",
-        "secret": null,
         "value": "none"
       },
       {
         "name": "NCCL_NVLS_ENABLE",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "NCCL_CUMEM_ENABLE",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "NCCL_IB_MERGE_NICS",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "NCCL_CROSS_NIC",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "NCCL_IGNORE_CPU_AFFINITY",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "NCCL_DEBUG",
-        "secret": null,
         "value": "WARN"
       },
       {
         "name": "INSTANTTENSOR_MAX_FREE_MEM_USAGE",
-        "secret": null,
         "value": "2.0"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "withdraw-endpoint",
-        "recovery": "restart-worker-then-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 180
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": {
       "change_effect": "restart",
@@ -2614,19 +2039,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "connected",
-      "minimum_bandwidth_mbps": 200000
-    },
-    "mode": "distributed",
     "name": "dual",
     "node_count": 2,
     "parallelism": {
       "backend": "mp",
       "data": 1,
       "pipeline": 1,
-      "tensor": 2,
-      "world_size": 2
+      "tensor": 2
     },
     "roles": [
       {
@@ -2636,18 +2055,13 @@
         "resources": {
           "disk": {
             "artifact_bytes": 180400776148,
-            "cache_bytes": 40000000000,
             "image_bytes": 30000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 24000000000,
-            "staging_bytes": 25000000000
+            "working_bytes": 65000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 2500000000,
-            "startup_peak_bytes": 120100000000,
-            "steady_state_bytes": 117600000000,
-            "system_reserve_bytes": 2000000000
+            "peak_bytes": 120100000000,
+            "reserve_bytes": 2000000000
           }
         }
       },
@@ -2658,18 +2072,13 @@
         "resources": {
           "disk": {
             "artifact_bytes": 180400776148,
-            "cache_bytes": 40000000000,
             "image_bytes": 30000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 24000000000,
-            "staging_bytes": 25000000000
+            "working_bytes": 65000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 2500000000,
-            "startup_peak_bytes": 120100000000,
-            "steady_state_bytes": 117600000000,
-            "system_reserve_bytes": 2000000000
+            "peak_bytes": 120100000000,
+            "reserve_bytes": 2000000000
           }
         }
       }
@@ -2677,84 +2086,9 @@
     "start_order": [
       "worker",
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint",
-      "worker"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "timeout_seconds": 600
-        },
-        "framework": "openai",
-        "name": "bounded-chat"
-      },
-      {
-        "configuration": {
-          "max_output_tokens": 8,
-          "prompt_tokens": 8000,
-          "requests": 1,
-          "temperature": 0,
-          "thinking": false,
-          "timeout_seconds": 180
-        },
-        "framework": "openai",
-        "name": "cold-prefill-8k"
-      },
-      {
-        "configuration": {
-          "max_output_tokens": 8,
-          "prompt_tokens": 16000,
-          "requests": 1,
-          "temperature": 0,
-          "thinking": false,
-          "timeout_seconds": 180
-        },
-        "framework": "openai",
-        "name": "cold-prefill-16k"
-      },
-      {
-        "configuration": {
-          "max_output_tokens": 8,
-          "prompt_tokens": 100000,
-          "requests": 1,
-          "temperature": 0,
-          "thinking": false,
-          "timeout_seconds": 600
-        },
-        "framework": "openai",
-        "name": "cold-prefill-100k"
-      },
-      {
-        "configuration": {
-          "max_output_tokens": 8,
-          "prompt_tokens": 256000,
-          "requests": 1,
-          "temperature": 0,
-          "thinking": false,
-          "timeout_seconds": 1200
-        },
-        "framework": "openai",
-        "name": "cold-prefill-256k"
-      },
-      {
-        "configuration": {
-          "max_output_tokens": 8,
-          "prompt_tokens": 300000,
-          "requests": 1,
-          "temperature": 0,
-          "thinking": false,
-          "timeout_seconds": 1200
-        },
-        "framework": "openai",
-        "name": "cold-prefill-300k"
-      }
-    ],
     "serving": {
       "checks": [
         {

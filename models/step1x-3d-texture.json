@@ -1,32 +1,16 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "3d-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "bf7084495b3a72222f36549b7942948aa4d9daa7",
-      "source_url": "https://huggingface.co/stepfun-ai/Step1X-3D"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "3d-generation"
+  ],
   "dependencies": [
     {
-      "content_sha256": "5b8786613e84bb99c81cab2b84323862b88027891ca21a812fcfc2e5fc01a3a0",
+      "content_sha256": "330050cf2c6c454847e4a4719ff04d83c331e22d5ee1a7ac95978714a0951e1d",
       "kind": "model",
       "publisher": "stabilityai",
       "slug": "stable-diffusion-xl-base-1-0"
     },
     {
-      "content_sha256": "e992bbd17e832d35a5e9a3e6801d237fb378d79bb1188f47b03e59af109a6dff",
+      "content_sha256": "86ac7f82435be864fd9691fcbaa33ca3153e64247f615fc2cde5c550ead0c227",
       "kind": "model",
       "publisher": "madebyollin",
       "slug": "sdxl-vae-fp16-fix"
@@ -44,7 +28,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -55,7 +38,6 @@
       "title": "Step1X-3D"
     },
     "model": {
-      "architecture": "upstream-native generation pipeline",
       "publisher": "stepfun-ai",
       "slug": "step1x-3d",
       "title": "Step1X-3D"
@@ -70,25 +52,8 @@
     "attribution": [
       "stepfun-ai"
     ],
-    "operator_acceptance_required": true,
     "spdx": "Apache-2.0",
     "url": "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/LICENSE"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Immutable public upstream snapshot at the pinned revision.",
-    "publisher": "stepfun-ai",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "stepfun-ai",
-      "slug": "step1x-3d"
-    }
   },
   "metadata": {
     "description": "Exact immutable texture adapter subtree at bf708449; SDXL and its replacement VAE are separately selected as explicit offline dependencies.",
@@ -101,21 +66,9 @@
   "modalities": [
     "3d"
   ],
-  "parameters": {
-    "active": null,
-    "total": null
-  },
-  "provenance": {
-    "attribution": [
-      "stepfun-ai"
-    ],
-    "source_revision": "bf7084495b3a72222f36549b7942948aa4d9daa7",
-    "source_url": "https://huggingface.co/stepfun-ai/Step1X-3D"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/stepfun-ai/Step1X-3D",
     "revision": "bf7084495b3a72222f36549b7942948aa4d9daa7"
-  },
-  "supersedes": null
+  }
 }

@@ -1,23 +1,7 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "image-editing",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "d74eba145674fd7e31b949324e148e21e7118abd",
-      "source_url": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "image-editing"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -31,7 +15,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -42,7 +25,6 @@
       "title": "Qwen Image"
     },
     "model": {
-      "architecture": "upstream-native generation pipeline",
       "publisher": "qwen",
       "slug": "qwen-image-edit-2511-lightning",
       "title": "Qwen Image Edit 2511"
@@ -59,25 +41,8 @@
       "lightx2v",
       "Qwen"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://github.com/ModelTC/Qwen-Image-Lightning/blob/25d1e9935ba97e1f60503f8c000201e08b1fe8f4/LICENSE"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Four-step distilled LoRA trained for Qwen/Qwen-Image-Edit-2511 and selected in BF16 precision for Diffusers inference.",
-    "publisher": "ModelTC/lightx2v",
-    "relation": "derived",
-    "source_model": {
-      "kind": "model",
-      "publisher": "qwen",
-      "slug": "qwen-image-edit"
-    }
   },
   "metadata": {
     "description": "Exact ModelTC/lightx2v four-step BF16 distilled LoRA for the official Qwen Image Edit 2511 base checkpoint.",
@@ -95,23 +60,9 @@
   "modalities": [
     "image"
   ],
-  "parameters": {
-    "active": null,
-    "total": null
-  },
-  "provenance": {
-    "attribution": [
-      "ModelTC",
-      "lightx2v",
-      "Qwen"
-    ],
-    "source_revision": "d74eba145674fd7e31b949324e148e21e7118abd",
-    "source_url": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning",
     "revision": "d74eba145674fd7e31b949324e148e21e7118abd"
-  },
-  "supersedes": null
+  }
 }

@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -22,13 +20,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -42,7 +37,6 @@
         "media_types": [
           "text/plain"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -64,7 +58,6 @@
       },
       "output": {
         "max_total_bytes": 16777216,
-        "path": "/outputs",
         "slots": [
           {
             "description": "Single generated PNG image.",
@@ -82,8 +75,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -110,7 +102,6 @@
           "file_id": "artifact-01",
           "id": "primary-artifact-01",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -121,7 +112,6 @@
           "file_id": "artifact-02",
           "id": "primary-artifact-02",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -132,7 +122,6 @@
           "file_id": "artifact-03",
           "id": "primary-artifact-03",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -143,7 +132,6 @@
           "file_id": "artifact-04",
           "id": "primary-artifact-04",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -154,7 +142,6 @@
           "file_id": "artifact-05",
           "id": "primary-artifact-05",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -165,7 +152,6 @@
           "file_id": "artifact-06",
           "id": "primary-artifact-06",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -176,7 +162,6 @@
           "file_id": "artifact-07",
           "id": "primary-artifact-07",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -187,7 +172,6 @@
           "file_id": "artifact-08",
           "id": "primary-artifact-08",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -198,7 +182,6 @@
           "file_id": "artifact-09",
           "id": "primary-artifact-09",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -209,7 +192,6 @@
           "file_id": "artifact-10",
           "id": "primary-artifact-10",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -220,7 +202,6 @@
           "file_id": "artifact-11",
           "id": "primary-artifact-11",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -231,7 +212,6 @@
           "file_id": "artifact-12",
           "id": "primary-artifact-12",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -242,7 +222,6 @@
           "file_id": "artifact-13",
           "id": "primary-artifact-13",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -253,7 +232,6 @@
           "file_id": "artifact-14",
           "id": "primary-artifact-14",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -264,7 +242,6 @@
           "file_id": "artifact-15",
           "id": "primary-artifact-15",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -275,7 +252,6 @@
           "file_id": "artifact-16",
           "id": "primary-artifact-16",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -286,7 +262,6 @@
           "file_id": "artifact-17",
           "id": "primary-artifact-17",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -297,7 +272,6 @@
           "file_id": "artifact-18",
           "id": "primary-artifact-18",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -308,7 +282,6 @@
           "file_id": "artifact-19",
           "id": "primary-artifact-19",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -319,7 +292,6 @@
           "file_id": "artifact-20",
           "id": "primary-artifact-20",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -330,7 +302,6 @@
           "file_id": "artifact-21",
           "id": "primary-artifact-21",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -341,7 +312,6 @@
           "file_id": "artifact-22",
           "id": "primary-artifact-22",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -352,7 +322,6 @@
           "file_id": "artifact-23",
           "id": "primary-artifact-23",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -363,7 +332,6 @@
           "file_id": "artifact-24",
           "id": "primary-artifact-24",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -374,7 +342,6 @@
           "file_id": "artifact-25",
           "id": "primary-artifact-25",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -385,7 +352,6 @@
           "file_id": "artifact-26",
           "id": "primary-artifact-26",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -396,7 +362,6 @@
           "file_id": "artifact-27",
           "id": "primary-artifact-27",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -407,7 +372,6 @@
           "file_id": "artifact-28",
           "id": "primary-artifact-28",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -418,7 +382,6 @@
           "file_id": "artifact-29",
           "id": "primary-artifact-29",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -429,7 +392,6 @@
           "file_id": "artifact-30",
           "id": "primary-artifact-30",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -439,7 +401,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "bf8762c59da2760e6decab04ea675c9ed249c07f5e9cff18d63b822456bd84b7",
+        "content_sha256": "42c179c7ed6a7d155d61ab5e123c159794897b724f8280606156ba71397b1bcc",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-2512-25468b98"
@@ -450,235 +412,9 @@
     "attribution": [
       "Qwen"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/Qwen/Qwen-Image-2512/tree/25468b98e3276ca6700de15c6628e51b7de54a26"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.2.9",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "1c57324c7af4a394198dc7903fda16f81daff1d67adc9c1cc173b63a6440e29f",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved the CUDA runtime base to 13.4.1 and refreshed PyTorch 2.14.0, torchvision 0.29.0, Transformers 5.17.0 and Accelerate 1.15.0.",
-            "details": "Base image nvcr.io/nvidia/cuda 13.0.1-runtime-ubuntu24.04 -> 13.4.1-runtime-ubuntu24.04 (arm64 digest 2eaf346843c9); its NVIDIA_REQUIRE_CUDA keeps the driver>=580 branch clause. torch 2.13.0 -> 2.14.0 and torchvision 0.28.0 -> 0.29.0 (cu130 aarch64 wheels), transformers 5.15.1 -> 5.17.0, accelerate 1.14.0 -> 1.15.0. Pillow 12.3.0, safetensors 0.8.0 and sentencepiece 0.2.2 are already the latest releases. Model revision and adapter settings are unchanged.",
-            "references": [
-              "https://github.com/pytorch/pytorch/releases/tag/v2.14.0",
-              "https://github.com/pytorch/vision/releases/tag/v0.29.0",
-              "https://github.com/huggingface/transformers/releases/tag/v5.17.0",
-              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "compatibility",
-            "summary": "Kept Diffusers at commit c5469b7ceb60 because it is newer than the v0.40.0 release.",
-            "details": "The GitHub compare v0.40.0...c5469b7ceb60 reports the pinned commit 79 commits ahead of the latest stable Diffusers tag (diverged only by the release-branch version commit), so no stable release contains it yet. The Qwen pipelines it imports use no Transformers API removed in 5.16/5.17.",
-            "references": [
-              "https://github.com/huggingface/diffusers/compare/v0.40.0...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
-              "https://github.com/huggingface/diffusers/releases/tag/v0.40.0"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu130 metadata requires cuda-toolkit==13.0.3.0; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "7545fc1f7538c0fa54de8d80cfe9d40b3596db037ebe920fb1b890dd5768cc0b",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.8"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Declared the official cu130 PyTorch wheel-object host for source builds.",
-            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/torch/",
-              "https://download.pytorch.org/whl/cu130/torchvision/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "f615ceb1316636ef10d738bd2bf9a66d5a50a4b1954deefb09023fd11588f4dd",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.7"
-      },
-      {
-        "changes": [
-          {
-            "details": "The current Diffusers source preserves the Qwen pipeline call surface used by this adapter; the selected prompt/image/layer arguments remain accepted without changing model files or recipe settings.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
-              "https://github.com/huggingface/diffusers/tree/c5469b7ceb606edd7ba6570dcd17d38590a18db6/src/diffusers"
-            ],
-            "summary": "Rebuilt the Diffusers media adapter at upstream commit c5469b7ceb60."
-          }
-        ],
-        "prior_recipe_content_sha256": "b6251a0d4bebdbdd87b7e05f86ff85b07b772744fb1812aefa08f8f75a26acd1",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.6"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.2.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "353dc9f336110fcac06dafcaed5342fb64972dc8c5f350220d839026cb3d5ed0",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.4"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "999795d23a4825e28b4890f38f186222f4a323a4c86363d7899aac913dc100e7",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.2.3"
-      },
-      {
-        "changes": [
-          {
-            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
-            "kind": "security",
-            "references": [],
-            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
-          }
-        ],
-        "prior_recipe_content_sha256": "69b791d247068de33f5c16e36ee510ca703e7c35252f422d88b8d64e4a89c730",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "Declared exact prompt-file and generated-PNG slots for signed artifact jobs.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Added typed artifact input and output slot contracts."
-          }
-        ],
-        "prior_recipe_content_sha256": "e974c866fda586348ccef9dc878b61453b97af8be4658238f1bf41427c505792",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "none",
-        "version": "1.2.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Standardized generation prompts as one bounded UTF-8 text file in the read-only inputs mount."
-          }
-        ],
-        "prior_recipe_content_sha256": "ac721d78b137e8a46e01421025bca037392051a621c185746f01913354c54676",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "a4e926e3d8566893cde6f05e10cf19d5d45d4b7b43a63f6975b07667eff9ea05",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.1.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [
-              "https://huggingface.co/Qwen/Qwen-Image-2512/tree/25468b98e3276ca6700de15c6628e51b7de54a26"
-            ],
-            "summary": "Enabled upstream true CFG 4.0 with the Qwen Image 2512 negative prompt instead of ignored guidance-distilled CFG."
-          }
-        ],
-        "prior_recipe_content_sha256": "79e4921a6b79bd38aaf103cdb781f1b2b142dd00bf267a663c0f5063cd70e376",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of Qwen Image 2512 Diffusers single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "acd71a8dd5e248912ab1fdf32bb32f01b112a83da1ce8b1d90512b23354db6a3",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/4041604a41ed96d4be18ceb695c4be8d2dc2b3c0"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "253f751fe531b021f2d59f9d7cb84d70634be0386b622b68e86a0ab4269a1f65",
-        "released_at": "2026-08-16",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.2.9"
   },
@@ -727,40 +463,26 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -770,42 +492,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 57704595735,
-            "cache_bytes": 8000000000,
             "image_bytes": 2000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 70000000000
+            "working_bytes": 78000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 8000000000,
-            "startup_peak_bytes": 118000000000,
-            "steady_state_bytes": 98000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "height": 1328,
-          "num_inference_steps": 50,
-          "timeout_seconds": 14400,
-          "width": 1328
-        },
-        "framework": "diffusers",
-        "name": "bounded-image"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -817,11 +519,9 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/prompt.txt",
-            "input_path": "/inputs",
             "input_slots": {
               "prompt": "qualification/fixtures/prompt.txt"
             },
-            "output_path": "/outputs",
             "output_slot": "image",
             "transport": "job"
           }

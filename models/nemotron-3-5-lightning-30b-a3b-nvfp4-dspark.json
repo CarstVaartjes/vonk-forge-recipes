@@ -1,17 +1,5 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [],
-    "provenance": {
-      "source_revision": "8da79f23859810bbb806e7a25eaf70489a9441c5",
-      "source_url": "https://github.com/CarstVaartjes/vonk-forge-recipes"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -70,7 +58,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "nvfp4",
     "quantization": "w4a16-nvfp4"
   },
@@ -81,7 +68,6 @@
       "title": "NVIDIA Nemotron"
     },
     "model": {
-      "architecture": "Six-layer dense FFN and grouped-query attention DSpark speculative decoder with sliding-window attention",
       "publisher": "nvidia",
       "slug": "nemotron-3-5-lightning-30b-a3b-dspark",
       "title": "Nemotron 3.5 Lightning 30B-A3B DSpark companion"
@@ -96,25 +82,8 @@
     "attribution": [
       "NVIDIA Corporation"
     ],
-    "operator_acceptance_required": true,
     "spdx": "LicenseRef-OpenMDW-1.1",
     "url": "https://openmdw.ai/license/1-1/"
-  },
-  "limits": {
-    "context_tokens": 1048576,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official NVIDIA six-layer Qwen3DSparkModel companion trained for speculative decoding against Nemotron 3.5 Lightning.",
-    "publisher": "nvidia",
-    "relation": "derived",
-    "source_model": {
-      "kind": "model",
-      "publisher": "nvidia",
-      "slug": "nemotron-3-5-lightning-30b-a3b"
-    }
   },
   "metadata": {
     "description": "Official NVIDIA six-layer DSpark speculative-decoding companion for the exact Nemotron 3.5 Lightning 30B-A3B NVFP4 target.",
@@ -132,21 +101,9 @@
   "modalities": [
     "text"
   ],
-  "parameters": {
-    "active": null,
-    "total": 967000000
-  },
-  "provenance": {
-    "attribution": [
-      "NVIDIA Corporation"
-    ],
-    "source_revision": "8a0177116d138011e63103110f136ec0ca09ebbf",
-    "source_url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark",
     "revision": "8a0177116d138011e63103110f136ec0ca09ebbf"
-  },
-  "supersedes": null
+  }
 }

@@ -1,33 +1,9 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "audio-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "b6a99534467840620d411e4cd4ad5819b2610d9c",
-      "source_url": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "audio-understanding",
+    "image-understanding",
+    "text-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -221,7 +197,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "nvfp4"
   },
@@ -232,7 +207,6 @@
       "title": "Thinking Machines Inkling"
     },
     "model": {
-      "architecture": "42-layer multimodal sparse mixture-of-experts decoder with image and audio encoders",
       "publisher": "thinkingmachines",
       "slug": "inkling-small",
       "title": "Inkling Small"
@@ -247,25 +221,8 @@
     "attribution": [
       "Thinking Machines Lab"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/blob/b6a99534467840620d411e4cd4ad5819b2610d9c/README.md"
-  },
-  "limits": {
-    "context_tokens": 1048576,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official Thinking Machines Lab NVFP4 checkpoint at the pinned revision; no community conversion or runtime-side weight mutation is used.",
-    "publisher": "thinkingmachines",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "thinkingmachines",
-      "slug": "inkling-small"
-    }
   },
   "metadata": {
     "description": "Exact public NVFP4 checkpoint, including its built-in eight-head MTP weights and text, image, and 16 kHz audio processor contract.",
@@ -286,21 +243,9 @@
     "image",
     "text"
   ],
-  "parameters": {
-    "active": 12000000000,
-    "total": 276000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Thinking Machines Lab"
-    ],
-    "source_revision": "b6a99534467840620d411e4cd4ad5819b2610d9c",
-    "source_url": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4",
     "revision": "b6a99534467840620d411e4cd4ad5819b2610d9c"
-  },
-  "supersedes": null
+  }
 }

@@ -1,23 +1,7 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "3d-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "79736cad0fd84de384d5eede659b4ebd24effe33",
-      "source_url": "https://huggingface.co/VAST-AI/SkinTokens/blob/79736cad0fd84de384d5eede659b4ebd24effe33/README.md"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "3d-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -58,7 +42,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -69,7 +52,6 @@
       "title": "SkinTokens"
     },
     "model": {
-      "architecture": "upstream-native generation pipeline",
       "publisher": "vast-ai",
       "slug": "skintokens",
       "title": "SkinTokens /"
@@ -84,26 +66,9 @@
     "attribution": [
       "vast-ai"
     ],
-    "operator_acceptance_required": true,
     "spdx": "MIT",
     "territorial_restrictions": null,
     "url": "https://github.com/VAST-AI-Research/SkinTokens/blob/273b691d35989d71cd17ff2895fdc735097b92d1/LICENSE"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Immutable public upstream snapshot at the pinned revision.",
-    "publisher": "vast-ai",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "vast-ai",
-      "slug": "skintokens"
-    }
   },
   "metadata": {
     "description": "Immutable public snapshot at 79736cad.",
@@ -116,21 +81,9 @@
   "modalities": [
     "3d"
   ],
-  "parameters": {
-    "active": null,
-    "total": null
-  },
-  "provenance": {
-    "attribution": [
-      "vast-ai"
-    ],
-    "source_revision": "79736cad0fd84de384d5eede659b4ebd24effe33",
-    "source_url": "https://huggingface.co/VAST-AI/SkinTokens/blob/79736cad0fd84de384d5eede659b4ebd24effe33/README.md"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/VAST-AI/SkinTokens",
     "revision": "79736cad0fd84de384d5eede659b4ebd24effe33"
-  },
-  "supersedes": null
+  }
 }

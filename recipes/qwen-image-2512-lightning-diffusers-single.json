@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -22,13 +20,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -42,7 +37,6 @@
         "media_types": [
           "text/plain"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -64,7 +58,6 @@
       },
       "output": {
         "max_total_bytes": 16777216,
-        "path": "/outputs",
         "slots": [
           {
             "description": "Single generated PNG image.",
@@ -82,8 +75,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -113,7 +105,6 @@
           "file_id": "qwen-image-2512-lightning-4steps-v1-0-bf16",
           "id": "primary-qwen-image-2512-lightning-4steps-v1-0-bf16",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -123,7 +114,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "87d8ee05ae2a914b76024d357ae1aac878a9076d163c2a83f0fcc64407c38a5c",
+        "content_sha256": "ce6ca834b6ac1770cd110ae7abd3cd2f367fe8d722a1fabacfb5f6ae1767bebb",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-2512-lightning"
@@ -135,7 +126,6 @@
           "file_id": "artifact-01",
           "id": "dependency-qwen-image-2512-25468b98-artifact-01",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -146,7 +136,6 @@
           "file_id": "artifact-02",
           "id": "dependency-qwen-image-2512-25468b98-artifact-02",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -157,7 +146,6 @@
           "file_id": "artifact-03",
           "id": "dependency-qwen-image-2512-25468b98-artifact-03",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -168,7 +156,6 @@
           "file_id": "artifact-04",
           "id": "dependency-qwen-image-2512-25468b98-artifact-04",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -179,7 +166,6 @@
           "file_id": "artifact-05",
           "id": "dependency-qwen-image-2512-25468b98-artifact-05",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -190,7 +176,6 @@
           "file_id": "artifact-06",
           "id": "dependency-qwen-image-2512-25468b98-artifact-06",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -201,7 +186,6 @@
           "file_id": "artifact-07",
           "id": "dependency-qwen-image-2512-25468b98-artifact-07",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -212,7 +196,6 @@
           "file_id": "artifact-08",
           "id": "dependency-qwen-image-2512-25468b98-artifact-08",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -223,7 +206,6 @@
           "file_id": "artifact-09",
           "id": "dependency-qwen-image-2512-25468b98-artifact-09",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -234,7 +216,6 @@
           "file_id": "artifact-10",
           "id": "dependency-qwen-image-2512-25468b98-artifact-10",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -245,7 +226,6 @@
           "file_id": "artifact-11",
           "id": "dependency-qwen-image-2512-25468b98-artifact-11",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -256,7 +236,6 @@
           "file_id": "artifact-12",
           "id": "dependency-qwen-image-2512-25468b98-artifact-12",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -267,7 +246,6 @@
           "file_id": "artifact-13",
           "id": "dependency-qwen-image-2512-25468b98-artifact-13",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -278,7 +256,6 @@
           "file_id": "artifact-14",
           "id": "dependency-qwen-image-2512-25468b98-artifact-14",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -289,7 +266,6 @@
           "file_id": "artifact-15",
           "id": "dependency-qwen-image-2512-25468b98-artifact-15",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -300,7 +276,6 @@
           "file_id": "artifact-16",
           "id": "dependency-qwen-image-2512-25468b98-artifact-16",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -311,7 +286,6 @@
           "file_id": "artifact-17",
           "id": "dependency-qwen-image-2512-25468b98-artifact-17",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -322,7 +296,6 @@
           "file_id": "artifact-18",
           "id": "dependency-qwen-image-2512-25468b98-artifact-18",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -333,7 +306,6 @@
           "file_id": "artifact-19",
           "id": "dependency-qwen-image-2512-25468b98-artifact-19",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -344,7 +316,6 @@
           "file_id": "artifact-20",
           "id": "dependency-qwen-image-2512-25468b98-artifact-20",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -355,7 +326,6 @@
           "file_id": "artifact-21",
           "id": "dependency-qwen-image-2512-25468b98-artifact-21",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -366,7 +336,6 @@
           "file_id": "artifact-22",
           "id": "dependency-qwen-image-2512-25468b98-artifact-22",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -377,7 +346,6 @@
           "file_id": "artifact-23",
           "id": "dependency-qwen-image-2512-25468b98-artifact-23",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -388,7 +356,6 @@
           "file_id": "artifact-24",
           "id": "dependency-qwen-image-2512-25468b98-artifact-24",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -399,7 +366,6 @@
           "file_id": "artifact-25",
           "id": "dependency-qwen-image-2512-25468b98-artifact-25",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -410,7 +376,6 @@
           "file_id": "artifact-26",
           "id": "dependency-qwen-image-2512-25468b98-artifact-26",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -421,7 +386,6 @@
           "file_id": "artifact-27",
           "id": "dependency-qwen-image-2512-25468b98-artifact-27",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -432,7 +396,6 @@
           "file_id": "artifact-28",
           "id": "dependency-qwen-image-2512-25468b98-artifact-28",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -443,7 +406,6 @@
           "file_id": "artifact-29",
           "id": "dependency-qwen-image-2512-25468b98-artifact-29",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -454,7 +416,6 @@
           "file_id": "artifact-30",
           "id": "dependency-qwen-image-2512-25468b98-artifact-30",
           "mount": {
-            "read_only": true,
             "target": "/models/base"
           },
           "roles": [
@@ -464,7 +425,7 @@
       ],
       "id": "dependency-qwen-image-2512-25468b98",
       "model": {
-        "content_sha256": "bf8762c59da2760e6decab04ea675c9ed249c07f5e9cff18d63b822456bd84b7",
+        "content_sha256": "42c179c7ed6a7d155d61ab5e123c159794897b724f8280606156ba71397b1bcc",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-2512-25468b98"
@@ -477,283 +438,9 @@
       "lightx2v",
       "Qwen"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.2.11",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "ca232fed794d8e0f8dafa156e02ca0eefbfce816243ea721cfb2df8c85fe93a8",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved the CUDA runtime base to 13.4.1 and refreshed PyTorch 2.14.0, torchvision 0.29.0, Transformers 5.17.0 and Accelerate 1.15.0.",
-            "details": "Base image nvcr.io/nvidia/cuda 13.0.1-runtime-ubuntu24.04 -> 13.4.1-runtime-ubuntu24.04 (arm64 digest 2eaf346843c9); its NVIDIA_REQUIRE_CUDA keeps the driver>=580 branch clause. torch 2.13.0 -> 2.14.0 and torchvision 0.28.0 -> 0.29.0 (cu130 aarch64 wheels), transformers 5.15.1 -> 5.17.0, accelerate 1.14.0 -> 1.15.0. Pillow 12.3.0, safetensors 0.8.0 and sentencepiece 0.2.2 are already the latest releases. Model revision and adapter settings are unchanged.",
-            "references": [
-              "https://github.com/pytorch/pytorch/releases/tag/v2.14.0",
-              "https://github.com/pytorch/vision/releases/tag/v0.29.0",
-              "https://github.com/huggingface/transformers/releases/tag/v5.17.0",
-              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "compatibility",
-            "summary": "Kept Diffusers at commit c5469b7ceb60 because it is newer than the v0.40.0 release.",
-            "details": "The GitHub compare v0.40.0...c5469b7ceb60 reports the pinned commit 79 commits ahead of the latest stable Diffusers tag (diverged only by the release-branch version commit), so no stable release contains it yet. The Qwen pipelines it imports use no Transformers API removed in 5.16/5.17.",
-            "references": [
-              "https://github.com/huggingface/diffusers/compare/v0.40.0...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
-              "https://github.com/huggingface/diffusers/releases/tag/v0.40.0"
-            ]
-          },
-          {
-            "kind": "compatibility",
-            "summary": "Load the transformer and pipeline with dtype= instead of the deprecated torch_dtype= argument.",
-            "details": "Diffusers 0.40 deprecates torch_dtype in favour of dtype (it still works but warns, removal planned for 1.0.0). The Lightning adapter now passes dtype=torch.bfloat16, matching the other Qwen Image adapters; the loaded precision is unchanged.",
-            "references": [
-              "https://github.com/huggingface/diffusers/pull/14205",
-              "https://github.com/huggingface/diffusers/releases/tag/v0.40.0"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu130 metadata requires cuda-toolkit==13.0.3.0; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "e1aa9d209bece625f86d55ba6051148a2d2535adc21a273a76d533de4f89f8c5",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.10"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Declared the official cu130 PyTorch wheel-object host for source builds.",
-            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/torch/",
-              "https://download.pytorch.org/whl/cu130/torchvision/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "e556f182cb30e04d0d9f44307595a880b2540bc1965fa700183969b134137267",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.9"
-      },
-      {
-        "changes": [
-          {
-            "details": "The current Diffusers source preserves the Qwen pipeline call surface used by this adapter; the selected prompt/image/layer arguments remain accepted without changing model files or recipe settings.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
-              "https://github.com/huggingface/diffusers/tree/c5469b7ceb606edd7ba6570dcd17d38590a18db6/src/diffusers"
-            ],
-            "summary": "Rebuilt the Diffusers media adapter at upstream commit c5469b7ceb60."
-          }
-        ],
-        "prior_recipe_content_sha256": "2c9c7984c7ae96c84026f710072c9e39b7c3141d007b56326161b32f0659b16f",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.8"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.2.7"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "60f3343f5084041f1a110cfcd9e24cb0fa38ab172f977b88d0a9da75fe119885",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.6"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "c185dd776ac337c4fc04886c5487326f726e9d7dda0b0ffe40c089a7f1dde04b",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.2.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
-            "kind": "security",
-            "references": [],
-            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
-          }
-        ],
-        "prior_recipe_content_sha256": "1d6f9477651ecda6d99d39d6397e363d11dfc43f3ad556f46f0a1db48694e6ff",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "Declared exact prompt-file and generated-PNG slots for signed artifact jobs.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Added typed artifact input and output slot contracts."
-          }
-        ],
-        "prior_recipe_content_sha256": "509c571e6a560695a61573c3088a13ffb71b6b0236efe8cb35c290e68f5cc189",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "none",
-        "version": "1.2.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Disambiguated the Lightning model title from the base Qwen Image 2512 model."
-          }
-        ],
-        "prior_recipe_content_sha256": "30af01a1af903316419f64521877594ad1cda5a887acb82916f49ab1e67de95c",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.2.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "44624af7f5f751c050b0f80f3a9775c57560972200e2aeb01bc901d9e3af03d5",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.2.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [
-              "https://huggingface.co/Qwen/Qwen-Image-2512/tree/25468b98e3276ca6700de15c6628e51b7de54a26",
-              "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52"
-            ],
-            "summary": "Made the Candidate installable with its exact Qwen Image 2512 base dependency and four-step BF16 Lightning LoRA."
-          },
-          {
-            "details": null,
-            "kind": "performance",
-            "references": [],
-            "summary": "Applied ModelTC's exact four-step shift-3 scheduler with true CFG 1.0."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Download only the selected 849 MB BF16 LoRA instead of the complete 107 GB multi-variant collection."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Added a required UTF-8 text prompt input contract and deterministic PNG output adapter; physical Spark acceptance remains pending."
-          }
-        ],
-        "prior_recipe_content_sha256": "07d98fbd43c11251b77813d16328fb0812cf92d532896cd959ae3f0f2906e76d",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "reprepare",
-        "version": "1.2.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Marked the Lightning weight collection non-executable until its base checkpoint and LoRA-aware adapter are cataloged."
-          },
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Corrected ModelTC, lightx2v, and Qwen attribution and the immutable source license reference."
-          }
-        ],
-        "prior_recipe_content_sha256": "2fc41d41253202f324bb471958afcb0c8226ff7a12cb24c4ce768a90e8676cd0",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of Qwen Image 2512 Lightning diffusers single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "7666b689858557905332879aa66bc6a410690ffd86060aca1b7e00f7ad754ca6",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "6d64e031c1bc2efa58854adfee80b145ab2081cfb57aabd92ec4cbd889fbad12",
-        "released_at": "2026-08-17",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.2.11"
   },
@@ -802,45 +489,30 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -850,42 +522,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 58554204031,
-            "cache_bytes": 8000000000,
             "image_bytes": 2000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 70000000000
+            "working_bytes": 78000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 8000000000,
-            "startup_peak_bytes": 118000000000,
-            "steady_state_bytes": 98000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "height": 1328,
-          "num_inference_steps": 4,
-          "timeout_seconds": 14400,
-          "width": 1328
-        },
-        "framework": "diffusers",
-        "name": "bounded-lightning-image"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -897,11 +549,9 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/prompt.txt",
-            "input_path": "/inputs",
             "input_slots": {
               "prompt": "qualification/fixtures/prompt.txt"
             },
-            "output_path": "/outputs",
             "output_slot": "image",
             "transport": "job"
           }

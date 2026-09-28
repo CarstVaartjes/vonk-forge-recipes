@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "b0d8718a4424bb22e448e04407ab3ce5f7399a4c5fc702d6fbe36c3772ec8862",
-        "platform": "linux/arm64",
         "repository": "docker.io/lmsysorg/sglang"
       },
       "context": {
@@ -12,13 +10,10 @@
       },
       "dockerfile": "adapters/qwen/qwen38-27b-dspark-single/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": []
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -66,7 +61,6 @@
           "file_id": "metadata-34448b82c17d",
           "id": "primary-metadata-34448b82c17d",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -77,7 +71,6 @@
           "file_id": "file--quant-summary-5920198f1770",
           "id": "primary-file--quant-summary-5920198f1770",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -88,7 +81,6 @@
           "file_id": "license-bbedc3fda330",
           "id": "primary-license-bbedc3fda330",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -99,7 +91,6 @@
           "file_id": "readme-10a114243d31",
           "id": "primary-readme-10a114243d31",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -110,7 +101,6 @@
           "file_id": "chat-template-c3cf9e34abf4",
           "id": "primary-chat-template-c3cf9e34abf4",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -121,7 +111,6 @@
           "file_id": "config-66402a06352a",
           "id": "primary-config-66402a06352a",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -132,7 +121,6 @@
           "file_id": "conversion-manifest-4a45d15af79e",
           "id": "primary-conversion-manifest-4a45d15af79e",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -143,7 +131,6 @@
           "file_id": "generation-config-a4cef85934ea",
           "id": "primary-generation-config-a4cef85934ea",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -154,7 +141,6 @@
           "file_id": "hf-quant-config-2a63c5bd1e7f",
           "id": "primary-hf-quant-config-2a63c5bd1e7f",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -165,7 +151,6 @@
           "file_id": "merges-a9d356d7bdf1",
           "id": "primary-merges-a9d356d7bdf1",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -176,7 +161,6 @@
           "file_id": "model-00001-of-00003-fbcdb5ba1cdd",
           "id": "primary-model-00001-of-00003-fbcdb5ba1cdd",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -187,7 +171,6 @@
           "file_id": "model-00002-of-00003-db6146a5464f",
           "id": "primary-model-00002-of-00003-db6146a5464f",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -198,7 +181,6 @@
           "file_id": "model-00003-of-00003-597573c145c2",
           "id": "primary-model-00003-of-00003-597573c145c2",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -209,7 +191,6 @@
           "file_id": "model-safetensors-index-8af18756d73b",
           "id": "primary-model-safetensors-index-8af18756d73b",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -220,7 +201,6 @@
           "file_id": "preprocessor-config-27225450ac9c",
           "id": "primary-preprocessor-config-27225450ac9c",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -231,7 +211,6 @@
           "file_id": "qualification-criteria-8e3b57367245",
           "id": "primary-qualification-criteria-8e3b57367245",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -242,7 +221,6 @@
           "file_id": "qualification-7be9d60606fc",
           "id": "primary-qualification-7be9d60606fc",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -253,7 +231,6 @@
           "file_id": "tensor-audit-8a7801e2b462",
           "id": "primary-tensor-audit-8a7801e2b462",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -264,7 +241,6 @@
           "file_id": "tokenizer-0997f410c57a",
           "id": "primary-tokenizer-0997f410c57a",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -275,7 +251,6 @@
           "file_id": "tokenizer-config-e5d078b00e6c",
           "id": "primary-tokenizer-config-e5d078b00e6c",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -286,7 +261,6 @@
           "file_id": "video-preprocessor-config-7768af27c1fa",
           "id": "primary-video-preprocessor-config-7768af27c1fa",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -297,7 +271,6 @@
           "file_id": "vocab-ce99b4cb2983",
           "id": "primary-vocab-ce99b4cb2983",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -307,7 +280,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c5304a54744543cdf7ca95d8f93061446fda1b26eacfb014f754af47e66c4645",
+        "content_sha256": "685e17e3d607d77ab55a48ec281bf950f091c04061a406241ad1431ce833bc41",
         "kind": "model",
         "publisher": "radixark",
         "slug": "qwen3-8-27b-nvfp4-009632fe"
@@ -319,7 +292,6 @@
           "file_id": "metadata-11ad7efa2497",
           "id": "dependency-qwen3-8-27b-dspark-b3c99101-metadata-11ad7efa2497",
           "mount": {
-            "read_only": true,
             "target": "/models/draft"
           },
           "roles": [
@@ -330,7 +302,6 @@
           "file_id": "readme-d45e903f8ce2",
           "id": "dependency-qwen3-8-27b-dspark-b3c99101-readme-d45e903f8ce2",
           "mount": {
-            "read_only": true,
             "target": "/models/draft"
           },
           "roles": [
@@ -341,7 +312,6 @@
           "file_id": "config-dd65fb1b01c2",
           "id": "dependency-qwen3-8-27b-dspark-b3c99101-config-dd65fb1b01c2",
           "mount": {
-            "read_only": true,
             "target": "/models/draft"
           },
           "roles": [
@@ -352,7 +322,6 @@
           "file_id": "dflash-9825996703de",
           "id": "dependency-qwen3-8-27b-dspark-b3c99101-dflash-9825996703de",
           "mount": {
-            "read_only": true,
             "target": "/models/draft"
           },
           "roles": [
@@ -363,7 +332,6 @@
           "file_id": "dspark-75bba7c46916",
           "id": "dependency-qwen3-8-27b-dspark-b3c99101-dspark-75bba7c46916",
           "mount": {
-            "read_only": true,
             "target": "/models/draft"
           },
           "roles": [
@@ -374,7 +342,6 @@
           "file_id": "model-2aff025f4582",
           "id": "dependency-qwen3-8-27b-dspark-b3c99101-model-2aff025f4582",
           "mount": {
-            "read_only": true,
             "target": "/models/draft"
           },
           "roles": [
@@ -384,7 +351,7 @@
       ],
       "id": "dependency-qwen3-8-27b-dspark-b3c99101",
       "model": {
-        "content_sha256": "5e68330b67c84cd475ba57c3dc46cd9f508869db063722eb69b66bee24791561",
+        "content_sha256": "9a020f51060bace3cd7d4d1c8410abb0ec1a1cfd3c2c8945b1ed51fccdd72575",
         "kind": "model",
         "publisher": "radixark",
         "slug": "qwen3-8-27b-dspark-b3c99101"
@@ -398,138 +365,9 @@
       "MiaAI-Lab",
       "SGLang contributors"
     ],
-    "source_kind": "global",
     "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark/tree/9d21dcd331232792e7d39f4f84db7dd46635905d"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.2.0",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "9942bb8c98d4ec072735098aca836faa657b1d3136a247689c4f0bef8a9db07a",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved the base image from the qwen38-27b nightly build to the stable SGLang v0.5.20 CUDA 13 arm64 image.",
-            "details": "Base image lmsysorg/sglang:qwen38-27b (arm64 sha256:3c0abdf41ef2, nightly-dev-20260814 commit c4271c3f with a prebuilt FlashInfer 0.6.18 nightly overlay) is replaced by the stable v0.5.20 image (arm64 sha256:b0d8718a4424, commit 94602c9c, FlashInfer 0.6.18), which contains c4271c3f. The v0.5.20 Qwen3.8-27B cookbook runs DGX Spark on the stable image and reports its Spark DSPARK cells measured on v0.5.19. All wrapper flags exist unchanged. The MiaAI-Lab source pin and both model revisions are unchanged; the drafter head only changed README.md.",
-            "references": [
-              "https://github.com/sgl-project/sglang/releases/tag/v0.5.20",
-              "https://github.com/sgl-project/sglang/compare/c4271c3fe1262fc2adbd162c33b25de5255251c5...v0.5.20",
-              "https://github.com/sgl-project/sglang/blob/94602c9c2b7cbdb8efd5c52802dac6a1c180089e/docs/cookbook/autoregressive/Qwen/Qwen3.8-27B.mdx"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": "Rebased the specialized source bundle from 751e29eb6a3057ccfd8f992f87dfc260787e05a1 to 9d21dcd331232792e7d39f4f84db7dd46635905d. The DSpark launcher and .env.sample are byte-for-byte unchanged (start-dspark.sh Git blob 6d7cf28884235cc1d05bd16772ad1715eec25c06; .env.sample 9266fde52ab1949007ce3b7dc5b2f43059a4d903); the shared start.sh adds --sleep-on-idle, which the bundled DSpark adapter now carries. The upstream DFlash2 target/image changes remain outside this recipe path.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark/tree/9d21dcd331232792e7d39f4f84db7dd46635905d"
-            ],
-            "summary": "Refresh the Qwen3.8 DSpark source pin and carry the shared idle-sleep flag."
-          }
-        ],
-        "prior_recipe_content_sha256": "fa221c186c4229c91da8f05d9d5c2121fda1b345988e9a13e0c275a94dfc99ac",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "4f0a99da434a17db0524e45f38e50ac315551cac183b4f7bbb6b1554970e1e49",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.1.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The immutable target, refreshed DSpark v2 drafter, and runtime contract are unchanged. Bounded text chat is qualified; Spark vision serving remains unproven.",
-            "kind": "metadata",
-            "references": [
-              "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead/tree/009632fef96dd349150baa780c984e62e70e91fe",
-              "https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark/tree/b3c9910194dc7ae53fea3d95a1959b654f495416"
-            ],
-            "summary": "Separated the refreshed NVFP4 DSpark v2 profile's multimodal capability from text-only qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "523aae6db13461d517d974c01b811591f08988ba5a544453d597430c18d76b9a",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "none",
-        "version": "1.1.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "Pins the Stage 2 step-5500 export and its complete immutable 3.71 GB snapshot; the SGLang launch contract remains block-size 7 with eight draft tokens.",
-            "kind": "model",
-            "references": [
-              "https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark/tree/b3c9910194dc7ae53fea3d95a1959b654f495416"
-            ],
-            "summary": "Updated the external draft from DSpark v1 to RadixArk's validated v2 checkpoint."
-          }
-        ],
-        "prior_recipe_content_sha256": "7e6add08a42a7b21981837219b260c9c75b85157d88b58fbb8e7046e47cd075b",
-        "released_at": "2026-08-29",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "Uses the DSPARK algorithm, block size 7, the supported continuous-decode flag, torch compilation, and mem-fraction-static 0.80.",
-            "kind": "fix",
-            "references": [],
-            "summary": "Corrected the DSpark launcher profile and lowered the validated Spark memory fraction."
-          }
-        ],
-        "prior_recipe_content_sha256": "f4b7e6f8bc98a2fa0ed32a667ededaf713f2c460c8083568d08c29fa8f50a277",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "Pins the NVFP4 target, external DSpark draft, CUDA 13 ARM64 image, 262K context, FlashInfer attention, Qwen parsers, and bounded speculative decoding without runtime downloads.",
-            "kind": "initial",
-            "references": [
-              "https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark/tree/751e29eb6a3057ccfd8f992f87dfc260787e05a1",
-              "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead/tree/009632fef96dd349150baa780c984e62e70e91fe"
-            ],
-            "summary": "Added the immutable one-Spark Qwen3.8 27B SGLang DSpark profile."
-          }
-        ],
-        "prior_recipe_content_sha256": "7c82ca566d8558648738c8fbfc4a17c847f723c89ab81e07d7435c79bba12e00",
-        "released_at": "2026-08-27",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.2.0"
   },
@@ -573,21 +411,13 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": {
       "change_effect": "restart",
@@ -602,19 +432,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -624,41 +448,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 27487684862,
-            "cache_bytes": 20000000000,
             "image_bytes": 36000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 24000000000,
-            "staging_bytes": 12000000000
+            "working_bytes": 32000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 8000000000,
-            "startup_peak_bytes": 92000000000,
-            "steady_state_bytes": 76000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 92000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "timeout_seconds": 600
-        },
-        "framework": "openai",
-        "name": "bounded-chat"
-      }
-    ],
     "serving": {
       "checks": [
         {

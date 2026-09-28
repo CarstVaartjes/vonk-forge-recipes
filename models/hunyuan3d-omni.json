@@ -1,26 +1,10 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "3d-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "70e803bfb4e127d534049d8ab8c8cb511780d485",
-      "source_url": "https://huggingface.co/tencent/Hunyuan3D-Omni"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "3d-generation"
+  ],
   "dependencies": [
     {
-      "content_sha256": "e6677e219057077a66271e4ca809d688b79985b207e1c21f59d6233d22eea788",
+      "content_sha256": "7a57f2c1944d3ffa5cf01b0d8396d759b072f576c259bb46b7f74730ef53759c",
       "kind": "model",
       "publisher": "facebook",
       "slug": "dinov2-large-47b73eef"
@@ -128,7 +112,6 @@
     }
   ],
   "format": {
-    "container": "other",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -139,7 +122,6 @@
       "title": "Hunyuan3D"
     },
     "model": {
-      "architecture": "upstream-native generation pipeline",
       "publisher": "tencent",
       "slug": "hunyuan3d-omni",
       "title": "Hunyuan3D-Omni"
@@ -154,7 +136,6 @@
     "attribution": [
       "tencent"
     ],
-    "operator_acceptance_required": false,
     "spdx": "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License",
     "territorial_restrictions": {
       "denied_jurisdictions": [
@@ -165,22 +146,6 @@
       "notice": "The upstream Hunyuan3D-Omni Community License does not apply in the European Union, United Kingdom, or South Korea."
     },
     "url": "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/blob/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8/License.txt"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Immutable public upstream snapshot at the pinned revision.",
-    "publisher": "tencent",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "tencent",
-      "slug": "hunyuan3d-omni"
-    }
   },
   "metadata": {
     "description": "Immutable public snapshot at 70e803bf.",
@@ -193,21 +158,9 @@
   "modalities": [
     "3d"
   ],
-  "parameters": {
-    "active": null,
-    "total": null
-  },
-  "provenance": {
-    "attribution": [
-      "tencent"
-    ],
-    "source_revision": "70e803bfb4e127d534049d8ab8c8cb511780d485",
-    "source_url": "https://huggingface.co/tencent/Hunyuan3D-Omni"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/tencent/Hunyuan3D-Omni",
     "revision": "70e803bfb4e127d534049d8ab8c8cb511780d485"
-  },
-  "supersedes": null
+  }
 }

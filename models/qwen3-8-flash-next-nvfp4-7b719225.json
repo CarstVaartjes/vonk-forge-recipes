@@ -1,43 +1,11 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "code-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "reasoning",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "video-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "7b719225242aacd3dbd3f9407468c2ee9a9d2594",
-      "source_url": "https://huggingface.co/RadixArk/Qwen3.8-Flash-Next-NVFP4"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "video-understanding"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -3813,7 +3781,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "nvfp4-w4a4-routed-experts"
   },
@@ -3824,7 +3791,6 @@
       "title": "RadixArk Qwen3.8 deployments"
     },
     "model": {
-      "architecture": "Qwen3.8 Flash Next sparse hybrid Gated DeltaNet and attention multimodal MoE transformer",
       "publisher": "radixark",
       "slug": "qwen3-8-flash-next-nvfp4",
       "title": "Qwen3.8 Flash Next NVFP4"
@@ -3840,25 +3806,8 @@
       "Qwen",
       "RadixArk"
     ],
-    "operator_acceptance_required": true,
     "spdx": "LicenseRef-Qwen3.8-Flash-Next",
     "url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next"
-  },
-  "limits": {
-    "context_tokens": 262144,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "radixark",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "radixark",
-      "slug": "qwen3-8-flash-next-nvfp4"
-    }
   },
   "metadata": {
     "description": "Exact public Qwen3.8 Flash Next NVFP4 7b719225 checkpoint.",
@@ -3874,22 +3823,9 @@
     "text",
     "video"
   ],
-  "parameters": {
-    "active": 6000000000,
-    "total": 176000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Qwen",
-      "RadixArk"
-    ],
-    "source_revision": "7b719225242aacd3dbd3f9407468c2ee9a9d2594",
-    "source_url": "https://huggingface.co/RadixArk/Qwen3.8-Flash-Next-NVFP4"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/RadixArk/Qwen3.8-Flash-Next-NVFP4",
     "revision": "7b719225242aacd3dbd3f9407468c2ee9a9d2594"
-  },
-  "supersedes": null
+  }
 }

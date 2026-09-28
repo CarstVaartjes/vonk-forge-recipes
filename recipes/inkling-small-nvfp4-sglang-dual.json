@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "b0d8718a4424bb22e448e04407ab3ce5f7399a4c5fc702d6fbe36c3772ec8862",
-        "platform": "linux/arm64",
         "repository": "docker.io/lmsysorg/sglang"
       },
       "context": {
@@ -12,13 +10,10 @@
       },
       "dockerfile": "adapters/inkling/small-dual/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": []
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -63,7 +58,6 @@
           "file_id": "metadata-34448b82c17d",
           "id": "primary-metadata-34448b82c17d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -75,7 +69,6 @@
           "file_id": "readme-146664eb4ce2",
           "id": "primary-readme-146664eb4ce2",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -87,7 +80,6 @@
           "file_id": "chat-template-0aa1aa0c729d",
           "id": "primary-chat-template-0aa1aa0c729d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -99,7 +91,6 @@
           "file_id": "config-dcb5b1d587bc",
           "id": "primary-config-dcb5b1d587bc",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -111,7 +102,6 @@
           "file_id": "hf-quant-config-70f2ae087bb4",
           "id": "primary-hf-quant-config-70f2ae087bb4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -123,7 +113,6 @@
           "file_id": "model-00001-of-00009-0536fc0774c0",
           "id": "primary-model-00001-of-00009-0536fc0774c0",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -135,7 +124,6 @@
           "file_id": "model-00002-of-00009-94046cd4c60e",
           "id": "primary-model-00002-of-00009-94046cd4c60e",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -147,7 +135,6 @@
           "file_id": "model-00003-of-00009-5b011d77adab",
           "id": "primary-model-00003-of-00009-5b011d77adab",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -159,7 +146,6 @@
           "file_id": "model-00004-of-00009-f84efa4eab97",
           "id": "primary-model-00004-of-00009-f84efa4eab97",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -171,7 +157,6 @@
           "file_id": "model-00005-of-00009-04911920af13",
           "id": "primary-model-00005-of-00009-04911920af13",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -183,7 +168,6 @@
           "file_id": "model-00006-of-00009-6f2e9eb03063",
           "id": "primary-model-00006-of-00009-6f2e9eb03063",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -195,7 +179,6 @@
           "file_id": "model-00007-of-00009-728792823d6b",
           "id": "primary-model-00007-of-00009-728792823d6b",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -207,7 +190,6 @@
           "file_id": "model-00008-of-00009-dc821c24f1af",
           "id": "primary-model-00008-of-00009-dc821c24f1af",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -219,7 +201,6 @@
           "file_id": "model-00009-of-00009-c91d957b4a0c",
           "id": "primary-model-00009-of-00009-c91d957b4a0c",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -231,7 +212,6 @@
           "file_id": "model-safetensors-index-2e3a00b15c54",
           "id": "primary-model-safetensors-index-2e3a00b15c54",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -243,7 +223,6 @@
           "file_id": "mtp-d286dd21cb98",
           "id": "primary-mtp-d286dd21cb98",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -255,7 +234,6 @@
           "file_id": "processor-config-b4a3962ea5f7",
           "id": "primary-processor-config-b4a3962ea5f7",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -267,7 +245,6 @@
           "file_id": "special-tokens-map-abc97715b4b3",
           "id": "primary-special-tokens-map-abc97715b4b3",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -279,7 +256,6 @@
           "file_id": "tokenizer-bc253fd2b702",
           "id": "primary-tokenizer-bc253fd2b702",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -291,7 +267,6 @@
           "file_id": "tokenizer-9fb6333a7db8",
           "id": "primary-tokenizer-9fb6333a7db8",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -303,7 +278,6 @@
           "file_id": "tokenizer-config-2e36c9748a20",
           "id": "primary-tokenizer-config-2e36c9748a20",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -314,7 +288,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "dfde69f61b91011afb0e32a466d2486f959d15824694b40d0dac1f98c07ac2ba",
+        "content_sha256": "90ffed7245a29ca1a0cb69bee73cf893bc0c4ca037489bc6f1757858e1e8ebfe",
         "kind": "model",
         "publisher": "thinkingmachines",
         "slug": "inkling-small-nvfp4"
@@ -326,121 +300,9 @@
       "Thinking Machines Lab",
       "SGLang contributors"
     ],
-    "source_kind": "global",
     "source_reference": "https://github.com/sgl-project/sglang/blob/94602c9c2b7cbdb8efd5c52802dac6a1c180089e/docs/src/snippets/configs/thinkingmachines/inkling-small.jsx"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.1.0",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "36d497f7724dc55798e060d28a971b16eca66642dbf42b183ad7ae9f3e8b1cf2",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved the base image from the dev-inkling-small-dgx-spark build to the stable SGLang v0.5.20 CUDA 13 arm64 image.",
-            "details": "Base image lmsysorg/sglang dev-inkling-small-dgx-spark (arm64 sha256:bbedab8cbf2d, unmerged branch commit a74222ef) is replaced by the stable v0.5.20 image (arm64 sha256:b0d8718a4424, commit 94602c9c). v0.5.20 contains the SM121 Inkling MoE support merged as PR #33108 and its Dockerfile installs nvidia-nccl-cu13 2.30.7, which the build check still enforces. The launch flags match the v0.5.20 DGX Spark cookbook cell unchanged. Upstream still documents the dedicated dev image for Spark, so Vonk physical acceptance remains pending.",
-            "references": [
-              "https://github.com/sgl-project/sglang/releases/tag/v0.5.20",
-              "https://github.com/sgl-project/sglang/blob/94602c9c2b7cbdb8efd5c52802dac6a1c180089e/docs/src/snippets/configs/thinkingmachines/inkling-small.jsx",
-              "https://github.com/sgl-project/sglang/pull/33108"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "8fd7a78064349c5fc4ecf98792f3e8ff8c25c3ebde33d6446f680c395cad9598",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "4cbe5b3699a0579651eae97d850016ca8aa3ae4f9653ab742b3e19aa79d90ec9",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "86b890cad805f8e9bc5764858d82fa5890704522cd698e62c28d2c4092fc8c4e",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "The launch preserves SGLang's DGX Spark choices: CUDA 13 ARM64, Triton attention, Marlin W4A16 FP4 and MoE kernels, page size 128, unified radix cache, bounded cache ratios, disabled prefill CUDA graphs, and native two-node ConnectX-7 rendezvous.",
-            "kind": "initial",
-            "references": [
-              "https://docs.sglang.io/cookbook/autoregressive/ThinkingMachines/Inkling-Small",
-              "https://github.com/sgl-project/sglang/blob/a74222ef6e690f851e2e4ff1c0be7dc1357be313/docs_new/src/snippets/configs/thinkingmachines/inkling-small.jsx"
-            ],
-            "summary": "Added the verified two-DGX-Spark SGLang TP2 profile as a thin, immutable Vonk recipe adaptation."
-          },
-          {
-            "details": "All 170,764,923,366 bytes are enumerated with exact file hashes. The model remains capped to a conservative 64K serving context so the two 128 GB unified-memory nodes retain cache and runtime headroom above the roughly 171 GB snapshot.",
-            "kind": "model",
-            "references": [
-              "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/tree/b6a99534467840620d411e4cd4ad5819b2610d9c",
-              "https://huggingface.co/blog/thinkingmachines-inkling"
-            ],
-            "summary": "Pinned the complete official Inkling Small NVFP4 snapshot and its built-in MTP weights at b6a99534."
-          },
-          {
-            "details": "Clients send image_url and audio_url parts as base64 data URIs, or OpenAI input_audio with WAV or MP3 bytes, alongside text. External media URLs are intentionally unavailable after installation because runtime networking is disabled; images should be 40-4096 px and WAV audio should be 16 kHz and ideally under two minutes.",
-            "kind": "runtime",
-            "references": [
-              "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/blob/b6a99534467840620d411e4cd4ad5819b2610d9c/README.md",
-              "https://docs.sglang.io/cookbook/autoregressive/ThinkingMachines/Inkling-Small#33-multimodal-input-image--audio"
-            ],
-            "summary": "Exposed offline text, image, and audio reasoning through one OpenAI-compatible multimodal endpoint."
-          }
-        ],
-        "prior_recipe_content_sha256": "a620e75f371e81af13ba56225fd9b835d02514c99b75f66ad5be13e01db91687",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.1.0"
   },
@@ -544,31 +406,21 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "NCCL_DEBUG",
-        "secret": null,
         "value": "WARN"
       },
       {
         "name": "SGLANG_ENABLE_UNIFIED_RADIX_TREE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "withdraw-endpoint",
-        "recovery": "restart-worker-then-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 180
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "context_tokens": {
@@ -580,19 +432,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "connected",
-      "minimum_bandwidth_mbps": 200000
-    },
-    "mode": "distributed",
     "name": "dual",
     "node_count": 2,
     "parallelism": {
       "backend": "native",
       "data": 1,
       "pipeline": 1,
-      "tensor": 2,
-      "world_size": 2
+      "tensor": 2
     },
     "roles": [
       {
@@ -602,18 +448,13 @@
         "resources": {
           "disk": {
             "artifact_bytes": 170764923366,
-            "cache_bytes": 32000000000,
             "image_bytes": 30000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 24000000000,
-            "staging_bytes": 20000000000
+            "working_bytes": 52000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 8000000000,
-            "startup_peak_bytes": 120000000000,
-            "steady_state_bytes": 109000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 120000000000,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -624,18 +465,13 @@
         "resources": {
           "disk": {
             "artifact_bytes": 170764923366,
-            "cache_bytes": 32000000000,
             "image_bytes": 30000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 24000000000,
-            "staging_bytes": 20000000000
+            "working_bytes": 52000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 8000000000,
-            "startup_peak_bytes": 120000000000,
-            "steady_state_bytes": 109000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 120000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
@@ -643,24 +479,9 @@
     "start_order": [
       "worker",
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint",
-      "worker"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "timeout_seconds": 600
-        },
-        "framework": "openai",
-        "name": "bounded-chat"
-      }
-    ],
     "serving": {
       "checks": [
         {

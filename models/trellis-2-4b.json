@@ -1,23 +1,7 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "3d-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "af44b45f2e35a493886929c6d786e563ec68364d",
-      "source_url": "https://huggingface.co/microsoft/TRELLIS.2-4B"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "3d-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -31,7 +15,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -42,7 +25,6 @@
       "title": "TRELLIS"
     },
     "model": {
-      "architecture": "upstream-native generation pipeline",
       "publisher": "microsoft",
       "slug": "trellis-2-4b",
       "title": "TRELLIS.2"
@@ -57,25 +39,8 @@
     "attribution": [
       "microsoft"
     ],
-    "operator_acceptance_required": true,
     "spdx": "MIT",
     "url": "https://github.com/microsoft/TRELLIS.2/blob/75fbf0183001ed9876c8dbb35de6b68552ee08bd/LICENSE"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Immutable public upstream snapshot at the pinned revision.",
-    "publisher": "microsoft",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "microsoft",
-      "slug": "trellis-2-4b"
-    }
   },
   "metadata": {
     "description": "Immutable public snapshot at af44b45f.",
@@ -88,21 +53,9 @@
   "modalities": [
     "3d"
   ],
-  "parameters": {
-    "active": null,
-    "total": null
-  },
-  "provenance": {
-    "attribution": [
-      "microsoft"
-    ],
-    "source_revision": "af44b45f2e35a493886929c6d786e563ec68364d",
-    "source_url": "https://huggingface.co/microsoft/TRELLIS.2-4B"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/microsoft/TRELLIS.2-4B",
     "revision": "af44b45f2e35a493886929c6d786e563ec68364d"
-  },
-  "supersedes": null
+  }
 }

@@ -1,17 +1,5 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [],
-    "provenance": {
-      "source_revision": "462165984030d82259a11f4367a4eed129e94a7b",
-      "source_url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/462165984030d82259a11f4367a4eed129e94a7b/model_index.json"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -160,7 +148,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "fp32",
     "quantization": "none"
   },
@@ -171,7 +158,6 @@
       "title": "Stable Diffusion XL"
     },
     "model": {
-      "architecture": "Stable Diffusion XL Diffusers pipeline",
       "publisher": "stabilityai",
       "slug": "stable-diffusion-xl-base-1-0",
       "title": "Stable Diffusion XL Base 1.0"
@@ -186,25 +172,8 @@
     "attribution": [
       "stabilityai"
     ],
-    "operator_acceptance_required": true,
     "spdx": "LicenseRef-CreativeML-Open-RAIL-Plus-Plus-M",
     "url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/462165984030d82259a11f4367a4eed129e94a7b/LICENSE.md"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Exact pinned Diffusers pipeline files loaded by Step1X. The VAE is supplied by the recipe's separate pinned model selection.",
-    "publisher": "stabilityai",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "stabilityai",
-      "slug": "stable-diffusion-xl-base-1-0"
-    }
   },
   "metadata": {
     "description": "Complete default-weight SDXL pipeline closure used by Step1X texture inference, excluding only its explicitly overridden VAE. Model files are manifest-selected; no HF network fallback is intended.",
@@ -218,21 +187,9 @@
   "modalities": [
     "image"
   ],
-  "parameters": {
-    "active": null,
-    "total": null
-  },
-  "provenance": {
-    "attribution": [
-      "stabilityai"
-    ],
-    "source_revision": "462165984030d82259a11f4367a4eed129e94a7b",
-    "source_url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/462165984030d82259a11f4367a4eed129e94a7b/model_index.json"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0",
     "revision": "462165984030d82259a11f4367a4eed129e94a7b"
-  },
-  "supersedes": null
+  }
 }

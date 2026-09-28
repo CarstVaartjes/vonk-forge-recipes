@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -24,13 +22,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -47,7 +42,6 @@
           "image/webp",
           "model/gltf-binary"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -89,7 +83,6 @@
       },
       "output": {
         "max_total_bytes": 1073741824,
-        "path": "/outputs",
         "slots": [
           {
             "description": "The textured Step1X binary glTF mesh.",
@@ -107,8 +100,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -136,7 +128,6 @@
           "file_id": "ig2v-weights",
           "id": "primary-ig2v-weights",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -146,7 +137,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "11d6e91fb982c1bb9b0ee942288b1ad4c942f3d3d55ee68f03c59a64d46c4024",
+        "content_sha256": "0216fb68cca226a186beef00919e2f7cc8d330671a85bb5d5887939c37d2a1d9",
         "kind": "model",
         "publisher": "stepfun-ai",
         "slug": "step1x-3d-texture"
@@ -157,103 +148,167 @@
         {
           "file_id": "model-index",
           "id": "sdxl-model-index",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "scheduler-config",
           "id": "sdxl-scheduler-config",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "text-encoder-config",
           "id": "sdxl-text-encoder-config",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "text-encoder-weights",
           "id": "sdxl-text-encoder-weights",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "text-encoder-2-config",
           "id": "sdxl-text-encoder-2-config",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "text-encoder-2-weights",
           "id": "sdxl-text-encoder-2-weights",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "tokenizer-merges",
           "id": "sdxl-tokenizer-merges",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "tokenizer-special-tokens",
           "id": "sdxl-tokenizer-special-tokens",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "tokenizer-config",
           "id": "sdxl-tokenizer-config",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "tokenizer-vocab",
           "id": "sdxl-tokenizer-vocab",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "tokenizer-2-merges",
           "id": "sdxl-tokenizer-2-merges",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "tokenizer-2-special-tokens",
           "id": "sdxl-tokenizer-2-special-tokens",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "tokenizer-2-config",
           "id": "sdxl-tokenizer-2-config",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "tokenizer-2-vocab",
           "id": "sdxl-tokenizer-2-vocab",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "unet-config",
           "id": "sdxl-unet-config",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "unet-weights",
           "id": "sdxl-unet-weights",
-          "mount": {"read_only": true, "target": "/models/sdxl"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         }
       ],
       "id": "sdxl",
       "model": {
-        "content_sha256": "5b8786613e84bb99c81cab2b84323862b88027891ca21a812fcfc2e5fc01a3a0",
+        "content_sha256": "330050cf2c6c454847e4a4719ff04d83c331e22d5ee1a7ac95978714a0951e1d",
         "kind": "model",
         "publisher": "stabilityai",
         "slug": "stable-diffusion-xl-base-1-0"
@@ -264,19 +319,27 @@
         {
           "file_id": "vae-config",
           "id": "sdxl-vae-config",
-          "mount": {"read_only": true, "target": "/models/sdxl-vae"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl-vae"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         },
         {
           "file_id": "vae-weights",
           "id": "sdxl-vae-weights",
-          "mount": {"read_only": true, "target": "/models/sdxl-vae"},
-          "roles": ["entrypoint"]
+          "mount": {
+            "target": "/models/sdxl-vae"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         }
       ],
       "id": "sdxl-vae",
       "model": {
-        "content_sha256": "e992bbd17e832d35a5e9a3e6801d237fb378d79bb1188f47b03e59af109a6dff",
+        "content_sha256": "86ac7f82435be864fd9691fcbaa33ca3153e64247f615fc2cde5c550ead0c227",
         "kind": "model",
         "publisher": "madebyollin",
         "slug": "sdxl-vae-fp16-fix"
@@ -289,374 +352,9 @@
       "stabilityai",
       "madebyollin"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/stepfun-ai/Step1X-3D/tree/bf7084495b3a72222f36549b7942948aa4d9daa7"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.2.16",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "5b8392899280357d21a162bd30abc4ac6d84b85fb42841896b879dd6d7e8b76b",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved the build base to NVIDIA CUDA 13.4.1 devel (Ubuntu 24.04, ARM64).",
-            "details": "nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04 ARM64 manifest sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37 replaces 13.2.1-devel; its NVIDIA_REQUIRE_CUDA keeps the driver>=580,<581 clause, so the Spark 580-series driver still admits it. pytorch3d, nvdiffrast v0.4.0 and the Step1X custom_rasterizer and differentiable_renderer now build with nvcc 13.4 for SM 12.1. Step1X source cb5ac944 (newer than tag v.1.0.1) and the model snapshots are unchanged.",
-            "references": [
-              "https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html",
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "compatibility",
-            "summary": "Kept PyTorch 2.13.0 and the upstream-pinned Step1X Python stack because pytorch3d still forces C++17.",
-            "details": "PyTorch stays at 2.13.0+cu132: PyTorch 2.14 ATen headers require C++20 and reject builds, while pytorch3d (fdaf9bd, newer than v0.7.9) passes -std=c++17 explicitly. nvcc 13.4 against the cu132 wheels is a same-major minor mismatch that torch.utils.cpp_extension only warns about. Python packages keep the Step1X requirements.txt pins (transformers 4.48.0, diffusers 0.32.2, numpy 1.26.4); cupy 14 needs numpy>=2, so cupy-cuda13x stays at 13.6.0.",
-            "references": [
-              "https://github.com/pytorch/pytorch/blob/v2.14.0/aten/src/ATen/ATen.h",
-              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/requirements.txt",
-              "https://github.com/facebookresearch/pytorch3d/blob/fdaf9bd6fed7977e4c2056e7c77c640781e58fcd/setup.py"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Initialize PyTorch before checking its compiled rasterizer extension.",
-            "details": "The image-build smoke now imports PyTorch before custom_rasterizer, matching the inference path and making PyTorch shared libraries available to the extension loader. The explicit rasterizer, pipeline, and image-helper checks remain enabled.",
-            "references": [
-              "https://docs.pytorch.org/cppdocs/faq.html",
-              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_texture/custom_rasterizer/custom_rasterizer/render.py"
-            ]
-          }
-        ],
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.15"
-      },
-      {
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Keep the shared Step1X inference smoke independent of plotting-only imports.",
-            "details": "The texture pipeline imports make_image_grid and tensor_to_image from the upstream saver module; Matplotlib is only used by its magma and spectral visualization branches. Those imports are now deferred to the selected branches without changing the image helpers. The shared build smoke exercises both helpers and imports the compiled custom rasterizer and nvdiffrast modules.",
-            "references": [
-              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_texture/utils/saving.py",
-              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_texture/pipelines/step1x_3d_texture_synthesis_pipeline.py",
-              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_texture/differentiable_renderer/mesh_render.py",
-              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_texture/custom_rasterizer/custom_rasterizer/__init__.py"
-            ]
-          }
-        ],
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.14"
-      },
-      {
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Keep the served texture import closure independent of geometry training systems.",
-            "details": "The texture pipeline imports geometry pipeline utilities, which executes the pinned Step1X package initializer. The image now initializes the model registry without importing unused training data or systems, avoiding their MosaicML streaming and plotting/logging dependencies. The shared Step1X build pins Beautiful Soup 4.15.0 and SoupSieve 2.9.2 for the still-eager T5 encoder import, outside both published affected ranges (through 2.8.3 and 2.8.4 respectively).",
-            "references": [
-              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_geometry/__init__.py",
-              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_texture/pipelines/step1x_3d_texture_synthesis_pipeline.py",
-              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/step1x3d_geometry/models/conditional_encoders/t5_encoder.py",
-              "https://pypi.org/project/beautifulsoup4/4.15.0/",
-              "https://pypi.org/project/soupsieve/2.9.2/",
-              "https://github.com/facelessuser/soupsieve/security/advisories/GHSA-836r-79rf-4m37",
-              "https://github.com/facelessuser/soupsieve/security/advisories/GHSA-j934-xhv5-fg8f"
-            ]
-          }
-        ],
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.13"
-      },
-      {
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Included the shared Step1X Lightning runtime closure.",
-            "details": "The exact Step1X source requirements request pytorch-lightning==2.2.4, which is in published vulnerable ranges. The shared image uses 2.6.6, whose release fixes checkpoint code execution; package metadata allows Python>=3.10 and torch>=2.1.0. lightning-utilities==0.11.2 satisfies its >=0.10.0 dependency and remains Step1X-pinned. The build smoke-imports the exact rank_zero runtime path.",
-            "references": [
-              "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/requirements.txt",
-              "https://github.com/advisories/GHSA-cgwc-qvrx-rf7f",
-              "https://github.com/advisories/GHSA-mr7h-w2qc-ffc2",
-              "https://github.com/advisories/GHSA-75m9-98v2-hjpm",
-              "https://github.com/advisories/GHSA-qqmf-gpg7-g8gw",
-              "https://github.com/Lightning-AI/pytorch-lightning/releases/tag/2.6.6",
-              "https://pypi.org/project/pytorch-lightning/2.6.6/"
-            ]
-          }
-        ],
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.12"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu132 metadata requires cuda-toolkit==13.2.1; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu132/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "a306775f19ce189a59f2c00696dd1b0953c2c0104bb9889963e737671005df20",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.11"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Declared the official cu132 PyTorch wheel-object host for source builds.",
-            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu132/torch/",
-              "https://download.pytorch.org/whl/cu132/torchvision/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "9a7933ac98f199c544c750f3a93037d934dd10aad393e0f04acdf7d524bd1c8e",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.10"
-      },
-      {
-        "changes": [
-          {
-            "details": "Replaced the nonexistent 19.64 GB snapshot pseudo-file with the pinned 3.60 GB texture adapter file and declared the exact default SDXL Diffusers files plus the separately loaded fixed VAE. SDXL is public and ungated, but its OpenRAIL++ terms require operator acceptance.",
-            "kind": "fix",
-            "references": [
-              "https://huggingface.co/stepfun-ai/Step1X-3D/tree/bf7084495b3a72222f36549b7942948aa4d9daa7",
-              "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/tree/462165984030d82259a11f4367a4eed129e94a7b",
-              "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/tree/207b116dae70ace3637169f1ddd2434b91b3a8cd"
-            ],
-            "summary": "Declared exact offline texture model closure."
-          }
-        ],
-        "prior_recipe_content_sha256": "f1c85a945a19c65d3501cc775f53e98f173358bd4755d8af7599f6e03fefcb09",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "reprepare",
-        "version": "1.2.9"
-      },
-      {
-        "changes": [
-          {
-            "details": "Upstream main remains at cb5ac944709c6c913109070c7b90c3447f57f3d4; the exact texture adapter source and model snapshot therefore remain unchanged.",
-            "kind": "metadata",
-            "references": [
-              "https://github.com/stepfun-ai/Step1X-3D/commit/cb5ac944709c6c913109070c7b90c3447f57f3d4"
-            ],
-            "summary": "Revalidated the Step1X texture source pin against upstream main."
-          }
-        ],
-        "prior_recipe_content_sha256": "4cbb3434fe236cc768086b34528a9caa3c8aedf8622072ecd725419333e62708",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.2.8"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.2.7"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "604c659a83f648c4e8c22256d5b277b9c1ffc2c8f232ffb7bc19d4f4e165b52d",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.6"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "35d98b5960e0acd168baf1a5028079eb37fb16fbb3fddabe20280c6d4afd9c65",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.2.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "The host allowlist now matches the pinned Step1X runtime distribution while preserving offline execution after installation.",
-            "kind": "fix",
-            "references": [],
-            "summary": "Added the Ubuntu security mirror required by the shared Step1X package-install build."
-          }
-        ],
-        "prior_recipe_content_sha256": "2ec3e3e53d7cbe51410301dc32bd8e5cfe82cb6222bf1db1b8adceb8b8fabf5c",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "Operator guidance names both exact upstream recipes, the same-reference-image requirement, and the existing 240 MiB mesh input limit.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Linked the Step1X texture stage to both geometry producers."
-          }
-        ],
-        "prior_recipe_content_sha256": "3595f1a0a92ea0dcf0fbed63ab8e2a240ab4aa39976c734c8350447cf9351adf",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "none",
-        "version": "1.2.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Required valid UVs, material, and an embedded base-color image on bounded triangle geometry before atomic GLB publication."
-          }
-        ],
-        "prior_recipe_content_sha256": "f565fd83cdfd74140f8b9e5f526eeb490020deddb560c7f071b92ccb9e3fb9fd",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.2"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "runtime",
-            "references": [],
-            "summary": "Pinned exact CUDA 13 CPython 3.12 ARM64 wheels for CuPy and fastrlock, closing the texture pipeline import dependency."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Added build-time geometry and texture imports and made optional pymeshlab imports annotation-safe and lazy."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared exact image-plus-mesh input slots and a single-GLB output slot with bounded bytes."
-          }
-        ],
-        "prior_recipe_content_sha256": "b0946dd4be657c0cc068e408a0b2746ed61dd053632ea23ac0ed83608cd3665f",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Made the texture Candidate installable with a bounded signed image-plus-GLB entrypoint while retaining physical Spark qualification as pending."
-          },
-          {
-            "details": null,
-            "kind": "runtime",
-            "references": [],
-            "summary": "Pinned official Step1X source, SM121-native nvdiffrast and PyTorch3D builds, SDXL base, and the fixed SDXL VAE as immutable authorities."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Removed hidden SDXL, VAE, and BiRefNet runtime downloads; the adapter now resolves every model from an explicit read-only artifact mount."
-          }
-        ],
-        "prior_recipe_content_sha256": "973bb637259945e9a34b01d484baf360653209cca8ca177a595071ee9fbe5795",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Marked the texture binding non-executable pending Step1X source, native dependencies, and a GLB adapter."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Added the authoritative isolated image and GLB input contract."
-          },
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Replaced the broken model-card license URL with the exact upstream Apache-2.0 license."
-          }
-        ],
-        "prior_recipe_content_sha256": "18b0c6eb08bc1fd6c22eed81b0777ee335ab826140908d934a22f8df8b6f4080",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of Step1X-3D texture pytorch-pipeline single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "d0e3b9af9cdb8ea1d5e865b2b02bbbf21103b295f9dd2419a73f776e3fa35625",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "e8ee8c63f2d25367e52bbc4c11e4342049e943034988d867d3b2f319731e0811",
-        "released_at": "2026-08-17",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.2.16"
   },
@@ -690,40 +388,26 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -733,39 +417,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 97897395576,
-            "cache_bytes": 12000000000,
             "image_bytes": 18000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 120000000000
+            "working_bytes": 132000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 16000000000,
-            "startup_peak_bytes": 96000000000,
-            "steady_state_bytes": 72000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 96000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "timeout_seconds": 14400
-        },
-        "framework": "pytorch-pipeline",
-        "name": "bounded-startup"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -777,12 +444,10 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/tiny.glb",
-            "input_path": "/inputs",
             "input_slots": {
               "image": "qualification/fixtures/tiny.png",
               "mesh": "qualification/fixtures/tiny.glb"
             },
-            "output_path": "/outputs",
             "output_slot": "mesh",
             "transport": "job"
           }

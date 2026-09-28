@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -22,13 +20,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -43,7 +38,6 @@
           "application/json",
           "text/plain"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -80,7 +74,6 @@
       },
       "output": {
         "max_total_bytes": 1074790400,
-        "path": "/outputs",
         "slots": [
           {
             "description": "Generated 768x512 H.264/AAC MP4 with exactly 65 frames at 24 fps and one synchronized 48 kHz stereo audio stream.",
@@ -113,8 +106,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -148,7 +140,6 @@
           "file_id": "filtered-snapshot",
           "id": "primary-filtered-snapshot",
           "mount": {
-            "read_only": true,
             "target": "/models/license-token-preflight"
           },
           "roles": [
@@ -159,7 +150,6 @@
           "file_id": "filtered-snapshot",
           "id": "primary-filtered-snapshot-2",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -169,7 +159,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "3b5e2188da2650a8663a172d269eb7b8beaa9c0d59088d862059592b8ec03f3b",
+        "content_sha256": "e2bca0110fc64aa6c586ee25157abc0d431f388a00806d7de7d8de16e5a40a68",
         "kind": "model",
         "publisher": "lightricks",
         "slug": "ltx-2-5-22b-distilled-bf16-diffusers"
@@ -181,163 +171,9 @@
       "Lightricks",
       "Hugging Face"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.0.8",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "36c28e1aa42bf582c3f9967c6f4864b9605d57737246bfb831609019f6397311",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Move the base image to NVIDIA CUDA 13.4.1 runtime (Ubuntu 24.04, ARM64 digest-pinned).",
-            "details": "Base image moved from nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04 to 13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962 (linux/arm64). Its NVIDIA_REQUIRE_CUDA keeps the driver>=580,<581 branch clause, so admission on the Spark driver is unchanged. PyTorch still ships its own CUDA user-space wheels.",
-            "references": [
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "runtime",
-            "summary": "Update PyTorch to 2.14.0/torchvision 0.29.0 (cu130), transformers to 5.17.0 and accelerate to 1.15.0.",
-            "details": "torch 2.13.0 -> 2.14.0 and torchvision 0.28.0 -> 0.29.0 from the cu130 ARM64 index; transformers 5.15.1 -> 5.17.0; accelerate 1.14.0 -> 1.15.0. diffusers stays at commit c5469b7c: it is 79 commits ahead of the latest release v0.40.0 (diverged), so no stable diffusers release contains it. Model revision 426936f8 is still the Hugging Face head.",
-            "references": [
-              "https://github.com/pytorch/pytorch/releases/tag/v2.14.0",
-              "https://github.com/huggingface/transformers/releases/tag/v5.17.0",
-              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
-              "https://github.com/huggingface/diffusers/compare/v0.40.0...c5469b7ceb606edd7ba6570dcd17d38590a18db6"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu130 metadata requires cuda-toolkit==13.0.3.0; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "7e7b79ce1378aa1b2a0cfbe00ab96b1229b71552b154d96bc14c6af23aeb938f",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.7"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Declared the official cu130 PyTorch wheel-object host for source builds.",
-            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/torch/",
-              "https://download.pytorch.org/whl/cu130/torchvision/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "18228fadc42b63ba0545fac001a8b730fed730f7d14b046da796df5f40ce94f9",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.6"
-      },
-      {
-        "changes": [
-          {
-            "details": "The current Diffusers source preserves the LTX2Pipeline call surface used by this adapter, including the fixed distilled sigma schedule; optional prompt-enhancement and duration components remain outside this filtered model closure and are explicitly disabled.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
-              "https://github.com/huggingface/diffusers/tree/c5469b7ceb606edd7ba6570dcd17d38590a18db6/src/diffusers"
-            ],
-            "summary": "Rebuilt the Diffusers media adapter at upstream commit c5469b7ceb60."
-          }
-        ],
-        "prior_recipe_content_sha256": "f472511aedf713a9509dac466007d303d89c95355cfed1f4a04ff03ace0f7ced",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.5"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "e251c8a322f0ea4416fb90a4c0787c5f8cbe575c5a7fabc111f6f7cb3fcfa4ec",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "dc15da0ef60bb604c322ee9692664bf7110559f07314e66c158e7cfd06ad1843",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
-            "kind": "security",
-            "references": [],
-            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
-          }
-        ],
-        "prior_recipe_content_sha256": "0b26a789538751b9c7cd899e1ef4d60dec4f1bf215b75cc83b705abf88c77c7c",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "The original BF16 recipe remains unchanged. The canary uses the same exact gated 70,090,051,372-byte model closure and pinned Diffusers runtime, but request input cannot select a BF16 fallback. The official four-shard transformer closure contains 37,976,221,088 bytes of BF16 weights. Pinned Diffusers stores eligible transformer weights in FP8 and excludes only normalization modules for this model. The Candidate envelope claims only an 8 GB reduction from the original conservative startup and steady declarations, retains 6 GB growth and 10 GB system reserve, and admits at 120 GB. Physical GB10 memory and audiovisual acceptance remain pending.",
-            "kind": "initial",
-            "references": [
-              "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc/transformer",
-              "https://github.com/huggingface/diffusers/blob/d035dcd7cc7c88e0a154609b62887d50bba9fdc2/src/diffusers/models/transformers/transformer_ltx2.py",
-              "https://github.com/huggingface/diffusers/blob/d035dcd7cc7c88e0a154609b62887d50bba9fdc2/docs/source/en/optimization/memory.md"
-            ],
-            "summary": "Added a distinct LTX-2.5 single-Spark physical canary with immutable FP8 E4M3FN layerwise storage and sequential offload."
-          }
-        ],
-        "prior_recipe_content_sha256": "412f01ef4bc380b409b73eab9a340a9b37464cd119028111903ed57b39bb1edc",
-        "released_at": "2026-08-31",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.0.8"
   },
@@ -381,45 +217,30 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -429,47 +250,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 70090051877,
-            "cache_bytes": 8000000000,
             "image_bytes": 8000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 16000000000,
-            "staging_bytes": 140180103754
+            "working_bytes": 148180103754
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 6000000000,
-            "startup_peak_bytes": 110000000000,
-            "steady_state_bytes": 96000000000,
-            "system_reserve_bytes": 10000000000
+            "peak_bytes": 110000000000,
+            "reserve_bytes": 10000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "fps": 24,
-          "frames": 65,
-          "height": 512,
-          "profile": "fp8-cast-sequential-offload",
-          "prompt": "A cinematic tracking shot follows a red fox walking through a snowy pine forest at dawn, warm light filtering between the trees as powder falls from the branches; its paws crunch clearly in the snow while a quiet wind and distant winter birds create natural synchronized ambience.",
-          "seed": 42,
-          "steps": 8,
-          "timeout_seconds": 43200,
-          "width": 768
-        },
-        "framework": "diffusers",
-        "name": "fp8-cast-sequential-offload-canary"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -481,11 +277,9 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/prompt.txt",
-            "input_path": "/inputs",
             "input_slots": {
               "prompt": "qualification/fixtures/prompt.txt"
             },
-            "output_path": "/outputs",
             "output_slot": "video",
             "transport": "job"
           }

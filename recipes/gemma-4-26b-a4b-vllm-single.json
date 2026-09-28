@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
-        "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
@@ -12,13 +10,10 @@
       },
       "dockerfile": "adapters/llm/vllm-openai/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": []
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -61,7 +56,6 @@
           "file_id": "mmmu-pro-c310e41b2dfd",
           "id": "primary-mmmu-pro-c310e41b2dfd",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -72,7 +66,6 @@
           "file_id": "metadata-aa4fc74fe06a",
           "id": "primary-metadata-aa4fc74fe06a",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -83,7 +76,6 @@
           "file_id": "readme-4f463225c4fe",
           "id": "primary-readme-4f463225c4fe",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -94,7 +86,6 @@
           "file_id": "chat-template-ae53464bf3be",
           "id": "primary-chat-template-ae53464bf3be",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -105,7 +96,6 @@
           "file_id": "config-ed0c1eb3633d",
           "id": "primary-config-ed0c1eb3633d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -116,7 +106,6 @@
           "file_id": "generation-config-d4226bbe3117",
           "id": "primary-generation-config-d4226bbe3117",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -127,7 +116,6 @@
           "file_id": "model-00001-of-00002-1127684971bb",
           "id": "primary-model-00001-of-00002-1127684971bb",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -138,7 +126,6 @@
           "file_id": "model-00002-of-00002-aab47033e1e8",
           "id": "primary-model-00002-of-00002-aab47033e1e8",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -149,7 +136,6 @@
           "file_id": "model-safetensors-index-907826a6e46f",
           "id": "primary-model-safetensors-index-907826a6e46f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -160,7 +146,6 @@
           "file_id": "processor-config-32bdf45d2ad4",
           "id": "primary-processor-config-32bdf45d2ad4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -171,7 +156,6 @@
           "file_id": "tokenizer-cc8d3a0ce364",
           "id": "primary-tokenizer-cc8d3a0ce364",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -182,7 +166,6 @@
           "file_id": "tokenizer-config-9f4fec4b1dc6",
           "id": "primary-tokenizer-config-9f4fec4b1dc6",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -192,7 +175,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "72d9019f454cfb78ac3a38de9e52be756a11ce800e16b2d7d25319017b88c515",
+        "content_sha256": "bd6279d808aa71ceb12ade124ca2f2b7ef41c431c2263abcfbf7af78a8777cfa",
         "kind": "model",
         "publisher": "google",
         "slug": "gemma-4-26b-a4b-it-4d7ae498"
@@ -203,178 +186,9 @@
     "attribution": [
       "google"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/google/gemma-4-26B-A4B-it/tree/4d7ae4984b7db7de8f8457170b3f1a419ee76d52"
   },
   "release": {
-    "history": [
-      {
-        "version": "2.1.0",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "435c282dbf2fbd4d0ab70832edef9d49ebb2dad3a63ec7ac1469684567a5eca4",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved to the official vLLM 0.30.0 ARM64 image from vLLM 0.27.1.",
-            "details": "docker.io/vllm/vllm-openai v0.30.0-aarch64 @sha256:4864d466 (build commit ced6857a, CUDA 13.0) replaces v0.27.1-aarch64 @sha256:1c8e60a0. Every launch option, parser and model architecture this recipe uses is present at v0.30.0. Upstream 0.29 makes Model Runner V2 the default and 0.28-0.30 remove only options this recipe does not use. Physical GB10 startup, memory and output acceptance is still required.",
-            "references": [
-              "https://github.com/vllm-project/vllm/releases/tag/v0.28.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
-              "https://github.com/vllm-project/vllm/compare/v0.27.1...v0.30.0"
-            ]
-          },
-          {
-            "kind": "fix",
-            "summary": "Re-enabled Gemma 4 tool calling now that vLLM 0.30.0 parses the canonical bare tool-call opener.",
-            "details": "vLLM issue #53431 (bare <|tool_call> opener silently dropped) was fixed by #53444, which v0.30.0 contains. The recipe again passes --tool-call-parser gemma4 and --enable-auto-tool-choice and declares tool use. An opener without the call: marker is still handled only by the unmerged #54778.",
-            "references": [
-              "https://github.com/vllm-project/vllm/issues/53431",
-              "https://github.com/vllm-project/vllm/pull/53444",
-              "https://github.com/vllm-project/vllm/pull/54778"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "7b556402aecc2d0314bd5d4771f7700611fdd0d19fecaad8c52e22cdce7010f8",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "2.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Routed non-root vLLM caches to the writable outputs mount."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/vllm-project/vllm/issues/53431"
-            ],
-            "summary": "Removed automatic tool calling and its capability claim until vLLM handles Gemma 4's canonical bare function opener."
-          }
-        ],
-        "prior_recipe_content_sha256": "bbff6dca398fd30f1a843be5b6352186eaa439c5de4caedb67c7ca3367f0856a",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "reprepare",
-        "version": "2.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "7803900e9e079c06e3b15af484c539596369c0df6e6782c8548baad02fde2fc2",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "2.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "model",
-            "references": [
-              "https://huggingface.co/google/gemma-4-26B-A4B-it/tree/4d7ae4984b7db7de8f8457170b3f1a419ee76d52"
-            ],
-            "summary": "Replaced the base checkpoint with Google's immutable instruction-tuned Gemma 4 26B-A4B checkpoint and verified file inventory."
-          },
-          {
-            "details": null,
-            "kind": "runtime",
-            "references": [
-              "https://github.com/vllm-project/vllm/blob/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/vllm/model_executor/models/gemma4.py",
-              "https://github.com/vllm-project/vllm/blob/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/vllm/parser/gemma4.py",
-              "https://docs.vllm.ai/projects/recipes/en/stable/Google/Gemma4.html"
-            ],
-            "summary": "Enabled native Gemma 4 reasoning and tool parsing, automatic tool choice, the pinned chat template, and a bounded 32K serving context."
-          }
-        ],
-        "prior_recipe_content_sha256": "84dffb844cb01c156929d165803570689e1ffd7f911687f92c30ce4785063d08",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "reprepare",
-        "version": "2.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [
-              "https://huggingface.co/google/gemma-4-26B-A4B/tree/24548b62aa021d562695c04aaf7758a1ea47990b",
-              "https://huggingface.co/google/gemma-4-26B-A4B-it/tree/4d7ae4984b7db7de8f8457170b3f1a419ee76d52"
-            ],
-            "summary": "Clarified that the pinned base checkpoint is not the separate instruction-tuned chat model and remains a qualification candidate."
-          }
-        ],
-        "prior_recipe_content_sha256": "e9c84ffbc696d4b3ed235d7582a11eca180397e1423e66b20a8e30f6f2810e7d",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "none",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of Gemma 4 26B-A4B vLLM single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "8ca28f0f886b5cf9f20948dccf0b70431d5b4372518c71035db781aaf6813f47",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "caadf1f426186b5593bac6e2010c421316534ee8fccf3cb6b911c80d3f46fec4",
-        "released_at": "2026-08-17",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "2.1.0"
   },
@@ -430,26 +244,17 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": {
       "change_effect": "restart",
@@ -464,19 +269,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -486,41 +285,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 51644340088,
-            "cache_bytes": 4000000000,
             "image_bytes": 12000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 103288680176
+            "working_bytes": 107288680176
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 4000000000,
-            "startup_peak_bytes": 100000000000,
-            "steady_state_bytes": 85000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 100000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "timeout_seconds": 600
-        },
-        "framework": "openai",
-        "name": "bounded-chat"
-      }
-    ],
     "serving": {
       "checks": [
         {

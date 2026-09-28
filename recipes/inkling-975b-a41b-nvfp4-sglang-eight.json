@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "b0d8718a4424bb22e448e04407ab3ce5f7399a4c5fc702d6fbe36c3772ec8862",
-        "platform": "linux/arm64",
         "repository": "docker.io/lmsysorg/sglang"
       },
       "context": {
@@ -12,13 +10,10 @@
       },
       "dockerfile": "adapters/llm/inkling-sglang-eight/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": []
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -63,7 +58,6 @@
           "file_id": "metadata-deb930275aeb",
           "id": "primary-metadata-deb930275aeb",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -75,7 +69,6 @@
           "file_id": "readme-2ea1315d3948",
           "id": "primary-readme-2ea1315d3948",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -87,7 +80,6 @@
           "file_id": "chat-template-0aa1aa0c729d",
           "id": "primary-chat-template-0aa1aa0c729d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -99,7 +91,6 @@
           "file_id": "config-58720f145bce",
           "id": "primary-config-58720f145bce",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -111,7 +102,6 @@
           "file_id": "hf-quant-config-13277ee163a6",
           "id": "primary-hf-quant-config-13277ee163a6",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -123,7 +113,6 @@
           "file_id": "model-00001-of-00033-d23be7ca189d",
           "id": "primary-model-00001-of-00033-d23be7ca189d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -135,7 +124,6 @@
           "file_id": "model-00002-of-00033-41b33ae96076",
           "id": "primary-model-00002-of-00033-41b33ae96076",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -147,7 +135,6 @@
           "file_id": "model-00003-of-00033-fe781903b1bb",
           "id": "primary-model-00003-of-00033-fe781903b1bb",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -159,7 +146,6 @@
           "file_id": "model-00004-of-00033-cfd2beda8c08",
           "id": "primary-model-00004-of-00033-cfd2beda8c08",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -171,7 +157,6 @@
           "file_id": "model-00005-of-00033-b19b96fb7ace",
           "id": "primary-model-00005-of-00033-b19b96fb7ace",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -183,7 +168,6 @@
           "file_id": "model-00006-of-00033-e718c10c7770",
           "id": "primary-model-00006-of-00033-e718c10c7770",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -195,7 +179,6 @@
           "file_id": "model-00007-of-00033-74fc6ed7fec4",
           "id": "primary-model-00007-of-00033-74fc6ed7fec4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -207,7 +190,6 @@
           "file_id": "model-00008-of-00033-e47c3b0b413c",
           "id": "primary-model-00008-of-00033-e47c3b0b413c",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -219,7 +201,6 @@
           "file_id": "model-00009-of-00033-d07c90536ed4",
           "id": "primary-model-00009-of-00033-d07c90536ed4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -231,7 +212,6 @@
           "file_id": "model-00010-of-00033-1fcc29248d30",
           "id": "primary-model-00010-of-00033-1fcc29248d30",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -243,7 +223,6 @@
           "file_id": "model-00011-of-00033-6acd555f7925",
           "id": "primary-model-00011-of-00033-6acd555f7925",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -255,7 +234,6 @@
           "file_id": "model-00012-of-00033-86d80117e4de",
           "id": "primary-model-00012-of-00033-86d80117e4de",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -267,7 +245,6 @@
           "file_id": "model-00013-of-00033-13307919a112",
           "id": "primary-model-00013-of-00033-13307919a112",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -279,7 +256,6 @@
           "file_id": "model-00014-of-00033-554ea1d6bf0b",
           "id": "primary-model-00014-of-00033-554ea1d6bf0b",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -291,7 +267,6 @@
           "file_id": "model-00015-of-00033-9f93de27a392",
           "id": "primary-model-00015-of-00033-9f93de27a392",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -303,7 +278,6 @@
           "file_id": "model-00016-of-00033-e0f295b3871f",
           "id": "primary-model-00016-of-00033-e0f295b3871f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -315,7 +289,6 @@
           "file_id": "model-00017-of-00033-9373b84f05de",
           "id": "primary-model-00017-of-00033-9373b84f05de",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -327,7 +300,6 @@
           "file_id": "model-00018-of-00033-75dae1981cd6",
           "id": "primary-model-00018-of-00033-75dae1981cd6",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -339,7 +311,6 @@
           "file_id": "model-00019-of-00033-d6302d4e1c1d",
           "id": "primary-model-00019-of-00033-d6302d4e1c1d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -351,7 +322,6 @@
           "file_id": "model-00020-of-00033-c1e547007ec0",
           "id": "primary-model-00020-of-00033-c1e547007ec0",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -363,7 +333,6 @@
           "file_id": "model-00021-of-00033-10ad49ad1a9f",
           "id": "primary-model-00021-of-00033-10ad49ad1a9f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -375,7 +344,6 @@
           "file_id": "model-00022-of-00033-52e84a65712c",
           "id": "primary-model-00022-of-00033-52e84a65712c",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -387,7 +355,6 @@
           "file_id": "model-00023-of-00033-3aaf8a3bba4c",
           "id": "primary-model-00023-of-00033-3aaf8a3bba4c",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -399,7 +366,6 @@
           "file_id": "model-00024-of-00033-9b889e3657ce",
           "id": "primary-model-00024-of-00033-9b889e3657ce",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -411,7 +377,6 @@
           "file_id": "model-00025-of-00033-8d7577d69d5c",
           "id": "primary-model-00025-of-00033-8d7577d69d5c",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -423,7 +388,6 @@
           "file_id": "model-00026-of-00033-f00eb775e4d2",
           "id": "primary-model-00026-of-00033-f00eb775e4d2",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -435,7 +399,6 @@
           "file_id": "model-00027-of-00033-22006739079d",
           "id": "primary-model-00027-of-00033-22006739079d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -447,7 +410,6 @@
           "file_id": "model-00028-of-00033-16fcb85bb6b1",
           "id": "primary-model-00028-of-00033-16fcb85bb6b1",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -459,7 +421,6 @@
           "file_id": "model-00029-of-00033-a37f89d84360",
           "id": "primary-model-00029-of-00033-a37f89d84360",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -471,7 +432,6 @@
           "file_id": "model-00030-of-00033-4afa6d80ea00",
           "id": "primary-model-00030-of-00033-4afa6d80ea00",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -483,7 +443,6 @@
           "file_id": "model-00031-of-00033-a15ba8214581",
           "id": "primary-model-00031-of-00033-a15ba8214581",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -495,7 +454,6 @@
           "file_id": "model-00032-of-00033-91a6e0d6613e",
           "id": "primary-model-00032-of-00033-91a6e0d6613e",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -507,7 +465,6 @@
           "file_id": "model-00033-of-00033-de00ac84eb64",
           "id": "primary-model-00033-of-00033-de00ac84eb64",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -519,7 +476,6 @@
           "file_id": "model-safetensors-index-23e5784d5695",
           "id": "primary-model-safetensors-index-23e5784d5695",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -531,7 +487,6 @@
           "file_id": "mtp-a0a01bf72ac4",
           "id": "primary-mtp-a0a01bf72ac4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -543,7 +498,6 @@
           "file_id": "processor-config-b4a3962ea5f7",
           "id": "primary-processor-config-b4a3962ea5f7",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -555,7 +509,6 @@
           "file_id": "special-tokens-map-abc97715b4b3",
           "id": "primary-special-tokens-map-abc97715b4b3",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -567,7 +520,6 @@
           "file_id": "tokenizer-bc253fd2b702",
           "id": "primary-tokenizer-bc253fd2b702",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -579,7 +531,6 @@
           "file_id": "tokenizer-9fb6333a7db8",
           "id": "primary-tokenizer-9fb6333a7db8",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -591,7 +542,6 @@
           "file_id": "tokenizer-config-2e36c9748a20",
           "id": "primary-tokenizer-config-2e36c9748a20",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -602,7 +552,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "2b672f5d7dfbc95fa50c42ab70764bdc7a9ad50494361825aa9e060b174da0ff",
+        "content_sha256": "b70731869fb301a28c10c175004e57c655c920485a68d59c495ebd3e68137546",
         "kind": "model",
         "publisher": "thinkingmachines",
         "slug": "inkling-975b-a41b-nvfp4"
@@ -616,152 +566,9 @@
       "NVIDIA DGX Spark",
       "Vonk Forge"
     ],
-    "source_kind": "global",
     "source_reference": "https://github.com/sgl-project/sglang/tree/94602c9c2b7cbdb8efd5c52802dac6a1c180089e"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.1.0",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "ab5aaaf93b239b6cfaec668c97a694f36f3704d3b691a47c2ef8ef28fa9d19e1",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved the base image from the dev-inkling-dspark branch build to the stable SGLang v0.5.20 CUDA 13 arm64 image.",
-            "details": "Base image lmsysorg/sglang dev-inkling-dspark (arm64 sha256:c60f221f8f42, dspark-integration branch commit b7252cc6) is replaced by the stable v0.5.20 image (arm64 sha256:b0d8718a4424, commit 94602c9c). The branch work landed on main as PR #31847 before v0.5.20; v0.5.20 ships the Inkling model, multimodal processor, parsers, SM121 Inkling MoE fix (#33108), and every launch flag this recipe uses. The build check now expects SGLANG_BUILD_COMMIT 94602c9c. The TP8 contract remains Pending without Spark evidence.",
-            "references": [
-              "https://github.com/sgl-project/sglang/releases/tag/v0.5.20",
-              "https://github.com/sgl-project/sglang/tree/94602c9c2b7cbdb8efd5c52802dac6a1c180089e",
-              "https://github.com/sgl-project/sglang/pull/31847",
-              "https://github.com/sgl-project/sglang/pull/33108"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.0.7"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "14ebf23f2807eb098e1dfca75a904fb3f787577c6117aeb460b7f0cf07453067",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.6"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "acacd18ff6b4cd87a620e508d7fa81b975e1654b764ee46a7f5bcca6c332d7ca",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.0.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "The exact TP8 contract is unsupported on the current one- or two-Spark configuration. Half of the immutable 592,037,337,118-byte Inkling snapshot is already 296.0 GB per rank before KV cache and runtime memory, so no safe TP2 variant can fit. Inkling Small TP2 is physically verified upstream but its current Vonk envelope is 128 GB per node, 1.1 GB above the roughly 126.9 GB inventory; the TP8 contract remains installable for future hardware.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/sgl-project/sglang/issues/31359",
-              "https://github.com/sgl-project/sglang/blob/a74222ef6e690f851e2e4ff1c0be7dc1357be313/docs_new/src/snippets/configs/thinkingmachines/inkling-small.jsx"
-            ],
-            "summary": "Recorded the exact TP2 checkpoint lower bound and the smaller-model admission gate."
-          }
-        ],
-        "prior_recipe_content_sha256": "6407a0382f89762e27c282f11826de632496ceffd9f17b54a414047fb295c0be",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "none",
-        "version": "1.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "The eight-rank contract remains an executable Candidate for future hardware, without claiming physical DGX Spark evidence. Inkling Small NVFP4 dual is the deployable fleet alternative.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Marked TP8 unavailable on the current two-Spark fleet and named the dual alternative."
-          }
-        ],
-        "prior_recipe_content_sha256": "aa7c429e59a296a10bb2a77f1aec2cbf5b34fea6e7b95c5e2df3406b14fd829c",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "none",
-        "version": "1.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": "The prior issue URL prevented the upstream drift audit from checking any catalog sources. Runtime behavior and Candidate qualification are unchanged.",
-            "kind": "metadata",
-            "references": [
-              "https://github.com/sgl-project/sglang/tree/b7252cc6b0c78b25ecea7ee5efa91a6ae37d0f19"
-            ],
-            "summary": "Replaced mutable issue provenance with the immutable SGLang revision used by the runtime."
-          }
-        ],
-        "prior_recipe_content_sha256": "73afa8c54f780338d2549118c475967bf14abc26568f36accee091b918a7c962",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "ea09415ec5391f9ea7398f5523f0ae720a14da1767c36310f236d8cc68f1f020",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "The Pending recipe combines SGLang's official flagship TP8 multimodal contract with conservative GB10 Triton/Marlin execution choices adapted from SGLang's verified Inkling-Small Spark profile. It is not Accepted until an eight-Spark canary passes.",
-            "kind": "initial",
-            "references": [
-              "https://huggingface.co/thinkingmachines/Inkling-NVFP4/tree/42a75a99a40eb2ba1e0717db6357a0bf15205044",
-              "https://github.com/sgl-project/sglang/issues/31359",
-              "https://github.com/sgl-project/sglang/blob/a74222ef6e690f851e2e4ff1c0be7dc1357be313/docs_new/docs/cookbook/autoregressive/ThinkingMachines/Inkling-Small.mdx"
-            ],
-            "summary": "Added the source-complete flagship Inkling NVFP4 SGLang recipe for eight DGX Sparks."
-          }
-        ],
-        "prior_recipe_content_sha256": "3e5f8d1e8c3bcc55827d3338e81ff3daf9166ff6af4c93d9ced666a74b7c8366",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.1.0"
   },
@@ -865,31 +672,21 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "SGLANG_ENABLE_UNIFIED_RADIX_TREE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "NCCL_DEBUG",
-        "secret": null,
         "value": "WARN"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "withdraw-endpoint",
-        "recovery": "restart-worker-then-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 180
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "context_tokens": {
@@ -901,19 +698,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "connected",
-      "minimum_bandwidth_mbps": 200000
-    },
-    "mode": "distributed",
     "name": "eight",
     "node_count": 8,
     "parallelism": {
       "backend": "native",
       "data": 1,
       "pipeline": 1,
-      "tensor": 8,
-      "world_size": 8
+      "tensor": 8
     },
     "roles": [
       {
@@ -923,18 +714,13 @@
         "resources": {
           "disk": {
             "artifact_bytes": 592037337118,
-            "cache_bytes": 50000000000,
             "image_bytes": 40000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 50000000000,
-            "staging_bytes": 1184074674236
+            "working_bytes": 1234074674236
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 5000000000,
-            "startup_peak_bytes": 119000000000,
-            "steady_state_bytes": 111000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 119000000000,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -945,18 +731,13 @@
         "resources": {
           "disk": {
             "artifact_bytes": 592037337118,
-            "cache_bytes": 50000000000,
             "image_bytes": 40000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 50000000000,
-            "staging_bytes": 1184074674236
+            "working_bytes": 1234074674236
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 5000000000,
-            "startup_peak_bytes": 119000000000,
-            "steady_state_bytes": 111000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 119000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
@@ -964,25 +745,9 @@
     "start_order": [
       "worker",
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint",
-      "worker"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "modalities": "text,image,audio",
-          "requests": 1,
-          "timeout_seconds": 600
-        },
-        "framework": "openai",
-        "name": "bounded-multimodal-chat"
-      }
-    ],
     "serving": {
       "checks": [
         {
