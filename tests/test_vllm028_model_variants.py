@@ -13,10 +13,9 @@ sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from generated_catalog import GENERATED
 from vonk_forge_contracts import RecipeDefinition, content_sha256
 
-RUNTIME_DIGEST = "15c98035c9bbba7ec61d25acd93c3c34b0516754c299813e5f51344e858abd2d"
 RUNTIME_IMAGE = (
     "docker.io/vllm/vllm-openai@sha256:"
-    "41b54fb42c66a670a8b27e613ebef05898f24b9ab1bdab28bd00c877bd4935f4"
+    "e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e"
 )
 
 
@@ -150,8 +149,8 @@ class Vllm028ModelVariantTests(unittest.TestCase):
                 self.assertEqual(context["path"], context_path)
                 self.assertEqual(context["path"], context_path)
                 expected_digest = {
-                    "adapters/google/gemma4-vllm-028": "bcd5a8df070f142e831c74476df6cb639ecda313c6a38626d13e71500bd5ecc5",
-                    "adapters/liquidai/lfm25-vl-vllm-028": "8a70ef3c06595c0b32331113df0a34982bbcf38151b00e94725012cf013b177a",
+                    "adapters/google/gemma4-vllm-028": "e40a272cf7130ae76b2531189dad7259d97b0bce5d16607e30a37bbc8a118ba6",
+                    "adapters/liquidai/lfm25-vl-vllm-028": "7f732b6062e7e6933eff3b09e7f94ffeb440df7d737a977d05284ab65e9e60a2",
                 }[context_path]
                 self.assertEqual(source_digest, expected_digest)
                 dockerfile = (ROOT / context_path / "Dockerfile").read_text()
@@ -168,8 +167,8 @@ class Vllm028ModelVariantTests(unittest.TestCase):
 
     def test_releases_and_packages_bind_exact_candidate_recipes(self) -> None:
         for slug, recipe, version, released_at in (
-            ("gemma-4-26b-a4b-vllm028-single", self.gemma, "1.0.2", "2026-09-03"),
-            ("lfm2-5-vl-3b-vllm028-single", self.lfm, "1.1.3", "2026-09-05"),
+            ("gemma-4-26b-a4b-vllm028-single", self.gemma, "1.1.0", "2026-09-28"),
+            ("lfm2-5-vl-3b-vllm028-single", self.lfm, "1.2.0", "2026-09-28"),
         ):
             with self.subTest(recipe=slug):
                 definition = RecipeDefinition.model_validate(recipe)
@@ -178,7 +177,10 @@ class Vllm028ModelVariantTests(unittest.TestCase):
                 self.assertEqual(release.released_at, released_at)
                 self.assertEqual(release.history[0].version, version)
                 self.assertEqual(release.history[0].released_at, released_at)
-                self.assertIsNone(release.history[0].prior_recipe_content_sha256)
+                self.assertRegex(
+                    release.history[0].prior_recipe_content_sha256 or "",
+                    r"^[a-f0-9]{64}$",
+                )
                 entry = catalog_entry(slug)
                 recipe_digest = digest(recipe)
                 self.assertEqual(entry["content_sha256"], recipe_digest)

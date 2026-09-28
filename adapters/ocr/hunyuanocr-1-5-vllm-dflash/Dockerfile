@@ -1,4 +1,4 @@
-FROM docker.io/vllm/vllm-openai@sha256:1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c
+FROM docker.io/vllm/vllm-openai@sha256:4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56
 
 LABEL org.opencontainers.image.source="https://github.com/Tencent-Hunyuan/HunyuanOCR" \
       org.opencontainers.image.revision="c55965d3da1e6f41987abec8068f2e70851318bc" \
