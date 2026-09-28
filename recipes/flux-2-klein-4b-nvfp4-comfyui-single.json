@@ -126,6 +126,39 @@
         "publisher": "black-forest-labs",
         "slug": "flux-2-klein-4b-nvfp4-1db2b2f7"
       }
+    },
+    {
+      "files": [
+        {
+          "file_id": "text-encoder",
+          "id": "dependency-flux-2-klein-4b-comfyui-5f526678-text-encoder",
+          "mount": {
+            "read_only": true,
+            "target": "/models/text-encoder"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vae",
+          "id": "dependency-flux-2-klein-4b-comfyui-5f526678-vae",
+          "mount": {
+            "read_only": true,
+            "target": "/models/vae"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "dependency-flux-2-klein-4b-comfyui-5f526678",
+      "model": {
+        "content_sha256": "1a75de64da4b8d5fb5a0ad9ebcf23084ae332d87c0f87265b71dba4d1c2e10de",
+        "kind": "model",
+        "publisher": "black-forest-labs",
+        "slug": "flux-2-klein-4b-comfyui-5f526678"
+      }
     }
   ],
   "provenance": {
@@ -138,6 +171,22 @@
   },
   "release": {
     "history": [
+      {
+        "version": "1.1.1",
+        "released_at": "2026-09-28",
+        "upgrade_effect": "reprepare",
+        "prior_recipe_content_sha256": "7db98e83199b0ad866393d5d7e52856f1695266b0278d0aa7145a9957e98435a",
+        "changes": [
+          {
+            "kind": "fix",
+            "summary": "Mount the Qwen3 4B text encoder and FLUX.2 VAE that the pinned workflow loads; the job previously failed at model linking.",
+            "details": "The shared flux-2-klein-4b workflow maps artifacts text-encoder (qwen_3_4b.safetensors) and vae (flux2-vae.safetensors), but only the NVFP4 transformer was mounted, so comfyui_job.py raised FileNotFoundError. The recipe now selects both files from the existing Comfy-Org/vae-text-encorder-for-flux-klein-4b Model at head revision 5f526678 (the same files the BF16 recipe uses) and mounts them at /models/text-encoder and /models/vae. The declared disk envelope already counted these files.",
+            "references": [
+              "https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b/tree/5f526678002e43af5551dadb73ce2e8c91b43afe/split_files"
+            ]
+          }
+        ]
+      },
       {
         "version": "1.1.0",
         "released_at": "2026-09-28",
@@ -298,7 +347,7 @@
       }
     ],
     "released_at": "2026-09-28",
-    "version": "1.1.0"
+    "version": "1.1.1"
   },
   "runtime": {
     "arguments": [
