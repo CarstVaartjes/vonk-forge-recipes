@@ -57,6 +57,12 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     environment: recipe-release
+    # Control planes accept only assets whose SHA256SUMS carries a Sigstore
+    # attestation from this workflow on refs/heads/main of this repository.
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     steps:
       - name: Check out main
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -186,13 +192,34 @@ jobs:
             exit 1
           fi
 
-      - name: Create immutable tag and release
+      - name: Build release assets from the release commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RELEASE_TEST_PYTHON" tools/build-catalog-index \
+            --release-dir "$RUNNER_TEMP/release" --source-commit "$GITHUB_SHA"
+
+      - name: Attest the release checksum manifest
+        id: attest
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ runner.temp }}/release/SHA256SUMS
+
+      - name: Create immutable tag and release with signed assets
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.release_tag }}
+          ATTESTATION_BUNDLE: ${{ steps.attest.outputs.bundle-path }}
         run: |
+          set -euo pipefail
+          cp "$ATTESTATION_BUNDLE" "$RUNNER_TEMP/release/SHA256SUMS.sigstore.json"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag --annotate "$RELEASE_TAG" --message "Vonk Forge recipe library $RELEASE_TAG" "$GITHUB_SHA"
           git push origin "$RELEASE_TAG"
-          gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" --generate-notes --title "Vonk Forge recipes $RELEASE_TAG"
+          # Upload every asset to a draft first: "latest" must never name a
+          # release whose signed asset set is incomplete.
+          gh release create "$RELEASE_TAG" --draft --target "$GITHUB_SHA" \
+            --generate-notes --title "Vonk Forge recipes $RELEASE_TAG" \
+            "$RUNNER_TEMP"/release/*
+          gh release edit "$RELEASE_TAG" --draft=false --latest

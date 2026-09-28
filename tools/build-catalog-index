@@ -787,6 +787,52 @@ def qualification_index(catalog: dict[str, Any]) -> dict[str, object]:
     return generated
 
 
+RELEASE_CHECKSUMS = "SHA256SUMS"
+RELEASE_INDEX = "catalog-index.json"
+RELEASE_QUALIFICATION_INDEX = "qualification-index.json"
+
+
+def write_release(directory: Path, *, source_commit: str) -> dict[str, str]:
+    """Write the flat release asset set and its SHA256SUMS manifest.
+
+    The index keeps its ``packages/<slug>.tar.gz`` paths; a release asset is
+    addressed by the basename. SHA256SUMS lists every asset except itself and
+    is the single subject the publication workflow signs.
+    """
+
+    directory.mkdir(parents=True, exist_ok=True)
+    if any(directory.iterdir()):
+        raise SystemExit(f"release directory must be empty: {directory}")
+    with tempfile.TemporaryDirectory(prefix="vonk-forge-release-") as temporary:
+        package_dir = Path(temporary)
+        document = build(package_dir=package_dir, source_commit=source_commit)
+        index = rendered(document).encode("utf-8")
+        if len(index) > MAX_INDEX_BYTES:
+            raise SystemExit("catalog-index.json exceeds the index size limit")
+        assets = {
+            RELEASE_INDEX: index,
+            RELEASE_QUALIFICATION_INDEX: rendered(qualification_index(document)).encode(
+                "utf-8"
+            ),
+        }
+        for row in document["recipes"]:
+            name = PurePosixPath(str(row["package"]["path"])).name
+            if name in assets or name == RELEASE_CHECKSUMS:
+                raise SystemExit(f"release asset name is not unique: {name}")
+            assets[name] = (package_dir / name).read_bytes()
+    digests = {
+        name: hashlib.sha256(payload).hexdigest()
+        for name, payload in sorted(assets.items())
+    }
+    for name, payload in assets.items():
+        (directory / name).write_bytes(payload)
+    (directory / RELEASE_CHECKSUMS).write_text(
+        "".join(f"{digest}  {name}\n" for name, digest in digests.items()),
+        encoding="utf-8",
+    )
+    return digests
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -798,7 +844,19 @@ def main() -> int:
         "--source-commit",
         help="immutable recipe source commit recorded in the generated index",
     )
+    parser.add_argument(
+        "--release-dir",
+        type=Path,
+        help="write the flat release asset set and SHA256SUMS into this empty directory",
+    )
     arguments = parser.parse_args()
+    if arguments.release_dir is not None:
+        digests = write_release(
+            arguments.release_dir,
+            source_commit=arguments.source_commit or _git_revision(ROOT),
+        )
+        print(f"wrote {len(digests)} release assets to {arguments.release_dir}")
+        return 0
     if arguments.check:
         with tempfile.TemporaryDirectory(
             prefix="vonk-forge-catalog-check-"
