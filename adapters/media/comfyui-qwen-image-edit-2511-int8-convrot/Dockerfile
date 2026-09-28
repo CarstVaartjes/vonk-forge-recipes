@@ -1,8 +1,8 @@
-FROM nvcr.io/nvidia/cuda:13.0.1-runtime-ubuntu24.04@sha256:36050649ad1acc5d3de2c26620191c25850fb12a5771b6c22996033003d952e4
+FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG COMFYUI_REVISION=250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a
-ARG COMFYUI_ARCHIVE_SHA256=40d10b36b57ba819cc524d1cb19e7b04b00356ba5254941d27e20b705f22e5ee
+ARG COMFYUI_REVISION=8ff6dc384ba5c410266b40e137799e049459d4f2
+ARG COMFYUI_ARCHIVE_SHA256=fa58882988cbb5902dbff71626ca7a82c2548fe34d588c482c8859306734a39f
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl ffmpeg python3 python3-pip \
@@ -16,7 +16,7 @@ RUN curl -fsSL "https://codeload.github.com/comfyanonymous/ComfyUI/tar.gz/${COMF
 
 RUN python3 -m pip install --break-system-packages --no-cache-dir \
       --index-url https://download.pytorch.org/whl/cu130 \
-      torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0 \
+      torch==2.14.0 torchvision==0.29.0 torchaudio==2.11.0 \
     && python3 -m pip install --break-system-packages --no-cache-dir -r /opt/comfyui/requirements.txt
 
 RUN groupadd --gid 10001 vonk \
