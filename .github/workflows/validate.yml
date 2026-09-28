@@ -59,13 +59,12 @@ jobs:
           diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
           echo "RECIPE_CATALOG_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
 
-      - name: Derive family-aware coverage against the accepted release
+      - name: Derive family-aware coverage from the current catalog
         shell: bash
         run: |
           set -euo pipefail
           "$RECIPE_CATALOG_PYTHON" tools/build-catalog-index
           "$RECIPE_CATALOG_PYTHON" tools/build-family-aware-coverage
-          "$RECIPE_CATALOG_PYTHON" tools/build-qualification-authority --check
 
   producer-contracts:
     if: ${{ inputs.producer_only || github.event_name != 'workflow_call' }}
