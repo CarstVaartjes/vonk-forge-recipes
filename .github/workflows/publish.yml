@@ -1,18 +1,15 @@
 name: Publish recipe library release
 
+# The library release version is the contract version (v<CONTRACT_VERSION>).
+# Recipe changes update that release in place; an additive contract change
+# (minor) or a breaking one (major) creates a new release.
 on:
-  # Every merge to main publishes a new patch release; docs-only changes don't.
   push:
     branches: [main]
     paths-ignore: ["**.md"]
   workflow_dispatch:
-    inputs:
-      release_tag:
-        description: "Optional tag, for example v1.2.0 (default: next patch)"
-        required: false
-        type: string
 
-# One publication at a time, in merge order, so tags never race.
+# One publication at a time, in merge order, so release updates never race.
 concurrency:
   group: publish-recipe-library
   cancel-in-progress: false
@@ -22,11 +19,11 @@ permissions:
 
 jobs:
   validate:
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@bc7875f9c8556a7386a873b653c1a7a10de2200d
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@PLATFORM_REF_PLACEHOLDER
     with:
       # Keep release validation on the same published Forge authority as PR
       # validation; recipe publication is independent of Forge release CI.
-      platform_ref: bc7875f9c8556a7386a873b653c1a7a10de2200d
+      platform_ref: PLATFORM_REF_PLACEHOLDER
 
   producer-contracts:
     name: Validate producer contracts and packages
@@ -104,36 +101,21 @@ jobs:
           UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-format
           UV_CACHE_DIR="$RUNNER_TEMP/uv-cache" scripts/check-python-types
 
-      - name: Choose the release tag
-        id: tag
-        env:
-          REQUESTED_TAG: ${{ inputs.release_tag }}
+      - name: Resolve the release version and update time
+        id: release
+        shell: bash
         run: |
           set -euo pipefail
-          git fetch --quiet --force --tags origin
-          if [ -n "$(git tag --points-at "$GITHUB_SHA" --list 'v*.*.*')" ]; then
-            echo "commit already released: $(git tag --points-at "$GITHUB_SHA" --list 'v*.*.*')"
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          tag="$REQUESTED_TAG"
-          if [ -z "$tag" ]; then
-            latest=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-version:refname | head -n 1)
-            IFS=. read -r major minor patch <<< "${latest#v}"
-            tag="v${major:-1}.${minor:-0}.$(( ${patch:--1} + 1 ))"
-          fi
-          case "$tag" in
-            v[0-9]*.[0-9]*.[0-9]*) ;;
-            *) echo "release_tag must use vMAJOR.MINOR.PATCH" >&2; exit 1 ;;
+          version=$("$RELEASE_TEST_PYTHON" -c 'from vonk_forge_contracts import CONTRACT_VERSION; print(CONTRACT_VERSION)')
+          case "$version" in
+            [0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "contract version is not MAJOR.MINOR.PATCH: $version" >&2; exit 1 ;;
           esac
-          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
-            echo "release tag already exists: $tag" >&2
-            exit 1
-          fi
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          updated_at=$(TZ=UTC git show -s --date=format-local:%Y-%m-%dT%H:%M:%SZ --format=%cd "$GITHUB_SHA")
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          echo "updated_at=$updated_at" >> "$GITHUB_OUTPUT"
 
       - name: Build release assets from the release commit
-        if: steps.tag.outputs.skip != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -145,29 +127,80 @@ jobs:
             --include qualification/coverage/family-aware-coverage-2026-09-24.json \
             --include qualification/coverage/family-aware-coverage-2026-09-24.md
 
+      - name: Compare with the published release
+        id: current
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          current="$RUNNER_TEMP/current"
+          mkdir -p "$current"
+          if ! gh release view "$RELEASE_TAG" --json tagName >/dev/null 2>&1; then
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+          if gh release download "$RELEASE_TAG" --pattern SHA256SUMS --dir "$current" \
+            && cmp -s "$current/SHA256SUMS" "$RUNNER_TEMP/release/SHA256SUMS"; then
+            echo "release $RELEASE_TAG already publishes this asset set"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Attest the release checksum manifest
-        if: steps.tag.outputs.skip != 'true'
+        if: steps.current.outputs.skip != 'true'
         id: attest
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: ${{ runner.temp }}/release/SHA256SUMS
 
-      - name: Create immutable tag and release with signed assets
-        if: steps.tag.outputs.skip != 'true'
+      - name: Publish or update the contract-version release
+        if: steps.current.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ steps.tag.outputs.tag }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          UPDATED_AT: ${{ steps.release.outputs.updated_at }}
+          RELEASE_EXISTS: ${{ steps.current.outputs.exists }}
           ATTESTATION_BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+        shell: bash
         run: |
           set -euo pipefail
-          cp "$ATTESTATION_BUNDLE" "$RUNNER_TEMP/release/SHA256SUMS.sigstore.json"
+          release="$RUNNER_TEMP/release"
+          cp "$ATTESTATION_BUNDLE" "$release/SHA256SUMS.sigstore.json"
+          title="Vonk Forge recipes $RELEASE_TAG (updated $UPDATED_AT)"
+          notes="Recipe library for contract ${RELEASE_TAG#v}, updated $UPDATED_AT from $GITHUB_SHA."
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag --annotate "$RELEASE_TAG" --message "Vonk Forge recipe library $RELEASE_TAG" "$GITHUB_SHA"
-          git push origin "$RELEASE_TAG"
-          # Upload every asset to a draft first: "latest" must never name a
-          # release whose signed asset set is incomplete.
-          gh release create "$RELEASE_TAG" --draft --target "$GITHUB_SHA" \
-            --generate-notes --title "Vonk Forge recipes $RELEASE_TAG" \
-            "$RUNNER_TEMP"/release/*
-          gh release edit "$RELEASE_TAG" --draft=false --latest
+          git tag --force --annotate "$RELEASE_TAG" \
+            --message "Vonk Forge recipe library $RELEASE_TAG, updated $UPDATED_AT" "$GITHUB_SHA"
+          git push --force origin "refs/tags/$RELEASE_TAG"
+          if [ "$RELEASE_EXISTS" != "true" ]; then
+            # Upload every asset to a draft first: "latest" must never name a
+            # release whose signed asset set is incomplete.
+            gh release create "$RELEASE_TAG" --draft --target "$GITHUB_SHA" \
+              --title "$title" --notes "$notes" "$release"/*
+            gh release edit "$RELEASE_TAG" --draft=false --latest
+            exit 0
+          fi
+          # Update in place: content first, then the signed manifest, then drop
+          # assets the new manifest no longer lists. A reader that sees a mixed
+          # set fails verification once and heals on its next sync.
+          content=()
+          for path in "$release"/*; do
+            case "$(basename "$path")" in
+              SHA256SUMS | SHA256SUMS.sigstore.json) ;;
+              *) content+=("$path") ;;
+            esac
+          done
+          gh release upload "$RELEASE_TAG" --clobber "${content[@]}"
+          gh release upload "$RELEASE_TAG" --clobber \
+            "$release/SHA256SUMS" "$release/SHA256SUMS.sigstore.json"
+          keep=$(ls "$release")
+          gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name' |
+            while IFS= read -r name; do
+              if ! grep -qxF "$name" <<< "$keep"; then
+                gh release delete-asset "$RELEASE_TAG" "$name" --yes
+              fi
+            done
+          gh release edit "$RELEASE_TAG" --title "$title" --notes "$notes" --latest
