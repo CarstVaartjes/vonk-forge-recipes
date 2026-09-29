@@ -1,11 +1,11 @@
-FROM docker.io/vllm/vllm-openai@sha256:3b0e188ffceb3d07e09c3cb5215433a0020eacf02d7f882ed3a8bfd15454477e
+FROM docker.io/vllm/vllm-openai@sha256:4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks" \
-      org.opencontainers.image.revision="c2325b22602b51a5faf55fc2bebccc34f3f80b9f" \
+      org.opencontainers.image.revision="2c86a1d05f93c8d3a68146a321d417ffa4ca5039" \
       org.opencontainers.image.licenses="AGPL-3.0-or-later AND Apache-2.0" \
       ai.vonkforge.runtime-interface="v1"
 
-COPY patch_ple_layer.py patch_modelopt_mxfp8.py patch_modelopt_fp8_block_moe.py patch_qsa_fp8_kv.py patch_checkpoint_config.py detect_ple_dtype.py apply_patches.py /opt/vonk/build/
+COPY patch_mtp_draft_vocab.py patch_mtp_draft_vocab_v030.py patch_qsa_fp8_kv_v030.py draft_vocab_en_code_47k.txt apply_patches.py /opt/vonk/build/
 COPY --chmod=0755 qwen38-vllm-wrapper.py /opt/vonk/bin/qwen38-vllm-serve
 COPY LICENSE.upstream NOTICE.upstream /opt/vonk/
 
