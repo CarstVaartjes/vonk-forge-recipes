@@ -1,0 +1,5 @@
+Apache License
+Version 2.0, January 2004
+http://www.apache.org/licenses/
+
+This repository contains scripts, Docker recipes, and benchmark reports released by r0b0tlab under Apache-2.0. Model weights are not redistributed here and remain governed by their upstream licenses and terms, including the Gemma terms of use where applicable.
