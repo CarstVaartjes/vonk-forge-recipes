@@ -1,0 +1,14 @@
+{
+  "ours": [
+    "NOTICE",
+    "fix-nccl-load-order.sh",
+    "patch-mtp-drafter-quant.py",
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {},
+  "source": {
+    "commit": "11b9a4187a363bcc993ccda7d38edc02c7624dfd",
+    "repo": "MiaAI-Lab/Dual-DGX-Spark-Step-3.7-Flash-NVFP4"
+  }
+}
