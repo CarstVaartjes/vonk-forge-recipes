@@ -4056,40 +4056,6 @@
         ]
       }
     },
-    "vonk-forge/deepseek-v4-flash-vision-exp-r0b0tlab-vllm-dual": {
-      "alias": "deepseek-v4-flash-vision-exp",
-      "smoke_cases": [
-        "M0",
-        "A391",
-        "T_REPORT",
-        "V_RED"
-      ],
-      "higher_tiers": {
-        "stress": [
-          "Bounded long-context, concurrency, and image-input canaries"
-        ],
-        "recovery": [
-          "Controller-only rank-loss, warm-cache recovery, and image-input revalidation"
-        ]
-      }
-    },
-    "vonk-forge/deepseek-v4-flash-vision-exp-r0b0tlab-vllm-dual": {
-      "alias": "deepseek-v4-flash-vision-exp",
-      "smoke_cases": [
-        "M0",
-        "A391",
-        "T_REPORT",
-        "V_RED"
-      ],
-      "higher_tiers": {
-        "stress": [
-          "Bounded long-context, concurrency, and image-input canaries"
-        ],
-        "recovery": [
-          "Controller-only rank-loss, warm-cache recovery, and image-input revalidation"
-        ]
-      }
-    },
     "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual": {
       "alias": "deepseek-v4-flash-vision-exp",
       "smoke_cases": [
@@ -4965,6 +4931,22 @@
         ],
         "recovery": [
           "Controller stop/start with warm kernel-cache restart"
+        ]
+      }
+    },
+    "vonk-forge/hy3-295b-nvfp4-a4q-drowzeys-vllm-dual": {
+      "alias": "hy3-nvfp4",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context ladder and declared concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start and offline warm-cache restart"
         ]
       }
     }

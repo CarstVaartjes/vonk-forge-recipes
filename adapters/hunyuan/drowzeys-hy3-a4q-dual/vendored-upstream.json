@@ -1,0 +1,9 @@
+{
+  "ours": [
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "commit": "7f9e9d82365bbb8b3dc5ec151c3689755153edb2",
+    "repo": "drowzeys/vLLm-0.24-optimized-Tencent-Hy3-295B-A21B-NVFP4-A4Q-MTP2-4bit-KV-256K-ctx-2x-DGX-Spark"
+  }
+}
