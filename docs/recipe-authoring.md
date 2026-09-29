@@ -150,6 +150,11 @@ revision of the same recipe: name recipes per topology (`-single`, `-dual`).
 `node_count` of an existing recipe compared with `origin/main`, and the
 Controller's catalog sync skips such a revision (`recipe.topology_changed`).
 
+Every Model a recipe selects must exist in `models/` at the pinned content
+digest, with every selected file present. `tools/check-recipe-model-references`
+checks this over the whole library on every pull request and names the recipe
+and the missing Model.
+
 Trusted recipe options pass through to the pinned engine even when the
 Controller has no label, enum entry, or specialized validator for them. Known
 option metadata improves editor help; it is not an exhaustive allowlist. Do

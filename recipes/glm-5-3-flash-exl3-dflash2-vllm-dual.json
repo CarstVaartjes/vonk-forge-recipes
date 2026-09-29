@@ -1929,10 +1929,6 @@
         "value": "1"
       },
       {
-        "name": "DO_NOT_TRACK",
-        "value": "1"
-      },
-      {
         "name": "VLLM_ENGINE_READY_TIMEOUT_S",
         "value": "3600"
       },
