@@ -400,7 +400,7 @@ regenerated reviewed authority, not hand-edited assignments or skipped ledger
 checkpoints. The table below shows the current authority batch assignments.
 
 <!-- generated:begin qualification-inventory -->
-The authority assigns 72 one-Spark recipes to 36 batches and 9 two-Spark recipes to exclusive batches. Wider topologies close the catalog audit only.
+The authority assigns 73 one-Spark recipes to 37 batches and 10 two-Spark recipes to exclusive batches. Wider topologies close the catalog audit only.
 
 | # | Recipe | Nodes | Batch | Lane | Check | Campaign gate | Source review |
 |---:|---|---:|---|---:|---|---|---|
@@ -476,19 +476,21 @@ The authority assigns 72 one-Spark recipes to 36 batches and 9 two-Spark recipes
 | 70 | `vonk-forge/wan-dancer-14b-pytorch-single` | 1 | `batch-035` | 2 | job / 3600s | single-Spark; capacity review | current |
 | 71 | `vonk-forge/deepseek-v4-flash-0731-sparkinfer-single` | 1 | `batch-036` | 1 | service | single-Spark; capacity review | retained: fixed public image not republished |
 | 72 | `vonk-forge/laguna-s-2-1-nvfp4-vllm-single` | 1 | `batch-036` | 2 | service | single-Spark; capacity review | retained: recipe already uses current model pin |
-| 73 | `vonk-forge/deepseek-v4-flash-0731-mia-dual` | 2 | `batch-037` | 1 | service | dual-Spark | updated: selected issue 27/55/117/210 fixes verified in pinned image |
-| 74 | `vonk-forge/deepseek-v4-flash-vision-exp-mia-dual` | 2 | `batch-038` | 1 | service | dual-Spark | updated: selected issue 27/55/210 fixes verified in pinned image |
-| 75 | `vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual` | 2 | `batch-039` | 1 | service | dual-Spark | updated: Mamba alignment/state reclamation and tool-choice fixes verified in pinned image |
-| 76 | `vonk-forge/inkling-small-nvfp4-sglang-dual` | 2 | `batch-040` | 1 | service | dual-Spark | retained: moving SGLang main is not a release channel |
-| 77 | `vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual` | 2 | `batch-041` | 1 | service | dual-Spark | retained: upstream history was rewritten |
-| 78 | `vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual` | 2 | `batch-042` | 1 | service | dual-Spark | updated: preparation lock/helper waits bounded with recovery coverage |
-| 79 | `vonk-forge/glm-5-3-flash-nvfp4-vllm-dual` | 2 | `batch-043` | 1 | service | dual-Spark | current |
-| 80 | `vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual` | 2 | `batch-044` | 1 | service | dual-Spark | retained: upstream default/profile changed |
-| 81 | `vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual` | 2 | `batch-045` | 1 | service | dual-Spark | retained: upstream renamed the target checkpoint |
-| 82 | `vonk-forge/glm-5-3-flash-nvfp4-vllm-four` | 4 | — | — | no fixture | out of scope (>2 Sparks) | retained: upstream default changed model identity |
-| 83 | `vonk-forge/glm-5-2-quanttrio-vllm-four` | 4 | — | — | no fixture | out of scope (>2 Sparks) | current |
-| 84 | `vonk-forge/inkling-975b-a41b-nvfp4-sglang-eight` | 8 | — | — | no fixture | out of scope (>2 Sparks) | retained: moving SGLang main is not a release channel |
-| 85 | `vonk-forge/glm-5-2-aqlm-vllm-triple` | 3 | — | — | no fixture | out of scope (>2 Sparks) | current |
+| 73 | `vonk-forge/qwen3-8-flash-next-nvfp4-vllm-single` | 1 | `batch-037` | 1 | service | single-Spark | new: Mia single-Spark TP1 kit 7d0712dc |
+| 74 | `vonk-forge/deepseek-v4-flash-0731-mia-dual` | 2 | `batch-038` | 1 | service | dual-Spark | updated: selected issue 27/55/117/210 fixes verified in pinned image |
+| 75 | `vonk-forge/deepseek-v4-flash-vision-exp-mia-dual` | 2 | `batch-039` | 1 | service | dual-Spark | updated: selected issue 27/55/210 fixes verified in pinned image |
+| 76 | `vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual` | 2 | `batch-040` | 1 | service | dual-Spark | updated: Mamba alignment/state reclamation and tool-choice fixes verified in pinned image |
+| 77 | `vonk-forge/inkling-small-nvfp4-sglang-dual` | 2 | `batch-041` | 1 | service | dual-Spark | retained: moving SGLang main is not a release channel |
+| 78 | `vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual` | 2 | `batch-042` | 1 | service | dual-Spark | retained: upstream history was rewritten |
+| 79 | `vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual` | 2 | `batch-043` | 1 | service | dual-Spark | updated: preparation lock/helper waits bounded with recovery coverage |
+| 80 | `vonk-forge/glm-5-3-flash-nvfp4-vllm-dual` | 2 | `batch-044` | 1 | service | dual-Spark | current |
+| 81 | `vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual` | 2 | `batch-045` | 1 | service | dual-Spark | retained: upstream default/profile changed |
+| 82 | `vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual` | 2 | `batch-046` | 1 | service | dual-Spark | retained: upstream renamed the target checkpoint |
+| 83 | `vonk-forge/glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual` | 2 | `batch-047` | 1 | service | dual-Spark | new: r0b0tlab 22269731 on nvidia/GLM-5.3-Flash-NVFP4 |
+| 84 | `vonk-forge/glm-5-3-flash-nvfp4-vllm-four` | 4 | — | — | no fixture | out of scope (>2 Sparks) | retained: upstream default changed model identity |
+| 85 | `vonk-forge/glm-5-2-quanttrio-vllm-four` | 4 | — | — | no fixture | out of scope (>2 Sparks) | current |
+| 86 | `vonk-forge/inkling-975b-a41b-nvfp4-sglang-eight` | 8 | — | — | no fixture | out of scope (>2 Sparks) | retained: moving SGLang main is not a release channel |
+| 87 | `vonk-forge/glm-5-2-aqlm-vllm-triple` | 3 | — | — | no fixture | out of scope (>2 Sparks) | current |
 <!-- generated:end qualification-inventory -->
 
 ## Evidence and stop rules
