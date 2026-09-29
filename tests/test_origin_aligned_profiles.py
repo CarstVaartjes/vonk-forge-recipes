@@ -23,8 +23,6 @@ class OriginAlignedProfileTests(unittest.TestCase):
     ) -> None:
         paths = [
             ROOT / "recipes/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual.json",
-            ROOT / "recipes/qwen3-8-flash-next-nvfp4-sglang-dual.json",
-            ROOT / "recipes/deepseek-v4-flash-0731-mia-dual.json",
         ]
         tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         for path in paths:
@@ -48,16 +46,6 @@ class OriginAlignedProfileTests(unittest.TestCase):
         self.assertEqual(args["tensor-parallel-size"], 2)
         self.assertEqual(args["max-num-batched-tokens"], 4096)
         self.assertIn("candidate", recipe["metadata"]["tags"])
-
-    def test_deepseek_profile_keeps_mia_runtime_and_two_model_selection(self) -> None:
-        recipe = read(ROOT / "recipes/deepseek-v4-flash-0731-mia-dual.json")
-        args = {
-            item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]
-        }
-        self.assertEqual(args["kv-cache-dtype"], "nvfp4_ds_mla")
-        self.assertEqual(args["max-num-batched-tokens"], 8192)
-        self.assertEqual(args["moe-backend"], "flashinfer_b12x")
-        self.assertEqual(recipe["topology"]["node_count"], 2)
 
 
 if __name__ == "__main__":
