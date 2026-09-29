@@ -4979,6 +4979,22 @@
         ]
       }
     },
+    "vonk-forge/nemotron-3-5-lightning-30b-a3b-q4-0-nvidia-llamacpp-single": {
+      "alias": "nemotron-3-5-lightning",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/nemotron-3-5-lightning-r0b0tlab-vllm-mtp-single": {
       "alias": "nvidia/nemotron-3.5-lightning-30b-a3b",
       "smoke_cases": [
