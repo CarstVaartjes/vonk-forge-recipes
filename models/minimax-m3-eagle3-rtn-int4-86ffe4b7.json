@@ -1,0 +1,98 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-11ad7efa2497-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "readme-665ecbb556f9-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "665ecbb556f9e029d9b1d174544a9ecef3ef848bec1c889e33f132e14e68b91c",
+      "size_bytes": 967
+    },
+    {
+      "id": "config-cd620cf0499a-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "cd620cf0499af9cb2d6becabd10469b28631f2ef40bf58030affb56131701249",
+      "size_bytes": 1827
+    },
+    {
+      "id": "model-a707a4302ce0-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a707a4302ce0becee147d2817d3bd3d9d8230711fde8ccd5fbd140cf19b56bb5",
+      "size_bytes": 1702137680
+    },
+    {
+      "id": "model-safetensors-index-f04609ca3b00-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f04609ca3b00058629623d8f55e147e6138347d61cc999fd50180485abfbf17e",
+      "size_bytes": 2259
+    }
+  ],
+  "format": {
+    "precision": "int4",
+    "quantization": "rtn-int4"
+  },
+  "identity": {
+    "family": {
+      "publisher": "sebesky",
+      "slug": "minimax-m3-eagle3",
+      "title": "MiniMax M3 EAGLE3"
+    },
+    "model": {
+      "publisher": "sebesky",
+      "slug": "minimax-m3-eagle3-rtn-int4",
+      "title": "MiniMax M3 EAGLE3 RTN INT4"
+    },
+    "publisher": "sebesky",
+    "slug": "minimax-m3-eagle3-rtn-int4-86ffe4b7",
+    "variant": "MiniMax M3 EAGLE3 RTN INT4 86ffe4b7",
+    "version": "MiniMax M3 EAGLE3 RTN INT4 86ffe4b7"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Sebesky"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/Sebesky/MiniMax-M3-EAGLE3-RTN-INT4/blob/86ffe4b794c23d000ddf6d93904f7526d2c575ea/README.md"
+  },
+  "metadata": {
+    "description": "Sebesky's EAGLE-3 draft model for MiniMax M3: one Llama decoder block with full multi-head attention, int4 RTN everywhere including embeddings and lm_head (1.6 GB).",
+    "tags": [
+      "sebesky",
+      "minimax-m3-eagle3",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/Sebesky/MiniMax-M3-EAGLE3-RTN-INT4",
+    "revision": "86ffe4b794c23d000ddf6d93904f7526d2c575ea"
+  }
+}

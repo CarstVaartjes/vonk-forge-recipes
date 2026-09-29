@@ -1,0 +1,12 @@
+--- a/mods/fix-prometheus-fastapi-routing/run.sh
++++ b/mods/fix-prometheus-fastapi-routing/run.sh
+@@ -10,6 +10,9 @@
+     raise SystemExit(0)
+ 
+ text = p.read_text()
++if "_resolve_path" in text:
++    print("upstream instrumentator already contains the fix (_resolve_path); skipping")
++    raise SystemExit(0)
+ old = '''        if match == Match.FULL:
+             route_name = route.path
+             child_scope = {**scope, **child_scope}
