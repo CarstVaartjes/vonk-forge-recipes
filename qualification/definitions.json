@@ -4685,6 +4685,20 @@
         ]
       }
     },
+    "vonk-forge/qwen3-6-35b-a3b-unsloth-nvfp4-vllm-mia-single": {
+      "alias": "unsloth/Qwen3.6-35B-A3B-NVFP4",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming and declared concurrency canaries"
+        ]
+      }
+    },
     "vonk-forge/gemma-4-26b-a4b-vllm-single": {
       "alias": "gemma-4-26b-a4b-it",
       "smoke_cases": [
