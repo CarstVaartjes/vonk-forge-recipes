@@ -53,16 +53,6 @@
     {
       "files": [
         {
-          "file_id": "nvidia-nemotron-3-5-lightning-30b-a3b-n-b815123756fa-bcc6016b63",
-          "id": "primary-nvidia-nemotron-3-5-lightning-30b-a3b-n-b815123756fa-bcc6016b63",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
           "file_id": "metadata-8e951b009695-618cd5b83d",
           "id": "primary-metadata-8e951b009695-618cd5b83d",
           "mount": {
