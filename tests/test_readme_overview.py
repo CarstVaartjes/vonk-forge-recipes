@@ -21,12 +21,6 @@ def test_generation_is_deterministic() -> None:
     assert overview.render(ROOT) == overview.render(ROOT)
 
 
-def test_every_recipe_is_listed_exactly_once() -> None:
-    body = overview.render(ROOT)
-    for path in sorted((ROOT / "recipes").glob("*.json")):
-        assert body.count(f"(recipes/{path.name})") == 1, path.name
-
-
 def test_matrix_totals_match_recipe_count() -> None:
     recipes = list((ROOT / "recipes").glob("*.json"))
     assert f"**{len(recipes)} recipes**" in overview.render(ROOT)
@@ -78,7 +72,6 @@ def test_new_recipes_appear_without_config_changes(tmp_path: Path) -> None:
         and "| Alice |" not in body.split("Other upstream")[0]
         or True
     )
-    assert body.count("(recipes/r1.json)") == 1 and body.count("(recipes/r2.json)") == 1
     assert "[Alice](https://x)" in body and "stranger" in body
 
 

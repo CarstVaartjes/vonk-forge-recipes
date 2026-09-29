@@ -85,10 +85,6 @@ def engine_label(engine: str) -> str:
     return dict(ENGINES).get(engine, engine)
 
 
-def link(recipe: dict[str, Any]) -> str:
-    return f"[{recipe['identity']['slug']}]({recipe['_file']})"
-
-
 def render(root: Path) -> str:
     recipes, models, config = load(root)
     rows = []
@@ -198,21 +194,6 @@ def render(root: Path) -> str:
             out.append(f"| {label} | {len(others[name])} |")
         out += ["", "</details>"]
 
-    out += ["", "### Recipes by family", ""]
-    for family in families:
-        mine = [r for r in rows if r["family"] == family]
-        out += [
-            f"<details><summary>{family} ({len(mine)})</summary>",
-            "",
-            "| Recipe | Engine | Sparks | Creator |",
-            "| --- | --- | ---: | --- |",
-        ]
-        for r in sorted(mine, key=lambda r: r["recipe"]["identity"]["slug"]):
-            out.append(
-                f"| {link(r['recipe'])} | {engine_label(r['engine'])} "
-                f"| {r['sparks']} | {r['creator']} |"
-            )
-        out += ["", "</details>", ""]
     return "\n".join(out).rstrip() + "\n"
 
 
