@@ -86,7 +86,7 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         arguments = {item["name"]: item for item in recipe["runtime"]["arguments"]}
         self.assertEqual(
             recipe["provenance"]["source_reference"],
-            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c",
+            "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/94ae731f4619f769be1f4dfe6f6607ce0a3e869d",
         )
         self.assertEqual(
             recipe["execution"]["build"]["base_image"]["digest"],
@@ -101,6 +101,9 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertEqual(recipe["settings"]["context_tokens"]["value"], 196608)
         self.assertEqual(arguments["max-num-batched-tokens"]["value"], 7168)
         self.assertEqual(arguments["kv-cache-dtype"]["value"], "fp8")
+        # Upstream's default pool (11 GiB): the FP8-all/KDA-BF16 defaults spend
+        # 3.3 GiB per rank of weights, which the compact draft pages pay for.
+        self.assertEqual(arguments["kv-cache-memory-bytes"]["value"], 11811160064)
         self.assertEqual(arguments["quantization"]["value"], "exl3")
         # vLLM spells this --no-enable-flashinfer-autotune; the earlier
         # disable-flashinfer-autotune was not a real flag and must not return.
@@ -229,7 +232,13 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertEqual(environment["EXL3_TEMP_ROWS_FUSED"], "32")
         self.assertEqual(environment["GLM53_INDEXER_WORKSPACE"], "rightsize")
         self.assertEqual(environment["GLM53_ADAPTIVE_K"], "off")
-        self.assertEqual(environment["GLM53_DENSE_FP8"], "off")
+        # Upstream's adopted TP2 defaults: FP8 dense projections in every group,
+        # BF16 large-M KDA prefill, compact draft KV pages, and an explicit KV pool.
+        self.assertEqual(environment["GLM53_DENSE_FP8"], "all")
+        self.assertEqual(environment["GLM53_KDA_BF16_LARGE_M"], "1")
+        self.assertEqual(environment["GLM53_DRAFT_KV_COMPACT"], "1")
+        self.assertEqual(environment["GLM53_LOAD_CLONE"], "1")
+        self.assertEqual(environment["GLM53_DENSE_EXL3"], "0")
         # Upstream main defaults the mixed-prefill policy to fair; the
         # GLM53_FAIR_PREFILL_* legs only apply under that policy.
         self.assertEqual(environment["GLM53_MIXED_PREFILL_CHUNK"], "fair")
@@ -291,3 +300,96 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Glm53Exl3DualOptionTests(unittest.TestCase):
+    @staticmethod
+    def _recipe():
+        from vonk_forge_contracts import read_recipe
+
+        return read_recipe(load(RECIPE))
+
+    @staticmethod
+    def _merged(recipe, choices=None):
+        effective = recipe.with_option_choices(choices)
+        arguments = {a.name: a.value for a in effective.runtime.arguments}
+        environment = {e.name: e.value for e in effective.runtime.environment}
+        return arguments, environment
+
+    def test_options_default_to_the_upstream_defaults(self) -> None:
+        recipe = self._recipe()
+        self.assertEqual(
+            recipe.resolve_options(),
+            {"verification": "standard", "projections": "fp8-all"},
+        )
+        base_arguments = {a.name: a.value for a in recipe.runtime.arguments}
+        base_environment = {e.name: e.value for e in recipe.runtime.environment}
+        # Choosing nothing and choosing every default are the same runtime.
+        self.assertEqual(
+            self._merged(recipe),
+            (base_arguments, base_environment),
+        )
+        self.assertEqual(
+            self._merged(
+                recipe, {"verification": "standard", "projections": "fp8-all"}
+            ),
+            (base_arguments, base_environment),
+        )
+
+    def test_abliteration_is_not_an_option(self) -> None:
+        # Upstream's working abliteration method (transplant) downloads donor
+        # tensors at first use and its projection method is documented as
+        # ineffective on this model; the preset checkpoint is different weights.
+        names = {option.name for option in self._recipe().options}
+        self.assertNotIn("abliteration", names)
+        environment = {e["name"] for e in load(RECIPE)["runtime"]["environment"]}
+        self.assertFalse({n for n in environment if n.startswith("ABLIT")})
+
+    def test_adaptive_k_replaces_the_capture_sizes_it_needs(self) -> None:
+        recipe = self._recipe()
+        base_arguments, _ = self._merged(recipe)
+        arguments, environment = self._merged(recipe, {"verification": "adaptive-k"})
+        self.assertEqual(environment["GLM53_ADAPTIVE_K"], "ema")
+        sizes = json.loads(arguments["compilation-config"])["cudagraph_capture_sizes"]
+        stock = json.loads(base_arguments["compilation-config"])[
+            "cudagraph_capture_sizes"
+        ]
+        # Stock sizes stay, and every (k + 1) length for k in 2, 4, 7 is
+        # captured at each batch size up to the declared concurrency.
+        self.assertTrue(set(stock) <= set(sizes))
+        for batch in range(1, 5):
+            for length in (3, 5, 8):
+                self.assertIn(batch * length, sizes)
+        self.assertEqual(sizes, sorted(set(sizes)))
+        # The replacement keeps the argument's place; nothing is duplicated.
+        names = [
+            a.name
+            for a in recipe.with_option_choices(
+                {"verification": "adaptive-k"}
+            ).runtime.arguments
+        ]
+        self.assertEqual(names.count("compilation-config"), 1)
+        # Other rank-independent settings are unchanged.
+        self.assertEqual(
+            {k: v for k, v in arguments.items() if k != "compilation-config"},
+            {k: v for k, v in base_arguments.items() if k != "compilation-config"},
+        )
+
+    def test_bf16_projections_turn_off_both_fp8_paths_together(self) -> None:
+        recipe = self._recipe()
+        _, environment = self._merged(recipe, {"projections": "bf16"})
+        self.assertEqual(environment["GLM53_DENSE_FP8"], "off")
+        # The large-M KDA path requires kda in GLM53_DENSE_FP8.
+        self.assertEqual(environment["GLM53_KDA_BF16_LARGE_M"], "0")
+
+    def test_dense_fp8_constructor_patch_is_baked_into_the_image(self) -> None:
+        # The container root is read-only at run time and the option is
+        # selected by environment only, so the KDA/MLA constructor change the
+        # FP8 path needs must already be in the image.
+        dockerfile = (ADAPTER / "Dockerfile").read_text()
+        self.assertIn(
+            "RUN GLM53_DENSE_FP8=all GLM53_DENSE_EXL3=0 python3 "
+            "/opt/glm53/patch_dense_fp8.py",
+            dockerfile,
+        )
+        self.assertNotIn("GLM53_DENSE_FP8=off python3", dockerfile)

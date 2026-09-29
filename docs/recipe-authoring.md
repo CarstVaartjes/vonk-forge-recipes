@@ -158,6 +158,22 @@ Keep non-root execution, a read-only root, and declared writable volumes. If an
 engine needs an additional invariant, fix the central engine implementation
 and exercise actual writes and cache reuse; do not scatter recipe workarounds.
 
+### Options: user-selectable runtime variants
+
+When users can reasonably choose between ways to run the same weights, declare an
+`options` list instead of publishing near-duplicate recipes. Each option has a
+`name`, `label` and `help`, and 2 to 16 `choices`: `value`, `label`, `help`,
+exactly one `default`, and the literal runtime `args` and `env` the choice sets.
+A choice's argument or variable replaces the recipe's own of the same name in
+place, otherwise it is appended, so an option that needs a different CUDA graph
+list carries the whole replacement `compilation-config`. Two options may not
+change the same argument or variable. The recipe's own arguments and environment
+are the defaults: the default choice normally adds nothing. Options cannot
+change weights, the image or the build; different weights are a different Model
+and recipe. Anything an option needs at run time must already be in the image
+(for example a patch applied at build and switched by an environment variable),
+and it may not download or build anything.
+
 Artifact jobs receive their declared files under `/inputs`, plus
 `/inputs/manifest.json`, and write their outputs under `/outputs`. Read
 the manifest with the platform's `RecipeJobInputManifest` Pydantic model and

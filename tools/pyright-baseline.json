@@ -376,13 +376,13 @@
     {
       "file": "adapters/glm/mia-exl3-dflash2-dual/overlay/exl3.py",
       "rule": "reportMissingImports",
-      "count": 26,
+      "count": 31,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
       "file": "adapters/glm/mia-exl3-dflash2-dual/overlay/exl3.py",
       "rule": "reportOptionalMemberAccess",
-      "count": 1,
+      "count": 4,
       "reason": "The member is reached only after an explicit guard on the same value; pyright loses that narrowing across the kernel branch."
     },
     {
@@ -410,6 +410,12 @@
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/overlay/patch_loadclone.py",
+      "rule": "reportAttributeAccessIssue",
+      "count": 1,
+      "reason": "The attribute comes from an upstream vLLM/SGLang class whose untyped runtime surface pyright cannot resolve from the host."
+    },
+    {
       "file": "adapters/glm/mia-exl3-dflash2-dual/overlay/patch_scheduler_decode_floor.py",
       "rule": "reportOptionalSubscript",
       "count": 7,
@@ -418,7 +424,7 @@
     {
       "file": "adapters/glm/mia-exl3-dflash2-dual/overlay/qwen3_dflash2.py",
       "rule": "reportMissingImports",
-      "count": 11,
+      "count": 12,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
@@ -435,14 +441,8 @@
     },
     {
       "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_ablit.py",
-      "rule": "reportInvalidTypeForm",
-      "count": 3,
-      "reason": "The annotation is written in the upstream project's own typing dialect, which pyright does not resolve without that project's stubs."
-    },
-    {
-      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_ablit.py",
       "rule": "reportMissingImports",
-      "count": 1,
+      "count": 2,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
@@ -478,7 +478,7 @@
     {
       "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_apc_per_group_retention.py",
       "rule": "reportAttributeAccessIssue",
-      "count": 18,
+      "count": 19,
       "reason": "The attribute comes from an upstream vLLM/SGLang class whose untyped runtime surface pyright cannot resolve from the host."
     },
     {
@@ -497,6 +497,36 @@
       "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_cache_reset_endpoint.py",
       "rule": "reportCallIssue",
       "count": 1,
+      "reason": "The callable is an upstream object with no host-side stub, so pyright cannot match the argument list."
+    },
+    {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_cold_load_uma.py",
+      "rule": "reportArgumentType",
+      "count": 1,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_cold_load_uma.py",
+      "rule": "reportAttributeAccessIssue",
+      "count": 3,
+      "reason": "The attribute comes from an upstream vLLM/SGLang class whose untyped runtime surface pyright cannot resolve from the host."
+    },
+    {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_cold_load_uma.py",
+      "rule": "reportOptionalMemberAccess",
+      "count": 2,
+      "reason": "The member is reached only after an explicit guard on the same value; pyright loses that narrowing across the kernel branch."
+    },
+    {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_dense_fp8_patch.py",
+      "rule": "reportArgumentType",
+      "count": 1,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_dense_fp8_patch.py",
+      "rule": "reportCallIssue",
+      "count": 20,
       "reason": "The callable is an upstream object with no host-side stub, so pyright cannot match the argument list."
     },
     {
@@ -530,6 +560,12 @@
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_kpool_tail_seed_stride.py",
+      "rule": "reportMissingImports",
+      "count": 2,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
       "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_kv_capacity_log.py",
       "rule": "reportArgumentType",
       "count": 8,
@@ -546,6 +582,42 @@
       "rule": "reportMissingImports",
       "count": 1,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_loadclone.py",
+      "rule": "reportArgumentType",
+      "count": 2,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_loadclone.py",
+      "rule": "reportAttributeAccessIssue",
+      "count": 1,
+      "reason": "The attribute comes from an upstream vLLM/SGLang class whose untyped runtime surface pyright cannot resolve from the host."
+    },
+    {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_loadclone.py",
+      "rule": "reportMissingImports",
+      "count": 2,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_loadclone.py",
+      "rule": "reportOptionalMemberAccess",
+      "count": 2,
+      "reason": "The member is reached only after an explicit guard on the same value; pyright loses that narrowing across the kernel branch."
+    },
+    {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_mamba_align_chunking.py",
+      "rule": "reportArgumentType",
+      "count": 1,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_mamba_align_chunking.py",
+      "rule": "reportAttributeAccessIssue",
+      "count": 5,
+      "reason": "The attribute comes from an upstream vLLM/SGLang class whose untyped runtime surface pyright cannot resolve from the host."
     },
     {
       "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_scheduler_decode_floor.py",
@@ -578,7 +650,31 @@
       "reason": "The member is reached only after an explicit guard on the same value; pyright loses that narrowing across the kernel branch."
     },
     {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_skip_cudagraph_profile.py",
+      "rule": "reportArgumentType",
+      "count": 1,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_skip_cudagraph_profile.py",
+      "rule": "reportOptionalMemberAccess",
+      "count": 2,
+      "reason": "The member is reached only after an explicit guard on the same value; pyright loses that narrowing across the kernel branch."
+    },
+    {
       "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_suppress_stops.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_tool_choice_none.py",
+      "rule": "reportCallIssue",
+      "count": 7,
+      "reason": "The callable is an upstream object with no host-side stub, so pyright cannot match the argument list."
+    },
+    {
+      "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_tool_choice_none.py",
       "rule": "reportMissingImports",
       "count": 1,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."

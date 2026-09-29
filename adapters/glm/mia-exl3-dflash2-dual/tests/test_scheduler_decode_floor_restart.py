@@ -117,12 +117,8 @@ def run_patch(target: Path) -> subprocess.CompletedProcess:
         "GLM53_SCHEDULER_PY": str(target),
         "GLM53_MIXED_PREFILL_CHUNK": "skip",
     }
-    return subprocess.run(
-        [sys.executable, str(PATCH)],
-        env=env,
-        capture_output=True,
-        text=True,
-        check=False,
+    return subprocess.run(  # noqa: PLW1510
+        [sys.executable, str(PATCH)], env=env, capture_output=True, text=True
     )
 
 
