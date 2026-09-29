@@ -4732,6 +4732,23 @@
         ]
       }
     },
+    "vonk-forge/gemma-4-e2b-it-q8-0-ggml-org-llamacpp-single": {
+      "alias": "gemma-4-e2b-it",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single": {
       "alias": "qwen3-8-27b",
       "smoke_cases": [
