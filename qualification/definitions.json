@@ -4649,6 +4649,23 @@
         ]
       }
     },
+    "vonk-forge/nemotron-3-super-120b-a12b-nvfp4-r0b0tlab-sglang-single": {
+      "alias": "nvidia/nemotron-3-super",
+      "smoke_cases": [
+        "M0",
+        "NEM_A391_OFF",
+        "NEM_REASON",
+        "NEM_TOOL"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded concurrency, context, unified-memory floor, and explicit multimodal-rejection canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, alias stability, no redownload, and parser revalidation"
+        ]
+      }
+    },
     "vonk-forge/laguna-s-2-1-nvfp4-vllm-single": {
       "alias": "laguna-s-2-1",
       "smoke_cases": [

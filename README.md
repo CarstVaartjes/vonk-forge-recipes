@@ -351,6 +351,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | [nemotron-3-5-lightning-r0b0tlab-sglang-dflash-single](recipes/nemotron-3-5-lightning-r0b0tlab-sglang-dflash-single.json) | SGLang | 1 | r0b0tlab |
 | [nemotron-3-nano-30b-a3b-vllm-single](recipes/nemotron-3-nano-30b-a3b-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |
 | [nemotron-3-nano-omni-30b-a3b-vllm-single](recipes/nemotron-3-nano-omni-30b-a3b-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |
+| [nemotron-3-super-120b-a12b-nvfp4-r0b0tlab-sglang-single](recipes/nemotron-3-super-120b-a12b-nvfp4-r0b0tlab-sglang-single.json) | SGLang | 1 | r0b0tlab |
 | [nemotron-3-super-120b-a12b-vllm-single](recipes/nemotron-3-super-120b-a12b-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |
 | [nemotron-labs-3-puzzle-75b-a9b-nvfp4-drowzeys-vllm-single](recipes/nemotron-labs-3-puzzle-75b-a9b-nvfp4-drowzeys-vllm-single.json) | vLLM | 1 | drowzeys (keyz) |
 
