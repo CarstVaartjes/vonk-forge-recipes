@@ -1,0 +1,17 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "requirements-audio.txt",
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "patches/mimo_v2.py": "patches/files/mimo_v2.py",
+    "patches/mimo_v2_omni.py": "patches/files/mimo_v2_omni.py",
+    "patches/triton_attn_diffkv.py": "patches/files/triton_attn_diffkv.py"
+  },
+  "source": {
+    "repo": "tonyd2wild/MiMo-V2.6-Flash-DGX-Spark-Recipe",
+    "commit": "13621bb3cc6fd30a94d53609320599d1f1134686"
+  }
+}

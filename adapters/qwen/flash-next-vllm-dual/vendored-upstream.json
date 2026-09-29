@@ -1,0 +1,18 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "apply_patches.py",
+    "qwen38-vllm-wrapper.py",
+    "test_qwen38_wrapper.py"
+  ],
+  "renamed": {
+    "draft_vocab_en_code_47k.txt": "files/draft_vocab_en_code_47k.txt",
+    "patch_mtp_draft_vocab.py": "files/patch_mtp_draft_vocab.py",
+    "patch_mtp_draft_vocab_v030.py": "files/patch_mtp_draft_vocab_v030.py",
+    "patch_qsa_fp8_kv_v030.py": "files/patch_qsa_fp8_kv_v030.py"
+  },
+  "source": {
+    "repo": "MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks",
+    "commit": "2c86a1d05f93c8d3a68146a321d417ffa4ca5039"
+  }
+}

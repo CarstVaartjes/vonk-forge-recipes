@@ -5,7 +5,6 @@ import ast
 import importlib.util
 import os
 import sys
-from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ORIG = os.path.join(HERE, "mtp_v030_patched.py.orig")
@@ -13,11 +12,7 @@ OUT = os.path.join(HERE, "mtp_v030_patched.py")
 
 
 def _blocks():
-    spec = importlib.util.spec_from_file_location(
-        "patch_mtp_draft_vocab", os.path.join(HERE, "patch_mtp_draft_vocab.py")
-    )
-    if spec is None or spec.loader is None:
-        sys.exit("cannot load patch_mtp_draft_vocab.py")
+    spec = importlib.util.spec_from_file_location("patch_mtp_draft_vocab", os.path.join(HERE, "patch_mtp_draft_vocab.py"))
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module.DRAFT_VOCAB_BLOCK, module.GET_TOP_TOKENS
@@ -26,55 +21,35 @@ def _blocks():
 def main() -> None:
     if not os.path.isfile(ORIG):
         sys.exit(f"ERROR: missing {ORIG} (start.sh extracts it from the image)")
-    src = Path(ORIG).read_text()
+    src = open(ORIG).read()
     if "_attach_draft_vocab" in src:
         sys.exit(f"ERROR: {ORIG} is already patched")
     draft_vocab_block, get_top_tokens = _blocks()
     edits = [
-        (
-            "import torch\nfrom torch import nn\n",
-            "import os\n\nimport torch\nfrom torch import nn\n",
-        ),
-        (
-            "from vllm.distributed import get_pp_group\n",
-            (
-                "from vllm.distributed import get_pp_group\n"
-                "from vllm.distributed.communication_op import tensor_model_parallel_all_gather\n"
-                "from vllm.logger import init_logger\n"
-            ),
-        ),
-        (
-            "\nclass Qwen4ExpMultiTokenPredictor(nn.Module):\n",
-            "\nlogger = init_logger(__name__)\n"
-            + draft_vocab_block
-            + "\nclass Qwen4ExpMultiTokenPredictor(nn.Module):\n",
-        ),
-        (
-            "        return self.logits_processor(self.lm_head, hidden_states)\n",
-            "        return self.logits_processor(self.lm_head, hidden_states)\n"
-            + get_top_tokens,
-        ),
-        (
-            "        return loader.load_weights(remap_weight_names(), mapper=mapper)\n",
-            (
-                "        loaded = loader.load_weights(remap_weight_names(), mapper=mapper)\n"
-                "        _attach_draft_vocab(self)\n"
-                "        return loaded\n"
-            ),
-        ),
+        ("import torch\nfrom torch import nn\n", "import os\n\nimport torch\nfrom torch import nn\n"),
+        ("from vllm.distributed import get_pp_group\n",
+         "from vllm.distributed import get_pp_group\n"
+         "from vllm.distributed.communication_op import tensor_model_parallel_all_gather\n"
+         "from vllm.logger import init_logger\n"),
+        ("\nclass Qwen4ExpMultiTokenPredictor(nn.Module):\n",
+         "\nlogger = init_logger(__name__)\n" + draft_vocab_block + "\nclass Qwen4ExpMultiTokenPredictor(nn.Module):\n"),
+        ("        return self.logits_processor(self.lm_head, hidden_states)\n",
+         "        return self.logits_processor(self.lm_head, hidden_states)\n" + get_top_tokens),
+        ("        return loader.load_weights(remap_weight_names(), mapper=mapper)\n",
+         "        loaded = loader.load_weights(remap_weight_names(), mapper=mapper)\n"
+         "        _attach_draft_vocab(self)\n"
+         "        return loaded\n"),
     ]
     for i, (old, new) in enumerate(edits):
         count = src.count(old)
         if count != 1:
-            sys.exit(
-                f"mtp_v030_patched: anchor {i} not unique/missing (count={count}):\n{old[:200]}"
-            )
+            sys.exit(f"mtp_v030_patched: anchor {i} not unique/missing (count={count}):\n{old[:200]}")
         src = src.replace(old, new)
     try:
         ast.parse(src)
     except SyntaxError as exc:
         sys.exit(f"mtp_v030_patched: patched source does not parse: {exc}")
-    Path(OUT).write_text(src)
+    open(OUT, "w").write(src)
     print("patched mtp_v030_patched.py")
 
 
