@@ -10,7 +10,7 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-**117 recipes** for **32 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+**119 recipes** for **33 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
@@ -49,8 +49,9 @@ Number of recipes per model family and engine.
 | TRELLIS |  |  |  |  |  |  |  |  | 1 |
 | TripoSG |  |  |  |  |  |  |  |  | 1 |
 | UI-Mate | 1 |  |  |  |  |  |  |  |  |
+| VibeThinker | 1 |  |  |  |  |  |  |  |  |
 | Wan |  |  |  |  |  |  |  | 3 | 2 |
-| **Total** | **55** | **12** | **0** | **0** | **3** | **3** | **13** | **10** | **21** |
+| **Total** | **56** | **13** | **0** | **0** | **3** | **3** | **13** | **10** | **21** |
 
 ### Spark variants
 
@@ -89,6 +90,7 @@ Which Spark counts each family runs on, and who provides them.
 | TRELLIS | microsoft |  |  |  |  |
 | TripoSG | VAST-AI |  |  |  |  |
 | UI-Mate | Tencent |  |  |  |  |
+| VibeThinker | r0b0tlab |  |  |  |  |
 | Wan | Comfy-Org, modelscope, Wan-Video |  |  |  |  |
 
 ### Tracked creators
@@ -97,9 +99,9 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 | Creator | Focus | Engines | Recipes |
 | --- | --- | --- | ---: |
-| [MiaAI-Lab](https://github.com/MiaAI-Lab) | Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling. | SGLang, TensorFold, vLLM | 16 |
+| [MiaAI-Lab](https://github.com/MiaAI-Lab) | Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling. | SGLang, TensorFold, vLLM | 17 |
 | [tonyd2wild](https://github.com/tonyd2wild) | Multi-Spark (2 and 4) vLLM recipes for large MoE models: GLM, MiMo. | vLLM | 8 |
-| [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. | SGLang, vLLM | 13 |
+| [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. | SGLang, vLLM | 14 |
 | [drowzeys (keyz)](https://github.com/drowzeys) | Large multi-Spark vLLM builds with prebuilt images: GLM, MiMo, abliterated variants. | vLLM | 4 |
 | [NVIDIA playbooks](https://github.com/NVIDIA/dgx-spark-playbooks) | Official DGX Spark playbooks and NVIDIA model releases: Nemotron, NVFP4 checkpoints. | diffusers, vLLM | 8 |
 | [eugr](https://github.com/eugr) | spark-vllm-docker: vLLM container builds for dual DGX Spark; llama-benchy benchmarking. |  | 0 |
@@ -465,6 +467,14 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
 | [ui-mate-27b-vllm-single](recipes/ui-mate-27b-vllm-single.json) | vLLM | 1 | Tencent |
+
+</details>
+
+<details><summary>VibeThinker (1)</summary>
+
+| Recipe | Engine | Sparks | Creator |
+| --- | --- | ---: | --- |
+| [vibethinker-3b-nvfp4-r0b0tlab-vllm-single](recipes/vibethinker-3b-nvfp4-r0b0tlab-vllm-single.json) | vLLM | 1 | r0b0tlab |
 
 </details>
 
