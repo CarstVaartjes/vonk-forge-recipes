@@ -1,0 +1,85 @@
+{
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-451d293fc3bf-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "451d293fc3bfea44e05c815e697fa816a507ca8a92ba8c0f75d5daa60eb76576",
+      "size_bytes": 2206
+    },
+    {
+      "id": "nvidia-nemotron-3-5-lightning-30b-a3b-q-61f87e75974e-755241d9c5",
+      "path": "NVIDIA-Nemotron-3.5-Lightning-30B-A3B-Q4_0.gguf",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "61f87e75974e4b535dcdf9aad056541a9514f1dfa4538b463b081d19b7a00e3c",
+      "size_bytes": 18898091584
+    },
+    {
+      "id": "readme-5e807745c2ed-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "5e807745c2ede98bbef441dc8d66b7e54fd9f991cf28d32420acbfdd9a7fd74c",
+      "size_bytes": 759
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "gguf-q4-0"
+  },
+  "identity": {
+    "family": {
+      "publisher": "ggml-org",
+      "slug": "nemotron",
+      "title": "NVIDIA Nemotron"
+    },
+    "model": {
+      "publisher": "ggml-org",
+      "slug": "nemotron-3-5-lightning-30b-a3b",
+      "title": "Nemotron 3.5 Lightning 30B-A3B"
+    },
+    "publisher": "ggml-org",
+    "slug": "nemotron-3-5-lightning-30b-a3b-q4-0-8a08a1c8",
+    "variant": "Q4_0 8a08a1c8",
+    "version": "Q4_0 8a08a1c8"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "ggml-org"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/"
+  },
+  "metadata": {
+    "description": "ggml-org GGUF conversion of NVIDIA Nemotron 3.5 Lightning 30B-A3B at Q4_0 (the GGUF NVIDIA's model card links).",
+    "tags": [
+      "ggml-org",
+      "nemotron",
+      "language",
+      "gguf",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/ggml-org/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-GGUF",
+    "revision": "8a08a1c81dadcc75d35dbb96016cfd344b632e67"
+  }
+}
