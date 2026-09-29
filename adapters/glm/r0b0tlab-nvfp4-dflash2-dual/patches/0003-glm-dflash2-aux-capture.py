@@ -17,7 +17,6 @@ re-derived for this base image (vLLM 0.28.1rc1.dev580+g385dce36b).
 Idempotent (marker GLM53-DFLASH2-AUX-CAPTURE); fails loudly on anchor drift.
 Usage: python3 0003-glm-dflash2-aux-capture.py [--root ...] [--dry-run]
 """
-
 from __future__ import annotations
 
 import argparse
