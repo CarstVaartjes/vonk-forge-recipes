@@ -11,6 +11,8 @@ from pathlib import Path
 
 from generated_catalog import GENERATED
 
+from qualification.definitions_loader import load_definitions
+
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/moss-vl-realtime"
 CONTRACT_PATH = ADAPTER_ROOT / "input_contract.py"
@@ -114,9 +116,9 @@ class MossRealtimeJobTests(unittest.TestCase):
         notice = (ADAPTER_ROOT / "NOTICE").read_text(encoding="utf-8")
         self.assertIn(f"{source_url}/tree/{source_revision}", notice)
 
-        qualification = json.loads(
-            (ROOT / "qualification/definitions.json").read_text(encoding="utf-8")
-        )["recipes"]["vonk-forge/moss-vl-realtime-11b-pytorch-single"]
+        qualification = load_definitions(ROOT / "qualification")["recipes"][
+            "vonk-forge/moss-vl-realtime-11b-pytorch-single"
+        ]
         expected_revisions = [
             assertion["model_revision"]
             for assertion in qualification["assertions"]
