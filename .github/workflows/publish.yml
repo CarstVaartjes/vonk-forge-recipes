@@ -122,10 +122,14 @@ jobs:
           # Coverage is derived offline from this build (the authority is derived from it, not committed).
           "$RELEASE_TEST_PYTHON" tools/build-catalog-index --source-commit "$GITHUB_SHA"
           "$RELEASE_TEST_PYTHON" tools/build-family-aware-coverage
+          # The generated overview (engines, Spark variants, creators) ships with the release.
+          mkdir -p "$RUNNER_TEMP/overview"
+          "$RELEASE_TEST_PYTHON" tools/build-readme-overview --stdout > "$RUNNER_TEMP/overview/recipe-overview.md"
           "$RELEASE_TEST_PYTHON" tools/build-catalog-index \
             --release-dir "$RUNNER_TEMP/release" --source-commit "$GITHUB_SHA" \
             --include qualification/coverage/family-aware-coverage-2026-09-24.json \
-            --include qualification/coverage/family-aware-coverage-2026-09-24.md
+            --include qualification/coverage/family-aware-coverage-2026-09-24.md \
+            --include "$RUNNER_TEMP/overview/recipe-overview.md"
 
       - name: Compare with the published release
         id: current
