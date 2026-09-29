@@ -1,0 +1,5 @@
+The launch profile (upstream-sglang-ds4v-tp2.sh) is from
+https://github.com/tonyd2wild/DeepSeek-V4-Flash-Vision-SGLang-DGX-Spark at commit
+b42871622be907defdbb01faecbbe382fe9a8855 (MIT, see LICENSE.upstream). The container
+image is the SGLang DGX Spark preview build lmsysorg/sglang:dev-v4f-2dgx-v2 (pinned by
+digest); its own licences apply.
