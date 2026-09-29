@@ -1,0 +1,8 @@
+FROM vllm/vllm-openai:gemma4
+LABEL org.opencontainers.image.source="https://github.com/r0b0tlab/diffusiongemma-26b-nvfp4-sm121-vllm"
+LABEL org.opencontainers.image.description="Patched vLLM DiffusionGemma NVFP4 runtime for SM121"
+ENV VLLM_USE_V2_MODEL_RUNNER=1
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends git patch && rm -rf /var/lib/apt/lists/*
+COPY third_party/spark-vllm-docker/mods/diffusiongemma /opt/diffusiongemma-mods
+RUN bash /opt/diffusiongemma-mods/run.sh

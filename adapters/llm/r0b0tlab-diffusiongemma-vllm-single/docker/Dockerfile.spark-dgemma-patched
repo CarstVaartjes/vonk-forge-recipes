@@ -1,0 +1,7 @@
+FROM ghcr.io/r0b0tlab/vllm-diffusiongemma-26b-nvfp4-sm121:spark-dgemma
+LABEL org.opencontainers.image.source="https://github.com/r0b0tlab/diffusiongemma-26b-nvfp4-sm121-vllm"
+LABEL org.opencontainers.image.description="Spark vLLM patched for DiffusionGemma NVFP4 on SM121"
+ENV VLLM_USE_V2_MODEL_RUNNER=1
+USER root
+COPY third_party/spark-vllm-docker/mods/diffusiongemma /opt/diffusiongemma-mods
+RUN bash /opt/diffusiongemma-mods/run.sh
