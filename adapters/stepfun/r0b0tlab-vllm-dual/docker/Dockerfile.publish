@@ -1,0 +1,22 @@
+FROM step37-stepfun-ray:arm64
+
+LABEL org.opencontainers.image.source=https://github.com/r0b0tlab/step37-flash-nvfp4-sm121-vllm-docker
+LABEL org.opencontainers.image.title="Step 3.7 Flash NVFP4 SM121 TP=2"
+LABEL org.opencontainers.image.description="Plug-and-play Step 3.7 Flash NVFP4 on dual GB10 SM121 with vLLM TP=2"
+LABEL org.opencontainers.image.vendor="r0b0tlab"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+
+# Install utilities
+RUN pip install --no-cache-dir huggingface_hub hf_transfer
+
+# Create entrypoint
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Copy documentation
+COPY AGENTS.md /workspace/AGENTS.md
+COPY VERDICT.md /workspace/VERDICT.md
+
+WORKDIR /workspace
+
+ENTRYPOINT ["/entrypoint.sh"]
