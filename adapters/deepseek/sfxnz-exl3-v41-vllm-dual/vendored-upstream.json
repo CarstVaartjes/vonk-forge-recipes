@@ -1,0 +1,10 @@
+{
+  "ours": [
+    "dsv41-vllm-wrapper.py",
+    "test_dsv41_sfxnz_wrapper.py"
+  ],
+  "source": {
+    "repo": "sfxnz/DeepSeek-V4.1-Flash-EXL3-vLLM-2x-DGX-Spark",
+    "commit": "3de914682d0880c8e478712a60ada930339c22e4"
+  }
+}
