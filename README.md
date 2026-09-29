@@ -53,46 +53,46 @@ Which engines each model family runs on.
 
 ### Spark variants
 
-Which Spark counts each family runs on, and who provides them.
+Which Spark counts each model family runs on.
 
 | Model family | 1 Spark | 2 Sparks | 3 Sparks | 4 Sparks | 8 Sparks |
-| --- | --- | --- | --- | --- | --- |
-| DeepSeek V4 Flash | 0xSero, antirez, MiaAI-Lab | MiaAI-Lab, r0b0tlab, tonyd2wild |  |  |  |
-| FLUX.2 | black-forest-labs, Comfy-Org |  |  |  |  |
-| Gemma | google |  |  |  |  |
-| GLM | r0b0tlab | drowzeys (keyz), MiaAI-Lab, r0b0tlab, tonyd2wild | MiaAI-Lab | drowzeys (keyz), tonyd2wild |  |
-| Hunyuan3D | tencent |  |  |  |  |
-| HunyuanOCR | tencent |  |  |  |  |
-| HunyuanVideo | hunyuanvideo-community |  |  |  |  |
-| HunyuanVideo Foley | tencent |  |  |  |  |
-| Hy3 kodelow |  | MiaAI-Lab, tonyd2wild |  |  |  |
-| Inkling |  | sgl-project |  |  | sgl-project |
-| Laguna | poolside |  |  |  |  |
-| Leanstral |  | MiaAI-Lab |  |  |  |
-| LFM2.5 | LiquidAI |  |  |  |  |
-| Ling | MiaAI-Lab |  |  |  |  |
-| LTX | Lightricks |  |  |  |  |
-| MiMo |  | MiaAI-Lab, tonyd2wild |  |  |  |
-| MiniMax H3 | MiniMaxAI | r0b0tlab |  |  |  |
-| MOSS-VL | OpenMOSS-Team |  |  |  |  |
-| MOVA | OpenMOSS-Team |  |  |  |  |
-| Muse Glimmer | meta-models |  |  |  |  |
-| Nemotron | drowzeys (keyz), NVIDIA playbooks, sfxnz |  |  |  |  |
-| Ornith | ornith-ai |  |  |  |  |
-| Pixal3D | TencentARC |  |  |  |  |
-| Qwen (text and vision) | ashhart, drowzeys (keyz), MiaAI-Lab, NVIDIA playbooks, Qwen, r0b0tlab | MiaAI-Lab, sfxnz |  |  |  |
-| Qwen Image | Comfy-Org, lightx2v, NVIDIA playbooks, Qwen |  |  |  |  |
-| SkinTokens | VAST-AI |  |  |  |  |
-| Step 3.7 Flash |  | MiaAI-Lab |  |  |  |
-| Step1X-3D | stepfun-ai |  |  |  |  |
-| TRELLIS | microsoft |  |  |  |  |
-| TripoSG | VAST-AI |  |  |  |  |
-| UI-Mate | Tencent |  |  |  |  |
-| Wan | Comfy-Org, modelscope, Wan-Video |  |  |  |  |
+| --- | :---: | :---: | :---: | :---: | :---: |
+| DeepSeek V4 Flash | ✓ | ✓ |  |  |  |
+| FLUX.2 | ✓ |  |  |  |  |
+| Gemma | ✓ |  |  |  |  |
+| GLM | ✓ | ✓ | ✓ | ✓ |  |
+| Hunyuan3D | ✓ |  |  |  |  |
+| HunyuanOCR | ✓ |  |  |  |  |
+| HunyuanVideo | ✓ |  |  |  |  |
+| HunyuanVideo Foley | ✓ |  |  |  |  |
+| Hy3 kodelow |  | ✓ |  |  |  |
+| Inkling |  | ✓ |  |  | ✓ |
+| Laguna | ✓ |  |  |  |  |
+| Leanstral |  | ✓ |  |  |  |
+| LFM2.5 | ✓ |  |  |  |  |
+| Ling | ✓ |  |  |  |  |
+| LTX | ✓ |  |  |  |  |
+| MiMo |  | ✓ |  |  |  |
+| MiniMax H3 | ✓ | ✓ |  |  |  |
+| MOSS-VL | ✓ |  |  |  |  |
+| MOVA | ✓ |  |  |  |  |
+| Muse Glimmer | ✓ |  |  |  |  |
+| Nemotron | ✓ |  |  |  |  |
+| Ornith | ✓ |  |  |  |  |
+| Pixal3D | ✓ |  |  |  |  |
+| Qwen (text and vision) | ✓ | ✓ |  |  |  |
+| Qwen Image | ✓ |  |  |  |  |
+| SkinTokens | ✓ |  |  |  |  |
+| Step 3.7 Flash |  | ✓ |  |  |  |
+| Step1X-3D | ✓ |  |  |  |  |
+| TRELLIS | ✓ |  |  |  |  |
+| TripoSG | ✓ |  |  |  |  |
+| UI-Mate | ✓ |  |  |  |  |
+| Wan | ✓ |  |  |  |  |
 
 ### Tracked creators
 
-Recipes are credited to the creator whose repository they come from (the recipe's source reference), or else to a tracked creator named in its attribution.
+Creators whose DGX Spark work we package; filter by creator in vonkctl or the web Library.
 
 | Creator | Focus |
 | --- | --- |

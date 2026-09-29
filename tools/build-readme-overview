@@ -131,32 +131,25 @@ def render(root: Path) -> str:
         "",
         "### Spark variants",
         "",
-        "Which Spark counts each family runs on, and who provides them.",
+        "Which Spark counts each model family runs on.",
         "",
         "| Model family | "
         + " | ".join(f"{n} Spark{'s' if n != 1 else ''}" for n in sparks)
         + " |",
-        "| --- |" + " --- |" * len(sparks),
+        "| --- |" + " :---: |" * len(sparks),
     ]
     for family in families:
-        cells = []
-        for n in sparks:
-            names = sorted(
-                {
-                    r["creator"]
-                    for r in rows
-                    if r["family"] == family and r["sparks"] == n
-                },
-                key=str.lower,
-            )
-            cells.append(", ".join(names))
-        out.append(f"| {family} | " + " | ".join(cells) + " |")
+        present = {r["sparks"] for r in rows if r["family"] == family}
+        out.append(
+            f"| {family} | "
+            + " | ".join("✓" if n in present else "" for n in sparks)
+            + " |"
+        )
 
     out += ["", "### Tracked creators", ""]
     out += [
         (
-            "Recipes are credited to the creator whose repository they come from (the recipe's "
-            "source reference), or else to a tracked creator named in its attribution."
+            "Creators whose DGX Spark work we package; filter by creator in vonkctl or the web Library."
         ),
         "",
         "| Creator | Focus |",

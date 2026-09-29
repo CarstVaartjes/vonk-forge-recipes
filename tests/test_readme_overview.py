@@ -69,7 +69,7 @@ def test_new_recipes_appear_without_config_changes(tmp_path: Path) -> None:
     body = overview.render(tmp_path)
     assert "| Fam |" in body and "newengine" in body
     assert "8 Sparks" in body and "Other upstream" not in body
-    assert "[Alice](https://x)" in body and "stranger" in body
+    assert "[Alice](https://x)" in body and "stranger" not in body
 
 
 def test_readme_splice_replaces_only_the_marked_block() -> None:
