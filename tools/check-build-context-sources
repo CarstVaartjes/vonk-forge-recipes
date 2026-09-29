@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+"""Fail when a recipe's Dockerfile COPY/ADD names a source missing from its build context.
+
+For every recipe with an ``execution.build`` block, each local source of every
+``COPY``/``ADD`` instruction in the recipe's Dockerfile must exist inside the
+build context (``context.path``). A missing source only surfaces as a late
+image-build failure on the host, so it is checked here for every recipe.
+
+Skipped, because they do not name context files: ``COPY --from=...`` (stage or
+image sources), ``ADD`` of URLs, heredoc bodies, and sources containing build
+variables. Globs must match at least one file. Sources ignored by the
+context's ``.dockerignore`` (simple path/glob patterns) are reported missing.
+"""
+
+from __future__ import annotations
+
+import fnmatch
+import glob
+import json
+import re
+import shlex
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+_URL = re.compile(r"^[a-z][a-z0-9+.-]*://|^git@", re.IGNORECASE)
+
+
+def _instructions(text: str) -> list[tuple[int, str]]:
+    """Return (line number, instruction) pairs with continuations joined."""
+    result: list[tuple[int, str]] = []
+    buffer = ""
+    start = 0
+    for number, raw in enumerate(text.splitlines(), 1):
+        stripped = raw.strip()
+        if not buffer and (not stripped or stripped.startswith("#")):
+            continue
+        if buffer and stripped.startswith("#"):
+            continue
+        if not buffer:
+            start = number
+        if stripped.endswith("\\"):
+            buffer += stripped[:-1] + " "
+            continue
+        result.append((start, buffer + stripped))
+        buffer = ""
+    if buffer:
+        result.append((start, buffer))
+    return result
+
+
+def _sources(instruction: str) -> list[str]:
+    """Local source paths of a COPY/ADD instruction, or [] when not applicable."""
+    keyword, _, rest = instruction.partition(" ")
+    if keyword.upper() not in {"COPY", "ADD"}:
+        return []
+    rest = rest.strip()
+    if rest.startswith("["):
+        try:
+            parts = json.loads(rest)
+        except ValueError:
+            return []
+    else:
+        parts = shlex.split(rest)
+    flags = [part for part in parts if part.startswith("--")]
+    args = [part for part in parts if not part.startswith("--")]
+    if any(flag.startswith("--from") for flag in flags):
+        return []
+    if any(arg.startswith("<<") for arg in args):
+        return []
+    sources = args[:-1]
+    return [s for s in sources if not _URL.match(s) and "$" not in s]
+
+
+def _ignored(relative: str, patterns: list[str]) -> bool:
+    ignored = False
+    for pattern in patterns:
+        negate = pattern.startswith("!")
+        pattern = pattern.lstrip("!").strip("/")
+        if fnmatch.fnmatch(relative, pattern) or relative.startswith(pattern + "/"):
+            ignored = not negate
+    return ignored
+
+
+def check_recipe(path: Path, root: Path = ROOT) -> list[str]:
+    build = json.loads(path.read_text()).get("execution", {}).get("build")
+    if not build:
+        return []
+    context = root / build["context"]["path"]
+    dockerfile = root / build["dockerfile"]
+    label = path.name
+    if not dockerfile.is_file():
+        return [f"{label}: Dockerfile {build['dockerfile']} does not exist"]
+    ignore_file = context / ".dockerignore"
+    patterns = (
+        [
+            line.strip()
+            for line in ignore_file.read_text().splitlines()
+            if line.strip() and not line.startswith("#")
+        ]
+        if ignore_file.is_file()
+        else []
+    )
+    problems: list[str] = []
+    for line, instruction in _instructions(dockerfile.read_text()):
+        for source in _sources(instruction):
+            relative = source.lstrip("/")
+            matches = glob.glob(str(context / relative))
+            usable = [
+                m
+                for m in matches
+                if not _ignored(str(Path(m).relative_to(context)), patterns)
+            ]
+            if not usable:
+                problems.append(
+                    f"{label}: {build['dockerfile']}:{line}: COPY/ADD source "
+                    f"'{source}' not found in build context {build['context']['path']}"
+                )
+    return problems
+
+
+def main() -> int:
+    problems: list[str] = []
+    for recipe in sorted((ROOT / "recipes").glob("*.json")):
+        problems.extend(check_recipe(recipe))
+    for problem in problems:
+        print(problem, file=sys.stderr)
+    if problems:
+        print(f"{len(problems)} missing build-context source(s)", file=sys.stderr)
+        return 1
+    print("All Dockerfile COPY/ADD sources exist in their build contexts")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
