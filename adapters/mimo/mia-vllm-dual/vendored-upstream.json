@@ -1,0 +1,13 @@
+{
+  "ours": [
+    ".gitattributes",
+    "NOTICE",
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {},
+  "source": {
+    "commit": "eb9c5fa61ed183a085f622dbb4c67f9fcb065a47",
+    "repo": "MiaAI-Lab/MiMo-V2.5-vLLM-Dual-DGX-Sparks"
+  }
+}
