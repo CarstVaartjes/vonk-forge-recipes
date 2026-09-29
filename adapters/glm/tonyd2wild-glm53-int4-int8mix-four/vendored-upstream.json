@@ -1,0 +1,16 @@
+{
+  "ours": [
+    "install-nccl.py",
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE",
+    "upstream-README.md": "README.md"
+  },
+  "renamed_dirs": {},
+  "source": {
+    "repo": "tonyd2wild/GLM-5.2-QuantTrio-200K-4x-DGX-Spark--36tok-s",
+    "commit": "162d7a766e4bc9de1809ff724339538380c43b0c"
+  }
+}
