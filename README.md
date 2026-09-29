@@ -10,7 +10,7 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-We cover DeepSeek V4 Flash, FLUX.2, Gemma, GLM, Hunyuan3D, HunyuanOCR, HunyuanVideo, HunyuanVideo Foley, Hy3 kodelow, Inkling, Laguna, Leanstral, LFM2.5, Ling, LTX, Meta Llama, MiMo, MiniMax H3, MiniMax M2, MOSS-VL, MOVA, Muse Glimmer, Nemotron, Ornith, Pixal3D, Qwen (text and vision), Qwen Image, SkinTokens, Step 3.7 Flash, Step1X-3D, TRELLIS, TripoSG, UI-Mate, VibeThinker, Wan, XYZ Aquila. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+We cover DeepSeek V4 Flash, FLUX.2, Gemma, GLM, Hunyuan3D, HunyuanOCR, HunyuanVideo, HunyuanVideo Foley, Hy3 kodelow, Inkling, Laguna, Leanstral, LFM2.5, Ling, LTX, Meta Llama, MiMo, MiniMax H3, MiniMax M2, MiniMax M3, MOSS-VL, MOVA, Muse Glimmer, Nemotron, Ornith, Pixal3D, Qwen (text and vision), Qwen Image, SkinTokens, Step 3.7 Flash, Step1X-3D, TRELLIS, TripoSG, UI-Mate, VibeThinker, Wan, XYZ Aquila. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
@@ -37,10 +37,11 @@ Which engines each model family runs on.
 | MiMo | ✓ | ✓ |  |  |  |  |  |  |  |  |
 | MiniMax H3 |  |  |  |  |  |  | ✓ |  |  |  |
 | MiniMax M2 | ✓ |  |  |  |  |  |  |  |  |  |
+| MiniMax M3 | ✓ |  |  |  |  |  |  |  |  |  |
 | MOSS-VL |  |  |  |  |  |  |  |  | ✓ |  |
 | MOVA |  |  |  |  |  |  |  |  | ✓ |  |
 | Muse Glimmer | ✓ |  |  |  |  |  |  |  |  |  |
-| Nemotron | ✓ | ✓ |  |  |  |  |  |  |  |  |
+| Nemotron | ✓ | ✓ | ✓ |  |  |  |  |  |  |  |
 | Ornith | ✓ |  |  |  |  |  |  |  |  |  |
 | Pixal3D |  |  |  |  |  |  |  |  | ✓ |  |
 | Qwen (text and vision) | ✓ | ✓ |  |  | ✓ |  |  |  |  | ✓ |
@@ -80,6 +81,7 @@ Which Spark counts each model family runs on.
 | MiMo |  | ✓ | ✓ | ✓ |  |
 | MiniMax H3 | ✓ |  |  |  |  |
 | MiniMax M2 |  | ✓ |  |  |  |
+| MiniMax M3 |  |  | ✓ |  |  |
 | MOSS-VL | ✓ |  |  |  |  |
 | MOVA | ✓ |  |  |  |  |
 | Muse Glimmer | ✓ |  |  |  |  |
@@ -104,15 +106,15 @@ Creators whose DGX Spark work we package; filter by creator in vonkctl or the we
 
 | Creator | Focus |
 | --- | --- |
-| [MiaAI-Lab](https://github.com/MiaAI-Lab) | Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling. |
-| [tonyd2wild](https://github.com/tonyd2wild) | Multi-Spark (2 and 4) vLLM recipes for large MoE models: GLM, MiMo. |
-| [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. |
-| [drowzeys (keyz)](https://github.com/drowzeys) | Large multi-Spark vLLM builds with prebuilt images: GLM, MiMo, abliterated variants. |
-| [NVIDIA playbooks](https://github.com/NVIDIA/dgx-spark-playbooks) | Official DGX Spark playbooks and NVIDIA model releases: Nemotron, NVFP4 checkpoints. |
-| [eugr](https://github.com/eugr) | spark-vllm-docker: vLLM container builds for dual DGX Spark; llama-benchy benchmarking. |
-| [sfxnz](https://github.com/sfxnz) | Dual-Spark vLLM TP=2 cookbooks: Qwen3.8, GLM 5.3, DeepSeek V4.1 EXL3. |
 | [0xSero](https://github.com/0xSero) | SparkInfer builds and local-ai-recipe-kit; DeepSeek V4 Flash on one Spark. |
 | [antirez](https://github.com/antirez/ds4) | ds4: the DeepSeek 4 Flash inference engine (Metal, CUDA, ROCm). |
+| [drowzeys (keyz)](https://github.com/drowzeys) | Large multi-Spark vLLM builds with prebuilt images: GLM, MiMo, abliterated variants. |
+| [eugr](https://github.com/eugr) | spark-vllm-docker: vLLM container builds for dual DGX Spark; llama-benchy benchmarking. |
+| [MiaAI-Lab](https://github.com/MiaAI-Lab) | Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling. |
+| [NVIDIA playbooks](https://github.com/NVIDIA/dgx-spark-playbooks) | Official DGX Spark playbooks and NVIDIA model releases: Nemotron, NVFP4 checkpoints. |
+| [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. |
+| [sfxnz](https://github.com/sfxnz) | Dual-Spark vLLM TP=2 cookbooks: Qwen3.8, GLM 5.3, DeepSeek V4.1 EXL3. |
+| [tonyd2wild](https://github.com/tonyd2wild) | Multi-Spark (2 and 4) vLLM recipes for large MoE models: GLM, MiMo. |
 <!-- overview:end -->
 
 ## Contracts
