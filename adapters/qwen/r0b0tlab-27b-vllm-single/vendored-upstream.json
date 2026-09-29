@@ -1,0 +1,15 @@
+{
+  "source": {
+    "repo": "r0b0tlab/qwen38-27b-nvfp4-sm121-vllm",
+    "commit": "a96186f8973023365bddb34b6b34fa889d4c40ae"
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "audit_dflash2_image.py": "docker/audit_dflash2_image.py"
+  },
+  "renamed_dirs": {
+    "overlay/": "docker/overlay/"
+  }
+}
