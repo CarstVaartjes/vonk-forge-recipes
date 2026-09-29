@@ -9,6 +9,7 @@ the walk kernel vendors that helper (same Gumbel-max as upstream vLLM).
 from typing import Any
 
 import torch
+
 from vllm.config import VllmConfig
 from vllm.config.compilation import CUDAGraphMode
 from vllm.triton_utils import tl, tldevice, triton

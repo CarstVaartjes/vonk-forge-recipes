@@ -14,7 +14,6 @@ rejected because they do not preserve per-request alignment caps.
 Pristine sources and exact retained v1 installations migrate atomically.
 Partial or drifted installations fail before writing.
 """
-
 from __future__ import annotations
 
 import os
@@ -62,9 +61,7 @@ INIT_V1 = """        self.need_mamba_block_aligned_split = (
             self.kv_cache_manager.coordinator, "eagle_group_ids", {0}
         )
 """
-INIT_NEW = (
-    INIT_OLD
-    + """        # [glm53-mamba-align-chunking-v2] Smaller private state pages can
+INIT_NEW = INIT_OLD + """        # [glm53-mamba-align-chunking-v2] Smaller private state pages can
         # finish before the shared LCM checkpoint. Cache their sizes off-path.
         self.mamba_align_sub_block_sizes = tuple(sorted({
             group.kv_cache_spec.block_size
@@ -81,7 +78,6 @@ INIT_NEW = (
             for i, group in enumerate(kv_cache_config.kv_cache_groups)
         )
 """
-)
 SPLIT_OLD = """        block_size = self.cache_config.block_size
         # The last block-aligned position whose state can be cached. With
         # Eagle, FullAttn prunes the last matching block, so back off one
@@ -156,8 +152,7 @@ def verify_complete(text: str, edits=EDITS) -> list[str]:
         stripped = stripped.replace(new, "")
     problems += [
         f"{label}: superseded form still present"
-        for label, old, _ in edits
-        if old in stripped
+        for label, old, _ in edits if old in stripped
     ]
     if LEGACY_MARK in stripped or MARK in stripped:
         problems.append("unrecognized alignment stage remains")
@@ -186,15 +181,11 @@ def main() -> int:
         for label, old, new in EDITS:
             text = replace_once(text, old, new, label)
     if problems := verify_complete(text):
-        raise SystemExit(
-            f"{P}: incomplete or drifted overlay state: " + "; ".join(problems)
-        )
+        raise SystemExit(f"{P}: incomplete or drifted overlay state: " + "; ".join(problems))
     if text != original:
         temporary = None
         try:
-            with tempfile.NamedTemporaryFile(
-                mode="w", dir=P.parent, delete=False
-            ) as out:
+            with tempfile.NamedTemporaryFile(mode="w", dir=P.parent, delete=False) as out:
                 temporary = Path(out.name)
                 out.write(text)
             temporary.chmod(P.stat().st_mode)

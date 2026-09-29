@@ -16,15 +16,8 @@ import sys
 import tempfile
 from pathlib import Path
 
-try:
-    import torch
-    from torch import nn
-except ModuleNotFoundError:
-    if __name__ == "__main__":
-        raise
-    import pytest
-
-    pytest.skip("torch is not installed", allow_module_level=True)
+import torch
+import torch.nn as nn
 
 HERE = Path(__file__).resolve().parent
 
@@ -90,9 +83,7 @@ def check_direction_files() -> None:
         assert r.dtype == torch.float32
         assert 0.9 < float(r.norm()) < 1.1, float(r.norm())
         obj = torch.load(ABLIT_DIR / fname, map_location="cpu", weights_only=True)
-        assert obj["directions"].shape in ((HIDDEN,), (1, HIDDEN)), obj[
-            "directions"
-        ].shape
+        assert obj["directions"].shape in ((HIDDEN,), (1, HIDDEN)), obj["directions"].shape
     dealign = torch.load(
         ABLIT_DIR / ablit.DIRECTION_FILES["dealign"],
         map_location="cpu",
@@ -122,9 +113,7 @@ def check_parse_layers() -> None:
     print("layer parsing OK")
 
 
-def _lin(
-    out_f: int, in_f: int, seed: int, dtype: torch.dtype = torch.float32
-) -> nn.Linear:
+def _lin(out_f: int, in_f: int, seed: int, dtype: torch.dtype = torch.float32) -> nn.Linear:
     g = torch.Generator().manual_seed(seed)
     m = nn.Linear(in_f, out_f, bias=False, dtype=dtype)
     with torch.no_grad():
@@ -187,16 +176,14 @@ def check_bf16_serve_dtype() -> None:
     r = torch.randn(HIDDEN)
     r /= r.norm()
     W = _lin(HIDDEN, 8192, seed=2, dtype=torch.bfloat16)
-    pre = r @ W.weight.float()  # refusal component before the edit
+    pre = (r @ W.weight.float())  # refusal component before the edit
     rep = ablit.apply_to_o_proj(W, r, ALPHA)
     assert rep["edited"]
     # after the edit the component must equal (1 - alpha) * pre, up to bf16 noise
     got = r @ W.weight.float()
     err = (got - (1.0 - ALPHA) * pre).abs().max()
     assert err < 0.05, err
-    print(
-        f"bf16 roundtrip OK (post-edit matches (1-alpha)*pre, max err {float(err.detach()):.2e})"
-    )
+    print(f"bf16 roundtrip OK (post-edit matches (1-alpha)*pre, max err {float(err.detach()):.2e})")
 
 
 def check_tp_shard_equivalence() -> None:
@@ -215,9 +202,7 @@ def check_tp_shard_equivalence() -> None:
     joined = torch.cat([s1.weight, s2.weight], dim=1)
     err = (joined - full.weight).abs().max()
     assert err < 1e-2, err
-    print(
-        f"TP shard equivalence OK (row-space edit, max err {float(err.detach()):.2e})"
-    )
+    print(f"TP shard equivalence OK (row-space edit, max err {float(err.detach()):.2e})")
 
 
 class _FakeAttn(nn.Module):
@@ -257,9 +242,7 @@ def check_module_walk() -> None:
     assert rep["mtp_edited"] is True
     assert len(rep["skipped"]) == 0
 
-    rep2 = ablit.apply_ablit(
-        _fake_model(), r, ablit.parse_layers("15-45"), ALPHA, False
-    )
+    rep2 = ablit.apply_ablit(_fake_model(), r, ablit.parse_layers("15-45"), ALPHA, False)
     assert rep2["mtp_edited"] is False
     assert rep2["edited_layers"] == list(range(15, 45))
 
@@ -313,14 +296,8 @@ def check_maybe_apply_gating() -> None:
             assert "no o_proj was edited" in str(exc)
         else:
             raise AssertionError("maybe_apply succeeded on an empty match")
-    for k in (
-        "ABLIT",
-        "ABLIT_DIR",
-        "ABLIT_DIRECTION",
-        "ABLIT_LAYERS",
-        "ABLIT_ALPHA",
-        "ABLIT_METHOD",
-    ):
+    for k in ("ABLIT", "ABLIT_DIR", "ABLIT_DIRECTION", "ABLIT_LAYERS", "ABLIT_ALPHA",
+              "ABLIT_METHOD"):
         os.environ.pop(k, None)
     assert r_ref.shape == (HIDDEN,)
     print("maybe_apply gating OK (off=no-op, on=edits, empty=loud)")
@@ -331,6 +308,7 @@ def check_transplant(tmp_root: str) -> None:
 
     tdir = Path(tmp_root) / "transplant"
     tdir.mkdir(parents=True, exist_ok=True)
+    donors = {}
     entries = {}
     g = torch.Generator().manual_seed(123)
     for L in range(15, 46):
@@ -341,14 +319,11 @@ def check_transplant(tmp_root: str) -> None:
         entries[str(L)] = {
             "shard": f"model-{L:05d}-of-00120.safetensors",
             "key": f"model.language_model.layers.{L}.self_attn.o_proj.weight",
-            "dtype": "BF16",
-            "shape": [HIDDEN, in_f],
+            "dtype": "BF16", "shape": [HIDDEN, in_f],
             "nbytes": donor.numel() * 2,
             "sha256": hashlib.sha256(raw).hexdigest(),
         }
-    (tdir / "MANIFEST.json").write_text(
-        json.dumps({"donor": "test", "layers": entries})
-    )
+    (tdir / "MANIFEST.json").write_text(json.dumps({"donor": "test", "layers": entries}))
 
     model = _fake_model(with_mtp=True)
     os.environ["ABLIT"] = "1"
@@ -357,9 +332,7 @@ def check_transplant(tmp_root: str) -> None:
     os.environ["ABLIT_LAYERS"] = "15-45"
     os.environ["ABLIT_INCLUDE_MTP"] = "1"
     rep = ablit.maybe_apply(model)
-    assert rep["edited_layers"] == list(range(15, 46)), rep[
-        "edited_layers"
-    ]  # 45 = MTP block
+    assert rep["edited_layers"] == list(range(15, 46)), rep["edited_layers"]  # 45 = MTP block
     assert rep["mtp_edited"] is True
     assert len(rep["deltas"]) == 31
     # weights must be byte-identical to the donor shards (world=1 in tests)
@@ -378,23 +351,19 @@ def check_transplant(tmp_root: str) -> None:
     donors_loaded = ablit.load_transplant_tensors(str(tmp_root), list(range(15, 46)))
     rank_out = {}
     for rank in (0, 1):
-        ablit._tp_rank = (lambda r: lambda: r)(rank)  # noqa: PLC3002
+        ablit._tp_rank = (lambda r: lambda: r)(rank)
         m = _fake_model(with_mtp=False)
         with torch.no_grad():
             for L in range(15, 45):  # target decoder layers only (45 = MTP, absent)
                 loc = dinf(L) // 2
                 # rank-local shard-width module holding this rank's stock slice
-                m.layers[L].self_attn.o_proj = _lin(
-                    HIDDEN, loc, seed=L, dtype=torch.bfloat16
-                )
+                m.layers[L].self_attn.o_proj = _lin(HIDDEN, loc, seed=L,
+                                                    dtype=torch.bfloat16)
                 m.layers[L].self_attn.o_proj.weight.copy_(
-                    stock_full[L][:, rank * loc : (rank + 1) * loc].to(torch.bfloat16)
-                )
+                    stock_full[L][:, rank * loc:(rank + 1) * loc].to(torch.bfloat16))
         ablit.apply_transplant(m, donors_loaded, list(range(15, 46)), True)
-        rank_out[rank] = {
-            L: m.layers[L].self_attn.o_proj.weight.detach().clone()
-            for L in range(15, 45)
-        }
+        rank_out[rank] = {L: m.layers[L].self_attn.o_proj.weight.detach().clone()
+                          for L in range(15, 45)}
     ablit._tp_world = lambda: 1
     ablit._tp_rank = lambda: 0
     for L in (16, 20, 31, 44):
@@ -428,13 +397,7 @@ def check_transplant(tmp_root: str) -> None:
         pass  # falls to proj path with no direction file -> loud
     else:
         raise AssertionError("auto fallback without direction should fail loud")
-    for k in (
-        "ABLIT",
-        "ABLIT_DIR",
-        "ABLIT_METHOD",
-        "ABLIT_LAYERS",
-        "ABLIT_INCLUDE_MTP",
-    ):
+    for k in ("ABLIT", "ABLIT_DIR", "ABLIT_METHOD", "ABLIT_LAYERS", "ABLIT_INCLUDE_MTP"):
         os.environ.pop(k, None)
     print("transplant OK (byte-copy, TP shard slice, deltas, auto fallback)")
 
@@ -449,7 +412,6 @@ def main() -> None:
     check_module_walk()
     check_maybe_apply_gating()
     import tempfile
-
     with tempfile.TemporaryDirectory() as tmp:
         check_transplant(tmp)
     print("glm53 ablit overlay verify OK")

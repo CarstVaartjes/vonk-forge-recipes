@@ -12,7 +12,6 @@ Host-only, no GPU, no torch. Three groups:
 * apply / idempotence / fail-closed drift against a fixture built from the live
   container's ``indexer.py`` (and, opt-in, against the live file itself).
 """
-
 from __future__ import annotations
 
 import os
@@ -21,6 +20,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -33,7 +33,7 @@ PATCH = next(
     if p.is_file()
 )
 sys.path.insert(0, str(PATCH.parent))
-from patch_indexer_workspace import (
+from patch_indexer_workspace import (  # noqa: E402
     ANCHOR_GUARD,
     ANCHOR_IMPORT,
     ANCHOR_SIZE,
@@ -69,7 +69,7 @@ MAX_LOGITS_BYTES = 512 * 1024 * 1024
 # read-only. All three pinned anchors, in file order, in a module that compiles.
 PINNED_FIXTURE = (
     ANCHOR_IMPORT
-    + """
+    + '''
 import torch
 
 from vllm.config import VllmConfig
@@ -84,9 +84,9 @@ class DeepseekV32IndexerPrefillChunkMetadata:
     total_seq_lens: int
 
 
-"""
+'''
     + ANCHOR_SIZE
-    + """
+    + '''
 
 class DeepseekV32IndexerMetadataBuilder:
     def __init__(self, kv_cache_spec, vllm_config, device):
@@ -97,7 +97,7 @@ class DeepseekV32IndexerMetadataBuilder:
         # NOTE(Chen):an estimated max size of flattened_kv. Need to double check.
         self.max_prefill_buffer_size = get_max_prefill_buffer_size(self.vllm_config)
 
-"""
+'''
     + ANCHOR_GUARD
 )
 
@@ -122,9 +122,7 @@ def cfg(
     return _Ns(
         model_config=_Ns(max_model_len=max_model_len, hf_text_config=hf),
         scheduler_config=_Ns(max_num_seqs=max_num_seqs, max_num_batched_tokens=mnbt),
-        speculative_config=_Ns(num_speculative_tokens=spec)
-        if spec is not None
-        else None,
+        speculative_config=_Ns(num_speculative_tokens=spec) if spec is not None else None,
     )
 
 
@@ -161,26 +159,10 @@ def test_mode_enum() -> None:
         # A typo, a case variant, padding, or an explicitly empty value must
         # not select a serving mode -- all four are launcher errors too.
         for bad in (
-            "",
-            " ",
-            "  ",
-            "\t",
-            "\n",
-            "Stock",
-            "STOCK",
-            "RIGHTSIZE",
-            "Rightsize",
-            " rightsize ",
-            "rightsize ",
-            " stock",
-            "stock\n",
-            "1",
-            "0",
-            "on",
-            "yes",
-            "right-size",
-            "rightsized",
-            "true",
+            "", " ", "  ", "\t", "\n",
+            "Stock", "STOCK", "RIGHTSIZE", "Rightsize",
+            " rightsize ", "rightsize ", " stock", "stock\n",
+            "1", "0", "on", "yes", "right-size", "rightsized", "true",
         ):
             _set_mode(bad)
             try:
@@ -211,37 +193,22 @@ def test_mode_enum_matches_launcher_enum() -> None:
 
     script = (
         guard
-        + "\n_glm53_validate_enum GLM53_INDEXER_WORKSPACE "
+        + '\n_glm53_validate_enum GLM53_INDEXER_WORKSPACE '
         + '"${GLM53_INDEXER_WORKSPACE-rightsize}" stock rightsize\n'
     )
     saved = os.environ.get(ENV_NAME)
     try:
         for value in (
-            None,
-            "stock",
-            "rightsize",
-            "",
-            " ",
-            "Stock",
-            "RIGHTSIZE",
-            " rightsize ",
-            "1",
-            "on",
-            "true",
+            None, "stock", "rightsize",
+            "", " ", "Stock", "RIGHTSIZE", " rightsize ", "1", "on", "true",
         ):
             env = {k: v for k, v in os.environ.items() if k != ENV_NAME}
             if value is not None:
                 env[ENV_NAME] = value
-            shell_ok = (
-                subprocess.run(
-                    ["bash", "-c", script],
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                    env=env,
-                ).returncode
-                == 0
-            )
+            shell_ok = subprocess.run(
+                ["bash", "-c", script],
+                check=False, capture_output=True, text=True, env=env,
+            ).returncode == 0
             _set_mode(value)
             try:
                 workspace_mode()
@@ -327,7 +294,7 @@ def test_spec_tokens_are_headroom() -> None:
     assert none_cfg == no_spec
     # Monotone in the draft length.
     prev = 0
-    for k in range(32):
+    for k in range(0, 32):
         cur = rightsized_workspace_entries(cfg(spec=k))
         assert cur >= prev
         prev = cur
@@ -362,7 +329,9 @@ def test_never_exceeds_stock() -> None:
                     c = cfg(max_model_len=M, kpool=kpool, max_num_seqs=seqs, mnbt=mnbt)
                     got = rightsized_workspace_entries(c)
                     assert got <= M * STOCK_MULTIPLIER
-                    assert got >= min(cdiv(M + LIVE_SPEC, kpool), M * STOCK_MULTIPLIER)
+                    assert got >= min(
+                        cdiv(M + LIVE_SPEC, kpool), M * STOCK_MULTIPLIER
+                    )
 
 
 # --------------------------------------------------------------------------
@@ -379,10 +348,9 @@ def _legal_batches(rng, count=400):
         seqs = [rng.randint(q, LIVE_MAX_MODEL_LEN) for q in qlens]
         yield [s // LIVE_KPOOL for s in seqs], qlens
     # The extremes, deterministically.
-    yield (
-        [LIVE_MAX_MODEL_LEN // LIVE_KPOOL] * LIVE_MAX_NUM_SEQS,
-        [LIVE_MNBT // LIVE_MAX_NUM_SEQS] * LIVE_MAX_NUM_SEQS,
-    )
+    yield [LIVE_MAX_MODEL_LEN // LIVE_KPOOL] * LIVE_MAX_NUM_SEQS, [
+        LIVE_MNBT // LIVE_MAX_NUM_SEQS
+    ] * LIVE_MAX_NUM_SEQS
     yield [LIVE_MAX_MODEL_LEN // LIVE_KPOOL], [LIVE_MNBT]
     yield [1] * LIVE_MAX_NUM_SEQS, [1] * LIVE_MAX_NUM_SEQS
 
@@ -424,7 +392,8 @@ def test_chunking_test_has_power() -> None:
     stock_chunks = split_prefill_chunks(wide, thin, stock_ws, MAX_LOGITS_BYTES)
     assert len(stock_chunks) == 1
     assert (
-        split_prefill_chunks(wide, thin, per_req * 8, MAX_LOGITS_BYTES) != stock_chunks
+        split_prefill_chunks(wide, thin, per_req * 8, MAX_LOGITS_BYTES)
+        != stock_chunks
     )
     assert (
         split_prefill_chunks(
@@ -547,7 +516,7 @@ def _patched_sizing_namespace() -> dict:
         "MLAAttentionSpec": _MLAAttentionSpec,
         "_calls": calls,
     }
-    exec(compile(ast.Module(body=wanted, type_ignores=[]), "<patched>", "exec"), ns)  # noqa: S102
+    exec(compile(ast.Module(body=wanted, type_ignores=[]), "<patched>", "exec"), ns)
     return ns
 
 
@@ -627,9 +596,8 @@ def test_builder_ratio_mismatch_raises_both_directions() -> None:
                 assert "compress_ratio=1" in msg, msg
                 assert ENV_NAME in msg, msg
             else:
-                raise AssertionError(
-                    f"index_kpool=4 vs compress_ratio=1 ({spec}) must raise"
-                )
+                raise AssertionError(f"index_kpool=4 vs compress_ratio=1 ({spec}) "
+                                     "must raise")
 
         # Direction B -- config says no compression, the runtime compresses.
         # Sizing returns stock here, so it cannot under-run, but the two config
@@ -643,9 +611,8 @@ def test_builder_ratio_mismatch_raises_both_directions() -> None:
                 assert "index_kpool=1" in msg, msg
                 assert "compress_ratio=4" in msg, msg
             else:
-                raise AssertionError(
-                    f"index_kpool={kpool} vs compress_ratio=4 must raise"
-                )
+                raise AssertionError(f"index_kpool={kpool} vs compress_ratio=4 "
+                                     "must raise")
         # ... including the config that has no index_kpool attribute at all.
         try:
             _build(ns, _MLAAttentionSpec(4), cfg(with_kpool_attr=False))
@@ -696,9 +663,9 @@ def test_builder_guard_is_inert_in_stock_mode() -> None:
         for mode in (None, "stock"):
             _set_mode(mode)
             for spec, config in (
-                (_MLAAttentionSpec(1), cfg(kpool=4)),  # direction A
-                (_MLAAttentionSpec(4), cfg(kpool=1)),  # direction B
-                (_MLAAttentionSpec(4), cfg(kpool=4)),  # agreement
+                (_MLAAttentionSpec(1), cfg(kpool=4)),   # direction A
+                (_MLAAttentionSpec(4), cfg(kpool=1)),   # direction B
+                (_MLAAttentionSpec(4), cfg(kpool=4)),   # agreement
                 (_NonMLASpec(), cfg(kpool=4)),
             ):
                 calls.clear()
@@ -726,14 +693,9 @@ def test_builder_guard_has_no_ratio_condition() -> None:
 def test_fail_closed_on_drift() -> None:
     for old, new in (
         ("return max_model_len * 40", "return max_model_len * 48"),
-        (
-            "from dataclasses import dataclass",
-            "from dataclasses import dataclass, field",
-        ),
-        (
-            "self.compress_ratio = self.kv_cache_spec.compress_ratio",
-            "self.compress_ratio = self.kv_cache_spec.kv_compress_ratio",
-        ),
+        ("from dataclasses import dataclass", "from dataclasses import dataclass, field"),
+        ("self.compress_ratio = self.kv_cache_spec.compress_ratio",
+         "self.compress_ratio = self.kv_cache_spec.kv_compress_ratio"),
     ):
         drifted = PINNED_FIXTURE.replace(old, new, 1)
         assert drifted != PINNED_FIXTURE, old
@@ -795,12 +757,7 @@ def test_live_container_copy_if_enabled() -> None:
     )
     fetched = subprocess.run(
         [
-            "ssh",
-            "-o",
-            "BatchMode=yes",
-            "-o",
-            "ConnectTimeout=20",
-            jump,
+            "ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=20", jump,
             f'ssh {head} "docker exec {container} cat {remote}"',
         ],
         check=False,
@@ -833,21 +790,13 @@ def test_recipe_wiring_if_present() -> None:
 
     key = "GLM53_INDEXER_WORKSPACE"
     probe = '\nprintf "[%s]\\n" "${GLM53_INDEXER_WORKSPACE-UNSET}"\n'
-    for caller, expected in (
-        ({}, "rightsize"),
-        ({key: "stock"}, "stock"),
-        ({key: ""}, ""),
-    ):
+    for caller, expected in (({}, "rightsize"), ({key: "stock"}, "stock"), ({key: ""}, "")):
         assert _run_preamble(f"{key}=rightsize\n", caller, probe) == f"[{expected}]"
-    assert "_glm53_validate_enum GLM53_INDEXER_WORKSPACE" in launcher
+    assert '_glm53_validate_enum GLM53_INDEXER_WORKSPACE' in launcher
     assert '-e "GLM53_INDEXER_WORKSPACE=$GLM53_INDEXER_WORKSPACE"' in launcher
     # Both ranks apply the one pinned list (GLM53_OVERLAY_ORDER) that
     # write_inner_scripts emits into the head and worker inner scripts.
-    order = launcher[
-        launcher.index("GLM53_OVERLAY_ORDER=(") : launcher.index(
-            ")", launcher.index("GLM53_OVERLAY_ORDER=(")
-        )
-    ]
+    order = launcher[launcher.index("GLM53_OVERLAY_ORDER=(") : launcher.index(")", launcher.index("GLM53_OVERLAY_ORDER=("))]
     assert "\n    patch_indexer_workspace.py\n" in order
     assert 'emit_overlay_block >> "$HEAD_SCRIPT"' in launcher
     assert 'emit_overlay_block >> "$WORKER_SCRIPT"' in launcher

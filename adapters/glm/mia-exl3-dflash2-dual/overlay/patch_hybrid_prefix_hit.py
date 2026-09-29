@@ -53,7 +53,6 @@ Before writing, every owned stage must be present exactly once in its
 supported form; a stage marker alone never counts as an installation.
 Fail closed if the vLLM coordinator anchors drift.
 """
-
 from __future__ import annotations
 
 import ast
@@ -483,9 +482,7 @@ KPOOL_INIT_OLD = """        self.dflash_swa_replay_tokens = _glm53_dflash_swa_re
             kv_cache_config.kv_cache_groups
         )
 """
-KPOOL_INIT_NEW = (
-    KPOOL_INIT_OLD
-    + """        # [glm53-kpool-replay-floor-v1] A retained draft window cannot
+KPOOL_INIT_NEW = KPOOL_INIT_OLD + """        # [glm53-kpool-replay-floor-v1] A retained draft window cannot
         # replace the target's request-local circular scratch.
         self.kpool_replay_tokens = max(
             (
@@ -498,7 +495,6 @@ KPOOL_INIT_NEW = (
             default=0,
         )
 """
-)
 KPOOL_HIT_OLD = """        num_groups = len(self.kv_cache_config.kv_cache_groups)
         hit_length = max_cache_hit_length
 """
@@ -533,6 +529,7 @@ FINE_EDITS = (
     ("Kpool replay candidate", KPOOL_HIT_OLD, KPOOL_HIT_NEW),
     ("partial replay fallback", COARSE_RETRY_OLD, COARSE_RETRY_NEW),
 )
+
 
 
 # Owned stage content that a complete installation carries exactly once, and
@@ -626,16 +623,13 @@ def verify_complete(text: str) -> list[str]:
     while pending:
         code, module_scope = pending.pop()
         for instruction in dis.get_instructions(code):
-            if (
-                instruction.opname in ("STORE_GLOBAL", "DELETE_GLOBAL")
-                or (
-                    module_scope and instruction.opname in ("STORE_NAME", "DELETE_NAME")
-                )
-            ) and instruction.argval in OWNED_HELPERS:
-                rebound.add(instruction.argval)
+            if instruction.opname in ("STORE_GLOBAL", "DELETE_GLOBAL") or (
+                module_scope and instruction.opname in ("STORE_NAME", "DELETE_NAME")
+            ):
+                if instruction.argval in OWNED_HELPERS:
+                    rebound.add(instruction.argval)
         pending.extend(
-            (constant, False)
-            for constant in code.co_consts
+            (constant, False) for constant in code.co_consts
             if isinstance(constant, CodeType)
         )
     problems += [f"{name}: competing global binding" for name in sorted(rebound)]
@@ -679,9 +673,13 @@ def main() -> int:
                 if "def _glm53_swa_retention_env(" in text
                 else needle
             )
-            text = text.replace(replay_needle, DFLASH_REPLAY_HELPER + replay_needle, 1)
+            text = text.replace(
+                replay_needle, DFLASH_REPLAY_HELPER + replay_needle, 1
+            )
         text = replace_once(text, INIT_OLD, INIT_NEW, "dflash-replay-init")
-        text = replace_once(text, CONVERGE_OLD, CONVERGE_FINAL, "dflash-replay-clamp")
+        text = replace_once(
+            text, CONVERGE_OLD, CONVERGE_FINAL, "dflash-replay-clamp"
+        )
     if DFLASH_BOUNDARY_MARK not in text:
         # patch_apc_per_group_retention.py adds ``import os  # [...]``; either
         # overlay may run first.
@@ -714,18 +712,14 @@ def main() -> int:
     # owned stage exactly as supported (stale markers, partial stages, edited
     # verification logic and duplicated stages all stop here, unwritten).
     if problems := verify_complete(text):
-        raise SystemExit(
-            f"{P}: incomplete or drifted overlay state: " + "; ".join(problems)
-        )
+        raise SystemExit(f"{P}: incomplete or drifted overlay state: " + "; ".join(problems))
     compile(text, str(P), "exec")
     if text != original:
         import tempfile
 
         temporary = None
         try:
-            with tempfile.NamedTemporaryFile(
-                mode="w", dir=P.parent, delete=False
-            ) as out:
+            with tempfile.NamedTemporaryFile(mode="w", dir=P.parent, delete=False) as out:
                 temporary = Path(out.name)
                 out.write(text)
             temporary.chmod(P.stat().st_mode)

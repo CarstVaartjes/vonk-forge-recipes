@@ -145,8 +145,6 @@ COPY overlay/exl3.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor
 COPY overlay/exl3.py /opt/glm53/exl3.py
 COPY overlay/patch_adaptive_k.py /opt/glm53/patch_adaptive_k.py
 COPY overlay/patch_dense_fp8.py /opt/glm53/patch_dense_fp8.py
-COPY tests/test_adaptive_k_patch.py /opt/glm53/test_adaptive_k_patch.py
-COPY tests/test_dense_fp8_patch.py /opt/glm53/test_dense_fp8_patch.py
 COPY overlay/patch_model_overrides.py /opt/glm53/patch_model_overrides.py
 COPY overlay/qwen3_dflash2.py /opt/glm53/qwen3_dflash2.py
 COPY overlay/dflash2_speculator.py /opt/glm53/dflash2_speculator.py
@@ -271,9 +269,10 @@ RUN python3 /opt/glm53/patch_adaptive_k.py
 # the unquantized linear method for every layer exactly as the stock constructors do.
 RUN GLM53_DENSE_FP8=all GLM53_DENSE_EXL3=0 python3 /opt/glm53/patch_dense_fp8.py
 
+# test_adaptive_k_patch.py / test_dense_fp8_patch.py are repo-checkout tests (they
+# resolve ../overlay and need pristine scheduler/kda sources) and upstream does not
+# run them in-image, so they are not copied or run here.
 RUN EXL3_SELFCHECK_GPU=0 python3 /opt/glm53/test_exl3_overlay.py \
-    && python3 /opt/glm53/test_adaptive_k_patch.py \
-    && python3 /opt/glm53/test_dense_fp8_patch.py \
     && python3 /opt/glm53/test_suppress_stops.py \
     && python3 /opt/glm53/test_scheduler_decode_floor.py \
     && python3 /opt/glm53/test_scheduler_decode_floor_restart.py \
@@ -340,7 +339,7 @@ ENV HF_HUB_OFFLINE=1 \
     # reuses the earlier archive, so the Controller keeps the earlier revision's build
     # identity and install admission refuses the plan; an image change gives this
     # revision its own build.
-    VONK_GLM53_RECIPE_REVISION=1.7.1
+    VONK_GLM53_RECIPE_REVISION=1.7.2
 
 WORKDIR /state
 USER 10001:10001

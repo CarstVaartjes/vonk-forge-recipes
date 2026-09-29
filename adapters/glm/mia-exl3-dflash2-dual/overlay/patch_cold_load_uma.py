@@ -43,7 +43,6 @@ Two independent problems, both in ``model_executor/model_loader/weight_utils.py`
 Idempotent; fails closed on anchor drift. Kill switch: ``GLM53_COLD_LOAD_UMA=0``
 leaves the file untouched (logged).
 """
-
 from __future__ import annotations
 
 import os
@@ -66,7 +65,7 @@ ANCHOR_IT_OPEN = (
     "    # context exits or InstantTensor reuses its buffer.\n"
     "    with instanttensor.safe_open(\n"
     "        hf_weights_files,\n"
-    '        framework="pt",\n'
+    "        framework=\"pt\",\n"
     "        device=device,\n"
     "        process_group=process_group,\n"
     "        copy=True,\n"
@@ -79,12 +78,12 @@ NEW_IT_OPEN = (
     "    # context exits or InstantTensor reuses its buffer.\n"
     "    with instanttensor.safe_open(\n"
     "        hf_weights_files,\n"
-    '        framework="pt",\n'
+    "        framework=\"pt\",\n"
     "        device=device,\n"
     "        process_group=process_group,\n"
     "        copy=True,\n"
-    '        max_free_mem_usage=_GLM53_UMA_STATE.get("max_free_mem_usage"),\n'
-    '        buffer_size=_GLM53_UMA_STATE.get("buffer_size"),\n'
+    "        max_free_mem_usage=_GLM53_UMA_STATE.get(\"max_free_mem_usage\"),\n"
+    "        buffer_size=_GLM53_UMA_STATE.get(\"buffer_size\"),\n"
     "    ) as f:\n"
 )
 
@@ -278,7 +277,7 @@ def _glm53_uma_prepare_instanttensor_budget(hf_weights_files: list[str]) -> None
 
 # The v1 helper (PR #230) differed only in the budget-fraction block below.
 # Images baked with it are upgraded in place by prepare() (#273).
-_V1_BUDGET_BLOCK = """\
+_V1_BUDGET_BLOCK = '''\
     frac = env_budget
     if frac is None:
         if free_bytes >= 2 * need_bytes:
@@ -287,18 +286,16 @@ _V1_BUDGET_BLOCK = """\
             frac = min(need_bytes, int(0.9 * avail_bytes)) / max(free_bytes, 1)
         else:
             frac = min(0.95, need_bytes / max(free_bytes, 1))
-"""
+'''
 _BUDGET_BLOCK_START = "    if free_bytes >= 2 * need_bytes:\n        auto_frac = 0.5\n"
 _BUDGET_BLOCK_END = "        frac = auto_frac\n"
 _b0 = HELPER.index(_BUDGET_BLOCK_START)
-_b1 = HELPER.index(
-    _BUDGET_BLOCK_END, HELPER.index("auto_frac,\n        )\n", _b0)
-) + len(_BUDGET_BLOCK_END)
+_b1 = HELPER.index(_BUDGET_BLOCK_END, HELPER.index("auto_frac,\n        )\n", _b0)) + len(_BUDGET_BLOCK_END)
 HELPER_V1 = HELPER[:_b0] + _V1_BUDGET_BLOCK + HELPER[_b1:]
 
 # --- 2. file-backed 64 KiB mmap -----------------------------------------------
 ANCHOR_ST_YIELD = (
-    '            with safe_open(st_file, framework="pt") as f:\n'
+    "            with safe_open(st_file, framework=\"pt\") as f:\n"
     "                for name in f.keys():  # noqa: SIM118\n"
     "                    if should_skip_weight(name, local_expert_ids):\n"
     "                        continue\n"
@@ -306,7 +303,7 @@ ANCHOR_ST_YIELD = (
     "                    yield name, param\n"
 )
 NEW_ST_YIELD = (
-    '            with safe_open(st_file, framework="pt") as f:\n'
+    "            with safe_open(st_file, framework=\"pt\") as f:\n"
     "                for name in f.keys():  # noqa: SIM118\n"
     "                    if should_skip_weight(name, local_expert_ids):\n"
     "                        continue\n"
@@ -321,16 +318,14 @@ NEW_ST_YIELD = (
 STAGE_FLAG = (
     "\n" + MARK + " clone file-backed tensors when the kernel page is not 4 KiB.\n"
     "_GLM53_UMA_STAGE_MMAP = _glm53_uma_page_size() != 4096 and os.environ.get(\n"
-    '    "GLM53_COLD_LOAD_STAGE_MMAP", "1"\n'
-    ') == "1"\n'
+    "    \"GLM53_COLD_LOAD_STAGE_MMAP\", \"1\"\n"
+    ") == \"1\"\n"
 )
 
 
 def verified_state(src: str) -> str:
     if src.count(MARK) >= 4:
-        helper_state = (
-            "patched" if HELPER in src else "patched-v1" if HELPER_V1 in src else None
-        )
+        helper_state = "patched" if HELPER in src else "patched-v1" if HELPER_V1 in src else None
         for needle in (NEW_IT_OPEN, NEW_ST_YIELD, STAGE_FLAG):
             if needle not in src:
                 helper_state = None
@@ -345,13 +340,8 @@ def verified_state(src: str) -> str:
         ("safetensors yield", ANCHOR_ST_YIELD),
     ):
         if src.count(needle) != 1:
-            raise SystemExit(
-                f"{TARGET}: expected exactly one {name} anchor, got {src.count(needle)}"
-            )
-    if (
-        "from vllm.platforms import current_platform" not in src
-        or "logger = init_logger(__name__)" not in src
-    ):
+            raise SystemExit(f"{TARGET}: expected exactly one {name} anchor, got {src.count(needle)}")
+    if "from vllm.platforms import current_platform" not in src or "logger = init_logger(__name__)" not in src:
         raise SystemExit(f"{TARGET}: missing current_platform/logger — source drift")
     if "\nimport os\n" not in src:
         raise SystemExit(f"{TARGET}: 'import os' missing — source drift")
@@ -370,18 +360,14 @@ def prepare(src: str) -> str:
     src = src.replace(ANCHOR_IT_DEF, HELPER + ANCHOR_IT_DEF, 1)
     # The mmap flag must be defined before safetensors_weights_iterator runs;
     # module level, right after the helpers (which are above the def).
-    src = src.replace(
-        HELPER + ANCHOR_IT_DEF, HELPER + STAGE_FLAG + "\n\n" + ANCHOR_IT_DEF, 1
-    )
+    src = src.replace(HELPER + ANCHOR_IT_DEF, HELPER + STAGE_FLAG + "\n\n" + ANCHOR_IT_DEF, 1)
     src = src.replace(ANCHOR_ST_YIELD, NEW_ST_YIELD, 1)
     return src
 
 
 def main() -> int:
     if os.environ.get(ENV_NAME, "1") != "1":
-        print(
-            f"[glm53-cold-load-uma] {ENV_NAME}={os.environ.get(ENV_NAME)!r} — not applied"
-        )
+        print(f"[glm53-cold-load-uma] {ENV_NAME}={os.environ.get(ENV_NAME)!r} — not applied")
         return 0
     src = TARGET.read_text()
     state = verified_state(src)

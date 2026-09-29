@@ -33,8 +33,8 @@ from __future__ import annotations
 
 import argparse
 import ast
-import sys
 from pathlib import Path
+import sys
 
 DEFAULT_KV_FILE = (
     "/usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_utils.py"
@@ -606,9 +606,9 @@ def _prepare_group(text: str, path: str) -> str:
             "            # inside a 2304-token manager). Layer i co-owns MLA tensor i.\n"
             "            compact_block = 64\n"
             "            logger.info(\n"
-            '                "DFlash2 drafter KV: padded slot-share block=%d "\n'
-            '                "mla_page=%d (was block=%d); exact-fit page mismatch "\n'
-            '                "draft_bytes/token=%d",\n'
+            "                \"DFlash2 drafter KV: padded slot-share block=%d \"\n"
+            "                \"mla_page=%d (was block=%d); exact-fit page mismatch \"\n"
+            "                \"draft_bytes/token=%d\",\n"
             "                compact_block,\n"
             "                mla_page,\n"
             "                any_draft.block_size,\n"
@@ -631,9 +631,7 @@ def _prepare_group(text: str, path: str) -> str:
         )
         if v2_compact in text:
             start = text.find("            # STANDALONE: compact per-layer tensors.")
-            end = text.find(
-                "        draft_uniform = UniformTypeKVCacheSpecs.from_specs(new_draft_specs)"
-            )
+            end = text.find("        draft_uniform = UniformTypeKVCacheSpecs.from_specs(new_draft_specs)")
             if start < 0 or end < 0 or end <= start:
                 raise AssertionError(
                     f"{path}: {MARKER} + compact_block present but cannot "

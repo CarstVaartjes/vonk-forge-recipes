@@ -29,6 +29,8 @@ from __future__ import annotations
 
 import ast
 import copy
+from collections import namedtuple
+from collections.abc import Iterable
 import difflib
 import os
 import py_compile
@@ -37,8 +39,6 @@ import subprocess
 import sys
 import tempfile
 import types
-from collections import namedtuple
-from collections.abc import Iterable
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -76,7 +76,6 @@ class PrerequisitesMissing(RuntimeError):
     `main()` reports this as a non-zero exit; the pytest entry point reports it
     as a skip naming the missing files and variables.
     """
-
 
 MARKER = "# [glm53-apc-per-group]"
 MIA_MARKER = "# [glm53-hybrid-apc]"
@@ -124,7 +123,9 @@ class KpoolTailSpec(SlidingWindowSpec):
     """Subclasses SlidingWindowSpec upstream; must NOT be treated as the drafter."""
 
     def __init__(self):
-        super().__init__(sliding_window=KPOOL_TAIL_TOKENS, block_size=KPOOL_TAIL_TOKENS)
+        super().__init__(
+            sliding_window=KPOOL_TAIL_TOKENS, block_size=KPOOL_TAIL_TOKENS
+        )
         self.participates_in_prefix_caching = False
 
 
@@ -190,9 +191,7 @@ def swa_ids_per_segment(window, block, align, retention, use_eagle=True):
     counted over one `align`-token segment far from any reachable boundary."""
     need = contiguous_blocks_for_hit(window, block, use_eagle)
     shift = 1 if use_eagle else 0
-    segment_tokens = (
-        align if retention is None else (None if retention == 0 else retention)
-    )
+    segment_tokens = align if retention is None else (None if retention == 0 else retention)
     if segment_tokens is None:
         return 0
     per_segment = segment_tokens // block
@@ -284,15 +283,10 @@ def case_min_exemption(ns):
     fn = ns["_glm53_min_exempt_group_ids"]
     groups = live_layout()
 
-    check(
-        fn(groups, LIVE_EAGLE, True) == frozenset({6}),
-        "live layout: gid 6 is min-exempt",
-    )
+    check(fn(groups, LIVE_EAGLE, True) == frozenset({6}), "live layout: gid 6 is min-exempt")
     check(fn(groups, LIVE_EAGLE, False) == frozenset(), "base coordinator -> empty")
     # Upstream all-groups EAGLE fallback distinguishes nothing -> nothing exempt.
-    check(
-        fn(groups, set(range(7)), True) == frozenset(), "all-groups fallback -> empty"
-    )
+    check(fn(groups, set(range(7)), True) == frozenset(), "all-groups fallback -> empty")
     # EAGLE flagged somewhere else -> the drafter is not the exempted group.
     check(fn(groups, {0}, True) == frozenset(), "eagle on MLA -> empty")
     check(fn(groups, {0, 6}, True) == frozenset(), "eagle superset -> empty")
@@ -390,9 +384,7 @@ def case_resolve(ns):
     # A model with no sliding-window group at all: override refused, unset inert.
     plain = [Group(uniform(MLAAttentionSpec())), Group(MambaSpec())]
     check(raises(fn, plain, {0, 1}, True, None, 3584), "no SWA group -> refuse")
-    check(
-        fn(plain, {0, 1}, True, 3584, None) == (3584, 3584), "no SWA group -> inherit"
-    )
+    check(fn(plain, {0, 1}, True, 3584, None) == (3584, 3584), "no SWA group -> inherit")
     unitary = [Group(uniform(SlidingWindowSpec()))]
     check(
         raises(fn, unitary, {0}, False, None, 0),
@@ -414,7 +406,8 @@ def case_dflash_prior_groups(ns):
         "live all-zero layout must retain one prior checkpoint in four Mamba groups",
     )
     check(
-        fn(groups, (None, None, 0, 14336, 3584, None, 0), True) == frozenset({2, 3}),
+        fn(groups, (None, None, 0, 14336, 3584, None, 0), True)
+        == frozenset({2, 3}),
         "boundary-only and positive-sparse Mamba groups qualify; dense groups do not",
     )
     check(fn(groups, (0,) * 7, False) == frozenset(), "base coordinator -> none")
@@ -482,10 +475,7 @@ def case_id_cost():
     check(dense == 33, f"dense drafter should hash 33 of 56 per 3584, got {dense}")
 
     boundary_only = swa_ids_per_segment(DRAFT_WINDOW, DRAFT_BLOCK, ALIGN, 0)
-    check(
-        boundary_only == 0,
-        f"retention 0 must hash no segment tails, got {boundary_only}",
-    )
+    check(boundary_only == 0, f"retention 0 must hash no segment tails, got {boundary_only}")
 
     r14336 = swa_ids_per_segment(DRAFT_WINDOW, DRAFT_BLOCK, ALIGN, 14336)
     check(0 <= r14336 <= 33, "retention 14336 keeps at most one tail per 4 segments")
@@ -495,9 +485,7 @@ def case_id_cost():
     check(total == 33, f"retention 14336 should hash 33 per interval, got {total}")
     check(abs(total * ALIGN / 14336 - 8.25) < 1e-9, "== 8.25 ids per 3584 tokens")
 
-    check(
-        mamba_ids_per_segment(ALIGN, ALIGN, None) == 1, "mamba dense = 1/segment/group"
-    )
+    check(mamba_ids_per_segment(ALIGN, ALIGN, None) == 1, "mamba dense = 1/segment/group")
     check(mamba_ids_per_segment(ALIGN, ALIGN, 0) == 0, "mamba 0 = boundaries only")
     check(mamba_ids_per_segment(ALIGN, ALIGN, 14336) == 0.25, "mamba 14336 = 1 per 4")
 
@@ -522,13 +510,9 @@ def case_id_cost():
     )
     for label, c, d, b, b_d, expected in rows:
         got = max_segments(c, d, b, b_d)
-        check(
-            got == expected, f"capacity model {label}: expected {expected}, got {got}"
-        )
+        check(got == expected, f"capacity model {label}: expected {expected}, got {got}")
     # The dense row is the one with a measured knee (14 OK / 17 fail).
-    check(
-        max_segments(38, 33, 0, 0) == 14, "dense knee must land on the measured 14/17"
-    )
+    check(max_segments(38, 33, 0, 0) == 14, "dense knee must land on the measured 14/17")
     # 80K needs cdiv(80000, 3584) = 23 segments: R=7168 sits exactly on its knee.
     check(-(-80000 // ALIGN) == 23, "80K = 23 segments")
     check(54 * ALIGN == 193536, "proposed mode ~193.5K tokens per conversation")
@@ -537,32 +521,20 @@ def case_id_cost():
 
 def case_call_sites(pristine: str, text: str):
     loop = "for i, manager in enumerate(self.single_type_managers):"
-    check(
-        pristine.count("retention_interval=self.retention_interval,") == 2,
-        "expected exactly two global-interval cache_blocks call sites before the patch",
-    )
-    check(
-        text.count("retention_interval=self.retention_interval,") == 0,
-        "no cache_blocks call may still pass the single global interval",
-    )
-    check(
-        text.count("retention_interval=self.retention_interval_by_group[i]") == 2,
-        "both cache_blocks call sites must pass the per-group interval",
-    )
-    check(
-        text.count(loop) == pristine.count(loop) + 2,
-        "both cache_blocks loops must be enumerated (and no other loop touched)",
-    )
-    check(
-        "self.retention_interval_by_group = _glm53_resolve_retention_by_group(" in text,
-        "per-group resolution missing",
-    )
+    check(pristine.count("retention_interval=self.retention_interval,") == 2,
+          "expected exactly two global-interval cache_blocks call sites before the patch")
+    check(text.count("retention_interval=self.retention_interval,") == 0,
+          "no cache_blocks call may still pass the single global interval")
+    check(text.count("retention_interval=self.retention_interval_by_group[i]") == 2,
+          "both cache_blocks call sites must pass the per-group interval")
+    check(text.count(loop) == pristine.count(loop) + 2,
+          "both cache_blocks loops must be enumerated (and no other loop touched)")
+    check("self.retention_interval_by_group = _glm53_resolve_retention_by_group(" in text,
+          "per-group resolution missing")
     # Codex #6: the resolved vector must be greppable in `docker logs`.
     check("retention_by_group=%s" in text, "init must log retention_by_group=<vector>")
-    check(
-        "_glm53_format_retention_vector(self.retention_interval_by_group)" in text,
-        "the logged vector must be the resolved one",
-    )
+    check("_glm53_format_retention_vector(self.retention_interval_by_group)" in text,
+          "the logged vector must be the resolved one")
     check(text.count(MARKER) >= 6, "MARK must annotate every edit")
     print("  call sites + boot log line OK")
 
@@ -1010,7 +982,9 @@ def case_composed_runtime_paths(
                 return tuple([] for _ in kv_cache_group_ids), 0
             blocks = [HitBlock() for _ in range(21504 // DRAFT_BLOCK)]
             blocks[-1] = HitBlock(is_null=True)
-            return tuple(list(blocks) for _ in kv_cache_group_ids), 21504
+            return tuple(
+                list(blocks) for _ in kv_cache_group_ids
+            ), 21504
 
     class DraftEagleManager(HitManager):
         allow_dropped_hit = True
@@ -1019,14 +993,18 @@ def case_composed_runtime_paths(
         def find_longest_cache_hit(
             cls, max_length, kv_cache_group_ids, drop_eagle_block, **kwargs
         ):
-            if drop_eagle_block and (not cls.allow_dropped_hit or max_length < 21568):
+            if drop_eagle_block and (
+                not cls.allow_dropped_hit or max_length < 21568
+            ):
                 return tuple([] for _ in kv_cache_group_ids), 0
             # A successful dropped lookup and an ordinary undropped lookup both
             # land on the 21504 target boundary. The coordinator must remember
             # which one actually established EAGLE semantics across convergence
             # passes rather than accepting the ordinary tail by shape alone.
             blocks = [HitBlock() for _ in range(21504 // DRAFT_BLOCK)]
-            return tuple(list(blocks) for _ in kv_cache_group_ids), 21504
+            return tuple(
+                list(blocks) for _ in kv_cache_group_ids
+            ), 21504
 
     SpecGroup = namedtuple("SpecGroup", "spec group_ids manager_cls use_eagle")
     coordinator.attention_groups = [
@@ -1079,15 +1057,14 @@ def case_composed_runtime_paths(
     DraftEagleManager.allow_dropped_hit = True
     # The target shortens max=21568 to 21504; a genuine dropped draft lookup
     # at that reconciled boundary must survive the second convergence pass.
-    blocks, hit, uncached = hit_ns[hit_name](coordinator, [object()] * 400, 21568)
+    blocks, hit, uncached = hit_ns[hit_name](
+        coordinator, [object()] * 400, 21568
+    )
     check(
         hit == 21504,
         f"complete reconciled DFlash boundary must avoid 3584-token clamp, got {hit}",
     )
-    check(
-        uncached == 0,
-        f"complete current-boundary hit must not report gap, got {uncached}",
-    )
+    check(uncached == 0, f"complete current-boundary hit must not report gap, got {uncached}")
     check(
         len(blocks[6]) == 21504 // DRAFT_BLOCK
         and all(not block.is_null for block in blocks[6][-32:]),
@@ -1099,7 +1076,9 @@ def case_composed_runtime_paths(
     # exercises that floor with actual manager lookup/allocation.
     coordinator.kpool_replay_tokens = 0
 
-    blocks, hit, uncached = hit_ns[hit_name](coordinator, [object()] * 400, 21504)
+    blocks, hit, uncached = hit_ns[hit_name](
+        coordinator, [object()] * 400, 21504
+    )
     check(
         hit == 17920 and uncached == 3584 and blocks[6] == [],
         "suffix-0 lookup bound cannot prove an EAGLE pop and must clamp: "
@@ -1109,7 +1088,9 @@ def case_composed_runtime_paths(
     # max=21505 starts one token above the scheduler boundary. Full attention
     # first converges to 21504, forcing a second outer pass. A failed EAGLE
     # lookup in the first pass must not suppress the drop in the second pass.
-    blocks, hit, uncached = hit_ns[hit_name](coordinator, [object()] * 400, 21505)
+    blocks, hit, uncached = hit_ns[hit_name](
+        coordinator, [object()] * 400, 21505
+    )
     check(
         hit == 17920 and uncached == 3584 and blocks[6] == [],
         "failed suffix-1 EAGLE lookup must clamp instead of accepting an "
@@ -1119,7 +1100,9 @@ def case_composed_runtime_paths(
     # At max=21568 the lookup bound permits the EAGLE unit, but a missing unit
     # (for example after low-priority draft eviction) must still take fallback.
     DraftEagleManager.allow_dropped_hit = False
-    blocks, hit, uncached = hit_ns[hit_name](coordinator, [object()] * 400, 21568)
+    blocks, hit, uncached = hit_ns[hit_name](
+        coordinator, [object()] * 400, 21568
+    )
     check(
         hit == 17920 and uncached == 3584 and blocks[6] == [],
         "missing suffix-64 EAGLE unit must clamp despite a complete ordinary "
@@ -1167,34 +1150,21 @@ def case_composition(
         check(PRIORITY_MARKER in bp_text, f"{label}: block-pool priority patch missing")
         check(PRIOR_HELPER_MARKER in text, f"{label}: coordinator prior helper missing")
         check(PRIOR_POLICY_MARKER in text, f"{label}: coordinator prior policy missing")
-        check(
-            PRIOR_MANAGER_MARKER in stm_text, f"{label}: manager prior policy missing"
-        )
-        check(
-            text.count("def _glm53_inner_kv_spec(") == 1,
-            f"{label}: shared helper duplicated",
-        )
-        check(
-            text.count("def _glm53_is_draft_swa_spec(") == 1,
-            f"{label}: shared discriminator duplicated",
-        )
+        check(PRIOR_MANAGER_MARKER in stm_text, f"{label}: manager prior policy missing")
+        check(text.count("def _glm53_inner_kv_spec(") == 1,
+              f"{label}: shared helper duplicated")
+        check(text.count("def _glm53_is_draft_swa_spec(") == 1,
+              f"{label}: shared discriminator duplicated")
         # Either overlay may add the module-level ``import os`` (the hybrid
         # overlay's boundary lookup reads GLM53_DRAFT_KV_COMPACT); exactly one.
-        check(
-            sum(line.startswith("import os") for line in text.splitlines()) == 1,
-            f"{label}: os import missing or duplicated",
-        )
+        check(sum(line.startswith("import os") for line in text.splitlines()) == 1,
+              f"{label}: os import missing or duplicated")
         # Re-applying either patch in either order must be a no-op.
         for patch in order + tuple(reversed(order)):
             apply_patch(patch, dst, bp_dst, stm_dst)
         check(dst.read_text() == text, f"{label}: composition is not idempotent")
-        check(
-            bp_dst.read_text() == bp_text,
-            f"{label}: block-pool patch is not idempotent",
-        )
-        check(
-            stm_dst.read_text() == stm_text, f"{label}: manager patch is not idempotent"
-        )
+        check(bp_dst.read_text() == bp_text, f"{label}: block-pool patch is not idempotent")
+        check(stm_dst.read_text() == stm_text, f"{label}: manager patch is not idempotent")
         # Both overlays' behaviour survives composition.
         ns = load_helpers(text)
         check(
@@ -1204,14 +1174,10 @@ def case_composition(
             == (None,) * 6 + (0,),
             f"{label}: resolved vector wrong after composition",
         )
-        check(
-            "if _glm53_draft_swa:  # [glm53-hybrid-apc]" in text,
-            f"{label}: Mia's hybrid-min skip is missing",
-        )
-        check(
-            "swa_ids or set(" in text,
-            f"{label}: Mia's eagle_group_ids narrowing is missing",
-        )
+        check("if _glm53_draft_swa:  # [glm53-hybrid-apc]" in text,
+              f"{label}: Mia's hybrid-min skip is missing")
+        check("swa_ids or set(" in text,
+              f"{label}: Mia's eagle_group_ids narrowing is missing")
         case_prior_boundary_cache_call(stm_text)
         case_composed_runtime_paths(text, bp_text, stm_text)
         results[label] = text
@@ -1293,7 +1259,9 @@ def resolve_sources() -> tuple[Path, Path, Path, Path]:
     """(coordinator, block pool, single-type manager, pristine coordinator)."""
     src = source_file("GLM53_KV_COORDINATOR_PY_SRC", DEFAULT_SRC)
     bp_src = source_file("GLM53_BLOCK_POOL_PY_SRC", DEFAULT_BP_SRC)
-    stm_src = source_file("GLM53_SINGLE_TYPE_KV_CACHE_MANAGER_PY_SRC", DEFAULT_STM_SRC)
+    stm_src = source_file(
+        "GLM53_SINGLE_TYPE_KV_CACHE_MANAGER_PY_SRC", DEFAULT_STM_SRC
+    )
     if PRIORITY_MARKER in bp_src.read_text():
         message = (
             f"{bp_src} already carries {PRIORITY_MARKER}; use a pristine copy.\n"
@@ -1335,18 +1303,14 @@ def main() -> int:
         bp_text = bp_dst.read_text()
         stm_text = stm_dst.read_text()
         check(MARKER in text, "MARK missing after apply")
-        check(
-            PRIORITY_MARKER in bp_text, "block-pool priority MARK missing after apply"
-        )
+        check(PRIORITY_MARKER in bp_text, "block-pool priority MARK missing after apply")
         check(PRIOR_HELPER_MARKER in text, "coordinator prior-helper MARK missing")
         check(PRIOR_POLICY_MARKER in text, "coordinator prior-policy MARK missing")
         check(PRIOR_MANAGER_MARKER in stm_text, "manager prior-policy MARK missing")
 
         py_compile.compile(str(dst), cfile=str(tmp / "out.pyc"), doraise=True)
         py_compile.compile(str(bp_dst), cfile=str(tmp / "block-pool.pyc"), doraise=True)
-        py_compile.compile(
-            str(stm_dst), cfile=str(tmp / "single-type.pyc"), doraise=True
-        )
+        py_compile.compile(str(stm_dst), cfile=str(tmp / "single-type.pyc"), doraise=True)
         print("  applies and compiles OK")
 
         apply_patch(PATCH, dst, bp_dst, stm_dst)

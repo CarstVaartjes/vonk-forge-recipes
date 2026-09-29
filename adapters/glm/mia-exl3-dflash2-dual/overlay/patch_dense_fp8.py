@@ -13,16 +13,13 @@ actually quantize is decided per module by the pack config (EXL3) and
 GLM53_DENSE_FP8 (Marlin); overlay/exl3.py refuses to mix them on one module.
 The indexer wk_weights_proj and the vision tower stay quant_config=None: the
 turboderp dense pack keeps them BF16."""
-
 from __future__ import annotations
 
 import os
 import sys
 from pathlib import Path
 
-SITE = Path(
-    os.environ.get("GLM53_SITE", "/usr/local/lib/python3.12/dist-packages/vllm")
-)
+SITE = Path(os.environ.get("GLM53_SITE", "/usr/local/lib/python3.12/dist-packages/vllm"))
 OPT = Path(os.environ.get("GLM53_OPT", "/opt/glm53"))
 MARK = "# [glm53-dense-fp8]"
 
@@ -69,7 +66,7 @@ def _pack_has_non_routed() -> bool:
         cfg = json.loads(cfg_path.read_text())
     except (OSError, ValueError):
         return False
-    return bool((cfg.get("quantization_config") or {}).get("non_routed_exl3") or {})
+    return bool(((cfg.get("quantization_config") or {}).get("non_routed_exl3") or {}))
 
 
 def main() -> int:

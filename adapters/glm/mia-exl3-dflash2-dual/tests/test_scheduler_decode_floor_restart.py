@@ -19,16 +19,14 @@ anchors, so they run on any CPU without the vLLM image. They cover:
 * fail-closed rejection of helper-body drift, insertion drift, a missing
   helper, a duplicated helper, and a marker-only file.
 """
-
 from __future__ import annotations
 
 import importlib.util
 import os
+from pathlib import Path
 import subprocess
 import sys
 import tempfile
-from pathlib import Path
-
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 _PATCH_CANDIDATES = (
@@ -117,7 +115,7 @@ def run_patch(target: Path) -> subprocess.CompletedProcess:
         "GLM53_SCHEDULER_PY": str(target),
         "GLM53_MIXED_PREFILL_CHUNK": "skip",
     }
-    return subprocess.run(  # noqa: PLW1510
+    return subprocess.run(
         [sys.executable, str(PATCH)], env=env, capture_output=True, text=True
     )
 
@@ -178,9 +176,7 @@ def main() -> int:
         #    installer first runs — the order the image produces when
         #    adaptive-k lands first. Apply must succeed and verify must
         #    accept the helper between the foreign block and the import.
-        apply_and_verify(
-            insert_at_needle(clean, FOREIGN_HELPER), tmp, "overlay_before.py"
-        )
+        apply_and_verify(insert_at_needle(clean, FOREIGN_HELPER), tmp, "overlay_before.py")
 
         # 4. Helper-body drift stays fail-closed.
         target = tmp / "drift_helper.py"

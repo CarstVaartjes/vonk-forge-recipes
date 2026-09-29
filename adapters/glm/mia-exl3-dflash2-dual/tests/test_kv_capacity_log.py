@@ -18,7 +18,6 @@ Part B  patch mechanics on a fixture built from verbatim excerpts of the live
         binding refused, --preflight, pyc clear; the real installed file when
         present (mandatory with GLM53_REQUIRE_TARGET=1, i.e. in the image).
 """
-
 from __future__ import annotations
 
 import copy
@@ -29,18 +28,17 @@ import tempfile
 import types
 from pathlib import Path
 
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 PATCH = next(
     p
-    for p in (
-        HERE / "patch_kv_capacity_log.py",
-        ROOT / "overlay" / "patch_kv_capacity_log.py",
-    )
+    for p in (HERE / "patch_kv_capacity_log.py", ROOT / "overlay" / "patch_kv_capacity_log.py")
     if p.is_file()
 )
 sys.path.insert(0, str(PATCH.parent))
-import patch_kv_capacity_log as P
+import patch_kv_capacity_log as P  # noqa: E402
+
 
 CHECKS = 0
 FAILURES: list[str] = []
@@ -79,10 +77,7 @@ class AttentionSpec(KVCacheSpec):
 
 class FullAttentionSpec(AttentionSpec):
     def max_memory_usage_bytes(self, cfg) -> int:  # I:295-300
-        return (
-            P.cdiv(cfg.model_config.max_model_len, self.block_size)
-            * self.page_size_bytes
-        )
+        return P.cdiv(cfg.model_config.max_model_len, self.block_size) * self.page_size_bytes
 
 
 class MLAAttentionSpec(FullAttentionSpec):
@@ -94,19 +89,12 @@ class SlidingWindowSpec(AttentionSpec):
         super().__init__(block_size, page)
         self.sliding_window = window
 
-    def max_admission_blocks_per_request(
-        self, max_in_flight_tokens: int, max_model_len: int
-    ) -> int:  # I:616-637
+    def max_admission_blocks_per_request(self, max_in_flight_tokens: int, max_model_len: int) -> int:  # I:616-637
         num_tokens = min(self.sliding_window - 1 + max_in_flight_tokens, max_model_len)
         return P.cdiv(num_tokens, self.block_size) + 1
 
     def max_memory_usage_bytes(self, cfg) -> int:  # I:639-647
-        return (
-            self.max_admission_blocks_per_request(
-                cfg.max_in_flight_tokens, cfg.model_config.max_model_len
-            )
-            * self.page_size_bytes
-        )
+        return self.max_admission_blocks_per_request(cfg.max_in_flight_tokens, cfg.model_config.max_model_len) * self.page_size_bytes
 
 
 class SlidingWindowMLASpec(SlidingWindowSpec):
@@ -114,9 +102,7 @@ class SlidingWindowMLASpec(SlidingWindowSpec):
 
 
 class KpoolTailSpec(SlidingWindowSpec):  # I:739-786
-    def max_admission_blocks_per_request(
-        self, max_in_flight_tokens: int, max_model_len: int
-    ) -> int:
+    def max_admission_blocks_per_request(self, max_in_flight_tokens: int, max_model_len: int) -> int:
         return 1
 
     @property
@@ -125,28 +111,15 @@ class KpoolTailSpec(SlidingWindowSpec):  # I:739-786
 
 
 class MambaSpec(KVCacheSpec):  # I:790-821
-    def __init__(
-        self,
-        block_size: int,
-        page: int,
-        num_speculative_blocks: int,
-        mamba_cache_mode: str = "align",
-    ):
+    def __init__(self, block_size: int, page: int, num_speculative_blocks: int, mamba_cache_mode: str = "align"):
         super().__init__(block_size, page)
         self.num_speculative_blocks = num_speculative_blocks
-        self.mamba_cache_mode = (
-            mamba_cache_mode  # set from cache_config at spec creation (abstract.py:74)
-        )
+        self.mamba_cache_mode = mamba_cache_mode  # set from cache_config at spec creation (abstract.py:74)
 
     def max_memory_usage_bytes(self, cfg) -> int:
-        mode = (
-            cfg.cache_config.mamba_cache_mode
-        )  # the fork reads cache_config here (I:813-818)
+        mode = cfg.cache_config.mamba_cache_mode  # the fork reads cache_config here (I:813-818)
         if mode == "all":
-            return (
-                P.cdiv(cfg.model_config.max_model_len, self.block_size)
-                + self.num_speculative_blocks
-            ) * self.page_size_bytes
+            return (P.cdiv(cfg.model_config.max_model_len, self.block_size) + self.num_speculative_blocks) * self.page_size_bytes
         if mode == "align":
             # The pre-patch_mamba_align_state_free.py reservation, kept so the
             # historical stock boot lines below (414 ids/request) replicate; the
@@ -165,9 +138,7 @@ class CrossAttentionSpec(AttentionSpec):
         return 2 * self.page_size_bytes
 
 
-class SinkFullAttentionSpec(
-    FullAttentionSpec
-):  # I:866: its manager keeps permanent sink blocks
+class SinkFullAttentionSpec(FullAttentionSpec):  # I:866: its manager keeps permanent sink blocks
     pass
 
 
@@ -186,29 +157,19 @@ class UniformTypeKVCacheSpecs(KVCacheSpec):  # I:920-948
 
     @property
     def participates_in_prefix_caching(self) -> bool:
-        return all(
-            getattr(s, "participates_in_prefix_caching", True)
-            for s in self.kv_cache_specs.values()
-        )
+        return all(getattr(s, "participates_in_prefix_caching", True) for s in self.kv_cache_specs.values())
 
     @property
     def page_size_bytes(self) -> int:
         return sum(s.page_size_bytes for s in self.kv_cache_specs.values())
 
     def max_memory_usage_bytes(self, cfg) -> int:
-        pages = max(
-            P.cdiv(s.max_memory_usage_bytes(cfg), s.page_size_bytes)
-            for s in self.kv_cache_specs.values()
-        )
+        pages = max(P.cdiv(s.max_memory_usage_bytes(cfg), s.page_size_bytes) for s in self.kv_cache_specs.values())
         return pages * self.page_size_bytes
 
 
 def group(spec, layers: int, eagle: bool = False):
-    return _Ns(
-        layer_names=[f"layer.{i}" for i in range(layers)],
-        kv_cache_spec=spec,
-        is_eagle_group=eagle,
-    )
+    return _Ns(layer_names=[f"layer.{i}" for i in range(layers)], kv_cache_spec=spec, is_eagle_group=eagle)
 
 
 # Live deployment (head Spark): MAX_MODEL_LEN 1e6, MNBT 2048, async scheduling
@@ -220,21 +181,12 @@ LIVE_SPEC_TOKENS = 7
 MLA_PAGE = 2_351_104 * 11  # 3584 x 656 B x 11 layers (fp8_ds_mla), uniform group
 
 
-def live_cfg(
-    max_model_len=LIVE_MAX_MODEL_LEN,
-    mamba_mode="align",
-    use_eagle=True,
-    in_flight=LIVE_IN_FLIGHT,
-    dcp=1,
-    pcp=1,
-):
+def live_cfg(max_model_len=LIVE_MAX_MODEL_LEN, mamba_mode="align", use_eagle=True, in_flight=LIVE_IN_FLIGHT, dcp=1, pcp=1):
     spec_cfg = _Ns(use_eagle=(lambda: use_eagle)) if use_eagle is not None else None
     return _Ns(
         model_config=_Ns(max_model_len=max_model_len),
         cache_config=_Ns(mamba_cache_mode=mamba_mode),
-        parallel_config=_Ns(
-            decode_context_parallel_size=dcp, prefill_context_parallel_size=pcp
-        ),
+        parallel_config=_Ns(decode_context_parallel_size=dcp, prefill_context_parallel_size=pcp),
         speculative_config=spec_cfg,
         max_in_flight_tokens=in_flight,
     )
@@ -242,23 +194,14 @@ def live_cfg(
 
 def live_groups(mamba_mode="align"):
     return (
-        [
-            group(MLAAttentionSpec(3584, MLA_PAGE), 11),
-            group(KpoolTailSpec(4, 1024, 4), 11),
-        ]
-        + [
-            group(MambaSpec(3584, 4096, LIVE_SPEC_TOKENS, mamba_mode), 9)
-            for _ in range(4)
-        ]
+        [group(MLAAttentionSpec(3584, MLA_PAGE), 11), group(KpoolTailSpec(4, 1024, 4), 11)]
+        + [group(MambaSpec(3584, 4096, LIVE_SPEC_TOKENS, mamba_mode), 9) for _ in range(4)]
         + [group(SlidingWindowSpec(64, 8192, 2048), 1)]
     )
 
 
 def kv_config(num_blocks: int, groups=None, mamba_mode="align"):
-    return _Ns(
-        num_blocks=num_blocks,
-        kv_cache_groups=live_groups(mamba_mode) if groups is None else groups,
-    )
+    return _Ns(num_blocks=num_blocks, kv_cache_groups=live_groups(mamba_mode) if groups is None else groups)
 
 
 def stock_line(num_blocks: int, bpr: int, max_model_len: int) -> tuple[str, str]:
@@ -277,11 +220,7 @@ def drive(cfg, kc, max_model_len=None, env=None):
             os.environ.pop(P.ENV_NAME, None)
         else:
             os.environ[P.ENV_NAME] = env
-        ns["_glm53_log_kv_capacity"](
-            cfg,
-            kc,
-            cfg.model_config.max_model_len if max_model_len is None else max_model_len,
-        )
+        ns["_glm53_log_kv_capacity"](cfg, kc, cfg.model_config.max_model_len if max_model_len is None else max_model_len)
     finally:
         if saved is None:
             os.environ.pop(P.ENV_NAME, None)
@@ -295,97 +234,33 @@ def drive(cfg, kc, max_model_len=None, env=None):
 # --------------------------------------------------------------------------
 def part_a() -> None:
     print("Part A: derivation (shipped helper text, exec'd)")
-    check(
-        P.HELPERS_SRC in P.PATCHED_HELPERS
-        and P.PATCHED_HELPERS.endswith(P.ANCHOR_HELPERS),
-        "A0 the exec'd helper text is the text written above the anchor, verbatim",
-    )
+    check(P.HELPERS_SRC in P.PATCHED_HELPERS and P.PATCHED_HELPERS.endswith(P.ANCHOR_HELPERS), "A0 the exec'd helper text is the text written above the anchor, verbatim")
 
     cfg, kc = live_cfg(), kv_config(643)
     rows = P.kv_capacity_rows(cfg, kc)
     bpr = [r["blocks_per_request"] for r in rows]
-    check(
-        bpr == [280, 1, 9, 9, 9, 9, 97],
-        f"A1 blocks/request per group = {bpr} (MLA cdiv(1e6,3584); kpool 1; mamba align 2+7; drafter cdiv(min(2047+4096,1e6),64)+1)",
-    )
-    check(
-        sum(bpr) == 414,
-        "A1 sum = 414 = the stock denominator (DESIGN-drafter-retention §3)",
-    )
+    check(bpr == [280, 1, 9, 9, 9, 9, 97], f"A1 blocks/request per group = {bpr} (MLA cdiv(1e6,3584); kpool 1; mamba align 2+7; drafter cdiv(min(2047+4096,1e6),64)+1)")
+    check(sum(bpr) == 414, "A1 sum = 414 = the stock denominator (DESIGN-drafter-retention §3)")
     tokens, ratio = stock_line(643, 414, LIVE_MAX_MODEL_LEN)
-    check(
-        tokens == "1,553,140" and ratio == "1.55x",
-        f"A1 stock line reproduced from 643 ids: {tokens} tokens, {ratio} (runbook 08-31)",
-    )
-    check(
-        [r["spec"] for r in rows]
-        == ["MLAAttentionSpec", "KpoolTailSpec"]
-        + ["MambaSpec"] * 4
-        + ["SlidingWindowSpec"],
-        "A1 spec names by group",
-    )
-    check(
-        [r["prefix_cacheable"] for r in rows]
-        == [True, False, True, True, True, True, True],
-        "A1 only the kpool tail opts out of prefix caching",
-    )
-    check(
-        [r["eagle"] for r in rows] == [False] * 6 + [True],
-        "A1 EAGLE flag: the exact-SlidingWindowSpec drafter group only (coordinator fallback mirrored)",
-    )
-    check(
-        rows[6]["sliding_window"] == 2048 and rows[2]["mamba_cache_mode"] == "align",
-        "A1 window / mamba mode carried on the rows",
-    )
+    check(tokens == "1,553,140" and ratio == "1.55x", f"A1 stock line reproduced from 643 ids: {tokens} tokens, {ratio} (runbook 08-31)")
+    check([r["spec"] for r in rows] == ["MLAAttentionSpec", "KpoolTailSpec"] + ["MambaSpec"] * 4 + ["SlidingWindowSpec"], "A1 spec names by group")
+    check([r["prefix_cacheable"] for r in rows] == [True, False, True, True, True, True, True], "A1 only the kpool tail opts out of prefix caching")
+    check([r["eagle"] for r in rows] == [False] * 6 + [True], "A1 EAGLE flag: the exact-SlidingWindowSpec drafter group only (coordinator fallback mirrored)")
+    check(rows[6]["sliding_window"] == 2048 and rows[2]["mamba_cache_mode"] == "align", "A1 window / mamba mode carried on the rows")
 
     s = P.kv_capacity_summary(rows, 643)
-    check(
-        s["usable"] == 642 and s["num_blocks"] == 643,
-        "A2 usable block ids = 642 (643 minus the null block)",
-    )
-    check(
-        s["alignment"] == 3584,
-        "A2 alignment = lcm(3584, 4, 64) = 3584 (the coordinator's scheduler block)",
-    )
-    check(
-        s["per_group"] == [1, 0, 1, 1, 1, 1, 33],
-        f"A2 ids per 3584-token segment per group = {s['per_group']}",
-    )
-    check(
-        s["total"] == 38,
-        "A2 ids per segment across groups = 38 (1 MLA + 4 mamba + 33 drafter)",
-    )
-    check(
-        s["segments"] == 16 and s["capacity_tokens"] == 57_344,
-        "A2 capacity = 642 // 38 * 3584 = 57,344 tokens (partial final segment floored: 642 = 16*38 + 34)",
-    )
-    check(
-        s["unmodelled"] == [] and s["blocks_per_request"] == 414,
-        "A2 nothing unmodelled; denominator carried",
-    )
+    check(s["usable"] == 642 and s["num_blocks"] == 643, "A2 usable block ids = 642 (643 minus the null block)")
+    check(s["alignment"] == 3584, "A2 alignment = lcm(3584, 4, 64) = 3584 (the coordinator's scheduler block)")
+    check(s["per_group"] == [1, 0, 1, 1, 1, 1, 33], f"A2 ids per 3584-token segment per group = {s['per_group']}")
+    check(s["total"] == 38, "A2 ids per segment across groups = 38 (1 MLA + 4 mamba + 33 drafter)")
+    check(s["segments"] == 16 and s["capacity_tokens"] == 57_344, "A2 capacity = 642 // 38 * 3584 = 57,344 tokens (partial final segment floored: 642 = 16*38 + 34)")
+    check(s["unmodelled"] == [] and s["blocks_per_request"] == 414, "A2 nothing unmodelled; denominator carried")
 
     lines = P.kv_capacity_lines(rows, s, LIVE_MAX_MODEL_LEN)
-    check(
-        len(lines) == 8 and all(isinstance(x, str) and "%" not in x for x in lines),
-        "A3 8 preformatted lines (7 groups + summary), hashable strings, no printf directives (info_once caches on its args)",
-    )
-    check(
-        lines[0]
-        == "[glm53-kv-capacity-log] group 0: MLAAttentionSpec layers=11 block_size=3584 page_size=25,862,144 B blocks/request@1,000,000=280 prefix_caching=yes",
-        "A3 group 0 line verbatim",
-    )
-    check(
-        lines[1].endswith(
-            "blocks/request@1,000,000=1 prefix_caching=no (scratch) window=4 eagle=no"
-        )
-        and "KpoolTailSpec" in lines[1],
-        "A3 kpool tail line: scratch, 1 block/request",
-    )
-    check(
-        lines[6]
-        == "[glm53-kv-capacity-log] group 6: SlidingWindowSpec layers=1 block_size=64 page_size=8,192 B blocks/request@1,000,000=97 prefix_caching=yes window=2048 eagle=yes",
-        "A3 drafter line verbatim",
-    )
+    check(len(lines) == 8 and all(isinstance(x, str) and "%" not in x for x in lines), "A3 8 preformatted lines (7 groups + summary), hashable strings, no printf directives (info_once caches on its args)")
+    check(lines[0] == "[glm53-kv-capacity-log] group 0: MLAAttentionSpec layers=11 block_size=3584 page_size=25,862,144 B blocks/request@1,000,000=280 prefix_caching=yes", "A3 group 0 line verbatim")
+    check(lines[1].endswith("blocks/request@1,000,000=1 prefix_caching=no (scratch) window=4 eagle=no") and "KpoolTailSpec" in lines[1], "A3 kpool tail line: scratch, 1 block/request")
+    check(lines[6] == "[glm53-kv-capacity-log] group 6: SlidingWindowSpec layers=1 block_size=64 page_size=8,192 B blocks/request@1,000,000=97 prefix_caching=yes window=2048 eagle=yes", "A3 drafter line verbatim")
     summary = lines[7]
     for frag in (
         "usable block ids: 642 (num_blocks=643 incl. the null block; 414 ids per 1,000,000-token request => 1.55x)",
@@ -397,31 +272,16 @@ def part_a() -> None:
         check(frag in summary, f"A3 summary carries {frag[:60]!r}")
 
     log = drive(cfg, kc)
-    check(
-        log.info == lines and not log.warnings,
-        "A4 _glm53_log_kv_capacity emits exactly those lines through logger.info_once, no warning",
-    )
+    check(log.info == lines and not log.warnings, "A4 _glm53_log_kv_capacity emits exactly those lines through logger.info_once, no warning")
 
     # The current rightsized boot (deploy/dogfood-next 2026-09-01 08:0x): 820 ids.
     rows820 = P.kv_capacity_rows(cfg, kv_config(820))
     s820 = P.kv_capacity_summary(rows820, 820)
     tokens, ratio = stock_line(820, 414, LIVE_MAX_MODEL_LEN)
-    check(
-        tokens == "1,980,676" and ratio == "1.98x",
-        f"A5 820 ids -> stock line {tokens} / {ratio} (boot log 09-01 01:09:54)",
-    )
-    check(
-        s820["usable"] == 819
-        and s820["segments"] == 21
-        and s820["capacity_tokens"] == 75_264,
-        "A5 820 ids -> 819 usable, 21 segments, 75,264 tokens",
-    )
+    check(tokens == "1,980,676" and ratio == "1.98x", f"A5 820 ids -> stock line {tokens} / {ratio} (boot log 09-01 01:09:54)")
+    check(s820["usable"] == 819 and s820["segments"] == 21 and s820["capacity_tokens"] == 75_264, "A5 820 ids -> 819 usable, 21 segments, 75,264 tokens")
     line = P.kv_capacity_lines(rows820, s820, LIVE_MAX_MODEL_LEN)[-1]
-    check(
-        "usable block ids: 819 (num_blocks=820" in line
-        and "≈ 75,264 tokens = 21 segments" in line,
-        "A5 820-id summary line",
-    )
+    check("usable block ids: 819 (num_blocks=820" in line and "≈ 75,264 tokens = 21 segments" in line, "A5 820-id summary line")
 
     # Single-group full-attention model: the stock figure and the summary agree
     # up to the null block, which is the whole point of the label upstream.
@@ -429,37 +289,15 @@ def part_a() -> None:
     c1 = live_cfg(max_model_len=4096, use_eagle=None)
     r1 = P.kv_capacity_rows(c1, kv_config(1000, one))
     s1 = P.kv_capacity_summary(r1, 1000)
-    check(
-        r1[0]["blocks_per_request"] == 256
-        and s1["alignment"] == 16
-        and s1["per_group"] == [1]
-        and s1["capacity_tokens"] == 999 * 16,
-        "A6 single full-attention group: capacity = usable * block_size = 15,984",
-    )
-    check(
-        stock_line(1000, 256, 4096)[0] == "16,000"
-        and 16_000 - s1["capacity_tokens"] == 16,
-        "A6 ... one block (the null block) below the stock 16,000 figure",
-    )
+    check(r1[0]["blocks_per_request"] == 256 and s1["alignment"] == 16 and s1["per_group"] == [1] and s1["capacity_tokens"] == 999 * 16, "A6 single full-attention group: capacity = usable * block_size = 15,984")
+    check(stock_line(1000, 256, 4096)[0] == "16,000" and 16_000 - s1["capacity_tokens"] == 16, "A6 ... one block (the null block) below the stock 16,000 figure")
 
     # UniformTypeKVCacheSpecs wrapper: name the inner class, page = sum, opt-out propagates.
-    uni = UniformTypeKVCacheSpecs(
-        {"a": MLAAttentionSpec(3584, 100), "b": MLAAttentionSpec(3584, 200)}
-    )
+    uni = UniformTypeKVCacheSpecs({"a": MLAAttentionSpec(3584, 100), "b": MLAAttentionSpec(3584, 200)})
     ru = P.kv_capacity_rows(cfg, kv_config(10, [group(uni, 2)]))
-    check(
-        ru[0]["spec"] == "MLAAttentionSpec"
-        and ru[0]["page_size_bytes"] == 300
-        and ru[0]["blocks_per_request"] == 280
-        and ru[0]["prefix_cacheable"],
-        "A7 uniform-type wrapper unwrapped for the name; page/blocks from the wrapper",
-    )
+    check(ru[0]["spec"] == "MLAAttentionSpec" and ru[0]["page_size_bytes"] == 300 and ru[0]["blocks_per_request"] == 280 and ru[0]["prefix_cacheable"], "A7 uniform-type wrapper unwrapped for the name; page/blocks from the wrapper")
     uni_scratch = UniformTypeKVCacheSpecs({"a": KpoolTailSpec(4, 8, 4)})
-    check(
-        P.spec_prefix_cacheable(uni_scratch) is False
-        and P.spec_prefix_cacheable(uni) is True,
-        "A7 wrapper participation aggregates its members",
-    )
+    check(P.spec_prefix_cacheable(uni_scratch) is False and P.spec_prefix_cacheable(uni) is True, "A7 wrapper participation aggregates its members")
 
     # Participation flags: fork's first, upstream's second, default True.
     class _Up(FullAttentionSpec):
@@ -476,23 +314,11 @@ def part_a() -> None:
         def prefix_cacheable(self):
             return False
 
-    check(
-        P.spec_prefix_cacheable(_Up(16, 1)) is False,
-        "A8 upstream `prefix_cacheable` False is honoured when the fork flag is absent",
-    )
-    check(
-        P.spec_prefix_cacheable(_Both(16, 1)) is True,
-        "A8 the fork flag wins when both exist",
-    )
-    check(
-        P.spec_prefix_cacheable(FullAttentionSpec(16, 1)) is True,
-        "A8 neither flag -> participates (legacy specs cache)",
-    )
+    check(P.spec_prefix_cacheable(_Up(16, 1)) is False, "A8 upstream `prefix_cacheable` False is honoured when the fork flag is absent")
+    check(P.spec_prefix_cacheable(_Both(16, 1)) is True, "A8 the fork flag wins when both exist")
+    check(P.spec_prefix_cacheable(FullAttentionSpec(16, 1)) is True, "A8 neither flag -> participates (legacy specs cache)")
     ru2 = P.kv_capacity_rows(cfg, kv_config(10, [group(_Up(16, 1), 1)]))
-    check(
-        P.kv_capacity_summary(ru2, 10)["per_group"] == [0],
-        "A8 an opted-out group costs 0 ids per segment",
-    )
+    check(P.kv_capacity_summary(ru2, 10)["per_group"] == [0], "A8 an opted-out group costs 0 ids per segment")
 
     # EAGLE detection.
     ids = P.eagle_group_ids(live_cfg(use_eagle=None), kv_config(10))
@@ -501,23 +327,11 @@ def part_a() -> None:
     check(ids == set(), "A9 use_eagle() False -> no EAGLE group")
     gs = live_groups()
     gs[0].is_eagle_group = True
-    check(
-        P.eagle_group_ids(cfg, kv_config(10, gs)) == {0},
-        "A9 is_eagle_group is authoritative when any group carries it (fallback not consulted)",
-    )
-    gs = [
-        group(MLAAttentionSpec(3584, 1), 1),
-        group(SlidingWindowMLASpec(64, 1, 2048), 1),
-    ]
-    check(
-        P.eagle_group_ids(cfg, kv_config(10, gs)) == {0, 1},
-        "A9 use_eagle() with no exact SlidingWindowSpec group -> every group (upstream fallback; SlidingWindowMLASpec subclass is NOT the drafter predicate, same as the coordinator overlay)",
-    )
+    check(P.eagle_group_ids(cfg, kv_config(10, gs)) == {0}, "A9 is_eagle_group is authoritative when any group carries it (fallback not consulted)")
+    gs = [group(MLAAttentionSpec(3584, 1), 1), group(SlidingWindowMLASpec(64, 1, 2048), 1)]
+    check(P.eagle_group_ids(cfg, kv_config(10, gs)) == {0, 1}, "A9 use_eagle() with no exact SlidingWindowSpec group -> every group (upstream fallback; SlidingWindowMLASpec subclass is NOT the drafter predicate, same as the coordinator overlay)")
     rn = P.kv_capacity_rows(live_cfg(use_eagle=None), kv_config(10))
-    check(
-        P.kv_capacity_summary(rn, 643)["per_group"][6] == 32,
-        "A9 drafter without EAGLE: cdiv(2047, 64) = 32 ids per segment",
-    )
+    check(P.kv_capacity_summary(rn, 643)["per_group"][6] == 32, "A9 drafter without EAGLE: cdiv(2047, 64) = 32 ids per segment")
     # Compact pages + boundary lookup (patch_hybrid_prefix_hit.py): the drafter
     # keeps exactly the cdiv(window - 1, block) blocks the lookup consults.
     compact = live_groups()
@@ -527,211 +341,69 @@ def part_a() -> None:
         os.environ["GLM53_DRAFT_KV_COMPACT"] = "1"
         rc = P.kv_capacity_rows(cfg, kv_config(10, compact))
         sc = P.kv_capacity_summary(rc, 520)
-        check(
-            sc["per_group"][6] == 3 and sc["total"] == 8 and sc["segments"] == 64,
-            "A9 compact + boundary lookup: drafter cdiv(2047, 896) = 3 ids per segment, 8 across groups, 519 // 8 = 64 segments",
-        )
-        check(
-            " eagle=yes lookup=boundary"
-            in P.kv_capacity_lines(rc, sc, LIVE_MAX_MODEL_LEN)[6],
-            "A9 compact + boundary lookup: group line names the lookup",
-        )
+        check(sc["per_group"][6] == 3 and sc["total"] == 8 and sc["segments"] == 64, "A9 compact + boundary lookup: drafter cdiv(2047, 896) = 3 ids per segment, 8 across groups, 519 // 8 = 64 segments")
+        check(" eagle=yes lookup=boundary" in P.kv_capacity_lines(rc, sc, LIVE_MAX_MODEL_LEN)[6], "A9 compact + boundary lookup: group line names the lookup")
         os.environ["GLM53_DRAFT_KV_COMPACT"] = "0"
         rc = P.kv_capacity_rows(cfg, kv_config(10, compact))
-        check(
-            P.kv_capacity_summary(rc, 520)["per_group"][6] == 4
-            and " lookup="
-            not in P.kv_capacity_lines(
-                rc, P.kv_capacity_summary(rc, 520), LIVE_MAX_MODEL_LEN
-            )[6],
-            "A9 compact pages without the flag: EAGLE lookahead counted (4)",
-        )
+        check(P.kv_capacity_summary(rc, 520)["per_group"][6] == 4 and " lookup=" not in P.kv_capacity_lines(rc, P.kv_capacity_summary(rc, 520), LIVE_MAX_MODEL_LEN)[6], "A9 compact pages without the flag: EAGLE lookahead counted (4)")
         os.environ.pop("GLM53_DRAFT_KV_COMPACT")
         rd = P.kv_capacity_rows(cfg, kv_config(10))
-        check(
-            P.kv_capacity_summary(rd, 643)["per_group"][6] == 33,
-            "A9 default (flag unset): 64-token drafter keeps 33 ids per segment",
-        )
+        check(P.kv_capacity_summary(rd, 643)["per_group"][6] == 33, "A9 default (flag unset): 64-token drafter keeps 33 ids per segment")
     finally:
         if saved_compact is None:
             os.environ.pop("GLM53_DRAFT_KV_COMPACT", None)
         else:
             os.environ["GLM53_DRAFT_KV_COMPACT"] = saved_compact
-    wide = [
-        group(MLAAttentionSpec(3584, 1), 1),
-        group(SlidingWindowSpec(64, 1, 4096), 1),
-    ]
+    wide = [group(MLAAttentionSpec(3584, 1), 1), group(SlidingWindowSpec(64, 1, 4096), 1)]
     sw = P.kv_capacity_summary(P.kv_capacity_rows(cfg, kv_config(10, wide)), 10)
-    check(
-        sw["per_group"] == [1, 56],
-        "A9 window wider than the segment: need 65 >= 56 -> every block of the segment (reachable_block_mask returns None)",
-    )
+    check(sw["per_group"] == [1, 56], "A9 window wider than the segment: need 65 >= 56 -> every block of the segment (reachable_block_mask returns None)")
 
     # Unmodelled kinds withhold the capacity instead of guessing.
-    rr = P.kv_capacity_rows(
-        live_cfg(mamba_mode="none"), kv_config(643, mamba_mode="none")
-    )
+    rr = P.kv_capacity_rows(live_cfg(mamba_mode="none"), kv_config(643, mamba_mode="none"))
     ss = P.kv_capacity_summary(rr, 643)
-    check(
-        ss["unmodelled"] == [2, 3, 4, 5]
-        and ss["capacity_tokens"] is None
-        and ss["segments"] is None,
-        "A10 mamba_cache_mode=none: mamba groups unmodelled, capacity withheld",
-    )
+    check(ss["unmodelled"] == [2, 3, 4, 5] and ss["capacity_tokens"] is None and ss["segments"] is None, "A10 mamba_cache_mode=none: mamba groups unmodelled, capacity withheld")
     ll = P.kv_capacity_lines(rr, ss, LIVE_MAX_MODEL_LEN)[-1]
-    check(
-        "not derived (unmodelled: group 2 MambaSpec" in ll
-        and "cached-conversation capacity at this alignment: not derived" in ll
-        and "≈" not in ll,
-        "A10 ... and the summary line says so",
-    )
-    rr = P.kv_capacity_rows(
-        live_cfg(mamba_mode="align"), kv_config(643, mamba_mode="none")
-    )
+    check("not derived (unmodelled: group 2 MambaSpec" in ll and "cached-conversation capacity at this alignment: not derived" in ll and "≈" not in ll, "A10 ... and the summary line says so")
+    rr = P.kv_capacity_rows(live_cfg(mamba_mode="align"), kv_config(643, mamba_mode="none"))
     ss = P.kv_capacity_summary(rr, 643)
-    check(
-        rr[2]["mamba_cache_mode"] == "none" and ss["unmodelled"] == [2, 3, 4, 5],
-        "A10 the mode is read from the MambaSpec the manager acts on, not cache_config (spec none / config align -> unmodelled)",
-    )
-    mixed_mamba = UniformTypeKVCacheSpecs(
-        {"a": MambaSpec(3584, 8, 7, "align"), "b": MambaSpec(3584, 8, 7, "none")}
-    )
+    check(rr[2]["mamba_cache_mode"] == "none" and ss["unmodelled"] == [2, 3, 4, 5], "A10 the mode is read from the MambaSpec the manager acts on, not cache_config (spec none / config align -> unmodelled)")
+    mixed_mamba = UniformTypeKVCacheSpecs({"a": MambaSpec(3584, 8, 7, "align"), "b": MambaSpec(3584, 8, 7, "none")})
     rr = P.kv_capacity_rows(cfg, kv_config(10, [group(mixed_mamba, 2)]))
-    check(
-        rr[0]["mamba_cache_mode"] == "mixed"
-        and P.kv_capacity_summary(rr, 10)["per_group"] == [None],
-        "A10 a uniform mamba group with disagreeing member modes is 'mixed' and unmodelled",
-    )
-    rr = P.kv_capacity_rows(
-        live_cfg(mamba_mode="all"), kv_config(643, mamba_mode="all")
-    )
+    check(rr[0]["mamba_cache_mode"] == "mixed" and P.kv_capacity_summary(rr, 10)["per_group"] == [None], "A10 a uniform mamba group with disagreeing member modes is 'mixed' and unmodelled")
+    rr = P.kv_capacity_rows(live_cfg(mamba_mode="all"), kv_config(643, mamba_mode="all"))
     ss = P.kv_capacity_summary(rr, 643)
-    check(
-        [r["blocks_per_request"] for r in rr][2] == 287
-        and ss["per_group"][2] == 1
-        and ss["total"] == 38,
-        "A10 mamba all-mode: 280+7 blocks/request, still one state per block position",
-    )
+    check([r["blocks_per_request"] for r in rr][2] == 287 and ss["per_group"][2] == 1 and ss["total"] == 38, "A10 mamba all-mode: 280+7 blocks/request, still one state per block position")
     for cls in (SinkFullAttentionSpec, TQFullAttentionSpec, RSWASpec):
         rr = P.kv_capacity_rows(c1, kv_config(100, [group(cls(16, 1), 1)]))
-        check(
-            P.kv_capacity_summary(rr, 100)["per_group"] == [None],
-            f"A10 {cls.__name__} (a FullAttentionSpec subclass with its own manager rule) is unmodelled, never costed as dense",
-        )
-    rr = P.kv_capacity_rows(
-        live_cfg(use_eagle=None),
-        kv_config(
-            10,
-            [
-                group(MLAAttentionSpec(3584, 1), 1),
-                group(SlidingWindowMLASpec(64, 1, 2048), 1),
-            ],
-        ),
-    )
-    check(
-        P.kv_capacity_summary(rr, 10)["per_group"] == [1, 32],
-        "A10 SlidingWindowMLASpec is costed by the window rule (exact-name allowlist), no EAGLE without a speculative config",
-    )
+        check(P.kv_capacity_summary(rr, 100)["per_group"] == [None], f"A10 {cls.__name__} (a FullAttentionSpec subclass with its own manager rule) is unmodelled, never costed as dense")
+    rr = P.kv_capacity_rows(live_cfg(use_eagle=None), kv_config(10, [group(MLAAttentionSpec(3584, 1), 1), group(SlidingWindowMLASpec(64, 1, 2048), 1)]))
+    check(P.kv_capacity_summary(rr, 10)["per_group"] == [1, 32], "A10 SlidingWindowMLASpec is costed by the window rule (exact-name allowlist), no EAGLE without a speculative config")
     for label, kw in (("dcp=2", {"dcp": 2}), ("pcp=2", {"pcp": 2})):
         rr = P.kv_capacity_rows(live_cfg(**kw), kv_config(643))
         ss = P.kv_capacity_summary(rr, 643, live_cfg(**kw))
         ll = P.kv_capacity_lines(rr, ss, LIVE_MAX_MODEL_LEN)[-1]
-        check(
-            ss["capacity_tokens"] is None
-            and ss["withheld"]
-            and "context parallelism" in ll
-            and "not derived" in ll,
-            f"A10 {label}: the figure is withheld (block sizes are rescaled per rank; alignment not derived here)",
-        )
+        check(ss["capacity_tokens"] is None and ss["withheld"] and "context parallelism" in ll and "not derived" in ll, f"A10 {label}: the figure is withheld (block sizes are rescaled per rank; alignment not derived here)")
     ss = P.kv_capacity_summary(rows, 643, cfg)
-    check(
-        ss["withheld"] is None and ss["capacity_tokens"] == 57_344,
-        "A10 dcp=pcp=1 (this kit): nothing withheld",
-    )
-    mixed = [
-        group(FullAttentionSpec(16, 1), 1),
-        group(ChunkedLocalAttentionSpec(16, 1), 1),
-        group(CrossAttentionSpec(16, 1), 1),
-    ]
+    check(ss["withheld"] is None and ss["capacity_tokens"] == 57_344, "A10 dcp=pcp=1 (this kit): nothing withheld")
+    mixed = [group(FullAttentionSpec(16, 1), 1), group(ChunkedLocalAttentionSpec(16, 1), 1), group(CrossAttentionSpec(16, 1), 1)]
     sm = P.kv_capacity_summary(P.kv_capacity_rows(c1, kv_config(100, mixed)), 100)
-    check(
-        sm["per_group"] == [1, None, None]
-        and sm["unmodelled"] == [1, 2]
-        and sm["capacity_tokens"] is None,
-        "A10 chunked-local / cross attention are unmodelled",
-    )
-    check(
-        P.ids_per_segment(
-            {
-                "prefix_cacheable": True,
-                "block_size": 16,
-                "spec": "WeirdSpec",
-                "kinds": ("WeirdSpec", "KVCacheSpec", "object"),
-                "eagle": False,
-                "sliding_window": None,
-                "mamba_cache_mode": None,
-            },
-            16,
-        )
-        is None,
-        "A10 an unknown spec kind is unmodelled (never silently costed)",
-    )
-    check(
-        P.ids_per_segment(
-            {
-                "prefix_cacheable": True,
-                "block_size": 64,
-                "spec": "SlidingWindowSpec",
-                "kinds": (
-                    "SlidingWindowSpec",
-                    "AttentionSpec",
-                    "KVCacheSpec",
-                    "object",
-                ),
-                "eagle": True,
-                "sliding_window": None,
-                "mamba_cache_mode": None,
-            },
-            3584,
-        )
-        is None,
-        "A10 a sliding-window spec without a window is unmodelled",
-    )
+    check(sm["per_group"] == [1, None, None] and sm["unmodelled"] == [1, 2] and sm["capacity_tokens"] is None, "A10 chunked-local / cross attention are unmodelled")
+    check(P.ids_per_segment({"prefix_cacheable": True, "block_size": 16, "spec": "WeirdSpec", "kinds": ("WeirdSpec", "KVCacheSpec", "object"), "eagle": False, "sliding_window": None, "mamba_cache_mode": None}, 16) is None, "A10 an unknown spec kind is unmodelled (never silently costed)")
+    check(P.ids_per_segment({"prefix_cacheable": True, "block_size": 64, "spec": "SlidingWindowSpec", "kinds": ("SlidingWindowSpec", "AttentionSpec", "KVCacheSpec", "object"), "eagle": True, "sliding_window": None, "mamba_cache_mode": None}, 3584) is None, "A10 a sliding-window spec without a window is unmodelled")
 
     # Null block / tiny pools / max_model_len below the alignment.
     for nb, usable, cap in ((1, 0, 0), (0, 0, 0), (38, 37, 0), (39, 38, 3584)):
         st = P.kv_capacity_summary(rows, nb)
-        check(
-            st["usable"] == usable and st["capacity_tokens"] == cap,
-            f"A11 num_blocks={nb}: usable={usable}, capacity={cap} (never negative)",
-        )
+        check(st["usable"] == usable and st["capacity_tokens"] == cap, f"A11 num_blocks={nb}: usable={usable}, capacity={cap} (never negative)")
     small = live_cfg(max_model_len=1000)
     rs = P.kv_capacity_rows(small, kv_config(643))
     ss = P.kv_capacity_summary(rs, 643)
-    check(
-        next(r["blocks_per_request"] for r in rs) == 1
-        and ss["capacity_tokens"] == 57_344,
-        "A11 max_model_len 1000 < alignment: 1 MLA block/request; the segment arithmetic is independent of max_model_len",
-    )
+    check([r["blocks_per_request"] for r in rs][0] == 1 and ss["capacity_tokens"] == 57_344, "A11 max_model_len 1000 < alignment: 1 MLA block/request; the segment arithmetic is independent of max_model_len")
     s_empty = P.kv_capacity_summary([], 643)
     l_empty = P.kv_capacity_lines([], s_empty, 10)
-    check(
-        s_empty["capacity_tokens"] is None
-        and len(l_empty) == 1
-        and "not derived (no prefix-cacheable group costs ids" in l_empty[0]
-        and "=> n/a" in l_empty[0],
-        "A11 empty group list: one summary line, capacity not derived, no division by zero",
-    )
-    s_scratch = P.kv_capacity_summary(
-        P.kv_capacity_rows(cfg, kv_config(10, [group(KpoolTailSpec(4, 8, 4), 1)])), 10
-    )
-    check(
-        s_scratch["total"] == 0
-        and s_scratch["capacity_tokens"] is None
-        and "not derived (no prefix-cacheable group costs ids"
-        in P.kv_capacity_lines([], s_scratch, 10)[-1],
-        "A11 only opted-out groups: capacity not derived rather than infinite",
-    )
+    check(s_empty["capacity_tokens"] is None and len(l_empty) == 1 and "not derived (no prefix-cacheable group costs ids" in l_empty[0] and "=> n/a" in l_empty[0], "A11 empty group list: one summary line, capacity not derived, no division by zero")
+    s_scratch = P.kv_capacity_summary(P.kv_capacity_rows(cfg, kv_config(10, [group(KpoolTailSpec(4, 8, 4), 1)])), 10)
+    check(s_scratch["total"] == 0 and s_scratch["capacity_tokens"] is None and "not derived (no prefix-cacheable group costs ids" in P.kv_capacity_lines([], s_scratch, 10)[-1], "A11 only opted-out groups: capacity not derived rather than infinite")
 
     # Knob matrix (same contract as the launcher's _glm53_validate_bool_flag).
     def knob(value):
@@ -748,48 +420,20 @@ def part_a() -> None:
             else:
                 os.environ[P.ENV_NAME] = saved
 
-    check(
-        knob(None) is True and knob("1") is True and knob("0") is False,
-        "A12 unset -> on, 1 -> on, 0 -> off",
-    )
-    for bad in (
-        "",
-        " ",
-        "01",
-        "2",
-        "yes",
-        "true",
-        "1 ",
-        " 1",
-        "1\r",
-        "0x1",
-        "-1",
-        "on",
-    ):
+    check(knob(None) is True and knob("1") is True and knob("0") is False, "A12 unset -> on, 1 -> on, 0 -> off")
+    for bad in ("", " ", "01", "2", "yes", "true", "1 ", " 1", "1\r", "0x1", "-1", "on"):
         try:
             knob(bad)
             check(False, f"A12 {bad!r} raises")
         except ValueError as exc:
-            check(
-                P.ENV_NAME in str(exc), f"A12 {bad!r} raises ValueError naming the knob"
-            )
+            check(P.ENV_NAME in str(exc), f"A12 {bad!r} raises ValueError naming the knob")
     log = drive(cfg, kc, env="0")
-    check(
-        log.info == ["[glm53-kv-capacity-log] disabled (GLM53_KV_CAPACITY_LOG=0)"]
-        and not log.warnings,
-        "A12 disabled: one line saying so, nothing derived",
-    )
+    check(log.info == ["[glm53-kv-capacity-log] disabled (GLM53_KV_CAPACITY_LOG=0)"] and not log.warnings, "A12 disabled: one line saying so, nothing derived")
     try:
         drive(cfg, kc, env="yes")
-        check(
-            False,
-            "A12 malformed knob raises out of the log call (not swallowed by the derivation guard)",
-        )
+        check(False, "A12 malformed knob raises out of the log call (not swallowed by the derivation guard)")
     except ValueError:
-        check(
-            True,
-            "A12 malformed knob raises out of the log call (not swallowed by the derivation guard)",
-        )
+        check(True, "A12 malformed knob raises out of the log call (not swallowed by the derivation guard)")
 
     # Derivation failure -> warning, boot proceeds, nothing else logged.
     class _Broken(FullAttentionSpec):
@@ -797,39 +441,14 @@ def part_a() -> None:
             raise RuntimeError("synthetic spec failure")
 
     log = drive(cfg, kv_config(10, [group(_Broken(16, 1), 1)]))
-    check(
-        log.info == []
-        and len(log.warnings) == 1
-        and "RuntimeError: synthetic spec failure" in log.warnings[0]
-        and "serving unaffected" in log.warnings[0],
-        "A13 derivation exception -> one warning naming it, no info lines, no raise",
-    )
+    check(log.info == [] and len(log.warnings) == 1 and "RuntimeError: synthetic spec failure" in log.warnings[0] and "serving unaffected" in log.warnings[0], "A13 derivation exception -> one warning naming it, no info lines, no raise")
 
     # No config mutation.
     cfg2, kc2 = live_cfg(), kv_config(643)
-    before = (
-        copy.deepcopy(cfg2.__dict__["model_config"].__dict__),
-        copy.deepcopy(cfg2.cache_config.__dict__),
-        kc2.num_blocks,
-        [
-            (g.kv_cache_spec.block_size, g.is_eagle_group, list(g.layer_names))
-            for g in kc2.kv_cache_groups
-        ],
-    )
+    before = (copy.deepcopy(cfg2.__dict__["model_config"].__dict__), copy.deepcopy(cfg2.cache_config.__dict__), kc2.num_blocks, [(g.kv_cache_spec.block_size, g.is_eagle_group, list(g.layer_names)) for g in kc2.kv_cache_groups])
     drive(cfg2, kc2)
-    after = (
-        cfg2.model_config.__dict__,
-        cfg2.cache_config.__dict__,
-        kc2.num_blocks,
-        [
-            (g.kv_cache_spec.block_size, g.is_eagle_group, list(g.layer_names))
-            for g in kc2.kv_cache_groups
-        ],
-    )
-    check(
-        before == after,
-        "A14 the log call mutates neither vllm_config nor kv_cache_config",
-    )
+    after = (cfg2.model_config.__dict__, cfg2.cache_config.__dict__, kc2.num_blocks, [(g.kv_cache_spec.block_size, g.is_eagle_group, list(g.layer_names)) for g in kc2.kv_cache_groups])
+    check(before == after, "A14 the log call mutates neither vllm_config nor kv_cache_config")
 
 
 # --------------------------------------------------------------------------
@@ -930,14 +549,14 @@ def update_kv_cache_capacity(
     max_model_len = vllm_config.model_config.max_model_len
 '''
     + P.ANCHOR_CALL
-    + """
+    + '''
 
 def _max_memory_usage_bytes_from_groups(
     vllm_config: VllmConfig,
     kv_cache_groups: list[KVCacheGroupSpec],
 ) -> int:
     return 0
-"""
+'''
 )
 
 
@@ -966,7 +585,7 @@ def exec_module(text: str, logger: P._RecordingLogger) -> dict:
     try:
         sys.modules.update(_stub_vllm(logger))
         ns: dict = {"__name__": "kv_cache_utils_fixture"}
-        exec(compile(text, "kv_cache_utils_fixture.py", "exec"), ns)  # noqa: S102
+        exec(compile(text, "kv_cache_utils_fixture.py", "exec"), ns)
         return ns
     finally:
         for k, v in saved.items():
@@ -976,66 +595,30 @@ def exec_module(text: str, logger: P._RecordingLogger) -> dict:
                 sys.modules[k] = v
 
 
-def run_overlay(
-    target: Path, *args: str, env_extra: dict | None = None
-) -> subprocess.CompletedProcess[str]:
+def run_overlay(target: Path, *args: str, env_extra: dict | None = None) -> subprocess.CompletedProcess[str]:
     env = {**os.environ, "GLM53_KV_CACHE_UTILS_PY": str(target)}
     env.pop(P.ENV_NAME, None)
     if env_extra:
         env.update(env_extra)
-    return subprocess.run(  # noqa: PLW1510
-        [sys.executable, str(PATCH), *args], text=True, capture_output=True, env=env
-    )
+    return subprocess.run([sys.executable, str(PATCH), *args], text=True, capture_output=True, env=env)
 
 
 def part_b() -> None:
     print("Part B: patch mechanics (fixture of the live kv_cache_utils.py)")
     compile(FIXTURE, "fixture", "exec")
-    check(
-        FIXTURE.count(P.ANCHOR_HELPERS) == 1 and FIXTURE.count(P.ANCHOR_CALL) == 1,
-        "B0 fixture carries both pinned anchors exactly once",
-    )
-    check(
-        not P.verified_state(FIXTURE)
-        and all(m not in FIXTURE for _n, m, _a, _p in P.SITES),
-        "B0 pristine fixture is not in the verified state and carries no mark",
-    )
+    check(FIXTURE.count(P.ANCHOR_HELPERS) == 1 and FIXTURE.count(P.ANCHOR_CALL) == 1, "B0 fixture carries both pinned anchors exactly once")
+    check(not P.verified_state(FIXTURE) and all(m not in FIXTURE for _n, m, _a, _p in P.SITES), "B0 pristine fixture is not in the verified state and carries no mark")
 
     patched, action = P.prepare(FIXTURE)
     compile(patched, "patched", "exec")
-    check(
-        action == "patched" and P.verified_state(patched),
-        "B1 prepare -> patched, verified state",
-    )
-    check(
-        patched.count(P.ANCHOR_CALL) == 1 and patched.count(P.ANCHOR_HELPERS) == 1,
-        "B1 the stock 'GPU KV cache size' info_once and the function signature survive byte-identical",
-    )
-    check(
-        P.ANCHOR_CALL + P.MARK_CALL in patched,
-        "B1 the overlay call is the very next line after the stock line (same function, same indentation)",
-    )
-    check(
-        patched.index(P.MARK_HELPERS)
-        < patched.index(P.ANCHOR_HELPERS)
-        < patched.index(P.MARK_CALL),
-        "B1 helpers precede the function they mirror, the call comes last",
-    )
-    check(
-        P.HELPERS_SRC in patched, "B1 the injected helper text is HELPERS_SRC verbatim"
-    )
-    stock_before = FIXTURE[
-        FIXTURE.index("def update_kv_cache_capacity") : FIXTURE.index(P.ANCHOR_CALL)
-        + len(P.ANCHOR_CALL)
-    ]
-    stock_after = patched[
-        patched.index("def update_kv_cache_capacity") : patched.index(P.ANCHOR_CALL)
-        + len(P.ANCHOR_CALL)
-    ]
-    check(
-        stock_before == stock_after,
-        "B1 update_kv_cache_capacity up to and including the stock line is unchanged",
-    )
+    check(action == "patched" and P.verified_state(patched), "B1 prepare -> patched, verified state")
+    check(patched.count(P.ANCHOR_CALL) == 1 and patched.count(P.ANCHOR_HELPERS) == 1, "B1 the stock 'GPU KV cache size' info_once and the function signature survive byte-identical")
+    check(P.ANCHOR_CALL + P.MARK_CALL in patched, "B1 the overlay call is the very next line after the stock line (same function, same indentation)")
+    check(patched.index(P.MARK_HELPERS) < patched.index(P.ANCHOR_HELPERS) < patched.index(P.MARK_CALL), "B1 helpers precede the function they mirror, the call comes last")
+    check(P.HELPERS_SRC in patched, "B1 the injected helper text is HELPERS_SRC verbatim")
+    stock_before = FIXTURE[FIXTURE.index("def update_kv_cache_capacity") : FIXTURE.index(P.ANCHOR_CALL) + len(P.ANCHOR_CALL)]
+    stock_after = patched[patched.index("def update_kv_cache_capacity") : patched.index(P.ANCHOR_CALL) + len(P.ANCHOR_CALL)]
+    check(stock_before == stock_after, "B1 update_kv_cache_capacity up to and including the stock line is unchanged")
 
     # End to end through the patched text: the stock line first, then ours.
     log = P._RecordingLogger()
@@ -1048,39 +631,18 @@ def part_b() -> None:
     finally:
         if saved is not None:
             os.environ[P.ENV_NAME] = saved
-    check(
-        log.info[0]
-        == "GPU KV cache size: 1,553,140 tokens, Maximum concurrency for 1,000,000 tokens per request: 1.55x",
-        "B2 patched update_kv_cache_capacity still logs the stock line first, verbatim",
-    )
-    check(
-        len(log.info) == 9
-        and log.info[1].startswith("[glm53-kv-capacity-log] group 0: MLAAttentionSpec")
-        and "usable block ids: 642" in log.info[8]
-        and "38 (per group: [1, 0, 1, 1, 1, 1, 33])" in log.info[8]
-        and not log.warnings,
-        "B2 ... followed by the 7 group lines and the summary (642 / 38 / 57,344)",
-    )
-    check(
-        cfg.cache_config.kv_cache_size_tokens == 1_553_140
-        and abs(cfg.cache_config.kv_cache_max_concurrency - 643 / 414) < 1e-12,
-        "B2 kv_cache_size_tokens / kv_cache_max_concurrency stored exactly as stock",
-    )
+    check(log.info[0] == "GPU KV cache size: 1,553,140 tokens, Maximum concurrency for 1,000,000 tokens per request: 1.55x", "B2 patched update_kv_cache_capacity still logs the stock line first, verbatim")
+    check(len(log.info) == 9 and log.info[1].startswith("[glm53-kv-capacity-log] group 0: MLAAttentionSpec") and "usable block ids: 642" in log.info[8] and "38 (per group: [1, 0, 1, 1, 1, 1, 33])" in log.info[8] and not log.warnings, "B2 ... followed by the 7 group lines and the summary (642 / 38 / 57,344)")
+    check(cfg.cache_config.kv_cache_size_tokens == 1_553_140 and abs(cfg.cache_config.kv_cache_max_concurrency - 643 / 414) < 1e-12, "B2 kv_cache_size_tokens / kv_cache_max_concurrency stored exactly as stock")
     log0 = P._RecordingLogger()
     ns0 = exec_module(FIXTURE, log0)
     cfg0 = live_cfg()
     cfg0.cache_config.num_gpu_blocks_override = None
     ns0["update_kv_cache_capacity"](cfg0, kv_config(643))
-    check(
-        log0.info == log.info[:1],
-        "B2 pristine fixture logs exactly the first of those lines (the overlay adds, never alters)",
-    )
+    check(log0.info == log.info[:1], "B2 pristine fixture logs exactly the first of those lines (the overlay adds, never alters)")
 
     again, action2 = P.prepare(patched)
-    check(
-        again == patched and action2 == "already present",
-        "B3 idempotent: prepare on a patched file is a byte-identical no-op",
-    )
+    check(again == patched and action2 == "already present", "B3 idempotent: prepare on a patched file is a byte-identical no-op")
 
     with tempfile.TemporaryDirectory() as raw:
         tmp = Path(raw)
@@ -1093,59 +655,25 @@ def part_b() -> None:
         stale.write_bytes(b"stale")
 
         r = run_overlay(target, "--preflight")
-        check(
-            r.returncode == 0
-            and "preflight OK (patched)" in r.stdout
-            and target.read_text() == FIXTURE
-            and stale.exists(),
-            f"B4 --preflight on a pristine file: rc=0, reports 'patched', writes nothing (stdout={r.stdout.strip()!r})",
-        )
+        check(r.returncode == 0 and "preflight OK (patched)" in r.stdout and target.read_text() == FIXTURE and stale.exists(), f"B4 --preflight on a pristine file: rc=0, reports 'patched', writes nothing (stdout={r.stdout.strip()!r})")
         r = run_overlay(target)
-        check(
-            r.returncode == 0
-            and "kv-capacity-log patched" in r.stdout
-            and target.read_text() == patched,
-            f"B4 apply: rc=0, file == prepare() output (stdout={r.stdout.strip()!r})",
-        )
+        check(r.returncode == 0 and "kv-capacity-log patched" in r.stdout and target.read_text() == patched, f"B4 apply: rc=0, file == prepare() output (stdout={r.stdout.strip()!r})")
         check(not stale.exists(), "B4 stale bytecode for the target was cleared")
-        check(
-            stat_mode(target) == 0o644 and not list(tmp.glob(".*.tmp")),
-            "B4 mode preserved, no temp litter",
-        )
+        check(stat_mode(target) == 0o644 and not list(tmp.glob(".*.tmp")), "B4 mode preserved, no temp litter")
         r = run_overlay(target)
-        check(
-            r.returncode == 0
-            and "already present" in r.stdout
-            and target.read_text() == patched,
-            "B4 second apply: 'already present', byte-identical",
-        )
+        check(r.returncode == 0 and "already present" in r.stdout and target.read_text() == patched, "B4 second apply: 'already present', byte-identical")
         r = run_overlay(target, "--preflight", env_extra={P.ENV_NAME: ""})
-        check(
-            r.returncode == 0 and "already present" in r.stdout,
-            "B4 --preflight does not consult the knob (an empty knob is the runtime's error, not the installer's)",
-        )
+        check(r.returncode == 0 and "already present" in r.stdout, "B4 --preflight does not consult the knob (an empty knob is the runtime's error, not the installer's)")
         r = run_overlay(target, env_extra={P.ENV_NAME: ""})
-        check(
-            r.returncode == 0 and "GLM53_KV_CAPACITY_LOG=''" in r.stdout,
-            "B4 apply reports the knob as set (empty shown as '', not normalised to 1)",
-        )
+        check(r.returncode == 0 and "GLM53_KV_CAPACITY_LOG=''" in r.stdout, "B4 apply reports the knob as set (empty shown as '', not normalised to 1)")
 
         # Drift: each anchor altered by one character, one at a time -> refused, nothing written.
         for name, _mark, anchor, _patched in P.SITES:
-            drifted = FIXTURE.replace(
-                anchor, anchor.replace("_", "-", 1), 1
-            )  # one character
+            drifted = FIXTURE.replace(anchor, anchor.replace("_", "-", 1), 1)  # one character
             assert drifted != FIXTURE
             target.write_text(drifted)
             r = run_overlay(target)
-            check(
-                r.returncode != 0
-                and "drifted" in r.stderr
-                and name in r.stderr
-                and target.read_text() == drifted
-                and not list(tmp.glob(".*.tmp")),
-                f"B5 anchor '{name}' drifted -> non-zero exit naming it, file untouched",
-            )
+            check(r.returncode != 0 and "drifted" in r.stderr and name in r.stderr and target.read_text() == drifted and not list(tmp.glob(".*.tmp")), f"B5 anchor '{name}' drifted -> non-zero exit naming it, file untouched")
             try:
                 P.prepare(drifted)
                 check(False, f"B5 prepare() raises on drifted '{name}'")
@@ -1156,69 +684,36 @@ def part_b() -> None:
         half = FIXTURE.replace(P.ANCHOR_HELPERS, P.PATCHED_HELPERS, 1)
         target.write_text(half)
         r = run_overlay(target)
-        check(
-            r.returncode != 0 and "partial" in r.stderr and target.read_text() == half,
-            "B6 only the helpers present (marks=1 of 2) -> refused, untouched",
-        )
-        altered = patched.replace(
-            "_glm53_log_kv_capacity(vllm_config, kv_cache_config, max_model_len)  # [glm53-kv-capacity-log]",
-            "_glm53_log_kv_capacity(vllm_config, kv_cache_config, 0)  # [glm53-kv-capacity-log]",
-            1,
-        )
+        check(r.returncode != 0 and "partial" in r.stderr and target.read_text() == half, "B6 only the helpers present (marks=1 of 2) -> refused, untouched")
+        altered = patched.replace("_glm53_log_kv_capacity(vllm_config, kv_cache_config, max_model_len)  # [glm53-kv-capacity-log]", "_glm53_log_kv_capacity(vllm_config, kv_cache_config, 0)  # [glm53-kv-capacity-log]", 1)
         target.write_text(altered)
         r = run_overlay(target)
-        check(
-            r.returncode != 0
-            and "partial" in r.stderr
-            and target.read_text() == altered,
-            "B6 marked but altered call -> refused, untouched",
-        )
+        check(r.returncode != 0 and "partial" in r.stderr and target.read_text() == altered, "B6 marked but altered call -> refused, untouched")
         dup = patched + "\n" + P.MARK_CALL
         target.write_text(dup)
         r = run_overlay(target)
-        check(
-            r.returncode != 0 and target.read_text() == dup,
-            "B6 duplicated mark -> refused, untouched",
-        )
+        check(r.returncode != 0 and target.read_text() == dup, "B6 duplicated mark -> refused, untouched")
 
         # Unknown helper edits are not an upgrade path: preserve their bytes.
-        edited = patched.replace(
-            "        # SlidingWindowManager._contiguous_blocks_for_hit: the run a hit needs,\n",
-            "        # independently edited helper text\n",
-            1,
-        )
+        edited = patched.replace("        # SlidingWindowManager._contiguous_blocks_for_hit: the run a hit needs,\n", "        # independently edited helper text\n", 1)
         assert edited != patched
         target.write_text(edited)
         r = run_overlay(target)
-        check(
-            r.returncode != 0 and target.read_text() == edited,
-            "B6 unknown helper revision is refused without overwriting it",
-        )
+        check(r.returncode != 0 and target.read_text() == edited, "B6 unknown helper revision is refused without overwriting it")
 
         # A file that lacks a binding the helpers need is refused before any write.
         for label, source in (("unpatched", FIXTURE), ("patched", patched)):
             nobind = source.replace("import math\n", "", 1)
             target.write_text(nobind)
             r = run_overlay(target)
-            check(
-                r.returncode != 0 and target.read_text() == nobind,
-                f"B7 {label} source missing a required binding is refused without writing",
-            )
+            check(r.returncode != 0 and target.read_text() == nobind, f"B7 {label} source missing a required binding is refused without writing")
         nolog = FIXTURE.replace("logger = init_logger(__name__)\n", "", 1)
         target.write_text(nolog)
         r = run_overlay(target)
-        check(
-            r.returncode != 0
-            and "logger = init_logger" in r.stderr
-            and target.read_text() == nolog,
-            "B7 missing module logger -> refused",
-        )
+        check(r.returncode != 0 and "logger = init_logger" in r.stderr and target.read_text() == nolog, "B7 missing module logger -> refused")
 
         r = run_overlay(tmp / "absent.py")
-        check(
-            r.returncode != 0 and "missing" in r.stderr,
-            "B7 missing target -> non-zero exit",
-        )
+        check(r.returncode != 0 and "missing" in r.stderr, "B7 missing target -> non-zero exit")
 
     # The real installed file, when present (mandatory in the image).
     installed = P.TARGET
@@ -1227,15 +722,8 @@ def part_b() -> None:
         try:
             out, act = P.prepare(text)
             compile(out, str(installed), "exec")
-            check(
-                act in ("patched", "already present", "helpers refreshed")
-                and P.verified_state(out),
-                f"B8 installed {installed}: preflight OK ({act})",
-            )
-            check(
-                text.count(P.ANCHOR_CALL) == 1,
-                "B8 installed file carries the stock 'GPU KV cache size' block exactly once",
-            )
+            check(act in ("patched", "already present", "helpers refreshed") and P.verified_state(out), f"B8 installed {installed}: preflight OK ({act})")
+            check(text.count(P.ANCHOR_CALL) == 1, "B8 installed file carries the stock 'GPU KV cache size' block exactly once")
         except ValueError as exc:
             check(False, f"B8 installed {installed}: preflight failed: {exc}")
     elif os.environ.get("GLM53_REQUIRE_TARGET") == "1":
@@ -1246,6 +734,8 @@ def part_b() -> None:
 
 def stat_mode(path: Path) -> int:
     return path.stat().st_mode & 0o777
+
+
 
 
 def main() -> int:

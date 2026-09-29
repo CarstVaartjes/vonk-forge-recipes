@@ -26,16 +26,13 @@ Idempotent per anchor, fail-closed on drift; both edits are inert for BF16
 drafts (None quant config / no non_routed_exl3 declarations). Marker:
 [dense-exl3-dflash2].
 """
-
 from __future__ import annotations
 
 import os
 import sys
 from pathlib import Path
 
-SITE = Path(
-    os.environ.get("GLM53_SITE", "/usr/local/lib/python3.12/dist-packages/vllm")
-)
+SITE = Path(os.environ.get("GLM53_SITE", "/usr/local/lib/python3.12/dist-packages/vllm"))
 OPT = Path(os.environ.get("GLM53_OPT", "/opt/glm53"))
 MARK = "[dense-exl3-dflash2]"
 
@@ -120,9 +117,7 @@ def main() -> int:
         print(f"installed {MODEL_SRC.name} -> {MODEL_DST}")
 
     text = QWEN.read_text()
-    patched = _apply(
-        text, QUANT_PREFIX_SHIFT_OLD, QUANT_PREFIX_SHIFT_NEW, "quant prefix shift"
-    )
+    patched = _apply(text, QUANT_PREFIX_SHIFT_OLD, QUANT_PREFIX_SHIFT_NEW, "quant prefix shift")
     patched = _apply(patched, FUSED_KV_OLD, FUSED_KV_NEW, "fused context-KV")
     if patched != text:
         compile(patched, str(QWEN), "exec")

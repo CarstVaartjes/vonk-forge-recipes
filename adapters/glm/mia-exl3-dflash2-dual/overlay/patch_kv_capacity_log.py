@@ -98,7 +98,6 @@ Usage::
     python3 patch_kv_capacity_log.py              # apply
     python3 patch_kv_capacity_log.py --preflight  # validate anchors only
 """
-
 from __future__ import annotations
 
 import hashlib
@@ -107,6 +106,7 @@ import os
 import stat
 import sys
 from pathlib import Path
+
 
 TARGET = Path(
     os.environ.get(
@@ -433,13 +433,8 @@ def cdiv(a: int, b: int) -> int:
 
 def load_helpers(logger: _RecordingLogger | None = None) -> dict:
     """Exec HELPERS_SRC into a fresh namespace (what the tests drive)."""
-    ns: dict = {
-        "os": os,
-        "math": math,
-        "cdiv": cdiv,
-        "logger": logger or _RecordingLogger(),
-    }
-    exec(compile(HELPERS_SRC, "<glm53-kv-capacity-log helpers>", "exec"), ns)  # noqa: S102
+    ns: dict = {"os": os, "math": math, "cdiv": cdiv, "logger": logger or _RecordingLogger()}
+    exec(compile(HELPERS_SRC, "<glm53-kv-capacity-log helpers>", "exec"), ns)
     return ns
 
 
@@ -458,9 +453,7 @@ kv_capacity_lines = _HELPERS["_glm53_kv_capacity_lines"]
 # Site 1 -- helpers, inserted above the function whose denominator they mirror
 # ---------------------------------------------------------------------------
 MARK_HELPERS = "# [glm53-kv-capacity-log] helpers -- log-only; see overlay/patch_kv_capacity_log.py\n"
-LEGACY_HELPERS_SHA256 = (
-    "7922a14278ed254f0431ffcc8283f135d52f04593a4a13bbec49ef9eb84dab41"
-)
+LEGACY_HELPERS_SHA256 = "7922a14278ed254f0431ffcc8283f135d52f04593a4a13bbec49ef9eb84dab41"
 
 ANCHOR_HELPERS = """def get_max_concurrency_for_kv_cache_config(
     vllm_config: VllmConfig, kv_cache_config: KVCacheConfig
@@ -514,9 +507,7 @@ def verified_state(text: str) -> bool:
         and text.count(anchor) == patched.count(anchor)
         for _name, mark, anchor, patched in SITES
     )
-    return ok and text.index(MARK_HELPERS) < text.index(ANCHOR_HELPERS) < text.index(
-        MARK_CALL
-    )
+    return ok and text.index(MARK_HELPERS) < text.index(ANCHOR_HELPERS) < text.index(MARK_CALL)
 
 
 def refresh_helpers(source: str) -> str:
@@ -539,11 +530,7 @@ def refresh_helpers(source: str) -> str:
 def prepare(source: str) -> tuple[str, str]:
     """Idempotent, fail-closed. Returns ``(text, action)``. Nothing is written here."""
     for binding in REQUIRED_BINDINGS:
-        head = (
-            source[: source.find(ANCHOR_HELPERS)]
-            if ANCHOR_HELPERS in source
-            else source
-        )
+        head = source[: source.find(ANCHOR_HELPERS)] if ANCHOR_HELPERS in source else source
         if binding not in head:
             raise ValueError(
                 f"kv_cache_utils.py does not bind {binding.strip()!r} above the "
@@ -564,6 +551,7 @@ def prepare(source: str) -> tuple[str, str]:
                 "a half-patched file"
             )
         return source, "already present"
+
 
     out = source
     for name, _mark, anchor, patched in SITES:

@@ -37,7 +37,6 @@ Patches (idempotent, fail closed on drifted anchors, marker comment):
                                             for the synchronous path
   vllm/v1/worker/gpu/cudagraph_utils.py     extra uniform decode graph lengths
 """
-
 from __future__ import annotations
 
 import os
@@ -46,11 +45,7 @@ from pathlib import Path
 
 SITE = Path("/usr/local/lib/python3.12/dist-packages/vllm")
 SCHED = Path(os.environ.get("GLM53_SCHEDULER_PY", SITE / "v1/core/sched/scheduler.py"))
-CG = Path(
-    os.environ.get(
-        "GLM53_CUDAGRAPH_UTILS_PY", SITE / "v1/worker/gpu/cudagraph_utils.py"
-    )
-)
+CG = Path(os.environ.get("GLM53_CUDAGRAPH_UTILS_PY", SITE / "v1/worker/gpu/cudagraph_utils.py"))
 MARK = "# [glm53-adaptive-k]"
 
 IMPORT_OLD = "import itertools\nimport time\n"
@@ -348,13 +343,9 @@ def patch_scheduler() -> None:
     text = text.replace(needle, SCHED_HELPER + needle, 1)
     text = replace_once(SCHED, text, OBS_OLD, OBS_NEW, "observe")
     text = replace_once(SCHED, text, UPD_OLD, UPD_NEW, "update_draft_token_ids")
-    text = replace_once(
-        SCHED, text, SCHED_K_OLD, SCHED_K_NEW, "num_spec_tokens_to_schedule"
-    )
+    text = replace_once(SCHED, text, SCHED_K_OLD, SCHED_K_NEW, "num_spec_tokens_to_schedule")
     SCHED.write_text(text)
-    print(
-        f"patched {SCHED.name} (GLM53_ADAPTIVE_K={os.environ.get('GLM53_ADAPTIVE_K', 'off')})"
-    )
+    print(f"patched {SCHED.name} (GLM53_ADAPTIVE_K={os.environ.get('GLM53_ADAPTIVE_K', 'off')})")
 
 
 def patch_cudagraph_utils() -> None:
