@@ -1,0 +1,462 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "25fe41c2e85993b4e0534b3c72f68bf327c5d2726fbe1640cf6b220715d3b0e3",
+        "repository": "docker.io/eugr/spark-vllm-b12x"
+      },
+      "context": {
+        "path": "adapters/llm/mia-ornith-b12x-single"
+      },
+      "dockerfile": "adapters/llm/mia-ornith-b12x-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "ornith-1-5-35b-a3b-nvfp4-vllm-b12x-mia-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "ornith-1.5-35b-a3b-nvfp4"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Mia's (MiaAI-Lab) single-Spark vLLM profile for Ornith 1.5 35B-A3B NVFP4 (ornith-ai checkpoint 94e431d9) with the GB10-native b12x MoE backend, in-checkpoint MTP (one speculative token, upstream's only setting), 262,144-token context, fp8 KV cache default, 24 concurrent sequences, prefix caching and qwen3 reasoning / qwen3_xml tool parsing. Runs on eugr's spark-vllm-b12x image, pinned to nightly-20260815 (upstream names the mutable :latest tag, which has since moved to a newer b12x), with upstream's two patched b12x W4A16 files baked in (they make the b12x MoE path CUDA-graph safe with MTP). Upstream claims about 86 tok/s single stream and about 440 tok/s at 24 streams; those are claims, not measured here. Notes: upstream sizes gpu-memory-utilization from free device memory at launch (up to 0.85); this recipe fixes 0.85, so nothing else may hold GPU memory. Whether the patched files match the pinned nightly is untested. Licences: repository MIT; checkpoint MIT. Not gated. Physical Spark acceptance is pending.",
+    "tags": [
+      "executable",
+      "candidate",
+      "ornith",
+      "ornith-1.5",
+      "nvfp4",
+      "b12x",
+      "vllm",
+      "mtp",
+      "reasoning",
+      "agentic",
+      "openai",
+      "single",
+      "spark",
+      "mia"
+    ],
+    "title": "Ornith 1.5 35B-A3B NVFP4 vLLM b12x (Mia) single Spark"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "file--c72cd14e9557-618cd5b83d",
+          "id": "primary-file--c72cd14e9557-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file--quant-summary-53ad6a368188-e17ab81a0d",
+          "id": "primary-file--quant-summary-53ad6a368188-e17ab81a0d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file--d790a1d453a7-04dcd99eb1",
+          "id": "primary-file--d790a1d453a7-04dcd99eb1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-a4f67cd2a7b7-b335630551",
+          "id": "primary-readme-a4f67cd2a7b7-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "ornith-35b-eval-758a8f72b41a-ab9a132fdf",
+          "id": "primary-ornith-35b-eval-758a8f72b41a-ab9a132fdf",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "ornith-logo-458ee0d85bae-76cc6f44ab",
+          "id": "primary-ornith-logo-458ee0d85bae-76cc6f44ab",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-182e77dd83bd-00824420d1",
+          "id": "primary-chat-template-182e77dd83bd-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-319ee1293a27-587cb980af",
+          "id": "primary-config-319ee1293a27-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-e70c136c1b78-97dd3d578b",
+          "id": "primary-generation-config-e70c136c1b78-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-c619bbfc5a50-a481ad90fa",
+          "id": "primary-hf-quant-config-c619bbfc5a50-a481ad90fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "id": "primary-merges-a9d356d7bdf1-b0d6dcfed4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00003-648fe8317148-5ad6951325",
+          "id": "primary-model-00001-of-00003-648fe8317148-5ad6951325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00003-cb5c5978721a-b421ec05d0",
+          "id": "primary-model-00002-of-00003-cb5c5978721a-b421ec05d0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00003-8303cef7d375-c5bdb3d6ec",
+          "id": "primary-model-00003-of-00003-8303cef7d375-c5bdb3d6ec",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-52af7e400d01-0a05be8238",
+          "id": "primary-model-safetensors-index-52af7e400d01-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "primary-preprocessor-config-27225450ac9c-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-d89ef49ce9cd-27f0cb76af",
+          "id": "primary-processor-config-d89ef49ce9cd-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-5f9e4d4901a9-224931eb13",
+          "id": "primary-tokenizer-5f9e4d4901a9-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-5186f0defcd7-94d5c6ba8f",
+          "id": "primary-tokenizer-config-5186f0defcd7-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "primary-vocab-ce99b4cb2983-ba05d8e2e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "8a33a3e7d4f5950e91a83109184533f2ff6738c4b3ccf51ceff37d7924cf3b0f",
+        "kind": "model",
+        "publisher": "ornith-ai",
+        "slug": "ornith-1-5-35b-a3b-nvfp4-94e431d9"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "MiaAI-Lab",
+      "ornith-ai",
+      "eugr (spark-vllm-b12x)",
+      "lukealonso (b12x)",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://github.com/MiaAI-Lab/Ornith-1.5-35B-A3B-DGX-Spark/tree/9fd7fe7896230550fad1c773e85ad765292cfde5"
+  },
+  "release": {
+    "released_at": "2026-08-19",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "ornith-1.5-35b-a3b-nvfp4"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "spec-method",
+        "setting": null,
+        "value": "mtp"
+      },
+      {
+        "name": "spec-tokens",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "moe-backend",
+        "setting": null,
+        "value": "b12x"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.85"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "qwen3_xml"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "qwen3"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 24
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 23420417532,
+            "image_bytes": 12000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 50840835064
+          },
+          "memory": {
+            "peak_bytes": 65000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "ornith-1.5-35b-a3b-nvfp4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
