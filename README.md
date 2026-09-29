@@ -39,7 +39,7 @@ Which engines each model family runs on.
 | MOVA |  |  |  |  |  |  |  |  | ✓ |
 | Muse Glimmer | ✓ |  |  |  |  |  |  |  |  |
 | Nemotron | ✓ | ✓ |  |  |  |  |  |  |  |
-| Ornith | ✓ |  |  |  |  |  |  |  |  |
+| Ornith | ✓ | ✓ |  |  |  |  |  |  |  |
 | Pixal3D |  |  |  |  |  |  |  |  | ✓ |
 | Qwen (text and vision) | ✓ | ✓ |  |  | ✓ |  |  |  |  |
 | Qwen Image |  |  |  |  |  |  | ✓ | ✓ |  |
