@@ -1,0 +1,7 @@
+{
+  "source": {
+    "repo": "r0b0tlab/laguna-s-2.1-nvfp4-sm121-vllm",
+    "commit": "4cf44cf36b88b564031ddb19c41d7cb9cfe0f52a"
+  },
+  "ours": []
+}
