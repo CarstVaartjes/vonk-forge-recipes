@@ -1,0 +1,12 @@
+{
+  "ours": [
+    "NOTICE",
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {},
+  "source": {
+    "commit": "94d729896226db3eaf7f584e79b7c1f0028bab1d",
+    "repo": "MiaAI-Lab/Leanstral-1.5-119B-A6B_2x_DGX_Sparks_vLLM"
+  }
+}

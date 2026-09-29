@@ -1,0 +1,573 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "32445b36556244d8a721cd21a2b47a7915bc6408432d05aaeab205bb223ced8b",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/mistral/leanstral-mia-vllm-dual"
+      },
+      "dockerfile": "adapters/mistral/leanstral-mia-vllm-dual/Dockerfile",
+      "network": {
+        "hosts": [
+          "files.pythonhosted.org",
+          "pypi.org"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "leanstral-1-5-119b-a6b-vllm-mia-dual"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "mistralai/Leanstral-1.5-119B-A6B"
+      ],
+      "port": 8888
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Mistral Leanstral 1.5 119B A6B (Lean 4 code agent, 128-expert MoE, FP8, Apache-2.0) on two Sparks with stock vLLM v0.24.0, Ray, tensor parallel 2, 262144-token context, up to 7 concurrent sequences, text and image input, Mistral tool-call and reasoning parsers, eager mode. Basis: MiaAI-Lab's dual-Spark start.sh (no licence file upstream). Optional EAGLE draft (off by default; upstream reports it unstable). Upstream advises reasoning_effort none for general use and a context of 200k or less; Vonk physical two-Spark acceptance is pending.",
+    "tags": [
+      "eagle",
+      "leanstral",
+      "lean4",
+      "mistral",
+      "multimodal",
+      "ray",
+      "reasoning",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "Leanstral 1.5 119B A6B vLLM two Sparks"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-a1533fad1fb4-618cd5b83d",
+          "id": "primary-metadata-a1533fad1fb4-618cd5b83d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-47cd16682705-b335630551",
+          "id": "primary-readme-47cd16682705-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "chat-template-7a5a4bc329e3-00824420d1",
+          "id": "primary-chat-template-7a5a4bc329e3-00824420d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "consolidated-00001-of-00007-44cd9c050a3a-38464ae040",
+          "id": "primary-consolidated-00001-of-00007-44cd9c050a3a-38464ae040",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "consolidated-00002-of-00007-47a59780b2b0-588e150c76",
+          "id": "primary-consolidated-00002-of-00007-47a59780b2b0-588e150c76",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "consolidated-00003-of-00007-91df3ddbeedc-1dd12465dd",
+          "id": "primary-consolidated-00003-of-00007-91df3ddbeedc-1dd12465dd",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "consolidated-00004-of-00007-28bdd6b8cd70-d298bcd528",
+          "id": "primary-consolidated-00004-of-00007-28bdd6b8cd70-d298bcd528",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "consolidated-00005-of-00007-c5b9a4c1252e-9a5971d4fc",
+          "id": "primary-consolidated-00005-of-00007-c5b9a4c1252e-9a5971d4fc",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "consolidated-00006-of-00007-711367576716-21e0dc86a7",
+          "id": "primary-consolidated-00006-of-00007-711367576716-21e0dc86a7",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "consolidated-00007-of-00007-9b12240bd395-1c9f9d3cc4",
+          "id": "primary-consolidated-00007-of-00007-9b12240bd395-1c9f9d3cc4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "consolidated-safetensors-index-6b0ba100e201-b6dac7997a",
+          "id": "primary-consolidated-safetensors-index-6b0ba100e201-b6dac7997a",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "params-93f5e26c0d88-7b631c57f5",
+          "id": "primary-params-93f5e26c0d88-7b631c57f5",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tekken-b1272b956bd6-1750e96afb",
+          "id": "primary-tekken-b1272b956bd6-1750e96afb",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "4d4e5777fd5bf1fd008a25ae810596b6932bd4c7bf9eb16d0cf4249bfc17d8f7",
+        "kind": "model",
+        "publisher": "mistralai",
+        "slug": "leanstral-1-5-119b-a6b-81592da9"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-a1533fad1fb4-618cd5b83d",
+          "id": "draft-metadata-a1533fad1fb4-618cd5b83d",
+          "mount": {
+            "target": "/models/eagle"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-320248f2d312-b335630551",
+          "id": "draft-readme-320248f2d312-b335630551",
+          "mount": {
+            "target": "/models/eagle"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "chat-template-de56319deee1-00824420d1",
+          "id": "draft-chat-template-de56319deee1-00824420d1",
+          "mount": {
+            "target": "/models/eagle"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "consolidated-fe26a882ffba-e2816af0af",
+          "id": "draft-consolidated-fe26a882ffba-e2816af0af",
+          "mount": {
+            "target": "/models/eagle"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "params-0d209156458d-7b631c57f5",
+          "id": "draft-params-0d209156458d-7b631c57f5",
+          "mount": {
+            "target": "/models/eagle"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tekken-b1272b956bd6-1750e96afb",
+          "id": "draft-tekken-b1272b956bd6-1750e96afb",
+          "mount": {
+            "target": "/models/eagle"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "draft",
+      "model": {
+        "content_sha256": "b90f7cb77ccbec35f7a942d877c0b2251683a03f0c3db1bb1bb19fa3a721aabf",
+        "kind": "model",
+        "publisher": "mistralai",
+        "slug": "mistral-small-4-119b-2603-eagle-9a8ea22d"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "--tool-call-parser mistral with --enable-auto-tool-choice (upstream default).",
+          "label": "On (default)",
+          "value": "on"
+        },
+        {
+          "args": [
+            {
+              "name": "enable-auto-tool-choice",
+              "setting": null,
+              "value": false
+            }
+          ],
+          "help": "Automatic tool choice disabled.",
+          "label": "Off",
+          "value": "off"
+        }
+      ],
+      "help": "Mistral tool-call parser with automatic tool choice. Upstream keeps it on and documents turning it off only to isolate chat stability problems.",
+      "label": "Tool calling",
+      "name": "tool-calls"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "--enforce-eager, no CUDA graph capture (upstream default).",
+          "label": "Eager (default)",
+          "value": "eager"
+        },
+        {
+          "args": [
+            {
+              "name": "enforce-eager",
+              "setting": null,
+              "value": false
+            }
+          ],
+          "help": "Allow vLLM to capture CUDA graphs. Not exercised by upstream, which defaults to eager; capture adds start-up time and memory.",
+          "label": "CUDA graphs",
+          "value": "graphs"
+        }
+      ],
+      "help": "Upstream runs in eager mode (ENFORCE_EAGER=1) by default; CUDA graph capture is the alternative.",
+      "label": "Execution mode",
+      "name": "execution"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "No speculative decoding (upstream default).",
+          "label": "Off (default)",
+          "value": "off"
+        },
+        {
+          "args": [
+            {
+              "name": "speculative-config",
+              "setting": null,
+              "value": "{\"model\":\"/models/eagle\",\"num_speculative_tokens\":3,\"method\":\"eagle\",\"max_model_len\":\"65536\"}"
+            }
+          ],
+          "help": "Experimental; upstream reports instability. The draft weights are mounted either way.",
+          "label": "EAGLE 3 tokens",
+          "value": "eagle"
+        }
+      ],
+      "help": "Optional EAGLE draft head (mistralai/Mistral-Small-4-119B-2603-eagle, about 392 MB, 3 speculative tokens, draft context 65536). It is a Mistral Small 4 draft, not Leanstral-specific. Upstream reports it unstable on this Leanstral setup (an execute_model timeout in shm_broadcast and chat crashes), so it is off by default.",
+      "label": "Speculative decoding",
+      "name": "speculative"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Mistral AI",
+      "MiaAI-Lab",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://github.com/MiaAI-Lab/Leanstral-1.5-119B-A6B_2x_DGX_Sparks_vLLM/tree/94d729896226db3eaf7f584e79b7c1f0028bab1d"
+  },
+  "release": {
+    "released_at": "2026-07-04",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "mistralai/Leanstral-1.5-119B-A6B"
+      },
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 2
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.85"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 16384
+      },
+      {
+        "name": "mm-processor-cache-type",
+        "setting": null,
+        "value": "lru"
+      },
+      {
+        "name": "enforce-eager",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "async-scheduling",
+        "setting": null,
+        "value": false
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "mistral"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "mistral"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models/target"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_ENGINE_ITERATION_TIMEOUT_S",
+        "value": "600"
+      },
+      {
+        "name": "VLLM_ENGINE_READY_TIMEOUT_S",
+        "value": "3600"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 7
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "dual",
+    "node_count": 2,
+    "parallelism": {
+      "backend": "ray",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 2
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 121355133768,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 24000000000,
+            "working_bytes": 65000000000
+          },
+          "memory": {
+            "peak_bytes": 124000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      },
+      {
+        "count": 1,
+        "endpoint_owner": false,
+        "name": "worker",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 121355133768,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 24000000000,
+            "working_bytes": 65000000000
+          },
+          "memory": {
+            "peak_bytes": 124000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint",
+      "worker"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "mistralai/Leanstral-1.5-119B-A6B",
+              "reasoning_effort": "none"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
