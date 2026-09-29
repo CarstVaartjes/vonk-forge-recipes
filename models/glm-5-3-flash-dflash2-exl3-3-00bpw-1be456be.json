@@ -1,0 +1,100 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-70e0ed421d65-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "70e0ed421d653865ad7ace84728e32ded01ec0a860e989a5ed736fe11b42214f",
+      "size_bytes": 116
+    },
+    {
+      "id": "readme-6bd05616d213-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "6bd05616d213cf8bb4353d19b24583710268cea4fda10ca07f61aa4e691549d2",
+      "size_bytes": 4098
+    },
+    {
+      "id": "config-a672ed12d2fb-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a672ed12d2fbf876b03af45804ff44a00f39307b6fadfc4d021e59d1dbc7811f",
+      "size_bytes": 1539
+    },
+    {
+      "id": "model-54e9e679cb76-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "54e9e679cb7658d3c32cb429e6217c50e1ca9b64986b4b76b8c6ec0e13be23d0",
+      "size_bytes": 639051136
+    },
+    {
+      "id": "quantization-config-e43187b247f0-6f24389fb3",
+      "path": "quantization_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e43187b247f07bdb7170f0e30b96913fb6bdd2a84331eae60742e87177ef1797",
+      "size_bytes": 33823
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "exl3-3-00bpw"
+  },
+  "identity": {
+    "family": {
+      "publisher": "r0b0tlab",
+      "slug": "glm-5-3-r0b0tlab",
+      "title": "GLM 5.3 r0b0tlab"
+    },
+    "model": {
+      "publisher": "r0b0tlab",
+      "slug": "glm-5-3-flash-dflash2-exl3-3-00bpw",
+      "title": "GLM 5.3 Flash DFlash2 EXL3 3.00bpw draft"
+    },
+    "publisher": "r0b0tlab",
+    "slug": "glm-5-3-flash-dflash2-exl3-3-00bpw-1be456be",
+    "variant": "GLM 5.3 Flash DFlash2 EXL3 3.00bpw 1be456be",
+    "version": "GLM 5.3 Flash DFlash2 EXL3 3.00bpw 1be456be"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "IncoAI",
+      "r0b0tlab",
+      "Turboderp"
+    ],
+    "spdx": "CC-BY-NC-ND-4.0",
+    "url": "https://huggingface.co/r0b0tlab/GLM-5.3-Flash-DFlash2-EXL3-3.00bpw/blob/1be456bebedd45d82356ce90d289bce2be147193/README.md"
+  },
+  "metadata": {
+    "description": "Exact public r0b0tlab EXL3 3.00 bpw quantization of the IncoAI GLM 5.3 Flash DFlash2 draft (610 MiB). Licensed CC BY-NC-ND 4.0 (non-commercial, no derivatives), inherited from incoai/GLM-5.3-Flash-DFlash2.",
+    "tags": [
+      "r0b0tlab",
+      "glm-5-3-r0b0tlab",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/r0b0tlab/GLM-5.3-Flash-DFlash2-EXL3-3.00bpw",
+    "revision": "1be456bebedd45d82356ce90d289bce2be147193"
+  }
+}
