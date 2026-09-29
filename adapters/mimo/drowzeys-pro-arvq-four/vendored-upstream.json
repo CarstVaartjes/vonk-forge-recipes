@@ -1,0 +1,9 @@
+{
+  "source": {
+    "repo": "drowzeys/keys-MiMo-V2.6-Pro-MOPD-C3-Jarrelscy-ARVQ-4-DGX-Sparks-1M-Context",
+    "commit": "d8a10997f2c6b1b6140b204fc5dddddd247d894b"
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ]
+}
