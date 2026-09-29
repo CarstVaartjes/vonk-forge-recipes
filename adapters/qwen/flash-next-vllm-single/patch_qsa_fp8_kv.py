@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (C) 2026 MiaAI Lab (https://x.com/MiaAI_lab)
-# Vendored unchanged from MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark.
 """Teach the Qwen3.8-Flash-Next QSA kernels to read an FP8-e4m3 KV cache.
 
 Credit, for this file only: the FP8-KV approach comes from
@@ -34,6 +33,7 @@ Outputs: files/qsa_ops_patched.py, files/qsa_nvidia_patched.py
 import ast
 import os
 import sys
+from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -43,8 +43,7 @@ def patch(name: str, edits: list[tuple[str, str]]) -> None:
     dest = os.path.join(HERE, name)
     if not os.path.exists(orig):
         sys.exit(f"{name}: missing {orig} (start.sh extracts it from the image)")
-    with open(orig) as f:
-        src = f.read()
+    src = Path(orig).read_text()
     for i, (old, new) in enumerate(edits):
         count = src.count(old)
         if count != 1:
@@ -56,8 +55,7 @@ def patch(name: str, edits: list[tuple[str, str]]) -> None:
         ast.parse(src)
     except SyntaxError as exc:
         sys.exit(f"{name}: patched source does not parse: {exc}")
-    with open(dest, "w") as f:
-        f.write(src)
+    Path(dest).write_text(src)
     print(f"patched {name}")
 
 
