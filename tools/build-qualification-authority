@@ -430,7 +430,7 @@ def _refresh_plan(text: str, authority: dict[str, Any]) -> str:
         key = plan_row["key"]
         row = row_by_key.get(key)
         if row is None:
-            if plan_row["sequence"] <= 82:
+            if plan_row["sequence"] <= 83:
                 raise ValueError(f"campaign row is absent from authority: {key}")
             gate = "out of scope (>2 Sparks)"
             batch_id = "—"
@@ -632,9 +632,9 @@ def _build(catalog_root: Path = ROOT) -> dict[Path, bytes]:
             )
         campaign_rows.append(row)
 
-    if len(campaign_rows) != 82 or len(out_of_scope) != 4:
+    if len(campaign_rows) != 83 or len(out_of_scope) != 4:
         raise ValueError(
-            "catalog topology must produce 82 in-scope and 4 wider recipes"
+            "catalog topology must produce 83 in-scope and 4 wider recipes"
         )
     if any(
         key not in {row["key"] for row in campaign_rows} for key in capacity_reviews
@@ -726,12 +726,12 @@ def main() -> int:
                     "qualification authority outputs are stale: "
                     + ", ".join(path.relative_to(ROOT).as_posix() for path in stale)
                 )
-            print("qualification authority is current (82 recipes, paired schedule)")
+            print("qualification authority is current (83 recipes, paired schedule)")
             return 0
         for path, content in outputs.items():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(content)
-        print("refreshed qualification authority and batched campaign (82 recipes)")
+        print("refreshed qualification authority and batched campaign (83 recipes)")
         return 0
     except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
         print(f"build-qualification-authority: {error}", file=sys.stderr)
