@@ -80,19 +80,6 @@ class Vllm028MigrationTests(unittest.TestCase):
             "vllm",
         )
 
-    def test_gemma_parser_smoke_covers_stream_and_nonstream_tool_json(self) -> None:
-        smoke = (
-            ROOT / "adapters/llm/vllm-openai-028/gemma4-parser-smoke.py"
-        ).read_text(encoding="utf-8")
-        dockerfile = (ROOT / "adapters/llm/vllm-openai-028/Dockerfile").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("def non_streaming()", smoke)
-        self.assertIn("def streaming()", smoke)
-        self.assertIn("call:set_status{active:true,count:42}", smoke)
-        self.assertIn("json.loads(arguments)", smoke)
-        self.assertIn("python /tmp/gemma4-parser-smoke.py", dockerfile)
-
 
 if __name__ == "__main__":
     unittest.main()

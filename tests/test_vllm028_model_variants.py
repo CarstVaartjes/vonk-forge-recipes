@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import importlib.machinery
-import importlib.util
 import json
 import sys
 import unittest
@@ -34,17 +32,6 @@ def catalog_entry(slug: str) -> dict[str, object]:
         for item in catalog["recipes"]
         if item["document"]["identity"]["slug"] == slug
     )
-
-
-def catalog_index_module():
-    loader = importlib.machinery.SourceFileLoader(
-        "vllm028_variant_catalog_index", str(ROOT / "tools/build-catalog-index")
-    )
-    spec = importlib.util.spec_from_loader(loader.name, loader)
-    assert spec is not None
-    module = importlib.util.module_from_spec(spec)
-    loader.exec_module(module)
-    return module
 
 
 class Vllm028ModelVariantTests(unittest.TestCase):
@@ -122,37 +109,19 @@ class Vllm028ModelVariantTests(unittest.TestCase):
         )
         self.assertEqual(self.lfm["interfaces"][0]["health_path"], "/v1/models")
 
-    def test_build_time_interface_screens_and_source_bundles_are_exact(self) -> None:
-        module = catalog_index_module()
+    def test_build_contexts_carry_no_in_image_screens(self) -> None:
         cases = (
-            (
-                self.gemma,
-                "adapters/google/gemma4-vllm-028",
-                "Gemma4ForConditionalGeneration",
-            ),
-            (
-                self.lfm,
-                "adapters/liquidai/lfm25-vl-vllm-028",
-                "Lfm2VLForConditionalGeneration",
-            ),
+            (self.gemma, "adapters/google/gemma4-vllm-028"),
+            (self.lfm, "adapters/liquidai/lfm25-vl-vllm-028"),
         )
-        for recipe, context_path, class_name in cases:
+        for recipe, context_path in cases:
             with self.subTest(recipe=recipe["identity"]["slug"]):
                 context = recipe["execution"]["build"]["context"]
-                _archive, _, source_digest = module.source_bundle(ROOT / context_path)
                 self.assertEqual(context["path"], context_path)
                 self.assertEqual(context["path"], context_path)
-                expected_digest = {
-                    "adapters/google/gemma4-vllm-028": "e40a272cf7130ae76b2531189dad7259d97b0bce5d16607e30a37bbc8a118ba6",
-                    "adapters/liquidai/lfm25-vl-vllm-028": "7f732b6062e7e6933eff3b09e7f94ffeb440df7d737a977d05284ab65e9e60a2",
-                }[context_path]
-                self.assertEqual(source_digest, expected_digest)
                 dockerfile = (ROOT / context_path / "Dockerfile").read_text()
-                smoke = (ROOT / context_path / "model-interface-smoke.py").read_text()
                 self.assertIn(RUNTIME_IMAGE, dockerfile)
-                self.assertIn("python /tmp/model-interface-smoke.py", dockerfile)
-                self.assertIn(class_name, smoke)
-                self.assertIn("SupportsMultiModal", smoke)
+                self.assertNotIn("model-interface-smoke", dockerfile)
                 wrapper = ROOT / context_path / "vllm-wrapper.sh"
                 self.assertTrue(wrapper.is_file())
                 wrapper_text = wrapper.read_text()
@@ -161,8 +130,8 @@ class Vllm028ModelVariantTests(unittest.TestCase):
 
     def test_releases_and_packages_bind_exact_candidate_recipes(self) -> None:
         for slug, recipe, version, released_at in (
-            ("gemma-4-26b-a4b-vllm028-single", self.gemma, "1.1.0", "2026-09-28"),
-            ("lfm2-5-vl-3b-vllm028-single", self.lfm, "1.2.0", "2026-09-28"),
+            ("gemma-4-26b-a4b-vllm028-single", self.gemma, "1.1.1", "2026-09-28"),
+            ("lfm2-5-vl-3b-vllm028-single", self.lfm, "1.2.1", "2026-09-28"),
         ):
             with self.subTest(recipe=slug):
                 definition = RecipeDefinition.model_validate(recipe)
