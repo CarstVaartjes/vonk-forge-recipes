@@ -927,10 +927,6 @@
         "value": "expandable_segments:True"
       },
       {
-        "name": "RAY_memory_monitor_refresh_ms",
-        "value": "0"
-      },
-      {
         "name": "VLLM_USE_RAY_V2_EXECUTOR_BACKEND",
         "value": "0"
       },
