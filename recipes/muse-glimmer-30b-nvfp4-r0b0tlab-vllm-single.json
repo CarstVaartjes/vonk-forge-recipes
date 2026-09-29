@@ -1,0 +1,476 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/llm/r0b0tlab-muse-nvfp4-vllm-single"
+      },
+      "dockerfile": "adapters/llm/r0b0tlab-muse-nvfp4-vllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "muse-glimmer-30b-nvfp4-r0b0tlab-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "muse-glimmer-30b-nvfp4"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "r0b0tlab's single-Spark vLLM profile for its own NVFP4 (W4A4, block 16; NVIDIA Model Optimizer 0.45, cnn_dailymail calibration) quantization of Meta's Muse Glimmer-30B (29.6B dense multimodal model, ViT-G/14 vision tower, Apache-2.0), from r0b0tlab/muse-glimmer-30b-nvfp4-vllm at d22c7324 (MIT). Upstream serves it from a source build of vllm-project/vllm PR #51655 (head 1f7f0715, plain sm_120 cubins: sm_120a cubins do not run on SM121); Muse support has since shipped in the official vLLM 0.30.0 ARM64 release image that the catalog's Muse BF16 recipe already uses, so this recipe runs upstream's checkpoint and flags on that image instead. That runtime substitution is not what upstream measured. Flags from upstream's serve recipe: bfloat16, 131,072-token context, memory utilisation 0.70 (0.80 pre-allocates into the host-reserve danger zone at that context), 8 sequences, eager mode, FlashInfer for LLM attention and the ViT encoder (required for this family on SM121), FP8 KV, modelopt_fp4 with the FlashInfer CUTLASS linear backend, one image per prompt, muse_glimmer reasoning and tool parsers. Muse reasoning needs a token budget of at least about 256 to 512 for the answer channel to fill, and the model is nondeterministic at temperature 0. Upstream claims (not measured here): about 10.3 tok/s single stream (2.5x BF16), 52.5 tok/s aggregate at c16, 131,072-token needle retrieval at 3 depths, GSM8K-200 91.0%, HumanEval 85.4%. Upstream's optional DFlash combination with NVFP4 is blocked upstream and not offered. Physical Spark acceptance is pending.",
+    "tags": [
+      "candidate",
+      "executable",
+      "meta",
+      "multimodal",
+      "muse",
+      "nvfp4",
+      "r0b0tlab",
+      "reasoning",
+      "single",
+      "spark",
+      "tool-use",
+      "vision",
+      "vllm"
+    ],
+    "title": "Muse Glimmer 30B NVFP4 vLLM single Spark (r0b0tlab)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "primary-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-cfc7749b96f6-c693279643",
+          "id": "primary-license-cfc7749b96f6-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-ecb453907be4-b335630551",
+          "id": "primary-readme-ecb453907be4-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "usage-policy-98a14dab9fd9-8f847fd353",
+          "id": "primary-usage-policy-98a14dab9fd9-8f847fd353",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-114f55ebdc18-00824420d1",
+          "id": "primary-chat-template-114f55ebdc18-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-4c31eae731f9-587cb980af",
+          "id": "primary-config-4c31eae731f9-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-b69d5d2d2530-97dd3d578b",
+          "id": "primary-generation-config-b69d5d2d2530-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-703d24bcd40e-a481ad90fa",
+          "id": "primary-hf-quant-config-703d24bcd40e-a481ad90fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00003-96543e7945fe-5ad6951325",
+          "id": "primary-model-00001-of-00003-96543e7945fe-5ad6951325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00003-879b32448d8b-b421ec05d0",
+          "id": "primary-model-00002-of-00003-879b32448d8b-b421ec05d0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00003-530902fd589b-c5bdb3d6ec",
+          "id": "primary-model-00003-of-00003-530902fd589b-c5bdb3d6ec",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-a7cd8b807b37-0a05be8238",
+          "id": "primary-model-safetensors-index-a7cd8b807b37-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modelopt-provenance-ad2cf794b342-d2de8d32c5",
+          "id": "primary-modelopt-provenance-ad2cf794b342-d2de8d32c5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-97e2a486dd98-27f0cb76af",
+          "id": "primary-processor-config-97e2a486dd98-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "quantization-complete-5bd4e936860a-be13afd83f",
+          "id": "primary-quantization-complete-5bd4e936860a-be13afd83f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-c9dbee66967b-224931eb13",
+          "id": "primary-tokenizer-c9dbee66967b-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-0c06e0c01874-94d5c6ba8f",
+          "id": "primary-tokenizer-config-0c06e0c01874-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "8fc95722360a7d88a0825d449575a76e2caf669393ac33d131b4504de00c4cce",
+        "kind": "model",
+        "publisher": "r0b0tlab",
+        "slug": "muse-glimmer-30b-nvfp4-d356db1d"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "r0b0tlab (MIT)",
+      "Meta (Apache-2.0)",
+      "vLLM contributors (Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/r0b0tlab/muse-glimmer-30b-nvfp4-vllm/tree/d22c7324f72fd6cdb95f54763d2bf2e2b7aac814"
+  },
+  "release": {
+    "released_at": "2026-08-15",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "muse-glimmer-30b-nvfp4"
+      },
+      {
+        "name": "dtype",
+        "setting": null,
+        "value": "bfloat16"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.70"
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "enforce-eager",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "FLASHINFER"
+      },
+      {
+        "name": "mm-encoder-attn-backend",
+        "setting": null,
+        "value": "FLASHINFER"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "modelopt_fp4"
+      },
+      {
+        "name": "linear-backend",
+        "setting": null,
+        "value": "flashinfer_cutlass"
+      },
+      {
+        "name": "limit-mm-per-prompt",
+        "setting": null,
+        "value": "{\"image\":1}"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "muse_glimmer"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "muse_glimmer"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_WORKER_MULTIPROC_METHOD",
+        "value": "spawn"
+      },
+      {
+        "name": "VLLM_BATCH_INVARIANT",
+        "value": "0"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 8
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 131072
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 25447648897,
+            "image_bytes": 26000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 96000000000,
+            "reserve_bytes": 16000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "muse-glimmer-30b-nvfp4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.vision",
+          "name": "bounded-vision",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": [
+                    {
+                      "text": "describe this image",
+                      "type": "text"
+                    },
+                    {
+                      "image_url": {
+                        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAACXBIWXMAAAABAAAAAQBPJcTWAAAAYElEQVR4nO3PwQkAIBDAMAX3H/lwCB9BaCZo96y/HR3wqgGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQHtAgK6AfwYG1VIAAAAAElFTkSuQmCC"
+                      },
+                      "type": "image_url"
+                    }
+                  ],
+                  "role": "user"
+                }
+              ],
+              "model": "muse-glimmer-30b-nvfp4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

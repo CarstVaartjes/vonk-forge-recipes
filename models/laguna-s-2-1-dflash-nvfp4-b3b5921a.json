@@ -1,0 +1,97 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-11ad7efa2497-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "readme-3fa097646fcc-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "3fa097646fccd5a4fb5663a5075ea010dc571539bf8ba47e2f447e4891a60239",
+      "size_bytes": 1888
+    },
+    {
+      "id": "config-6195643943c0-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "6195643943c01daa06379a5ee7fce70d9535463bcc02e60733bcd9a9cd2ccda6",
+      "size_bytes": 1089
+    },
+    {
+      "id": "config-7f908e8aea46-117426151e",
+      "path": "config.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7f908e8aea464132f6cb24e35f0adeee59ceed318f75ec4ee5f08bdff1aec07c",
+      "size_bytes": 6071
+    },
+    {
+      "id": "model-9616083d2a7a-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9616083d2a7ae33a41173232e345d3d3f634d688ae6858dc39f95ef73809040f",
+      "size_bytes": 2229962896
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "poolside",
+      "slug": "poolside",
+      "title": "Poolside Laguna"
+    },
+    "model": {
+      "publisher": "poolside",
+      "slug": "laguna-s-2-1-dflash-nvfp4",
+      "title": "Laguna S 2.1 NVFP4 DFlash draft"
+    },
+    "publisher": "poolside",
+    "slug": "laguna-s-2-1-dflash-nvfp4-b3b5921a",
+    "variant": "DFlash NVFP4 b3b5921a",
+    "version": "DFlash NVFP4 b3b5921a"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Poolside"
+    ],
+    "spdx": "NOASSERTION",
+    "url": "https://huggingface.co/poolside/Laguna-S-2.1-DFlash-NVFP4/blob/b3b5921a900b9e0a1e27e50bdaeb480692a6d19b/README.md"
+  },
+  "metadata": {
+    "description": "Exact public DFlash speculative draft (BF16, 6 layers) for the Laguna S 2.1 NVFP4 target at b3b5921a; the repository declares no licence.",
+    "tags": [
+      "poolside",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/poolside/Laguna-S-2.1-DFlash-NVFP4",
+    "revision": "b3b5921a900b9e0a1e27e50bdaeb480692a6d19b"
+  }
+}

@@ -1,0 +1,5 @@
+start.sh.upstream, download.sh.upstream and LICENSE.upstream are the unmodified files
+from https://github.com/MiaAI-Lab/Qwen3.8-27B-DGX-Spark-RTX-6000 at commit
+608a48de75ba059fc9415947ad636a123935da15 (MIT). They document the launch profile the
+recipe reproduces; the image itself is the unmodified vLLM nightly-aarch64 build
+(Apache-2.0) at a pinned digest plus the platform launcher.

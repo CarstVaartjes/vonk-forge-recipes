@@ -1,0 +1,619 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2cc49b81319f7a66a33dd8bd63a7bfddae079122b33ce51989b6828a1f038c37",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/google/gemma4-31b-nvfp4-mia-vllm-single"
+      },
+      "dockerfile": "adapters/google/gemma4-31b-nvfp4-mia-vllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "gemma-4-31b-it-nvfp4-vllm-mia-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "nvidia/Gemma-4-31B-IT-NVFP4"
+      ],
+      "port": 8888
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "NVIDIA's NVFP4 (ModelOpt) quantization of Google Gemma 4 31B IT on one Spark with stock vLLM v0.25.1: 262144-token context, fp8 KV cache, up to 2 concurrent sequences, MTP speculative decoding (4 tokens) with Google's gemma-4-31B-it-assistant, image and video input, thinking on by default, Gemma 4 reasoning and tool-call parsers. Basis: MiaAI-Lab's start.sh (no licence file upstream; its README says scripts are MIT). Model and assistant are under Google's Gemma terms (recorded as information). Upstream throughput and KV-capacity figures are its claims; Vonk physical Spark acceptance is pending. Security note: upstream allows the server to fetch images from any URL (--allowed-media-domains *). Anyone who can send requests to this endpoint can make the Spark fetch arbitrary URLs, including addresses on your local network.",
+    "tags": [
+      "candidate",
+      "executable",
+      "fp8-kv",
+      "gemma",
+      "google",
+      "modelopt",
+      "mtp",
+      "multimodal",
+      "nvfp4",
+      "reasoning",
+      "single",
+      "spark",
+      "speculative-decoding",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "Gemma 4 31B IT NVFP4 MTP vLLM single Spark (Mia)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "primary-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file--quant-summary-cfc2fb2a5047-e17ab81a0d",
+          "id": "primary-file--quant-summary-cfc2fb2a5047-e17ab81a0d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-892a023119d3-b335630551",
+          "id": "primary-readme-892a023119d3-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-94899c0f917d-00824420d1",
+          "id": "primary-chat-template-94899c0f917d-00824420d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-aa03a6a490fb-587cb980af",
+          "id": "primary-config-aa03a6a490fb-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-d4226bbe3117-97dd3d578b",
+          "id": "primary-generation-config-d4226bbe3117-97dd3d578b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-7295b239347a-a481ad90fa",
+          "id": "primary-hf-quant-config-7295b239347a-a481ad90fa",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00004-4d955de1f740-1913267ec8",
+          "id": "primary-model-00001-of-00004-4d955de1f740-1913267ec8",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00004-f8418783fa27-60f6088da9",
+          "id": "primary-model-00002-of-00004-f8418783fa27-60f6088da9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00004-5cfe8ee0f73c-fc35f2c4d5",
+          "id": "primary-model-00003-of-00004-5cfe8ee0f73c-fc35f2c4d5",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00004-4dbb1ed31e59-5078e75d62",
+          "id": "primary-model-00004-of-00004-4dbb1ed31e59-5078e75d62",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-aff5569bed01-0a05be8238",
+          "id": "primary-model-safetensors-index-aff5569bed01-0a05be8238",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-32bdf45d2ad4-27f0cb76af",
+          "id": "primary-processor-config-32bdf45d2ad4-27f0cb76af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-cc8d3a0ce364-224931eb13",
+          "id": "primary-tokenizer-cc8d3a0ce364-224931eb13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-e467669cfe17-94d5c6ba8f",
+          "id": "primary-tokenizer-config-e467669cfe17-94d5c6ba8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "d0f508fcc0e6e7c51c089e232eb40b6e089145ceb228d974aadafd5421156fb5",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "gemma-4-31b-it-nvfp4-4135a98a"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "assistant-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models/assistant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-85bc257e770a-b335630551",
+          "id": "assistant-readme-85bc257e770a-b335630551",
+          "mount": {
+            "target": "/models/assistant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-d09487c1083a-587cb980af",
+          "id": "assistant-config-d09487c1083a-587cb980af",
+          "mount": {
+            "target": "/models/assistant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-8e58004dc0e2-97dd3d578b",
+          "id": "assistant-generation-config-8e58004dc0e2-97dd3d578b",
+          "mount": {
+            "target": "/models/assistant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-9f80df6099fa-9d75c1098f",
+          "id": "assistant-model-9f80df6099fa-9d75c1098f",
+          "mount": {
+            "target": "/models/assistant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-75a6583c1a41-224931eb13",
+          "id": "assistant-tokenizer-75a6583c1a41-224931eb13",
+          "mount": {
+            "target": "/models/assistant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-089594a3924f-94d5c6ba8f",
+          "id": "assistant-tokenizer-config-089594a3924f-94d5c6ba8f",
+          "mount": {
+            "target": "/models/assistant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "assistant",
+      "model": {
+        "content_sha256": "42a390d10879546c272829fdf373ae1eb6ad622dedb614272bf4afa26399aceb",
+        "kind": "model",
+        "publisher": "google",
+        "slug": "gemma-4-31b-it-assistant-627c5ec1"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "enable_thinking true (upstream default); reasoning is returned in the reasoning field via the gemma4 parser.",
+          "label": "On (default)",
+          "value": "on"
+        },
+        {
+          "args": [
+            {
+              "name": "default-chat-template-kwargs",
+              "setting": null,
+              "value": "{\"enable_thinking\":false}"
+            }
+          ],
+          "help": "enable_thinking false by default; faster short answers.",
+          "label": "Off",
+          "value": "off"
+        }
+      ],
+      "help": "Whether the chat template thinks by default. Requests can still override it with chat_template_kwargs.enable_thinking.",
+      "label": "Thinking default",
+      "name": "thinking"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "--gpu-memory-utilization 0.70 (upstream default).",
+          "label": "0.70 (default)",
+          "value": "util-070"
+        },
+        {
+          "args": [
+            {
+              "name": "gpu-memory-utilization",
+              "setting": null,
+              "value": "0.85"
+            }
+          ],
+          "help": "--gpu-memory-utilization 0.85; upstream estimates about 740K KV tokens (not measured).",
+          "label": "0.85",
+          "value": "util-085"
+        },
+        {
+          "args": [
+            {
+              "name": "gpu-memory-utilization",
+              "setting": null,
+              "value": "0.95"
+            },
+            {
+              "name": "max-num-batched-tokens",
+              "setting": null,
+              "value": 16384
+            }
+          ],
+          "help": "Upstream's higher-concurrency example: --gpu-memory-utilization 0.95 with --max-num-batched-tokens 16384 (also raise concurrency); upstream estimates about 870K KV tokens (not measured).",
+          "label": "0.95 + 16384 batched tokens",
+          "value": "util-095"
+        }
+      ],
+      "help": "vLLM memory budget. Upstream measured 27.96 GiB KV cache (542,037 tokens) at 0.70 and lists 0.85 and 0.95 as estimates for more concurrency; it advises watching nvidia-smi to avoid OOM.",
+      "label": "GPU memory budget",
+      "name": "gpu-memory"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Google DeepMind",
+      "NVIDIA",
+      "MiaAI-Lab",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://github.com/MiaAI-Lab/Gemma-4-31B-IT-NVFP4-Recipe/tree/ac429cca70aedfa4afb446cefc5f5f1bfa1e8802"
+  },
+  "release": {
+    "released_at": "2026-07-16",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "nvidia/Gemma-4-31B-IT-NVFP4"
+      },
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "modelopt"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "triton_attn"
+      },
+      {
+        "name": "chat-template",
+        "setting": null,
+        "value": "/opt/vonk/chat_template.jinja"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.70"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 8192
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "enable-chunked-prefill",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "async-scheduling",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "mm-encoder-tp-mode",
+        "setting": null,
+        "value": "data"
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "allowed-media-domains",
+        "setting": null,
+        "value": "*"
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"mtp\",\"model\":\"/models/assistant\",\"num_speculative_tokens\":4}"
+      },
+      {
+        "name": "load-format",
+        "setting": null,
+        "value": "fastsafetensors"
+      },
+      {
+        "name": "limit-mm-per-prompt",
+        "setting": null,
+        "value": "{\"image\":4,\"video\":1,\"audio\":1}"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "gemma4"
+      },
+      {
+        "name": "override-generation-config",
+        "setting": null,
+        "value": "{\"temperature\":1.0,\"top_p\":0.95,\"top_k\":20,\"min_p\":0.0,\"presence_penalty\":0.0,\"repetition_penalty\":1.0}"
+      },
+      {
+        "name": "default-chat-template-kwargs",
+        "setting": null,
+        "value": "{\"enable_thinking\":true}"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "gemma4"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models/target"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_TARGET_DEVICE",
+        "value": "cuda"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 2
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 33637390888,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 15000000000,
+            "working_bytes": 67274781776
+          },
+          "memory": {
+            "peak_bytes": 100000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "chat_template_kwargs": {
+                "enable_thinking": false
+              },
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "nvidia/Gemma-4-31B-IT-NVFP4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

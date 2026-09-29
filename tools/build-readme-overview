@@ -23,7 +23,7 @@ ENGINES = [
     ("vllm", "vLLM"),
     ("sglang", "SGLang"),
     ("tensorrt-llm", "TensorRT-LLM"),
-    ("llama.cpp", "llama.cpp"),
+    ("llama-cpp", "llama.cpp"),
     ("tensorfold", "TensorFold"),
     ("ds4", "ds4"),
     ("diffusers", "diffusers"),
@@ -155,7 +155,7 @@ def render(root: Path) -> str:
         "| Creator | Focus |",
         "| --- | --- |",
     ]
-    for creator in config["creators"]:
+    for creator in sorted(config["creators"], key=lambda c: c["name"].casefold()):
         out.append(f"| [{creator['name']}]({creator['url']}) | {creator['focus']} |")
 
     return "\n".join(out).rstrip() + "\n"
