@@ -38,7 +38,7 @@ Number of recipes per model family and engine.
 | MOSS-VL |  |  |  |  |  |  |  |  | 1 |
 | MOVA |  |  |  |  |  |  |  |  | 2 |
 | Muse Glimmer | 1 |  |  |  |  |  |  |  |  |
-| Nemotron | 8 |  |  |  |  |  |  |  |  |
+| Nemotron | 8 | 1 |  |  |  |  |  |  |  |
 | Ornith | 1 |  |  |  |  |  |  |  |  |
 | Pixal3D |  |  |  |  |  |  |  |  | 1 |
 | Qwen (text and vision) | 10 | 3 |  |  | 2 |  |  |  |  |
@@ -78,7 +78,7 @@ Which Spark counts each family runs on, and who provides them.
 | MOSS-VL | OpenMOSS-Team |  |  |  |  |
 | MOVA | OpenMOSS-Team |  |  |  |  |
 | Muse Glimmer | meta-models |  |  |  |  |
-| Nemotron | drowzeys (keyz), NVIDIA playbooks, sfxnz |  |  |  |  |
+| Nemotron | drowzeys (keyz), NVIDIA playbooks, r0b0tlab, sfxnz |  |  |  |  |
 | Ornith | ornith-ai |  |  |  |  |
 | Pixal3D | TencentARC |  |  |  |  |
 | Qwen (text and vision) | ashhart, drowzeys (keyz), MiaAI-Lab, NVIDIA playbooks, Qwen, r0b0tlab | MiaAI-Lab, r0b0tlab, sfxnz |  |  |  |
@@ -340,7 +340,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 </details>
 
-<details><summary>Nemotron (8)</summary>
+<details><summary>Nemotron (9)</summary>
 
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
@@ -348,6 +348,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | [nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single](recipes/nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single.json) | vLLM | 1 | NVIDIA playbooks |
 | [nemotron-3-5-lightning-30b-a3b-vllm-single](recipes/nemotron-3-5-lightning-30b-a3b-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |
 | [nemotron-3-5-lightning-dspark-lowmem-canary-single](recipes/nemotron-3-5-lightning-dspark-lowmem-canary-single.json) | vLLM | 1 | NVIDIA playbooks |
+| [nemotron-3-5-lightning-r0b0tlab-sglang-dflash-single](recipes/nemotron-3-5-lightning-r0b0tlab-sglang-dflash-single.json) | SGLang | 1 | r0b0tlab |
 | [nemotron-3-nano-30b-a3b-vllm-single](recipes/nemotron-3-nano-30b-a3b-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |
 | [nemotron-3-nano-omni-30b-a3b-vllm-single](recipes/nemotron-3-nano-omni-30b-a3b-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |
 | [nemotron-3-super-120b-a12b-vllm-single](recipes/nemotron-3-super-120b-a12b-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |
