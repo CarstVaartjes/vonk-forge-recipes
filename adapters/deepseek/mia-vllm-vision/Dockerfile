@@ -6,8 +6,6 @@ LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/DeepSeek-v4-
       ai.vonkforge.runtime-interface="v1" \
       io.vonk.mia-source-archive-sha256="e3f156cc10bdf6d3bb5e78b9e343bf16ab711837570fc7ad0263a6213728a600" \
       io.vonk.anemll-source-revision="47503f8e38dadd4dededca798150db2619594fce" \
-      io.vonk.pre-patch-tree-sha256="e600de8bf5d9ed4c4016d4bf51c2e20f8a4795dbd5bce146953c9032105f094a" \
-      io.vonk.patch-tree-sha256="4aca0b546cc6b981e085eb2e9f8d9e87380d03891acea2b9a40e84ac4446e962" \
       io.vonk.dspark-loader-sha256="efe33c32d37ed7f26d869d94626f1415906d31218ec0ee44d79bb2b815b8cf39" \
       io.vonk.vision-hotfix-sha256="0f9ae3c8d07f29fff6c5bb27c3ced4e7cd3d7b87724a1300e9b6386469ed9362"
 
@@ -22,12 +20,10 @@ COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 
 RUN rm -f /state/.keep /outputs/.keep \
     && python3 /opt/vonk-build/verify-dspark-runtime.py \
-    && python3 /opt/vonk-build/verify-patched-tree.py \
-        /usr/local/lib/python3.12/dist-packages/vllm e600de8bf5d9ed4c4016d4bf51c2e20f8a4795dbd5bce146953c9032105f094a \
     && python3 /opt/vonk-build/apply-build-patches.py \
     && python3 /opt/vonk-build/patches/hotfix-vllm-issue136-xgrammar-termination.py --status \
     && python3 /opt/vonk-build/verify-patched-tree.py \
-        /usr/local/lib/python3.12/dist-packages/vllm 4aca0b546cc6b981e085eb2e9f8d9e87380d03891acea2b9a40e84ac4446e962 \
+        /usr/local/lib/python3.12/dist-packages/vllm \
     && rm -rf /opt/vonk-build \
     && test -x /opt/vonk/bin/vllm \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \

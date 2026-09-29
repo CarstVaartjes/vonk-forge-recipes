@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Head-shard ranges must match vLLM EngramLayout (not an even row split)."""
-
 from __future__ import annotations
 
 import json
@@ -13,7 +12,7 @@ for _d in (HERE, ROOT / "overlay"):
     if (_d / "engram_layout.py").is_file():
         sys.path.insert(0, str(_d))
         break
-from engram_layout import (
+from engram_layout import (  # noqa: E402
     layer_head_sizes_from_config,
     shard_range,
 )
@@ -34,9 +33,7 @@ def test_layer_row_counts() -> None:
     for i, layer_id in enumerate(TEXT["engram_layer_ids"]):
         sizes = layer_head_sizes_from_config(TEXT, i)
         assert sum(sizes) == TEXT["engram_num_embeddings"][i], layer_id
-        assert (
-            len(sizes) == (TEXT["engram_max_ngram_size"] - 1) * TEXT["engram_n_heads"]
-        )
+        assert len(sizes) == (TEXT["engram_max_ngram_size"] - 1) * TEXT["engram_n_heads"]
 
 
 def test_tp2_matches_vllm_log() -> None:

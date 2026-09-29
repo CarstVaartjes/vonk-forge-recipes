@@ -95,20 +95,20 @@ COPY overlay/patch_sm120_block64.py /opt/dsv41/patch_sm120_block64.py
 COPY overlay/patch_responses_content_types.py /opt/dsv41/patch_responses_content_types.py
 COPY files/chat_template.jinja /opt/dsv41/chat_template.jinja
 COPY files/exl3_k_map.json /opt/dsv41/exl3_k_map.json
-COPY tests/build_check_exl3_overlay.py /opt/dsv41/build_check_exl3_overlay.py
-COPY tests/build_check_exl3_lm_head.py /opt/dsv41/build_check_exl3_lm_head.py
-COPY tests/build_check_suppress_stops.py /opt/dsv41/build_check_suppress_stops.py
-COPY tests/build_check_scheduler_decode_floor.py /opt/dsv41/build_check_scheduler_decode_floor.py
-COPY tests/build_check_xgrammar_termination.py /opt/dsv41/build_check_xgrammar_termination.py
-COPY tests/build_check_spinwait_patch.py /opt/dsv41/build_check_spinwait_patch.py
-COPY tests/build_check_engram_secondary.py /opt/dsv41/build_check_engram_secondary.py
-COPY tests/build_check_engram_layout.py /opt/dsv41/build_check_engram_layout.py
-COPY tests/build_check_row_store.py /opt/dsv41/build_check_row_store.py
-COPY tests/build_check_memory_log.py /opt/dsv41/build_check_memory_log.py
-COPY tests/build_check_h2d_stage.py /opt/dsv41/build_check_h2d_stage.py
-COPY tests/build_check_sm120_block64.py /opt/dsv41/build_check_sm120_block64.py
-COPY tests/build_check_exl3_pretune.py /opt/dsv41/build_check_exl3_pretune.py
-COPY tests/build_check_engram_dequant.py /opt/dsv41/build_check_engram_dequant.py
+COPY tests/test_exl3_overlay.py /opt/dsv41/test_exl3_overlay.py
+COPY tests/test_exl3_lm_head.py /opt/dsv41/test_exl3_lm_head.py
+COPY tests/test_suppress_stops.py /opt/dsv41/test_suppress_stops.py
+COPY tests/test_scheduler_decode_floor.py /opt/dsv41/test_scheduler_decode_floor.py
+COPY tests/test_xgrammar_termination.py /opt/dsv41/test_xgrammar_termination.py
+COPY tests/test_spinwait_patch.py /opt/dsv41/test_spinwait_patch.py
+COPY tests/test_engram_secondary.py /opt/dsv41/test_engram_secondary.py
+COPY tests/test_engram_layout.py /opt/dsv41/test_engram_layout.py
+COPY tests/test_row_store.py /opt/dsv41/test_row_store.py
+COPY tests/test_memory_log.py /opt/dsv41/test_memory_log.py
+COPY tests/test_h2d_stage.py /opt/dsv41/test_h2d_stage.py
+COPY tests/test_sm120_block64.py /opt/dsv41/test_sm120_block64.py
+COPY tests/test_exl3_pretune.py /opt/dsv41/test_exl3_pretune.py
+COPY tests/test_engram_dequant.py /opt/dsv41/test_engram_dequant.py
 
 COPY overlay/install_exl3_overlay.py /opt/dsv41/install_exl3_overlay.py
 RUN python3 /opt/dsv41/install_exl3_overlay.py
@@ -129,20 +129,20 @@ RUN python3 /opt/dsv41/patch_sm120_block64.py
 RUN python3 /opt/dsv41/patch_responses_content_types.py
 RUN python3 /opt/dsv41/patch_memory_log.py
 
-RUN EXL3_SELFCHECK_GPU=0 python3 /opt/dsv41/build_check_exl3_overlay.py \
-    && python3 /opt/dsv41/build_check_suppress_stops.py \
-    && python3 /opt/dsv41/build_check_scheduler_decode_floor.py \
-    && python3 /opt/dsv41/build_check_spinwait_patch.py \
-    && python3 /opt/dsv41/build_check_engram_secondary.py \
-    && python3 /opt/dsv41/build_check_exl3_lm_head.py \
-    && python3 /opt/dsv41/build_check_engram_layout.py \
-    && python3 /opt/dsv41/build_check_row_store.py \
-    && python3 /opt/dsv41/build_check_memory_log.py \
-    && python3 /opt/dsv41/build_check_h2d_stage.py \
-    && python3 /opt/dsv41/build_check_sm120_block64.py \
-    && EXL3_SELFCHECK_GPU=0 python3 /opt/dsv41/build_check_exl3_pretune.py \
-    && python3 /opt/dsv41/build_check_engram_dequant.py
-RUN python3 /opt/dsv41/build_check_xgrammar_termination.py \
+RUN EXL3_SELFCHECK_GPU=0 python3 /opt/dsv41/test_exl3_overlay.py \
+    && python3 /opt/dsv41/test_suppress_stops.py \
+    && python3 /opt/dsv41/test_scheduler_decode_floor.py \
+    && python3 /opt/dsv41/test_spinwait_patch.py \
+    && python3 /opt/dsv41/test_engram_secondary.py \
+    && python3 /opt/dsv41/test_exl3_lm_head.py \
+    && python3 /opt/dsv41/test_engram_layout.py \
+    && python3 /opt/dsv41/test_row_store.py \
+    && python3 /opt/dsv41/test_memory_log.py \
+    && python3 /opt/dsv41/test_h2d_stage.py \
+    && python3 /opt/dsv41/test_sm120_block64.py \
+    && EXL3_SELFCHECK_GPU=0 python3 /opt/dsv41/test_exl3_pretune.py \
+    && python3 /opt/dsv41/test_engram_dequant.py
+RUN python3 /opt/dsv41/test_xgrammar_termination.py \
     || echo "WARN: xgrammar test skipped (patch may already be upstream)"
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks" \

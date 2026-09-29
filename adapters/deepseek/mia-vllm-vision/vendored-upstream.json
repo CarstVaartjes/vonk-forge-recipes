@@ -1,0 +1,35 @@
+{
+  "ours": [
+    "apply-build-patches.py",
+    "encoding/",
+    "licenses/vLLM-LICENSE",
+    "licenses/vLLM-NOTICE",
+    "outputs/.keep",
+    "patches/apply-reasoning-default.py",
+    "patches/hotfix-dsv4-issue133-triton-specialization.py",
+    "patches/hotfix-dsv4-issue26-hybrid-swa-min.py",
+    "patches/hotfix-dsv4-issue27-partial-prefill-concurrency.py",
+    "patches/hotfix-dsv4-issue43-decode-fairness-and-diag.py",
+    "patches/hotfix-dsv4-issue55-tool-truncation.py",
+    "patches/hotfix-dsv4-suppress-stops-in-reasoning.py",
+    "patches/hotfix-dsv4-vision-exp.py",
+    "patches/hotfix-encoding-dsv4-issue21.py",
+    "patches/hotfix-vllm-empty-encoder-output.py",
+    "patches/hotfix-vllm-issue117-shm-ring-buffer.py",
+    "patches/hotfix-vllm-issue136-xgrammar-termination.py",
+    "patches/vision_exp/apply.py",
+    "patches/vision_exp/image_processor.py",
+    "patches/vision_exp/processor.py",
+    "patches/vision_exp/vision.py",
+    "state/.keep",
+    "verify-dspark-runtime.py",
+    "verify-patched-tree.py",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "licenses/MiaAI-Lab-LICENSE": "LICENSE"
+  },
+  "reason": {
+    "patches/ (15 files)": "Vonk fixes not in upstream at the pin: issue27-r3 admission count, issue55 tool_calls list, issue136/#210 xgrammar chain, issue117, plus ruff lint/format edits; declared ours, not re-vendored"
+  }
+}

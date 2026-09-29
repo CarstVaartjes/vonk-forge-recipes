@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# ruff: noqa: RUF059  # vendored upstream source, kept as published
 """CPU test: Engram secondary_weights removed; file-backed overlay anchors."""
-
 from __future__ import annotations
 
 import sys
@@ -13,10 +11,8 @@ for _d in (HERE, ROOT / "overlay"):
     if (_d / "patch_engram_secondary.py").is_file():
         sys.path.insert(0, str(_d))
         break
-from patch_engram_file import FOOTER
-from patch_engram_file import MARK as FILE_MARK
-from patch_engram_file import apply as apply_file
-from patch_engram_secondary import (
+from patch_engram_file import FOOTER, MARK as FILE_MARK, apply as apply_file  # noqa: E402
+from patch_engram_secondary import (  # noqa: E402
     LLM_NEW,
     LLM_OLD,
     LOADER_NEW,
@@ -32,11 +28,7 @@ from patch_engram_secondary import (
 
 
 def test_llm() -> None:
-    src = (
-        "class DeepseekV41LLMForCausalLM:\n    def __init__(self):\n"
-        + LLM_OLD
-        + "        self.x = 1\n"
-    )
+    src = "class DeepseekV41LLMForCausalLM:\n    def __init__(self):\n" + LLM_OLD + "        self.x = 1\n"
     out, status = apply_text(src, LLM_OLD, LLM_NEW)
     assert status == "applied", status
     assert MARK in out
@@ -61,10 +53,7 @@ def test_vl() -> None:
 
 
 def test_loader() -> None:
-    src = (
-        "        weights_iterator = safetensors_weights_iterator(hf_weights_files)\n"
-        + LOADER_OLD
-    )
+    src = "        weights_iterator = safetensors_weights_iterator(hf_weights_files)\n" + LOADER_OLD
     out, status = apply_text(src, LOADER_OLD, LOADER_NEW)
     assert status == "applied", status
     assert "00047-of-00048" in out
@@ -102,13 +91,10 @@ def test_backend_does_not_del_closure_vars() -> None:
     # Any `del` that names a closure variable of _make_init/_make_lookup
     # (`module`, `orig_init`) turns it into a local and raises
     # UnboundLocalError on first use (the 16:48 boot died on first lookup).
-    for m in re.finditer(r"^\s*del\s+([^\n#]+)", text, flags=re.MULTILINE):
+    for m in re.finditer(r"^\s*del\s+([^\n#]+)", text, flags=re.M):
         names = {n.strip() for n in m.group(1).split(",")}
         assert not (names & {"module", "orig_init"}), m.group(0)
-    assert (
-        'device="cpu", pin_memory=True' in text
-        or 'device="cpu", pin_memory=True' in text
-    )
+    assert 'device="cpu", pin_memory=True' in text or "device=\"cpu\", pin_memory=True" in text
     # lookup() must still drop the unused `background` flag, nothing else.
     assert "del background\n" in text
 

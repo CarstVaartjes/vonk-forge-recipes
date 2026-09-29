@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """The Engram row dequant kernel must decode fp8 e4m3 bytes (not integer byte values).
 GPU test; prints a skip line without CUDA (image build)."""
-
 from __future__ import annotations
 
 import sys
@@ -29,20 +28,9 @@ def main() -> None:
     w[w == 0x7F] = 0
     w[w == 0xFF] = 0  # NaN encodings
     s = torch.randint(120, 134, (rows, dim // qb), dtype=torch.uint8, device="cuda")
-    ref = w.view(torch.float8_e4m3fn).float() * (
-        2.0 ** (s.float() - 127)
-    ).repeat_interleave(qb, dim=1)
+    ref = w.view(torch.float8_e4m3fn).float() * (2.0 ** (s.float() - 127)).repeat_interleave(qb, dim=1)
     out = torch.empty(rows, dim, dtype=torch.bfloat16, device="cuda")
-    kernel[(4,)](
-        w.view(torch.float8_e4m3fn),
-        s,
-        out,
-        rows,
-        DIM=dim,
-        QUANT_BLOCK=qb,
-        BLOCK_R=16,
-        GRID=4,
-    )
+    kernel[(4,)](w.view(torch.float8_e4m3fn), s, out, rows, DIM=dim, QUANT_BLOCK=qb, BLOCK_R=16, GRID=4)
     rel = ((out.float() - ref).norm() / ref.norm()).item()
     assert rel < 1e-2, rel
     print(f"test_engram_dequant: ok (rel_err={rel:.2e})")

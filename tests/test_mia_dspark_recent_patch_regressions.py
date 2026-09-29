@@ -153,19 +153,18 @@ def _load_patched_scheduler(
 
 
 class MiaDeepSeekRecentPatchTests(unittest.TestCase):
-    def test_recipe_revisions_retain_source_and_runtime_pins_with_verified_tree_hashes(
+    def test_recipe_revisions_retain_source_and_runtime_pins_without_internal_tree_hashes(
         self,
     ) -> None:
         expected = (
             (
                 ROOT / "recipes/deepseek-v4-flash-vision-exp-mia-dual.json",
                 ROOT / "adapters/deepseek/mia-vllm-vision/Dockerfile",
-                "1.2.0",
+                "1.2.1",
                 "97e8733238f81f5fdc44b241f8996a7858825744",
-                "4aca0b546cc6b981e085eb2e9f8d9e87380d03891acea2b9a40e84ac4446e962",
             ),
         )
-        for recipe_path, dockerfile_path, version, source_pin, patch_hash in expected:
+        for recipe_path, dockerfile_path, version, source_pin in expected:
             with self.subTest(recipe=recipe_path.name):
                 recipe = json.loads(recipe_path.read_text(encoding="utf-8"))
                 dockerfile = dockerfile_path.read_text(encoding="utf-8")
@@ -177,7 +176,7 @@ class MiaDeepSeekRecentPatchTests(unittest.TestCase):
                     recipe["execution"]["build"]["base_image"]["digest"],
                     "a83948492cf13df455170fb42885f5ef4db54fefe0feff0f841ecbff464ac9d8",
                 )
-                self.assertIn(f'io.vonk.patch-tree-sha256="{patch_hash}"', dockerfile)
+                self.assertNotIn("patch-tree-sha256", dockerfile)
         vanilla_apply = (DEEPSEEK_ADAPTERS[0] / "apply-build-patches.py").read_text()
         self.assertLess(
             vanilla_apply.index('run("hotfix-gb10-spin-wait.sh"'),

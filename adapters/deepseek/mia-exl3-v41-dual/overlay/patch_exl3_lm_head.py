@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# ruff: noqa: BLE001  # vendored upstream source, kept as published
 """Map packed EXL3 lm_head tensors and pass quant_config to ParallelLMHead.
 
 This checkpoint stores head.{trellis,suh,svh,mul1} (K=head_bits=6), not a dense
@@ -8,11 +7,10 @@ AutoWeightsLoader dies with: There is no module or parameter named 'head'.
 ParallelLMHead is also constructed without quant_config, so even a mapped
 trellis would have nowhere to land.
 """
-
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+import sys
 
 MARK = "dsv41-exl3-lm-head"
 
@@ -280,20 +278,14 @@ def main() -> int:
         new, statuses = patch_text(text)
         useful = [s for s in statuses if not s.endswith(":missing")]
         if any(s.endswith(":not-unique") or ":not-unique:" in s for s in statuses):
-            print(
-                f"WARN: exl3 lm_head {path.relative_to(root)} {statuses}",
-                file=sys.stderr,
-            )
+            print(f"WARN: exl3 lm_head {path.relative_to(root)} {statuses}", file=sys.stderr)
             rc = 1
             continue
         if new == text:
             needs = "head.weight" in text and "head.trellis" not in text
             ctor_needed = LM_HEAD_OLD in text
             if needs or ctor_needed:
-                print(
-                    f"WARN: exl3 lm_head no-op {path.relative_to(root)} {statuses}",
-                    file=sys.stderr,
-                )
+                print(f"WARN: exl3 lm_head no-op {path.relative_to(root)} {statuses}", file=sys.stderr)
                 rc = 1
             elif useful:
                 print(f"exl3 lm_head: {', '.join(useful)} ({path.relative_to(root)})")
@@ -305,9 +297,7 @@ def main() -> int:
                 1,
             )
         path.write_text(new)
-        print(
-            f"exl3 lm_head: {', '.join(useful) or 'edited'} ({path.relative_to(root)})"
-        )
+        print(f"exl3 lm_head: {', '.join(useful) or 'edited'} ({path.relative_to(root)})")
     return rc
 
 
