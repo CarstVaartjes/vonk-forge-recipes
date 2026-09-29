@@ -16,40 +16,40 @@ We cover DeepSeek V4 Flash, FLUX.2, Gemma, GLM, Hunyuan3D, HunyuanOCR, HunyuanVi
 
 Which engines each model family runs on.
 
-| Model family | vLLM | SGLang | TensorRT-LLM | llama.cpp | TensorFold | ds4 | diffusers | ComfyUI | pytorch-pipeline |
-| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| DeepSeek V4 Flash | ✓ | ✓ |  |  |  | ✓ |  |  |  |
-| FLUX.2 |  |  |  |  |  |  |  | ✓ |  |
-| Gemma | ✓ |  |  |  |  |  |  |  |  |
-| GLM | ✓ |  |  |  |  |  |  |  |  |
-| Hunyuan3D |  |  |  |  |  |  |  |  | ✓ |
-| HunyuanOCR |  |  |  |  |  |  |  |  | ✓ |
-| HunyuanVideo |  |  |  |  |  |  | ✓ |  |  |
-| HunyuanVideo Foley |  |  |  |  |  |  |  |  | ✓ |
-| Hy3 kodelow | ✓ |  |  |  |  |  |  |  |  |
-| Inkling |  | ✓ |  |  |  |  |  |  |  |
-| Laguna | ✓ |  |  |  |  |  |  |  |  |
-| Leanstral | ✓ |  |  |  |  |  |  |  |  |
-| LFM2.5 | ✓ |  |  |  |  |  |  |  |  |
-| Ling |  | ✓ |  |  |  |  |  |  |  |
-| LTX |  |  |  |  |  |  | ✓ |  | ✓ |
-| MiMo | ✓ | ✓ |  |  |  |  |  |  |  |
-| MiniMax H3 | ✓ |  |  |  |  |  | ✓ |  |  |
-| MOSS-VL |  |  |  |  |  |  |  |  | ✓ |
-| MOVA |  |  |  |  |  |  |  |  | ✓ |
-| Muse Glimmer | ✓ |  |  |  |  |  |  |  |  |
-| Nemotron | ✓ | ✓ |  |  |  |  |  |  |  |
-| Ornith | ✓ |  |  |  |  |  |  |  |  |
-| Pixal3D |  |  |  |  |  |  |  |  | ✓ |
-| Qwen (text and vision) | ✓ | ✓ |  |  | ✓ |  |  |  |  |
-| Qwen Image |  |  |  |  |  |  | ✓ | ✓ |  |
-| SkinTokens |  |  |  |  |  |  |  |  | ✓ |
-| Step 3.7 Flash | ✓ |  |  |  |  |  |  |  |  |
-| Step1X-3D |  |  |  |  |  |  |  |  | ✓ |
-| TRELLIS |  |  |  |  |  |  |  |  | ✓ |
-| TripoSG |  |  |  |  |  |  |  |  | ✓ |
-| UI-Mate | ✓ |  |  |  |  |  |  |  |  |
-| Wan |  |  |  |  |  |  |  | ✓ | ✓ |
+| Model family | vLLM | SGLang | TensorRT-LLM | llama.cpp | TensorFold | ds4 | diffusers | ComfyUI | pytorch-pipeline | llama-cpp |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| DeepSeek V4 Flash | ✓ | ✓ |  |  |  | ✓ |  |  |  |  |
+| FLUX.2 |  |  |  |  |  |  |  | ✓ |  |  |
+| Gemma | ✓ |  |  |  |  |  |  |  |  |  |
+| GLM | ✓ |  |  |  |  |  |  |  |  |  |
+| Hunyuan3D |  |  |  |  |  |  |  |  | ✓ |  |
+| HunyuanOCR |  |  |  |  |  |  |  |  | ✓ |  |
+| HunyuanVideo |  |  |  |  |  |  | ✓ |  |  |  |
+| HunyuanVideo Foley |  |  |  |  |  |  |  |  | ✓ |  |
+| Hy3 kodelow | ✓ |  |  |  |  |  |  |  |  |  |
+| Inkling |  | ✓ |  |  |  |  |  |  |  |  |
+| Laguna | ✓ |  |  |  |  |  |  |  |  |  |
+| Leanstral | ✓ |  |  |  |  |  |  |  |  |  |
+| LFM2.5 | ✓ |  |  |  |  |  |  |  |  |  |
+| Ling |  | ✓ |  |  |  |  |  |  |  |  |
+| LTX |  |  |  |  |  |  | ✓ |  | ✓ |  |
+| MiMo | ✓ | ✓ |  |  |  |  |  |  |  |  |
+| MiniMax H3 | ✓ |  |  |  |  |  | ✓ |  |  |  |
+| MOSS-VL |  |  |  |  |  |  |  |  | ✓ |  |
+| MOVA |  |  |  |  |  |  |  |  | ✓ |  |
+| Muse Glimmer | ✓ |  |  |  |  |  |  |  |  |  |
+| Nemotron | ✓ | ✓ |  |  |  |  |  |  |  |  |
+| Ornith | ✓ |  |  |  |  |  |  |  |  |  |
+| Pixal3D |  |  |  |  |  |  |  |  | ✓ |  |
+| Qwen (text and vision) | ✓ | ✓ |  |  | ✓ |  |  |  |  | ✓ |
+| Qwen Image |  |  |  |  |  |  | ✓ | ✓ |  |  |
+| SkinTokens |  |  |  |  |  |  |  |  | ✓ |  |
+| Step 3.7 Flash | ✓ |  |  |  |  |  |  |  |  |  |
+| Step1X-3D |  |  |  |  |  |  |  |  | ✓ |  |
+| TRELLIS |  |  |  |  |  |  |  |  | ✓ |  |
+| TripoSG |  |  |  |  |  |  |  |  | ✓ |  |
+| UI-Mate | ✓ |  |  |  |  |  |  |  |  |  |
+| Wan |  |  |  |  |  |  |  | ✓ | ✓ |  |
 
 ### Spark variants
 

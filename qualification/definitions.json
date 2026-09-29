@@ -4875,6 +4875,31 @@
         ]
       }
     },
+    "vonk-forge/qwen3-6-35b-a3b-ud-q8-k-xl-llama-cpp-mia-single": {
+      "alias": "Qwen3.6-35B-A3B-UD-Q8_K_XL",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and 4-slot concurrency canaries with MTP speculative decoding, recording the first-load time of the 39 GB GGUF"
+        ]
+      }
+    },
+    "vonk-forge/qwen3-6-27b-ud-q8-k-xl-llama-cpp-mia-single": {
+      "alias": "Qwen3.6-27B-UD-Q8_K_XL",
+      "smoke_cases": [
+        "M0",
+        "A391"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and 4-slot concurrency canaries with MTP speculative decoding, recording the first-load time of the 36 GB GGUF"
+        ]
+      }
+    },
     "vonk-forge/qwen3-8-flash-next-tensorfold-single": {
       "alias": "Qwen3.8-Flash-Next",
       "smoke_cases": [
