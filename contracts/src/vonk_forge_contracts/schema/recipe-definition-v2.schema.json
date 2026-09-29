@@ -920,6 +920,114 @@
       "title": "RecipeOpenAIInterface",
       "type": "object"
     },
+    "RecipeOption": {
+      "additionalProperties": false,
+      "description": "A recipe-declared setting with a fixed set of named values.\n\nUsers pick one of the enumerated choices; there are no free-form values.\nExactly one choice is the default and applies whenever nothing is chosen.",
+      "properties": {
+        "name": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "title": "Name",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "help": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Help",
+          "type": "string"
+        },
+        "choices": {
+          "items": {
+            "$ref": "#/$defs/RecipeOptionChoice"
+          },
+          "maxItems": 16,
+          "minItems": 2,
+          "title": "Choices",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "label",
+        "help",
+        "choices"
+      ],
+      "title": "RecipeOption",
+      "type": "object"
+    },
+    "RecipeOptionChoice": {
+      "additionalProperties": false,
+      "description": "One named value of an option, with the runtime changes it selects.\n\n``args`` replace a base runtime argument of the same name in place, or are\nappended after the base arguments; ``env`` does the same for environment\nvariables. Both go through the checks of ``runtime.arguments`` and\n``runtime.environment``, and the platform applies its own security, mount\nand port rules to the merged result.",
+      "properties": {
+        "value": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "title": "Value",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "help": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Help",
+          "type": "string"
+        },
+        "default": {
+          "type": "boolean",
+          "default": false,
+          "title": "Default"
+        },
+        "args": {
+          "items": {
+            "$ref": "#/$defs/RecipeRuntimeArgument"
+          },
+          "maxItems": 32,
+          "title": "Args",
+          "type": "array"
+        },
+        "env": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "maxProperties": 32,
+          "title": "Env",
+          "type": "object"
+        }
+      },
+      "required": [
+        "value",
+        "label",
+        "help"
+      ],
+      "title": "RecipeOptionChoice",
+      "type": "object"
+    },
     "RecipeOutputSlot": {
       "additionalProperties": false,
       "properties": {
@@ -1587,6 +1695,14 @@
     },
     "release": {
       "$ref": "#/$defs/RecipeRelease"
+    },
+    "options": {
+      "items": {
+        "$ref": "#/$defs/RecipeOption"
+      },
+      "maxItems": 16,
+      "title": "Options",
+      "type": "array"
     }
   },
   "required": [
