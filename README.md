@@ -76,7 +76,7 @@ Which Spark counts each model family runs on.
 | Ling | ✓ |  |  |  |  |
 | LTX | ✓ |  |  |  |  |
 | Meta Llama | ✓ |  |  |  |  |
-| MiMo |  | ✓ | ✓ |  |  |
+| MiMo |  | ✓ | ✓ | ✓ |  |
 | MiniMax H3 | ✓ |  |  |  |  |
 | MiniMax M2 |  | ✓ |  |  |  |
 | MOSS-VL | ✓ |  |  |  |  |
