@@ -1,0 +1,6 @@
+The recipe/ overlay and stage files and the vision-exp/port files are from
+https://github.com/tonyd2wild/DeepSeek-v4-Flash-Vision-Exp-DSpark-1M-NVFP4-KV-2x-DGX-Spark
+at commit 43201d1c2f281d238b8fd65f0f7168118f83169c (MIT, see LICENSE.upstream).
+Overlay files are derived from vLLM (Apache-2.0). Base image:
+ghcr.io/bjk110/vllm-spark (bjk110's DSpark-enabled vLLM runtime, Apache-2.0
+labelled), pinned by digest.

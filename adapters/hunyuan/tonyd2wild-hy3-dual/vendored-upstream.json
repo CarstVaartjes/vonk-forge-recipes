@@ -1,0 +1,14 @@
+{
+  "ours": [
+    "apply-parser-patch.sh",
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "upstream-README.md": "README.md"
+  },
+  "source": {
+    "repo": "tonyd2wild/Hy3-295B-NVFP4-MTP-2x-DGX-Spark",
+    "commit": "285bc9177800114fe255274e4a002cd3d812d5b4"
+  }
+}
