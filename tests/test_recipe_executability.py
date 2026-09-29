@@ -74,7 +74,7 @@ class RecipeExecutabilityTests(unittest.TestCase):
             self.assertNotIn(key, models, path.name)
             models[key] = model
         self.assertTrue(models)
-        self.assertEqual(len(list(RECIPES.glob("*.json"))), 85)
+        self.assertEqual(len(list(RECIPES.glob("*.json"))), 87)
         for path in sorted(RECIPES.glob("*.json")):
             recipe = RecipeDefinition.model_validate(
                 json.loads(path.read_text(encoding="utf-8"))

@@ -128,12 +128,12 @@ def test_every_catalog_recipe_appears_once_with_its_topology() -> None:
     rows = _rows()
     catalog = _catalog()
     assert set(rows) == set(catalog)
-    assert len(rows) == 85
+    assert len(rows) == 87
     assert matrix["catalog"]["recipe_count"] == len(catalog)
-    assert matrix["catalog"]["in_scope_recipe_count"] == 81
+    assert matrix["catalog"]["in_scope_recipe_count"] == 83
     assert matrix["catalog"]["out_of_scope_recipe_count"] == 4
     groups = set(matrix["coverage_group_order"])
-    assert sorted(row["matrix_row"] for row in rows.values()) == list(range(1, 86))
+    assert sorted(row["matrix_row"] for row in rows.values()) == list(range(1, 88))
     for key, recipe in catalog.items():
         row = rows[key]
         assert row["node_count"] == recipe.topology.node_count
@@ -145,7 +145,7 @@ def test_every_catalog_recipe_appears_once_with_its_topology() -> None:
         assert row["build_source_file_count"] > 0
         assert row["stack_matches_authority"] in (True, False, None)
     assert sorted(row["node_count"] for row in rows.values()) == (
-        [1] * 72 + [2] * 9 + [3, 4, 4, 8]
+        [1] * 73 + [2] * 10 + [3, 4, 4, 8]
     )
 
 
@@ -159,7 +159,7 @@ def test_schedule_covers_every_in_scope_recipe_exactly_once() -> None:
     lanes = [
         lane["recipe"]
         for batch in matrix["batches"]
-        if batch["mode"] == "paired-single"
+        if batch["mode"] in {"paired-single", "single"}
         for lane in batch["assignments"]
     ]
     singles = sorted(
@@ -168,17 +168,21 @@ def test_schedule_covers_every_in_scope_recipe_exactly_once() -> None:
         if row["in_scope"] and row["node_count"] == 1
     )
     assert sorted(lanes) == singles
-    assert len(assignments) == len(set(assignments)) == 81
+    assert len(assignments) == len(set(assignments)) == 83
     batches = matrix["batches"]
-    assert len(batches) == 45
+    assert len(batches) == 47
     assert sum(batch["mode"] == "paired-single" for batch in batches) == 36
-    assert sum(batch["mode"] == "exclusive-dual" for batch in batches) == 9
-    assert [batch["sequence"] for batch in batches] == list(range(1, 46))
+    assert sum(batch["mode"] == "single" for batch in batches) == 1
+    assert sum(batch["mode"] == "exclusive-dual" for batch in batches) == 10
+    assert [batch["sequence"] for batch in batches] == list(range(1, 48))
     for batch in batches:
         if batch["mode"] == "paired-single":
             assert len(batch["assignments"]) == 2
             assert {lane["lane"] for lane in batch["assignments"]} == {1, 2}
             assert {lane["node_count"] for lane in batch["assignments"]} == {1}
+        elif batch["mode"] == "single":
+            assert len(batch["assignments"]) == 1
+            assert batch["assignments"][0]["node_count"] == 1
         elif batch["mode"] == "exclusive-dual":
             assert len(batch["assignments"]) == 1
             assert batch["assignments"][0]["node_count"] == 2
