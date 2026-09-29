@@ -400,7 +400,7 @@ regenerated reviewed authority, not hand-edited assignments or skipped ledger
 checkpoints. The table below shows the current authority batch assignments.
 
 <!-- generated:begin qualification-inventory -->
-The authority assigns 72 one-Spark recipes to 36 batches and 9 two-Spark recipes to exclusive batches. Wider topologies close the catalog audit only.
+The authority assigns 72 one-Spark recipes to 36 batches and 10 two-Spark recipes to exclusive batches. Wider topologies close the catalog audit only.
 
 | # | Recipe | Nodes | Batch | Lane | Check | Campaign gate | Source review |
 |---:|---|---:|---|---:|---|---|---|
@@ -485,10 +485,11 @@ The authority assigns 72 one-Spark recipes to 36 batches and 9 two-Spark recipes
 | 79 | `vonk-forge/glm-5-3-flash-nvfp4-vllm-dual` | 2 | `batch-043` | 1 | service | dual-Spark | current |
 | 80 | `vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual` | 2 | `batch-044` | 1 | service | dual-Spark | retained: upstream default/profile changed |
 | 81 | `vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual` | 2 | `batch-045` | 1 | service | dual-Spark | retained: upstream renamed the target checkpoint |
-| 82 | `vonk-forge/glm-5-3-flash-nvfp4-vllm-four` | 4 | — | — | no fixture | out of scope (>2 Sparks) | retained: upstream default changed model identity |
-| 83 | `vonk-forge/glm-5-2-quanttrio-vllm-four` | 4 | — | — | no fixture | out of scope (>2 Sparks) | current |
-| 84 | `vonk-forge/inkling-975b-a41b-nvfp4-sglang-eight` | 8 | — | — | no fixture | out of scope (>2 Sparks) | retained: moving SGLang main is not a release channel |
-| 85 | `vonk-forge/glm-5-2-aqlm-vllm-triple` | 3 | — | — | no fixture | out of scope (>2 Sparks) | current |
+| 82 | `vonk-forge/glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual` | 2 | `batch-046` | 1 | service | dual-Spark | new: r0b0tlab 22269731 on nvidia/GLM-5.3-Flash-NVFP4 |
+| 83 | `vonk-forge/glm-5-3-flash-nvfp4-vllm-four` | 4 | — | — | no fixture | out of scope (>2 Sparks) | retained: upstream default changed model identity |
+| 84 | `vonk-forge/glm-5-2-quanttrio-vllm-four` | 4 | — | — | no fixture | out of scope (>2 Sparks) | current |
+| 85 | `vonk-forge/inkling-975b-a41b-nvfp4-sglang-eight` | 8 | — | — | no fixture | out of scope (>2 Sparks) | retained: moving SGLang main is not a release channel |
+| 86 | `vonk-forge/glm-5-2-aqlm-vllm-triple` | 3 | — | — | no fixture | out of scope (>2 Sparks) | current |
 <!-- generated:end qualification-inventory -->
 
 ## Evidence and stop rules
