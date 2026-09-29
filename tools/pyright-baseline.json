@@ -2,6 +2,270 @@
   "schema_version": 1,
   "exceptions": [
     {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/build_exl3_fat_moe_ext.py",
+      "rule": "reportMissingImports",
+      "count": 2,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/engram_file_backend.py",
+      "rule": "reportIndexIssue",
+      "count": 1,
+      "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/engram_file_backend.py",
+      "rule": "reportMissingImports",
+      "count": 9,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/exl3.py",
+      "rule": "reportAttributeAccessIssue",
+      "count": 3,
+      "reason": "The attribute comes from an upstream vLLM/SGLang class whose untyped runtime surface pyright cannot resolve from the host."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/exl3.py",
+      "rule": "reportMissingImports",
+      "count": 27,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/exl3.py",
+      "rule": "reportOptionalMemberAccess",
+      "count": 2,
+      "reason": "The member is reached only after an explicit guard on the same value; pyright loses that narrowing across the kernel branch."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/exl3.py",
+      "rule": "reportReturnType",
+      "count": 2,
+      "reason": "The return crosses an untyped upstream boundary; the surrounding caller validates the shape."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/install_exl3_overlay.py",
+      "rule": "reportArgumentType",
+      "count": 2,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/install_exl3_overlay.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_engram_file.py",
+      "rule": "reportArgumentType",
+      "count": 2,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_engram_file.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_engram_secondary.py",
+      "rule": "reportArgumentType",
+      "count": 2,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_engram_secondary.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_exl3_lm_head.py",
+      "rule": "reportArgumentType",
+      "count": 2,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_exl3_lm_head.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_exl3_packed_names.py",
+      "rule": "reportArgumentType",
+      "count": 2,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_exl3_packed_names.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_h2d_stage.py",
+      "rule": "reportArgumentType",
+      "count": 2,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_h2d_stage.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_memory_log.py",
+      "rule": "reportArgumentType",
+      "count": 2,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_memory_log.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_model_overrides.py",
+      "rule": "reportArgumentType",
+      "count": 2,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_model_overrides.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_sm120_block64.py",
+      "rule": "reportArgumentType",
+      "count": 2,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/patch_sm120_block64.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/register_exl3_quantization.py",
+      "rule": "reportArgumentType",
+      "count": 2,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/overlay/register_exl3_quantization.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_engram_dequant.py",
+      "rule": "reportMissingImports",
+      "count": 2,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_engram_layout.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_engram_secondary.py",
+      "rule": "reportMissingImports",
+      "count": 4,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_exl3_lm_head.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_exl3_overlay.py",
+      "rule": "reportArgumentType",
+      "count": 2,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_exl3_overlay.py",
+      "rule": "reportCallIssue",
+      "count": 1,
+      "reason": "The callable is an upstream object with no host-side stub, so pyright cannot match the argument list."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_exl3_overlay.py",
+      "rule": "reportMissingImports",
+      "count": 48,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_exl3_pretune.py",
+      "rule": "reportMissingImports",
+      "count": 3,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_h2d_stage.py",
+      "rule": "reportArgumentType",
+      "count": 2,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_h2d_stage.py",
+      "rule": "reportMissingImports",
+      "count": 3,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_memory_log.py",
+      "rule": "reportAttributeAccessIssue",
+      "count": 1,
+      "reason": "The attribute comes from an upstream vLLM/SGLang class whose untyped runtime surface pyright cannot resolve from the host."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_memory_log.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_sm120_block64.py",
+      "rule": "reportArgumentType",
+      "count": 2,
+      "reason": "The call passes CUDA/Triton handle types whose host-side stubs are absent, so pyright falls back to a mismatched overload."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_sm120_block64.py",
+      "rule": "reportMissingImports",
+      "count": 2,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_suppress_stops.py",
+      "rule": "reportMissingImports",
+      "count": 1,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/tests/build_check_xgrammar_termination.py",
+      "rule": "reportCallIssue",
+      "count": 2,
+      "reason": "The callable is an upstream object with no host-side stub, so pyright cannot match the argument list."
+    },
+    {
+      "file": "adapters/deepseek/mia-exl3-v41-dual/verify-runtime.py",
+      "rule": "reportMissingImports",
+      "count": 3,
+      "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
+    },
+    {
       "file": "adapters/deepseek/mia-sparkinfer-single/overlays/coalesce_rank_sliced_exl3.py",
       "rule": "reportMissingImports",
       "count": 3,

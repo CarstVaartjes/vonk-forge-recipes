@@ -2855,7 +2855,7 @@
           "width": 1280,
           "height": 720,
           "fps": 1.9230769230769231,
-          "fps_tolerance": 0.000001,
+          "fps_tolerance": 1e-06,
           "frame_count": 2,
           "codec": "h264",
           "pixel_format": "yuv420p",
@@ -2912,7 +2912,7 @@
               "width": 1280,
               "height": 720,
               "fps": 1.4705882352941178,
-              "fps_tolerance": 0.000001,
+              "fps_tolerance": 1e-06,
               "frame_count": 3,
               "codec": "h264",
               "pixel_format": "yuv420p",
@@ -3961,6 +3961,23 @@
         ]
       }
     },
+    "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual": {
+      "alias": "DeepSeek-v4.1-Flash-EXL3",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context, concurrency, and image-input canaries"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
     "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual": {
       "alias": "glm-5.3-flash",
       "smoke_cases": [
@@ -3975,6 +3992,23 @@
         ],
         "recovery": [
           "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
+    "vonk-forge/glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual": {
+      "alias": "glm-5.3-flash-nvfp4",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "8K, 32K and 126,720-token cold-prefill ladder plus bounded concurrency canaries; thinking is always on, so use budgets of at least 8K tokens"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery; swap enabled with vm.swappiness=0 on both ranks"
         ]
       }
     },
@@ -4026,6 +4060,20 @@
         ],
         "recovery": [
           "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
+    "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-single": {
+      "alias": "qwen3.8-flash-next",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and concurrency canaries"
         ]
       }
     },
