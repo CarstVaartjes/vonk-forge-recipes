@@ -2855,7 +2855,7 @@
           "width": 1280,
           "height": 720,
           "fps": 1.9230769230769231,
-          "fps_tolerance": 0.000001,
+          "fps_tolerance": 1e-06,
           "frame_count": 2,
           "codec": "h264",
           "pixel_format": "yuv420p",
@@ -2912,7 +2912,7 @@
               "width": 1280,
               "height": 720,
               "fps": 1.4705882352941178,
-              "fps_tolerance": 0.000001,
+              "fps_tolerance": 1e-06,
               "frame_count": 3,
               "codec": "h264",
               "pixel_format": "yuv420p",
@@ -3958,6 +3958,23 @@
         ],
         "recovery": [
           "Controller-only rank-loss, warm-cache recovery, and image-input revalidation"
+        ]
+      }
+    },
+    "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual": {
+      "alias": "DeepSeek-v4.1-Flash-EXL3",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context, concurrency, and image-input canaries"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery"
         ]
       }
     },
