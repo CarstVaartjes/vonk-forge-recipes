@@ -1,0 +1,294 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3",
+        "repository": "nvcr.io/nvidia/pytorch"
+      },
+      "context": {
+        "path": "adapters/llama-cpp/tonyd2wild-llm-eyes-single"
+      },
+      "dockerfile": "adapters/llama-cpp/tonyd2wild-llm-eyes-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-5-0-8b-vision-llamacpp-tonyd2wild-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/health",
+      "model_aliases": [
+        "qwen3.5-0.8b-vision"
+      ],
+      "port": 8081
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "tonyd2wild's llm-eyes: Qwen3.5-0.8B (Unsloth Dynamic UD-Q8_K_XL GGUF plus the F16 vision projector) served by llama.cpp CUDA on one Spark as a small OpenAI-compatible image-captioning endpoint, so text-only models can be given a description of an image. Basis: tonyd2wild/2Wild-Vision-Mode (MIT), whose Spark backend runs llama-server with a CUDA build the user compiles; this recipe builds llama.cpp b11243 (commit fc07d781, ggml-org) for GB10 at a pinned commit instead. The default context and slot count (262144 tokens, 4 slots) are llama.cpp's automatic defaults, which upstream leaves unset. Upstream's bridge scripts (see.py, webcam_loop.py) are client-side and not packaged. Vonk physical Spark acceptance is pending and the sm_121 build has not been run.",
+    "tags": [
+      "captioning",
+      "gguf",
+      "llama-cpp",
+      "multimodal",
+      "qwen3.5",
+      "spark",
+      "vision"
+    ],
+    "title": "Qwen3.5 0.8B vision helper llama.cpp one Spark"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "qwen3-5-0-8b-ud-q8-k-xl-167183aecc07-5eac7cdcea",
+          "id": "primary-qwen3-5-0-8b-ud-q8-k-xl-167183aecc07-5eac7cdcea",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-962978aa8e3c-b335630551",
+          "id": "primary-readme-962978aa8e3c-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mmproj-f16-56e4c6cfe73b-d8219ba087",
+          "id": "primary-mmproj-f16-56e4c6cfe73b-d8219ba087",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "99c50e3e55a6c40d9e94baee17bb01246e98bed0e3227f785e33680f5a6589c0",
+        "kind": "model",
+        "publisher": "unsloth",
+        "slug": "qwen3-5-0-8b-gguf-6ab46149"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Alibaba Qwen",
+      "Unsloth",
+      "tonyd2wild",
+      "llama.cpp contributors"
+    ],
+    "source_reference": "https://github.com/tonyd2wild/2Wild-Vision-Mode/tree/c9ca903c760bbc83bd050bae7953d5f8dc030e86"
+  },
+  "release": {
+    "released_at": "2026-07-07",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "host",
+        "setting": null,
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "setting": null,
+        "value": 8081
+      },
+      {
+        "name": "model",
+        "setting": null,
+        "value": "/models/target/Qwen3.5-0.8B-UD-Q8_K_XL.gguf"
+      },
+      {
+        "name": "mmproj",
+        "setting": null,
+        "value": "/models/target/mmproj-F16.gguf"
+      },
+      {
+        "name": "alias",
+        "setting": null,
+        "value": "qwen3.5-0.8b-vision"
+      },
+      {
+        "name": "n-gpu-layers",
+        "setting": null,
+        "value": 99
+      },
+      {
+        "name": "ctx-size",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "parallel",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "temp",
+        "setting": null,
+        "value": "0.6"
+      },
+      {
+        "name": "top-p",
+        "setting": null,
+        "value": "0.95"
+      },
+      {
+        "name": "top-k",
+        "setting": null,
+        "value": 20
+      }
+    ],
+    "engine": "llama-cpp",
+    "entrypoint": [
+      "/opt/vonk/bin/llama-server"
+    ],
+    "environment": [],
+    "lifecycle": {
+      "stop_timeout_seconds": 30
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 1391493702,
+            "image_bytes": 26000000000,
+            "safety_margin_bytes": 10000000000,
+            "working_bytes": 4000000000
+          },
+          "memory": {
+            "peak_bytes": 8000000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/health",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "qwen3.5-0.8b-vision"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.vision",
+          "name": "bounded-vision",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": [
+                    {
+                      "text": "describe this image",
+                      "type": "text"
+                    },
+                    {
+                      "image_url": {
+                        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAACXBIWXMAAAABAAAAAQBPJcTWAAAAYElEQVR4nO3PwQkAIBDAMAX3H/lwCB9BaCZo96y/HR3wqgGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQHtAgK6AfwYG1VIAAAAAElFTkSuQmCC"
+                      },
+                      "type": "image_url"
+                    }
+                  ],
+                  "role": "user"
+                }
+              ],
+              "model": "Qwen3.8-Flash-Next"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
