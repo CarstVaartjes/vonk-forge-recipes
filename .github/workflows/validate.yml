@@ -114,6 +114,12 @@ jobs:
           git fetch --no-tags origin main:refs/remotes/origin/main
           python3 tools/check-recipe-topology --base origin/main
 
+      - name: Require every recipe to reference Models this library holds
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-recipe-model-references
+
       - name: Run the full producer test suite
         shell: bash
         run: |
