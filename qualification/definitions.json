@@ -3991,6 +3991,23 @@
         ]
       }
     },
+    "vonk-forge/minimax-m2-7-nvfp4-r0b0tlab-vllm-dual": {
+      "alias": "minimax-m2.7-nvfp4",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and four-sequence concurrency canaries"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
     "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual": {
       "alias": "glm-5.3-flash",
       "smoke_cases": [
