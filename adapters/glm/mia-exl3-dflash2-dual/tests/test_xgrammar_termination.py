@@ -201,7 +201,7 @@ def run_patch(
 
 def assert_backend_behavior(source: str) -> None:
     namespace: dict[str, object] = {}
-    exec(compile(source, "patched_backend_fixture.py", "exec"), namespace)  # noqa: S102  (exec runs the extracted patched source under test)
+    exec(compile(source, "patched_backend_fixture.py", "exec"), namespace)  # noqa: S102
     grammar_cls = namespace["XgrammarGrammar"]
 
     matcher = FakeMatcher()
@@ -232,7 +232,7 @@ def assert_backend_behavior(source: str) -> None:
 
 def assert_manager_behavior(source: str) -> None:
     namespace: dict[str, object] = {}
-    exec(compile(source, "patched_manager_fixture.py", "exec"), namespace)  # noqa: S102  (exec runs the extracted patched source under test)
+    exec(compile(source, "patched_manager_fixture.py", "exec"), namespace)  # noqa: S102
     manager = namespace["StructuredOutputManager"]()
 
     grammar = FakeGrammar(valid_token=7)

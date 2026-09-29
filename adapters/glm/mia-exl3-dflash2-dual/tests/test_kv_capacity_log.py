@@ -148,6 +148,9 @@ class MambaSpec(KVCacheSpec):  # I:790-821
                 + self.num_speculative_blocks
             ) * self.page_size_bytes
         if mode == "align":
+            # The pre-patch_mamba_align_state_free.py reservation, kept so the
+            # historical stock boot lines below (414 ids/request) replicate; the
+            # log reads whatever the deployed spec returns (10 after that patch).
             return self.page_size_bytes * (2 + self.num_speculative_blocks)
         return self.page_size_bytes * (1 + self.num_speculative_blocks)
 
@@ -515,6 +518,45 @@ def part_a() -> None:
         P.kv_capacity_summary(rn, 643)["per_group"][6] == 32,
         "A9 drafter without EAGLE: cdiv(2047, 64) = 32 ids per segment",
     )
+    # Compact pages + boundary lookup (patch_hybrid_prefix_hit.py): the drafter
+    # keeps exactly the cdiv(window - 1, block) blocks the lookup consults.
+    compact = live_groups()
+    compact[6] = group(SlidingWindowSpec(896, 8192, 2048), 1)
+    saved_compact = os.environ.get("GLM53_DRAFT_KV_COMPACT")
+    try:
+        os.environ["GLM53_DRAFT_KV_COMPACT"] = "1"
+        rc = P.kv_capacity_rows(cfg, kv_config(10, compact))
+        sc = P.kv_capacity_summary(rc, 520)
+        check(
+            sc["per_group"][6] == 3 and sc["total"] == 8 and sc["segments"] == 64,
+            "A9 compact + boundary lookup: drafter cdiv(2047, 896) = 3 ids per segment, 8 across groups, 519 // 8 = 64 segments",
+        )
+        check(
+            " eagle=yes lookup=boundary"
+            in P.kv_capacity_lines(rc, sc, LIVE_MAX_MODEL_LEN)[6],
+            "A9 compact + boundary lookup: group line names the lookup",
+        )
+        os.environ["GLM53_DRAFT_KV_COMPACT"] = "0"
+        rc = P.kv_capacity_rows(cfg, kv_config(10, compact))
+        check(
+            P.kv_capacity_summary(rc, 520)["per_group"][6] == 4
+            and " lookup="
+            not in P.kv_capacity_lines(
+                rc, P.kv_capacity_summary(rc, 520), LIVE_MAX_MODEL_LEN
+            )[6],
+            "A9 compact pages without the flag: EAGLE lookahead counted (4)",
+        )
+        os.environ.pop("GLM53_DRAFT_KV_COMPACT")
+        rd = P.kv_capacity_rows(cfg, kv_config(10))
+        check(
+            P.kv_capacity_summary(rd, 643)["per_group"][6] == 33,
+            "A9 default (flag unset): 64-token drafter keeps 33 ids per segment",
+        )
+    finally:
+        if saved_compact is None:
+            os.environ.pop("GLM53_DRAFT_KV_COMPACT", None)
+        else:
+            os.environ["GLM53_DRAFT_KV_COMPACT"] = saved_compact
     wide = [
         group(MLAAttentionSpec(3584, 1), 1),
         group(SlidingWindowSpec(64, 1, 4096), 1),
@@ -924,7 +966,7 @@ def exec_module(text: str, logger: P._RecordingLogger) -> dict:
     try:
         sys.modules.update(_stub_vllm(logger))
         ns: dict = {"__name__": "kv_cache_utils_fixture"}
-        exec(compile(text, "kv_cache_utils_fixture.py", "exec"), ns)  # noqa: S102  (exec runs the extracted patched source under test)
+        exec(compile(text, "kv_cache_utils_fixture.py", "exec"), ns)  # noqa: S102
         return ns
     finally:
         for k, v in saved.items():
@@ -941,12 +983,8 @@ def run_overlay(
     env.pop(P.ENV_NAME, None)
     if env_extra:
         env.update(env_extra)
-    return subprocess.run(
-        [sys.executable, str(PATCH), *args],
-        text=True,
-        capture_output=True,
-        env=env,
-        check=False,
+    return subprocess.run(  # noqa: PLW1510
+        [sys.executable, str(PATCH), *args], text=True, capture_output=True, env=env
     )
 
 
@@ -1143,16 +1181,29 @@ def part_b() -> None:
             "B6 duplicated mark -> refused, untouched",
         )
 
-        # A file that lacks a binding the helpers need is refused before any write.
-        nobind = FIXTURE.replace("import math\n", "", 1)
-        target.write_text(nobind)
+        # Unknown helper edits are not an upgrade path: preserve their bytes.
+        edited = patched.replace(
+            "        # SlidingWindowManager._contiguous_blocks_for_hit: the run a hit needs,\n",
+            "        # independently edited helper text\n",
+            1,
+        )
+        assert edited != patched
+        target.write_text(edited)
         r = run_overlay(target)
         check(
-            r.returncode != 0
-            and "does not bind 'import math'" in r.stderr
-            and target.read_text() == nobind,
-            "B7 missing `import math` above the insert point -> refused (helpers would NameError)",
+            r.returncode != 0 and target.read_text() == edited,
+            "B6 unknown helper revision is refused without overwriting it",
         )
+
+        # A file that lacks a binding the helpers need is refused before any write.
+        for label, source in (("unpatched", FIXTURE), ("patched", patched)):
+            nobind = source.replace("import math\n", "", 1)
+            target.write_text(nobind)
+            r = run_overlay(target)
+            check(
+                r.returncode != 0 and target.read_text() == nobind,
+                f"B7 {label} source missing a required binding is refused without writing",
+            )
         nolog = FIXTURE.replace("logger = init_logger(__name__)\n", "", 1)
         target.write_text(nolog)
         r = run_overlay(target)
@@ -1177,7 +1228,8 @@ def part_b() -> None:
             out, act = P.prepare(text)
             compile(out, str(installed), "exec")
             check(
-                act in ("patched", "already present") and P.verified_state(out),
+                act in ("patched", "already present", "helpers refreshed")
+                and P.verified_state(out),
                 f"B8 installed {installed}: preflight OK ({act})",
             )
             check(

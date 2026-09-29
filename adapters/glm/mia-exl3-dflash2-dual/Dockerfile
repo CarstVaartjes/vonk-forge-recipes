@@ -98,6 +98,7 @@ RUN python3 /tmp/verify_sm120_nope_mla.py && rm /tmp/verify_sm120_nope_mla.py
 # rebuild exllamav3_ext. The aarch64 stub patch must stay in this layer.
 COPY overlay/patch_exl3_ext_aarch64.py /opt/glm53/patch_exl3_ext_aarch64.py
 COPY overlay/patch_exl3_fat_kernel.py /opt/glm53/patch_exl3_fat_kernel.py
+COPY overlay/patch_exl3_decode_pipeline.py /opt/glm53/patch_exl3_decode_pipeline.py
 COPY overlay/exl3_fat_gemm.cu /opt/glm53/exl3-fat-kernel/exl3_fat_gemm.cu
 COPY overlay/exl3_fat_gemm.cuh /opt/glm53/exl3-fat-kernel/exl3_fat_gemm.cuh
 # E3 grouped fat-expert kernels, compiled into the same exllamav3_ext
@@ -127,13 +128,14 @@ RUN set -eux; \
     python3 -c "from pathlib import Path; assert (Path('/tmp/exllamav3')/'exllamav3/modules/quant/exl3.py').is_file()"; \
     python3 /opt/glm53/patch_exl3_ext_aarch64.py /tmp/exllamav3/exllamav3/exllamav3_ext; \
     python3 /opt/glm53/patch_exl3_fat_kernel.py /tmp/exllamav3/exllamav3/exllamav3_ext /opt/glm53/exl3-fat-kernel; \
+    python3 /opt/glm53/patch_exl3_decode_pipeline.py /tmp/exllamav3/exllamav3/exllamav3_ext; \
     export CPATH="/usr/local/lib/python3.12/dist-packages/nvidia/cu13/include${CPATH:+:$CPATH}"; \
     export CPLUS_INCLUDE_PATH="/usr/local/lib/python3.12/dist-packages/nvidia/cu13/include${CPLUS_INCLUDE_PATH:+:$CPLUS_INCLUDE_PATH}"; \
     export C_INCLUDE_PATH="/usr/local/lib/python3.12/dist-packages/nvidia/cu13/include${C_INCLUDE_PATH:+:$C_INCLUDE_PATH}"; \
     cd /tmp/exllamav3; \
     TORCH_CUDA_ARCH_LIST=12.1a MAX_JOBS=8 \
       pip install --no-deps --no-build-isolation --no-cache-dir .; \
-    python3 -c "import torch; import exllamav3_ext; assert hasattr(exllamav3_ext, 'exl3_moe'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_gemm'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_gemm_scatter'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_moe_gateup'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_moe_down'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_moe_gather'), dir(exllamav3_ext); print('exllamav3_ext', exllamav3_ext.__file__, 'exl3_moe=yes fat_gemm=yes fat_moe=yes')"; \
+    python3 -c "import torch; import exllamav3_ext; assert hasattr(exllamav3_ext, 'exl3_moe'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_gemm'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_gemm_scatter'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_moe_gateup'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_moe_down'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_moe_gather'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'glm53_fast_moe_version') and exllamav3_ext.glm53_fast_moe_version() == 1; print('exllamav3_ext', exllamav3_ext.__file__, 'exl3_moe=yes fat_gemm=yes fat_moe=yes moe_fast=yes')"; \
     rm -rf /tmp/exllamav3 /root/.cache/pip
 
 # Keep this AFTER the CUDA compile layer so Python-only hook edits do not
@@ -149,6 +151,7 @@ COPY overlay/patch_model_overrides.py /opt/glm53/patch_model_overrides.py
 COPY overlay/qwen3_dflash2.py /opt/glm53/qwen3_dflash2.py
 COPY overlay/dflash2_speculator.py /opt/glm53/dflash2_speculator.py
 COPY overlay/patch_dflash2.py /opt/glm53/patch_dflash2.py
+COPY overlay/patch_dflash2_exl3.py /opt/glm53/patch_dflash2_exl3.py
 COPY overlay/patch_glm_eagle3.py /opt/glm53/patch_glm_eagle3.py
 COPY overlay/patch_glm5_drafter_group.py /opt/glm53/patch_glm5_drafter_group.py
 COPY tests/test_exl3_overlay.py /opt/glm53/test_exl3_overlay.py
@@ -175,13 +178,18 @@ COPY overlay/patch_xgrammar_termination.py /opt/glm53/patch_xgrammar_termination
 COPY tests/test_xgrammar_termination.py /opt/glm53/test_xgrammar_termination.py
 COPY overlay/patch_cache_reset.py /opt/glm53/patch_cache_reset.py
 COPY tests/test_cache_reset_endpoint.py /opt/glm53/test_cache_reset_endpoint.py
-COPY overlay/patch_kpool_tail_slotmap.py /opt/glm53/patch_kpool_tail_slotmap.py
-COPY tests/test_kpool_tail_slotmap.py /opt/glm53/test_kpool_tail_slotmap.py
+# Keep both kpool patchers in one layer: separate COPY/RUN steps push this recipe
+# past overlay2's runnable layer depth on the two-node hosts.
+COPY overlay/patch_kpool_tail_slotmap.py overlay/patch_kpool_tail_seed_stride.py /opt/glm53/
+COPY tests/test_kpool_tail_slotmap.py tests/test_kpool_tail_seed_stride.py /opt/glm53/
 COPY overlay/patch_spinwait.py /opt/glm53/patch_spinwait.py
 COPY tests/test_spinwait_patch.py /opt/glm53/test_spinwait_patch.py
 COPY overlay/patch_indexer_workspace.py /opt/glm53/patch_indexer_workspace.py
 COPY tests/test_indexer_workspace.py /opt/glm53/test_indexer_workspace.py
 COPY overlay/patch_tool_choice_none.py /opt/glm53/patch_tool_choice_none.py
+COPY overlay/patch_loadclone.py /opt/glm53/patch_loadclone.py
+COPY tests/test_loadclone.py /opt/glm53/test_loadclone.py
+COPY tests/fixtures/loadclone_weight_utils.py.txt tests/fixtures/kpool_tail_seed_kernel-487ecf187.py.txt tests/fixtures/kpool_tail_seed_kernel-db1bfdd.py.txt /opt/glm53/fixtures/
 COPY tests/test_tool_choice_none.py /opt/glm53/test_tool_choice_none.py
 COPY overlay/ablit_runtime.py /opt/glm53/ablit_runtime.py
 COPY overlay/patch_ablit.py /opt/glm53/patch_ablit.py
@@ -189,6 +197,10 @@ COPY tests/test_ablit.py /opt/glm53/test_ablit.py
 COPY ablit/LAYER_MAP.json ablit/fetch_transplant.py ablit/refusal_direction_glm53_bf_oproj.pt ablit/refusal_direction_glm53_dealign_late.pt /opt/glm53/ablit/
 RUN python3 /opt/glm53/patch_model_overrides.py
 RUN python3 /opt/glm53/patch_dflash2.py
+# Same bytes the upstream GLM53_OVERLAY_ORDER slot applies at every container
+# start; this image's root is read-only when the workload runs, so it is applied
+# here (inert for the BF16 drafter this recipe serves).
+RUN python3 /opt/glm53/patch_dflash2_exl3.py
 RUN python3 /opt/glm53/patch_glm_eagle3.py
 RUN python3 /opt/glm53/patch_glm5_drafter_group.py
 # GLM53_OVERLAY_ORDER applies this overlay first inside the container at run
@@ -238,16 +250,27 @@ RUN GLM53_KV_CACHE_UTILS_PY=/usr/local/lib/python3.12/dist-packages/vllm/v1/core
     GLM53_REQUIRE_TARGET=1 python3 /opt/glm53/test_kv_capacity_log.py
 RUN python3 /opt/glm53/patch_kv_capacity_log.py
 RUN python3 /opt/glm53/patch_xgrammar_termination.py
-RUN python3 /opt/glm53/patch_kpool_tail_slotmap.py
+# Apply both independent kpool patches in their original order and one layer.
+RUN python3 /opt/glm53/patch_kpool_tail_slotmap.py \
+    && python3 /opt/glm53/patch_kpool_tail_seed_stride.py
 # Applied unconditionally; the injected sizing reads GLM53_INDEXER_WORKSPACE
 # at runtime and returns the stock expression unless it is "rightsize".
 RUN python3 /opt/glm53/patch_indexer_workspace.py
 RUN python3 /opt/glm53/patch_spinwait.py --preflight
 RUN python3 /opt/glm53/patch_cache_reset.py
 RUN python3 /opt/glm53/patch_tool_choice_none.py
+# Auto/lazy safetensors only; the recipe's instanttensor load format is unchanged.
+RUN GLM53_LOADCLONE_SOURCE=/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/weight_utils.py \
+    python3 /opt/glm53/test_loadclone.py
+RUN python3 /opt/glm53/patch_loadclone.py
 RUN python3 /opt/glm53/patch_ablit.py
 RUN python3 /opt/glm53/patch_adaptive_k.py
-RUN GLM53_DENSE_FP8=off python3 /opt/glm53/patch_dense_fp8.py
+# Upstream applies this at container start from GLM53_DENSE_FP8; this image's root
+# is read-only at run time, so the KDA/MLA constructor change is baked in. The
+# recipe default is the upstream default (all groups); the option that selects
+# BF16 projections only sets GLM53_DENSE_FP8=off, where overlay/exl3.py returns
+# the unquantized linear method for every layer exactly as the stock constructors do.
+RUN GLM53_DENSE_FP8=all GLM53_DENSE_EXL3=0 python3 /opt/glm53/patch_dense_fp8.py
 
 RUN EXL3_SELFCHECK_GPU=0 python3 /opt/glm53/test_exl3_overlay.py \
     && python3 /opt/glm53/test_adaptive_k_patch.py \
@@ -260,6 +283,7 @@ RUN EXL3_SELFCHECK_GPU=0 python3 /opt/glm53/test_exl3_overlay.py \
     && python3 /opt/glm53/test_hybrid_prefix_hit.py \
     && python3 /opt/glm53/test_xgrammar_termination.py \
     && python3 /opt/glm53/test_kpool_tail_slotmap.py \
+    && python3 /opt/glm53/test_kpool_tail_seed_stride.py \
     && python3 /opt/glm53/test_spinwait_patch.py \
     && python3 /opt/glm53/test_indexer_workspace.py \
     && python3 /opt/glm53/test_ablit.py \
@@ -270,6 +294,17 @@ RUN EXL3_SELFCHECK_GPU=0 python3 /opt/glm53/test_exl3_overlay.py \
 # Recipe can declare --load-format instanttensor.
 RUN pip install --no-deps --no-cache-dir instanttensor==0.2.0 \
     && python3 -c "import instanttensor; print('instanttensor', instanttensor.__file__)"
+
+# Cold-load fixes for UMA / 64 KiB-page GB10 hosts (overlay/patch_cold_load_uma.py):
+# InstantTensor budget vs page cache, and file-backed mmap staging. Applied at
+# build so the draft/secondary safetensors paths are covered. No-op on 4 KiB
+# kernels / discrete GPUs.
+COPY overlay/patch_cold_load_uma.py /opt/glm53/patch_cold_load_uma.py
+COPY tests/test_cold_load_uma.py /opt/glm53/test_cold_load_uma.py
+RUN python3 /opt/glm53/test_cold_load_uma.py && python3 /opt/glm53/patch_cold_load_uma.py
+COPY overlay/patch_skip_cudagraph_profile.py /opt/glm53/patch_skip_cudagraph_profile.py
+COPY tests/test_skip_cudagraph_profile.py /opt/glm53/test_skip_cudagraph_profile.py
+RUN GLM53_REQUIRE_TARGET=1 python3 /opt/glm53/test_skip_cudagraph_profile.py && python3 /opt/glm53/patch_skip_cudagraph_profile.py
 
 # Baked by start.sh --build-arg so a git pull that changes overlay/Dockerfile
 # misses this label and rebuilds once. Keep last so stamp-only rebuilds are cheap.
@@ -301,12 +336,13 @@ ENV HF_HUB_OFFLINE=1 \
     EXL3_FAT_GROUPED=1 \
     EXL3_TEMP_ROWS_FUSED=32 \
     GLM53_ADAPTIVE_K=off \
-    GLM53_DENSE_FP8=off \
+    GLM53_DENSE_FP8=all \
+    GLM53_KDA_BF16_LARGE_M=1 \
     # Records the recipe revision inside the image.  A runtime-only recipe change
     # reuses the earlier archive, so the Controller keeps the earlier revision's build
     # identity and install admission refuses the plan; an image change gives this
     # revision its own build.
-    VONK_GLM53_RECIPE_REVISION=1.6.8
+    VONK_GLM53_RECIPE_REVISION=1.7.0
 
 WORKDIR /state
 USER 10001:10001

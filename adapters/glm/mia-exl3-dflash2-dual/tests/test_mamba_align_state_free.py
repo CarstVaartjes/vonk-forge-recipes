@@ -71,12 +71,8 @@ def apply(stm: Path, kvi: Path) -> subprocess.CompletedProcess:
         "GLM53_SINGLE_TYPE_KV_CACHE_MANAGER_PY": str(stm),
         "GLM53_KV_CACHE_INTERFACE_PY": str(kvi),
     }
-    return subprocess.run(
-        [sys.executable, str(PATCH)],
-        env=env,
-        text=True,
-        capture_output=True,
-        check=False,
+    return subprocess.run(  # noqa: PLW1510
+        [sys.executable, str(PATCH)], env=env, text=True, capture_output=True
     )
 
 
@@ -95,7 +91,6 @@ def definitions(path: Path, ns: dict, names: set[str]) -> None:
         ],
         type_ignores=[],
     )
-    # Execute only extracted manager definitions without importing GPU dependencies.
     exec(compile(ast.fix_missing_locations(tree), str(path), "exec"), ns)  # noqa: S102
 
 
@@ -331,7 +326,6 @@ def part_c(kvi: Path) -> None:
         for n in cls.body
         if isinstance(n, ast.FunctionDef) and n.name == "max_memory_usage_bytes"
     )
-    # Execute only the extracted sizing method with the minimal test namespace.
     exec(compile(ast.Module(body=[fn], type_ignores=[]), str(kvi), "exec"), ns)  # noqa: S102
     page = 2_351_104
     spec = types.SimpleNamespace(

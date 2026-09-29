@@ -16,10 +16,15 @@ import sys
 import tempfile
 from pathlib import Path
 
-import pytest
+try:
+    import torch
+    from torch import nn
+except ModuleNotFoundError:
+    if __name__ == "__main__":
+        raise
+    import pytest
 
-torch = pytest.importorskip("torch")
-from torch import nn
+    pytest.skip("torch is not installed", allow_module_level=True)
 
 HERE = Path(__file__).resolve().parent
 
@@ -373,9 +378,7 @@ def check_transplant(tmp_root: str) -> None:
     donors_loaded = ablit.load_transplant_tensors(str(tmp_root), list(range(15, 46)))
     rank_out = {}
     for rank in (0, 1):
-        # Bind the current rank into a zero-argument callable (the default
-        # argument keeps the value from being read late from the loop).
-        ablit._tp_rank = lambda r=rank: r
+        ablit._tp_rank = (lambda r: lambda: r)(rank)  # noqa: PLC3002
         m = _fake_model(with_mtp=False)
         with torch.no_grad():
             for L in range(15, 45):  # target decoder layers only (45 = MTP, absent)

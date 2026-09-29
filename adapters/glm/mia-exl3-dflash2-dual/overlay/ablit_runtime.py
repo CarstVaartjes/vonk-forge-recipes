@@ -70,7 +70,7 @@ def _tp_world() -> int:
         from vllm.distributed import get_tensor_model_parallel_world_size
 
         return get_tensor_model_parallel_world_size()
-    except Exception:  # noqa: BLE001  (standalone / tests: vLLM not importable)
+    except Exception:  # standalone / tests  # noqa: BLE001
         return 1
 
 
@@ -79,7 +79,7 @@ def _tp_rank() -> int:
         from vllm.distributed import get_tensor_model_parallel_rank
 
         return get_tensor_model_parallel_rank()
-    except Exception:  # noqa: BLE001  (standalone / tests: vLLM not importable)
+    except Exception:  # standalone / tests  # noqa: BLE001
         return 0
 
 
@@ -87,7 +87,7 @@ try:  # inside the vLLM image
     from vllm.logger import init_logger
 
     logger = init_logger(__name__)
-except Exception:  # noqa: BLE001  (standalone / tests: vLLM logger not importable)
+except Exception:  # standalone (tests)  # noqa: BLE001
     import logging
 
     logger = logging.getLogger("glm53_ablit")
@@ -222,6 +222,18 @@ def walk_o_proj(model: Any) -> list[tuple[str, int | None, Any]]:
     return found
 
 
+def _refuse_exl3_o_proj(name: str, mod: Any) -> None:
+    """ABLIT edits a BF16 o_proj; an EXL3-dense o_proj (pack non_routed_exl3)
+    has no BF16 weight to edit and trellis tensors cannot be transplanted.
+    The pack covers o_proj on every layer, so any enabled layer range hits
+    this. Fail loud instead of silently serving stock weights."""
+    if getattr(mod, "_exl3_linear_n_shards", None) is not None:
+        raise AblitError(
+            f"ablit: {name} is EXL3-dense (pack non_routed_exl3); ABLIT edits "
+            "BF16 o_proj only — unset ABLIT or serve a non-dense-EXL3 pack"
+        )
+
+
 def unwrap_text_model(model: Any) -> Any:
     """Accept the multimodal wrapper and hand back the text model."""
     lm = getattr(model, "language_model", None)
@@ -267,6 +279,7 @@ def apply_ablit(
         else:
             if idx not in want:
                 continue
+        _refuse_exl3_o_proj(name, mod)
         rep = apply_to_o_proj(mod, r, alpha)
         if rep.get("edited"):
             if is_mtp:
@@ -364,15 +377,36 @@ def apply_transplant(
                 "— fetch it with ablit/fetch_transplant.py"
             )
         donor = donors[idx]
+        _refuse_exl3_o_proj(name, mod)
         weight = getattr(mod, "weight", None)
         if weight is None or not torch.is_tensor(weight) or weight.dim() != 2:
             raise AblitError(f"ablit transplant: {name} has no 2-D .weight")
         full_in = donor.shape[1]
         local_in = weight.shape[1]
-        if donor.shape[0] != weight.shape[0] or full_in != local_in * world:
+        padded_in = local_in * world
+        # TP=3 (overlay/tp3/patch_tp3_glm.py) pads the head count to a multiple
+        # of the world size (64->66, linear 32->33) by zero-padding the END of
+        # the checkpoint's o_proj input dim before vLLM shards it. The donor is
+        # the unpadded full-width tensor, so mirror that pad here; the padded
+        # columns land on the last rank's dummy heads, which are zero in the
+        # stock weights too. Padding of a full rank width or more is a real
+        # mismatch, not head padding.
+        if donor.shape[0] != weight.shape[0] or not (
+            full_in == padded_in
+            or (world == 3 and full_in < padded_in < full_in + local_in)
+        ):
             raise AblitError(
                 f"ablit transplant: {name} shape {tuple(weight.shape)} does not "
                 f"match donor {tuple(donor.shape)} at TP={world}"
+            )
+        if padded_in != full_in:
+            donor = torch.nn.functional.pad(donor, (0, padded_in - full_in))
+            logger.info(
+                "ablit: transplant %s donor padded %d -> %d input columns for TP=%d head padding",
+                name,
+                full_in,
+                padded_in,
+                world,
             )
         shard = (
             donor if world == 1 else donor[:, rank * local_in : (rank + 1) * local_in]
