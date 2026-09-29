@@ -1,0 +1,10 @@
+#!/bin/sh
+# Entrypoint for the TensorFold Qwen3.8-27B recipe. The recipe passes only named
+# `tensorfold serve` options (including --drafter /models/drafter); the target
+# checkpoint is always mounted at /models/target.
+set -eu
+: "${HOME:?}" "${TORCH_EXTENSIONS_DIR:?}" "${TRITON_CACHE_DIR:?}" "${TMPDIR:?}"
+# The platform binds /outputs/cache; the kernel-compile and prefix-snapshot
+# directories below it are created here (nothing else is writable).
+mkdir -p "$HOME/.cache/tensorfold" "$TORCH_EXTENSIONS_DIR" "$TRITON_CACHE_DIR" "$TMPDIR"
+exec tensorfold serve /models/target "$@"

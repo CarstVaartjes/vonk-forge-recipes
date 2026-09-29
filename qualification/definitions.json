@@ -4967,6 +4967,22 @@
           "Controller stop/start with warm kernel-cache restart"
         ]
       }
+    },
+    "vonk-forge/qwen3-8-27b-taussoe-tensorfold-single": {
+      "alias": "Qwen3.8-27B",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded multi-stream concurrency (--parallel) and long-context canaries, with the first-run kernel compile time recorded separately"
+        ],
+        "recovery": [
+          "Controller stop/start with warm kernel-cache restart"
+        ]
+      }
     }
   }
 }
