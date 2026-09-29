@@ -1,0 +1,5 @@
+The sparkrun recipe (upstream-deepseek4-flash-fp8-mtp-vllm-sparkfix.yaml) is from
+https://github.com/tonyd2wild/DS4-Jasl-Sparkrun-GB10-Fix at commit
+050f1ba36d376f6a629894be795ebb79bc74501d. The repository declares no licence file; its
+recipe is itself jasl's sparkrun recipe with environment fixes. The container image is
+scitrera's public jasl-ds4 vLLM build (pinned by digest); its own licences apply.

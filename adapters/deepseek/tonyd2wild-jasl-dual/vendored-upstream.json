@@ -1,0 +1,13 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "upstream-deepseek4-flash-fp8-mtp-vllm-sparkfix.yaml": "recipe/deepseek4-flash-fp8-mtp-vllm-sparkfix.yaml"
+  },
+  "source": {
+    "repo": "tonyd2wild/DS4-Jasl-Sparkrun-GB10-Fix",
+    "commit": "050f1ba36d376f6a629894be795ebb79bc74501d"
+  }
+}
