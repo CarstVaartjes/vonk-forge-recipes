@@ -1,0 +1,21 @@
+The nvfp4-kv-diffkv mod (recipe/mods), recipe/apply-mods.sh and the recipe file
+(recipes/) are from
+https://github.com/tonyd2wild/MiMo-V2.5-TP3-NVFP4-KV-3xDGX-Spark at commit
+8024c85b5e5fc5c9edd9db7b40f607683372cb0c (MIT for the recipe files, see
+LICENSE.upstream). That repository names its other mods but does not vendor
+them. The remaining mods are byte-identical copies from sibling repositories of
+the same creator at these commits, listed under "ours" in vendored-upstream.json
+because the checker compares one source repository per adapter:
+
+- mods-external/MiMo-V2.5-TP2-1M-NVFP4-KV-2xDGX-Spark@6dae0a60/{fix-mimo-v2-vllm,
+  fix-modelopt-mixed-mxfp8,fix-prometheus-instrumentator-router}/run.sh from
+  tonyd2wild/MiMo-V2.5-TP2-1M-NVFP4-KV-2xDGX-Spark at
+  6dae0a60dd3f90580029c2dd981a0cd5de49fc4e (recipe/mods/...).
+- mods-external/MiMo-V2.5-Omni-3x-DGX-Spark-TP-3-MTP@12c731f5/mimo-v2-tp3-virtual-heads/run.sh
+  from tonyd2wild/MiMo-V2.5-Omni-3x-DGX-Spark-TP-3-MTP at
+  12c731f57f320f727a761f79e9e71eae4ebd754b (mods/mimo-v2-tp3-virtual-heads/run.sh; MIT).
+
+The mods patch vLLM (Apache-2.0) and the upstream licence file states they are
+the work of their respective upstream authors under their own licences. The
+drop-caches and ray-keep-node-nccl-hca mods are host and orchestration helpers
+and are not part of the image.
