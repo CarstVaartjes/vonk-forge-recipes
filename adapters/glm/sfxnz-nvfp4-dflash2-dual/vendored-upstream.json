@@ -1,5 +1,7 @@
 {
   "ours": [
+    "docker/patch_v8_pdl_off.py",
+    "docker/patch_v8_sm121_nope_mla.py",
     "vllm-wrapper.py"
   ],
   "source": {

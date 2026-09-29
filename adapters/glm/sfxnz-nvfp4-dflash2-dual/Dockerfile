@@ -9,67 +9,17 @@ LABEL org.opencontainers.image.source="https://github.com/sfxnz/GLM-5.3-Flash-NV
 # (docker/Dockerfile.sm121-v*), each FROM the previous one, the first FROM the
 # vllm/vllm-openai:glm53-flash-arm64-cu130 tag. The digest above is that tag
 # (resolved 2026-09-29, pushed 2026-09-09). The layers below are upstream's, in
-# upstream's order, with only the COPY source paths adapted to this build
-# context; the patch scripts are byte-identical to upstream's docker/ files.
+# upstream's order. Only the COPY source paths are adapted to this build context,
+# and upstream's two inline python heredocs in docker/Dockerfile.sm121-v8 (NoPE MLA
+# backend, PDL gate) sit in docker/patch_v8_*.py with the same text, because the
+# catalog reads any line starting with `from` as a FROM instruction. The other
+# patch scripts are byte-identical to upstream's docker/ files.
 
 # ---- glm53-sm121-v8 ----
 # NoPE MLA on sm_121: prefer the SM90 bf16/FA2 sparse backend over SM120 packed pe_dim=64.
-RUN python3 - <<'PY'
-from pathlib import Path
-
-base = Path("/usr/local/lib/python3.12/dist-packages/vllm")
-
-p = base / "platforms/cuda.py"
-s = p.read_text()
-old = """        elif device_capability.major == 12:
-            return [
-                AttentionBackendEnum.TRITON_MLA,
-                AttentionBackendEnum.FLASHINFER_MLA_SPARSE_SM120,
-            ]"""
-new = """        elif device_capability.major == 12:
-            return [
-                AttentionBackendEnum.TRITON_MLA,
-                AttentionBackendEnum.FLASHINFER_MLA_SPARSE_SM90,
-                AttentionBackendEnum.FLASHINFER_MLA_SPARSE_SM120,
-            ]"""
-if s.count(old) != 1:
-    raise SystemExit("unexpected cuda.py capability-12 MLA candidate list; refusing to patch")
-p.write_text(s.replace(old, new))
-
-p = base / "v1/attention/backends/mla/flashinfer_mla_sparse_sm90.py"
-s = p.read_text()
-
-old = "    def supports_compute_capability(cls, capability: DeviceCapability) -> bool:\n        return capability.major == 9\n"
-new = "    def supports_compute_capability(cls, capability: DeviceCapability) -> bool:\n        return capability.major in (9, 12)\n"
-if s.count(old) != 1:
-    raise SystemExit("unexpected sm90 capability gate; refusing to patch")
-s = s.replace(old, new)
-
-old = '            backend="fa3",\n'
-new = '            backend=("fa3" if torch.cuda.get_device_capability()[0] == 9 else "fa2"),\n'
-if s.count(old) != 1:
-    raise SystemExit("unexpected sm90 wrapper backend literal; refusing to patch")
-s = s.replace(old, new)
-
-old = """        if not has_flashinfer_sm90_nope_mla():
-            return (
-                "FLASHINFER_MLA_SPARSE_SM90 requires FlashInfer with SM90 "
-                "MLA support (ckv_scale_arr in "
-                "BatchMLAPagedAttentionWrapper.run, FlashInfer >= 0.6.18)"
-            )"""
-new = """        if kv_cache_dtype in ("fp8", "fp8_e4m3") and not has_flashinfer_sm90_nope_mla():
-            return (
-                "FLASHINFER_MLA_SPARSE_SM90 fp8 KV requires FlashInfer with "
-                "SM90 MLA support (ckv_scale_arr in "
-                "BatchMLAPagedAttentionWrapper.run, FlashInfer >= 0.6.18)"
-            )"""
-if s.count(old) != 1:
-    raise SystemExit("unexpected sm90 flashinfer version gate; refusing to patch")
-s = s.replace(old, new)
-
-p.write_text(s)
-print("sm121 NoPE MLA patches applied")
-PY
+COPY docker/patch_v8_sm121_nope_mla.py /tmp/patch_v8_sm121_nope_mla.py
+RUN python3 /tmp/patch_v8_sm121_nope_mla.py \
+    && rm /tmp/patch_v8_sm121_nope_mla.py
 
 # 0.6.17 FA2 MLA NaNs on 64-256 row batches on sm_121. Nightly also downgrades NCCL
 # and skews cutlass-dsl; re-pin both in the same layer.
@@ -84,34 +34,9 @@ RUN pip install -q --pre \
     && python3 -c "import flashinfer; print('flashinfer', flashinfer.__version__)"
 
 # PDL is unvalidated on SM12x and races KDA state kernels.
-RUN python3 - <<'PY'
-from pathlib import Path
-
-p = Path("/usr/local/lib/python3.12/dist-packages/vllm/platforms/cuda.py")
-s = p.read_text()
-old = """    @classmethod
-    def is_arch_support_pdl(cls) -> bool:
-        try:
-            device = torch.cuda.current_device()
-            major, _ = torch.cuda.get_device_capability(device)
-        except Exception:
-            return False
-        return major >= 9
-"""
-new = """    @classmethod
-    def is_arch_support_pdl(cls) -> bool:
-        try:
-            device = torch.cuda.current_device()
-            major, _ = torch.cuda.get_device_capability(device)
-        except Exception:
-            return False
-        return major in (9, 10)
-"""
-if s.count(old) != 1:
-    raise SystemExit("unexpected is_arch_support_pdl source; refusing to patch")
-p.write_text(s.replace(old, new))
-print("PDL gated off on SM12x")
-PY
+COPY docker/patch_v8_pdl_off.py /tmp/patch_v8_pdl_off.py
+RUN python3 /tmp/patch_v8_pdl_off.py \
+    && rm /tmp/patch_v8_pdl_off.py
 
 COPY docker/patch_v7.py /tmp/patch_v7.py
 COPY docker/patch_v8_fp8.py /tmp/patch_v8_fp8.py
