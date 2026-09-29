@@ -1,0 +1,13 @@
+{
+  "source": {
+    "repo": "r0b0tlab/qwen38-27b-nvfp4-sm121-sglang",
+    "commit": "535e580eea3e777306629746c9ab45153b653a1a"
+  },
+  "ours": [
+    "sglang-serve"
+  ],
+  "renamed_dirs": {
+    "python/": "docker/python/",
+    "test/": "docker/test/"
+  }
+}
