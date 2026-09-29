@@ -473,7 +473,7 @@ class FairTests(unittest.TestCase):
             "new_blocks": [],
             "record_function_or_nullcontext": lambda _: contextlib.nullcontext(),
         }
-        exec(code, ns)  # noqa: S102  (exec runs the extracted patched source under test)
+        exec(code, ns)  # noqa: S102
         return ns
 
     def test_decode_order_reserves_real_input_and_draft_capacity(self):
@@ -595,8 +595,8 @@ def installation_tests():
                 1,
             )
             target.write_text(drifted)
-            result = subprocess.run(
-                [sys.executable, str(PATCH)], env=env, capture_output=True, check=False
+            result = subprocess.run(  # noqa: PLW1510
+                [sys.executable, str(PATCH)], env=env, capture_output=True
             )
             assert result.returncode != 0 and target.read_text() == drifted
         return installed
@@ -608,7 +608,7 @@ def main():
     begin = PATCHED_SOURCE.index("class _Glm53MixedPrefill:")
     end = PATCHED_SOURCE.index("_GLM53_MIXED = _Glm53MixedPrefill()")
     ns = {"os": os, "time": __import__("time")}
-    exec(PATCHED_SOURCE[begin:end], ns)  # noqa: S102  (exec runs the extracted patched source under test)
+    exec(PATCHED_SOURCE[begin:end], ns)  # noqa: S102
     POLICY = ns["_Glm53MixedPrefill"]
     result = unittest.TextTestRunner(verbosity=2).run(
         unittest.defaultTestLoader.loadTestsFromTestCase(FairTests)

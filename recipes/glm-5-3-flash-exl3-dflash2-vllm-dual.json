@@ -39,7 +39,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public bc68f310 EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its 2x DGX Spark EXL3/TR3 4 bpw target with the retained bf582e4e DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 192k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. The build applies the GB10 persistent-topk overlay and verify-runtime.py fails closed unless its marker is present. Selected upstream fixes are vendored for bounded Mamba align-state retention, Mamba-block chunk checkpoints, and tool_choice:none decode masking while the source and runtime image pins remain fixed. A 320k context was refused by the engine's own KV check at 0.84 GPU utilization; the declared 0.845 utilization keeps the 192k context about 0.6 GiB inside the engine's measured KV budget. Vonk physical acceptance and checkpoint requalification remain pending.",
+    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public 94ae731f EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its 2x DGX Spark EXL3/TR3 4 bpw target with the retained bf582e4e DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 192k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. The build applies the GB10 persistent-topk overlay and verify-runtime.py fails closed unless its marker is present. Selected upstream fixes are vendored for bounded Mamba align-state retention, Mamba-block chunk checkpoints, and tool_choice:none decode masking while the source and runtime image pins remain fixed. A 320k context was refused by the engine's own KV check at 0.84 GPU utilization; the declared 0.845 utilization keeps the 192k context about 0.6 GiB inside the engine's measured KV budget. Upstream defaults now include FP8 dense projections with BF16 large-batch KDA prefill, compact draft KV pages, the Mamba/kpool/loader fixes and an explicit 11 GiB KV pool. Options choose adaptive verification length and BF16 projections. Vonk physical acceptance and checkpoint requalification remain pending.",
     "tags": [
       "candidate",
       "dflash2",
@@ -1719,6 +1719,57 @@
       }
     }
   ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Verify all 7 drafted tokens every step (upstream default).",
+          "label": "Standard",
+          "value": "standard"
+        },
+        {
+          "args": [
+            {
+              "name": "compilation-config",
+              "value": "{\"cudagraph_capture_sizes\":[1,2,3,4,5,6,8,9,10,12,15,16,20,24,32]}"
+            }
+          ],
+          "env": {
+            "GLM53_ADAPTIVE_K": "ema"
+          },
+          "help": "Adaptive verification length (GLM53_ADAPTIVE_K=ema); captures the extra CUDA graph sizes it needs.",
+          "label": "Adaptive length",
+          "value": "adaptive-k"
+        }
+      ],
+      "help": "How many drafted tokens the target verifies per step. Adaptive-k verifies a per-step prefix (2, 4 or 7 tokens) chosen from how many drafts have been surviving; lossless at temperature 0 and faster on prose, at the cost of extra CUDA graph shapes.",
+      "label": "Draft verification",
+      "name": "verification"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "FP8 weight-only Marlin for all four projection groups plus BF16 large-batch prefill for the KDA input projection (upstream default; ~4-5 percent faster decode, -12 percent prefill TTFT, same weights, FP8 rounding).",
+          "label": "FP8 (all groups)",
+          "value": "fp8-all"
+        },
+        {
+          "env": {
+            "GLM53_DENSE_FP8": "off",
+            "GLM53_KDA_BF16_LARGE_M": "0"
+          },
+          "help": "Keep the projections in BF16 as shipped: no FP8 rounding, slower decode and prefill.",
+          "label": "BF16",
+          "value": "bf16"
+        }
+      ],
+      "help": "Precision of the non-expert (KDA, dense MLP, shared-expert and MLA) projections.",
+      "label": "Dense projections",
+      "name": "projections"
+    }
+  ],
   "provenance": {
     "attribution": [
       "Z.AI",
@@ -1728,11 +1779,11 @@
       "Turboderp",
       "vLLM contributors"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/bc68f310f8d5e941227ce5c93e95bca43b50fd6c"
+    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/94ae731f4619f769be1f4dfe6f6607ce0a3e869d"
   },
   "release": {
-    "released_at": "2026-09-17",
-    "version": "1.6.0"
+    "released_at": "2026-09-28",
+    "version": "1.7.0"
   },
   "runtime": {
     "arguments": [
@@ -1790,6 +1841,11 @@
         "name": "kv-cache-dtype",
         "setting": null,
         "value": "fp8"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 11811160064
       },
       {
         "name": "load-format",
@@ -1946,7 +2002,7 @@
       },
       {
         "name": "GLM53_DENSE_FP8",
-        "value": "off"
+        "value": "all"
       },
       {
         "name": "GLM53_APC_NO_STORE",
@@ -2019,6 +2075,30 @@
       {
         "name": "INSTANTTENSOR_MAX_FREE_MEM_USAGE",
         "value": "2.0"
+      },
+      {
+        "name": "GLM53_KDA_BF16_LARGE_M",
+        "value": "1"
+      },
+      {
+        "name": "GLM53_DRAFT_KV_COMPACT",
+        "value": "1"
+      },
+      {
+        "name": "GLM53_LOAD_CLONE",
+        "value": "1"
+      },
+      {
+        "name": "GLM53_LOAD_PREFETCH",
+        "value": "0"
+      },
+      {
+        "name": "GLM53_EXL3_MOE_FAST",
+        "value": "0"
+      },
+      {
+        "name": "GLM53_DENSE_EXL3",
+        "value": "0"
       }
     ],
     "lifecycle": {

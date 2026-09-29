@@ -17,6 +17,11 @@ required = (
     "/opt/glm53/patch_kv_capacity_log.py",
     "/opt/glm53/patch_cache_reset.py",
     "/opt/glm53/patch_kpool_tail_slotmap.py",
+    "/opt/glm53/patch_kpool_tail_seed_stride.py",
+    "/opt/glm53/patch_dflash2_exl3.py",
+    "/opt/glm53/patch_loadclone.py",
+    "/opt/glm53/patch_cold_load_uma.py",
+    "/opt/glm53/patch_skip_cudagraph_profile.py",
     "/opt/glm53/patch_mamba_align_chunking.py",
     "/opt/glm53/patch_mamba_align_state_free.py",
     "/opt/glm53/patch_tool_choice_none.py",
@@ -65,6 +70,7 @@ required_symbols = (
     "exl3_fat_moe_down",
     "exl3_fat_moe_tile_rows_gateup",
     "exl3_fat_moe_tile_rows_down",
+    "glm53_fast_moe_version",
 )
 missing_symbols = [
     name for name in required_symbols if not hasattr(exllamav3_ext, name)

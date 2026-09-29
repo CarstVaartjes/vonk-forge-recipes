@@ -273,12 +273,8 @@ def stage(into: Path, root: Path | None, pristine_only: bool) -> dict[str, Path]
 def run_patcher(staged: dict[str, Path]) -> subprocess.CompletedProcess[str]:
     env = {k: v for k, v in os.environ.items() if not k.startswith("GLM53_")}
     env.update({k: str(v) for k, v in staged.items()})
-    return subprocess.run(
-        [sys.executable, str(PATCH)],
-        env=env,
-        capture_output=True,
-        text=True,
-        check=False,
+    return subprocess.run(  # noqa: PLW1510
+        [sys.executable, str(PATCH)], env=env, capture_output=True, text=True
     )
 
 
@@ -502,15 +498,8 @@ def part_b() -> None:
     print("Part B: resolver semantics (helper block exec'd in a bare namespace)")
     ns, log = helper_namespace(None)
     parse = ns["_glm53_parse_no_store"]
-    accepted = (
-        (True, True),
-        (False, False),
-        (1, True),
-        (0, False),
-        ("1", True),
-        ("0", False),
-    )
-    for value, want in accepted:
+    accepted = {True: True, False: False, "1": True, "0": False}
+    for value, want in accepted.items():
         check(parse(value, "t") is want, f"B1 accept {value!r} -> {want}")
     rejected = [
         2,
@@ -1143,11 +1132,10 @@ def part_c(root: Path | None) -> None:
             + (" (GLM53_REQUIRE_VLLM=1: failing)" if require else ""),
         )
         return
-    probe = subprocess.run(
+    probe = subprocess.run(  # noqa: PLW1510
         [sys.executable, "-c", "import vllm.v1.core.kv_cache_manager, torch"],
         capture_output=True,
         text=True,
-        check=False,
     )
     if probe.returncode != 0:
         msg = probe.stderr.strip().splitlines()[-1] if probe.stderr.strip() else "?"
@@ -1167,12 +1155,11 @@ def part_c(root: Path | None) -> None:
         # flag through explicitly so C3L can require the retention composition.
         if os.environ.get("GLM53_REQUIRE_COMPOSITION", "") == "1":
             env["GLM53_REQUIRE_COMPOSITION"] = "1"
-        r = subprocess.run(
+        r = subprocess.run(  # noqa: PLW1510
             [sys.executable, str(script), str(root), str(PATCH), str(tmp)],
             capture_output=True,
             text=True,
             env=env,
-            check=False,
         )
         for line in r.stdout.splitlines():
             if line.startswith(("  ok", "  FAIL", "  skip", "       ")):
@@ -1237,12 +1224,8 @@ def caller_gate(export: str | None, dotenv: str) -> tuple[int, str, str]:
         }
         if export is not None:
             env["GLM53_APC_NO_STORE"] = export
-        r = subprocess.run(
-            ["bash", "-c", script],
-            text=True,
-            capture_output=True,
-            env=env,
-            check=False,
+        r = subprocess.run(  # noqa: PLW1510
+            ["bash", "-c", script], text=True, capture_output=True, env=env
         )
         return r.returncode, r.stdout.strip(), r.stderr.strip()
 
@@ -1287,12 +1270,8 @@ def part_d() -> None:
         env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "LC_ALL": "C"}
         if value is not None:
             env["GLM53_APC_NO_STORE"] = value
-        r = subprocess.run(
-            ["bash", "-c", script],
-            text=True,
-            capture_output=True,
-            env=env,
-            check=False,
+        r = subprocess.run(  # noqa: PLW1510
+            ["bash", "-c", script], text=True, capture_output=True, env=env
         )
         return r.returncode, r.stdout.strip(), r.stderr.strip()
 

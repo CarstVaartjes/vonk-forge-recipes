@@ -114,7 +114,7 @@ def _install_import_hook() -> None:
         applying = True
         try:
             apply()
-        except Exception as exc:  # noqa: BLE001  (import hook must not break the host)
+        except Exception as exc:  # noqa: BLE001
             print(f"glm53: video apply() failed: {exc!r}", file=sys.stderr)
         finally:
             applying = False
@@ -159,10 +159,17 @@ def _disable_gb10_persistent_topk() -> None:
 
 
 _install_import_hook()
-try:
-    apply()
-except Exception:  # noqa: BLE001, S110  (import-time best effort)
-    pass
+# Do NOT call apply() eagerly here. This module is imported from a .pth on
+# every interpreter start (each overlay script, every vLLM subprocess, every
+# python3 -c), and apply() imports vllm.model_executor.models.glm4_1v — ~4 s
+# of vllm import per process, ~80 s per boot across the overlay scripts on
+# both ranks. The import hook above applies it the moment glm4_1v is actually
+# imported, which is the only time it matters.
+if "vllm.model_executor.models.glm4_1v" in sys.modules:
+    try:
+        apply()
+    except Exception:  # noqa: BLE001, S110
+        pass
 
 
 if __name__ == "__main__":

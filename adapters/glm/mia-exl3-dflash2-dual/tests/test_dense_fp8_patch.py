@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import ast
 import os
 import shutil
 import subprocess
@@ -12,11 +13,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-PATCH = next(
-    p
-    for p in (HERE / "patch_dense_fp8.py", ROOT / "overlay" / "patch_dense_fp8.py")
-    if p.is_file()
-)
+PATCH = ROOT / "overlay" / "patch_dense_fp8.py"
 SITE = Path("/usr/local/lib/python3.12/dist-packages/vllm")
 KDA_SRC = Path(
     os.environ.get("GLM53_KDA_PY_SRC", SITE / "models/glm5next/nvidia/kda.py")
@@ -26,12 +23,35 @@ MODEL_SRC = Path(
 )
 
 
-def classifier_tests() -> None:
-    text = (PATCH.parent / "exl3.py").read_text()
-    start = text.index("_GLM53_DENSE_FP8_SUFFIXES = {")
-    end = text.index("class Glm53DenseFp8Method(")
+def _load_helpers(names: set[str]) -> dict[str, object]:
+    source = ROOT / "overlay" / "exl3.py"
+    tree = ast.parse(source.read_text())
+    body = [
+        node
+        for node in tree.body
+        if (isinstance(node, ast.FunctionDef) and node.name in names)
+        or (
+            isinstance(node, ast.Assign)
+            and any(
+                isinstance(target, ast.Name) and target.id in names
+                for target in node.targets
+            )
+        )
+    ]
     ns = {"os": os, "re": __import__("re")}
-    exec(text[start:end], ns)  # noqa: S102  (exec runs the extracted patched source under test)
+    exec(compile(ast.Module(body=body, type_ignores=[]), str(source), "exec"), ns)  # noqa: S102
+    return ns
+
+
+def classifier_tests() -> None:
+    ns = _load_helpers(
+        {
+            "_GLM53_DENSE_FP8_SUFFIXES",
+            "_glm53_dense_fp8_groups",
+            "_glm53_layer_types",
+            "_glm53_dense_fp8_group",
+        }
+    )
     f = ns["_glm53_dense_fp8_group"]
     lt = (
         ["linear_attention"] * 3
@@ -58,8 +78,24 @@ def classifier_tests() -> None:
     assert f("draft_model.layers.0.mlp.gate_up_proj", all_g, lt) is None
 
 
+def marlin_tp3_compatibility_tests() -> None:
+    ns = _load_helpers(
+        {
+            "_GLM53_TP3_UNALIGNED_KDA_SUFFIXES",
+            "_glm53_use_marlin",
+        }
+    )
+    use_marlin = ns["_glm53_use_marlin"]
+    assert not use_marlin("kda", "model.layers.0.self_attn.f_b_proj", 3)
+    assert not use_marlin("kda", "model.layers.0.self_attn.g_b_proj", 3)
+    assert use_marlin("kda", "model.layers.0.self_attn.f_b_proj", 2)
+    assert use_marlin("kda", "model.layers.0.self_attn.o_proj", 3)
+    assert use_marlin("dense", "model.layers.0.mlp.down_proj", 3)
+
+
 def main() -> int:
     classifier_tests()
+    marlin_tp3_compatibility_tests()
     for src in (KDA_SRC, MODEL_SRC):
         if not src.is_file():
             raise SystemExit(f"missing {src}")
@@ -72,14 +108,14 @@ def main() -> int:
         (site / "model_executor/layers/quantization/exl3.py").write_text("stale\n")
         opt = Path(tmp) / "opt"
         opt.mkdir()
-        shutil.copyfile(PATCH.parent / "exl3.py", opt / "exl3.py")
+        shutil.copyfile(ROOT / "overlay" / "exl3.py", opt / "exl3.py")
         env = os.environ.copy()
         env["GLM53_SITE"] = str(site)
         env["GLM53_OPT"] = str(opt)
         env["GLM53_DENSE_FP8"] = "off"
         subprocess.check_call([sys.executable, str(PATCH)], env=env)
         assert (site / "model_executor/layers/quantization/exl3.py").read_text() == (
-            PATCH.parent / "exl3.py"
+            ROOT / "overlay" / "exl3.py"
         ).read_text()
         assert (
             "[glm53-dense-fp8]"

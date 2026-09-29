@@ -12,14 +12,7 @@ import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-PATCH = next(
-    p
-    for p in (
-        HERE / "patch_adaptive_k.py",
-        HERE.parent / "overlay" / "patch_adaptive_k.py",
-    )
-    if p.is_file()
-)
+PATCH = HERE.parent / "overlay" / "patch_adaptive_k.py"
 SITE = Path("/usr/local/lib/python3.12/dist-packages/vllm")
 SCHED_SRC = Path(
     os.environ.get("GLM53_SCHEDULER_PY_SRC", SITE / "v1/core/sched/scheduler.py")
@@ -45,12 +38,28 @@ def policy_tests(helper_src: str) -> None:
         old = dict(os.environ)
         os.environ.update(env)
         try:
-            exec(helper_src, ns)  # noqa: S102  (exec runs the extracted patched source under test)
+            exec(helper_src, ns)  # noqa: S102
             inst = ns["_Glm53AdaptiveK"]()
         finally:
             os.environ.clear()
             os.environ.update(old)
         return inst
+
+    # docker -e VAR= (empty) must not crash; Python getenv default is skipped
+    p = make(
+        {
+            "GLM53_ADAPTIVE_K": "ema",
+            "GLM53_ADAPTIVE_K_ALPHA": "",
+            "GLM53_ADAPTIVE_K_MARGIN": "",
+            "GLM53_ADAPTIVE_K_MIN_STEPS": "",
+            "GLM53_ADAPTIVE_K_SET": "",
+            "GLM53_ADAPTIVE_K_SATURATE": "",
+            "GLM53_ADAPTIVE_K_HIST": "",
+        }
+    )
+    assert p.enabled and p.alpha == 0.25 and p.margin == 1.0
+    assert p.min_steps == 4 and p.k_set == [2, 4, 7]
+    assert p.saturate == "max" and p.hist_every == 200
 
     # default off: never trims
     p = make({"GLM53_ADAPTIVE_K": "off"})
@@ -231,7 +240,7 @@ def main() -> int:
         cstart = ct.index("def _glm53_adaptive_k_query_lens(")
         cend = ct.index("@dataclass(frozen=True)\nclass BatchExecutionDescriptor:")
         ns = {}
-        exec(ct[cstart:cend], ns)  # noqa: S102  (exec runs the extracted patched source under test)
+        exec(ct[cstart:cend], ns)  # noqa: S102
         fn = ns["_glm53_adaptive_k_query_lens"]
         os.environ["GLM53_ADAPTIVE_K"] = "off"
         assert fn([8], 8) == [8]

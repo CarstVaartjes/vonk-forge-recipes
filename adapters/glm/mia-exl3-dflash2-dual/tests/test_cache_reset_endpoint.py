@@ -92,7 +92,7 @@ def run_build_app(
             "os": os,
             "envs": types.SimpleNamespace(VLLM_SERVER_DEV_MODE=dev_mode),
         }
-        exec(compile(source, "patched_api_server_fixture.py", "exec"), namespace)  # noqa: S102  (exec runs the extracted patched source under test)
+        exec(compile(source, "patched_api_server_fixture.py", "exec"), namespace)  # noqa: S102
         namespace["build_app"](object())
     finally:
         if saved is not None:
