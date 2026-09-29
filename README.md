@@ -10,7 +10,7 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-**117 recipes** for **32 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+**118 recipes** for **32 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
@@ -18,7 +18,7 @@ Number of recipes per model family and engine.
 
 | Model family | vLLM | SGLang | TensorRT-LLM | llama.cpp | TensorFold | ds4 | diffusers | ComfyUI | pytorch-pipeline |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| DeepSeek V4 Flash | 11 | 1 |  |  |  | 3 |  |  |  |
+| DeepSeek V4 Flash | 12 | 1 |  |  |  | 3 |  |  |  |
 | FLUX.2 |  |  |  |  |  |  |  | 2 |  |
 | Gemma | 2 |  |  |  |  |  |  |  |  |
 | GLM | 9 |  |  |  |  |  |  |  |  |
@@ -50,7 +50,7 @@ Number of recipes per model family and engine.
 | TripoSG |  |  |  |  |  |  |  |  | 1 |
 | UI-Mate | 1 |  |  |  |  |  |  |  |  |
 | Wan |  |  |  |  |  |  |  | 3 | 2 |
-| **Total** | **55** | **12** | **0** | **0** | **3** | **3** | **13** | **10** | **21** |
+| **Total** | **56** | **12** | **0** | **0** | **3** | **3** | **13** | **10** | **21** |
 
 ### Spark variants
 
@@ -58,7 +58,7 @@ Which Spark counts each family runs on, and who provides them.
 
 | Model family | 1 Spark | 2 Sparks | 3 Sparks | 4 Sparks | 8 Sparks |
 | --- | --- | --- | --- | --- | --- |
-| DeepSeek V4 Flash | 0xSero, antirez, MiaAI-Lab | MiaAI-Lab, r0b0tlab, tonyd2wild | MiaAI-Lab |  |  |
+| DeepSeek V4 Flash | 0xSero, antirez, MiaAI-Lab | MiaAI-Lab, r0b0tlab, sfxnz, tonyd2wild | MiaAI-Lab |  |  |
 | FLUX.2 | black-forest-labs, Comfy-Org |  |  |  |  |
 | Gemma | google |  |  |  |  |
 | GLM | r0b0tlab | drowzeys (keyz), MiaAI-Lab, r0b0tlab, tonyd2wild | MiaAI-Lab | drowzeys (keyz), tonyd2wild |  |
@@ -103,7 +103,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | [drowzeys (keyz)](https://github.com/drowzeys) | Large multi-Spark vLLM builds with prebuilt images: GLM, MiMo, abliterated variants. | vLLM | 4 |
 | [NVIDIA playbooks](https://github.com/NVIDIA/dgx-spark-playbooks) | Official DGX Spark playbooks and NVIDIA model releases: Nemotron, NVFP4 checkpoints. | diffusers, vLLM | 8 |
 | [eugr](https://github.com/eugr) | spark-vllm-docker: vLLM container builds for dual DGX Spark; llama-benchy benchmarking. |  | 0 |
-| [sfxnz](https://github.com/sfxnz) | Dual-Spark vLLM TP=2 cookbooks: Qwen3.8, GLM 5.3, DeepSeek V4.1 EXL3. | vLLM | 2 |
+| [sfxnz](https://github.com/sfxnz) | Dual-Spark vLLM TP=2 cookbooks: Qwen3.8, GLM 5.3, DeepSeek V4.1 EXL3. | vLLM | 3 |
 | [0xSero](https://github.com/0xSero) | SparkInfer builds and local-ai-recipe-kit; DeepSeek V4 Flash on one Spark. | vLLM | 2 |
 | [antirez](https://github.com/antirez/ds4) | ds4: the DeepSeek 4 Flash inference engine (Metal, CUDA, ROCm). | ds4 | 3 |
 
@@ -138,12 +138,13 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 ### Recipes by family
 
-<details><summary>DeepSeek V4 Flash (15)</summary>
+<details><summary>DeepSeek V4 Flash (16)</summary>
 
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
 | [deepseek-v4-1-flash-ds4-single](recipes/deepseek-v4-1-flash-ds4-single.json) | ds4 | 1 | antirez |
 | [deepseek-v4-1-flash-exl3-mia-dual](recipes/deepseek-v4-1-flash-exl3-mia-dual.json) | vLLM | 2 | MiaAI-Lab |
+| [deepseek-v4-1-flash-exl3-sfxnz-vllm-dual](recipes/deepseek-v4-1-flash-exl3-sfxnz-vllm-dual.json) | vLLM | 2 | sfxnz |
 | [deepseek-v4-1-flash-sglang-mia-triple](recipes/deepseek-v4-1-flash-sglang-mia-triple.json) | SGLang | 3 | MiaAI-Lab |
 | [deepseek-v4-flash-0731-ds4-dspark-latency-single](recipes/deepseek-v4-flash-0731-ds4-dspark-latency-single.json) | ds4 | 1 | antirez |
 | [deepseek-v4-flash-0731-ds4-single](recipes/deepseek-v4-flash-0731-ds4-single.json) | ds4 | 1 | antirez |
