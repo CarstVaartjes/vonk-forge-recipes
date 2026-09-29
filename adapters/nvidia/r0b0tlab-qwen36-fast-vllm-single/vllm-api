@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+"""Launch the pinned vLLM OpenAI server (upstream's start script, minus its env-var translation)."""
+
+from __future__ import annotations
+
+import os
+import sys
+from pathlib import Path
+
+MODEL = Path("/models")
+arguments = sys.argv[1:]
+if "--model" not in arguments or str(MODEL) not in arguments:
+    raise SystemExit("the immutable /models checkpoint argument is required")
+for name in ("config.json", "model.safetensors.index.json"):
+    if not (MODEL / name).is_file():
+        raise SystemExit(f"immutable model artifact is missing: {MODEL / name}")
+os.execv(
+    "/usr/bin/python3",
+    ("/usr/bin/python3", "-m", "vllm.entrypoints.openai.api_server", *arguments),
+)

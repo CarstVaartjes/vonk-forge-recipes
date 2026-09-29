@@ -1,0 +1,508 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "3361f68b966ae84940c068aa7fd522078fd7f3cb087c506edee93041ce031892",
+        "repository": "ghcr.io/r0b0tlab/qwen36-35b-a3b-nvfp4-fast-sm121-vllm"
+      },
+      "context": {
+        "path": "adapters/nvidia/r0b0tlab-qwen36-fast-vllm-single"
+      },
+      "dockerfile": "adapters/nvidia/r0b0tlab-qwen36-fast-vllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-6-35b-a3b-nvfp4-fast-r0b0tlab-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "Qwen3.6-35B-A3B-NVFP4-Fast"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "r0b0tlab's native-SM121 vLLM profile for Unsloth's mixed-precision Qwen3.6-35B-A3B-NVFP4-Fast (compressed-tensors FP8 dense groups and NVFP4 group-16 experts, trained MTP layer kept; Apache-2.0) with MTP K=2 on one Spark, from r0b0tlab/qwen36-35b-a3b-nvfp4-fast-sm121-vllm at b5c2dd2f (MIT). Runs upstream's published image (vLLM 0.24.1-dev SM121, manifest sha256:3361f68b, used unchanged) with FlashInfer attention and B12X MoE, automatic linear backend (a global B12X linear override is invalid for the FP8 layers), FP8 KV, memory utilisation 0.90, 65,536-token context, 32 sequences, 32,768 batched tokens, text-only, qwen3_xml tool parser and MTP with a Triton drafter MoE. Upstream's NVFP4-KV experiment degenerated and is rejected upstream, so it is not offered. The upstream review names checkpoint revision 11fb65d6, which does not exist on the Hub; the recipe binds 11fb1aff, the commit of that day with the same prefix (later commits change only the model card). Upstream claims (not measured here): its own benchmark run 20260710T145810Z. Physical Spark acceptance is pending.",
+    "tags": [
+      "candidate",
+      "executable",
+      "fp8",
+      "mtp",
+      "nvfp4",
+      "qwen",
+      "qwen3-6",
+      "r0b0tlab",
+      "reasoning",
+      "single",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "Qwen3.6 35B-A3B NVFP4 Fast MTP vLLM single Spark (r0b0tlab)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-fe81d528e7ee-618cd5b83d",
+          "id": "primary-metadata-fe81d528e7ee-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-b9704454d009-b335630551",
+          "id": "primary-readme-b9704454d009-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-e84f32a23fdd-00824420d1",
+          "id": "primary-chat-template-e84f32a23fdd-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-46cb11d0ce80-587cb980af",
+          "id": "primary-config-46cb11d0ce80-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-c1b09db41911-761e16ca02",
+          "id": "primary-configuration-c1b09db41911-761e16ca02",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-d0dbf670c6a3-97dd3d578b",
+          "id": "primary-generation-config-d0dbf670c6a3-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00005-ae6d6df8a4ba-8453f51e85",
+          "id": "primary-model-00001-of-00005-ae6d6df8a4ba-8453f51e85",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00005-071ab0aa7b8e-516421cb37",
+          "id": "primary-model-00002-of-00005-071ab0aa7b8e-516421cb37",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00005-e81191b3fe3f-05880bd763",
+          "id": "primary-model-00003-of-00005-e81191b3fe3f-05880bd763",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00005-1dcc959e5138-c340da1f8a",
+          "id": "primary-model-00004-of-00005-1dcc959e5138-c340da1f8a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00005-d6c56b176262-2bd52bf6f8",
+          "id": "primary-model-00005-of-00005-d6c56b176262-2bd52bf6f8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-d0ab515cf0dc-0a05be8238",
+          "id": "primary-model-safetensors-index-d0ab515cf0dc-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "primary-preprocessor-config-27225450ac9c-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-d89ef49ce9cd-27f0cb76af",
+          "id": "primary-processor-config-d89ef49ce9cd-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-1a6329cee073-224931eb13",
+          "id": "primary-tokenizer-1a6329cee073-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-792fa3f0cb88-94d5c6ba8f",
+          "id": "primary-tokenizer-config-792fa3f0cb88-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "primary-vocab-ce99b4cb2983-ba05d8e2e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "61e81a39bd3305255a232ab3b4566fc1fd3b833a06fb5dbd31052403d49e61ba",
+        "kind": "model",
+        "publisher": "unsloth",
+        "slug": "qwen3-6-35b-a3b-nvfp4-fast-11fb1aff"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "args": [
+            {
+              "name": "speculative-config",
+              "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":2,\"moe_backend\":\"triton\"}"
+            }
+          ],
+          "default": true,
+          "help": "Upstream's default: two speculative tokens with a Triton drafter MoE.",
+          "label": "MTP K=2",
+          "value": "mtp"
+        },
+        {
+          "help": "Upstream's base autoregressive mode (SPECULATIVE_CONFIG empty).",
+          "label": "No speculation",
+          "value": "none"
+        }
+      ],
+      "help": "Whether the checkpoint's trained MTP layer drafts tokens.",
+      "label": "Speculative decoding",
+      "name": "speculation"
+    },
+    {
+      "choices": [
+        {
+          "args": [
+            {
+              "name": "language-model-only",
+              "value": true
+            }
+          ],
+          "default": true,
+          "help": "Upstream default (LANGUAGE_MODEL_ONLY=1): skips the vision tower.",
+          "label": "Text only",
+          "value": "text"
+        },
+        {
+          "help": "Upstream's LANGUAGE_MODEL_ONLY=0; upstream validated only text.",
+          "label": "Multimodal",
+          "value": "multimodal"
+        }
+      ],
+      "help": "Whether the multimodal tower is loaded.",
+      "label": "Modalities",
+      "name": "modality"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "r0b0tlab (MIT)",
+      "Unsloth (Apache-2.0)",
+      "Qwen (Apache-2.0)",
+      "vLLM contributors (Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/r0b0tlab/qwen36-35b-a3b-nvfp4-fast-sm121-vllm/tree/b5c2dd2ff156040d696b93d7b0f6ed9eeefe7496"
+  },
+  "release": {
+    "released_at": "2026-07-10",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model",
+        "setting": null,
+        "value": "/models"
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "Qwen3.6-35B-A3B-NVFP4-Fast"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "flashinfer"
+      },
+      {
+        "name": "moe-backend",
+        "setting": null,
+        "value": "flashinfer_b12x"
+      },
+      {
+        "name": "linear-backend",
+        "setting": null,
+        "value": "auto"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.90"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 32768
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "qwen3_xml"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "qwen3"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm-api"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "MAX_JOBS",
+        "value": "6"
+      },
+      {
+        "name": "FLASHINFER_NVCC_THREADS",
+        "value": "2"
+      },
+      {
+        "name": "FLASHINFER_DISABLE_VERSION_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "value": "expandable_segments:True"
+      },
+      {
+        "name": "CUTE_DSL_ARCH",
+        "value": "sm_121a"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 32
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 65536
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 23690102028,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 16000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 112000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "Qwen3.6-35B-A3B-NVFP4-Fast"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
