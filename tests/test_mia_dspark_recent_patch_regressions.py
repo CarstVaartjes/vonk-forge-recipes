@@ -15,10 +15,7 @@ from typing import Any
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-DEEPSEEK_ADAPTERS = (
-    ROOT / "adapters/deepseek/mia-vllm",
-    ROOT / "adapters/deepseek/mia-vllm-vision",
-)
+DEEPSEEK_ADAPTERS = (ROOT / "adapters/deepseek/mia-vllm-vision",)
 ISSUE27_MARK = "# [issue27-hotfix] enforce max_num_partial_prefills on admission"
 ISSUE27_SCRIPT_PATH = 'P = Path("/usr/local/lib/python3.12/dist-packages/vllm/v1/core/sched/scheduler.py")'
 
@@ -161,13 +158,6 @@ class MiaDeepSeekRecentPatchTests(unittest.TestCase):
     ) -> None:
         expected = (
             (
-                ROOT / "recipes/deepseek-v4-flash-0731-mia-dual.json",
-                ROOT / "adapters/deepseek/mia-vllm/Dockerfile",
-                "2.3.3",
-                "0107cef1835a56d1a2bcdabf7d9e1a085b70338b",
-                "28e0db557f1c23af34f005d9734aba1bc7b04810973b410d011ee657fed29ffd",
-            ),
-            (
                 ROOT / "recipes/deepseek-v4-flash-vision-exp-mia-dual.json",
                 ROOT / "adapters/deepseek/mia-vllm-vision/Dockerfile",
                 "1.2.0",
@@ -200,11 +190,6 @@ class MiaDeepSeekRecentPatchTests(unittest.TestCase):
             'UPSTREAM_MERGE = "10c75477b07c2f1a361f54b7357af1019bba5fd8"', issue117
         )
         self.assertIn("SHM_READER_RECHECK_INTERVAL_MS = 5000", issue117)
-        issue136_patch = "patches/hotfix-vllm-issue136-xgrammar-termination.py"
-        self.assertEqual(
-            (DEEPSEEK_ADAPTERS[0] / issue136_patch).read_bytes(),
-            (DEEPSEEK_ADAPTERS[1] / issue136_patch).read_bytes(),
-        )
         for adapter in DEEPSEEK_ADAPTERS:
             self.assertIn(
                 'run("hotfix-vllm-issue136-xgrammar-termination.py")',

@@ -3928,22 +3928,6 @@
         ]
       }
     },
-    "vonk-forge/deepseek-v4-flash-0731-mia-dual": {
-      "alias": "deepseek-v4-flash-0731",
-      "smoke_cases": [
-        "M0",
-        "A391",
-        "T_REPORT"
-      ],
-      "higher_tiers": {
-        "stress": [
-          "Bounded long-context and concurrency canaries"
-        ],
-        "recovery": [
-          "Controller-only rank-loss and warm-cache recovery"
-        ]
-      }
-    },
     "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual": {
       "alias": "deepseek-v4-flash-vision-exp",
       "smoke_cases": [
@@ -4031,23 +4015,6 @@
     },
     "vonk-forge/inkling-small-nvfp4-sglang-dual": {
       "alias": "inkling-small",
-      "smoke_cases": [
-        "M0",
-        "A391",
-        "T_REPORT",
-        "V_RED"
-      ],
-      "higher_tiers": {
-        "stress": [
-          "Bounded long-context and concurrency canaries"
-        ],
-        "recovery": [
-          "Controller-only rank-loss and warm-cache recovery"
-        ]
-      }
-    },
-    "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual": {
-      "alias": "qwen3.8-flash-next",
       "smoke_cases": [
         "M0",
         "A391",

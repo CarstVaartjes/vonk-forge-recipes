@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PATCH = (
     ROOT
-    / "adapters/deepseek/mia-vllm/patches/hotfix-dsv4-issue133-triton-specialization.py"
+    / "adapters/deepseek/mia-vllm-vision/patches/hotfix-dsv4-issue133-triton-specialization.py"
 )
 
 
