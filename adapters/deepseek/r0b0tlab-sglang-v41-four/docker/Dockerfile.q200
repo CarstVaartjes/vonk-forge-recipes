@@ -1,0 +1,10 @@
+# Q200-variant overlay: adds the certified q200 sandbox driver to the base
+# dsv41 overlay so one image id binds both serving and sandbox grading
+# (q200v2 admission identity requirement). Driver hash must equal the
+# certified cac0513ca9bfcf5bbaa8ef55b0b14f1bda86262faf3ab9557f7a90d49aa6bccf.
+# ENTRYPOINT reset: the NVIDIA entrypoint prints a CUDA banner to stdout,
+# which corrupts the sandbox driver's single-receipt JSON protocol.
+FROM dsv41-tp4-sm121:overlay-v1
+COPY q200/q200_sandbox_driver.py /opt/r0b0tlab/q200_sandbox_driver.py
+LABEL org.r0b0tlab.q200_sandbox_driver_version="r0b0tlab.qwen38.q200_sandbox_driver.v1"
+ENTRYPOINT []
