@@ -1,0 +1,12 @@
+{
+  "source": {
+    "repo": "r0b0tlab/agents-a1-nvfp4-sm121-vllm",
+    "commit": "fda20c0526e387da1446c8880a69cbda227fc851"
+  },
+  "ours": [
+    "strip_fa_check.py"
+  ],
+  "renamed": {
+    "Dockerfile.upstream": "docker/Dockerfile"
+  }
+}

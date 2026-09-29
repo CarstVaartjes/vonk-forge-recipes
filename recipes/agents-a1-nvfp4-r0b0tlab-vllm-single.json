@@ -1,0 +1,440 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "6e2dfa4c48ac73965890a864dc1510017f42981e743b3f2834b4b189ad7712a8",
+        "repository": "ghcr.io/r0b0tlab/vllm-laguna-m1-nvfp4-sm121"
+      },
+      "context": {
+        "path": "adapters/llm/r0b0tlab-agents-a1-vllm-single"
+      },
+      "dockerfile": "adapters/llm/r0b0tlab-agents-a1-vllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "agents-a1-nvfp4-r0b0tlab-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "agents-a1-nvfp4"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "r0b0tlab's SM121 vLLM serve of its NVIDIA ModelOpt NVFP4 quantization of InternScience Agents-A1 (Qwen3.5 MoE agentic model; MLP/MoE experts in NVFP4, attention, vision tower and embeddings kept BF16) on one GB10: FlashInfer attention, FlashInfer-CUTLASS MoE, fp8 KV, text only (language model only), qwen3_coder tool parser and qwen3 reasoning parser, MTP off. Upstream image defaults: 4,096 context, 32 sequences, 0.70 memory utilization (raise the context setting for longer windows; not validated upstream). The upstream registry image is not public, so the runtime is rebuilt from upstream's Dockerfile steps on the public laguna-m1 image digest that its mutable :latest base pointed to. Licences: Apache-2.0 for the model and package per the HF card and Dockerfile label (information only). Performance figures are upstream claims.",
+    "tags": [
+      "agentic",
+      "agents-a1",
+      "candidate",
+      "executable",
+      "moe",
+      "nvfp4",
+      "openai",
+      "qwen3-5",
+      "r0b0tlab",
+      "reasoning",
+      "single",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "Agents-A1 NVFP4 vLLM single Spark (r0b0tlab)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-d1a8f4a1d2e3-618cd5b83d",
+          "id": "primary-metadata-d1a8f4a1d2e3-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-bdb1c1329a23-b335630551",
+          "id": "primary-readme-bdb1c1329a23-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-a4aee8afcf2e-00824420d1",
+          "id": "primary-chat-template-a4aee8afcf2e-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-8f43de3385fe-587cb980af",
+          "id": "primary-config-8f43de3385fe-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-eda6aa8b0fbd-97dd3d578b",
+          "id": "primary-generation-config-eda6aa8b0fbd-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-6cc06668a94d-a481ad90fa",
+          "id": "primary-hf-quant-config-6cc06668a94d-a481ad90fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00003-b88377991094-5ad6951325",
+          "id": "primary-model-00001-of-00003-b88377991094-5ad6951325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00003-1afbd980deb8-b421ec05d0",
+          "id": "primary-model-00002-of-00003-1afbd980deb8-b421ec05d0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00003-f604020c2cf9-c5bdb3d6ec",
+          "id": "primary-model-00003-of-00003-f604020c2cf9-c5bdb3d6ec",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-3a5f0d03d943-0a05be8238",
+          "id": "primary-model-safetensors-index-3a5f0d03d943-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modelopt-exclusions-7f846ae5f1da-059f2810d3",
+          "id": "primary-modelopt-exclusions-7f846ae5f1da-059f2810d3",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "primary-preprocessor-config-27225450ac9c-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-d89ef49ce9cd-27f0cb76af",
+          "id": "primary-processor-config-d89ef49ce9cd-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-87a7830d63fc-224931eb13",
+          "id": "primary-tokenizer-87a7830d63fc-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-316230d6a809-94d5c6ba8f",
+          "id": "primary-tokenizer-config-316230d6a809-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "facb34aedccaba7436e735408a9e83e2bd0f8e29cafe69a7a82b955f56e867ce",
+        "kind": "model",
+        "publisher": "r0b0tlab",
+        "slug": "agents-a1-nvfp4-68a7ff18"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "InternScience (Agents-A1)",
+      "r0b0tlab (NVFP4 quantization and container recipe)",
+      "vLLM contributors (Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/r0b0tlab/agents-a1-nvfp4-sm121-vllm/tree/fda20c0526e387da1446c8880a69cbda227fc851"
+  },
+  "release": {
+    "released_at": "2026-07-01",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "agents-a1-nvfp4"
+      },
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "modelopt"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "flashinfer"
+      },
+      {
+        "name": "moe-backend",
+        "setting": null,
+        "value": "flashinfer_cutlass"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.70"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 8192
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "language-model-only",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "qwen3_coder"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "qwen3"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "FLASHINFER_DISABLE_VERSION_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_NVFP4_GEMM_BACKEND",
+        "value": "flashinfer-cutlass"
+      },
+      {
+        "name": "VLLM_FP8_MOE_BACKEND",
+        "value": "flashinfer_cutlass"
+      },
+      {
+        "name": "CUTE_DSL_ARCH",
+        "value": "sm_121a"
+      },
+      {
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "value": "expandable_segments:True"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 32
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 4096
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 23779082279,
+            "image_bytes": 25000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 60000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "agents-a1-nvfp4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

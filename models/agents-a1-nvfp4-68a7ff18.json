@@ -1,0 +1,201 @@
+{
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-d1a8f4a1d2e3-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d1a8f4a1d2e3787c5956393d9306365ebefe1912cb76828870682b1ab16f5c27",
+      "size_bytes": 1635
+    },
+    {
+      "id": "readme-bdb1c1329a23-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "bdb1c1329a234ed91302124bda537947765aa1b8e580f97aa92b2ad8e1f49bcb",
+      "size_bytes": 6659
+    },
+    {
+      "id": "chat-template-a4aee8afcf2e-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+      "size_bytes": 7756
+    },
+    {
+      "id": "config-8f43de3385fe-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "8f43de3385fed0f4c1a220f68d04d9180a025956bb88d0d9c0e41d59fe1a3d67",
+      "size_bytes": 3088
+    },
+    {
+      "id": "generation-config-eda6aa8b0fbd-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "eda6aa8b0fbde9fbe38c044c6ba3c2890d4a9aad3cdd348da5ffe0ff0f91df09",
+      "size_bytes": 115
+    },
+    {
+      "id": "hf-quant-config-6cc06668a94d-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "6cc06668a94d183598cd8282f48b551de673b4b333c0710b58a789e7e42cfc0f",
+      "size_bytes": 5376
+    },
+    {
+      "id": "model-00001-of-00003-b88377991094-5ad6951325",
+      "path": "model-00001-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b883779910947ace802e1988b23aff96e82b74dd8ca4791c07e5e14fe62f54cd",
+      "size_bytes": 10006010856
+    },
+    {
+      "id": "model-00002-of-00003-1afbd980deb8-b421ec05d0",
+      "path": "model-00002-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1afbd980deb8b62b403f690fa9c9f60bab7e9c6ca7c0b56eb0a82200398dc778",
+      "size_bytes": 10008031136
+    },
+    {
+      "id": "model-00003-of-00003-f604020c2cf9-c5bdb3d6ec",
+      "path": "model-00003-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f604020c2cf987031ea9de3af98974cf4f12bebd05524f4b9bea5e2a57cef6d2",
+      "size_bytes": 3731310712
+    },
+    {
+      "id": "model-safetensors-index-3a5f0d03d943-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "3a5f0d03d943a576577162a9a6c34e996d3075de6253e75169aa7f54ea4345ea",
+      "size_bytes": 13696728
+    },
+    {
+      "id": "modelopt-exclusions-7f846ae5f1da-059f2810d3",
+      "path": "modelopt_exclusions.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7f846ae5f1da9cda07a5e78707aeee430e04ca2f12ae3b6a3fee0623a8c537fa",
+      "size_bytes": 199
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "processor-config-d89ef49ce9cd-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d89ef49ce9cd37fbf510158e13c1ef063d9286411c1ec9049932dbe0487143b1",
+      "size_bytes": 1191
+    },
+    {
+      "id": "tokenizer-87a7830d63fc-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4",
+      "size_bytes": 19989343
+    },
+    {
+      "id": "tokenizer-config-316230d6a809-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+      "size_bytes": 16710
+    },
+    {
+      "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+      "path": "video_preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "size_bytes": 385
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4-modelopt-mlp-moe"
+  },
+  "identity": {
+    "family": {
+      "publisher": "r0b0tlab",
+      "slug": "agents-a1",
+      "title": "Agents-A1"
+    },
+    "model": {
+      "publisher": "r0b0tlab",
+      "slug": "agents-a1",
+      "title": "Agents-A1"
+    },
+    "publisher": "r0b0tlab",
+    "slug": "agents-a1-nvfp4-68a7ff18",
+    "variant": "NVFP4 68a7ff18",
+    "version": "NVFP4 68a7ff18"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "InternScience",
+      "r0b0tlab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/r0b0tlab/Agents-A1-NVFP4/blob/68a7ff18c006927cbf3a97f76f293452ca14e016/README.md"
+  },
+  "metadata": {
+    "description": "InternScience Agents-A1 (Qwen3.5 MoE agentic model).",
+    "tags": [
+      "r0b0tlab",
+      "agents-a1",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/r0b0tlab/Agents-A1-NVFP4",
+    "revision": "68a7ff18c006927cbf3a97f76f293452ca14e016"
+  }
+}
