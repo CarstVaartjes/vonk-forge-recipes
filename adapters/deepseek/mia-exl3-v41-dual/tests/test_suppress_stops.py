@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """CPU test: fail-closed #42 patcher matches glm53-flash detokenizer anchors."""
-
 from __future__ import annotations
 
 import sys
@@ -12,7 +11,7 @@ for _d in (HERE, ROOT / "overlay"):
     if (_d / "patch_suppress_stops_in_reasoning.py").is_file():
         sys.path.insert(0, str(_d))
         break
-from patch_suppress_stops_in_reasoning import (
+from patch_suppress_stops_in_reasoning import (  # noqa: E402
     FACTORY_OLD,
     IMPORT_OLD,
     INIT_OLD,

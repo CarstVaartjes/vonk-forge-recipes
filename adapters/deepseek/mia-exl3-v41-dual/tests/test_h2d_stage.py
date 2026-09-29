@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-# ruff: noqa: BLE001, RUF059, S102  # vendored upstream source, kept as published
 """The pinned-staging patch: applies once to the real vLLM loaders (when vLLM is
 importable, i.e. inside the image build) and its helper is copy_-equivalent."""
-
 from __future__ import annotations
 
 import sys
@@ -14,7 +12,7 @@ for _d in (HERE, ROOT / "overlay"):
     if (_d / "patch_h2d_stage.py").is_file():
         sys.path.insert(0, str(_d))
         break
-from patch_h2d_stage import HELPER, JOBS, MARK, SHIM, apply
+from patch_h2d_stage import HELPER, JOBS, MARK, SHIM, apply  # noqa: E402
 
 
 def _vllm_root() -> Path | None:
@@ -29,9 +27,7 @@ def _vllm_root() -> Path | None:
 def test_real_files_apply_once() -> None:
     root = _vllm_root()
     if root is None:
-        print(
-            "test_h2d_stage: vllm not importable here; real-file check runs in the image build"
-        )
+        print("test_h2d_stage: vllm not importable here; real-file check runs in the image build")
         return
     for rel, edits, footer in JOBS:
         text = (root / rel).read_text()
@@ -58,9 +54,7 @@ def test_helper_semantics_cpu() -> None:
     try:
         import torch
     except ImportError:
-        print(
-            "test_h2d_stage: torch not importable here; helper check runs in the image build"
-        )
+        print("test_h2d_stage: torch not importable here; helper check runs in the image build")
         return
 
     ns: dict = {"torch": torch}

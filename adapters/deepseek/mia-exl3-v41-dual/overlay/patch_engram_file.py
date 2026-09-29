@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
-# ruff: noqa: BLE001  # vendored upstream source, kept as published
 """Install file-backed Engram into vLLM's engram.py (worker processes import this)."""
-
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+import sys
 
 MARK = "dsv41-engram-file-install"
 
-FOOTER = """
+FOOTER = '''
 # [dsv41-engram-file-install]
 def _dsv41_install_file_engram() -> None:
     import importlib.util
@@ -25,7 +23,7 @@ def _dsv41_install_file_engram() -> None:
     spec.loader.exec_module(mod)
     mod.install(sys.modules[__name__])
 _dsv41_install_file_engram()
-"""
+'''
 
 
 def apply(text: str) -> tuple[str, str]:
@@ -44,10 +42,7 @@ def main() -> int:
 
         root = Path(vllm.__file__).resolve().parent
     except Exception as exc:
-        print(
-            f"WARN: vllm not importable; skip engram file install ({exc})",
-            file=sys.stderr,
-        )
+        print(f"WARN: vllm not importable; skip engram file install ({exc})", file=sys.stderr)
         return 0
     path = root / "models/deepseek_v4_1/common/engram.py"
     if not path.is_file():

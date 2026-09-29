@@ -1,0 +1,9 @@
+{
+  "ours": [
+    "NOTICE",
+    "vllm-wrapper.sh"
+  ],
+  "renamed_dirs": {
+    "overlays/": "image-patch/"
+  }
+}

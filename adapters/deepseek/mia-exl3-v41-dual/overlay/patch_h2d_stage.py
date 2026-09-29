@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# ruff: noqa: BLE001  # vendored upstream source, kept as published
 """Stage vLLM's stock weight copies through pinned memory (GB10 UMA).
 
 safetensors 0.8 maps every shard MAP_PRIVATE|PROT_WRITE. A device copy that
@@ -17,11 +16,10 @@ the DSpark draft's narrow loader. Each `X.copy_(Y)` becomes
 `dsv41_h2d_copy(X, Y)`, which memcpy's a CPU source into a reusable pinned
 buffer and DMAs from there; device or CPU->CPU copies are unchanged.
 """
-
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+import sys
 
 MARK = "dsv41-h2d-stage"
 
@@ -48,13 +46,13 @@ def dsv41_h2d_copy(dest, src):
     dest.copy_(stage)
 '''
 
-SHIM = """
+SHIM = '''
 # [dsv41-h2d-stage] lazy import: weight_utils imports the layers package.
 def _dsv41_h2d_copy(dest, src):
     from vllm.model_executor.model_loader.weight_utils import dsv41_h2d_copy
 
     return dsv41_h2d_copy(dest, src)
-"""
+'''
 
 # (relative path, [(old, new), ...]); every old must occur exactly the given
 # number of times (count) so a vLLM drift is loud, not silent.
@@ -62,16 +60,10 @@ JOBS = [
     (
         "model_executor/model_loader/weight_utils.py",
         [
-            (
-                "            param.data.copy_(loaded_weight.view(param.shape))\n",
-                "            dsv41_h2d_copy(param.data, loaded_weight.view(param.shape))\n",
-                1,
-            ),
-            (
-                "            param.data.copy_(loaded_weight)\n    except Exception:\n",
-                "            dsv41_h2d_copy(param.data, loaded_weight)\n    except Exception:\n",
-                1,
-            ),
+            ("            param.data.copy_(loaded_weight.view(param.shape))\n",
+             "            dsv41_h2d_copy(param.data, loaded_weight.view(param.shape))\n", 1),
+            ("            param.data.copy_(loaded_weight)\n    except Exception:\n",
+             "            dsv41_h2d_copy(param.data, loaded_weight)\n    except Exception:\n", 1),
         ],
         HELPER,
     ),
@@ -79,59 +71,34 @@ JOBS = [
         "model_executor/layers/linear.py",
         [
             # newline-anchored so the 8-space form does not also match the 16-space lines
-            (
-                "\n        param.data.copy_(loaded_weight)\n",
-                "\n        _dsv41_h2d_copy(param.data, loaded_weight)\n",
-                1,
-            ),
-            (
-                "\n        param_data.copy_(loaded_weight)\n",
-                "\n        _dsv41_h2d_copy(param_data, loaded_weight)\n",
-                5,
-            ),
-            (
-                "\n                param_data.copy_(loaded_weight)\n",
-                "\n                _dsv41_h2d_copy(param_data, loaded_weight)\n",
-                2,
-            ),
+            ("\n        param.data.copy_(loaded_weight)\n", "\n        _dsv41_h2d_copy(param.data, loaded_weight)\n", 1),
+            ("\n        param_data.copy_(loaded_weight)\n", "\n        _dsv41_h2d_copy(param_data, loaded_weight)\n", 5),
+            ("\n                param_data.copy_(loaded_weight)\n", "\n                _dsv41_h2d_copy(param_data, loaded_weight)\n", 2),
         ],
         SHIM,
     ),
     (
         "model_executor/layers/vocab_parallel_embedding.py",
         [
-            (
-                "            param.data.copy_(loaded_weight)\n",
-                "            _dsv41_h2d_copy(param.data, loaded_weight)\n",
-                1,
-            ),
-            (
-                "        param[: loaded_weight.shape[0]].data.copy_(loaded_weight)\n",
-                "        _dsv41_h2d_copy(param[: loaded_weight.shape[0]].data, loaded_weight)\n",
-                1,
-            ),
+            ("            param.data.copy_(loaded_weight)\n", "            _dsv41_h2d_copy(param.data, loaded_weight)\n", 1),
+            ("        param[: loaded_weight.shape[0]].data.copy_(loaded_weight)\n",
+             "        _dsv41_h2d_copy(param[: loaded_weight.shape[0]].data, loaded_weight)\n", 1),
         ],
         SHIM,
     ),
     (
         "models/deepseek_v4_1/nvidia/model.py",
         [
-            (
-                "                    params_dict[name][:n].copy_(narrow_weight)\n",
-                "                    _dsv41_h2d_copy(params_dict[name][:n], narrow_weight)\n",
-                1,
-            ),
+            ("                    params_dict[name][:n].copy_(narrow_weight)\n",
+             "                    _dsv41_h2d_copy(params_dict[name][:n], narrow_weight)\n", 1),
         ],
         SHIM,
     ),
     (
         "models/deepseek_v4_1/nvidia/dspark.py",
         [
-            (
-                "                    params_dict[name][: narrow.shape[0]].copy_(narrow)\n",
-                "                    _dsv41_h2d_copy(params_dict[name][: narrow.shape[0]], narrow)\n",
-                1,
-            ),
+            ("                    params_dict[name][: narrow.shape[0]].copy_(narrow)\n",
+             "                    _dsv41_h2d_copy(params_dict[name][: narrow.shape[0]], narrow)\n", 1),
         ],
         SHIM,
     ),
@@ -158,9 +125,7 @@ def main() -> int:
 
         root = Path(vllm.__file__).resolve().parent
     except Exception as exc:
-        print(
-            f"WARN: vllm not importable; skip h2d stage patch ({exc})", file=sys.stderr
-        )
+        print(f"WARN: vllm not importable; skip h2d stage patch ({exc})", file=sys.stderr)
         return 0
     rc = 0
     for rel, edits, footer in JOBS:

@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
-# ruff: noqa: BLE001  # vendored upstream source, kept as published
 """Put exl3 first in ModelConfig's quantization override list.
 
 vLLM 0.30+ may already register EXL3; this is idempotent and tries several
 paths because the deepseekv41-flash image is not the glm53-flash tree.
 """
-
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+import sys
 
 CANDIDATES = [
     Path("/usr/local/lib/python3.12/dist-packages/vllm/config/model.py"),
@@ -68,10 +66,7 @@ def main() -> int:
                 return 0
         print(f"overrides list target missing or not unique in {p}", file=sys.stderr)
 
-    print(
-        "no ModelConfig overrides file patched (exl3 may already be registered)",
-        file=sys.stderr,
-    )
+    print("no ModelConfig overrides file patched (exl3 may already be registered)", file=sys.stderr)
     return 0
 
 

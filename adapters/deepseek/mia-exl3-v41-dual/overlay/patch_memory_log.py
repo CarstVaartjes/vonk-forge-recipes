@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# ruff: noqa: BLE001  # vendored upstream source, kept as published
 """Log unified-memory usage around each vLLM worker boot phase (GB10 UMA).
 
 The 2026-09-11 boot went silent after "Loading safetensors checkpoint shards
@@ -13,11 +12,10 @@ after each:
 MemAvailable is the number that matters on a Spark (cudaMalloc commits host
 memory immediately). Grep `dsv41-mem` in logs/head.log / worker.log.
 """
-
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+import sys
 
 MARK = "dsv41-memory-log"
 
@@ -352,11 +350,7 @@ def apply(text: str) -> tuple[str, str]:
     if "\nimport os\n" not in text and not text.startswith("import os\n"):
         # gpu_worker.py imports os already in every vLLM we have seen; keep the
         # footer self-sufficient anyway.
-        text = (
-            text.replace("\nimport gc\n", "\nimport gc\nimport os\n", 1)
-            if "\nimport gc\n" in text
-            else "import os\n" + text
-        )
+        text = text.replace("\nimport gc\n", "\nimport gc\nimport os\n", 1) if "\nimport gc\n" in text else "import os\n" + text
     if not text.endswith("\n"):
         text += "\n"
     return text + FOOTER, "applied"
@@ -368,9 +362,7 @@ def main() -> int:
 
         root = Path(vllm.__file__).resolve().parent
     except Exception as exc:
-        print(
-            f"WARN: vllm not importable; skip memory log patch ({exc})", file=sys.stderr
-        )
+        print(f"WARN: vllm not importable; skip memory log patch ({exc})", file=sys.stderr)
         return 0
     path = root / "v1/worker/gpu_worker.py"
     if not path.is_file():

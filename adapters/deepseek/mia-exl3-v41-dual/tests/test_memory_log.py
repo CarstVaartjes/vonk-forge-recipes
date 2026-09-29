@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# ruff: noqa: S102  # vendored upstream source, kept as published
 """CPU test: the memory-log footer applies once and compiles."""
-
 from __future__ import annotations
 
 import sys
@@ -13,7 +11,7 @@ for _d in (HERE, ROOT / "overlay"):
     if (_d / "patch_memory_log.py").is_file():
         sys.path.insert(0, str(_d))
         break
-from patch_memory_log import FOOTER, MARK, apply
+from patch_memory_log import FOOTER, MARK, apply  # noqa: E402
 
 SRC = "import gc\nimport os\n\nfrom vllm.logger import init_logger\n\nlogger = init_logger(__name__)\n\n\nclass Worker(object):\n    def load_model(self, *, load_dummy_weights=False):\n        return 1\n\n    def determine_available_memory(self):\n        return 2\n"
 

@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
-# ruff: noqa: BLE001  # vendored upstream source, kept as published
 """Teach vLLM packed-param maps that this checkpoint uses .mul1, not .mcg.
 
 Stock EXL3 mappings often list (trellis, suh, svh, mcg). DeepSeek-V4.1-Flash
 EXL3 2.9bpw stores the codebook marker as mul1 (0x83D6B12D). Without this,
 expert/linear loaders skip every .mul1 tensor.
 """
-
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+import sys
 
 
 def _vllm_root() -> Path:

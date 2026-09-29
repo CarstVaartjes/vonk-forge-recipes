@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# ruff: noqa: RUF059  # vendored upstream source, kept as published
 """CPU test: packed EXL3 lm_head mapper + ParallelLMHead quant_config patch."""
-
 from __future__ import annotations
 
 import sys
@@ -14,18 +12,21 @@ for _d in (HERE, ROOT / "overlay"):
         sys.path.insert(0, str(_d))
         break
 
-from patch_exl3_lm_head import (
+from patch_exl3_lm_head import (  # noqa: E402
     COMPRESSOR_NEW,
     COMPRESSOR_OLD,
-    DRAFT_SLICE_OLD,
     INDEXER_WK_NEW,
     INDEXER_WK_OLD,
+    DRAFT_SLICE_NEW,
+    DRAFT_SLICE_OLD,
+    O_PROJ_BMM_NEW,
+    O_PROJ_BMM_OLD,
+    O_PROJ_NEW,
+    O_PROJ_OLD,
     LLM_SUFFIX_NEW,
     LLM_SUFFIX_OLD,
     LM_HEAD_NEW,
     LM_HEAD_OLD,
-    O_PROJ_BMM_OLD,
-    O_PROJ_OLD,
     SCORE_NEW,
     SCORE_OLD,
     SLICE_NEW,
@@ -132,19 +133,12 @@ def test_o_proj_exl3_branch() -> None:
     out2, st2 = patch_text(out)
     assert out2 == out and all(s.endswith(":skipped") for s in st2), st2
     # the fragment is function-body indented; give it a header to compile
-    compile(
-        "def _f(wo_a, wo_b, o_proj_input, z, n_groups, o_lora_rank):\n" + out,
-        "o_proj.py",
-        "exec",
-    )
+    compile("def _f(wo_a, wo_b, o_proj_input, z, n_groups, o_lora_rank):\n" + out, "o_proj.py", "exec")
 
 
 def test_draft_wo_a_slice_rewrite() -> None:
     """dspark.py: mtp.N.attn.wo_a.slice.i.* must reach the packed wo_a loader."""
-    src = (
-        "import regex as re\n\n\ndef f(weights, params_dict, loaded_params):\n    loaded_confidence_head = False\n    for name, loaded_weight in weights:\n        mapped = name\n        if True:\n"
-        + DRAFT_SLICE_OLD
-    )
+    src = "import regex as re\n\n\ndef f(weights, params_dict, loaded_params):\n    loaded_confidence_head = False\n    for name, loaded_weight in weights:\n        mapped = name\n        if True:\n" + DRAFT_SLICE_OLD
     assert should_consider(src)
     out, st = patch_text(src)
     assert "draft-wo-a-slices:applied" in st, st

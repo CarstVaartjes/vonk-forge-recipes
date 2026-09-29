@@ -18,7 +18,6 @@ GLM53_MIXED_PREFILL_CHUNK:
 
 Fail closed if the vLLM scheduler anchors drift.
 """
-
 from __future__ import annotations
 
 import os

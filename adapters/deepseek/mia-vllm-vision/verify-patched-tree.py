@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Verify a canonical hash over every file the Mia patch sequence may change."""
+"""Check that every file the Mia patch sequence changes is present in the patched vLLM tree.
+
+Structural only: the base image is pinned by digest in the Dockerfile and the
+patch scripts assert their own anchors, so no tree digest is kept here.
+"""
 
 from __future__ import annotations
 
-import hashlib
 import sys
 from pathlib import Path
 
@@ -34,28 +37,13 @@ TARGETS = (
 )
 
 
-def digest(root: Path) -> str:
-    value = hashlib.sha256()
-    for name in TARGETS:
-        path = root / name
-        relative = name.encode()
-        value.update(len(relative).to_bytes(8, "big"))
-        value.update(relative)
-        if not path.is_file():
-            value.update(b"M")
-            continue
-        payload = path.read_bytes()
-        value.update(b"F")
-        value.update(len(payload).to_bytes(8, "big"))
-        value.update(payload)
-    return value.hexdigest()
+def missing(root: Path) -> list[str]:
+    return [name for name in TARGETS if not (root / name).is_file()]
 
 
-if len(sys.argv) != 3:
-    raise SystemExit("usage: verify-patched-tree.py ROOT EXPECTED_SHA256")
-actual = digest(Path(sys.argv[1]))
-if actual != sys.argv[2]:
-    raise SystemExit(
-        f"patched vLLM tree mismatch: expected {sys.argv[2]}, got {actual}"
-    )
-print(actual)
+if len(sys.argv) != 2:
+    raise SystemExit("usage: verify-patched-tree.py ROOT")
+absent = missing(Path(sys.argv[1]))
+if absent:
+    raise SystemExit("patched vLLM tree is missing: " + ", ".join(absent))
+print(f"patched vLLM tree has all {len(TARGETS)} patch targets")

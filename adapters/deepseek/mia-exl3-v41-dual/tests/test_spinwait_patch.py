@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Focused host checks for the numeric SpinCondition patch."""
-
 from __future__ import annotations
 
 import importlib.util
@@ -89,9 +88,7 @@ def test_drift_and_ambiguity_fail_closed() -> None:
             raise AssertionError("drifted source was accepted")
 
 
-def _run(
-    target: Path, value: str | None, *args: str
-) -> subprocess.CompletedProcess[str]:
+def _run(target: Path, value: str | None, *args: str) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     env["GLM53_SPINWAIT_TARGET"] = str(target)
     env.pop(patch.ENV_NAME, None)
@@ -171,9 +168,7 @@ def test_recipe_wiring() -> None:
     for needle in required_start:
         assert needle in start, needle
     # both inner scripts run the patch; both containers bind-mount it
-    assert start.count("/opt/dsv41/patch_spinwait.py \\") == 2, start.count(
-        "/opt/dsv41/patch_spinwait.py \\"
-    )
+    assert start.count("/opt/dsv41/patch_spinwait.py \\") == 2, start.count("/opt/dsv41/patch_spinwait.py \\")
     assert start.count("/opt/dsv41/patch_spinwait.py:ro") == 2
     assert "COPY overlay/patch_spinwait.py /opt/dsv41/patch_spinwait.py" in dockerfile
     assert "tests/test_spinwait_patch.py" in dockerfile
@@ -182,9 +177,7 @@ def test_recipe_wiring() -> None:
 
 
 def main() -> int:
-    tests = [
-        value for name, value in sorted(globals().items()) if name.startswith("test_")
-    ]
+    tests = [value for name, value in sorted(globals().items()) if name.startswith("test_")]
     for test in tests:
         test()
     print(f"numeric spinwait patch OK ({len(tests)} tests)")

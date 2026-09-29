@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """CPU parity for librow_store (packed + DEAD_ID=-1 zeros)."""
-
 from __future__ import annotations
 
 import ctypes as C
 import os
+from pathlib import Path
 import random
 import tempfile
-from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CANDIDATES = (
@@ -57,9 +56,7 @@ def main() -> None:
         indices = (C.c_int64 * len(ids))(*ids)
         w = C.create_string_buffer(len(ids) * 256)
         s = C.create_string_buffer(len(ids) * 8)
-        work = Work(
-            store, C.addressof(indices), C.addressof(w), C.addressof(s), len(ids)
-        )
+        work = Work(store, C.addressof(indices), C.addressof(w), C.addressof(s), len(ids))
         lib.row_store_lookup(C.byref(work))
         assert w.raw[:256] == bytes(256), "DEAD_ID must zero the row"
         assert w.raw[256:512] == weights[:256]

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# ruff: noqa: BLE001, ISC004  # vendored upstream source, kept as published
 """DeepSeek-V4.1 sparse-MLA kernel envelope on SM12x (GB10): 64-state pages,
 text-only prefill windows.
 
@@ -18,11 +17,10 @@ size (the sliding-window cache already uses 32-token blocks; the native
 pages). This patch lets both SM12 backends accept a 64-token kernel block;
 start.sh passes `--block-size ${KV_BLOCK_SIZE:-64}`.
 """
-
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+import sys
 
 MARK = "dsv41-sm120-block64"
 
@@ -107,15 +105,15 @@ JOBS = [
         # Attention layer: no image widening of the SWA window on SM12x.
         "models/deepseek_v4_1/attention.py",
         "        self.max_image_tokens = (\n"
-        '            getattr(config, "vision_max_n_token", 0)\n'
-        '            if getattr(config, "vision_n_layers", 0) > 0\n'
+        "            getattr(config, \"vision_max_n_token\", 0)\n"
+        "            if getattr(config, \"vision_n_layers\", 0) > 0\n"
         "            else 0\n"
         "        )\n",
         "        self.max_image_tokens = (  # [dsv41-sm120-block64] text-only on SM12x\n"
         "            0\n"
         "            if _dsv41_text_only_swa()\n"
-        '            else getattr(config, "vision_max_n_token", 0)\n'
-        '            if getattr(config, "vision_n_layers", 0) > 0\n'
+        "            else getattr(config, \"vision_max_n_token\", 0)\n"
+        "            if getattr(config, \"vision_n_layers\", 0) > 0\n"
         "            else 0\n"
         "        )\n",
         ATTN_HELPER,
@@ -124,15 +122,15 @@ JOBS = [
         # SWA metadata builder: prefill index width = window only on SM12x.
         "v1/attention/backends/mla/sparse_swa.py",
         "        self.max_image_tokens = (\n"
-        '            getattr(hf_config, "vision_max_n_token", 0)\n'
-        '            if getattr(hf_config, "vision_n_layers", 0) > 0\n'
+        "            getattr(hf_config, \"vision_max_n_token\", 0)\n"
+        "            if getattr(hf_config, \"vision_n_layers\", 0) > 0\n"
         "            else 0\n"
         "        )\n",
         "        self.max_image_tokens = (  # [dsv41-sm120-block64] text-only on SM12x\n"
         "            0\n"
         "            if _dsv41_text_only_swa()\n"
-        '            else getattr(hf_config, "vision_max_n_token", 0)\n'
-        '            if getattr(hf_config, "vision_n_layers", 0) > 0\n'
+        "            else getattr(hf_config, \"vision_max_n_token\", 0)\n"
+        "            if getattr(hf_config, \"vision_n_layers\", 0) > 0\n"
         "            else 0\n"
         "        )\n",
         SWA_META_HELPER,
@@ -158,7 +156,7 @@ JOBS = [
         # with 1.5 GiB CUDA-free on the worker). The kernels then JIT on the
         # first real mixed batch instead.
         "model_executor/warmup/flashinfer_sparse_mla_warmup.py",
-        """    mixed_tokens = _clamp_warmup_tokens(_SPARSE_MLA_MIXED_WARMUP_TOKENS, max_tokens)
+        '''    mixed_tokens = _clamp_warmup_tokens(_SPARSE_MLA_MIXED_WARMUP_TOKENS, max_tokens)
     if mixed_tokens <= 0:
         return
 
@@ -166,8 +164,8 @@ JOBS = [
         "Warming up DeepSeek V4 sparse MLA attention for mixed tokens=%s.",
         mixed_tokens,
     )
-""",
-        """    mixed_tokens = _clamp_warmup_tokens(_SPARSE_MLA_MIXED_WARMUP_TOKENS, max_tokens)
+''',
+        '''    mixed_tokens = _clamp_warmup_tokens(_SPARSE_MLA_MIXED_WARMUP_TOKENS, max_tokens)
     if mixed_tokens <= 0:
         return
     if __import__("os").environ.get("DSV41_SKIP_MIXED_WARMUP", "0") == "1":  # dsv41-sm120-block64
@@ -178,7 +176,7 @@ JOBS = [
         "Warming up DeepSeek V4 sparse MLA attention for mixed tokens=%s.",
         mixed_tokens,
     )
-""",
+''',
         None,
     ),
     (
@@ -192,41 +190,41 @@ JOBS = [
         # 2026-09-12 (cuda-gdb: two exl3_gemm_kernel grids Active, thread 0
         # spinning in barrier_acquire). None = the ROCm serial path.
         "models/deepseek_v4_1/nvidia/model.py",
-        """        aux_stream_list = [torch.cuda.Stream() for _ in range(3)]
-""",
-        """        aux_stream_list = (  # dsv41-sm120-block64: EXL3 kernels share one lock buffer
+        '''        aux_stream_list = [torch.cuda.Stream() for _ in range(3)]
+''',
+        '''        aux_stream_list = (  # dsv41-sm120-block64: EXL3 kernels share one lock buffer
             None
             if __import__("os").environ.get("DSV41_EXL3_SERIAL_STREAMS", "1") == "1"
             else [torch.cuda.Stream() for _ in range(3)]
         )
-""",
+''',
         None,
     ),
     (
         # Same for the V4 MTP stack (DSpark draft layers mirror the model).
         "models/deepseek_v4/nvidia/mtp.py",
-        """        aux_stream_list = [torch.cuda.Stream() for _ in range(3)]
-""",
-        """        aux_stream_list = (  # dsv41-sm120-block64: EXL3 kernels share one lock buffer
+        '''        aux_stream_list = [torch.cuda.Stream() for _ in range(3)]
+''',
+        '''        aux_stream_list = (  # dsv41-sm120-block64: EXL3 kernels share one lock buffer
             None
             if __import__("os").environ.get("DSV41_EXL3_SERIAL_STREAMS", "1") == "1"
             else [torch.cuda.Stream() for _ in range(3)]
         )
-""",
+''',
         None,
     ),
     (
         # Debug bisect: DSV41_ENGRAM_DISABLE=1 passes the residual stream
         # through the Engram layers untouched (rows are still staged).
         "models/deepseek_v4_1/common/engram.py",
-        """        kv = self.wkv(self.embed(hash_ids).flatten(-2))
+        '''        kv = self.wkv(self.embed(hash_ids).flatten(-2))
         num_kv_tokens = hash_ids.shape[0]
-""",
-        """        if __import__("os").environ.get("DSV41_ENGRAM_DISABLE", "0") == "1":  # dsv41-sm120-block64
+''',
+        '''        if __import__("os").environ.get("DSV41_ENGRAM_DISABLE", "0") == "1":  # dsv41-sm120-block64
             return hidden_states
         kv = self.wkv(self.embed(hash_ids).flatten(-2))  # dsv41
         num_kv_tokens = hash_ids.shape[0]
-""",
+''',
         None,
     ),
     (
@@ -239,15 +237,15 @@ JOBS = [
         # max_model_len, so that is the default factor here
         # (DSV41_INDEXER_PREFILL_FACTOR overrides; 40 restores stock).
         "v1/attention/backends/mla/indexer.py",
-        """    #   40 * 163840 * 132 = 865075200 bytes = 825 MB
+        '''    #   40 * 163840 * 132 = 865075200 bytes = 825 MB
     return max_model_len * 40
-""",
-        """    #   40 * 163840 * 132 = 865075200 bytes = 825 MB
+''',
+        '''    #   40 * 163840 * 132 = 865075200 bytes = 825 MB
     _factor = __import__("os").environ.get("DSV41_INDEXER_PREFILL_FACTOR", "")  # dsv41-sm120-block64
     if _factor.strip():
         return max_model_len * max(1, int(_factor))
     return max_model_len * max(1, min(40, int(vllm_config.scheduler_config.max_num_seqs)))
-""",
+''',
         None,
     ),
     (
@@ -256,30 +254,30 @@ JOBS = [
         # per block (have 101376)", 500k boot on 2026-09-12); the GLM recipe
         # disables it on GB10 the same way. top_k_per_row_decode is the fallback.
         "model_executor/layers/sparse_attn_indexer.py",
-        """        use_persistent_topk = current_platform.is_cuda() and topk_tokens in (
+        '''        use_persistent_topk = current_platform.is_cuda() and topk_tokens in (
             512,
             1024,
             2048,
         )
-""",
-        """        use_persistent_topk = (  # dsv41-sm120-block64: GB10 smem cannot host it at long seqs
+''',
+        '''        use_persistent_topk = (  # dsv41-sm120-block64: GB10 smem cannot host it at long seqs
             current_platform.is_cuda()
             and topk_tokens in (512, 1024, 2048)
             and not current_platform.is_device_capability_family(120)
         )
-""",
+''',
         None,
     ),
     (
         "model_executor/layers/sparse_attn_indexer_kpool.py",
-        """        if current_platform.is_cuda() and select_k in (512, 1024, 2048):
-""",
-        """        if (  # dsv41-sm120-block64: no persistent_topk on GB10
+        '''        if current_platform.is_cuda() and select_k in (512, 1024, 2048):
+''',
+        '''        if (  # dsv41-sm120-block64: no persistent_topk on GB10
             current_platform.is_cuda()
             and select_k in (512, 1024, 2048)
             and not current_platform.is_device_capability_family(120)
         ):
-""",
+''',
         None,
     ),
     (
@@ -319,11 +317,7 @@ def apply(text: str, old: str, new: str, helper: str | None = None) -> tuple[str
         return text, f"missing:{old.strip()[:60]!r} count={n}"
     out = text.replace(old, new, 1)
     if helper:
-        sentinel = (
-            helper.strip().splitlines()[1]
-            if helper.strip().startswith("#")
-            else helper.strip().splitlines()[0]
-        )
+        sentinel = helper.strip().splitlines()[1] if helper.strip().startswith("#") else helper.strip().splitlines()[0]
         if sentinel not in out:
             if not out.endswith("\n"):
                 out += "\n"
@@ -337,10 +331,7 @@ def main() -> int:
 
         root = Path(vllm.__file__).resolve().parent
     except Exception as exc:
-        print(
-            f"WARN: vllm not importable; skip sm120 block64 patch ({exc})",
-            file=sys.stderr,
-        )
+        print(f"WARN: vllm not importable; skip sm120 block64 patch ({exc})", file=sys.stderr)
         return 0
     rc = 0
     for rel, old, new, helper in JOBS:
