@@ -80,7 +80,7 @@ Which Spark counts each model family runs on.
 | Nemotron | ✓ |  |  |  |  |
 | Ornith | ✓ |  |  |  |  |
 | Pixal3D | ✓ |  |  |  |  |
-| Qwen (text and vision) | ✓ | ✓ |  |  |  |
+| Qwen (text and vision) | ✓ | ✓ |  | ✓ |  |
 | Qwen Image | ✓ |  |  |  |  |
 | SkinTokens | ✓ |  |  |  |  |
 | Step 3.7 Flash |  | ✓ |  |  |  |
