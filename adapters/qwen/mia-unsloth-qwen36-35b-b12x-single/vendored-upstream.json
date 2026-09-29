@@ -1,0 +1,10 @@
+{
+  "ours": [
+    "vllm"
+  ],
+  "renamed": {},
+  "source": {
+    "commit": "79c9e6f359f6101cdacd0dfd6fe9861ae2493a4d",
+    "repo": "MiaAI-Lab/Unsloth-Qwen3.6-35b-NVFP4-DGX-Spark"
+  }
+}
