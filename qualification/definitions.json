@@ -4711,6 +4711,22 @@
         ]
       }
     },
+    "vonk-forge/laguna-s-2-1-nvfp4-dflash-vllm-mia-single": {
+      "alias": "laguna-s-2-1",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Capability-specific context, concurrency, streaming, and modality-boundary canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, bounded malformed-input recovery, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/laguna-s-2-1-nvfp4-vllm-low-memory-canary-single": {
       "alias": "laguna-s-2-1-low-memory-canary",
       "smoke_cases": [
