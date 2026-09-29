@@ -1,0 +1,497 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "4f30c464ead64fb9727a24064b25057dacc07bef848022421108e544c91f0965",
+        "repository": "nvcr.io/nvidia/tensorrt-llm/release"
+      },
+      "context": {
+        "path": "adapters/nvidia/nemotron-3-nano-omni-30b-a3b-fp8-nvidia-trtllm-single"
+      },
+      "dockerfile": "adapters/nvidia/nemotron-3-nano-omni-30b-a3b-fp8-nvidia-trtllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-nano-omni-30b-a3b-fp8-nvidia-trtllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "nemotron-3-nano-omni"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Executable Candidate recipe of NVIDIA's own DGX Spark playbook (trt-llm) for Nemotron 3 Nano Omni 30B-A3B FP8: the NGC TensorRT-LLM release image 1.3.0rc13 (pinned by arm64 digest) serving the exact model revision through trtllm-serve with the playbook's LLM API options. Resource envelopes are estimates from the playbook's 0.8-0.9 KV memory fraction, not measurements; physical Spark acceptance is pending.",
+    "tags": [
+      "executable",
+      "candidate",
+      "nvidia",
+      "tensorrt-llm",
+      "openai",
+      "single",
+      "spark",
+      "nemotron",
+      "omni",
+      "fp8",
+      "reasoning"
+    ],
+    "title": "Nemotron 3 Nano Omni 30B-A3B FP8 TensorRT-LLM single Spark (NVIDIA playbook)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-57e90233a9ef-b335630551",
+          "id": "readme-57e90233a9ef-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "audio-model-a3bbb1e79c00-6bbbc136a0",
+          "id": "audio-model-a3bbb1e79c00-6bbbc136a0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-41428e0c65e3-00824420d1",
+          "id": "chat-template-41428e0c65e3-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-ba51d79fe0db-587cb980af",
+          "id": "config-ba51d79fe0db-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-18c8a588133f-546b274286",
+          "id": "configuration-18c8a588133f-546b274286",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-nemotron-h-09a8200ee1b1-845878ce76",
+          "id": "configuration-nemotron-h-09a8200ee1b1-845878ce76",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-radio-68cc673c2f87-9369578288",
+          "id": "configuration-radio-68cc673c2f87-9369578288",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "evs-79f0659f3532-fc3aa65c63",
+          "id": "evs-79f0659f3532-fc3aa65c63",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-dbe3dfa851ad-97dd3d578b",
+          "id": "generation-config-dbe3dfa851ad-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-c95276b9ffda-a481ad90fa",
+          "id": "hf-quant-config-c95276b9ffda-a481ad90fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "image-processing-84b29e96e509-5c714d475c",
+          "id": "image-processing-84b29e96e509-5c714d475c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00004-413c021e09ab-1913267ec8",
+          "id": "model-00001-of-00004-413c021e09ab-1913267ec8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00004-fe3465744d90-60f6088da9",
+          "id": "model-00002-of-00004-fe3465744d90-60f6088da9",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00004-bb862953970f-fc35f2c4d5",
+          "id": "model-00003-of-00004-bb862953970f-fc35f2c4d5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00004-89214e280596-5078e75d62",
+          "id": "model-00004-of-00004-89214e280596-5078e75d62",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-342a4e2b6e43-0a05be8238",
+          "id": "model-safetensors-index-342a4e2b6e43-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modeling-4be8b30a75fc-02dc62d026",
+          "id": "modeling-4be8b30a75fc-02dc62d026",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modeling-nemotron-h-64edc908fd02-456a9436f0",
+          "id": "modeling-nemotron-h-64edc908fd02-456a9436f0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-a80b0f0decc0-36afccab5d",
+          "id": "preprocessor-config-a80b0f0decc0-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processing-75ab1784f2cc-d522d840b7",
+          "id": "processing-75ab1784f2cc-d522d840b7",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processing-utils-f107d30e96bf-1b43d19466",
+          "id": "processing-utils-f107d30e96bf-1b43d19466",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-e3a4f63da745-c07a9be597",
+          "id": "special-tokens-map-e3a4f63da745-c07a9be597",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-e5e7dc84d72e-224931eb13",
+          "id": "tokenizer-e5e7dc84d72e-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-37399ab83007-94d5c6ba8f",
+          "id": "tokenizer-config-37399ab83007-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-io-3801db0a418d-8bda349cee",
+          "id": "video-io-3801db0a418d-8bda349cee",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-processing-9cc25c47e6d8-7add80e480",
+          "id": "video-processing-9cc25c47e6d8-7add80e480",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "1119ffc2d4b27a30fec0e2cee190f70cd9d91c8944fa878414db3dc4b751d966",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "nemotron-3-nano-omni-30b-a3b-reasoning-fp8-0acd4b1c"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "NVIDIA",
+      "TensorRT-LLM contributors",
+      "NVIDIA Corporation"
+    ],
+    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/b3bc0813e1864e54ce5ed9a0cc74e0b03745c027/nvidia/trt-llm/README.md"
+  },
+  "release": {
+    "released_at": "2026-04-29",
+    "version": "1.3.0rc13"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served_model_name",
+        "setting": null,
+        "value": "nemotron-3-nano-omni"
+      },
+      {
+        "name": "max_seq_len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "trust_remote_code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "reasoning_parser",
+        "setting": null,
+        "value": "nano-v3"
+      },
+      {
+        "name": "tool_parser",
+        "setting": null,
+        "value": "qwen3_coder"
+      },
+      {
+        "name": "extra_llm_api_options",
+        "setting": null,
+        "value": "/opt/vonk/trtllm/llm-api-config.yml"
+      },
+      {
+        "name": "no-telemetry",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "tensorrt-llm",
+    "entrypoint": [
+      "/opt/vonk/bin/trtllm-serve",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRTLLM_NO_USAGE_STATS",
+        "value": "1"
+      },
+      {
+        "name": "PYTORCH_ALLOC_CONF",
+        "value": "expandable_segments:True"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 35205010484,
+            "image_bytes": 45000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 17602505242
+          },
+          "memory": {
+            "peak_bytes": 115000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "nemotron-3-nano-omni"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
