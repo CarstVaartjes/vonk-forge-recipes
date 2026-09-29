@@ -1,6 +1,6 @@
 {
   "capabilities": [
-    "speculative-decoding"
+    "text-generation"
   ],
   "dependencies": [],
   "files": [
@@ -66,37 +66,34 @@
   "identity": {
     "family": {
       "publisher": "radixark",
-      "slug": "inkling-small-radixark",
-      "title": "Inkling Small RadixArk speculators"
+      "slug": "inkling",
+      "title": "Inkling"
     },
     "model": {
       "publisher": "radixark",
       "slug": "inkling-small-dspark-preview",
-      "title": "Inkling Small DSpark speculator (preview)"
+      "title": "Inkling Small DSpark Preview"
     },
     "publisher": "radixark",
     "slug": "inkling-small-dspark-preview-fcc210dc",
-    "variant": "fcc210dcf244cc2f550ef1f75507eb4146c17a57",
-    "version": "fcc210dcf244cc2f550ef1f75507eb4146c17a57"
+    "variant": "Inkling Small DSpark Preview fcc210dc",
+    "version": "Inkling Small DSpark Preview fcc210dc"
   },
   "kind": "model",
   "license": {
     "attribution": [
       "RadixArk"
     ],
-    "spdx": "LicenseRef-unspecified",
-    "url": "https://huggingface.co/RadixArk/Inkling-Small-DSpark-Preview"
+    "spdx": "NOASSERTION",
+    "url": "https://huggingface.co/RadixArk/Inkling-Small-DSpark-Preview/blob/fcc210dcf244cc2f550ef1f75507eb4146c17a57/README.md"
   },
   "metadata": {
-    "description": "RadixArk research-preview DSpark speculator for thinkingmachines/Inkling-Small-NVFP4: 5-layer Qwen3-style draft, block size 15, BF16, custom code (dflash.py, dspark.py). No licence declared on the model card.",
+    "description": "RadixArk DSpark speculator (5-layer Qwen3-style draft with Markov and confidence heads, BF16) for thinkingmachines/Inkling-Small-NVFP4. Research preview; the repository declares no licence.",
     "tags": [
-      "candidate",
-      "custom-code",
-      "dspark",
-      "inkling-small-radixark",
-      "language",
       "radixark",
-      "speculator"
+      "inkling",
+      "language",
+      "candidate"
     ]
   },
   "modalities": [

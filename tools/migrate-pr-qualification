@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+"""Move a PR branch's qualification edits into per-recipe files.
+
+For a branch that changed the old single ``qualification/definitions.json``.
+Merge main into the branch first, taking main's ``definitions.json`` (and
+``README.md``) for those conflicts, and commit the merge. Then, from the
+repository root (the script may come from a newer checkout than the branch)::
+
+    tools/migrate-pr-qualification
+
+It reads the merge commit ``HEAD``: the branch's old ``definitions.json``
+(``HEAD^1``) against the merge base with main, and writes every added or
+changed entry of the ``recipes`` and ``service_recipes`` maps to
+``qualification/recipes/<slug>.json``, on top of any file main already has.
+Removed entries are reported, not applied. Commit the result.
+
+``tools/migrate-pr-qualification --all`` instead moves every entry still in
+``qualification/definitions.json`` into its per-recipe file and drops the two
+maps from it (used once, on main).
+"""
+
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any
+
+# Import the loader from this checkout; edit the repository in the current directory,
+# so the script can run against an older PR branch that lacks it.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from qualification.definitions_loader import (
+    PER_RECIPE_SECTIONS,
+    recipe_file_name,
+)
+
+DEFINITIONS = "qualification/definitions.json"
+
+
+def _git(*arguments: str) -> str:
+    return subprocess.run(
+        ["git", *arguments], check=True, text=True, capture_output=True
+    ).stdout.strip()
+
+
+def _dump(document: object) -> str:
+    return json.dumps(document, indent=2, ensure_ascii=False) + "\n"
+
+
+def _migrate_all(root: Path) -> int:
+    path = root / DEFINITIONS
+    shared: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+    for section in PER_RECIPE_SECTIONS:
+        for recipe_id, entry in sorted(shared.pop(section, {}).items()):
+            target = root / "qualification" / "recipes" / recipe_file_name(recipe_id)
+            document: dict[str, Any] = {"id": recipe_id}
+            if target.exists():
+                document = json.loads(target.read_text(encoding="utf-8"))
+                if section in document:
+                    raise SystemExit(f"{recipe_id} is already in {target}")
+            document[section] = entry
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(_dump(document), encoding="utf-8")
+    path.write_text(_dump(shared), encoding="utf-8")
+    return 0
+
+
+def main() -> int:
+    root = Path(_git("rev-parse", "--show-toplevel"))
+    if sys.argv[1:] == ["--all"]:
+        return _migrate_all(root)
+    branch, main_parent = _git("rev-parse", "HEAD^1"), _git("rev-parse", "HEAD^2")
+    base = _git("merge-base", branch, main_parent)
+    old: dict[str, Any] = json.loads(_git("show", f"{base}:{DEFINITIONS}"))
+    mine: dict[str, Any] = json.loads(_git("show", f"{branch}:{DEFINITIONS}"))
+    if any(
+        section not in old or section not in mine for section in PER_RECIPE_SECTIONS
+    ):
+        print("branch or merge base already uses per-recipe files; nothing to migrate")
+        return 0
+    for section in PER_RECIPE_SECTIONS:
+        for recipe_id in sorted(set(old[section]) - set(mine[section])):
+            print(f"not migrated: {section} entry removed: {recipe_id}")
+        for recipe_id, entry in sorted(mine[section].items()):
+            if old[section].get(recipe_id) == entry:
+                continue
+            target = root / "qualification" / "recipes" / recipe_file_name(recipe_id)
+            document: dict[str, Any] = {"id": recipe_id}
+            if target.exists():
+                document = json.loads(target.read_text(encoding="utf-8"))
+            document[section] = entry
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(_dump(document), encoding="utf-8")
+            print(f"migrated {section}: {recipe_id} -> {target.relative_to(root)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

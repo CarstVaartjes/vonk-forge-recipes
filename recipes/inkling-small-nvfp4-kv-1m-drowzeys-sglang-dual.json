@@ -336,7 +336,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "902f80d1de360472c2886e21d81ad3b924e002133cd725823a6d6708df305cbc",
+        "content_sha256": "bec6548e464aa7563223538d40de55ee31c5fb0084d63f0ac95d709ba7024e09",
         "kind": "model",
         "publisher": "radixark",
         "slug": "inkling-small-dspark-preview-fcc210dc"
