@@ -12,7 +12,6 @@
     "tests/__init__.py"
   ],
   "renamed": {
-    "upstream-LICENSE-MIT": "LICENSE.MIT",
-    "upstream-env.example": ".env.example"
+    "upstream-LICENSE-MIT": "LICENSE.MIT"
   }
 }
