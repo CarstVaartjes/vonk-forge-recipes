@@ -1,0 +1,8 @@
+README.md, start_sglang.sh and stop_sglang.sh are byte-identical copies from
+https://github.com/MiaAI-Lab/Inkling-Small-NVFP4-Dual-DGX-Sparks at commit
+ce6bfbe90d6e680e7b8172ebd1922fa148158e26 (the repository has no licence file;
+its README states the wrapper scripts are MIT). They are reference only and are
+not executed: Vonk launches SGLang itself through sglang-serve.
+
+The image base is ghcr.io/drowzeys/inkling-sglang-gb10 (the README's
+UPSTREAM_IMAGE), pinned by digest; see the Dockerfile.
