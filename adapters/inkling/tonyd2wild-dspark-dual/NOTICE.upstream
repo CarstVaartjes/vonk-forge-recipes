@@ -1,0 +1,13 @@
+mods/inkling-sm12-paged-kv and mods/instanttensor-hybrid-draft-loader are byte-identical to
+https://github.com/eugr/spark-vllm-docker at commit 60dee5b47ab14201381d486c6e994b5cf0e648a1
+(MIT, see LICENSE.upstream). inkling-sm12-paged-kv bundles a vendored FA4 SM120 kernel package
+with its own LICENSE and AUTHORS files inside the mod directory.
+
+mods/inkling-agent-parser-fix, inkling-audio-deps, inkling-dspark-vllm, inkling-prefill-admission-cap,
+inkling-warmup-cap and prepare-dspark-overlay.py are tonyd2wild's, copied byte-identically from
+https://github.com/tonyd2wild/Inkling-Small-NVFP4-DSpark-BF16-KV-262K-2x-DGX-Spark at commit
+7795dd3a6a476a544f43e84ea1bad072ea86648b. That repository states that no licence has been selected.
+
+The container image is eugr's published eugr/spark-vllm build (pinned by digest). The draft
+speculator is RadixArk/Inkling-Small-DSpark-Preview (research preview; the repository declares no
+licence).
