@@ -1,0 +1,10 @@
+{
+  "ours": [
+    "dsv41-serve",
+    "verify-runtime.py"
+  ],
+  "source": {
+    "commit": "cad252b7d3000cf21d919764e70a6912b6d3b0b0",
+    "repo": "MiaAI-Lab/DeepSeek-v4.1-Flash-DGX-Sparks"
+  }
+}
