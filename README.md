@@ -26,7 +26,7 @@ Number of recipes per model family and engine.
 | HunyuanOCR |  |  |  |  |  |  |  |  | 1 |
 | HunyuanVideo |  |  |  |  |  |  | 3 |  |  |
 | HunyuanVideo Foley |  |  |  |  |  |  |  |  | 2 |
-| Hy3 kodelow | 1 |  |  |  |  |  |  |  |  |
+| Hy3 kodelow | 2 |  |  |  |  |  |  |  |  |
 | Inkling |  | 2 |  |  |  |  |  |  |  |
 | Laguna | 3 |  |  |  |  |  |  |  |  |
 | Leanstral | 1 |  |  |  |  |  |  |  |  |
@@ -66,7 +66,7 @@ Which Spark counts each family runs on, and who provides them.
 | HunyuanOCR | tencent |  |  |  |  |
 | HunyuanVideo | hunyuanvideo-community |  |  |  |  |
 | HunyuanVideo Foley | tencent |  |  |  |  |
-| Hy3 kodelow |  | MiaAI-Lab |  |  |  |
+| Hy3 kodelow |  | MiaAI-Lab, tonyd2wild |  |  |  |
 | Inkling |  | sgl-project |  |  | sgl-project |
 | Laguna | poolside |  |  |  |  |
 | Leanstral |  | MiaAI-Lab |  |  |  |
@@ -226,10 +226,11 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 </details>
 
-<details><summary>Hy3 kodelow (1)</summary>
+<details><summary>Hy3 kodelow (2)</summary>
 
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
+| [hy3-295b-nvfp4-mtp-tonyd2wild-vllm-dual](recipes/hy3-295b-nvfp4-mtp-tonyd2wild-vllm-dual.json) | vLLM | 2 | tonyd2wild |
 | [hy3-295b-nvfp4-vllm-mia-dual](recipes/hy3-295b-nvfp4-vllm-mia-dual.json) | vLLM | 2 | MiaAI-Lab |
 
 </details>
