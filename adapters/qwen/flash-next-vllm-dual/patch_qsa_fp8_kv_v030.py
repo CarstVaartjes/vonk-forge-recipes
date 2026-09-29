@@ -7,7 +7,6 @@ path) onto the vLLM 0.30.0 nvidia/qsa.py and nvidia/ops/qsa.py.
 Delete this file, its test and its overlay in start.sh once the image moves to
 vLLM 0.31 or later, which ships #55557 natively.
 """
-
 import ast
 import os
 import re
@@ -507,10 +506,7 @@ def parse_diff(text: str) -> dict[str, list[tuple[list[str], list[str]]]]:
         elif line.startswith("+++ b/vllm/"):
             hunks = files.setdefault(line[len("+++ b/vllm/") :].rstrip("\n"), [])
         elif line.startswith("@@"):
-            header = HUNK_HEADER.match(line)
-            if header is None:
-                raise SystemExit(f"malformed hunk header: {line!r}")
-            old_left, new_left = (int(n or 1) for n in header.groups())
+            old_left, new_left = (int(n or 1) for n in HUNK_HEADER.match(line).groups())
             hunks.append(([], []))
     if old_left or new_left:
         raise SystemExit("vendored vllm#55557 diff is truncated")
@@ -524,9 +520,7 @@ def find(lines: list[str], block: list[str], start: int) -> int:
     return -1
 
 
-def apply(
-    lines: list[str], hunks: list[tuple[list[str], list[str]]]
-) -> list[str] | None:
+def apply(lines: list[str], hunks: list[tuple[list[str], list[str]]]) -> list[str] | None:
     out: list[str] = []
     cursor = 0
     for old, new in hunks:
@@ -567,10 +561,7 @@ def main(argv: list[str]) -> int:
         for rel in TARGETS:
             patched = apply(sources[rel], diff[rel])
             if patched is None:
-                print(
-                    f"vllm#55557 does not apply to {rel}, nothing written",
-                    file=sys.stderr,
-                )
+                print(f"vllm#55557 does not apply to {rel}, nothing written", file=sys.stderr)
                 return 1
             results[rel] = patched
     texts = {rel: "".join(lines) for rel, lines in results.items()}

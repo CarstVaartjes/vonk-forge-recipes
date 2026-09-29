@@ -1,0 +1,11 @@
+{
+  "ours": [
+    "NOTICE",
+    "ui-mate-step.py",
+    "vllm-wrapper.sh"
+  ],
+  "source": {
+    "repo": "Tencent/UI-Mate",
+    "commit": "d185dc9d74cfcab3a890d7ffb2bb011ecdd64c64"
+  }
+}

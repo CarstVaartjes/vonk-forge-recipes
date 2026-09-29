@@ -1,0 +1,13 @@
+{
+  "ours": [
+    "licenses/",
+    "patches/",
+    "requirements.lock",
+    "tensorfold-serve",
+    "vendor/"
+  ],
+  "source": {
+    "repo": "ashhart/TensorFold",
+    "commit": "6b2e4c40064b1e4a05965f61b19ce87b5e0265b3"
+  }
+}
