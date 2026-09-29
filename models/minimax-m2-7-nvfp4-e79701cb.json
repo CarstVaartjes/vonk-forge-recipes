@@ -1,0 +1,326 @@
+{
+  "capabilities": [
+    "chat",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-c96667522371-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "c96667522371c060c119874628058a5d62f0277ab322a30f717a42b20c92204b",
+      "size_bytes": 1584
+    },
+    {
+      "id": "readme-13184a0f700f-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "13184a0f700ffcbc2d5c31b3becd84c0f36efb251f51d11c391d4a15d7851e90",
+      "size_bytes": 8189
+    },
+    {
+      "id": "added-tokens-1078aee1a33b-dec41b9537",
+      "path": "added_tokens.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "1078aee1a33b7e42e8f86f7d2b6d8fd340fe04c94c2e7117814f74b96e241c5c",
+      "size_bytes": 1464
+    },
+    {
+      "id": "chat-template-893d908f7b5c-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "893d908f7b5cc65fdde270dcae5ea1a99647c6a7ce572ae874a57b7160069566",
+      "size_bytes": 6524
+    },
+    {
+      "id": "config-24abe73e3a7d-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "24abe73e3a7d4d2e8e0d20ea13f322b8823a804e6598a4d0f7bfc0d0d367ea9d",
+      "size_bytes": 8822
+    },
+    {
+      "id": "configuration-minimax-m2-035abed680c1-f88496f0a7",
+      "path": "configuration_minimax_m2.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "035abed680c1ead2d374621917f0bf6e0dc6647804dee0bf7c037d8fa74500c1",
+      "size_bytes": 10158
+    },
+    {
+      "id": "generation-config-2c24fe5507e2-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "2c24fe5507e260bb081727e2a14693d9a982942e721b28720c184d201bffb9dd",
+      "size_bytes": 166
+    },
+    {
+      "id": "hf-quant-config-b8c904443b70-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b8c904443b70ab92b6c6ca3b54081cbce84c60a215e50a6ed59e28a4dcc45d0e",
+      "size_bytes": 6168
+    },
+    {
+      "id": "merges-37c54e1d6eb4-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "37c54e1d6eb451b1db3ab89669382c097e6533a47fe526e90dd70b35a0d28bc8",
+      "size_bytes": 2414078
+    },
+    {
+      "id": "model-00001-of-00015-2f61c0d99368-44561eb6b2",
+      "path": "model-00001-of-00015.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2f61c0d99368de95107f42c8f08376a664b5497ed310d012bbccd1a317693d0a",
+      "size_bytes": 9999992936
+    },
+    {
+      "id": "model-00002-of-00015-8fb53baf8744-07a29c15a6",
+      "path": "model-00002-of-00015.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8fb53baf8744ab2e4ef5680c6bf136c0dfd9d3c51a240455d4f6217c34c534ec",
+      "size_bytes": 9999847592
+    },
+    {
+      "id": "model-00003-of-00015-f9aea4035030-f78009be1c",
+      "path": "model-00003-of-00015.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f9aea403503045b25172b6e246655c0555968f0af29502ca02b2da1cdf2e1fd8",
+      "size_bytes": 9999963152
+    },
+    {
+      "id": "model-00004-of-00015-5b498c051b8a-537155251a",
+      "path": "model-00004-of-00015.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5b498c051b8a25365d198058eb6457332a697ec69eb6d5260ab5b25408349c3e",
+      "size_bytes": 9999861744
+    },
+    {
+      "id": "model-00005-of-00015-fb83fbab1f4f-a66a0e8406",
+      "path": "model-00005-of-00015.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "fb83fbab1f4f3c52fb17c985072830dd8aef6dcd4c90cfc3c0e2c04f662ac00d",
+      "size_bytes": 9994662544
+    },
+    {
+      "id": "model-00006-of-00015-72d85bc246bf-c6f64b47d4",
+      "path": "model-00006-of-00015.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "72d85bc246bf208471a6fe31df180403f9ffc53895be5c691d131d6086d91efd",
+      "size_bytes": 9999849568
+    },
+    {
+      "id": "model-00007-of-00015-0e6b55ab2e1a-77f2bf80e6",
+      "path": "model-00007-of-00015.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "0e6b55ab2e1a4eaac39e444e527519db5200a781dcbed7fe8dbd8ebc23df3c84",
+      "size_bytes": 9949532264
+    },
+    {
+      "id": "model-00008-of-00015-9164c47a7083-b15e39c23e",
+      "path": "model-00008-of-00015.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9164c47a7083b1e34f262c0dd11b58fc100b93e21727eec31dc41b3cbe4fb1e0",
+      "size_bytes": 9999849568
+    },
+    {
+      "id": "model-00009-of-00015-0d3d3ed5304f-114707df82",
+      "path": "model-00009-of-00015.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "0d3d3ed5304f2c1b303a1c71ec805700588b1eb0472b83bd6079e49612bd3a27",
+      "size_bytes": 9949532264
+    },
+    {
+      "id": "model-00010-of-00015-3dce18052605-beabd0fa3e",
+      "path": "model-00010-of-00015.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3dce18052605bf5153f6b83925a507d6bdcb4302e6e9a0b270ba66c114ca61dc",
+      "size_bytes": 9999849568
+    },
+    {
+      "id": "model-00011-of-00015-fbd6a3a3e7fc-d3dd1f014d",
+      "path": "model-00011-of-00015.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "fbd6a3a3e7fce49dbab31777710bcc2d0e2ff8efbace516a37e218f8cb89af95",
+      "size_bytes": 9949532264
+    },
+    {
+      "id": "model-00012-of-00015-424f47a209eb-188b7f7b7b",
+      "path": "model-00012-of-00015.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "424f47a209eb300e6457221869305867b15455f6978fb2f6547cee75ed5368d9",
+      "size_bytes": 9999849568
+    },
+    {
+      "id": "model-00013-of-00015-ca6b2cce958e-75674c2d2e",
+      "path": "model-00013-of-00015.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ca6b2cce958e0e448d969faece561c637f97b2c7aa7165f82a27f687abecebf8",
+      "size_bytes": 9949532264
+    },
+    {
+      "id": "model-00014-of-00015-99da3da668b3-50b8711ff6",
+      "path": "model-00014-of-00015.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "99da3da668b339dd3219208409fe0d617a0c2a0ff5dcacdce9fed8330f788620",
+      "size_bytes": 8866399264
+    },
+    {
+      "id": "model-00015-of-00015-4aaa9fd59a6f-91ba459589",
+      "path": "model-00015-of-00015.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4aaa9fd59a6f1ed0f89b55aaa07b17316919b2b13064f49301f5d45c93326d6a",
+      "size_bytes": 1229193344
+    },
+    {
+      "id": "model-safetensors-index-e88bedb84500-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e88bedb84500ba5e654d23dfd496f8fdbf27fbfd8a873182161727aee0826d7a",
+      "size_bytes": 19511077
+    },
+    {
+      "id": "modeling-minimax-m2-99b170a2911b-a52342cfdb",
+      "path": "modeling_minimax_m2.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "99b170a2911b830a5b3f77262d5ea0d4a658d9ffb393cbe7c2b1bf87e2b0b818",
+      "size_bytes": 30914
+    },
+    {
+      "id": "special-tokens-map-5d332eaa65da-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "5d332eaa65da7f6dee778213901fb8e06d7354bcfa5cb748267ae3d022c71bde",
+      "size_bytes": 1527
+    },
+    {
+      "id": "tokenizer-757622126525-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "757622126525aeeb131756849d93298070ff3f0319c455ec8c5bb0f6b1cebbe8",
+      "size_bytes": 9730160
+    },
+    {
+      "id": "tokenizer-config-60e392fea8d4-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "60e392fea8d47660584deb3c6a716aab7b9f11fed24bc494baf5eb7ba809e882",
+      "size_bytes": 10893
+    },
+    {
+      "id": "vocab-b44c066b5dc3-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "b44c066b5dc34c800c4e3ecbd85f3e95ce3bfdbf8a5fe30223e005175103578a",
+      "size_bytes": 4705413
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "minimax",
+      "title": "MiniMax"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "minimax-m2-7",
+      "title": "MiniMax M2.7"
+    },
+    "publisher": "nvidia",
+    "slug": "minimax-m2-7-nvfp4-e79701cb",
+    "variant": "MiniMax M2.7 NVIDIA NVFP4 e79701cb",
+    "version": "nvfp4-e79701cb"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "MiniMax"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Software-and-Model-Evaluation-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-software-and-model-evaluation-license"
+  },
+  "metadata": {
+    "description": "MiniMax M2.7 mixture-of-experts language model.",
+    "tags": [
+      "nvidia",
+      "minimax",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/MiniMax-M2.7-NVFP4",
+    "revision": "e79701cb1f9dce8fe5395b9ed2b20170beebecde"
+  }
+}
