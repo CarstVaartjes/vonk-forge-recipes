@@ -1,0 +1,342 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "3f55dd62f38da189041ebfad2eeccd784246c3f32b29ea5a8cdc4d19f5c02994",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/llm/r0b0tlab-vibethinker-vllm-single"
+      },
+      "dockerfile": "adapters/llm/r0b0tlab-vibethinker-vllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "vibethinker-3b-nvfp4-r0b0tlab-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "vibethinker-3b-nvfp4"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "r0b0tlab's vLLM 0.22 serve of its NVFP4 quantization of WeiboAI VibeThinker-3B (3B reasoning model) on one GB10: ModelOpt quantization, fp8 KV cache, FlashInfer attention, eager execution and prefix caching. Upstream defaults: 32,768 context, 8 sequences, 0.85 memory utilization; upstream reports about 2.6x throughput over its BF16 baseline (claim, not measured here). The upstream registry image is not public and its startup downloads the model, so the recipe uses upstream's digest-pinned public vllm/vllm-openai base with the model mounted. Licence: MIT per the HF card (information only). No licence file in the upstream repository.",
+    "tags": [
+      "candidate",
+      "executable",
+      "nvfp4",
+      "openai",
+      "r0b0tlab",
+      "reasoning",
+      "single",
+      "small",
+      "spark",
+      "vibethinker",
+      "vllm"
+    ],
+    "title": "VibeThinker-3B NVFP4 vLLM single Spark (r0b0tlab)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "primary-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-b3863220afcb-b335630551",
+          "id": "primary-readme-b3863220afcb-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "added-tokens-a473618b29aa-dec41b9537",
+          "id": "primary-added-tokens-a473618b29aa-dec41b9537",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-cabd13e48619-587cb980af",
+          "id": "primary-config-cabd13e48619-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-28396d421a21-97dd3d578b",
+          "id": "primary-generation-config-28396d421a21-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-3526c7b3b416-a481ad90fa",
+          "id": "primary-hf-quant-config-3526c7b3b416-a481ad90fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-a683f30a5177-9d75c1098f",
+          "id": "primary-model-a683f30a5177-9d75c1098f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-6676f091c8bc-c07a9be597",
+          "id": "primary-special-tokens-map-6676f091c8bc-c07a9be597",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-296e081e2f5e-224931eb13",
+          "id": "primary-tokenizer-296e081e2f5e-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-806a1e91c2af-94d5c6ba8f",
+          "id": "primary-tokenizer-config-806a1e91c2af-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+          "id": "primary-vocab-ca10d7e9fb3e-ba05d8e2e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "449b7948c59c686d1c944847028b617bbab8b9dfbaadc9a2a86bb357d9c8ceae",
+        "kind": "model",
+        "publisher": "r0b0tlab",
+        "slug": "vibethinker-3b-nvfp4-2fc00139"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "WeiboAI (VibeThinker-3B)",
+      "r0b0tlab (NVFP4 quantization and container)",
+      "vLLM contributors (Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/r0b0tlab/vibethinker-3b-nvfp4/tree/fcf0c6e87b57b6d0f5cbf7377c10ec910c49e1fe"
+  },
+  "release": {
+    "released_at": "2026-06-16",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "modelopt"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "flashinfer"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.85"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enforce-eager",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 8
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 32768
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 2197839301,
+            "image_bytes": 20000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 40000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "vibethinker-3b-nvfp4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
