@@ -34,8 +34,10 @@ jobs:
       # and packages from this checkout before validating them.
       platform_ref: a2578cb10e60d002efcd1a2f45437c71e0b093ea
 
+  # Pull requests get these checks inside producer-contracts (one runner, not
+  # three); a skipped job still satisfies its required check.
   catalog-index:
-    if: ${{ !inputs.producer_only }}
+    if: ${{ !inputs.producer_only && github.event_name != 'pull_request' }}
     name: Verify catalog index
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -112,6 +114,23 @@ jobs:
             git diff -- contracts/src/vonk_forge_contracts/examples
             exit 1
           fi
+
+      - name: Require current public contract schemas
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" tools/generate-contract-schemas --check
+
+      - name: Build the catalog index twice and require identical bytes
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first"
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second"
+          diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index
+          "$RECIPE_TEST_PYTHON" tools/build-family-aware-coverage
 
       - name: Check the README overview (advisory)
         shell: bash
@@ -198,7 +217,7 @@ jobs:
           )
 
   public-contracts:
-    if: ${{ !inputs.producer_only }}
+    if: ${{ !inputs.producer_only && github.event_name != 'pull_request' }}
     name: Verify public contracts package
     runs-on: ubuntu-24.04
     permissions:
