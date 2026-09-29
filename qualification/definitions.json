@@ -4076,6 +4076,22 @@
         ]
       }
     },
+    "vonk-forge/hy3-295b-nvfp4-mtp-tonyd2wild-vllm-dual": {
+      "alias": "hy3",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "8K, 32K and 96K cold-prefill ladder plus bounded concurrency canaries at the 128K default context"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache restart; the first start loads 181 GB of weights"
+        ]
+      }
+    },
     "vonk-forge/mimo-v2-6-flash-rl-vllm-dual": {
       "alias": "mimo-v2.6-flash",
       "smoke_cases": [
