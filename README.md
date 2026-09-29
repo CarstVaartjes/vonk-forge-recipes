@@ -10,7 +10,7 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-We cover DeepSeek V4 Flash, FLUX.2, Gemma, GLM, Hunyuan3D, HunyuanOCR, HunyuanVideo, HunyuanVideo Foley, Hy3 kodelow, Inkling, Laguna, Leanstral, LFM2.5, Ling, LTX, Meta Llama, MiMo, MiniMax H3, MiniMax M2, MOSS-VL, MOVA, Muse Glimmer, Nemotron, Ornith, Pixal3D, Qwen (text and vision), Qwen Image, SkinTokens, Step 3.7 Flash, Step1X-3D, TRELLIS, TripoSG, UI-Mate, Wan. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+We cover DeepSeek V4 Flash, FLUX.2, Gemma, GLM, Hunyuan3D, HunyuanOCR, HunyuanVideo, HunyuanVideo Foley, Hy3 kodelow, Inkling, Laguna, Leanstral, LFM2.5, Ling, LTX, Meta Llama, MiMo, MiniMax H3, MiniMax M2, MOSS-VL, MOVA, Muse Glimmer, Nemotron, Ornith, Pixal3D, Qwen (text and vision), Qwen Image, SkinTokens, Step 3.7 Flash, Step1X-3D, TRELLIS, TripoSG, UI-Mate, VibeThinker, Wan. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
@@ -31,7 +31,7 @@ Which engines each model family runs on.
 | Laguna | ✓ |  |  |  |  |  |  |  |  |  |
 | Leanstral | ✓ |  |  |  |  |  |  |  |  |  |
 | LFM2.5 | ✓ |  |  |  |  |  |  |  |  |  |
-| Ling |  | ✓ |  |  |  |  |  |  |  |  |
+| Ling | ✓ | ✓ |  |  |  |  |  |  |  |  |
 | LTX |  |  |  |  |  |  | ✓ |  | ✓ |  |
 | Meta Llama |  |  | ✓ |  |  |  |  |  |  |  |
 | MiMo | ✓ | ✓ |  |  |  |  |  |  |  |  |
@@ -51,6 +51,7 @@ Which engines each model family runs on.
 | TRELLIS |  |  |  |  |  |  |  |  | ✓ |  |
 | TripoSG |  |  |  |  |  |  |  |  | ✓ |  |
 | UI-Mate | ✓ |  |  |  |  |  |  |  |  |  |
+| VibeThinker | ✓ |  |  |  |  |  |  |  |  |  |
 | Wan |  |  |  |  |  |  |  | ✓ | ✓ |  |
 
 ### Spark variants
@@ -92,6 +93,7 @@ Which Spark counts each model family runs on.
 | TRELLIS | ✓ |  |  |  |  |
 | TripoSG | ✓ |  |  |  |  |
 | UI-Mate | ✓ |  |  |  |  |
+| VibeThinker | ✓ |  |  |  |  |
 | Wan | ✓ |  |  |  |  |
 
 ### Tracked creators
