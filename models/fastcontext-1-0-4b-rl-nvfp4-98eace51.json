@@ -1,0 +1,146 @@
+{
+  "capabilities": [
+    "chat",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-3dfc2b232ef2-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "3dfc2b232ef2e3671326de2cfa45876c43022c5c3aac3182805aa5d92c477ecb",
+      "size_bytes": 4066
+    },
+    {
+      "id": "config-3b203de2eeb7-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "3b203de2eeb727f62d5b9af769df185fe5a6627a8129b4e842fbef7f19c5de65",
+      "size_bytes": 2613
+    },
+    {
+      "id": "generation-config-779100d8742e-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "779100d8742eb08bb539e32081fd531b2f3304d52ff19b2751de0383ebe44209",
+      "size_bytes": 212
+    },
+    {
+      "id": "hf-quant-config-fde104dee100-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "fde104dee1009ecc71dd7202409e6e79425a9269d3cfe8b46ed755aca77ccaa0",
+      "size_bytes": 259
+    },
+    {
+      "id": "merges-599bab540750-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "size_bytes": 1671839
+    },
+    {
+      "id": "model-a67950597011-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a6795059701198bc9d120415585554b60fa9147fc22d6a3b01c35c08ad59db2b",
+      "size_bytes": 2822172776
+    },
+    {
+      "id": "tokenizer-aeb13307a71a-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+      "size_bytes": 11422654
+    },
+    {
+      "id": "tokenizer-config-a62ff0a2472a-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a62ff0a2472a0fa1b8eaabcb57c59b58afa42a22831dc141400b6e0cf2b65ce3",
+      "size_bytes": 9377
+    },
+    {
+      "id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "size_bytes": 2776833
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4-modelopt"
+  },
+  "identity": {
+    "family": {
+      "publisher": "r0b0tlab",
+      "slug": "fastcontext",
+      "title": "FastContext"
+    },
+    "model": {
+      "publisher": "r0b0tlab",
+      "slug": "fastcontext-1-0-4b-rl",
+      "title": "FastContext-1.0-4B-RL"
+    },
+    "publisher": "r0b0tlab",
+    "slug": "fastcontext-1-0-4b-rl-nvfp4-98eace51",
+    "variant": "NVFP4 98eace51",
+    "version": "NVFP4 98eace51"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Microsoft",
+      "r0b0tlab"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/r0b0tlab/FastContext-1.0-4B-RL-NVFP4/blob/98eace51079e3a1927ea3ce215581842f721ebe4/README.md"
+  },
+  "metadata": {
+    "description": "Microsoft FastContext-1.0-4B-RL async repo-exploration subagent model.",
+    "tags": [
+      "r0b0tlab",
+      "fastcontext",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/r0b0tlab/FastContext-1.0-4B-RL-NVFP4",
+    "revision": "98eace51079e3a1927ea3ce215581842f721ebe4"
+  }
+}
