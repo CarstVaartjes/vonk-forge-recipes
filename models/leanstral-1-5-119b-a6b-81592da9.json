@@ -1,0 +1,175 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-a1533fad1fb4-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a1533fad1fb49e1230aff61a60028ea63bc924b4cc4501447351b50b9c840683",
+      "size_bytes": 1567
+    },
+    {
+      "id": "readme-47cd16682705-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "47cd16682705fc03a475e6e7466eaa6fc6704ea812fb59ce432fc8415ac5ea14",
+      "size_bytes": 11956
+    },
+    {
+      "id": "chat-template-7a5a4bc329e3-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "7a5a4bc329e302425fb7067edc861fc9a5fe941fced171983ed789af2c10b357",
+      "size_bytes": 12792
+    },
+    {
+      "id": "consolidated-00001-of-00007-44cd9c050a3a-38464ae040",
+      "path": "consolidated-00001-of-00007.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "44cd9c050a3a07bef741728726b89aad8c7024eccd016606f58eded62a5e6189",
+      "size_bytes": 19992243610
+    },
+    {
+      "id": "consolidated-00002-of-00007-47a59780b2b0-588e150c76",
+      "path": "consolidated-00002-of-00007.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "47a59780b2b014322309465e2caa71e84dda869662c9bd3353d9b1d62a1e2351",
+      "size_bytes": 19997737164
+    },
+    {
+      "id": "consolidated-00003-of-00007-91df3ddbeedc-1dd12465dd",
+      "path": "consolidated-00003-of-00007.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "91df3ddbeedc8e2752800bd35c99da3d14121135a656c0aea7c7cec3d95bbf31",
+      "size_bytes": 19997736940
+    },
+    {
+      "id": "consolidated-00004-of-00007-28bdd6b8cd70-d298bcd528",
+      "path": "consolidated-00004-of-00007.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "28bdd6b8cd706bec682c3e426407dd02cc67248862fb9214297bdf4f2f49cd3a",
+      "size_bytes": 19997737100
+    },
+    {
+      "id": "consolidated-00005-of-00007-c5b9a4c1252e-9a5971d4fc",
+      "path": "consolidated-00005-of-00007.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c5b9a4c1252ed70ee497764534867a7b12aea60d570e2b3e45cf24745fe43f47",
+      "size_bytes": 19997738260
+    },
+    {
+      "id": "consolidated-00006-of-00007-711367576716-21e0dc86a7",
+      "path": "consolidated-00006-of-00007.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7113675767165db3accc16fee163dc19bb77b5e22f34d834d703cc88ea60c2b6",
+      "size_bytes": 19870276046
+    },
+    {
+      "id": "consolidated-00007-of-00007-9b12240bd395-1c9f9d3cc4",
+      "path": "consolidated-00007-of-00007.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9b12240bd395114753fb80d7ac9469528352253d7a58397ff5949dca6f059b28",
+      "size_bytes": 1073741920
+    },
+    {
+      "id": "consolidated-safetensors-index-6b0ba100e201-b6dac7997a",
+      "path": "consolidated.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "6b0ba100e201d970c10483266286695c5bbb535b413ed5905019dcb9ef36b7a7",
+      "size_bytes": 3619748
+    },
+    {
+      "id": "params-93f5e26c0d88-7b631c57f5",
+      "path": "params.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "93f5e26c0d88ccf6f46f3a6e7794f1c9e082f66e43980688dcde1a6ca973d0c9",
+      "size_bytes": 1510
+    },
+    {
+      "id": "tekken-b1272b956bd6-1750e96afb",
+      "path": "tekken.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b1272b956bd6edd2d2c674c76896c7661308c9e723997b0afb55ecb429cb5dc7",
+      "size_bytes": 16275354
+    }
+  ],
+  "format": {
+    "precision": "fp8",
+    "quantization": "fp8_e4m3"
+  },
+  "identity": {
+    "family": {
+      "publisher": "mistralai",
+      "slug": "leanstral",
+      "title": "Leanstral"
+    },
+    "model": {
+      "publisher": "mistralai",
+      "slug": "leanstral-1-5-119b-a6b",
+      "title": "Leanstral 1.5 119B A6B"
+    },
+    "publisher": "mistralai",
+    "slug": "leanstral-1-5-119b-a6b-81592da9",
+    "variant": "1.5",
+    "version": "1.5"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Mistral AI"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/mistralai/Leanstral-1.5-119B-A6B"
+  },
+  "metadata": {
+    "description": "Mistral's Leanstral 1.5 (119B total, about 6.5B active, 128-expert MoE, FP8 e4m3 weights, Mistral-format consolidated checkpoint) for Lean 4 agentic proof and code work, with text and image input and up to 256K context. Apache-2.0 per the model card.",
+    "tags": [
+      "mistralai",
+      "leanstral",
+      "multimodal",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/mistralai/Leanstral-1.5-119B-A6B",
+    "revision": "81592da95d94ab0439bfce16df1d55b402e598b6"
+  }
+}

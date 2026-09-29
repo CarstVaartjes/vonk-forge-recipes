@@ -1,0 +1,15 @@
+Leanstral 1.5 119B A6B on two DGX Sparks (vLLM, Ray, tensor parallel 2)
+
+Vendored upstream files (byte-identical, provenance spelling upstream-<name>):
+  upstream-README.md, upstream-start.sh, upstream-stop.sh
+from https://github.com/MiaAI-Lab/Leanstral-1.5-119B-A6B_2x_DGX_Sparks_vLLM
+at commit 94d729896226db3eaf7f584e79b7c1f0028bab1d.
+
+The upstream repository carries no licence file (GitHub reports none); its
+terms are unspecified. It is credited here for the launch settings only.
+
+Our files: Dockerfile, vllm-wrapper.py (placement/Ray binding adapted from the
+GLM 5.3 adapter in this repository), verify-runtime.py and this notice.
+
+The model, mistralai/Leanstral-1.5-119B-A6B, is Apache-2.0 per its model card.
+vLLM is Apache-2.0.
