@@ -21,7 +21,7 @@ Which engines each model family runs on.
 | DeepSeek V4 Flash | ✓ | ✓ |  |  |  | ✓ |  |  |  |
 | FastContext | ✓ |  |  |  |  |  |  |  |  |
 | FLUX.2 |  |  |  |  |  |  |  | ✓ |  |
-| Gemma | ✓ |  |  |  |  |  |  |  |  |
+| Gemma | ✓ |  |  | ✓ |  |  |  |  |  |
 | GLM | ✓ |  |  |  |  |  |  |  |  |
 | Hunyuan3D |  |  |  |  |  |  |  |  | ✓ |
 | HunyuanOCR |  |  |  |  |  |  |  |  | ✓ |
