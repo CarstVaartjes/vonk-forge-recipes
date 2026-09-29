@@ -1,0 +1,486 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/llm/muse-glimmer-nvfp4-dflash-mia"
+      },
+      "dockerfile": "adapters/llm/muse-glimmer-nvfp4-dflash-mia/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "muse-glimmer-30b-nvfp4-vllm-mia-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "muse-glimmer-30b"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B NVFP4 (RedHatAI W4A4) with the official Meta DFlash drafter, FP8 KV cache and the muse_glimmer reasoning/tool parsers, following the MiaAI-Lab DGX Spark launch profile on the official vLLM 0.30.0 ARM64 image. Context defaults to the model's native 131072 (upstream's 262144 needs an unmerged RoPE-cache patch on a vLLM fork). Chat, vision, reasoning, tool calling and DFlash speedup remain Candidate capabilities; upstream throughput figures are its own claims.",
+    "tags": [
+      "executable",
+      "candidate",
+      "pending",
+      "meta",
+      "muse-glimmer",
+      "multimodal",
+      "vision",
+      "agentic",
+      "reasoning",
+      "tool-use",
+      "nvfp4",
+      "dflash",
+      "speculative-decoding",
+      "vllm",
+      "openai",
+      "mia",
+      "single",
+      "spark"
+    ],
+    "title": "Muse Glimmer 30B NVFP4 DFlash vLLM Mia single Spark"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "target-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-5ab71447b31e-b335630551",
+          "id": "target-readme-5ab71447b31e-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-114f55ebdc18-00824420d1",
+          "id": "target-chat-template-114f55ebdc18-00824420d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-554f41ec2cee-587cb980af",
+          "id": "target-config-554f41ec2cee-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-3c19298aaee5-97dd3d578b",
+          "id": "target-generation-config-3c19298aaee5-97dd3d578b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00002-adbb49484526-27a6880801",
+          "id": "target-model-00001-of-00002-adbb49484526-27a6880801",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00002-a530af78f135-2cca3b5a88",
+          "id": "target-model-00002-of-00002-a530af78f135-2cca3b5a88",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-63aeab8fe925-0a05be8238",
+          "id": "target-model-safetensors-index-63aeab8fe925-0a05be8238",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-97e2a486dd98-27f0cb76af",
+          "id": "target-processor-config-97e2a486dd98-27f0cb76af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "recipe-b8ea1ba2017a-e6afb07ce9",
+          "id": "target-recipe-b8ea1ba2017a-e6afb07ce9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-c9dbee66967b-224931eb13",
+          "id": "target-tokenizer-c9dbee66967b-224931eb13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-4dda8d970995-94d5c6ba8f",
+          "id": "target-tokenizer-config-4dda8d970995-94d5c6ba8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "cd550510967d9b73e8d30d1cf13865812b7c95bd01794f028a66ff0cc32901d8",
+        "kind": "model",
+        "publisher": "redhatai",
+        "slug": "muse-glimmer-30b-nvfp4-e83ead54"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-11ad7efa2497-618cd5b83d",
+          "id": "drafter-metadata-11ad7efa2497-618cd5b83d",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-cfc7749b96f6-c693279643",
+          "id": "drafter-license-cfc7749b96f6-c693279643",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-07aaa09b5d0d-b335630551",
+          "id": "drafter-readme-07aaa09b5d0d-b335630551",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "usage-policy-98a14dab9fd9-8f847fd353",
+          "id": "drafter-usage-policy-98a14dab9fd9-8f847fd353",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-38915167b64b-587cb980af",
+          "id": "drafter-config-38915167b64b-587cb980af",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-fd88d337eb84-9d75c1098f",
+          "id": "drafter-model-fd88d337eb84-9d75c1098f",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "drafter",
+      "model": {
+        "content_sha256": "e287066a7bb3d0af8b9c495c6a75b13304db5f2c72542fabd86117716aaafaf6",
+        "kind": "model",
+        "publisher": "meta",
+        "slug": "muse-glimmer-30b-assistant-e8192f3a"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default; upstream measured 2,414,048 token slots at gpu-memory-utilization 0.42 with a 256K launch.",
+          "label": "FP8 E4M3 (upstream default)",
+          "value": "fp8"
+        },
+        {
+          "args": [
+            {
+              "name": "kv-cache-dtype",
+              "value": "auto"
+            }
+          ],
+          "help": "Upstream documents that without FP8 KV there are a factor of two fewer slots.",
+          "label": "Model dtype (auto)",
+          "value": "auto"
+        }
+      ],
+      "help": "FP8 KV halves KV memory versus the model dtype at a small long-range recall cost; upstream keeps it on. Switching to auto uses the checkpoint dtype and roughly halves the token slots at the same memory fraction.",
+      "label": "KV cache dtype",
+      "name": "kv-cache"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "MiaAI-Lab",
+      "Meta",
+      "RedHatAI"
+    ],
+    "source_reference": "https://github.com/MiaAI-Lab/Muse-Glimmer-30B-DGX-Spark-RTX-5090-6000-PRO/tree/1b71dc011010a3e2c373eafd8a41f12c7c7913fc"
+  },
+  "release": {
+    "released_at": "2026-08-11",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "muse-glimmer-30b"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.42"
+      },
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8_e4m3"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "muse_glimmer"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "muse_glimmer"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"dflash\",\"model\":\"/models/drafter\",\"num_speculative_tokens\":16}"
+      },
+      {
+        "name": "no-enable-flashinfer-autotune",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "allowed-local-media-path",
+        "setting": null,
+        "value": "/inputs"
+      },
+      {
+        "name": "limit-mm-per-prompt",
+        "setting": null,
+        "value": "{\"image\":4,\"video\":0}"
+      },
+      {
+        "name": "generation-config",
+        "setting": null,
+        "value": "auto"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models/target"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 8
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 131072
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 28521269578,
+            "image_bytes": 26000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 57042539156
+          },
+          "memory": {
+            "peak_bytes": 60000000000,
+            "reserve_bytes": 16000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "muse-glimmer-30b"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

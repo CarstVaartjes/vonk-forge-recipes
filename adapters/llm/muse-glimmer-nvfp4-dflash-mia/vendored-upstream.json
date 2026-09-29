@@ -1,0 +1,9 @@
+{
+  "ours": [
+    "NOTICE.upstream"
+  ],
+  "source": {
+    "commit": "1b71dc011010a3e2c373eafd8a41f12c7c7913fc",
+    "repo": "MiaAI-Lab/Muse-Glimmer-30B-DGX-Spark-RTX-5090-6000-PRO"
+  }
+}

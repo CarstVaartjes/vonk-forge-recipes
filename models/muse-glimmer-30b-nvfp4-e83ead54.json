@@ -1,0 +1,165 @@
+{
+  "capabilities": [
+    "image-understanding",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-5ab71447b31e-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "5ab71447b31ef5e30298f5e0fc6317095184c2cb2b2454a6250b575d832b1b01",
+      "size_bytes": 4390
+    },
+    {
+      "id": "chat-template-114f55ebdc18-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "114f55ebdc1804c1af371197b9fdf2d6bb925966c9dfe46b73782a71bc07965e",
+      "size_bytes": 7167
+    },
+    {
+      "id": "config-554f41ec2cee-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "554f41ec2cee1897c3ddff634b150fd6a0c2cba2822ef02dce636db33a4a70e8",
+      "size_bytes": 21140
+    },
+    {
+      "id": "generation-config-3c19298aaee5-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "3c19298aaee5e91409c71fd2417bbf5910df7e3aa0afd65b5a9e05ff850c95c7",
+      "size_bytes": 185
+    },
+    {
+      "id": "model-00001-of-00002-adbb49484526-27a6880801",
+      "path": "model-00001-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "adbb49484526d0d252f59f147634505db3b0df7c76b392d120145770c6af71b4",
+      "size_bytes": 19999768552
+    },
+    {
+      "id": "model-00002-of-00002-a530af78f135-2cca3b5a88",
+      "path": "model-00002-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a530af78f13588a6cd2223e2f1956ef458dc236266dd045fbeb80a18acaff353",
+      "size_bytes": 3380973016
+    },
+    {
+      "id": "model-safetensors-index-63aeab8fe925-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "63aeab8fe9256732e5800b87e8eb95f95df82d369edd1a456b91b1c405482b28",
+      "size_bytes": 269298
+    },
+    {
+      "id": "processor-config-97e2a486dd98-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "97e2a486dd9866b81f40cf4b8bc0c9ced9a7cd8a5bc65aa4cc2f4de0712dae77",
+      "size_bytes": 1084
+    },
+    {
+      "id": "recipe-b8ea1ba2017a-e6afb07ce9",
+      "path": "recipe.yaml",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "b8ea1ba2017a0366dfde3fe92b81036a644dc2bb9ab558c3846af798e2f0b06d",
+      "size_bytes": 342
+    },
+    {
+      "id": "tokenizer-c9dbee66967b-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c9dbee66967b58f31a7c27f723c3760da3526ccd0427578e8905b0abb0031c4d",
+      "size_bytes": 28129897
+    },
+    {
+      "id": "tokenizer-config-4dda8d970995-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "4dda8d9709954d7b3f1d917319f9b915f1b995f77fbbd8fb9379e56842d84f1b",
+      "size_bytes": 79986
+    }
+  ],
+  "format": {
+    "precision": "nvfp4",
+    "quantization": "compressed-tensors"
+  },
+  "identity": {
+    "family": {
+      "publisher": "redhatai",
+      "slug": "muse-glimmer",
+      "title": "Muse Glimmer"
+    },
+    "model": {
+      "publisher": "redhatai",
+      "slug": "muse-glimmer-30b",
+      "title": "Muse Glimmer 30B"
+    },
+    "publisher": "redhatai",
+    "slug": "muse-glimmer-30b-nvfp4-e83ead54",
+    "variant": "Muse Glimmer 30B NVFP4 e83ead54",
+    "version": "Muse Glimmer 30B NVFP4 e83ead54"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "RedHatAI",
+      "Meta"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/RedHatAI/Muse-Glimmer-30B-NVFP4/blob/e83ead547c81973aaa09c0072c0dbc916e0d8190/README.md"
+  },
+  "metadata": {
+    "description": "Exact public Muse Glimmer 30B NVFP4 (W4A4) e83ead54 checkpoint by RedHatAI.",
+    "tags": [
+      "redhatai",
+      "muse-glimmer",
+      "multimodal",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/RedHatAI/Muse-Glimmer-30B-NVFP4",
+    "revision": "e83ead547c81973aaa09c0072c0dbc916e0d8190"
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-11ad7efa2497-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "license-cfc7749b96f6-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "size_bytes": 11358
+    },
+    {
+      "id": "readme-07aaa09b5d0d-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "07aaa09b5d0df14a949ec9d1c4d7ce6e3639669ce747f0f2f15e3db238e42d16",
+      "size_bytes": 17353
+    },
+    {
+      "id": "usage-policy-98a14dab9fd9-8f847fd353",
+      "path": "USAGE_POLICY.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "98a14dab9fd97de1666dc8589d399efab1e7fc3ba4e6230d037d6637ba9481d3",
+      "size_bytes": 5230
+    },
+    {
+      "id": "config-38915167b64b-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "38915167b64b1e6405492aacae5b1b4511b6431163d2960b9bd25821df6fa30a",
+      "size_bytes": 883
+    },
+    {
+      "id": "model-fd88d337eb84-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "fd88d337eb84f8d0e6ba33a7684d7efa6722d4460ba4d6badca9699418392a84",
+      "size_bytes": 5111976608
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "meta",
+      "slug": "muse-glimmer",
+      "title": "Muse Glimmer"
+    },
+    "model": {
+      "publisher": "meta",
+      "slug": "muse-glimmer-30b-assistant",
+      "title": "Muse Glimmer 30B Assistant (DFlash drafter)"
+    },
+    "publisher": "meta",
+    "slug": "muse-glimmer-30b-assistant-e8192f3a",
+    "variant": "Muse Glimmer 30B Assistant e8192f3a",
+    "version": "Muse Glimmer 30B Assistant e8192f3a"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Meta"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B-assistant/blob/e8192f3a8f617f74be2ce220360c89ef4789f39f/LICENSE"
+  },
+  "metadata": {
+    "description": "Exact public Muse Glimmer 30B assistant DFlash block-diffusion draft head e8192f3a.",
+    "tags": [
+      "meta",
+      "muse-glimmer",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B-assistant",
+    "revision": "e8192f3a8f617f74be2ce220360c89ef4789f39f"
+  }
+}
