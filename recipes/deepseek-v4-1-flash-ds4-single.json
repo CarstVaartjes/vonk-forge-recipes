@@ -1,0 +1,259 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/deepseek/ds4"
+      },
+      "dockerfile": "adapters/deepseek/ds4/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-1-flash-ds4-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "deepseek-v4-flash"
+      ],
+      "port": 8080
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Candidate one-DGX Spark DeepSeek V4.1 Flash text profile on antirez/ds4 with the Q2 GGUF streamed from local SSD (341 GiB file, including 189 GiB of disk-only Engram tables; keep it on a fast SSD). Vision and DSpark are not supported on CUDA for V4.1; one resident session; physical Spark acceptance is still required.",
+    "tags": [
+      "candidate",
+      "executable",
+      "deepseek",
+      "deepseek-v4-1",
+      "ds4",
+      "openai",
+      "chat",
+      "reasoning",
+      "ssd-streaming",
+      "single",
+      "spark"
+    ],
+    "title": "DeepSeek V4.1 Flash DS4 single Spark"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "target",
+          "id": "primary-target",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "aa4c14c4f11f9b0577775137fd2ec6d58f7a8ba792bcadcc4fe11977e9b6c472",
+        "kind": "model",
+        "publisher": "antirez",
+        "slug": "deepseek-v4-1-flash-ds4-q2-dd8a266f"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Default ds4 kernels (upstream default).",
+          "label": "Fast",
+          "value": "fast"
+        },
+        {
+          "args": [
+            {
+              "name": "quality",
+              "value": true
+            }
+          ],
+          "help": "Pass --quality: prefer exact kernels where faster approximate paths exist. Upstream notes V4.1 scalar, batched and tensor-parallel execution are not numerically identical.",
+          "label": "Exact kernels",
+          "value": "quality"
+        }
+      ],
+      "help": "Whether ds4 prefers exact kernels over faster approximate paths. Upstream default is the faster path; exact kernels are for correctness comparisons and may be slower.",
+      "label": "Kernel precision",
+      "name": "kernels"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Weights are touched on first use (upstream default); the first requests may stall.",
+          "label": "Lazy",
+          "value": "lazy"
+        },
+        {
+          "args": [
+            {
+              "name": "warm-weights",
+              "value": true
+            }
+          ],
+          "help": "Pass --warm-weights: touch resident weights at startup to reduce first-use stalls; startup takes longer.",
+          "label": "Warm at startup",
+          "value": "warm"
+        }
+      ],
+      "help": "Whether ds4 touches its resident weights at startup.",
+      "label": "Weight warm-up",
+      "name": "warm-weights"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "DeepSeek AI",
+      "Salvatore Sanfilippo (antirez)"
+    ],
+    "source_reference": "https://github.com/antirez/ds4/tree/0aaea5a238fb41a35106a551e73c8409dfb751ac"
+  },
+  "release": {
+    "released_at": "2026-09-29",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model",
+        "setting": null,
+        "value": "/models/DeepSeek-V4.1-Flash-Q2.gguf"
+      },
+      {
+        "name": "ssd-streaming",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "ctx",
+        "setting": "context_tokens",
+        "value": null
+      }
+    ],
+    "engine": "ds4",
+    "entrypoint": [
+      "/opt/vonk/bin/ds4-serve"
+    ],
+    "environment": [
+      {
+        "name": "DS4_LOG_LEVEL",
+        "value": "INFO"
+      },
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 32768
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 365713687612,
+            "image_bytes": 10000000000,
+            "safety_margin_bytes": 10000000000,
+            "working_bytes": 18000000000
+          },
+          "memory": {
+            "peak_bytes": 115000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "deepseek-v4-flash"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
