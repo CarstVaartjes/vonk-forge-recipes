@@ -1,0 +1,85 @@
+ARG BASE_IMAGE=vllm-dspark-runtime:mia-raf-pr1-nvfp4-b
+FROM ${BASE_IMAGE}
+
+# CONTRACT — the heredoc delimiters below are load-bearing OUTSIDE Docker.
+#
+# The sparkrun recipe cannot run `docker build`. It rebuilds this stage inside an
+# already-running container by sed-extracting the Python between the quoted-PY
+# heredoc marker on the next line and the lone PY terminator at the end of the
+# file, then piping that to the interpreter — see the `pre_exec` block in
+# sparkrun/deepseek-v4-flash-0731-dspark-nvfp4-1m-vllm.yaml. Consequences:
+#
+#   * keep exactly ONE such heredoc per stage file
+#   * keep the opening marker exactly as written below: quoted, no space
+#   * keep the terminator alone in column 1, no trailing whitespace
+#   * do not add a second heredoc, and do not switch to COPY-a-script
+#   * do not repeat either marker inside this comment — sed matches the FIRST
+#     occurrence, so the extraction would start here instead and hand shell
+#     text to python
+#
+# Changing any of that does not break `docker build`; it breaks sparkrun
+# silently, and it surfaces much later as a missing NVFP4 patch anchor. If the
+# mechanism has to change, change the sparkrun extractor in the same commit.
+RUN /opt/env/bin/python - <<'PY'
+from pathlib import Path
+
+root = Path("/opt/env/lib/python3.12/site-packages/vllm")
+
+def replace(path: str, old: str, new: str) -> None:
+    p = root / path
+    text = p.read_text()
+    if new in text:
+        return
+    if old not in text:
+        raise SystemExit(f"missing patch anchor in {p}: {old!r}")
+    p.write_text(text.replace(old, new, 1))
+
+replace(
+    "models/deepseek_v4/attention.py",
+    """        if (
+            cache_config is not None
+            and cache_config.cache_dtype in ("nvfp4", "nvfp4_ds_mla")
+        ):
+            # Probe layout from the GLM-5.2 NVFP4 sparse-MLA path.
+            head_bytes = 416
+""",
+    """        if (
+            cache_config is not None
+            and cache_config.cache_dtype in ("nvfp4", "nvfp4_ds_mla")
+        ):
+            # Stage C: keep DeepSeek V4's proven 584-byte cache envelope so
+            # hybrid MLA/SWA grouping can proceed while testing nvfp4_ds_mla.
+            head_bytes = 584
+""",
+)
+
+replace(
+    "models/deepseek_v4/nvidia/flashmla.py",
+    """        if cache_dtype_str == "nvfp4_ds_mla":
+            # Probe layout from GLM-5.2 NVFP4 sparse MLA. This is expected to
+            # expose whether DeepSeek V4 has compatible store/decode kernels.
+            return (num_blocks, block_size, 416)
+""",
+    """        if cache_dtype_str == "nvfp4_ds_mla":
+            # Stage C: DeepSeek V4 padded NVFP4 probe. Match the fp8_ds_mla
+            # envelope first; if this boots, kernel/store correctness is next.
+            return (num_blocks, block_size, 584)
+""",
+)
+
+replace(
+    "v1/kv_cache_interface.py",
+    """        if self.cache_dtype_str == "nvfp4_ds_mla":
+            return self.storage_block_size * 416
+        if self.cache_dtype_str == "fp8_ds_mla":
+""",
+    """        if self.cache_dtype_str == "nvfp4_ds_mla":
+            if self.model_version == "deepseek_v4":
+                return self.storage_block_size * 584
+            return self.storage_block_size * 416
+        if self.cache_dtype_str == "fp8_ds_mla":
+""",
+)
+
+print("Stage C DeepSeek V4 nvfp4_ds_mla padded page probe applied")
+PY

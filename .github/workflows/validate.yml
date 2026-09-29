@@ -16,6 +16,12 @@ on:
 permissions:
   contents: read
 
+# A new push to a pull request supersedes its previous run. Main pushes and
+# publication calls never cancel each other (each gets its own group).
+concurrency:
+  group: validate-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   validate:
     if: ${{ !inputs.producer_only }}
@@ -107,6 +113,16 @@ jobs:
             exit 1
           fi
 
+      - name: Check the README overview (advisory)
+        shell: bash
+        # Advisory only: other recipe PRs merging makes any open PR's README
+        # stale, so failing here would block every parallel PR. Recipe PRs
+        # regenerate it; the next one catches it up (eventually consistent).
+        run: |
+          if ! tools/build-readme-overview --check; then
+            echo "::warning title=README overview stale::Run tools/build-readme-overview and commit README.md"
+          fi
+
       - name: Reject a changed Spark count for an existing recipe
         shell: bash
         run: |
@@ -185,6 +201,9 @@ jobs:
     if: ${{ !inputs.producer_only }}
     name: Verify public contracts package
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: read
     timeout-minutes: 15
     steps:
       - name: Check out recipes
@@ -197,7 +216,25 @@ jobs:
           python-version: "3.14"
           enable-cache: false
 
+      - name: Detect contract or tooling changes
+        id: changes
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Recipe-only pull requests (recipes, models, adapters, README,
+          # creators) cannot change the public contracts package or our own
+          # linted code. Every other event always runs the full check.
+          if [[ "${{ github.event_name }}" != pull_request ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          other=$(gh api --paginate "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" \
+            --jq '.[].filename' | grep -Ev '^(recipes/|models/|adapters/|README\.md$|creators\.json$)' || true)
+          if [[ -n "$other" ]]; then echo "run=true"; else echo "run=false"; fi >> "$GITHUB_OUTPUT"
+
       - name: Test, lint, and build public contracts
+        if: steps.changes.outputs.run == 'true'
         shell: bash
         run: |
           set -euo pipefail

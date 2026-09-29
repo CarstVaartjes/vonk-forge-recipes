@@ -247,6 +247,8 @@ def _fork_signals(
 def _coverage_group(engine: str, interface: str, signals: list[str]) -> str:
     declared_fork = any(signal.startswith(("image:", "marker:")) for signal in signals)
     if engine == "sglang":
+        if any(signal.startswith("image:") for signal in signals):
+            return _SPECIALIZED
         return "sglang"
     if engine == "vllm":
         return _SPECIALIZED if declared_fork else "vllm"
