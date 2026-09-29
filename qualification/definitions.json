@@ -4875,6 +4875,23 @@
         ]
       }
     },
+    "vonk-forge/ornith-1-5-35b-a3b-nvfp4-w4a16-r0b0tlab-sglang-single": {
+      "alias": "Ornith-1.5-35B-A3B",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context, concurrency, and MTP acceptance canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/qwen3-8-flash-next-tensorfold-single": {
       "alias": "Qwen3.8-Flash-Next",
       "smoke_cases": [
