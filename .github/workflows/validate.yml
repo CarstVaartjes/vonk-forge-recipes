@@ -34,10 +34,10 @@ jobs:
       # and packages from this checkout before validating them.
       platform_ref: a2578cb10e60d002efcd1a2f45437c71e0b093ea
 
-  # Pull requests get these checks inside producer-contracts (one runner, not
-  # three); a skipped job still satisfies its required check.
+  # Pull requests and main pushes get these checks inside producer-contracts
+  # (one runner, not three); a skipped job still satisfies its required check.
   catalog-index:
-    if: ${{ !inputs.producer_only && github.event_name != 'pull_request' }}
+    if: ${{ !inputs.producer_only && github.event_name != 'pull_request' && github.event_name != 'push' }}
     name: Verify catalog index
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -92,6 +92,21 @@ jobs:
           python-version: "3.14"
           enable-cache: false
 
+      - name: Detect a recipe-only main push
+        id: scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The pull request already ran the full suite; a main push that only
+          # changes recipe data runs the fast checks below.
+          full=true
+          if [[ "${{ github.event_name }}" == push ]] && git rev-parse -q --verify HEAD^ >/dev/null; then
+            if ! git diff --name-only HEAD^ HEAD | grep -Evq '^(recipes/|models/|adapters/|qualification/|README\.md$|creators\.json$)'; then
+              full=false
+            fi
+          fi
+          echo "full=$full" >> "$GITHUB_OUTPUT"
+
       - name: Install producer contract dependencies
         shell: bash
         run: |
@@ -122,7 +137,6 @@ jobs:
           "$RECIPE_TEST_PYTHON" tools/generate-contract-schemas --check
 
       - name: Build the catalog index twice and require identical bytes
-        if: github.event_name == 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
@@ -162,30 +176,35 @@ jobs:
           python3 tools/check-build-context-sources
 
       - name: Run the full producer test suite
+        if: steps.scope.outputs.full == 'true'
         shell: bash
         run: |
           set -euo pipefail
           "$RECIPE_TEST_PYTHON" -m pytest -q
 
       - name: Lint the repository with pinned Ruff
+        if: steps.scope.outputs.full == 'true'
         shell: bash
         run: |
           set -euo pipefail
           UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-lint
 
       - name: Check formatting with pinned Ruff
+        if: steps.scope.outputs.full == 'true'
         shell: bash
         run: |
           set -euo pipefail
           UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-format
 
       - name: Type check the repository with pinned Pyright
+        if: steps.scope.outputs.full == 'true'
         shell: bash
         run: |
           set -euo pipefail
           UV_CACHE_DIR="$RUNNER_TEMP/uv-cache" scripts/check-python-types
 
       - name: Build and externally import the contracts wheel
+        if: steps.scope.outputs.full == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -217,7 +236,7 @@ jobs:
           )
 
   public-contracts:
-    if: ${{ !inputs.producer_only && github.event_name != 'pull_request' }}
+    if: ${{ !inputs.producer_only && github.event_name != 'pull_request' && github.event_name != 'push' }}
     name: Verify public contracts package
     runs-on: ubuntu-24.04
     permissions:
