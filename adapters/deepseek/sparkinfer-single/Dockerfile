@@ -1,8 +1,18 @@
 # syntax=docker/dockerfile:1.7
 FROM ghcr.io/0xsero/deepseek-v4-flash-0731-spark-sparkinfer@sha256:2e077489a83a0360952828051fe7f7a32c1801e5ce8436d85f7267583d614ff4
 
+# Upstream d370c0f0 installs XGrammar 0.2.3 (normalize_tool_choice, required by the
+# pinned vLLM tool parser) in its Dockerfile, but its published image digest is
+# unchanged, so the pinned wheel is installed here, hash-checked.
+RUN printf 'xgrammar==0.2.3 --hash=sha256:11255f184971489fc72b948b096e2917f482ba2dca975177f5411562cedb9c6d\n' > /tmp/xgrammar.txt \
+    && env -u PIP_CONSTRAINT /opt/runtime-venv/bin/python -m pip install \
+         --no-deps --only-binary :all: --require-hashes -r /tmp/xgrammar.txt \
+    && /opt/runtime-venv/bin/python -c \
+         'import importlib.metadata; from xgrammar import normalize_tool_choice; assert importlib.metadata.version("xgrammar") == "0.2.3"' \
+    && rm -f /tmp/xgrammar.txt
+
 LABEL org.opencontainers.image.source="https://github.com/0xSero/deepseek-v4-flash-0731-spark-sparkinfer" \
-      org.opencontainers.image.revision="590d2172394dd83c1f36ff29f0dc9ec6032ea9e2" \
+      org.opencontainers.image.revision="d370c0f0806a9ac994dc5f354715576cc23840b9" \
       org.opencontainers.image.licenses="Apache-2.0" \
       org.opencontainers.image.description="Offline Vonk adapter for the validated one-DGX-Spark SparkInfer profile"
 
