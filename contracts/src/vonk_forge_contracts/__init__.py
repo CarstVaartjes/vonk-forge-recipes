@@ -30,9 +30,9 @@ from .qualification_authority import (
     campaign_manifest_json_schema,
     recovery_coverage_id,
 )
-from .recipe import RecipeDefinition
+from .recipe import RecipeDefinition, RecipeOptionError
 
-CONTRACT_VERSION = "2.0.0"
+CONTRACT_VERSION = "2.1.0"
 __version__ = CONTRACT_VERSION
 CONTRACT_MAJOR = int(CONTRACT_VERSION.split(".", 1)[0])
 
@@ -48,6 +48,7 @@ __all__ = [
     "QualificationCampaignManifest",
     "RecipeAuthorityRow",
     "RecipeDefinition",
+    "RecipeOptionError",
     "RecoveryCoverage",
     "RecoveryCoverageDefinition",
     "RecoveryCoverageMember",

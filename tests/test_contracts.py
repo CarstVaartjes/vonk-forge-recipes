@@ -604,3 +604,98 @@ def test_model_license_rejects_invalid_territorial_restrictions(
     document["license"]["territorial_restrictions"] = restrictions
     with pytest.raises(ValidationError, match=message):
         ModelDefinition.model_validate(document)
+
+
+def _recipe_with_options() -> dict[str, Any]:
+    document = cast(Any, load("recipe-dual.json"))
+    document["options"] = [
+        {
+            "name": "verification",
+            "label": "Verification",
+            "help": "How many drafted tokens are verified per step.",
+            "choices": [
+                {
+                    "value": "standard",
+                    "label": "Standard",
+                    "help": "Verify every drafted token.",
+                    "default": True,
+                },
+                {
+                    "value": "adaptive",
+                    "label": "Adaptive",
+                    "help": "Verify a per-step prefix.",
+                    "args": [{"name": "speculative-length", "value": 4}],
+                    "env": {"ADAPTIVE": "1"},
+                },
+            ],
+        }
+    ]
+    return document
+
+
+def test_recipe_options_are_optional_and_older_readers_ignore_them() -> None:
+    document = _recipe_with_options()
+    recipe = RecipeDefinition.model_validate(document)
+    assert recipe.resolve_options() == {"verification": "standard"}
+    plain = cast(Any, load("recipe-dual.json"))
+    assert RecipeDefinition.model_validate(plain).options == []
+    assert read_recipe({**plain, "future_field": 1}).options == []
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda o: o["choices"][1].update(default=True),
+        lambda o: o["choices"][0].update(default=False),
+        lambda o: o["choices"][1].update(value="standard"),
+        lambda o: o["choices"][1]["args"][0].update(value=None, setting="missing"),
+        lambda o: o["choices"][1]["args"][0].update(name="bad name"),
+        lambda o: o["choices"][1]["env"].update({"BAD\x00": "1"}),
+        lambda o: o.update(choices=o["choices"][:1]),
+    ],
+)
+def test_recipe_option_definitions_are_validated(mutate: Any) -> None:
+    document = _recipe_with_options()
+    mutate(document["options"][0])
+    with pytest.raises(ValidationError):
+        RecipeDefinition.model_validate(document)
+
+
+def test_option_names_are_unique_and_do_not_share_runtime_changes() -> None:
+    document = _recipe_with_options()
+    duplicate = copy.deepcopy(document["options"][0])
+    document["options"].append(duplicate)
+    with pytest.raises(ValidationError):
+        RecipeDefinition.model_validate(document)
+    other = copy.deepcopy(_recipe_with_options()["options"][0])
+    other["name"] = "second"
+    document["options"] = [_recipe_with_options()["options"][0], other]
+    with pytest.raises(ValidationError):
+        RecipeDefinition.model_validate(document)
+
+
+def test_option_choices_replace_or_append_and_defaults_fill_in() -> None:
+    from vonk_forge_contracts import RecipeOptionError
+
+    document = _recipe_with_options()
+    base = RecipeDefinition.model_validate(document)
+    base_names = [a.name for a in base.runtime.arguments]
+    default = base.with_option_choices({})
+    assert default.runtime.arguments == base.runtime.arguments
+    chosen = base.with_option_choices({"verification": "adaptive"})
+    assert chosen.runtime.arguments[-1].name == "speculative-length"
+    assert [a.name for a in chosen.runtime.arguments][: len(base_names)] == base_names
+    assert ("ADAPTIVE", "1") in {(e.name, e.value) for e in chosen.runtime.environment}
+    # An argument the recipe already sets is replaced in place, not repeated.
+    document["options"][0]["choices"][1]["args"] = [
+        {"name": base_names[0], "value": "replacement"}
+    ]
+    replaced = RecipeDefinition.model_validate(document).with_option_choices(
+        {"verification": "adaptive"}
+    )
+    assert [a.name for a in replaced.runtime.arguments] == base_names
+    assert replaced.runtime.arguments[0].value == "replacement"
+    with pytest.raises(RecipeOptionError):
+        base.resolve_options({"verification": "nope"})
+    with pytest.raises(RecipeOptionError):
+        base.resolve_options({"unknown": "standard"})
