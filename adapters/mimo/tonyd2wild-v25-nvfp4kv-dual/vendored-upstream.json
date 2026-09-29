@@ -1,0 +1,18 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "upstream-env.sh": "recipe/env.sh",
+    "upstream-launch.sh": "recipe/launch.sh"
+  },
+  "renamed_dirs": {
+    "mods/": "recipe/mods/"
+  },
+  "source": {
+    "repo": "tonyd2wild/MiMo-V2.5-TP2-1M-NVFP4-KV-2xDGX-Spark",
+    "commit": "6dae0a60dd3f90580029c2dd981a0cd5de49fc4e"
+  }
+}
