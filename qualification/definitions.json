@@ -4679,6 +4679,23 @@
         ]
       }
     },
+    "vonk-forge/laguna-s-2-1-nvfp4-r0b0tlab-vllm-single": {
+      "alias": "poolside/Laguna-S-2.1-NVFP4",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded 8K, 32K, 128K and 256K prefill ladder plus DFlash acceptance canaries"
+        ],
+        "recovery": [
+          "Controller stop/start and warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/laguna-s-2-1-nvfp4-vllm-single": {
       "alias": "laguna-s-2-1",
       "smoke_cases": [
