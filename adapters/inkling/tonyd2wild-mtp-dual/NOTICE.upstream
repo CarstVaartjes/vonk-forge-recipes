@@ -1,0 +1,10 @@
+mods/inkling-sm12-paged-kv and mods/instanttensor-hybrid-draft-loader are byte-identical to
+https://github.com/eugr/spark-vllm-docker at commit 60dee5b47ab14201381d486c6e994b5cf0e648a1
+(MIT, see LICENSE.upstream). inkling-sm12-paged-kv bundles a vendored FA4 SM120 kernel package
+with its own LICENSE and AUTHORS files inside the mod directory.
+
+mods/inkling-agent-parser-fix is tonyd2wild's own mod, copied byte-identically from
+https://github.com/tonyd2wild/Inkling-Small-NVFP4-MTP-262K-2x-DGX-Spark at commit
+7913395c4f1bacfc8a97c90efe096a62f3010178. That repository states that no licence has been selected.
+
+The container image is eugr's published eugr/spark-vllm build (pinned by digest).
