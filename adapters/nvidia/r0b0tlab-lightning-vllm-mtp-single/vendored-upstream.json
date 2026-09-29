@@ -1,0 +1,12 @@
+{
+  "source": {
+    "repo": "r0b0tlab/nemotron-3.5-lightning-sm121-nvfp4",
+    "commit": "024bb77b60482ef833e85376260ccb5d4b767225"
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE"
+  }
+}

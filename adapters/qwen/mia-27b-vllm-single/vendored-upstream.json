@@ -1,0 +1,9 @@
+{
+  "source": {
+    "repo": "MiaAI-Lab/Qwen3.8-27B-DGX-Spark-RTX-6000",
+    "commit": "608a48de75ba059fc9415947ad636a123935da15"
+  },
+  "ours": [
+    "NOTICE.upstream"
+  ]
+}

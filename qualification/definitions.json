@@ -3943,6 +3943,22 @@
         ]
       }
     },
+    "vonk-forge/deepseek-v4-flash-jasl-tonyd2wild-vllm-dual": {
+      "alias": "deepseek-v4-flash",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and concurrency canaries at the 256K default context (10 sequences, memory utilization 0.825)"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
     "vonk-forge/deepseek-v4-flash-mtp-tonyd2wild-vllm-dual": {
       "alias": "deepseek-v4-flash",
       "smoke_cases": [
@@ -4005,6 +4021,23 @@
         ]
       }
     },
+    "vonk-forge/gemma-4-31b-it-nvidia-vllm-single": {
+      "alias": "gemma-4-31b-it",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/deepseek-v4-flash-dspark-r0b0tlab-vllm-025-dual": {
       "alias": "deepseek-v4-flash-dspark",
       "smoke_cases": [
@@ -4016,6 +4049,23 @@
       "higher_tiers": {
         "stress": [
           "Bounded long-context and 16-sequence concurrency canaries at the 200K profile"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
+    "vonk-forge/deepseek-v4-flash-fp8-r0b0tlab-vllm-dual": {
+      "alias": "deepseek-v4-flash",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and concurrency canaries at the latency profile"
         ],
         "recovery": [
           "Controller-only rank-loss and warm-cache recovery"
@@ -4070,6 +4120,23 @@
         ],
         "recovery": [
           "Controller-only rank-loss, warm-cache recovery, and image-input revalidation"
+        ]
+      }
+    },
+    "vonk-forge/deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual": {
+      "alias": "deepseek-v4-flash-vision-exp",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context, concurrency and image-input canaries at the 327,680 default context (32 running requests are capped by the KV pool)"
+        ],
+        "recovery": [
+          "Controller-only rank-loss, warm-cache recovery and image-input revalidation; the first start compiles kernels for 10 to 15 minutes"
         ]
       }
     },
@@ -4141,6 +4208,23 @@
         ]
       }
     },
+    "vonk-forge/step-3-7-flash-nvfp4-r0b0tlab-vllm-dual": {
+      "alias": "/models/Step-3.7-Flash-NVFP4",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded 32K-context and four-sequence concurrency canaries with image input"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
     "vonk-forge/step-3-7-flash-nvfp4-vllm-mia-dual": {
       "alias": "stepfun-ai/Step-3.7-Flash-NVFP4",
       "smoke_cases": [
@@ -4169,6 +4253,39 @@
       "higher_tiers": {
         "stress": [
           "Long-context and bounded concurrency canaries at 128K with six sequences; tool-call and English-only output checks against the model card's FP8 KV warning"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
+    "vonk-forge/inkling-small-nvfp4-mtp-tonyd2wild-vllm-dual": {
+      "alias": "inkling-small",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and concurrency canaries at the 262K default context (two sequences, memory utilization 0.8)"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
+    "vonk-forge/mimo-v2-5-omni-nvfp4-vllm-mia-dual": {
+      "alias": "MiMo-V2.5-NVFP4",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Long-context (up to 1M) and bounded concurrency canaries with three sequences; only about two full-1M requests fit the KV pool, and the first token after load is slow (eager mode, cold kernel compile)"
         ],
         "recovery": [
           "Controller-only rank-loss and warm-cache recovery"
@@ -4259,6 +4376,23 @@
         ]
       }
     },
+    "vonk-forge/mimo-v2-6-flash-rl-nvfp4-r0b0tlab-sglang-dual": {
+      "alias": "mimo26",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and eight-request concurrency canaries"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
     "vonk-forge/inkling-small-nvfp4-sglang-dual": {
       "alias": "inkling-small",
       "smoke_cases": [
@@ -4324,6 +4458,22 @@
         ],
         "recovery": [
           "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
+    "vonk-forge/qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-single": {
+      "alias": "qwen3.8-flash-next",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and concurrency canaries; first start reads the 47 GiB n-gram table from local NVMe"
+        ],
+        "recovery": [
+          "Controller-only warm-cache restart"
         ]
       }
     },
@@ -4417,7 +4567,35 @@
         ]
       }
     },
+    "vonk-forge/qwen3-6-27b-nvfp4-r0b0tlab-vllm-single": {
+      "alias": "nvidia/Qwen3.6-27B-NVFP4",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming and declared concurrency canaries"
+        ]
+      }
+    },
     "vonk-forge/qwen3-8-27b-vllm-single": {
+      "alias": "qwen3-8-27b",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming and declared concurrency canaries"
+        ]
+      }
+    },
+    "vonk-forge/qwen3-8-27b-nvfp4-vllm-mia-single": {
       "alias": "qwen3-8-27b",
       "smoke_cases": [
         "M0",
@@ -4498,6 +4676,20 @@
         ]
       }
     },
+    "vonk-forge/qwen3-6-35b-a3b-nvfp4-fast-r0b0tlab-vllm-single": {
+      "alias": "Qwen3.6-35B-A3B-NVFP4-Fast",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming and declared concurrency canaries"
+        ]
+      }
+    },
     "vonk-forge/qwen3-6-35b-a3b-nvfp4-redhat-r0b0tlab-sglang-single": {
       "alias": "redhat/qwen36-35b-a3b-nvfp4-mtp",
       "smoke_cases": [
@@ -4526,6 +4718,20 @@
         ]
       }
     },
+    "vonk-forge/qwen3-6-35b-a3b-unsloth-nvfp4-vllm-mia-single": {
+      "alias": "unsloth/Qwen3.6-35B-A3B-NVFP4",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming and declared concurrency canaries"
+        ]
+      }
+    },
     "vonk-forge/gemma-4-26b-a4b-vllm-single": {
       "alias": "gemma-4-26b-a4b-it",
       "smoke_cases": [
@@ -4536,6 +4742,19 @@
       "higher_tiers": {
         "stress": [
           "Optional bounded streaming and declared concurrency canaries"
+        ]
+      }
+    },
+    "vonk-forge/gemma-4-31b-it-nvfp4-vllm-mia-single": {
+      "alias": "nvidia/Gemma-4-31B-IT-NVFP4",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming, image-input and declared concurrency canaries; the first start compiles kernels and loads MTP"
         ]
       }
     },
@@ -4569,6 +4788,36 @@
         ]
       }
     },
+    "vonk-forge/nemotron-3-nano-30b-a3b-nvfp4-nvidia-sglang-single": {
+      "alias": "nemotron-3-nano",
+      "smoke_cases": [
+        "M0",
+        "A323"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
+    "vonk-forge/llama-3-1-8b-instruct-fp8-nvidia-trtllm-single": {
+      "alias": "llama-3.1-8b-instruct",
+      "smoke_cases": [
+        "M0",
+        "A323"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/nemotron-3-5-lightning-30b-a3b-sglang-dspark-mia-single": {
       "alias": "nemotron-3-5-lightning",
       "smoke_cases": [
@@ -4588,6 +4837,23 @@
     },
     "vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-single": {
       "alias": "nemotron-3-5-lightning",
+      "smoke_cases": [
+        "M0",
+        "NEM_A391_OFF",
+        "NEM_REASON",
+        "NEM_TOOL"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded concurrency, context, unified-memory floor, and explicit multimodal-rejection canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, alias stability, no redownload, and parser revalidation"
+        ]
+      }
+    },
+    "vonk-forge/nemotron-3-5-lightning-r0b0tlab-vllm-mtp-single": {
+      "alias": "nvidia/nemotron-3.5-lightning-30b-a3b",
       "smoke_cases": [
         "M0",
         "NEM_A391_OFF",
@@ -4722,7 +4988,40 @@
         ]
       }
     },
+    "vonk-forge/laguna-s-2-1-nvfp4-r0b0tlab-vllm-single": {
+      "alias": "poolside/Laguna-S-2.1-NVFP4",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded 8K, 32K, 128K and 256K prefill ladder plus DFlash acceptance canaries"
+        ],
+        "recovery": [
+          "Controller stop/start and warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/laguna-s-2-1-nvfp4-vllm-single": {
+      "alias": "laguna-s-2-1",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Capability-specific context, concurrency, streaming, and modality-boundary canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, bounded malformed-input recovery, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
+    "vonk-forge/laguna-s-2-1-nvfp4-dflash-vllm-mia-single": {
       "alias": "laguna-s-2-1",
       "smoke_cases": [
         "M0",
@@ -4902,6 +5201,23 @@
         ]
       }
     },
+    "vonk-forge/ornith-1-5-35b-a3b-nvfp4-vllm-b12x-mia-single": {
+      "alias": "ornith-1.5-35b-a3b-nvfp4",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context, concurrency, and MTP acceptance canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/ornith-1-5-35b-a3b-nvfp4-vllm-single": {
       "alias": "ornith-1-5-35b-a3b",
       "smoke_cases": [
@@ -4913,6 +5229,22 @@
       "higher_tiers": {
         "stress": [
           "Bounded context, concurrency, and MTP acceptance canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
+    "vonk-forge/nemotron-3-nano-30b-a3b-fp8-nvidia-vllm-single": {
+      "alias": "nemotron-3-nano",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
         ],
         "recovery": [
           "Controller stop/start, exact alias, and offline warm-cache restart"
@@ -4988,6 +5320,23 @@
         ]
       }
     },
+    "vonk-forge/gemma-4-e4b-it-nvidia-vllm-single": {
+      "alias": "gemma-4-e4b-it",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/qwen3-8-27b-ashhart-tensorfold-single": {
       "alias": "Qwen3.8-27B",
       "smoke_cases": [
@@ -5047,6 +5396,54 @@
       "higher_tiers": {
         "stress": [
           "Bounded multi-stream concurrency (--parallel) and long-context canaries, with the first-run kernel compile time recorded separately"
+        ],
+        "recovery": [
+          "Controller stop/start with warm kernel-cache restart"
+        ]
+      }
+    },
+    "vonk-forge/qwen3-8-flash-next-nvfp4-ashhart-tensorfold-single": {
+      "alias": "Qwen3.8-Flash-Next",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded concurrency, long-context and unified-memory canaries with the n-gram tables memory-mapped, and the first-run kernel compile time recorded separately"
+        ],
+        "recovery": [
+          "Controller stop/start with warm kernel-cache restart"
+        ]
+      }
+    },
+    "vonk-forge/qwen3-8-27b-nvfp4-ashhart-tensorfold-single": {
+      "alias": "Qwen3.8-27B",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded concurrency (shared rounds above 1) and long-context canaries, with the first-run kernel compile time recorded separately"
+        ],
+        "recovery": [
+          "Controller stop/start with warm kernel-cache restart"
+        ]
+      }
+    },
+    "vonk-forge/qwen3-8-flash-next-taussoe-tensorfold-single": {
+      "alias": "Qwen3.8-Flash-Next",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Long-context canaries and a replayed agent session (several parallel streams with agent-turn resume), with the first-run kernel compile time recorded separately"
         ],
         "recovery": [
           "Controller stop/start with warm kernel-cache restart"
