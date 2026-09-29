@@ -1,0 +1,209 @@
+{
+  "capabilities": [
+    "code-generation",
+    "reasoning",
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "license-bbedc3fda330-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "bbedc3fda3305820b977265f01b8619d87570a6739de3a5582c3464840f1e57a",
+      "size_bytes": 11544
+    },
+    {
+      "id": "readme-57e4bdb258ee-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "57e4bdb258ee1a7d2635c5174ebd4e56abe392505cdb5f8bbb356b0dc4293641",
+      "size_bytes": 65012
+    },
+    {
+      "id": "chat-template-c3cf9e34abf4-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+      "size_bytes": 8952
+    },
+    {
+      "id": "config-a77007bfbaf2-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a77007bfbaf21831e30aff88b06afad4600f6159e293c2c245c6239eecb2cad3",
+      "size_bytes": 4621
+    },
+    {
+      "id": "crc32-b42dd291f5f9-6aa5bad9ef",
+      "path": "crc32.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "b42dd291f5f98b05807e458f5b47849969a9b3326acbf0c97d28b05826740b83",
+      "size_bytes": 238
+    },
+    {
+      "id": "generation-config-e70c136c1b78-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e",
+      "size_bytes": 202
+    },
+    {
+      "id": "merges-a9d356d7bdf1-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+      "size_bytes": 3353259
+    },
+    {
+      "id": "model-00001-of-00002-f9f4afe5fc1a-27a6880801",
+      "path": "model-00001-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f9f4afe5fc1a2d67ca547c8dcde0f043eb226018257cdbde7c50a0956cddb822",
+      "size_bytes": 8575532487
+    },
+    {
+      "id": "model-00002-of-00002-d13331e7a531-2cca3b5a88",
+      "path": "model-00002-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d13331e7a531dc2a6e94df6470d5bffa07b13e15912466242b7283469cd58179",
+      "size_bytes": 5244406822
+    },
+    {
+      "id": "model-safetensors-index-3beac654b4db-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "3beac654b4db587f73f039ef2c5e83e07ab68d0967a114b4361a379aa475db40",
+      "size_bytes": 238664
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "quantization-config-de21d1c6ac25-6f24389fb3",
+      "path": "quantization_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "de21d1c6ac25e5e4b4ecf9d32decf1611dd633e2f727a189edc97fbd09ab41fc",
+      "size_bytes": 629045
+    },
+    {
+      "id": "tokenizer-0997f410c57a-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3",
+      "size_bytes": 12809320
+    },
+    {
+      "id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "b11349aafa7cdc6a320767cf7ceb29ed82f7eda5d65e8e0819e76f0ce947bf27",
+      "size_bytes": 17928
+    },
+    {
+      "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+      "path": "video_preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "size_bytes": 385
+    },
+    {
+      "id": "vocab-ce99b4cb2983-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+      "size_bytes": 6722759
+    }
+  ],
+  "format": {
+    "precision": "exl3-3-00bpw",
+    "quantization": "exl3"
+  },
+  "identity": {
+    "family": {
+      "publisher": "turboderp",
+      "slug": "qwen3-8-exl3",
+      "title": "turboderp Qwen3.8 EXL3 quants"
+    },
+    "model": {
+      "publisher": "turboderp",
+      "slug": "qwen3-8-27b-exl3-3-00bpw",
+      "title": "Qwen3.8 27B EXL3 3.00 bpw"
+    },
+    "publisher": "turboderp",
+    "slug": "qwen3-8-27b-exl3-3-00bpw-6fe61ad6",
+    "variant": "Qwen3.8 27B EXL3 3.00bpw 6fe61ad6",
+    "version": "Qwen3.8 27B EXL3 3.00bpw 6fe61ad6"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "turboderp"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/turboderp/Qwen3.8-27B-exl3/blob/6fe61ad620abfe97c5b49f9722c2bceeea4ccc28/LICENSE"
+  },
+  "metadata": {
+    "description": "Exact public turboderp EXL3 3.00 bits-per-weight pack (branch 3.00bpw) of Qwen3.8-27B, read by TensorFold's experimental CUDA EXL3 path.",
+    "tags": [
+      "turboderp",
+      "qwen3-8-exl3",
+      "multimodal",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/turboderp/Qwen3.8-27B-exl3",
+    "revision": "6fe61ad620abfe97c5b49f9722c2bceeea4ccc28"
+  }
+}
