@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+"""Launch SGLang for the r0b0tlab Qwen3.8 27B NVFP4 single-Spark profiles."""
+
+from __future__ import annotations
+
+import os
+import sys
+from pathlib import Path
+
+TARGET = Path("/models/target")
+arguments = sys.argv[1:]
+if "--model-path" not in arguments or str(TARGET) not in arguments:
+    raise SystemExit("the immutable /models/target checkpoint argument is required")
+for name in ("config.json", "model.safetensors.index.json", "hf_quant_config.json"):
+    if not (TARGET / name).is_file():
+        raise SystemExit(f"immutable model artifact is missing: {TARGET / name}")
+for flag in ("--speculative-draft-model-path",):
+    if flag in arguments:
+        index = arguments.index(flag)
+        if index + 1 >= len(arguments):
+            raise SystemExit(f"{flag} requires a value")
+        if not (Path(arguments[index + 1]) / "config.json").is_file():
+            raise SystemExit(f"immutable draft artifact is missing: {arguments[index + 1]}")
+os.execv(sys.executable, (sys.executable, "-m", "sglang.launch_server", *arguments))

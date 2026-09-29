@@ -385,6 +385,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | [qwen3-8-27b-ashhart-tensorfold-single](recipes/qwen3-8-27b-ashhart-tensorfold-single.json) | TensorFold | 1 | ashhart |
 | [qwen3-8-27b-fp8-vllm-single](recipes/qwen3-8-27b-fp8-vllm-single.json) | vLLM | 1 | Qwen |
 | [qwen3-8-27b-nvfp4-dspark-sglang-single](recipes/qwen3-8-27b-nvfp4-dspark-sglang-single.json) | SGLang | 1 | MiaAI-Lab |
+| [qwen3-8-27b-nvfp4-mtp-r0b0tlab-sglang-single](recipes/qwen3-8-27b-nvfp4-mtp-r0b0tlab-sglang-single.json) | SGLang | 1 | r0b0tlab |
 | [qwen3-8-27b-nvfp4-mtp-r0b0tlab-vllm-single](recipes/qwen3-8-27b-nvfp4-mtp-r0b0tlab-vllm-single.json) | vLLM | 1 | r0b0tlab |
 | [qwen3-8-27b-vllm-single](recipes/qwen3-8-27b-vllm-single.json) | vLLM | 1 | Qwen |
 | [qwen3-8-flash-next-nvfp4-r0b0tlab-sglang-single](recipes/qwen3-8-flash-next-nvfp4-r0b0tlab-sglang-single.json) | SGLang | 1 | r0b0tlab |
