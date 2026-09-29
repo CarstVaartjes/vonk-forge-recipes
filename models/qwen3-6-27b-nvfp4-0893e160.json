@@ -1,0 +1,207 @@
+{
+  "capabilities": [
+    "image-understanding"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-371a5c5980e3-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "371a5c5980e3b9b4df31035aab3e13dfe03b17e89bc4ab69055bd4039bf80f7d",
+      "size_bytes": 9313
+    },
+    {
+      "id": "chat-template-e84f32a23fdd-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e84f32a23fdda27689f868aa4a1a5621f41133e51a48d7f3efcbea2839574259",
+      "size_bytes": 7764
+    },
+    {
+      "id": "config-c04a19ba2937-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "c04a19ba293737ad7be4f6e96d6666cb7e479cbe19ecc0c289fad267135b0338",
+      "size_bytes": 88567
+    },
+    {
+      "id": "configuration-2d4464e2ead0-761e16ca02",
+      "path": "configuration.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0",
+      "size_bytes": 51
+    },
+    {
+      "id": "generation-config-e70c136c1b78-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e",
+      "size_bytes": 202
+    },
+    {
+      "id": "hf-quant-config-fd7200cd8bca-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "fd7200cd8bca2a8a5d777061521abf83e2deb97ab6bc2f04e7a0a3d3f8ecd5c1",
+      "size_bytes": 54902
+    },
+    {
+      "id": "model-00001-of-00003-b4a0d9a57ff1-5ad6951325",
+      "path": "model-00001-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b4a0d9a57ff1859dac1144b53ca285011db072737d8813fc16d8d1e07ecae17d",
+      "size_bytes": 9965652512
+    },
+    {
+      "id": "model-00002-of-00003-06da4242b0f4-b421ec05d0",
+      "path": "model-00002-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "06da4242b0f491118d19d4d4c7564307a7bd6059c6bed284e08c93f6fc5a556d",
+      "size_bytes": 9985757032
+    },
+    {
+      "id": "model-00003-of-00003-e90f5b2bb168-c5bdb3d6ec",
+      "path": "model-00003-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e90f5b2bb16814a0565de284ea179edec201edfb120d13f1debaab66f9e60845",
+      "size_bytes": 1970287640
+    },
+    {
+      "id": "model-safetensors-index-7aa103a2582b-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7aa103a2582b7d26631988de33dea19e8a308ee9c239e8e14feb374af30905e2",
+      "size_bytes": 214866
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "processor-config-d89ef49ce9cd-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d89ef49ce9cd37fbf510158e13c1ef063d9286411c1ec9049932dbe0487143b1",
+      "size_bytes": 1191
+    },
+    {
+      "id": "tokenizer-5f9e4d4901a9-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+      "size_bytes": 12807982
+    },
+    {
+      "id": "tokenizer-config-5186f0defcd7-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "5186f0defcd7f232382c7f0aebcd2252d073bb921ab240e407b7ae8745d2b29b",
+      "size_bytes": 16718
+    },
+    {
+      "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+      "path": "video_preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "size_bytes": 385
+    },
+    {
+      "id": "vocab-ce99b4cb2983-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+      "size_bytes": 6722759
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "nvidia-qwen",
+      "title": "NVIDIA Qwen"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "qwen3-6-27b-nvfp4",
+      "title": "NVIDIA Qwen3.6 27B NVFP4"
+    },
+    "publisher": "nvidia",
+    "slug": "qwen3-6-27b-nvfp4-0893e160",
+    "variant": "NVFP4 0893e160",
+    "version": "NVFP4 0893e160"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA",
+      "Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/nvidia/Qwen3.6-27B-NVFP4/blob/0893e1606ff3d5f97a441f405d5fc541a6bdf404/README.md"
+  },
+  "metadata": {
+    "description": "Exact NVIDIA Model Optimizer NVFP4 checkpoint for Qwen3.6 27B dense multimodal inference.",
+    "tags": [
+      "nvidia",
+      "nvidia-qwen",
+      "image",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/Qwen3.6-27B-NVFP4",
+    "revision": "0893e1606ff3d5f97a441f405d5fc541a6bdf404"
+  }
+}
