@@ -1,0 +1,116 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-0872790782ba-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "0872790782ba6233fa05028628dbed94d246043f363f627781e8bbae826c66b8",
+      "size_bytes": 29800
+    },
+    {
+      "id": "config-f393dd4bbdbb-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f393dd4bbdbb1de9bfade9de224493de4e728ba020f9078db8de93cc66a551b2",
+      "size_bytes": 2315
+    },
+    {
+      "id": "generation-config-8e58004dc0e2-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "8e58004dc0e2407b63410b190bb8470efbdcfeb71533f1770e09c20abe193a6f",
+      "size_bytes": 307
+    },
+    {
+      "id": "model-006c8713b29b-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "006c8713b29b046e296c0f0b7c524aa9264ae07ae8b0c3888b9bc062242297ff",
+      "size_bytes": 839427840
+    },
+    {
+      "id": "tokenizer-75a6583c1a41-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "75a6583c1a418e2bbd79c60d95d28e0f5bf549ad3f2990b5bdb5238c6c2bf70c",
+      "size_bytes": 32169440
+    },
+    {
+      "id": "tokenizer-config-089594a3924f-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "089594a3924fcfd4cb1c596a7906fbf476193519e5198f780912eed02b177e42",
+      "size_bytes": 822
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "google",
+      "slug": "gemma-4-26b-a4b-assistant",
+      "title": "Gemma 4 26B-A4B assistant"
+    },
+    "model": {
+      "publisher": "google",
+      "slug": "gemma-4-26b-a4b-it-assistant",
+      "title": "Gemma 4 26B-A4B IT assistant"
+    },
+    "publisher": "google",
+    "slug": "gemma-4-26b-a4b-it-assistant-6e5aaaf4",
+    "variant": "26B-A4B IT assistant 6e5aaaf4",
+    "version": "26B-A4B IT assistant 6e5aaaf4"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Google DeepMind"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://ai.google.dev/gemma/docs/gemma_4_license"
+  },
+  "metadata": {
+    "description": "Google's Multi-Token Prediction assistant (draft) model for Gemma 4 26B-A4B IT at an exact Hugging Face revision.",
+    "tags": [
+      "google",
+      "gemma-4-26b-a4b-assistant",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/google/gemma-4-26B-A4B-it-assistant",
+    "revision": "6e5aaaf4c42b98394530b8fda2e95cadd65c151c"
+  }
+}
