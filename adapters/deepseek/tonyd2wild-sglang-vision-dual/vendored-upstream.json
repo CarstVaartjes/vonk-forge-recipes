@@ -1,0 +1,15 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "sglang-serve",
+    "verify-runtime.py"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE",
+    "upstream-sglang-ds4v-tp2.sh": "launch/sglang-ds4v-tp2.sh"
+  },
+  "source": {
+    "repo": "tonyd2wild/DeepSeek-V4-Flash-Vision-SGLang-DGX-Spark",
+    "commit": "b42871622be907defdbb01faecbbe382fe9a8855"
+  }
+}

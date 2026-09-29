@@ -1,0 +1,1094 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "ad5cc20ca16f30ac6d4364cbc2ab00785b1575d31b90488d026d4245eead19a3",
+        "repository": "ghcr.io/drowzeys/vllm-dsv41-overlay5-e47aa"
+      },
+      "context": {
+        "path": "adapters/deepseek/drowzeys-tr3-hybrid-four"
+      },
+      "dockerfile": "adapters/deepseek/drowzeys-tr3-hybrid-four/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-1-flash-tr3-hybrid-drowzeys-vllm-four"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "deepseek-v4.1-flash"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "drowzeys' four-Spark serve of DeepSeek V4.1 Flash (763B MoE) as the TR3-Hybrid quant (EXL3-TR3 K=3 tail experts plus 64 native MXFP4 keep experts per layer, about 3.22 bpw MoE mix, 410 GB checkpoint incl. 203 GB Engram): vLLM dsv41-feat e47aa780b with DSpark k=5 speculative decoding, the TR3/B12X plugin, CUDA graphs (FULL_AND_PIECEWISE), native vision (4 images per prompt), tool calling and the deepseek_v41 reasoning parser, TP4, 1,048,576-token context, 8 sequences, 2048 batched tokens, GPU memory 0.81, thinking off by default. Upstream reports (not measured here): about 8.7M-token KV pool at 0.81 (9,452,923 measured at 0.83, selectable as an option), 1M needle-in-haystack pass, C1 up to 44.6 tok/s and C8 aggregate up to 171 tok/s, KL 0.032 nats vs native over 66.6K positions. Licences: MIT (DeepSeek weights and the drowzeys checkpoint and recipe). Not gated. Upstream also documents an abliterated overlay (drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed, a gated Hugging Face repository that cannot be pinned without access) applied to the checkpoint by a separate graft step before serving; it is not part of this recipe. Needs four Sparks on the 200G RoCE fabric; 440 GB of model files per node.",
+    "tags": [
+      "candidate",
+      "deepseek",
+      "distributed",
+      "dspark",
+      "engram",
+      "executable",
+      "exl3",
+      "moe",
+      "mxfp4",
+      "reasoning",
+      "spark",
+      "tool-use",
+      "tp4",
+      "vision",
+      "vllm"
+    ],
+    "title": "DeepSeek V4.1 Flash TR3-Hybrid vLLM four Sparks (drowzeys)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-da24bd0f628b-618cd5b83d",
+          "id": "primary-metadata-da24bd0f628b-618cd5b83d",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "deepseek-v41-tech-report-ba68e2e40408-37281b8667",
+          "id": "primary-deepseek-v41-tech-report-ba68e2e40408-37281b8667",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "license-f2c6c6028156-c693279643",
+          "id": "primary-license-f2c6c6028156-c693279643",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-7c5a7183a12e-b335630551",
+          "id": "primary-readme-7c5a7183a12e-b335630551",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "config-563ab9754c48-587cb980af",
+          "id": "primary-config-563ab9754c48-587cb980af",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00048-886aebdafa08-7503e94149",
+          "id": "primary-model-00001-of-00048-886aebdafa08-7503e94149",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00048-4320066fc695-3129ab801a",
+          "id": "primary-model-00002-of-00048-4320066fc695-3129ab801a",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00048-d179f3eb392b-9dce6062d8",
+          "id": "primary-model-00003-of-00048-d179f3eb392b-9dce6062d8",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00048-88f35a6f5858-de51bb7f11",
+          "id": "primary-model-00004-of-00048-88f35a6f5858-de51bb7f11",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00048-1456d071c531-f4aed197f1",
+          "id": "primary-model-00005-of-00048-1456d071c531-f4aed197f1",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00048-e9e72d363399-4aa3071889",
+          "id": "primary-model-00006-of-00048-e9e72d363399-4aa3071889",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00048-c85e67bb183e-b313c363ec",
+          "id": "primary-model-00007-of-00048-c85e67bb183e-b313c363ec",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00048-bfa2e1529aac-b1e9247c4c",
+          "id": "primary-model-00008-of-00048-bfa2e1529aac-b1e9247c4c",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00048-b429b0ae573c-9778952f4f",
+          "id": "primary-model-00009-of-00048-b429b0ae573c-9778952f4f",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00048-4fd3887f2e82-afedcb2470",
+          "id": "primary-model-00010-of-00048-4fd3887f2e82-afedcb2470",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00048-9152075d0e9d-402f6b34e5",
+          "id": "primary-model-00011-of-00048-9152075d0e9d-402f6b34e5",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00048-0b529b891e61-816565fe3c",
+          "id": "primary-model-00012-of-00048-0b529b891e61-816565fe3c",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00048-eb3e1902150a-c418f94e02",
+          "id": "primary-model-00013-of-00048-eb3e1902150a-c418f94e02",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00048-0e0895eabcac-06c36c01d2",
+          "id": "primary-model-00014-of-00048-0e0895eabcac-06c36c01d2",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00048-e39ed0fb5d84-6db0eca0da",
+          "id": "primary-model-00015-of-00048-e39ed0fb5d84-6db0eca0da",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00048-242fc818c87c-6f452915bf",
+          "id": "primary-model-00016-of-00048-242fc818c87c-6f452915bf",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00048-ae38d0f2bea8-919276ec38",
+          "id": "primary-model-00017-of-00048-ae38d0f2bea8-919276ec38",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00018-of-00048-b241e826a7c6-77ad887f88",
+          "id": "primary-model-00018-of-00048-b241e826a7c6-77ad887f88",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00019-of-00048-2632361bdf8b-791959afb0",
+          "id": "primary-model-00019-of-00048-2632361bdf8b-791959afb0",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00020-of-00048-8b6a2607faaf-448bd8d570",
+          "id": "primary-model-00020-of-00048-8b6a2607faaf-448bd8d570",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00021-of-00048-fb06dcd28d98-7092987a96",
+          "id": "primary-model-00021-of-00048-fb06dcd28d98-7092987a96",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00022-of-00048-0976813ac9cb-3ec9491126",
+          "id": "primary-model-00022-of-00048-0976813ac9cb-3ec9491126",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00023-of-00048-d346f5e158fe-3d230147a1",
+          "id": "primary-model-00023-of-00048-d346f5e158fe-3d230147a1",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00024-of-00048-5177f0146985-5cd6f2c0a1",
+          "id": "primary-model-00024-of-00048-5177f0146985-5cd6f2c0a1",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00025-of-00048-30eac9bb7536-f5a206308a",
+          "id": "primary-model-00025-of-00048-30eac9bb7536-f5a206308a",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00026-of-00048-87d27c25bd42-1eae34d6f4",
+          "id": "primary-model-00026-of-00048-87d27c25bd42-1eae34d6f4",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00027-of-00048-c30294d3deb9-c320f0d9b9",
+          "id": "primary-model-00027-of-00048-c30294d3deb9-c320f0d9b9",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00028-of-00048-645bc7aa4817-8e5061611f",
+          "id": "primary-model-00028-of-00048-645bc7aa4817-8e5061611f",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00029-of-00048-548b87e2fa37-e9124db7b0",
+          "id": "primary-model-00029-of-00048-548b87e2fa37-e9124db7b0",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00030-of-00048-aac0de889fe9-e5e9dcc777",
+          "id": "primary-model-00030-of-00048-aac0de889fe9-e5e9dcc777",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00031-of-00048-ac20c3ccbf51-5e29ac41c6",
+          "id": "primary-model-00031-of-00048-ac20c3ccbf51-5e29ac41c6",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00032-of-00048-c7ee55142708-08ffad6e53",
+          "id": "primary-model-00032-of-00048-c7ee55142708-08ffad6e53",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00033-of-00048-cd1bc2563a65-cf17d9fd38",
+          "id": "primary-model-00033-of-00048-cd1bc2563a65-cf17d9fd38",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00034-of-00048-8d7d053a0c15-37b7920bb2",
+          "id": "primary-model-00034-of-00048-8d7d053a0c15-37b7920bb2",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00035-of-00048-4ec85ee64e5d-c4628b9b35",
+          "id": "primary-model-00035-of-00048-4ec85ee64e5d-c4628b9b35",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00036-of-00048-2901ce628160-00f0b500e5",
+          "id": "primary-model-00036-of-00048-2901ce628160-00f0b500e5",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00037-of-00048-cc013c5c833c-3a963e436b",
+          "id": "primary-model-00037-of-00048-cc013c5c833c-3a963e436b",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00038-of-00048-d87217bb8354-d9b93682b0",
+          "id": "primary-model-00038-of-00048-d87217bb8354-d9b93682b0",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00039-of-00048-f29fe83a80b1-ce14a411ca",
+          "id": "primary-model-00039-of-00048-f29fe83a80b1-ce14a411ca",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00040-of-00048-b6580e2c6ab6-c54b06dae5",
+          "id": "primary-model-00040-of-00048-b6580e2c6ab6-c54b06dae5",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00041-of-00048-c0ad0865111a-430b34d049",
+          "id": "primary-model-00041-of-00048-c0ad0865111a-430b34d049",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00042-of-00048-af3fd1851f0c-bb5eb54519",
+          "id": "primary-model-00042-of-00048-af3fd1851f0c-bb5eb54519",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00043-of-00048-d762b688f138-1d4f26e371",
+          "id": "primary-model-00043-of-00048-d762b688f138-1d4f26e371",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00044-of-00048-9a6b39fb88a2-7d0adfa649",
+          "id": "primary-model-00044-of-00048-9a6b39fb88a2-7d0adfa649",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00045-of-00048-0cc9d5f6ca3a-b3fd5b3f76",
+          "id": "primary-model-00045-of-00048-0cc9d5f6ca3a-b3fd5b3f76",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00046-of-00048-e625902027b9-12e46b941b",
+          "id": "primary-model-00046-of-00048-e625902027b9-12e46b941b",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00047-of-00048-824db4881320-a8608c02bd",
+          "id": "primary-model-00047-of-00048-824db4881320-a8608c02bd",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00048-of-00048-976330f49543-aff6c0ae41",
+          "id": "primary-model-00048-of-00048-976330f49543-aff6c0ae41",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-e4d3494a2ccb-0a05be8238",
+          "id": "primary-model-safetensors-index-e4d3494a2ccb-0a05be8238",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tier-bitmap-7f01a82f3bec-42ea3d577a",
+          "id": "primary-tier-bitmap-7f01a82f3bec-42ea3d577a",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-c90dfa01249d-224931eb13",
+          "id": "primary-tokenizer-c90dfa01249d-224931eb13",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-6ac8c8dc065e-94d5c6ba8f",
+          "id": "primary-tokenizer-config-6ac8c8dc065e-94d5c6ba8f",
+          "mount": {
+            "target": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "e01e25a1a1a8d421f167b4256eb2fe08c820ae9db57c00c44371396ad43c6d66",
+        "kind": "model",
+        "publisher": "drowzeys",
+        "slug": "deepseek-v4-1-flash-tr3-hybrid-74aa7dfe"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default and published configuration.",
+          "label": "0.81 (deployed)",
+          "value": "gmu-081"
+        },
+        {
+          "args": [
+            {
+              "name": "gpu-memory-utilization",
+              "value": "0.83"
+            }
+          ],
+          "help": "Upstream: 9,452,923-token pool, about 2 GiB per rank less prefill headroom.",
+          "label": "0.83 (max pool)",
+          "value": "gmu-083"
+        }
+      ],
+      "help": "GPU memory fraction. Upstream deploys 0.81, about 8.7M KV tokens with roughly 2 GiB per rank of prefill headroom; 0.83 is the measured maximum pool (9.45M tokens) with tighter prefill headroom.",
+      "label": "KV pool size",
+      "name": "kv-pool"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "drowzeys (Keys)",
+      "DeepSeek-AI",
+      "Turboderp (ExLlamaV3 EXL3 format)",
+      "tonyd2wild (DeepSeek V4.1 vLLM Spark recipe, disk-backed Engram)",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://github.com/drowzeys/keys-DeepSeekV4.1-Flash-TR3-Hybrid-1M-Context-8M-KV-Four-DGX-Sparks-with-abliterated-option/tree/4b69803bf6eca380a775e40b322ac2542dae3a59"
+  },
+  "release": {
+    "released_at": "2026-09-14",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "deepseek-v4.1-flash"
+      },
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 4
+      },
+      {
+        "name": "distributed-executor-backend",
+        "setting": null,
+        "value": "mp"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.81"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 2048
+      },
+      {
+        "name": "block-size",
+        "setting": null,
+        "value": 128
+      },
+      {
+        "name": "engram-config",
+        "setting": null,
+        "value": "{\"cpu_offload\":false}"
+      },
+      {
+        "name": "default-chat-template-kwargs",
+        "setting": null,
+        "value": "{\"thinking\":false}"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "deepseek_v41"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "deepseek_v41"
+      },
+      {
+        "name": "limit-mm-per-prompt",
+        "setting": null,
+        "value": "{\"image\":4}"
+      },
+      {
+        "name": "mm-processor-cache-gb",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"dspark\",\"num_speculative_tokens\":5,\"draft_sample_method\":\"probabilistic\",\"rejection_sample_method\":\"block\",\"enable_adaptive_verification\":false}"
+      },
+      {
+        "name": "compilation-config",
+        "setting": null,
+        "value": "{\"cudagraph_mode\":\"FULL_AND_PIECEWISE\",\"cudagraph_capture_sizes\":[5,6,10,12,15,18,20,24,25,30,35,36,40,42,48]}"
+      },
+      {
+        "name": "kernel-config",
+        "setting": null,
+        "value": "{\"enable_flashinfer_autotune\": false}"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_ENGINE_READY_TIMEOUT_S",
+        "value": "3600"
+      },
+      {
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "value": "expandable_segments:True"
+      },
+      {
+        "name": "VLLM_USE_RUST_FRONTEND",
+        "value": "0"
+      },
+      {
+        "name": "VLLM_HAS_FLASHINFER_CUBIN",
+        "value": "1"
+      },
+      {
+        "name": "DSV41_ENGRAM_DISK",
+        "value": "1"
+      },
+      {
+        "name": "DSV41_ENGRAM_DISK_THREADS",
+        "value": "32"
+      },
+      {
+        "name": "DSV41_ENGRAM_DISK_CHUNK",
+        "value": "16"
+      },
+      {
+        "name": "DSV41_ENGRAM_DIR",
+        "value": "/opt/engram-empty"
+      },
+      {
+        "name": "CUDA_EXL3_MODEL_PATH",
+        "value": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+      },
+      {
+        "name": "TORCH_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "FLASHINFER_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "FLASHINFER_DISABLE_VERSION_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "MAX_JOBS",
+        "value": "2"
+      },
+      {
+        "name": "FLASHINFER_NVCC_THREADS",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_USE_FLASHINFER_SAMPLER",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_NET",
+        "value": "IB"
+      },
+      {
+        "name": "NCCL_IB_DISABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IB_ROCE_VERSION_NUM",
+        "value": "2"
+      },
+      {
+        "name": "NCCL_IB_ADDR_FAMILY",
+        "value": "AF_INET"
+      },
+      {
+        "name": "NCCL_NVLS_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CROSS_NIC",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IB_MERGE_NICS",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CUMEM_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IGNORE_CPU_AFFINITY",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_DEBUG",
+        "value": "INFO"
+      },
+      {
+        "name": "TORCH_NCCL_ASYNC_ERROR_HANDLING",
+        "value": "1"
+      },
+      {
+        "name": "TR3_HYBRID",
+        "value": "1"
+      },
+      {
+        "name": "TR3_MODEL_DIR",
+        "value": "/models/DeepSeek-V4.1-Flash-TR3-Hybrid"
+      },
+      {
+        "name": "TR3_DEBUG",
+        "value": "0"
+      },
+      {
+        "name": "TR3_NO_DECODE_PLAN",
+        "value": "0"
+      },
+      {
+        "name": "TR3_PREWARM",
+        "value": "1"
+      },
+      {
+        "name": "TR3_SKIP_IN_CAPTURE",
+        "value": "0"
+      },
+      {
+        "name": "TR3_FAST_MATH",
+        "value": "1"
+      },
+      {
+        "name": "TR3_DECODE_BLOCK_M",
+        "value": "8"
+      },
+      {
+        "name": "TR3_PREFILL_BLOCK_M",
+        "value": "64"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 8
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 1048576
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "four",
+    "node_count": 4,
+    "parallelism": {
+      "backend": "mp",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 4
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 440116635994,
+            "image_bytes": 25000000000,
+            "safety_margin_bytes": 30000000000,
+            "working_bytes": 70000000000
+          },
+          "memory": {
+            "peak_bytes": 112000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      },
+      {
+        "count": 3,
+        "endpoint_owner": false,
+        "name": "worker",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 440116635994,
+            "image_bytes": 25000000000,
+            "safety_margin_bytes": 30000000000,
+            "working_bytes": 70000000000
+          },
+          "memory": {
+            "peak_bytes": 112000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "worker",
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "deepseek-v4.1-flash"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

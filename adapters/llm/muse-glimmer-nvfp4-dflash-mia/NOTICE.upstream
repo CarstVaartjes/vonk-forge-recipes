@@ -1,0 +1,5 @@
+start.sh (the launch profile: served name, DFlash speculative config, FP8 KV, parsers,
+flag choices) is from https://github.com/MiaAI-Lab/Muse-Glimmer-30B-DGX-Spark-RTX-5090-6000-PRO
+at commit 1b71dc011010a3e2c373eafd8a41f12c7c7913fc (MIT, see LICENSE.upstream). It is shipped for reference only and is not
+executed: upstream's script installs a vLLM fork branch at run time, while this recipe runs the
+official vLLM 0.30.0 ARM64 image, which already contains Muse Glimmer and DFlash support.

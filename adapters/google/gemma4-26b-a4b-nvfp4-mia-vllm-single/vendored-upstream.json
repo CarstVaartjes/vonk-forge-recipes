@@ -1,0 +1,12 @@
+{
+  "ours": [
+    "NOTICE",
+    "verify-runtime.py",
+    "vllm-wrapper.sh"
+  ],
+  "renamed": {},
+  "source": {
+    "commit": "39e94192bd6f114a222d434cf2bf4dcf173248a5",
+    "repo": "MiaAI-Lab/Gemma-4-26B-A4B-DGX-Spark-18-concurrencies"
+  }
+}
