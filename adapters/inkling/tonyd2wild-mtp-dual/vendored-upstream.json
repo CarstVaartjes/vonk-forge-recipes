@@ -1,0 +1,14 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "mods/inkling-agent-parser-fix/",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE"
+  },
+  "source": {
+    "repo": "eugr/spark-vllm-docker",
+    "commit": "60dee5b47ab14201381d486c6e994b5cf0e648a1"
+  }
+}

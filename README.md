@@ -10,47 +10,49 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-We cover DeepSeek V4 Flash, FLUX.2, Gemma, GLM, Hunyuan3D, HunyuanOCR, HunyuanVideo, HunyuanVideo Foley, Hy3, Hy3 kodelow, Inkling, Laguna, Leanstral, LFM2.5, Ling, LTX, MiMo, MiniMax H3, MOSS-VL, MOVA, Muse Glimmer, Nemotron, Ornith, Pixal3D, Qwen (text and vision), Qwen Image, SkinTokens, Step 3.7 Flash, Step1X-3D, TRELLIS, TripoSG, UI-Mate, Wan. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+We cover DeepSeek V4 Flash, FLUX.2, Gemma, GLM, Hunyuan3D, HunyuanOCR, HunyuanVideo, HunyuanVideo Foley, Hy3, Hy3 kodelow, Inkling, Laguna, Leanstral, LFM2.5, Ling, LTX, Meta Llama, MiMo, MiniMax H3, MiniMax M2, MOSS-VL, MOVA, Muse Glimmer, Nemotron, Ornith, Pixal3D, Qwen (text and vision), Qwen Image, SkinTokens, Step 3.7 Flash, Step1X-3D, TRELLIS, TripoSG, UI-Mate, Wan. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
 Which engines each model family runs on.
 
-| Model family | vLLM | SGLang | TensorRT-LLM | llama.cpp | TensorFold | ds4 | diffusers | ComfyUI | pytorch-pipeline |
-| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| DeepSeek V4 Flash | ✓ | ✓ |  |  |  | ✓ |  |  |  |
-| FLUX.2 |  |  |  |  |  |  |  | ✓ |  |
-| Gemma | ✓ |  |  |  |  |  |  |  |  |
-| GLM | ✓ |  |  |  |  |  |  |  |  |
-| Hunyuan3D |  |  |  |  |  |  |  |  | ✓ |
-| HunyuanOCR |  |  |  |  |  |  |  |  | ✓ |
-| HunyuanVideo |  |  |  |  |  |  | ✓ |  |  |
-| HunyuanVideo Foley |  |  |  |  |  |  |  |  | ✓ |
-| Hy3 | ✓ |  |  |  |  |  |  |  |  |
-| Hy3 kodelow | ✓ |  |  |  |  |  |  |  |  |
-| Inkling |  | ✓ |  |  |  |  |  |  |  |
-| Laguna | ✓ |  |  |  |  |  |  |  |  |
-| Leanstral | ✓ |  |  |  |  |  |  |  |  |
-| LFM2.5 | ✓ |  |  |  |  |  |  |  |  |
-| Ling |  | ✓ |  |  |  |  |  |  |  |
-| LTX |  |  |  |  |  |  | ✓ |  | ✓ |
-| MiMo | ✓ | ✓ |  |  |  |  |  |  |  |
-| MiniMax H3 | ✓ |  |  |  |  |  | ✓ |  |  |
-| MOSS-VL |  |  |  |  |  |  |  |  | ✓ |
-| MOVA |  |  |  |  |  |  |  |  | ✓ |
-| Muse Glimmer | ✓ |  |  |  |  |  |  |  |  |
-| Nemotron | ✓ | ✓ |  |  |  |  |  |  |  |
-| Ornith | ✓ |  |  |  |  |  |  |  |  |
-| Pixal3D |  |  |  |  |  |  |  |  | ✓ |
-| Qwen (text and vision) | ✓ | ✓ |  |  | ✓ |  |  |  |  |
-| Qwen Image |  |  |  |  |  |  | ✓ | ✓ |  |
-| SkinTokens |  |  |  |  |  |  |  |  | ✓ |
-| Step 3.7 Flash | ✓ |  |  |  |  |  |  |  |  |
-| Step1X-3D |  |  |  |  |  |  |  |  | ✓ |
-| TRELLIS |  |  |  |  |  |  |  |  | ✓ |
-| TripoSG |  |  |  |  |  |  |  |  | ✓ |
-| UI-Mate | ✓ |  |  |  |  |  |  |  |  |
-| Wan |  |  |  |  |  |  |  | ✓ | ✓ |
+| Model family | vLLM | SGLang | TensorRT-LLM | llama.cpp | TensorFold | ds4 | diffusers | ComfyUI | pytorch-pipeline | llama-cpp |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| DeepSeek V4 Flash | ✓ | ✓ |  |  |  | ✓ |  |  |  |  |
+| FLUX.2 |  |  |  |  |  |  |  | ✓ |  |  |
+| Gemma | ✓ |  |  |  |  |  |  |  |  |  |
+| GLM | ✓ |  |  |  |  |  |  |  |  |  |
+| Hunyuan3D |  |  |  |  |  |  |  |  | ✓ |  |
+| HunyuanOCR |  |  |  |  |  |  |  |  | ✓ |  |
+| HunyuanVideo |  |  |  |  |  |  | ✓ |  |  |  |
+| HunyuanVideo Foley |  |  |  |  |  |  |  |  | ✓ |  |
+| Hy3 | ✓ |  |  |  |  |  |  |  |  |  |
+| Hy3 kodelow | ✓ |  |  |  |  |  |  |  |  |  |
+| Inkling | ✓ | ✓ |  |  |  |  |  |  |  |  |
+| Laguna | ✓ |  |  |  |  |  |  |  |  |  |
+| Leanstral | ✓ |  |  |  |  |  |  |  |  |  |
+| LFM2.5 | ✓ |  |  |  |  |  |  |  |  |  |
+| Ling |  | ✓ |  |  |  |  |  |  |  |  |
+| LTX |  |  |  |  |  |  | ✓ |  | ✓ |  |
+| Meta Llama |  |  | ✓ |  |  |  |  |  |  |  |
+| MiMo | ✓ | ✓ |  |  |  |  |  |  |  |  |
+| MiniMax H3 |  |  |  |  |  |  | ✓ |  |  |  |
+| MiniMax M2 | ✓ |  |  |  |  |  |  |  |  |  |
+| MOSS-VL |  |  |  |  |  |  |  |  | ✓ |  |
+| MOVA |  |  |  |  |  |  |  |  | ✓ |  |
+| Muse Glimmer | ✓ |  |  |  |  |  |  |  |  |  |
+| Nemotron | ✓ | ✓ |  |  |  |  |  |  |  |  |
+| Ornith | ✓ |  |  |  |  |  |  |  |  |  |
+| Pixal3D |  |  |  |  |  |  |  |  | ✓ |  |
+| Qwen (text and vision) | ✓ | ✓ |  |  | ✓ |  |  |  |  | ✓ |
+| Qwen Image |  |  |  |  |  |  | ✓ | ✓ |  |  |
+| SkinTokens |  |  |  |  |  |  |  |  | ✓ |  |
+| Step 3.7 Flash | ✓ |  |  |  |  |  |  |  |  |  |
+| Step1X-3D |  |  |  |  |  |  |  |  | ✓ |  |
+| TRELLIS |  |  |  |  |  |  |  |  | ✓ |  |
+| TripoSG |  |  |  |  |  |  |  |  | ✓ |  |
+| UI-Mate | ✓ |  |  |  |  |  |  |  |  |  |
+| Wan |  |  |  |  |  |  |  | ✓ | ✓ |  |
 
 ### Spark variants
 
@@ -58,7 +60,7 @@ Which Spark counts each model family runs on.
 
 | Model family | 1 Spark | 2 Sparks | 3 Sparks | 4 Sparks | 8 Sparks |
 | --- | :---: | :---: | :---: | :---: | :---: |
-| DeepSeek V4 Flash | ✓ | ✓ | ✓ |  |  |
+| DeepSeek V4 Flash | ✓ | ✓ | ✓ | ✓ |  |
 | FLUX.2 | ✓ |  |  |  |  |
 | Gemma | ✓ |  |  |  |  |
 | GLM | ✓ | ✓ | ✓ | ✓ |  |
@@ -74,15 +76,17 @@ Which Spark counts each model family runs on.
 | LFM2.5 | ✓ |  |  |  |  |
 | Ling | ✓ |  |  |  |  |
 | LTX | ✓ |  |  |  |  |
-| MiMo |  | ✓ |  |  |  |
-| MiniMax H3 | ✓ | ✓ |  |  |  |
+| Meta Llama | ✓ |  |  |  |  |
+| MiMo |  | ✓ | ✓ |  |  |
+| MiniMax H3 | ✓ |  |  |  |  |
+| MiniMax M2 |  | ✓ |  |  |  |
 | MOSS-VL | ✓ |  |  |  |  |
 | MOVA | ✓ |  |  |  |  |
 | Muse Glimmer | ✓ |  |  |  |  |
 | Nemotron | ✓ |  |  |  |  |
 | Ornith | ✓ |  |  |  |  |
 | Pixal3D | ✓ |  |  |  |  |
-| Qwen (text and vision) | ✓ | ✓ |  |  |  |
+| Qwen (text and vision) | ✓ | ✓ |  | ✓ |  |
 | Qwen Image | ✓ |  |  |  |  |
 | SkinTokens | ✓ |  |  |  |  |
 | Step 3.7 Flash |  | ✓ |  |  |  |
