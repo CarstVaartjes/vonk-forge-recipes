@@ -3,16 +3,16 @@
   "authority_id": "nl-family-aware-20260924",
   "catalog": {
     "repository": "CarstVaartjes/vonk-forge-recipes",
-    "commit": "e0304df556122a7a3f594fdfec8b32d4883da729",
+    "commit": "30dc60b2ed6631951c50ef6232043c4c5625e5ea",
     "release_tag": "v2.1.0",
-    "source_commit": "e0304df556122a7a3f594fdfec8b32d4883da729",
-    "catalog_index_sha256": "70925b61c014751798304c76ea983c6cc84e3f7c4dbbafb5e5c38eea03dd2dcf",
-    "qualification_index_sha256": "449178eae09a5f0fd0939b6a0f2a7b3d7cc16ed8b5eb39709fee496311a26a14",
-    "recipe_count": 86
+    "source_commit": "30dc60b2ed6631951c50ef6232043c4c5625e5ea",
+    "catalog_index_sha256": "4655d2d30322154fa0e9839e1fc024173c4131f1e7bd3d7ab4c5b3f25675194f",
+    "qualification_index_sha256": "191b9e2d5bc0b0aad101943584e6829500129c0a16f286b7fa19eae2e6cf8ace",
+    "recipe_count": 87
   },
   "scope": {
     "maximum_node_count": 2,
-    "recipe_count": 82,
+    "recipe_count": 83,
     "excluded_topology_recipe_keys": [
       "vonk-forge/glm-5-3-flash-nvfp4-vllm-four",
       "vonk-forge/glm-5-2-quanttrio-vllm-four",
@@ -3603,6 +3603,54 @@
     },
     {
       "sequence": 73,
+      "key": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-single",
+      "content_sha256": "422896ccd97114107aacc6a7ceb5d9e4f22482ce8306b8ff99560c8a4c24f213",
+      "node_count": 1,
+      "interface": "openai-service",
+      "recipe_version": "1.0.0",
+      "package": {
+        "path": "packages/qwen3-8-flash-next-nvfp4-vllm-single.tar.gz",
+        "sha256": "d13904f3a0f3395ba42b641011120589c92bcce7bb32eb6329e88be012fd752f",
+        "expected_bytes": 1217816,
+        "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
+      },
+      "disposition": "actionable",
+      "model_license_refs": [
+        {
+          "key": "mia-ai-lab/qwen3-8-flash-next-nvfp4-mia-925d7be6",
+          "content_sha256": "aa7c0a71e70932d77d700eb395749dada1099d43b6f7e7aefd8ecd88d89386c9",
+          "spdx": "LicenseRef-Qwen-Community-1.0",
+          "url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/blob/de4b8e4d43b917e7706784d8bb445c9af86a3540/LICENSE",
+          "attribution": [
+            "Qwen",
+            "local-inference-lab",
+            "MiaAI-Lab"
+          ]
+        }
+      ],
+      "qualification_inputs": [
+        "generic-image-png"
+      ],
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "review_gates": [],
+      "runtime_stack_sha256": "bbf7cfdb4277dc6119386f0f7c0952c5b7605148366e464a59f6a0e8453c2d54",
+      "topology_sha256": "975b6d440b4a449afc02064614ce21bc798b072b70c4c00a0b5f52cd3516fac9",
+      "recovery_coverage_refs": [
+        {
+          "coverage_id": "b0d549e341e6485536481666253fb0147f0f912b09d67a20bfa424773f2ee930",
+          "failure_mode": "single-host-restart",
+          "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-single",
+          "role": "dedicated"
+        }
+      ]
+    },
+    {
+      "sequence": 74,
       "key": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
       "content_sha256": "4f16f71701aab4f7d75fe66c72b69b75e3490e6c0dcf0faaa270e6d2048a7774",
       "node_count": 2,
@@ -3651,7 +3699,7 @@
       ]
     },
     {
-      "sequence": 74,
+      "sequence": 75,
       "key": "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual",
       "content_sha256": "5d229418af8f7074ef5d87e1c5650034fd2d0049496a1e8e0ac8dc336bbcc003",
       "node_count": 2,
@@ -3703,7 +3751,7 @@
       ]
     },
     {
-      "sequence": 75,
+      "sequence": 76,
       "key": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
       "content_sha256": "bbc169c5ad498e6510b97d5d4d7beabdf486f37b9943b25b6c83f274ce6cce1c",
       "node_count": 2,
@@ -3767,7 +3815,7 @@
       ]
     },
     {
-      "sequence": 76,
+      "sequence": 77,
       "key": "vonk-forge/inkling-small-nvfp4-sglang-dual",
       "content_sha256": "877e068eef56afb88fd370e5c3998b3a57f39525e3bd190657dab16480608f0e",
       "node_count": 2,
@@ -3819,7 +3867,7 @@
       ]
     },
     {
-      "sequence": 77,
+      "sequence": 78,
       "key": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
       "content_sha256": "750d21605fef33fe0215fa94d48d62f9c2a6545730da17aa22413ead6b8ed420",
       "node_count": 2,
@@ -3872,7 +3920,7 @@
       ]
     },
     {
-      "sequence": 78,
+      "sequence": 79,
       "key": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
       "content_sha256": "cf84484d6202fb31f6cb7e4675e7cf3d89a51a377fe9837057ceb17c7d699848",
       "node_count": 2,
@@ -3925,7 +3973,7 @@
       ]
     },
     {
-      "sequence": 79,
+      "sequence": 80,
       "key": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
       "content_sha256": "10f1e6122f44d1a312cfb8eb724c6460ea10e5495b134527125c71282717f35b",
       "node_count": 2,
@@ -3978,7 +4026,7 @@
       ]
     },
     {
-      "sequence": 80,
+      "sequence": 81,
       "key": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
       "content_sha256": "c66241b77845fb86d562ff94115d31a0b99d2bcfd1edfa3597d9c5633056733a",
       "node_count": 2,
@@ -4042,7 +4090,7 @@
       ]
     },
     {
-      "sequence": 81,
+      "sequence": 82,
       "key": "vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual",
       "content_sha256": "6e0fcb3d3b5aab37e96ba3acddf20941c0892d4b3e5dfd710e2427007dcc6c87",
       "node_count": 2,
@@ -4097,7 +4145,7 @@
       ]
     },
     {
-      "sequence": 82,
+      "sequence": 83,
       "key": "vonk-forge/glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual",
       "content_sha256": "16a36ce16796d5a1cc3f0817b85fe16754c5d5cac277cf56d9a0044e435bd063",
       "node_count": 2,
@@ -4775,12 +4823,12 @@
     {
       "sequence": 37,
       "id": "batch-037",
-      "mode": "exclusive-dual",
+      "mode": "single",
       "assignments": [
         {
-          "recipe": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
+          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-single",
           "lane": 1,
-          "node_count": 2
+          "node_count": 1
         }
       ]
     },
@@ -4790,7 +4838,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual",
+          "recipe": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -4802,7 +4850,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
+          "recipe": "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -4814,7 +4862,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/inkling-small-nvfp4-sglang-dual",
+          "recipe": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -4826,7 +4874,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
+          "recipe": "vonk-forge/inkling-small-nvfp4-sglang-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -4838,7 +4886,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
+          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -4850,7 +4898,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
+          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -4862,7 +4910,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
+          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -4874,7 +4922,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual",
+          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -4883,6 +4931,18 @@
     {
       "sequence": 46,
       "id": "batch-046",
+      "mode": "exclusive-dual",
+      "assignments": [
+        {
+          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual",
+          "lane": 1,
+          "node_count": 2
+        }
+      ]
+    },
+    {
+      "sequence": 47,
+      "id": "batch-047",
       "mode": "exclusive-dual",
       "assignments": [
         {
@@ -6364,6 +6424,25 @@
       "shared": false,
       "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
       "coverage_id": "4c7e49f27ff6d90630d3fd54d51087aa40251f3a8682db0d062815116e761f64"
+    },
+    {
+      "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-single",
+          "recipe_content_sha256": "422896ccd97114107aacc6a7ceb5d9e4f22482ce8306b8ff99560c8a4c24f213",
+          "package_sha256": "d13904f3a0f3395ba42b641011120589c92bcce7bb32eb6329e88be012fd752f",
+          "model_content_sha256s": [
+            "aa7c0a71e70932d77d700eb395749dada1099d43b6f7e7aefd8ecd88d89386c9"
+          ],
+          "runtime_stack_sha256": "bbf7cfdb4277dc6119386f0f7c0952c5b7605148366e464a59f6a0e8453c2d54",
+          "topology_sha256": "975b6d440b4a449afc02064614ce21bc798b072b70c4c00a0b5f52cd3516fac9"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "coverage_id": "b0d549e341e6485536481666253fb0147f0f912b09d67a20bfa424773f2ee930"
     },
     {
       "failure_mode": "single-host-restart",
