@@ -1,6 +1,6 @@
 """Assemble the qualification definitions from their source files.
 
-``qualification/definitions.json`` holds only the shared parts (schema version,
+``qualification/definitions.json`` holds the shared parts (schema version,
 fixtures, special fixtures, service case templates). Each recipe owns one file,
 ``qualification/recipes/<slug>.json``, where ``<slug>`` is the recipe id without
 its publisher prefix::
@@ -9,8 +9,9 @@ its publisher prefix::
 
 Either section may be omitted. ``load_definitions`` is the only reader; it
 returns the same document the single file used to hold, with both maps sorted
-by recipe id. It fails loudly on a duplicate id, a file name that does not
-match its id, or a per-recipe section left in the shared file.
+by recipe id. Entries still in the shared file are read too. It fails loudly
+on a recipe id defined twice (in two files or in a file and the shared file), on
+a duplicate JSON key, or on a file name that does not match its id.
 """
 
 from __future__ import annotations
@@ -50,12 +51,8 @@ def recipe_file_name(recipe_id: str) -> str:
 def load_definitions(root: Path = QUALIFICATION_ROOT) -> dict[str, Any]:
     document = _read(root / "definitions.json")
     for section in PER_RECIPE_SECTIONS:
-        if section in document:
-            raise ValueError(
-                f"definitions.json must not hold {section!r}; "
-                f"use {root.name}/recipes/<slug>.json"
-            )
-        document[section] = {}
+        # Entries not yet moved out of the shared file are still honoured.
+        document.setdefault(section, {})
     for path in sorted((root / "recipes").glob("*.json")):
         entry = _read(path)
         recipe_id = entry.get("id")

@@ -13,6 +13,10 @@ It reads the merge commit ``HEAD``: the branch's old ``definitions.json``
 changed entry of the ``recipes`` and ``service_recipes`` maps to
 ``qualification/recipes/<slug>.json``, on top of any file main already has.
 Removed entries are reported, not applied. Commit the result.
+
+``tools/migrate-pr-qualification --all`` instead moves every entry still in
+``qualification/definitions.json`` into its per-recipe file and drops the two
+maps from it (used once, on main).
 """
 
 from __future__ import annotations
@@ -44,8 +48,28 @@ def _dump(document: object) -> str:
     return json.dumps(document, indent=2, ensure_ascii=False) + "\n"
 
 
+def _migrate_all(root: Path) -> int:
+    path = root / DEFINITIONS
+    shared: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+    for section in PER_RECIPE_SECTIONS:
+        for recipe_id, entry in sorted(shared.pop(section, {}).items()):
+            target = root / "qualification" / "recipes" / recipe_file_name(recipe_id)
+            document: dict[str, Any] = {"id": recipe_id}
+            if target.exists():
+                document = json.loads(target.read_text(encoding="utf-8"))
+                if section in document:
+                    raise SystemExit(f"{recipe_id} is already in {target}")
+            document[section] = entry
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(_dump(document), encoding="utf-8")
+    path.write_text(_dump(shared), encoding="utf-8")
+    return 0
+
+
 def main() -> int:
     root = Path(_git("rev-parse", "--show-toplevel"))
+    if sys.argv[1:] == ["--all"]:
+        return _migrate_all(root)
     branch, main_parent = _git("rev-parse", "HEAD^1"), _git("rev-parse", "HEAD^2")
     base = _git("merge-base", branch, main_parent)
     old: dict[str, Any] = json.loads(_git("show", f"{base}:{DEFINITIONS}"))

@@ -361,13 +361,14 @@ memory from the generated catalog (`tools/build-qualification-authority` writes
 it with `--output-dir`), so a new recipe needs only its recipe, model and
 `qualification/recipes/<slug>.json` file (`<slug>` is the recipe id without the
 publisher prefix; shape `{"id": "<publisher>/<slug>", "recipes": {...},
-"service_recipes": {...}}`, copy an existing one); no plan, count, generated file
-or shared file is edited. Never add per-recipe entries to
-`qualification/definitions.json`, which holds only the shared fixtures and
-templates. Read the assembled document only through
-`qualification.definitions_loader.load_definitions`, which fails on a recipe id
-defined twice. A branch that still edits the old `definitions.json` runs
-`tools/migrate-pr-qualification` before merging main. Tests assert that every recipe has a definition and is scheduled.
+"service_recipes": {...}}`); no plan, count, generated file or shared file is
+edited. Never add per-recipe entries to `qualification/definitions.json`, which
+holds the shared fixtures and templates. Read the assembled document only
+through `qualification.definitions_loader.load_definitions`, which fails on a
+recipe id defined twice. A branch that still edits the old `definitions.json`
+merges main (taking main's `definitions.json`), commits, then runs
+`tools/migrate-pr-qualification` and commits the new files. Tests assert that
+every recipe has a definition and is scheduled.
 
 Open or update the PR with exact before/after sources, the reason for changes,
 version notes, validation results, and any retained pins. Complete CI, merge,

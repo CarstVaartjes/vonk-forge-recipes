@@ -46,9 +46,14 @@ def test_rejects_recipe_defined_twice(tmp_path: Path) -> None:
         load_definitions(root)
 
 
-def test_rejects_per_recipe_map_in_shared_file(tmp_path: Path) -> None:
-    _write(tmp_path / "definitions.json", {"schema_version": 2, "recipes": {}})
-    with pytest.raises(ValueError, match="must not hold"):
+def test_shared_file_entries_are_read_and_may_not_repeat(tmp_path: Path) -> None:
+    _write(
+        tmp_path / "definitions.json",
+        {"schema_version": 2, "recipes": {"p/a": {"x": 1}}},
+    )
+    assert load_definitions(tmp_path)["recipes"] == {"p/a": {"x": 1}}
+    _write(tmp_path / "recipes" / "a.json", {"id": "p/a", "recipes": {"x": 2}})
+    with pytest.raises(ValueError, match="defined twice"):
         load_definitions(tmp_path)
 
 
