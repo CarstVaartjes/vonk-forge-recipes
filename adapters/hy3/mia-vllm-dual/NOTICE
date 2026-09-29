@@ -1,0 +1,5 @@
+start.sh, stop.sh and README.md are MiaAI-Lab/Hy3-Dual-DGX-Spark at the commit in
+vendored-upstream.json, byte for byte, kept as the reference for this recipe. That
+repository carries no licence file. Model: kodelow/Hy3-NVFP4-W4A16 (Apache-2.0),
+a quantization of tencent/Hy3 (Apache-2.0). The launch wrapper, the build-time
+form of upstream's token patch, and verify-runtime.py are ours.
