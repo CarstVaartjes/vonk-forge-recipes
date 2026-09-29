@@ -5702,6 +5702,23 @@
         ]
       }
     },
+    "vonk-forge/qwen3-8-27b-q4-k-m-ggml-org-llamacpp-single": {
+      "alias": "qwen3.8-27b",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/qwen3-8-flash-next-taussoe-tensorfold-single": {
       "alias": "Qwen3.8-Flash-Next",
       "smoke_cases": [
