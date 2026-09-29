@@ -3956,6 +3956,23 @@
         ]
       }
     },
+    "vonk-forge/mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-dual": {
+      "alias": "mimo-v2.5",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "8K, 32K and 128K cold-prefill ladder plus bounded concurrency canaries at the 1M default context (a 500K context with memory utilization 0.82 is the upstream fallback)"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache restart; the first start compiles kernels"
+        ]
+      }
+    },
     "vonk-forge/deepseek-v4-flash-0731-r0b0tlab-vllm-dual": {
       "alias": "deepseek-v4-flash-dspark",
       "smoke_cases": [

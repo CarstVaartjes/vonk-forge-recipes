@@ -33,7 +33,7 @@ Number of recipes per model family and engine.
 | LFM2.5 | 2 |  |  |  |  |  |  |  |  |
 | Ling |  | 1 |  |  |  |  |  |  |  |
 | LTX |  |  |  |  |  |  | 2 |  | 5 |
-| MiMo | 1 | 1 |  |  |  |  |  |  |  |
+| MiMo | 2 | 1 |  |  |  |  |  |  |  |
 | MiniMax H3 | 1 |  |  |  |  |  | 2 |  |  |
 | MOSS-VL |  |  |  |  |  |  |  |  | 1 |
 | MOVA |  |  |  |  |  |  |  |  | 2 |
@@ -291,10 +291,11 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 </details>
 
-<details><summary>MiMo (2)</summary>
+<details><summary>MiMo (3)</summary>
 
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
+| [mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-dual](recipes/mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-dual.json) | vLLM | 2 | tonyd2wild |
 | [mimo-v2-6-flash-rl-sglang-mia-dual](recipes/mimo-v2-6-flash-rl-sglang-mia-dual.json) | SGLang | 2 | MiaAI-Lab |
 | [mimo-v2-6-flash-rl-vllm-dual](recipes/mimo-v2-6-flash-rl-vllm-dual.json) | vLLM | 2 | tonyd2wild |
 
