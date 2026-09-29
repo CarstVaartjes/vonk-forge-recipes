@@ -1,0 +1,12 @@
+{
+  "source": {
+    "repo": "r0b0tlab/qwen38-flash-next-w4a16-sm121-sglang",
+    "commit": "7bfacc510506e955a1392f94b87213b798e45e51"
+  },
+  "ours": [
+    "sglang-serve"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE"
+  }
+}
