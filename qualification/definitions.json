@@ -4558,6 +4558,17 @@
     },
     "vonk-forge/gemma-4-31b-it-nvfp4-vllm-mia-single": {
       "alias": "nvidia/Gemma-4-31B-IT-NVFP4",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming, image-input and declared concurrency canaries; the first start compiles kernels and loads MTP"
+        ]
+      }
+    },
     "vonk-forge/gemma-4-26b-a4b-vllm-mia-single": {
       "alias": "nvidia/Gemma-4-26B-A4B-NVFP4",
       "smoke_cases": [
@@ -4567,7 +4578,6 @@
       ],
       "higher_tiers": {
         "stress": [
-          "Optional bounded streaming, image-input and declared concurrency canaries; the first start compiles kernels and loads MTP"
           "Optional bounded streaming, image-input and 18-session concurrency canaries; the first start compiles kernels and loads MTP"
         ]
       }
