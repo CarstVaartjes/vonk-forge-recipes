@@ -1,0 +1,9 @@
+{
+  "source": {
+    "repo": "r0b0tlab/nemotron3-super-120b-a12b-nvfp4-gb10-native-mtp",
+    "commit": "19ab5365aaff58bc3c04ea4a9c9181c9c6482860"
+  },
+  "ours": [
+    "sglang-serve"
+  ]
+}
