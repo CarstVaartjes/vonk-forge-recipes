@@ -15,7 +15,8 @@ import torch
 from packaging import version
 from packaging.version import Version
 from torch.library import Library, infer_schema
-from vllm import envs
+
+import vllm.envs as envs
 from vllm.logger import init_logger
 from vllm.utils.platform_utils import is_pin_memory_available
 
@@ -75,8 +76,10 @@ PIN_MEMORY = is_pin_memory_available()
 
 
 def is_quantized_kv_cache(kv_cache_dtype: str) -> bool:
-    return kv_cache_dtype.startswith(("fp8", "nvfp4")) or kv_cache_dtype.endswith(
-        "per_token_head"
+    return (
+        kv_cache_dtype.startswith("fp8")
+        or kv_cache_dtype.endswith("per_token_head")
+        or kv_cache_dtype.startswith("nvfp4")
     )
 
 
@@ -418,8 +421,7 @@ def get_kv_cache_torch_dtype(
     elif isinstance(cache_dtype, torch.dtype):
         torch_dtype = cache_dtype
     else:
-        # Upstream vLLM contract: callers catch ValueError from this helper.
-        raise ValueError(f"Invalid kv cache dtype: {cache_dtype}")  # noqa: TRY004
+        raise ValueError(f"Invalid kv cache dtype: {cache_dtype}")
     return torch_dtype
 
 
@@ -707,7 +709,7 @@ def np_to_pinned_tensor(array: np.ndarray) -> torch.Tensor:
     return t.pin_memory() if PIN_MEMORY else t
 
 
-def make_ndarray_with_pad[T](
+def make_ndarray_with_pad(
     x: list[list[T]],
     pad: T,
     dtype: npt.DTypeLike,
@@ -732,7 +734,7 @@ def make_ndarray_with_pad[T](
     return padded_x
 
 
-def make_tensor_with_pad[T](
+def make_tensor_with_pad(
     x: list[list[T]],
     pad: T,
     dtype: torch.dtype,
@@ -921,7 +923,7 @@ def is_torch_equal_or_newer(target: str) -> bool:
     """
     try:
         return _is_torch_equal_or_newer(str(torch.__version__), target)
-    except Exception:  # noqa: BLE001  (fall back to PKG-INFO when version parsing fails)
+    except Exception:
         # Fallback to PKG-INFO to load the package info, needed by the doc gen.
         return Version(importlib.metadata.version("torch")) >= Version(target)
 
@@ -949,7 +951,7 @@ def is_torch_equal(target: str) -> bool:
     """
     try:
         return _is_torch_equal(target)
-    except Exception:  # noqa: BLE001  (fall back to PKG-INFO when version parsing fails)
+    except Exception:
         return Version(importlib.metadata.version("torch")) == Version(target)
 
 
@@ -996,7 +998,9 @@ if HAS_OPAQUE_TYPE:
 # On torch >= 2.11 (with VLLM_USE_LAYERNAME enabled), custom op
 # layer_name parameters use LayerName; otherwise they remain plain str.
 if TYPE_CHECKING:
-    type LayerNameType = str | LayerName
+    from typing import TypeAlias
+
+    LayerNameType: TypeAlias = str | LayerName
 else:
     LayerNameType = LayerName if _USE_LAYERNAME else str
 
@@ -1017,7 +1021,7 @@ def supports_xpu_graph() -> bool:
 
 
 # create a library to hold the custom op
-vllm_lib = Library("vllm", "FRAGMENT")
+vllm_lib = Library("vllm", "FRAGMENT")  # noqa
 
 
 def direct_register_custom_op(

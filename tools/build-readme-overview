@@ -1,0 +1,258 @@
+#!/usr/bin/env python3
+"""Generate the README overview (engines, Spark variants, creators) from the catalog.
+
+The output is derived from recipes/*.json, models/*.json and creators.json and is
+written between the overview markers in README.md. It only reflects structure
+(which recipes, families, engines, Spark counts and creators exist), never
+versions, dates or digests, so a normal version bump leaves it unchanged. Run it
+and commit README.md whenever recipes, models or creators.json change.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from collections import Counter, defaultdict
+from pathlib import Path
+from typing import Any
+
+ROOT = Path(__file__).resolve().parents[1]
+START = "<!-- overview:start -->"
+END = "<!-- overview:end -->"
+ENGINES = [
+    ("vllm", "vLLM"),
+    ("sglang", "SGLang"),
+    ("tensorrt-llm", "TensorRT-LLM"),
+    ("llama.cpp", "llama.cpp"),
+    ("tensorfold", "TensorFold"),
+    ("ds4", "ds4"),
+    ("diffusers", "diffusers"),
+    ("comfyui", "ComfyUI"),
+    ("pytorch-pipeline", "pytorch-pipeline"),
+]
+SPARKS = [1, 2, 3, 4, 8]
+
+
+def load(root: Path) -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, Any]]:
+    recipes = []
+    for path in sorted((root / "recipes").glob("*.json")):
+        recipe = json.loads(path.read_text())
+        recipe["_file"] = f"recipes/{path.name}"
+        recipes.append(recipe)
+    models = {}
+    for path in sorted((root / "models").glob("*.json")):
+        model = json.loads(path.read_text())
+        models[model["identity"]["slug"]] = model
+    config = json.loads((root / "creators.json").read_text())
+    return recipes, models, config
+
+
+def source_owner(recipe: dict[str, Any]) -> tuple[str, str]:
+    """Return (host, owner) of the recipe's source reference."""
+    parts = recipe["provenance"].get("source_reference", "").split("/")
+    return (parts[2], parts[3]) if len(parts) > 3 else ("", "")
+
+
+def creator_of(
+    recipe: dict[str, Any], config: dict[str, Any]
+) -> tuple[str, str | None]:
+    """Return (display name, tracked creator URL or None) for a recipe."""
+    host, owner = source_owner(recipe)
+    attribution = recipe["provenance"].get("attribution", [])
+    candidates = [owner.lower()]
+    candidates += [a.lower() for a in attribution]
+    candidates += [a.split("(")[0].strip().lower() for a in attribution]
+    for candidate in candidates:
+        for creator in config["creators"]:
+            if candidate in creator["aliases"]:
+                return creator["name"], creator["url"]
+    return (owner or "unknown"), (f"https://{host}/{owner}" if owner else None)
+
+
+def family_of(
+    recipe: dict[str, Any], models: dict[str, Any], config: dict[str, Any]
+) -> str:
+    slug = recipe["identity"]["slug"]
+    for family in config["families"]:
+        if any(slug.startswith(prefix) for prefix in family["prefixes"]):
+            return family["name"]
+    primary = models.get(recipe["models"][0]["model"]["slug"])
+    return primary["identity"]["family"]["title"] if primary else slug
+
+
+def engine_label(engine: str) -> str:
+    return dict(ENGINES).get(engine, engine)
+
+
+def link(recipe: dict[str, Any]) -> str:
+    return f"[{recipe['identity']['slug']}]({recipe['_file']})"
+
+
+def render(root: Path) -> str:
+    recipes, models, config = load(root)
+    rows = []
+    for recipe in recipes:
+        creator, url = creator_of(recipe, config)
+        rows.append(
+            {
+                "recipe": recipe,
+                "family": family_of(recipe, models, config),
+                "engine": recipe["runtime"]["engine"],
+                "sparks": recipe["topology"]["node_count"],
+                "creator": creator,
+                "url": url,
+            }
+        )
+    families = sorted({r["family"] for r in rows}, key=str.lower)
+    known = [e for e, _ in ENGINES]
+    engines = known + sorted({r["engine"] for r in rows} - set(known))
+    sparks = SPARKS + sorted({r["sparks"] for r in rows} - set(SPARKS))
+
+    out = [
+        (
+            f"**{len(rows)} recipes** for **{len(families)} model families**. This section is generated from `recipes/`, `models/` "
+            "and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand."
+        ),
+        "",
+        "### Engines and models",
+        "",
+        "Number of recipes per model family and engine.",
+        "",
+        "| Model family | " + " | ".join(engine_label(e) for e in engines) + " |",
+        "| --- |" + " ---: |" * len(engines),
+    ]
+    for family in families:
+        counts = Counter(r["engine"] for r in rows if r["family"] == family)
+        out.append(
+            f"| {family} | "
+            + " | ".join(str(counts[e]) if counts[e] else "" for e in engines)
+            + " |"
+        )
+    totals = Counter(r["engine"] for r in rows)
+    out.append(
+        "| **Total** | " + " | ".join(f"**{totals[e]}**" for e in engines) + " |"
+    )
+
+    out += [
+        "",
+        "### Spark variants",
+        "",
+        "Which Spark counts each family runs on, and who provides them.",
+        "",
+        "| Model family | "
+        + " | ".join(f"{n} Spark{'s' if n != 1 else ''}" for n in sparks)
+        + " |",
+        "| --- |" + " --- |" * len(sparks),
+    ]
+    for family in families:
+        cells = []
+        for n in sparks:
+            names = sorted(
+                {
+                    r["creator"]
+                    for r in rows
+                    if r["family"] == family and r["sparks"] == n
+                },
+                key=str.lower,
+            )
+            cells.append(", ".join(names))
+        out.append(f"| {family} | " + " | ".join(cells) + " |")
+
+    out += ["", "### Tracked creators", ""]
+    out += [
+        (
+            "Recipes are credited to the creator whose repository they come from (the recipe's "
+            "source reference), or else to a tracked creator named in its attribution."
+        ),
+        "",
+        "| Creator | Focus | Engines | Recipes |",
+        "| --- | --- | --- | ---: |",
+    ]
+    for creator in config["creators"]:
+        mine = [r for r in rows if r["creator"] == creator["name"]]
+        used = sorted({engine_label(r["engine"]) for r in mine}, key=str.lower)
+        out.append(
+            f"| [{creator['name']}]({creator['url']}) | {creator['focus']} | {', '.join(used)} | {len(mine)} |"
+        )
+    tracked = {c["name"] for c in config["creators"]}
+    others: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for r in rows:
+        if r["creator"] not in tracked:
+            # Owners differing only in case (Tencent/tencent) are one source.
+            key = next(
+                (k for k in others if k.lower() == r["creator"].lower()), r["creator"]
+            )
+            others[key].append(r)
+    if others:
+        out += [
+            "",
+            "<details><summary>Other upstream sources</summary>",
+            "",
+            "| Source | Recipes |",
+            "| --- | ---: |",
+        ]
+        for name in sorted(others, key=str.lower):
+            url = others[name][0]["url"]
+            label = f"[{name}]({url})" if url else name
+            out.append(f"| {label} | {len(others[name])} |")
+        out += ["", "</details>"]
+
+    out += ["", "### Recipes by family", ""]
+    for family in families:
+        mine = [r for r in rows if r["family"] == family]
+        out += [
+            f"<details><summary>{family} ({len(mine)})</summary>",
+            "",
+            "| Recipe | Engine | Sparks | Creator |",
+            "| --- | --- | ---: | --- |",
+        ]
+        for r in sorted(mine, key=lambda r: r["recipe"]["identity"]["slug"]):
+            out.append(
+                f"| {link(r['recipe'])} | {engine_label(r['engine'])} "
+                f"| {r['sparks']} | {r['creator']} |"
+            )
+        out += ["", "</details>", ""]
+    return "\n".join(out).rstrip() + "\n"
+
+
+def splice(readme: str, body: str) -> str:
+    start, end = readme.find(START), readme.find(END)
+    if start < 0 or end < start:
+        raise SystemExit(f"README.md must contain {START} and {END}")
+    return readme[: start + len(START)] + "\n" + body + readme[end:]
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument(
+        "--check", action="store_true", help="exit 1 if README.md is out of date"
+    )
+    parser.add_argument(
+        "--stdout", action="store_true", help="print the overview instead of writing"
+    )
+    args = parser.parse_args()
+    body = render(args.root)
+    if args.stdout:
+        sys.stdout.write(body)
+        return 0
+    readme_path = args.root / "README.md"
+    current = readme_path.read_text()
+    updated = splice(current, body)
+    if args.check:
+        if updated != current:
+            print(
+                "README.md overview is stale: run tools/build-readme-overview "
+                "and commit README.md",
+                file=sys.stderr,
+            )
+            return 1
+        return 0
+    if updated != current:
+        readme_path.write_text(updated)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

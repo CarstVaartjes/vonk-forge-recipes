@@ -1,0 +1,578 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "a859a90363d1fee9a4ea37ce507b082fa353e6ac0fb2ddab2fc3295dbd37fe8d",
+        "repository": "ghcr.io/drowzeys/vllm-024-puzzle-a4q"
+      },
+      "context": {
+        "path": "adapters/nvidia/drowzeys-puzzle-75b-single"
+      },
+      "dockerfile": "adapters/nvidia/drowzeys-puzzle-75b-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-labs-3-puzzle-75b-a9b-nvfp4-drowzeys-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "puzzle-75b"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "drowzeys' single-Spark launch of NVIDIA's Nemotron-Labs-3 Puzzle 75B-A9B NVFP4 checkpoint (53.5 GB, modelopt mixed precision, MTP head): vLLM 0.24 (aeon lineage) with jethac's FlashInfer A4Q attention and an NVFP4 KV cache, expert parallel, flashinfer Mamba SSU, MTP k=3, qwen3_coder tool parser and nemotron_v3 reasoning parser. Defaults follow upstream's puzzle-nvfp4-serve.sh long-context profile (131072 context, 32 sequences, 8192 batched tokens, GPU memory 0.85, eager). Upstream reports (not measured here): 2.71M-token KV pool, C1 25.8 tok/s and C32 220 tok/s, and 1M context (MAXLEN=1048576) with a 3.27M-token pool. Upstream notes: flashinfer_cutlass is the only MoE backend accepted by both the NVFP4 and unquantized layers of this checkpoint; with thinking on the reasoning trace is returned in message.reasoning; coding agents should send chat_template_kwargs force_nonempty_content. Licences: NVIDIA checkpoint OpenMDW-1.1; drowzeys launchers MIT. Not gated. upstream's separate throughput catch-up profile uses another (mutable) image and is not included.",
+    "tags": [
+      "a4q",
+      "candidate",
+      "executable",
+      "mamba",
+      "moe",
+      "mtp",
+      "nemotron",
+      "nvfp4",
+      "nvfp4-kv",
+      "reasoning",
+      "single",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "Nemotron Labs 3 Puzzle 75B-A9B NVFP4 A4Q NVFP4-KV MTP vLLM one Spark"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-d1a8f4a1d2e3-618cd5b83d",
+          "id": "primary-metadata-d1a8f4a1d2e3-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-8693c8dea35e-c693279643",
+          "id": "primary-license-8693c8dea35e-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-0b2101cd8a8a-b335630551",
+          "id": "primary-readme-0b2101cd8a8a-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "bias-cf281350b657-132a86726b",
+          "id": "primary-bias-cf281350b657-132a86726b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-575fb74f54ed-00824420d1",
+          "id": "primary-chat-template-575fb74f54ed-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-7bf737ccbd3c-587cb980af",
+          "id": "primary-config-7bf737ccbd3c-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-nemotron-h-0fc818c10506-845878ce76",
+          "id": "primary-configuration-nemotron-h-0fc818c10506-845878ce76",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-nemotron-h-puzzle-c61d2185d735-5753175326",
+          "id": "primary-configuration-nemotron-h-puzzle-c61d2185d735-5753175326",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "explainability-c540425b4c63-c9ed671e8a",
+          "id": "primary-explainability-c540425b4c63-c9ed671e8a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-27d520b2df55-97dd3d578b",
+          "id": "primary-generation-config-27d520b2df55-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00005-432002caaadc-8453f51e85",
+          "id": "primary-model-00001-of-00005-432002caaadc-8453f51e85",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00005-a5d7b417959a-516421cb37",
+          "id": "primary-model-00002-of-00005-a5d7b417959a-516421cb37",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00005-797ba7e1020e-05880bd763",
+          "id": "primary-model-00003-of-00005-797ba7e1020e-05880bd763",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00005-8fc61fe960e5-c340da1f8a",
+          "id": "primary-model-00004-of-00005-8fc61fe960e5-c340da1f8a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00005-260eeda10462-2bd52bf6f8",
+          "id": "primary-model-00005-of-00005-260eeda10462-2bd52bf6f8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-a87053c51774-0a05be8238",
+          "id": "primary-model-safetensors-index-a87053c51774-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modeling-nemotron-h-e1cb5fc02e88-456a9436f0",
+          "id": "primary-modeling-nemotron-h-e1cb5fc02e88-456a9436f0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modeling-nemotron-h-puzzle-e81a7a97ce55-1b123e8dac",
+          "id": "primary-modeling-nemotron-h-puzzle-e81a7a97ce55-1b123e8dac",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mtp-fa65fc46b6f3-265929bffe",
+          "id": "primary-mtp-fa65fc46b6f3-265929bffe",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "privacy-aea46e6515ca-8ca73853d3",
+          "id": "primary-privacy-aea46e6515ca-8ca73853d3",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "safety-49fbc15ffdb9-0f7043827d",
+          "id": "primary-safety-49fbc15ffdb9-0f7043827d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-e9435fefd6d8-c07a9be597",
+          "id": "primary-special-tokens-map-e9435fefd6d8-c07a9be597",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-623c34567aeb-224931eb13",
+          "id": "primary-tokenizer-623c34567aeb-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-10f93eabcb9b-94d5c6ba8f",
+          "id": "primary-tokenizer-config-10f93eabcb9b-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "3215c2f6d3a49fb7490d73bd4d705151b8c33b03c80f3beab09c664c0e44dd1e",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "nemotron-labs-3-puzzle-75b-a9b-nvfp4-1d370e47"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default: 4-bit KV cache (2.71M-token pool upstream-measured) with A4Q enabled.",
+          "label": "NVFP4 KV + A4Q",
+          "value": "nvfp4"
+        },
+        {
+          "args": [
+            {
+              "name": "kv-cache-dtype",
+              "value": "fp8"
+            }
+          ],
+          "env": {
+            "VLLM_NVFP4_A4Q": "0"
+          },
+          "help": "Larger per-token KV, A4Q off (upstream script sets A4Q=0 for non-NVFP4 KV).",
+          "label": "FP8 KV",
+          "value": "fp8"
+        }
+      ],
+      "help": "KV cache dtype. Upstream: A4Q is only usable with the NVFP4 cache and is TTFT-neutral on this model (few attention layers); the real win of NVFP4 KV is the pool size.",
+      "label": "KV cache and A4Q",
+      "name": "kv-cache"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "drowzeys (keyspark)",
+      "NVIDIA Nemotron-Labs",
+      "Jetha Chan (A4Q, FlashInfer fork)",
+      "aeon-7 (vLLM 0.24 GB10 lineage)",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://github.com/drowzeys/vLLM-0.24-optimized-NVIDIA-Nemotron-Lab-Puzzle-75B-A9B-A4Q-MTP3-NVFP4-KV-2.7M-Pool-Single-DGX-Spark/tree/c8432f7909eaa9128f8ad15d951a9e49625e7e88"
+  },
+  "release": {
+    "released_at": "2026-08-16",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "puzzle-75b"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "enable-expert-parallel",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "mamba-backend",
+        "setting": null,
+        "value": "flashinfer"
+      },
+      {
+        "name": "moe-backend",
+        "setting": null,
+        "value": "flashinfer_cutlass"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "nvfp4"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 8192
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.85"
+      },
+      {
+        "name": "enforce-eager",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3}"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "qwen3_coder"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "nemotron_v3"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TORCH_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "FLASHINFER_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "VLLM_NVFP4_A4Q",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_ATTENTION_BACKEND",
+        "value": "FLASHINFER"
+      },
+      {
+        "name": "FLASHINFER_DISABLE_VERSION_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_USE_FLASHINFER_SAMPLER",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_ALLOW_LONG_MAX_MODEL_LEN",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_SKIP_INIT_MEMORY_CHECK",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 32
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 131072
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 53545340845,
+            "image_bytes": 45000000000,
+            "safety_margin_bytes": 20000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 112000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "puzzle-75b"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

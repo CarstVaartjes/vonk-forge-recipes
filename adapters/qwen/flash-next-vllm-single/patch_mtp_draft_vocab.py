@@ -23,10 +23,8 @@ full head, so every other path keeps full-vocabulary behaviour.
 TP=1 only: the reduced head is a plain matmul, not a vocab-parallel one. This
 repo is a single-Spark deployment, and the patch refuses to engage otherwise.
 """
-
 import os
 import sys
-from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ORIG = os.path.join(HERE, "mtp_patched.py.orig")
@@ -108,7 +106,7 @@ GET_TOP_TOKENS = '''
 
 
 def patch(name: str, edits: list[tuple[str, str]]) -> None:
-    src = Path(ORIG).read_text()
+    src = open(ORIG).read()
     for old, new in edits:
         count = src.count(old)
         if count != 1:
@@ -116,7 +114,7 @@ def patch(name: str, edits: list[tuple[str, str]]) -> None:
                 f"{name}: anchor not unique/missing (count={count}):\n{old[:200]}"
             )
         src = src.replace(old, new)
-    Path(OUT).write_text(src)
+    open(OUT, "w").write(src)
     print("patched", name)
 
 
@@ -125,78 +123,65 @@ def main() -> None:
         print(f"ERROR: missing {ORIG}", file=sys.stderr)
         sys.exit(1)
 
-    patch(
-        "mtp_patched",
-        [
-            # os + a logger, and the slicing helper at module scope.
-            (
-                "from vllm.compilation.decorators import support_torch_compile\n",
-                (
-                    "import os\n\n"
-                    "from vllm.compilation.decorators import support_torch_compile\n"
-                    "from vllm.logger import init_logger\n"
-                ),
-            ),
-            # Module scope, before the first helper: the MTP class itself sits
-            # under a @support_torch_compile decorator, so nothing can go between.
-            (
-                "def _remap_ignored_layers(\n",
-                "logger = init_logger(__name__)\n"
-                + DRAFT_VOCAB_BLOCK
-                + "\ndef _remap_ignored_layers(\n",
-            ),
-            # get_top_tokens beside compute_logits, which stays full-vocabulary.
-            (
-                (
-                    "    def compute_logits(\n"
-                    "        self, hidden_states: torch.Tensor, spec_step_idx: int = 0\n"
-                    "    ) -> torch.Tensor | None:\n"
-                    "        return self.logits_processor(self.lm_head, hidden_states)\n"
-                ),
-                "    def compute_logits(\n"
-                "        self, hidden_states: torch.Tensor, spec_step_idx: int = 0\n"
-                "    ) -> torch.Tensor | None:\n"
-                "        return self.logits_processor(self.lm_head, hidden_states)\n"
-                + GET_TOP_TOKENS,
-            ),
-            # Slice once the real weights are in.
-            (
-                "        return loader.load_weights(remap_weight_names())\n",
-                (
-                    "        loaded = loader.load_weights(remap_weight_names())\n"
-                    "        _attach_draft_vocab(self)\n"
-                    "        return loaded\n"
-                ),
-            ),
-            # One INFO line the first time the speculator reaches the indexer.
-            # index_share_for_mtp_iteration is an hf-overrides flag with no log of
-            # its own: the V2 speculator only calls set_skip_topk when the draft
-            # hf_config carries it AND this class exposes both methods
-            # (v1/worker/gpu/spec_decode/mtp/speculator.py:30-33), so this line
-            # firing is the runtime proof that the flag arrived. Nothing prints it
-            # when the flag is off, which is the shipped default.
-            (
-                (
-                    "    def set_skip_topk(self, skip: bool) -> None:\n"
-                    '        """Select on MTP step 0 and reuse its QSA indices on later steps."""\n'
-                    "\n"
-                    "        for attention in self._iter_qsa_attentions():\n"
-                ),
-                (
-                    "    def set_skip_topk(self, skip: bool) -> None:\n"
-                    '        """Select on MTP step 0 and reuse its QSA indices on later steps."""\n'
-                    "\n"
-                    '        if not getattr(self, "_mtp_index_share_logged", False):\n'
-                    "            self._mtp_index_share_logged = True\n"
-                    "            logger.info(\n"
-                    '                "MTP index share: index_share_for_mtp_iteration ACTIVE "\n'
-                    '                "(set_skip_topk reached the draft QSA indexer)"\n'
-                    "            )\n"
-                    "        for attention in self._iter_qsa_attentions():\n"
-                ),
-            ),
-        ],
-    )
+    patch("mtp_patched", [
+        # os + a logger, and the slicing helper at module scope.
+        (
+            "from vllm.compilation.decorators import support_torch_compile\n",
+            "import os\n\n"
+            "from vllm.compilation.decorators import support_torch_compile\n"
+            "from vllm.logger import init_logger\n",
+        ),
+        # Module scope, before the first helper: the MTP class itself sits
+        # under a @support_torch_compile decorator, so nothing can go between.
+        (
+            "def _remap_ignored_layers(\n",
+            "logger = init_logger(__name__)\n"
+            + DRAFT_VOCAB_BLOCK
+            + "\ndef _remap_ignored_layers(\n",
+        ),
+        # get_top_tokens beside compute_logits, which stays full-vocabulary.
+        (
+            "    def compute_logits(\n"
+            "        self, hidden_states: torch.Tensor, spec_step_idx: int = 0\n"
+            "    ) -> torch.Tensor | None:\n"
+            "        return self.logits_processor(self.lm_head, hidden_states)\n",
+            "    def compute_logits(\n"
+            "        self, hidden_states: torch.Tensor, spec_step_idx: int = 0\n"
+            "    ) -> torch.Tensor | None:\n"
+            "        return self.logits_processor(self.lm_head, hidden_states)\n"
+            + GET_TOP_TOKENS,
+        ),
+        # Slice once the real weights are in.
+        (
+            "        return loader.load_weights(remap_weight_names())\n",
+            "        loaded = loader.load_weights(remap_weight_names())\n"
+            "        _attach_draft_vocab(self)\n"
+            "        return loaded\n",
+        ),
+        # One INFO line the first time the speculator reaches the indexer.
+        # index_share_for_mtp_iteration is an hf-overrides flag with no log of
+        # its own: the V2 speculator only calls set_skip_topk when the draft
+        # hf_config carries it AND this class exposes both methods
+        # (v1/worker/gpu/spec_decode/mtp/speculator.py:30-33), so this line
+        # firing is the runtime proof that the flag arrived. Nothing prints it
+        # when the flag is off, which is the shipped default.
+        (
+            "    def set_skip_topk(self, skip: bool) -> None:\n"
+            '        """Select on MTP step 0 and reuse its QSA indices on later steps."""\n'
+            "\n"
+            "        for attention in self._iter_qsa_attentions():\n",
+            "    def set_skip_topk(self, skip: bool) -> None:\n"
+            '        """Select on MTP step 0 and reuse its QSA indices on later steps."""\n'
+            "\n"
+            '        if not getattr(self, "_mtp_index_share_logged", False):\n'
+            "            self._mtp_index_share_logged = True\n"
+            "            logger.info(\n"
+            '                "MTP index share: index_share_for_mtp_iteration ACTIVE "\n'
+            '                "(set_skip_topk reached the draft QSA indexer)"\n'
+            "            )\n"
+            "        for attention in self._iter_qsa_attentions():\n",
+        ),
+    ])
     print("ok")
 
 

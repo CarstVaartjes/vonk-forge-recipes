@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 """Stub AVX CPU targets so ExLlamaV3's extension compiles on aarch64/GB10."""
 
-import sys
 from pathlib import Path
+import sys
 
-root = Path(
-    sys.argv[1] if len(sys.argv) > 1 else "/tmp/exllamav3/exllamav3/exllamav3_ext"
-)
+root = Path(sys.argv[1] if len(sys.argv) > 1 else "/tmp/exllamav3/exllamav3/exllamav3_ext")
 (root / "avx2_target.cpp").write_text(
     '#include "avx2_target.h"\n'
     "bool is_avx2_supported() { return false; }\n"

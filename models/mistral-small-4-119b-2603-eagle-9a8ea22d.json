@@ -1,0 +1,105 @@
+{
+  "capabilities": [],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-a1533fad1fb4-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a1533fad1fb49e1230aff61a60028ea63bc924b4cc4501447351b50b9c840683",
+      "size_bytes": 1567
+    },
+    {
+      "id": "readme-320248f2d312-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "320248f2d312481711c37c87ee8b90d0a7546e8a753b93e78d6b20624a15b5ba",
+      "size_bytes": 11767
+    },
+    {
+      "id": "chat-template-de56319deee1-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "de56319deee1deb2b88cf576cf20bdc57a8789723f7ff75f9c54acd740d15ecb",
+      "size_bytes": 15168
+    },
+    {
+      "id": "consolidated-fe26a882ffba-e2816af0af",
+      "path": "consolidated.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "fe26a882ffbafe23c72d7f043db436934696ed3a1a6ee4b1768cdd13261b3f7e",
+      "size_bytes": 391695220
+    },
+    {
+      "id": "params-0d209156458d-7b631c57f5",
+      "path": "params.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "0d209156458dcede321bf14eda60107059d21cacbb9e66fc95453eaef7036d74",
+      "size_bytes": 725
+    },
+    {
+      "id": "tekken-b1272b956bd6-1750e96afb",
+      "path": "tekken.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b1272b956bd6edd2d2c674c76896c7661308c9e723997b0afb55ecb429cb5dc7",
+      "size_bytes": 16275354
+    }
+  ],
+  "format": {
+    "precision": "fp8",
+    "quantization": "fp8_e4m3"
+  },
+  "identity": {
+    "family": {
+      "publisher": "mistralai",
+      "slug": "mistral-small-4",
+      "title": "Mistral Small 4"
+    },
+    "model": {
+      "publisher": "mistralai",
+      "slug": "mistral-small-4-119b-2603-eagle",
+      "title": "Mistral Small 4 119B 2603 EAGLE"
+    },
+    "publisher": "mistralai",
+    "slug": "mistral-small-4-119b-2603-eagle-9a8ea22d",
+    "variant": "2603",
+    "version": "2603"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Mistral AI"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/mistralai/Mistral-Small-4-119B-2603-eagle"
+  },
+  "metadata": {
+    "description": "Two-layer EAGLE speculative-decoding draft head for Mistral Small 4 119B (FP8 e4m3, about 392 MB). Not Leanstral-specific: the Leanstral upstream recipe offers it as an optional draft for Leanstral 1.5 and reports it unstable there. Apache-2.0 per the model card.",
+    "tags": [
+      "mistralai",
+      "mistral-small-4",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/mistralai/Mistral-Small-4-119B-2603-eagle",
+    "revision": "9a8ea22dca0161ff7af7879f4a0000f65314797d"
+  }
+}

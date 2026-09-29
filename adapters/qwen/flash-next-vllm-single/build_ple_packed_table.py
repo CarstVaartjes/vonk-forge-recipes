@@ -18,20 +18,11 @@ Streams shard-by-shard with numpy memmaps; peak RAM is well under 1 GiB.
 
 Usage: build_ple_packed_table.py <snapshot_dir> <out_dir>
 """
-
-import json
-import os
-import struct
-import sys
-import time
-from pathlib import Path
-
-import numpy as np  # pyright: ignore[reportMissingImports]
+import json, os, struct, sys, time
+import numpy as np
 
 snap, out_dir = sys.argv[1], sys.argv[2]
-idx = json.loads(Path(os.path.join(snap, "model.safetensors.index.json")).read_text())[
-    "weight_map"
-]
+idx = json.load(open(os.path.join(snap, "model.safetensors.index.json")))["weight_map"]
 prefix_of = {}
 for k in idx:
     if ".ngram_embedding.shard_0.weight" in k and not k.endswith("weight_scale"):
@@ -40,8 +31,6 @@ if not prefix_of:
     sys.exit("no PLE ngram_embedding shards in index")
 
 headers = {}
-
-
 def header(fname):
     if fname not in headers:
         with open(os.path.join(snap, fname), "rb") as f:
@@ -49,35 +38,23 @@ def header(fname):
             headers[fname] = (json.loads(f.read(n)), 8 + n)
     return headers[fname]
 
-
 def view(name):
     fname = idx[name]
     h, base = header(fname)
     meta = h[name]
     start, end = meta["data_offsets"]
-    mm = np.memmap(
-        os.path.join(snap, fname),
-        dtype=np.uint8,
-        mode="r",
-        offset=base + start,
-        shape=(end - start,),
-    )
+    mm = np.memmap(os.path.join(snap, fname), dtype=np.uint8, mode="r",
+                   offset=base + start, shape=(end - start,))
     return mm.reshape(meta["shape"]), meta["dtype"]
-
 
 os.makedirs(out_dir, exist_ok=True)
 for prefix in prefix_of:
     # vLLM name: strip leading "model." and map language_model -> language_model.model
     vname = prefix
     if vname.startswith("model.language_model."):
-        vname = "language_model.model." + vname[len("model.language_model.") :]
-    shards = sorted(
-        {
-            int(k[len(prefix) + len(".shard_") :].split(".")[0])
-            for k in idx
-            if k.startswith(prefix + ".shard_")
-        }
-    )
+        vname = "language_model.model." + vname[len("model.language_model."):]
+    shards = sorted({int(k[len(prefix) + len(".shard_"):].split(".")[0])
+                     for k in idx if k.startswith(prefix + ".shard_")})
     assert shards == list(range(len(shards))), shards
     w0, dt = view(f"{prefix}.shard_0.weight")
     # Two checkpoint families seen so far:
@@ -91,56 +68,30 @@ for prefix in prefix_of:
     #    Fp8EmbeddingMethod path, not baked into this table.
     has_per_shard_scale = f"{prefix}.shard_0.weight_scale" in idx
     if dt == "U8":
-        assert has_per_shard_scale, (
-            "U8-coded PLE shard without a per-shard weight_scale"
-        )
-        s0, sdt = view(f"{prefix}.shard_0.weight_scale")
-        assert sdt == "F8_E4M3", sdt
-        rows, cw = w0.shape
-        sw = s0.shape[1]
+        assert has_per_shard_scale, "U8-coded PLE shard without a per-shard weight_scale"
+        s0, sdt = view(f"{prefix}.shard_0.weight_scale"); assert sdt == "F8_E4M3", sdt
+        rows, cw = w0.shape; sw = s0.shape[1]
     elif dt == "F8_E4M3":
-        assert not has_per_shard_scale, (
-            "F8_E4M3 PLE shard unexpectedly has a per-shard weight_scale"
-        )
+        assert not has_per_shard_scale, "F8_E4M3 PLE shard unexpectedly has a per-shard weight_scale"
         scale_name = f"{prefix}.weight_scale"
         assert scale_name in idx, "FP8 PLE requires its global weight_scale"
         scale_meta = header(idx[scale_name])[0][scale_name]
         assert scale_meta["shape"] in ([1], []), "FP8 PLE scale must be per-tensor"
-        rows, cw = w0.shape
-        sw = 0
+        rows, cw = w0.shape; sw = 0
     else:
         sys.exit(f"unrecognized PLE shard dtype: {dt}")
     width = cw + sw
     out_name = os.path.join(out_dir, vname + ".packed_u8")
-    meta = {
-        "rows_per_shard": rows,
-        "num_shards": len(shards),
-        "row_width": width,
-        "codes_width": cw,
-        "scales_width": sw,
-        "total_rows": rows * len(shards),
-        "shard_dtype": dt,
-        "snapshot": os.path.basename(os.path.normpath(snap)),
-    }
-    if (
-        os.path.exists(out_name)
-        and os.path.getsize(out_name) == rows * len(shards) * width
-    ):
+    meta = {"rows_per_shard": rows, "num_shards": len(shards), "row_width": width,
+            "codes_width": cw, "scales_width": sw, "total_rows": rows * len(shards),
+            "shard_dtype": dt, "snapshot": os.path.basename(os.path.normpath(snap))}
+    if os.path.exists(out_name) and os.path.getsize(out_name) == rows * len(shards) * width:
         meta_path = out_name + ".json"
-        if (
-            not os.path.exists(meta_path)
-            or json.loads(Path(meta_path).read_text()) != meta
-        ):
-            sys.exit(
-                f"packed cache metadata/source mismatch: {out_name}; rebuild explicitly"
-            )
-        print("verified cache metadata:", out_name)
-        continue
-    print(
-        f"building {out_name}: {len(shards)} shards x {rows} rows x {width} B = "
-        f"{rows * len(shards) * width / 2**30:.2f} GiB (dtype={dt})",
-        flush=True,
-    )
+        if not os.path.exists(meta_path) or json.load(open(meta_path)) != meta:
+            sys.exit(f"packed cache metadata/source mismatch: {out_name}; rebuild explicitly")
+        print("verified cache metadata:", out_name); continue
+    print(f"building {out_name}: {len(shards)} shards x {rows} rows x {width} B = "
+          f"{rows*len(shards)*width/2**30:.2f} GiB (dtype={dt})", flush=True)
     t0 = time.time()
     tmp = out_name + ".tmp"
     CH = 1 << 19
@@ -154,15 +105,11 @@ for prefix in prefix_of:
                 assert scale_dt == "F8_E4M3", (i, scale_dt)
                 assert s.shape == (rows, sw), (i, s.shape)
             for c in range(0, rows, CH):
-                chunk = (
-                    np.concatenate([w[c : c + CH], s[c : c + CH]], axis=1)
-                    if sw
-                    else w[c : c + CH]
-                )
+                chunk = np.concatenate([w[c:c + CH], s[c:c + CH]], axis=1) if sw else w[c:c + CH]
                 chunk.tofile(out)
             if i % 8 == 0:
-                print(f"  shard {i}/{len(shards)} {time.time() - t0:.0f}s", flush=True)
+                print(f"  shard {i}/{len(shards)} {time.time()-t0:.0f}s", flush=True)
     assert os.path.getsize(tmp) == rows * len(shards) * width
     os.rename(tmp, out_name)
-    Path(out_name + ".json").write_text(json.dumps(meta, indent=1))
-    print(f"done in {time.time() - t0:.0f}s", flush=True)
+    json.dump(meta, open(out_name + ".json", "w"), indent=1)
+    print(f"done in {time.time()-t0:.0f}s", flush=True)

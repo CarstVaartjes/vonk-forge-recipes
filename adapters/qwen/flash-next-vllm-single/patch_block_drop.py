@@ -35,10 +35,8 @@ writes nothing, and start.sh mounts nothing.
     python3 files/patch_block_drop.py [orig_dir] [out_dir]
     python3 files/patch_block_drop.py --list    # the paths, one on each line
 """
-
 import os
 import sys
-from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -56,97 +54,59 @@ MARK = "disable_eagle_block_drop"
 
 EDITS = {
     SPEC: [
-        (
-            "    use_local_argmax_reduction: bool = False\n",
-            (
-                "    disable_eagle_block_drop: bool = False\n"
-                '    """Disable dropping the trailing prefix-cache block for EAGLE-like\n'
-                "    speculative methods (backport of vllm#53388). The drafter still runs;\n"
-                '    only prefix-cache reuse of that block changes."""\n'
-                "    use_local_argmax_reduction: bool = False\n"
-            ),
-        ),
-        (
-            '        return self.method in ("eagle", "eagle3", "mtp", "dflash", "dspark")\n',
-            (
-                '        return self.method in ("eagle", "eagle3", "mtp", "dflash", "dspark")\n\n'
-                "    def use_eagle_block_drop(self) -> bool:\n"
-                '        """Whether volatile trailing cache blocks should be discarded."""\n'
-                "        return self.use_eagle() and not self.disable_eagle_block_drop\n"
-            ),
-        ),
+        ("    use_local_argmax_reduction: bool = False\n",
+         "    disable_eagle_block_drop: bool = False\n"
+         '    """Disable dropping the trailing prefix-cache block for EAGLE-like\n'
+         "    speculative methods (backport of vllm#53388). The drafter still runs;\n"
+         '    only prefix-cache reuse of that block changes."""\n'
+         "    use_local_argmax_reduction: bool = False\n"),
+        ('        return self.method in ("eagle", "eagle3", "mtp", "dflash", "dspark")\n',
+         '        return self.method in ("eagle", "eagle3", "mtp", "dflash", "dspark")\n\n'
+         "    def use_eagle_block_drop(self) -> bool:\n"
+         '        """Whether volatile trailing cache blocks should be discarded."""\n'
+         "        return self.use_eagle() and not self.disable_eagle_block_drop\n"),
     ],
     "v1/core/kv_cache_utils.py": [
-        (
-            "    if spec_config is None or not spec_config.use_eagle():\n",
-            "    if spec_config is None or not spec_config.use_eagle_block_drop():\n",
-        ),
+        ("    if spec_config is None or not spec_config.use_eagle():\n",
+         "    if spec_config is None or not spec_config.use_eagle_block_drop():\n"),
     ],
     "v1/core/sched/scheduler.py": [
-        (
-            "        self.use_eagle = False\n",
-            "        self.use_eagle = False\n        self.use_eagle_block_drop = False\n",
-        ),
-        (
-            "            self.use_eagle = speculative_config.use_eagle()\n",
-            (
-                "            self.use_eagle = speculative_config.use_eagle()\n"
-                "            self.use_eagle_block_drop = speculative_config.use_eagle_block_drop()\n"
-                "            if self.use_eagle and not self.use_eagle_block_drop:\n"
-                "                logger.warning(\n"
-                '                    "EAGLE trailing prefix-cache block dropping is disabled "\n'
-                '                    "(vllm#53388 backport)."\n'
-                "                )\n"
-            ),
-        ),
-        (
-            "            use_eagle=self.use_eagle,\n",
-            "            use_eagle=self.use_eagle_block_drop,\n",
-        ),
-        (
-            (
-                "        if self.use_eagle:\n"
-                "            last_cache_position = max(last_cache_position - block_size, 0)\n"
-            ),
-            (
-                "        if self.use_eagle_block_drop:\n"
-                "            last_cache_position = max(last_cache_position - block_size, 0)\n"
-            ),
-        ),
+        ("        self.use_eagle = False\n",
+         "        self.use_eagle = False\n        self.use_eagle_block_drop = False\n"),
+        ("            self.use_eagle = speculative_config.use_eagle()\n",
+         "            self.use_eagle = speculative_config.use_eagle()\n"
+         "            self.use_eagle_block_drop = speculative_config.use_eagle_block_drop()\n"
+         "            if self.use_eagle and not self.use_eagle_block_drop:\n"
+         "                logger.warning(\n"
+         '                    "EAGLE trailing prefix-cache block dropping is disabled "\n'
+         '                    "(vllm#53388 backport)."\n'
+         "                )\n"),
+        ("            use_eagle=self.use_eagle,\n",
+         "            use_eagle=self.use_eagle_block_drop,\n"),
+        ("        if self.use_eagle:\n"
+         "            last_cache_position = max(last_cache_position - block_size, 0)\n",
+         "        if self.use_eagle_block_drop:\n"
+         "            last_cache_position = max(last_cache_position - block_size, 0)\n"),
     ],
     # The KV transfer and offload users of the old check follow the new one.
     "distributed/kv_transfer/kv_connector/v1/mooncake/store/worker.py": [
-        (
-            (
-                "            spec_cfg.use_eagle()\n"
-                '            if spec_cfg is not None and callable(getattr(spec_cfg, "use_eagle", None))\n'
-            ),
-            (
-                "            spec_cfg.use_eagle_block_drop()\n"
-                "            if spec_cfg is not None\n"
-                '            and callable(getattr(spec_cfg, "use_eagle_block_drop", None))\n'
-            ),
-        ),
+        ("            spec_cfg.use_eagle()\n"
+         '            if spec_cfg is not None and callable(getattr(spec_cfg, "use_eagle", None))\n',
+         "            spec_cfg.use_eagle_block_drop()\n"
+         "            if spec_cfg is not None\n"
+         '            and callable(getattr(spec_cfg, "use_eagle_block_drop", None))\n'),
     ],
     "distributed/kv_transfer/kv_connector/v1/offloading/scheduler.py": [
-        (
-            (
-                "            and vllm_config.speculative_config.use_eagle()\n"
-                "        )\n"
-                "        if use_eagle and not eagle_groups:\n"
-            ),
-            (
-                "            and vllm_config.speculative_config.use_eagle_block_drop()\n"
-                "        )\n"
-                "        if use_eagle and not eagle_groups:\n"
-            ),
-        ),
+        ("            and vllm_config.speculative_config.use_eagle()\n"
+         "        )\n"
+         "        if use_eagle and not eagle_groups:\n",
+         "            and vllm_config.speculative_config.use_eagle_block_drop()\n"
+         "        )\n"
+         "        if use_eagle and not eagle_groups:\n"),
     ],
     "v1/simple_kv_offload/manager.py": [
-        (
-            "        use_eagle = spec_config is not None and spec_config.use_eagle()\n",
-            "        use_eagle = spec_config is not None and spec_config.use_eagle_block_drop()\n",
-        ),
+        ("        use_eagle = spec_config is not None and spec_config.use_eagle()\n",
+         "        use_eagle = spec_config is not None and spec_config.use_eagle_block_drop()\n"),
     ],
 }
 
@@ -166,32 +126,28 @@ def main() -> None:
     if sys.argv[1:] == ["--list"]:
         print("\n".join(FILES))
         return
-    orig = (
-        sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "block_drop", "orig")
-    )
+    orig = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "block_drop", "orig")
     out = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HERE, "block_drop")
     sources = {}
     for name in FILES:
         path = os.path.join(orig, name)
         if not os.path.isfile(path):
             raise SystemExit(f"patch_block_drop: missing {path}")
-        sources[name] = Path(path).read_text()
+        sources[name] = open(path).read()
     if MARK in sources[SPEC]:
         for name in FILES:
             try:
                 os.remove(os.path.join(out, name))
             except FileNotFoundError:
                 pass
-        print(
-            "patch_block_drop: the image already has disable_eagle_block_drop; nothing to mount"
-        )
+        print("patch_block_drop: the image already has disable_eagle_block_drop; nothing to mount")
         return
     # Patch all files before writing any, so a failed anchor leaves no partial set.
     patched = {name: patch(name, src) for name, src in sources.items()}
     for name, src in patched.items():
         path = os.path.join(out, name)
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        Path(path).write_text(src)
+        open(path, "w").write(src)
         print(f"patched {name}")
 
 

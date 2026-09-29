@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# ruff: noqa: BLE001  # vendored upstream source, kept as published
 """Stop vLLM from loading Engram embed tables as 47 GiB pinned Parameters.
 
 The EXL3 tree has no layers.{1,14}.engram.embed.{weight,scale}. Those FP8
@@ -12,11 +11,10 @@ This patch:
   * drops leftover 47/48 iterators if a previous overlay left them in place
   * reverts the old dsv41-engram-secondary insertion
 """
-
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+import sys
 
 MARK = "dsv41-engram-file"
 OLD_MARK = "dsv41-engram-secondary"

@@ -1,0 +1,15 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE",
+    "upstream-ds4-1m-launch.sh": "launch/ds4-1m-launch.sh",
+    "upstream-ds4-500k-launch.sh": "launch/ds4-500k-launch.sh"
+  },
+  "source": {
+    "repo": "tonyd2wild/DeepSeek-V4-Flash-2x-Spark-1M",
+    "commit": "7cc2c55c7b6428dcf49401dae63583c2e0141cdf"
+  }
+}

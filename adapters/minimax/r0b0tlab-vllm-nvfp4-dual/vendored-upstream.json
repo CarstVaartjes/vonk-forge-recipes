@@ -1,0 +1,9 @@
+{
+  "source": {
+    "repo": "r0b0tlab/minimax-m27-nvfp4-gb10-benchmark",
+    "commit": "32c395f75ff44f744e6b27991d17775623de071a"
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ]
+}
