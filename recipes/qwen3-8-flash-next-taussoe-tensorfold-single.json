@@ -1,0 +1,657 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3",
+        "repository": "nvcr.io/nvidia/pytorch"
+      },
+      "context": {
+        "path": "adapters/qwen/flash-next-taussoe-tensorfold-single"
+      },
+      "dockerfile": "adapters/qwen/flash-next-taussoe-tensorfold-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "files.pythonhosted.org",
+          "pypi.org"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-taussoe-tensorfold-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "Qwen3.8-Flash-Next"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Single-DGX-Spark Qwen3.8 Flash Next on the TensorFold engine (exact decoding, custom CUDA kernels JIT-compiled on first start) with Vontra's MLX 4-bit checkpoint and MTP head, following taussoe's tensorfold-recipes (d8a7c09c, MIT). Runs taussoe's TensorFold fork (branch glm-long-context at c32abe92: TensorFold 0.3.6.3 plus agent-turn resume for Flash Next, so an agent's next turn resumes instead of re-reading its prompt; upstream measured a recorded 42-call agent session at 7.6 min instead of 16 with four parallel streams). Text only. Upstream measured on one Spark (0.3.6.3 plus agent turns): an automatic window of 157,607 tokens, decode 77 / 61 / 75 / 72 tok/s in the standard cells, a 32k prompt read at 2,102 tok/s and a 128k one at 1,840, and 181 tok/s together at 8 streams of 32k (upstream figures, unmeasured here). The 80.4 GB of weights plus 32 GB of n-gram tables held in the page cache are tight on one 128 GB Spark: run nothing else beside it (upstream advice), or choose the SSD-resident tables option. The model weights are under the Qwen Community License 1.0 (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses).",
+    "tags": [
+      "agent-resume",
+      "engine",
+      "kernel-jit",
+      "mlx-checkpoint",
+      "mtp",
+      "qwen3.8",
+      "reasoning",
+      "spark",
+      "tensorfold",
+      "text-only"
+    ],
+    "title": "Qwen3.8 Flash Next TensorFold single Spark (taussoe)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "primary-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-a0dc42256084-c693279643",
+          "id": "primary-license-a0dc42256084-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-235f260dd21b-b335630551",
+          "id": "primary-readme-235f260dd21b-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-c3cf9e34abf4-00824420d1",
+          "id": "primary-chat-template-c3cf9e34abf4-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-4efd5f41c47e-587cb980af",
+          "id": "primary-config-4efd5f41c47e-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-e70c136c1b78-97dd3d578b",
+          "id": "primary-generation-config-e70c136c1b78-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "id": "primary-merges-a9d356d7bdf1-b0d6dcfed4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00022-308f20b7e35a-66c3c434ad",
+          "id": "primary-model-00001-of-00022-308f20b7e35a-66c3c434ad",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00022-8af1a616f2f3-6047bb79c0",
+          "id": "primary-model-00002-of-00022-8af1a616f2f3-6047bb79c0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00022-519a0472252a-428e9f10de",
+          "id": "primary-model-00003-of-00022-519a0472252a-428e9f10de",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00022-b1ad7e951969-d176f7bfba",
+          "id": "primary-model-00004-of-00022-b1ad7e951969-d176f7bfba",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00022-9ca797304c56-3f054a7098",
+          "id": "primary-model-00005-of-00022-9ca797304c56-3f054a7098",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00022-8aab4c1dce7d-82589b5654",
+          "id": "primary-model-00006-of-00022-8aab4c1dce7d-82589b5654",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00022-7908da37b2e3-3a5d7cdc74",
+          "id": "primary-model-00007-of-00022-7908da37b2e3-3a5d7cdc74",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00022-85beff20f250-cf64932166",
+          "id": "primary-model-00008-of-00022-85beff20f250-cf64932166",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00022-f7c03ae640e9-e7ee8ef226",
+          "id": "primary-model-00009-of-00022-f7c03ae640e9-e7ee8ef226",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00022-6897f5222753-009e26e857",
+          "id": "primary-model-00010-of-00022-6897f5222753-009e26e857",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00022-905d27f9db88-8252ea3d5e",
+          "id": "primary-model-00011-of-00022-905d27f9db88-8252ea3d5e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00022-c4d2bb76fa46-f85bce0fc3",
+          "id": "primary-model-00012-of-00022-c4d2bb76fa46-f85bce0fc3",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00022-1f20a5e1f225-4aafe282da",
+          "id": "primary-model-00013-of-00022-1f20a5e1f225-4aafe282da",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00022-860d12691792-78ace24cf5",
+          "id": "primary-model-00014-of-00022-860d12691792-78ace24cf5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00022-259fb7577b82-e4e6781df6",
+          "id": "primary-model-00015-of-00022-259fb7577b82-e4e6781df6",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00022-e931785f9ff4-26e60725af",
+          "id": "primary-model-00016-of-00022-e931785f9ff4-26e60725af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00022-4f4610dc4a86-1f2305b0c8",
+          "id": "primary-model-00017-of-00022-4f4610dc4a86-1f2305b0c8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00018-of-00022-afdb48289201-9e10e62c45",
+          "id": "primary-model-00018-of-00022-afdb48289201-9e10e62c45",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00019-of-00022-869d34c6e8f7-76f78b32fa",
+          "id": "primary-model-00019-of-00022-869d34c6e8f7-76f78b32fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00020-of-00022-5ca2f994fec1-7587bc0e46",
+          "id": "primary-model-00020-of-00022-5ca2f994fec1-7587bc0e46",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00021-of-00022-58def6762f29-b95975f319",
+          "id": "primary-model-00021-of-00022-58def6762f29-b95975f319",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00022-of-00022-30a3c82b573d-317de6275d",
+          "id": "primary-model-00022-of-00022-30a3c82b573d-317de6275d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-8848503860c7-0a05be8238",
+          "id": "primary-model-safetensors-index-8848503860c7-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "primary-preprocessor-config-27225450ac9c-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "qwen-logo-e56f3a62991f-f86d0c6523",
+          "id": "primary-qwen-logo-e56f3a62991f-f86d0c6523",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-0997f410c57a-224931eb13",
+          "id": "primary-tokenizer-0997f410c57a-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
+          "id": "primary-tokenizer-config-b11349aafa7c-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "primary-vocab-ce99b4cb2983-ba05d8e2e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "f36ae3c3ba0d23e4ff1d1c2aeda9b70dfacca236550bd8c35e941ae7f4c1190c",
+        "kind": "model",
+        "publisher": "vontra",
+        "slug": "qwen3-8-flash-next-mlx-4bit-mtp-dadefa80"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Open a think block by default (TensorFold default).",
+          "label": "Think first",
+          "value": "thinking"
+        },
+        {
+          "args": [
+            {
+              "name": "no-thinking",
+              "value": true
+            }
+          ],
+          "help": "Answer without a think block unless a request asks for one (--no-thinking).",
+          "label": "Answer directly",
+          "value": "direct"
+        }
+      ],
+      "help": "Whether the chat template opens a think block by default (TensorFold's default is on). A request can still set chat_template_kwargs.enable_thinking; reasoning comes back in reasoning_content. Upstream lists --no-thinking as a serve flag.",
+      "label": "Thinking",
+      "name": "thinking"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "TensorFold's CUDA default: at most 6 drafts a round, a chain stops under 30 percent confidence.",
+          "label": "MTP, up to 6 drafts",
+          "value": "mtp-6"
+        },
+        {
+          "args": [
+            {
+              "name": "mtp-drafts",
+              "value": 4
+            }
+          ],
+          "help": "--mtp-drafts 4 (upstream suggests comparing it; no result published).",
+          "label": "MTP, up to 4 drafts",
+          "value": "mtp-4"
+        },
+        {
+          "args": [
+            {
+              "name": "no-drafts",
+              "value": true
+            }
+          ],
+          "help": "Serial one-token-at-a-time reference decoding (--no-drafts); same output, slower.",
+          "label": "No drafting",
+          "value": "serial"
+        }
+      ],
+      "help": "MTP drafts are verified against the model's own samples, so outputs are unchanged by drafting (upstream claim). Upstream suggests comparing --mtp-drafts 4 with the default of 6.",
+      "label": "MTP drafting",
+      "name": "drafting"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Tables memory-mapped and held in the page cache (taussoe default).",
+          "label": "Page cache",
+          "value": "page-cache"
+        },
+        {
+          "args": [
+            {
+              "name": "ple-on-ssd",
+              "value": true
+            }
+          ],
+          "help": "--ple-on-ssd: tables stay on disk, about 40 GiB less peak memory, keep the model on NVMe.",
+          "label": "On SSD",
+          "value": "ssd"
+        }
+      ],
+      "help": "The checkpoint carries 32 GB of hashed n-gram tables. Upstream keeps them memory-mapped in the page cache, which is tight beside 80 GB of weights on one Spark: if the kernel evicts them every token waits about 8 ms on the disk. --ple-on-ssd reads them from disk explicitly instead (MiaAI-Lab's single-Spark kit uses it; upstream reports about 40 GiB less peak for a few percent of decode speed, an upstream claim).",
+      "label": "N-gram tables",
+      "name": "ngram_tables"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "taussoe",
+      "Ash Hart (TensorFold)",
+      "Vontra",
+      "Qwen contributors"
+    ],
+    "source_reference": "https://github.com/taussoe/tensorfold-recipes/tree/d8a7c09c893eb41be5e93dbd684ce7d4f127d7ac"
+  },
+  "release": {
+    "released_at": "2026-09-29",
+    "version": "0.3.6.3"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "host",
+        "setting": null,
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "setting": null,
+        "value": 8000
+      },
+      {
+        "name": "name",
+        "setting": null,
+        "value": "Qwen3.8-Flash-Next"
+      },
+      {
+        "name": "parallel",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "context",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-tokens",
+        "setting": null,
+        "value": 32768
+      }
+    ],
+    "engine": "tensorfold",
+    "entrypoint": [
+      "/opt/vonk/bin/tensorfold-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TENSORFOLD_NO_UPDATE_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 131072
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 113233047784,
+            "image_bytes": 26000000000,
+            "safety_margin_bytes": 15000000000,
+            "working_bytes": 8000000000
+          },
+          "memory": {
+            "peak_bytes": 116000000000,
+            "reserve_bytes": 10000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "Qwen3.8-Flash-Next"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
