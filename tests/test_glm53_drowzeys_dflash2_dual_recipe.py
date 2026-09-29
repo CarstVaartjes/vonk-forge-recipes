@@ -49,7 +49,7 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
         recipe = load(RECIPE)
         arguments = {item["name"]: item for item in recipe["runtime"]["arguments"]}
         self.assertEqual(arguments["gpu-memory-utilization"]["value"], "0.85")
-        self.assertEqual(arguments["kv-cache-memory"]["value"], 6_442_450_944)
+        self.assertEqual(arguments["kv-cache-memory"]["value"], 8_589_934_592)
         self.assertEqual(
             json.loads(arguments["default-chat-template-kwargs"]["value"]),
             {"enable_thinking": False},
@@ -74,7 +74,7 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
             self.assertEqual(role["resources"]["memory"]["peak_bytes"], 126_000_000_000)
         dockerfile = (ADAPTER / "Dockerfile").read_text()
         self.assertIn(
-            'org.opencontainers.image.revision="3eef46632c45ffb6c397de0716c23b3d2d594798"',
+            'org.opencontainers.image.revision="abb38bb0c4225855919d55309cd3e506d7941468"',
             dockerfile,
         )
         self.assertIn("USER 10001:10001", dockerfile)

@@ -81,7 +81,7 @@ class GlmWrapperArgvTests(unittest.TestCase):
                 authored = compile_authored_argv(recipe)
                 if slug == "glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual":
                     kv_index = authored.index("--kv-cache-memory")
-                    self.assertEqual(authored[kv_index + 1], "6442450944")
+                    self.assertEqual(authored[kv_index + 1], "8589934592")
                 authored_engine = authored[:]
                 # These are Controller placement inputs, not engine argv.
                 placement_start = authored_engine.index("--nnodes")
@@ -154,7 +154,7 @@ class GlmWrapperArgvTests(unittest.TestCase):
                 self.assertEqual(final[: len(expected)], expected)
                 if slug == "glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual":
                     kv_index = final.index("--kv-cache-memory")
-                    self.assertEqual(final[kv_index + 1], "6442450944")
+                    self.assertEqual(final[kv_index + 1], "8589934592")
                 if recipe["topology"]["parallelism"]["backend"] == "mp":
                     self.assertEqual(
                         final[-4:],

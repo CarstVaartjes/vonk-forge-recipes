@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "abliterated",
-    "description": "Executable gated Candidate for Drowzeys' complete Red Hat compressed-tensors L15-43/MTP-L45 checkpoint with the bf582e4e DFlash2 K7 drafter. It binds tonyd2wild's worker-first native-mp TP2 profile and exact required SM121 sparse-indexer replacement: 262K context, block size 2304, Marlin MoE, FP8 E4M3 KV, 0.85 unified-memory utilization, 8K batched tokens, eager execution, and the checkpoint's exact thinking-off template. Installation requires prior acceptance of both Drowzeys' responsible-use gate and the drafter's separate CC-BY-NC-ND-4.0 terms, plus a read-only Hugging Face token supplied through the Controller; Vonk physical two-Spark acceptance remains pending.",
+    "description": "Executable gated Candidate for Drowzeys' complete Red Hat compressed-tensors L15-43/MTP-L45 checkpoint with the bf582e4e DFlash2 K7 drafter. It binds tonyd2wild's worker-first native-mp TP2 profile and exact required SM121 sparse-indexer replacement: 262K context, block size 2304, Marlin MoE, FP8 E4M3 KV, 0.85 unified-memory utilization, 8K batched tokens, eager execution, an 8 GiB pinned KV pool, images on with video off, the checkpoint's exact thinking-off template, and upstream's draft-group prefix-cache repair built into the image. Installation requires prior acceptance of both Drowzeys' responsible-use gate and the drafter's separate CC-BY-NC-ND-4.0 terms, plus a read-only Hugging Face token supplied through the Controller; Vonk physical two-Spark acceptance remains pending.",
     "tags": [
       "abliterated",
       "candidate",
@@ -483,6 +483,60 @@
       }
     }
   ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default: DFlash2 drafter, 7 speculative tokens, 8 GiB KV pool.",
+          "label": "DFlash2 k=7",
+          "value": "dflash2"
+        },
+        {
+          "args": [
+            {
+              "name": "speculative-config",
+              "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":4}"
+            },
+            {
+              "name": "kv-cache-memory",
+              "value": 4445787956
+            }
+          ],
+          "help": "Native MTP head with 4 speculative tokens and a 4 GiB KV pool (upstream MTP launcher values); the drafter files stay mounted but unused.",
+          "label": "MTP 4",
+          "value": "mtp"
+        }
+      ],
+      "help": "Drafting method. DFlash2 k=7 with the incoai drafter is the upstream default. MTP uses the checkpoint's own MTP-L45 head with the values of upstream's MTP launcher (4 tokens, 4 GiB KV pin); it is not upstream's tuned path and is untested here.",
+      "label": "Speculative decoding",
+      "name": "speculation"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default: up to 2 images per prompt, no video.",
+          "label": "Images only",
+          "value": "off"
+        },
+        {
+          "args": [
+            {
+              "name": "limit-mm-per-prompt",
+              "value": "{\"image\":2,\"video\":1}"
+            }
+          ],
+          "help": "Up to 2 images and 1 video per prompt; boot profiles the video encoder and can raise peak memory. Untested by upstream.",
+          "label": "Images and video",
+          "value": "on"
+        }
+      ],
+      "help": "Upstream keeps video off: it skips the max-size video encoder profile at boot, which caused a memory incident on 2026-09-18 (upstream claim).",
+      "label": "Video input",
+      "name": "video_input"
+    }
+  ],
   "provenance": {
     "attribution": [
       "Z.AI",
@@ -493,11 +547,11 @@
       "IncoAI",
       "vLLM contributors"
     ],
-    "source_reference": "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark/tree/3eef46632c45ffb6c397de0716c23b3d2d594798"
+    "source_reference": "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark/tree/abb38bb0c4225855919d55309cd3e506d7941468"
   },
   "release": {
-    "released_at": "2026-09-06",
-    "version": "1.0.6"
+    "released_at": "2026-09-24",
+    "version": "1.0.7"
   },
   "runtime": {
     "arguments": [
@@ -564,7 +618,7 @@
       {
         "name": "kv-cache-memory",
         "setting": null,
-        "value": 6442450944
+        "value": 8589934592
       },
       {
         "name": "enforce-eager",
@@ -579,7 +633,7 @@
       {
         "name": "limit-mm-per-prompt",
         "setting": null,
-        "value": "{\"image\":4,\"video\":1}"
+        "value": "{\"image\":2,\"video\":0}"
       },
       {
         "name": "chat-template",
@@ -689,6 +743,14 @@
       {
         "name": "NCCL_DEBUG",
         "value": "WARN"
+      },
+      {
+        "name": "MAX_JOBS",
+        "value": "2"
+      },
+      {
+        "name": "FLASHINFER_NVCC_THREADS",
+        "value": "1"
       }
     ],
     "lifecycle": {
