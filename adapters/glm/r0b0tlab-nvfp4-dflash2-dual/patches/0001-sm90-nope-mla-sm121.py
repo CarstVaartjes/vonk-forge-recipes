@@ -16,7 +16,6 @@ verification re-derived for this base image (vLLM 0.28.1rc1.dev580+g385dce36b).
 Idempotent (marker GLM53-SM121-NOPE-MLA); fails loudly if any anchor drifts.
 Usage: python3 0001-sm90-nope-mla-sm121.py [--root /usr/local/lib/python3.12/dist-packages] [--dry-run]
 """
-
 from __future__ import annotations
 
 import argparse
@@ -93,9 +92,7 @@ def patch(root: Path, dry_run: bool) -> int:
         try:
             ast.parse(text, filename=str(path))
         except SyntaxError as e:
-            raise AssertionError(
-                f"[P1] post-edit ast.parse failed for {rel}: {e}"
-            ) from e
+            raise AssertionError(f"[P1] post-edit ast.parse failed for {rel}: {e}") from e
         if dry_run:
             print(f"[P1] DRY RUN {rel}: {len(edits)} edits validated")
         else:

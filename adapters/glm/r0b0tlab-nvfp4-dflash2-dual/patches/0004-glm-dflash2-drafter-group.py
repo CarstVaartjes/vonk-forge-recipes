@@ -21,7 +21,6 @@ Inert without a drafter (draft_group stays None).
 Idempotent (marker GLM53-DFLASH2-DRAFTER-GROUP); fails loudly on anchor drift.
 Usage: python3 0004-glm-dflash2-drafter-group.py [--root ...] [--dry-run]
 """
-
 from __future__ import annotations
 
 import argparse
@@ -36,10 +35,9 @@ TARGET = "vllm/v1/core/kv_cache_utils.py"
 EDITS = []
 
 # --- groups: partition drafter specs out of attn_specs ----------------------
-EDITS.append(
-    (
-        "groups: partition drafter SlidingWindowSpec layers out",
-        """    tail_specs = {
+EDITS.append((
+    "groups: partition drafter SlidingWindowSpec layers out",
+    """    tail_specs = {
         name: spec
         for name, spec in kv_cache_spec.items()
         if isinstance(spec, KpoolTailSpec)
@@ -50,7 +48,7 @@ EDITS.append(
         if not isinstance(spec, (MambaSpec, KpoolTailSpec))
     }
 """,
-        """    tail_specs = {
+    """    tail_specs = {
         name: spec
         for name, spec in kv_cache_spec.items()
         if isinstance(spec, KpoolTailSpec)
@@ -71,15 +69,12 @@ EDITS.append(
         if not isinstance(spec, (MambaSpec, KpoolTailSpec))
         and type(spec) is not SlidingWindowSpec
     }
-""",
-    )
-)
+"""))
 
 # --- groups: build + append the drafter group -------------------------------
-EDITS.append(
-    (
-        "groups: build + append drafter group (exact-fit / standalone)",
-        """    mamba_grouped_names: list[list[str]] = [[] for _ in range(num_groups)]
+EDITS.append((
+    "groups: build + append drafter group (exact-fit / standalone)",
+    """    mamba_grouped_names: list[list[str]] = [[] for _ in range(num_groups)]
     for index, name in enumerate(mamba_specs):
         mamba_grouped_names[index % num_groups].append(name)
 
@@ -89,7 +84,7 @@ EDITS.append(
         + create_kv_cache_group_specs(padded_specs, mamba_grouped_names)
     )
 """,
-        """    mamba_grouped_names: list[list[str]] = [[] for _ in range(num_groups)]
+    """    mamba_grouped_names: list[list[str]] = [[] for _ in range(num_groups)]
     for index, name in enumerate(mamba_specs):
         mamba_grouped_names[index % num_groups].append(name)
 
@@ -135,35 +130,29 @@ EDITS.append(
         + create_kv_cache_group_specs(padded_specs, mamba_grouped_names)
         + ([draft_group] if draft_group is not None else [])
     )
-""",
-    )
-)
+"""))
 
 # --- layout: return-type annotation gains draft_group -----------------------
-EDITS.append(
-    (
-        "layout: return-type annotation gains draft_group",
-        """        list[str],
+EDITS.append((
+    "layout: return-type annotation gains draft_group",
+    """        list[str],
         int,
     ]
     | None
 ):
 """,
-        """        list[str],
+    """        list[str],
         int,
         KVCacheGroupSpec | None,
     ]
     | None
 ):
-""",
-    )
-)
+"""))
 
 # --- layout: detect the drafter SWA group -----------------------------------
-EDITS.append(
-    (
-        "layout: detect drafter SWA uniform group",
-        """    attn_group: KVCacheGroupSpec | None = None
+EDITS.append((
+    "layout: detect drafter SWA uniform group",
+    """    attn_group: KVCacheGroupSpec | None = None
     tail_group: KVCacheGroupSpec | None = None
     for group in uniform_groups:
         inner = cast(UniformTypeKVCacheSpecs, group.kv_cache_spec).kv_cache_specs
@@ -172,7 +161,7 @@ EDITS.append(
         elif all(isinstance(spec, KpoolTailSpec) for spec in inner.values()):
             tail_group = group
 """,
-        """    attn_group: KVCacheGroupSpec | None = None
+    """    attn_group: KVCacheGroupSpec | None = None
     tail_group: KVCacheGroupSpec | None = None
     draft_group: KVCacheGroupSpec | None = None
     for group in uniform_groups:
@@ -187,20 +176,17 @@ EDITS.append(
             # GLM53-DFLASH2-DRAFTER-GROUP: the drafter's SWA group (validated
             # below once mla_page is known).
             draft_group = group
-""",
-    )
-)
+"""))
 
 # --- layout: validate the drafter group -------------------------------------
-EDITS.append(
-    (
-        "layout: validate drafter (uniform page, never padded)",
-        """    if any(group.kv_cache_spec.page_size_bytes != mla_page for group in mamba_groups):
+EDITS.append((
+    "layout: validate drafter (uniform page, never padded)",
+    """    if any(group.kv_cache_spec.page_size_bytes != mla_page for group in mamba_groups):
         return None
 
     tail_names: list[str] = []
 """,
-        """    if any(group.kv_cache_spec.page_size_bytes != mla_page for group in mamba_groups):
+    """    if any(group.kv_cache_spec.page_size_bytes != mla_page for group in mamba_groups):
         return None
     if draft_group is not None:
         # GLM53-DFLASH2-DRAFTER-GROUP: one uniform page across drafter layers
@@ -221,15 +207,12 @@ EDITS.append(
             return None
 
     tail_names: list[str] = []
-""",
-    )
-)
+"""))
 
 # --- layout: return draft_group ---------------------------------------------
-EDITS.append(
-    (
-        "layout: return draft_group (9th element)",
-        """    return (
+EDITS.append((
+    "layout: return draft_group (9th element)",
+    """    return (
         attn_group,
         mamba_groups,
         mla_names,
@@ -240,7 +223,7 @@ EDITS.append(
         tail_page,
     )
 """,
-        """    return (
+    """    return (
         attn_group,
         mamba_groups,
         mla_names,
@@ -251,19 +234,16 @@ EDITS.append(
         tail_page,
         draft_group,
     )
-""",
-    )
-)
+"""))
 
 # --- _get_kv_cache_bytes_per_block: 9-tuple + standalone bytes --------------
-EDITS.append(
-    (
-        "_get_kv_cache_bytes_per_block: standalone drafter bytes",
-        """    if (glm5_layout := _glm5_next_tensor_layout(kv_cache_groups)) is not None:
+EDITS.append((
+    "_get_kv_cache_bytes_per_block: standalone drafter bytes",
+    """    if (glm5_layout := _glm5_next_tensor_layout(kv_cache_groups)) is not None:
         _, _, mla_names, idx_names, mla_page, idx_page, _, _ = glm5_layout
         return len(mla_names) * mla_page + len(idx_names) * idx_page
 """,
-        """    if (glm5_layout := _glm5_next_tensor_layout(kv_cache_groups)) is not None:
+    """    if (glm5_layout := _glm5_next_tensor_layout(kv_cache_groups)) is not None:
         (
             _,
             _,
@@ -289,15 +269,12 @@ EDITS.append(
             if draft_page != mla_page:
                 per_block += len(draft_group.layer_names) * draft_page
         return per_block
-""",
-    )
-)
+"""))
 
 # --- get_kv_cache_config_from_groups: destructure + per-block cost ----------
-EDITS.append(
-    (
-        "config: destructure + per-block cost incl. standalone drafter",
-        """    if (glm5_layout := _glm5_next_tensor_layout(kv_cache_groups)) is not None:
+EDITS.append((
+    "config: destructure + per-block cost incl. standalone drafter",
+    """    if (glm5_layout := _glm5_next_tensor_layout(kv_cache_groups)) is not None:
         (
             attn_group,
             mamba_groups,
@@ -313,7 +290,7 @@ EDITS.append(
             vllm_config, available_memory // bytes_per_block
         )
 """,
-        """    if (glm5_layout := _glm5_next_tensor_layout(kv_cache_groups)) is not None:
+    """    if (glm5_layout := _glm5_next_tensor_layout(kv_cache_groups)) is not None:
         (
             attn_group,
             mamba_groups,
@@ -344,19 +321,16 @@ EDITS.append(
         num_blocks = may_override_num_blocks(
             vllm_config, available_memory // bytes_per_block
         )
-""",
-    )
-)
+"""))
 
 # --- get_kv_cache_config_from_groups: drafter tensors -----------------------
-EDITS.append(
-    (
-        "config: drafter tensors (exact-fit alias / standalone)",
-        """                add_tensor(tail_name, tail_specs[tail_name], offset)
+EDITS.append((
+    "config: drafter tensors (exact-fit alias / standalone)",
+    """                add_tensor(tail_name, tail_specs[tail_name], offset)
 
         return KVCacheConfig(
 """,
-        """                add_tensor(tail_name, tail_specs[tail_name], offset)
+    """                add_tensor(tail_name, tail_specs[tail_name], offset)
 
         if draft_names:
             # GLM53-DFLASH2-DRAFTER-GROUP: exact fit -> drafter layer i rides
@@ -372,15 +346,12 @@ EDITS.append(
                 add_tensor(draft_name, draft_inner[draft_name], offset)
 
         return KVCacheConfig(
-""",
-    )
-)
+"""))
 
 # --- _max_memory_usage_bytes_from_groups: destructure -----------------------
-EDITS.append(
-    (
-        "max-mem: destructure gains draft_group",
-        """        (
+EDITS.append((
+    "max-mem: destructure gains draft_group",
+    """        (
             attn_group,
             mamba_groups,
             mla_names,
@@ -392,7 +363,7 @@ EDITS.append(
         ) = glm5_layout
         uniform_spec = cast(UniformTypeKVCacheSpecs, attn_group.kv_cache_spec)
 """,
-        """        (
+    """        (
             attn_group,
             mamba_groups,
             mla_names,
@@ -404,19 +375,16 @@ EDITS.append(
             draft_group,
         ) = glm5_layout
         uniform_spec = cast(UniformTypeKVCacheSpecs, attn_group.kv_cache_spec)
-""",
-    )
-)
+"""))
 
 # --- _max_memory_usage_bytes_from_groups: drafter demand --------------------
-EDITS.append(
-    (
-        "max-mem: charge drafter block-id demand + standalone bytes",
-        """        if tail_names:
+EDITS.append((
+    "max-mem: charge drafter block-id demand + standalone bytes",
+    """        if tail_names:
             total_blocks += 1
         return total_blocks * (len(mla_names) * mla_page + len(idx_names) * idx_page)
 """,
-        """        if tail_names:
+    """        if tail_names:
             total_blocks += 1
         per_block = len(mla_names) * mla_page + len(idx_names) * idx_page
         if draft_group is not None:
@@ -432,9 +400,7 @@ EDITS.append(
             if draft_page != mla_page:
                 per_block += len(draft_group.layer_names) * draft_page
         return total_blocks * per_block
-""",
-    )
-)
+"""))
 
 
 def patch(root: Path, dry_run: bool) -> int:
