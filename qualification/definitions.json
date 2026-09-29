@@ -5196,6 +5196,22 @@
         ]
       }
     },
+    "vonk-forge/nemotron-3-nano-30b-a3b-bf16-nvidia-vllm-single": {
+      "alias": "nemotron-3-nano",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/laguna-s-2-1-nvfp4-vllm-low-memory-canary-single": {
       "alias": "laguna-s-2-1-low-memory-canary",
       "smoke_cases": [
