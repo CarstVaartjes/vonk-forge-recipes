@@ -252,7 +252,7 @@ def _coverage_group(engine: str, interface: str, signals: list[str]) -> str:
         return "sglang"
     if engine == "vllm":
         return _SPECIALIZED if declared_fork else "vllm"
-    if engine in {"ds4", "tensorfold"}:
+    if engine in {"ds4", "tensorfold", "exllamav3"}:
         return _SPECIALIZED
     if engine in {"diffusers", "comfyui"}:
         return _IMAGE_VIDEO

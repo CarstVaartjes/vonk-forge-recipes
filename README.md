@@ -10,47 +10,47 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-**103 recipes** for **32 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+**104 recipes** for **32 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
 Number of recipes per model family and engine.
 
-| Model family | vLLM | SGLang | TensorRT-LLM | llama.cpp | TensorFold | ds4 | diffusers | ComfyUI | pytorch-pipeline |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| DeepSeek V4 Flash | 7 |  |  |  |  | 3 |  |  |  |
-| FLUX.2 |  |  |  |  |  |  |  | 2 |  |
-| Gemma | 2 |  |  |  |  |  |  |  |  |
-| GLM | 9 |  |  |  |  |  |  |  |  |
-| Hunyuan3D |  |  |  |  |  |  |  |  | 1 |
-| HunyuanOCR |  |  |  |  |  |  |  |  | 1 |
-| HunyuanVideo |  |  |  |  |  |  | 3 |  |  |
-| HunyuanVideo Foley |  |  |  |  |  |  |  |  | 2 |
-| Hy3 kodelow | 1 |  |  |  |  |  |  |  |  |
-| Inkling |  | 2 |  |  |  |  |  |  |  |
-| Laguna | 3 |  |  |  |  |  |  |  |  |
-| Leanstral | 1 |  |  |  |  |  |  |  |  |
-| LFM2.5 | 2 |  |  |  |  |  |  |  |  |
-| Ling |  | 1 |  |  |  |  |  |  |  |
-| LTX |  |  |  |  |  |  | 2 |  | 5 |
-| MiMo | 1 | 1 |  |  |  |  |  |  |  |
-| MiniMax H3 | 1 |  |  |  |  |  | 2 |  |  |
-| MOSS-VL |  |  |  |  |  |  |  |  | 1 |
-| MOVA |  |  |  |  |  |  |  |  | 2 |
-| Muse Glimmer | 1 |  |  |  |  |  |  |  |  |
-| Nemotron | 7 |  |  |  |  |  |  |  |  |
-| Ornith | 1 |  |  |  |  |  |  |  |  |
-| Pixal3D |  |  |  |  |  |  |  |  | 1 |
-| Qwen (text and vision) | 10 | 2 |  |  | 2 |  |  |  |  |
-| Qwen Image |  |  |  |  |  |  | 6 | 5 |  |
-| SkinTokens |  |  |  |  |  |  |  |  | 1 |
-| Step 3.7 Flash | 1 |  |  |  |  |  |  |  |  |
-| Step1X-3D |  |  |  |  |  |  |  |  | 3 |
-| TRELLIS |  |  |  |  |  |  |  |  | 1 |
-| TripoSG |  |  |  |  |  |  |  |  | 1 |
-| UI-Mate | 1 |  |  |  |  |  |  |  |  |
-| Wan |  |  |  |  |  |  |  | 3 | 2 |
-| **Total** | **48** | **6** | **0** | **0** | **2** | **3** | **13** | **10** | **21** |
+| Model family | vLLM | SGLang | TensorRT-LLM | llama.cpp | TensorFold | ds4 | diffusers | ComfyUI | pytorch-pipeline | exllamav3 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| DeepSeek V4 Flash | 7 |  |  |  |  | 3 |  |  |  |  |
+| FLUX.2 |  |  |  |  |  |  |  | 2 |  |  |
+| Gemma | 2 |  |  |  |  |  |  |  |  |  |
+| GLM | 9 |  |  |  |  |  |  |  |  |  |
+| Hunyuan3D |  |  |  |  |  |  |  |  | 1 |  |
+| HunyuanOCR |  |  |  |  |  |  |  |  | 1 |  |
+| HunyuanVideo |  |  |  |  |  |  | 3 |  |  |  |
+| HunyuanVideo Foley |  |  |  |  |  |  |  |  | 2 |  |
+| Hy3 kodelow | 1 |  |  |  |  |  |  |  |  |  |
+| Inkling |  | 2 |  |  |  |  |  |  |  |  |
+| Laguna | 3 |  |  |  |  |  |  |  |  |  |
+| Leanstral | 1 |  |  |  |  |  |  |  |  |  |
+| LFM2.5 | 2 |  |  |  |  |  |  |  |  |  |
+| Ling |  | 1 |  |  |  |  |  |  |  |  |
+| LTX |  |  |  |  |  |  | 2 |  | 5 |  |
+| MiMo | 1 | 1 |  |  |  |  |  |  |  |  |
+| MiniMax H3 | 1 |  |  |  |  |  | 2 |  |  |  |
+| MOSS-VL |  |  |  |  |  |  |  |  | 1 |  |
+| MOVA |  |  |  |  |  |  |  |  | 2 |  |
+| Muse Glimmer | 1 |  |  |  |  |  |  |  |  |  |
+| Nemotron | 7 |  |  |  |  |  |  |  |  |  |
+| Ornith | 1 |  |  |  |  |  |  |  |  |  |
+| Pixal3D |  |  |  |  |  |  |  |  | 1 |  |
+| Qwen (text and vision) | 10 | 2 |  |  | 2 |  |  |  |  | 1 |
+| Qwen Image |  |  |  |  |  |  | 6 | 5 |  |  |
+| SkinTokens |  |  |  |  |  |  |  |  | 1 |  |
+| Step 3.7 Flash | 1 |  |  |  |  |  |  |  |  |  |
+| Step1X-3D |  |  |  |  |  |  |  |  | 3 |  |
+| TRELLIS |  |  |  |  |  |  |  |  | 1 |  |
+| TripoSG |  |  |  |  |  |  |  |  | 1 |  |
+| UI-Mate | 1 |  |  |  |  |  |  |  |  |  |
+| Wan |  |  |  |  |  |  |  | 3 | 2 |  |
+| **Total** | **48** | **6** | **0** | **0** | **2** | **3** | **13** | **10** | **21** | **1** |
 
 ### Spark variants
 
@@ -97,7 +97,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 | Creator | Focus | Engines | Recipes |
 | --- | --- | --- | ---: |
-| [MiaAI-Lab](https://github.com/MiaAI-Lab) | Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling. | SGLang, TensorFold, vLLM | 15 |
+| [MiaAI-Lab](https://github.com/MiaAI-Lab) | Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling. | exllamav3, SGLang, TensorFold, vLLM | 16 |
 | [tonyd2wild](https://github.com/tonyd2wild) | Multi-Spark (2 and 4) vLLM recipes for large MoE models: GLM, MiMo. | vLLM | 4 |
 | [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. | SGLang, vLLM | 6 |
 | [drowzeys (keyz)](https://github.com/drowzeys) | Large multi-Spark vLLM builds with prebuilt images: GLM, MiMo, abliterated variants. | vLLM | 4 |
@@ -364,7 +364,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 </details>
 
-<details><summary>Qwen (text and vision) (14)</summary>
+<details><summary>Qwen (text and vision) (15)</summary>
 
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
@@ -373,6 +373,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | [qwen3-6-35b-a3b-nvfp4-vllm-single](recipes/qwen3-6-35b-a3b-nvfp4-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |
 | [qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single](recipes/qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single.json) | vLLM | 1 | drowzeys (keyz) |
 | [qwen3-8-27b-ashhart-tensorfold-single](recipes/qwen3-8-27b-ashhart-tensorfold-single.json) | TensorFold | 1 | ashhart |
+| [qwen3-8-27b-exl3-dflash2-mia-single](recipes/qwen3-8-27b-exl3-dflash2-mia-single.json) | exllamav3 | 1 | MiaAI-Lab |
 | [qwen3-8-27b-fp8-vllm-single](recipes/qwen3-8-27b-fp8-vllm-single.json) | vLLM | 1 | Qwen |
 | [qwen3-8-27b-nvfp4-dspark-sglang-single](recipes/qwen3-8-27b-nvfp4-dspark-sglang-single.json) | SGLang | 1 | MiaAI-Lab |
 | [qwen3-8-27b-nvfp4-mtp-r0b0tlab-vllm-single](recipes/qwen3-8-27b-nvfp4-mtp-r0b0tlab-vllm-single.json) | vLLM | 1 | r0b0tlab |
