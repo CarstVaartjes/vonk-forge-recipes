@@ -34,8 +34,10 @@ jobs:
       # and packages from this checkout before validating them.
       platform_ref: a2578cb10e60d002efcd1a2f45437c71e0b093ea
 
+  # Pull requests and main pushes get these checks inside producer-contracts
+  # (one runner, not three); a skipped job still satisfies its required check.
   catalog-index:
-    if: ${{ !inputs.producer_only }}
+    if: ${{ !inputs.producer_only && github.event_name != 'pull_request' && github.event_name != 'push' }}
     name: Verify catalog index
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -90,6 +92,32 @@ jobs:
           python-version: "3.14"
           enable-cache: false
 
+      - name: Decide light (recipe data only) or full checks
+        id: scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Recipe data (recipes, models, adapters, qualification definitions,
+          # README, creators) gets the light checks: the platform validator,
+          # packaging checks and the recipe-wide tests. Any other change
+          # (contracts, tools, tests, workflows) gets the full suite.
+          case "${{ github.event_name }}" in
+            pull_request)
+              git fetch --no-tags origin "${{ github.base_ref }}"
+              base=$(git merge-base FETCH_HEAD HEAD) ;;
+            push) base="${{ github.event.before }}" ;;
+            *) base= ;;
+          esac
+          full=true
+          if [[ -n "$base" ]] && git cat-file -e "$base^{commit}" 2>/dev/null; then
+            # Capture first: grep -q exiting early must not fail the pipeline.
+            changed=$(git diff --name-only "$base" HEAD)
+            other=$(grep -Ev '^(recipes/|models/|adapters/|qualification/definitions\.json$|README\.md$|creators\.json$)' <<<"$changed" | grep -v '^$' || true)
+            if [[ -z "$other" ]]; then full=false; else echo "Not recipe data:"; head -20 <<<"$other"; fi
+          fi
+          echo "full=$full" >> "$GITHUB_OUTPUT"
+          echo "Checks: $([[ $full == true ]] && echo full || echo light)"
+
       - name: Install producer contract dependencies
         shell: bash
         run: |
@@ -112,6 +140,22 @@ jobs:
             git diff -- contracts/src/vonk_forge_contracts/examples
             exit 1
           fi
+
+      - name: Require current public contract schemas
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" tools/generate-contract-schemas --check
+
+      - name: Build the catalog index twice and require identical bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first"
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second"
+          diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index
+          "$RECIPE_TEST_PYTHON" tools/build-family-aware-coverage
 
       - name: Check the README overview (advisory)
         shell: bash
@@ -159,31 +203,48 @@ jobs:
           set -euo pipefail
           python3 tools/check-vendored-upstream
 
+      - name: Run the recipe-wide tests
+        if: steps.scope.outputs.full != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" -m pytest -q \
+            tests/test_recipe_*.py tests/test_qualification_*.py \
+            tests/test_release_assets.py tests/test_exact_model_file_closure.py \
+            tests/test_explicit_hf_file_manifest_closure.py \
+            tests/test_distributed_recipe_availability.py \
+            tests/test_family_aware_coverage.py
+
       - name: Run the full producer test suite
+        if: steps.scope.outputs.full == 'true'
         shell: bash
         run: |
           set -euo pipefail
           "$RECIPE_TEST_PYTHON" -m pytest -q
 
       - name: Lint the repository with pinned Ruff
+        if: steps.scope.outputs.full == 'true'
         shell: bash
         run: |
           set -euo pipefail
           UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-lint
 
       - name: Check formatting with pinned Ruff
+        if: steps.scope.outputs.full == 'true'
         shell: bash
         run: |
           set -euo pipefail
           UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-format
 
       - name: Type check the repository with pinned Pyright
+        if: steps.scope.outputs.full == 'true'
         shell: bash
         run: |
           set -euo pipefail
           UV_CACHE_DIR="$RUNNER_TEMP/uv-cache" scripts/check-python-types
 
       - name: Build and externally import the contracts wheel
+        if: steps.scope.outputs.full == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -215,12 +276,9 @@ jobs:
           )
 
   public-contracts:
-    if: ${{ !inputs.producer_only }}
+    if: ${{ !inputs.producer_only && github.event_name != 'pull_request' && github.event_name != 'push' }}
     name: Verify public contracts package
     runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      pull-requests: read
     timeout-minutes: 15
     steps:
       - name: Check out recipes
@@ -233,25 +291,7 @@ jobs:
           python-version: "3.14"
           enable-cache: false
 
-      - name: Detect contract or tooling changes
-        id: changes
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          # Recipe-only pull requests (recipes, models, adapters, README,
-          # creators) cannot change the public contracts package or our own
-          # linted code. Every other event always runs the full check.
-          if [[ "${{ github.event_name }}" != pull_request ]]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"; exit 0
-          fi
-          other=$(gh api --paginate "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" \
-            --jq '.[].filename' | grep -Ev '^(recipes/|models/|adapters/|README\.md$|creators\.json$)' || true)
-          if [[ -n "$other" ]]; then echo "run=true"; else echo "run=false"; fi >> "$GITHUB_OUTPUT"
-
       - name: Test, lint, and build public contracts
-        if: steps.changes.outputs.run == 'true'
         shell: bash
         run: |
           set -euo pipefail
