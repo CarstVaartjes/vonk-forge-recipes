@@ -1,0 +1,39 @@
+{
+  "b12x": {
+    "commit": "7dc6fb8fcc6446ea093537d1657df81985fa5f43",
+    "mode": "w4a16",
+    "repository": "https://github.com/lukealonso/b12x.git",
+    "source_format": "fp4_e8m0_k32",
+    "version": "0.15.3"
+  },
+  "base_images": {
+    "build": "docker.io/nvidia/cuda@sha256:1c517d4fb96528c8999e14e6e6b16d7e2ff9ae8d194fd788d60fdc88e693e982",
+    "build_linux_arm64": "sha256:bf85cb304bfe9ee637bb1fed21d09afbbe284a5f313773ac80d352537422ea98",
+    "final": "docker.io/nvidia/cuda@sha256:21a04d376f3a29c7cf7773bbe08e8ad45bf6711bd82e05b71cb1cb67004b0921",
+    "final_linux_arm64": "sha256:8594664b0bfa497f0b5d43eeb25cfe21ab25de13698fb2f03323ca4d6983463d"
+  },
+  "build": {
+    "cuda_toolkit": "13.0.2",
+    "flashinfer_cubin": "0.6.14",
+    "flashinfer_python": "0.6.14",
+    "max_jobs": 6,
+    "nvcc_threads": 2,
+    "nvidia_cutlass_dsl": "4.6.0",
+    "platform": "linux/arm64",
+    "torch": "2.11.0+cu130",
+    "torch_cuda_arch_list": "12.1a",
+    "torchvision": "0.26.0+cu130",
+    "upstream_target": "vllm-openai"
+  },
+  "port_patch": {
+    "path": "recipe/patches/vllm-v0.26.0-dspark-sm121.patch",
+    "sha256": "17432713400bcda550063bd11939a625d290d5d28e53ef05fd1360166749acd5"
+  },
+  "schema_version": 1,
+  "vllm": {
+    "commit": "568afb3a13806beb53bb2e6bd518269357b237c0",
+    "package_version": "0.26.0+dspark.sm121.3",
+    "repository": "https://github.com/vllm-project/vllm.git",
+    "tag": "v0.26.0"
+  }
+}

@@ -1,0 +1,73 @@
+ARG BASE_IMAGE=dspark-r0b0tlab:production-v026-b12x-standard-6cbe169
+FROM ${BASE_IMAGE}
+
+ARG SOURCE_REVISION
+ARG SOURCE_URL="https://github.com/r0b0tlab/DeepSeek-V4-Flash-DSpark-v026-SM121"
+ARG BUILD_UTC
+ARG PARENT_IMAGE_ID
+ARG INTEGRATED_VLLM_COMMIT
+ARG UPSTREAM_VLLM_COMMIT=568afb3a13806beb53bb2e6bd518269357b237c0
+ARG MODEL_REVISION=9e165c30e2704aec5d9d593cce3eebd58bbef1cb
+ARG VLLM_PACKAGE_VERSION=0.26.0+dspark.sm121.3
+ARG PATCH_SHA256
+ARG MANIFEST_SHA256
+ARG OVERLAY_VERSION=native-cudagraph-v1
+ARG MATERIALIZER_VERSION=2
+
+COPY recipe/knownfix-overlay/vllm/ /usr/local/lib/python3.12/dist-packages/vllm/
+COPY scripts/update_vllm_local_version.py /tmp/update_vllm_local_version.py
+COPY scripts/dspark-native-entrypoint.sh /usr/local/bin/dspark-native-entrypoint.sh
+COPY scripts/preflight_capabilities.py /usr/local/share/dspark/preflight_capabilities.py
+COPY recipe/knownfix-manifest.json /usr/local/share/dspark/knownfix-manifest.json
+COPY recipe/patches/vllm-v0.26.0-dspark-sm121.patch /usr/local/share/dspark/vllm-v0.26.0-dspark-sm121.patch
+COPY recipe/audit/vllm-v0.26.0.lock.json /opt/r0b0tlab/vllm-v0.26.0.lock.json
+COPY recipe/patches/vllm-v0.26.0-dspark-sm121.patch /opt/r0b0tlab/vllm-v0.26.0-dspark-sm121.patch
+
+RUN chmod 0555 /usr/local/bin/dspark-native-entrypoint.sh \
+        /usr/local/share/dspark/preflight_capabilities.py \
+    && python3 /tmp/update_vllm_local_version.py \
+        --from-version 0.26.0+dspark.sm121.2 \
+        --to-version "${VLLM_PACKAGE_VERSION}" \
+    && rm -f /tmp/update_vllm_local_version.py \
+    && python3 -m compileall -q \
+        /usr/local/lib/python3.12/dist-packages/vllm/config \
+        /usr/local/lib/python3.12/dist-packages/vllm/compilation \
+        /usr/local/lib/python3.12/dist-packages/vllm/v1/worker \
+        /usr/local/lib/python3.12/dist-packages/vllm/models/deepseek_v4 \
+    && python3 -c 'import importlib.metadata as m, vllm, vllm.version as vv; expected="0.26.0+dspark.sm121.3"; assert m.version("vllm") == expected; assert vllm.__version__ == expected; assert vv.__version__ == expected' \
+    && sha256sum /usr/local/share/dspark/knownfix-manifest.json \
+        /usr/local/share/dspark/vllm-v0.26.0-dspark-sm121.patch
+
+LABEL org.opencontainers.image.source="${SOURCE_URL}" \
+      org.opencontainers.image.revision="${SOURCE_REVISION}" \
+      org.opencontainers.image.created="${BUILD_UTC}" \
+      org.opencontainers.image.base.name="dspark-r0b0tlab:production-v026-b12x-standard-6cbe169" \
+      org.opencontainers.image.base.digest="${PARENT_IMAGE_ID}" \
+      io.r0b0tlab.release.track="native-cudagraph-v1" \
+      io.r0b0tlab.release.status="candidate" \
+      io.r0b0tlab.vllm.upstream.commit="${UPSTREAM_VLLM_COMMIT}" \
+      io.r0b0tlab.vllm.integrated.commit="${INTEGRATED_VLLM_COMMIT}" \
+      io.r0b0tlab.vllm.package.version="${VLLM_PACKAGE_VERSION}" \
+      io.r0b0tlab.overlay.version="${OVERLAY_VERSION}" \
+      io.r0b0tlab.overlay.materializer.version="${MATERIALIZER_VERSION}" \
+      io.r0b0tlab.overlay.manifest.sha256="${MANIFEST_SHA256}" \
+      io.r0b0tlab.overlay.patch.sha256="${PATCH_SHA256}" \
+      io.r0b0tlab.cudagraph.selector="native-v1" \
+      io.r0b0tlab.cudagraph.production="regular" \
+      io.r0b0tlab.model.id="deepseek-ai/DeepSeek-V4-Flash-0731" \
+      io.r0b0tlab.model.revision="${MODEL_REVISION}" \
+      io.r0b0tlab.kv-cache.dtype="nvfp4_ds_mla" \
+      io.r0b0tlab.moe.backend="flashinfer-b12x" \
+      io.r0b0tlab.speculative.method="dspark" \
+      io.r0b0tlab.speculative.tokens="6" \
+      io.r0b0tlab.parallel.tensor="2" \
+      io.r0b0tlab.base.overlay.idempotent="true"
+
+ENV TORCH_CUDA_ARCH_LIST=12.1a \
+    VLLM_ENABLE_CUDA_COMPATIBILITY=0 \
+    KV_CACHE_DTYPE=nvfp4_ds_mla \
+    MAX_JOBS=6 \
+    NVCC_THREADS=2 \
+    FLASHINFER_NVCC_THREADS=2
+
+ENTRYPOINT ["/usr/local/bin/dspark-native-entrypoint.sh"]

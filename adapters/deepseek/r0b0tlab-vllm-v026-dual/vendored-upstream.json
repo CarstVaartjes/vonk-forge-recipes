@@ -1,0 +1,9 @@
+{
+  "source": {
+    "repo": "r0b0tlab/DeepSeek-V4-Flash-DSpark-v026-SM121",
+    "commit": "d8393134b49f7e92ffd64b9670b5d500fc6478cb"
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ]
+}
