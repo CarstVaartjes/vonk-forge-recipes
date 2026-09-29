@@ -1,0 +1,9 @@
+#!/bin/sh
+# Entrypoint for the TensorFold single-Spark recipe. The recipe passes only named
+# `tensorfold serve` options; the catalog model root is /models/target.
+set -eu
+: "${HOME:?}" "${TORCH_EXTENSIONS_DIR:?}" "${TRITON_CACHE_DIR:?}" "${TMPDIR:?}"
+# The platform binds /outputs/cache; the kernel-compile and prefix-snapshot
+# directories below it are created here (nothing else is writable).
+mkdir -p "$HOME/.cache/tensorfold" "$TORCH_EXTENSIONS_DIR" "$TRITON_CACHE_DIR" "$TMPDIR"
+exec tensorfold serve /models/target "$@"

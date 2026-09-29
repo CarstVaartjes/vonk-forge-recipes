@@ -1,0 +1,172 @@
+{
+  "capabilities": [
+    "image-understanding",
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-a319a7af9a6f-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a319a7af9a6fcb1d2c30e487d2c05bc012bba92a41cac04c09bf23beaee9ba9a",
+      "size_bytes": 6746
+    },
+    {
+      "id": "chat-template-12827f24b742-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "12827f24b742ea4e80cdc12dbcf9622227056b9f797252a3149263d4f9aaadce",
+      "size_bytes": 9993
+    },
+    {
+      "id": "config-1b3c71868d12-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "1b3c71868d1299e52df6fc907deb202d5132b1ef0f72aae0ef6d15185dd53a5c",
+      "size_bytes": 22564
+    },
+    {
+      "id": "generation-config-d0d0ed2e37cd-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d0d0ed2e37cdfafef4a5067d5ea2407b05f4fb50526e47c008a5b235d50240fb",
+      "size_bytes": 214
+    },
+    {
+      "id": "model-c473512c70ea-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c473512c70eace07e2256fe9fd76596ac03e3295bee7d54cfb72676416afcc05",
+      "size_bytes": 22568192096
+    },
+    {
+      "id": "model-safetensors-index-429430e1b9e6-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "429430e1b9e65b2cb98eff8cd10a06e70a09cee89c48487a3914684aeb6df57f",
+      "size_bytes": 164371
+    },
+    {
+      "id": "model-mtp-1d8268aa85ac-3cebc61d53",
+      "path": "model_mtp.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1d8268aa85ace093a561e3e7b63b9d390dac1cd55a90cd55b5ec509c3c9da9fe",
+      "size_bytes": 849400392
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "tokenizer-06b9509352d2-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
+      "size_bytes": 19989325
+    },
+    {
+      "id": "tokenizer-config-529f30018c36-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "529f30018c36dca5387c99b5edf368287f386f2c32d3790aa7141956bc5119fa",
+      "size_bytes": 1047
+    },
+    {
+      "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+      "path": "video_preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "size_bytes": 385
+    },
+    {
+      "id": "vocab-ce99b4cb2983-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+      "size_bytes": 6722759
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4-compressed-tensors"
+  },
+  "identity": {
+    "family": {
+      "publisher": "unsloth",
+      "slug": "qwen3-8-unsloth",
+      "title": "Qwen3.8 Unsloth"
+    },
+    "model": {
+      "publisher": "unsloth",
+      "slug": "qwen3-8-27b-nvfp4",
+      "title": "Qwen3.8 27B NVFP4"
+    },
+    "publisher": "unsloth",
+    "slug": "qwen3-8-27b-nvfp4-f0b7c9e7",
+    "variant": "Qwen3.8 27B NVFP4 unsloth f0b7c9e7",
+    "version": "Qwen3.8 27B NVFP4 unsloth f0b7c9e7"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "Unsloth"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/unsloth/Qwen3.8-27B-NVFP4/blob/f0b7c9e722f5565102fff8481c99e4d86ae099c7/README.md"
+  },
+  "metadata": {
+    "description": "Exact public Unsloth Dynamic V3.0 NVFP4 (compressed-tensors) Qwen3.8 27B checkpoint with MTP weights.",
+    "tags": [
+      "unsloth",
+      "qwen3-8-unsloth",
+      "text",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/unsloth/Qwen3.8-27B-NVFP4",
+    "revision": "f0b7c9e722f5565102fff8481c99e4d86ae099c7"
+  }
+}
