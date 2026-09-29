@@ -1,0 +1,12 @@
+{
+  "source": {
+    "repo": "r0b0tlab/nemotron-3.5-lightning-sglang-dflash-sm121",
+    "commit": "3baf136cb09830656e6aeba19a20d39c3f02e81b"
+  },
+  "ours": [
+    "sglang-serve"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE"
+  }
+}
