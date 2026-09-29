@@ -1,0 +1,97 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-d1516d3eb100-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d1516d3eb100c510042fc24145f38a3f7dd25241d483296298c181284e81f746",
+      "size_bytes": 2206
+    },
+    {
+      "id": "qwen3-8-27b-q4-k-m-c600de0300ae-2fd523f171",
+      "path": "Qwen3.8-27B-Q4_K_M.gguf",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c600de0300ae8a0eb3a6c0b8b5561b8b96f16bd2c863c2a66c42de29d391a747",
+      "size_bytes": 18973870528
+    },
+    {
+      "id": "readme-4a1ddebc85fd-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "4a1ddebc85fd59b14650bb04757dea42cfefa63b75173e15fd5bc919d2861adb",
+      "size_bytes": 449
+    },
+    {
+      "id": "mmproj-qwen3-8-27b-q8-0-2e968a6af97c-266eaebc83",
+      "path": "mmproj-Qwen3.8-27B-Q8_0.gguf",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2e968a6af97ce35d8971890b257b9b7edabf20ad91450501fa53162a19ee33eb",
+      "size_bytes": 629247008
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "gguf-q4-k-m"
+  },
+  "identity": {
+    "family": {
+      "publisher": "ggml-org",
+      "slug": "qwen3",
+      "title": "Alibaba Qwen3"
+    },
+    "model": {
+      "publisher": "ggml-org",
+      "slug": "qwen3-8-27b",
+      "title": "Qwen3.8 27B"
+    },
+    "publisher": "ggml-org",
+    "slug": "qwen3-8-27b-q4-k-m-71bc7b62",
+    "variant": "Q4_K_M 71bc7b62",
+    "version": "Q4_K_M 71bc7b62"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Alibaba Qwen",
+      "ggml-org"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "metadata": {
+    "description": "ggml-org GGUF conversion of Qwen3.8 27B at Q4_K_M, plus the Q8_0 vision projector.",
+    "tags": [
+      "ggml-org",
+      "qwen3",
+      "language",
+      "gguf",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/ggml-org/Qwen3.8-27B-GGUF",
+    "revision": "71bc7b627595dc8a91039addd9c791ae548d6747"
+  }
+}
