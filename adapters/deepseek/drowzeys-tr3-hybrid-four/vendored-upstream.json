@@ -1,0 +1,9 @@
+{
+  "source": {
+    "repo": "drowzeys/keys-DeepSeekV4.1-Flash-TR3-Hybrid-1M-Context-8M-KV-Four-DGX-Sparks-with-abliterated-option",
+    "commit": "4b69803bf6eca380a775e40b322ac2542dae3a59"
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ]
+}
