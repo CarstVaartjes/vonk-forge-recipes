@@ -5851,6 +5851,23 @@
           "Controller stop/start and warm-cache restart"
         ]
       }
+    },
+    "vonk-forge/agents-a1-nvfp4-r0b0tlab-vllm-single": {
+      "alias": "agents-a1-nvfp4",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded 4K-context and concurrency canaries with tool calls"
+        ],
+        "recovery": [
+          "Controller stop/start and warm-cache restart"
+        ]
+      }
     }
   }
 }
