@@ -1,15 +1,15 @@
-# TensorFold v0.3.7 (MIT) plus MiaAI-Lab's Flash Next patch set on NVIDIA's PyTorch container (arm64).
+# TensorFold v0.3.7 (MIT, commit 6b2e4c40; tag object 02b726f3) plus MiaAI-Lab's Flash Next patch set on NVIDIA's PyTorch container (arm64).
 FROM nvcr.io/nvidia/pytorch:26.07-py3@sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3
 
 LABEL org.opencontainers.image.source="https://github.com/ashhart/TensorFold" \
-      org.opencontainers.image.revision="02b726f3fb5e67723cb6f4e0315adf85e4b91033" \
+      org.opencontainers.image.revision="6b2e4c40064b1e4a05965f61b19ce87b5e0265b3" \
       org.opencontainers.image.licenses="MIT" \
       io.vonk.recipe-patches.source="https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold/tree/856bb6be4b58ce6a6727e6d071fb1c52f3f80e6e"
 
 # NGC exports PIP_CONSTRAINT for its own stack; the hash-pinned lock below is resolved without it and leaves torch and numpy alone.
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PYTHONUNBUFFERED=1
 
-COPY vendor/tensorfold-02b726f3fb5e67723cb6f4e0315adf85e4b91033.tar.gz /tmp/tensorfold.tar.gz
+COPY vendor/tensorfold-6b2e4c40064b1e4a05965f61b19ce87b5e0265b3.tar.gz /tmp/tensorfold.tar.gz
 COPY requirements.lock /tmp/requirements.lock
 COPY patches /opt/tf-patches
 RUN echo "b97ac73797e82d1169e6325ea05808e2c0ddb30f3d3d5169202ad11a4720a7b8  /tmp/tensorfold.tar.gz" | sha256sum -c - \

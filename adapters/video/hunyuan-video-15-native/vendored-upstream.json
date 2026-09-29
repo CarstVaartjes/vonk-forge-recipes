@@ -1,0 +1,12 @@
+{
+  "ours": [
+    "NOTICE",
+    "requirements.in",
+    "requirements.lock",
+    "run.py"
+  ],
+  "source": {
+    "repo": "huggingface/diffusers",
+    "commit": "d035dcd7cc7c88e0a154609b62887d50bba9fdc2"
+  }
+}

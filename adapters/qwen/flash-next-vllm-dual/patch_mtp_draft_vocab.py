@@ -36,11 +36,9 @@ the cross-rank comparison unchanged.
 Inputs:  files/mtp_patched.py.orig   (nvidia/mtp.py from the image)
 Outputs: files/mtp_patched.py
 """
-
 import ast
 import os
 import sys
-from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ORIG = os.path.join(HERE, "mtp_patched.py.orig")
@@ -160,81 +158,69 @@ GET_TOP_TOKENS = '''
 
 
 def patch(edits):
-    src = Path(ORIG).read_text()
+    src = open(ORIG).read()
     for i, (old, new) in enumerate(edits):
         count = src.count(old)
         if count != 1:
-            sys.exit(
-                f"mtp_patched: anchor {i} not unique/missing "
-                f"(count={count}):\n{old[:200]}"
-            )
+            sys.exit(f"mtp_patched: anchor {i} not unique/missing "
+                     f"(count={count}):\n{old[:200]}")
         src = src.replace(old, new)
     try:
         ast.parse(src)
     except SyntaxError as exc:
         sys.exit(f"mtp_patched: patched source does not parse: {exc}")
-    Path(OUT).write_text(src)
+    open(OUT, "w").write(src)
     print("patched mtp_patched.py")
 
 
 def main():
     if not os.path.isfile(ORIG):
         sys.exit(f"ERROR: missing {ORIG} (start.sh extracts it from the image)")
-    if os.path.isfile(OUT) and "_attach_draft_vocab" in Path(OUT).read_text():
+    if os.path.isfile(OUT) and "_attach_draft_vocab" in open(OUT).read():
         print("mtp_patched.py already patched")
         return
-    patch(
-        [
-            # os, a logger, and the all-gather primitive the reduction needs.
-            (
-                "from vllm.compilation.decorators import support_torch_compile\n",
-                (
-                    "import os\n\n"
-                    "from vllm.compilation.decorators import support_torch_compile\n"
-                    "from vllm.logger import init_logger\n"
-                ),
-            ),
-            (
-                "from vllm.distributed import get_pp_group\n",
-                (
-                    "from vllm.distributed import get_pp_group\n"
-                    "from vllm.distributed.communication_op import "
-                    "tensor_model_parallel_all_gather\n"
-                ),
-            ),
-            # Module scope, before the first helper: the MTP class itself sits under
-            # a @support_torch_compile decorator, so nothing can go between.
-            (
-                "def _remap_ignored_layers(\n",
-                "logger = init_logger(__name__)\n"
-                + DRAFT_VOCAB_BLOCK
-                + "\ndef _remap_ignored_layers(\n",
-            ),
-            # get_top_tokens beside compute_logits, which stays full-vocabulary.
-            (
-                (
-                    "    def compute_logits(\n"
-                    "        self, hidden_states: torch.Tensor, spec_step_idx: int = 0\n"
-                    "    ) -> torch.Tensor | None:\n"
-                    "        return self.logits_processor(self.lm_head, hidden_states)\n"
-                ),
-                "    def compute_logits(\n"
-                "        self, hidden_states: torch.Tensor, spec_step_idx: int = 0\n"
-                "    ) -> torch.Tensor | None:\n"
-                "        return self.logits_processor(self.lm_head, hidden_states)\n"
-                + GET_TOP_TOKENS,
-            ),
-            # Slice once the real weights are in.
-            (
-                "        return loader.load_weights(remap_weight_names())\n",
-                (
-                    "        loaded = loader.load_weights(remap_weight_names())\n"
-                    "        _attach_draft_vocab(self)\n"
-                    "        return loaded\n"
-                ),
-            ),
-        ]
-    )
+    patch([
+        # os, a logger, and the all-gather primitive the reduction needs.
+        (
+            "from vllm.compilation.decorators import support_torch_compile\n",
+            "import os\n\n"
+            "from vllm.compilation.decorators import support_torch_compile\n"
+            "from vllm.logger import init_logger\n",
+        ),
+        (
+            "from vllm.distributed import get_pp_group\n",
+            "from vllm.distributed import get_pp_group\n"
+            "from vllm.distributed.communication_op import "
+            "tensor_model_parallel_all_gather\n",
+        ),
+        # Module scope, before the first helper: the MTP class itself sits under
+        # a @support_torch_compile decorator, so nothing can go between.
+        (
+            "def _remap_ignored_layers(\n",
+            "logger = init_logger(__name__)\n"
+            + DRAFT_VOCAB_BLOCK
+            + "\ndef _remap_ignored_layers(\n",
+        ),
+        # get_top_tokens beside compute_logits, which stays full-vocabulary.
+        (
+            "    def compute_logits(\n"
+            "        self, hidden_states: torch.Tensor, spec_step_idx: int = 0\n"
+            "    ) -> torch.Tensor | None:\n"
+            "        return self.logits_processor(self.lm_head, hidden_states)\n",
+            "    def compute_logits(\n"
+            "        self, hidden_states: torch.Tensor, spec_step_idx: int = 0\n"
+            "    ) -> torch.Tensor | None:\n"
+            "        return self.logits_processor(self.lm_head, hidden_states)\n"
+            + GET_TOP_TOKENS,
+        ),
+        # Slice once the real weights are in.
+        (
+            "        return loader.load_weights(remap_weight_names())\n",
+            "        loaded = loader.load_weights(remap_weight_names())\n"
+            "        _attach_draft_vocab(self)\n"
+            "        return loaded\n",
+        ),
+    ])
 
 
 if __name__ == "__main__":

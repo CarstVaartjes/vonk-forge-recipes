@@ -62,10 +62,8 @@ Fp8MoEMethod/Fp8Config already implement that layout; DeepSeek-V3 checkpoints
 use the same class. This patch routes FP8_PB_WO MoE experts to it rather than
 adding a new ModelOpt-native MoE method.
 """
-
 import os
 import sys
-from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ORIG = os.path.join(HERE, "modelopt_patched.py.orig")
@@ -113,7 +111,7 @@ def _mxfp8_native_kernel_supports(n: int, k: int) -> bool:
 '''
 
 # Inserted into _quantized_layer_prefix_candidates, before its final return.
-MTP_PREFIX_BRIDGE = """
+MTP_PREFIX_BRIDGE = '''
         # NVIDIA's quantized_layers declares the MTP draft layer at its own
         # local index ("mtp.layers.0...."); the mounted module sits at a
         # global index after the main model's layers (e.g. "mtp.layers.48
@@ -126,10 +124,10 @@ MTP_PREFIX_BRIDGE = """
             dot = rest.find(".")
             if dot != -1 and rest[:dot].isdigit() and rest[:dot] != "0":
                 candidates.append("mtp.layers.0." + rest[dot + 1 :])
-"""
+'''
 
 # Inserted into get_quant_method's RoutedExperts branch, after the FP8 case.
-FP8_PB_WO_MOE_DISPATCH = """
+FP8_PB_WO_MOE_DISPATCH = '''
             if quant_algo == "FP8_PB_WO":
                 # NVIDIA's hf_quant_config.json declares this layer as
                 # "FP8_BLOCK_SCALES" (group_size 128); ModelOpt's own config
@@ -158,9 +156,9 @@ FP8_PB_WO_MOE_DISPATCH = """
                     ),
                     layer,
                 )
-"""
+'''
 
-SHAPE_FALLBACK = """
+SHAPE_FALLBACK = '''
         # Downgrade to BF16 emulation for shapes the native MXFP8 GEMM rejects
         # (e.g. linear_attn.in_proj_a/b, [48, 2560] -> N < 128). Each layer gets
         # its own ModelOptMxFp8LinearMethod, so this is per-layer.
@@ -181,19 +179,17 @@ SHAPE_FALLBACK = """
                     type(self.kernel).__name__,
                 )
                 self.kernel = _mxfp8_emulation_kernel()
-"""
+'''
 
 
 def _replace_once(src: str, old: str, new: str, what: str) -> str:
     if src.count(old) != 1:
-        raise AssertionError(
-            f"modelopt: {what} anchor missing (count={src.count(old)})"
-        )
+        raise AssertionError(f"modelopt: {what} anchor missing (count={src.count(old)})")
     return src.replace(old, new)
 
 
 def patch() -> None:
-    src = Path(ORIG).read_text()
+    src = open(ORIG).read()
 
     anchor = (
         "        return self.kernel.apply_weights(layer, x, bias)\n\n\n"
@@ -232,38 +228,38 @@ def patch() -> None:
 
     src = _replace_once(
         src,
-        '                "language_model.model." + prefix[len("model.language_model.") :]\n'
+        "                \"language_model.model.\" + prefix[len(\"model.language_model.\") :]\n"
         "            )\n"
         "\n"
         "        return tuple(dict.fromkeys(candidates))\n",
-        '                "language_model.model." + prefix[len("model.language_model.") :]\n'
+        "                \"language_model.model.\" + prefix[len(\"model.language_model.\") :]\n"
         "            )\n"
-        + MTP_PREFIX_BRIDGE
-        + "\n        return tuple(dict.fromkeys(candidates))\n",
+        + MTP_PREFIX_BRIDGE +
+        "\n        return tuple(dict.fromkeys(candidates))\n",
         "MTP prefix bridge",
     )
 
     src = _replace_once(
         src,
         "        if isinstance(layer, RoutedExperts):\n"
-        '            if quant_algo == "FP8":\n'
+        "            if quant_algo == \"FP8\":\n"
         "                return ModelOptFp8MoEMethod(\n"
         "                    quant_config=self.fp8_config,\n"
         "                    moe_config=layer.moe_config,\n"
         "                )\n"
-        '            if quant_algo == "NVFP4":\n',
+        "            if quant_algo == \"NVFP4\":\n",
         "        if isinstance(layer, RoutedExperts):\n"
-        '            if quant_algo == "FP8":\n'
+        "            if quant_algo == \"FP8\":\n"
         "                return ModelOptFp8MoEMethod(\n"
         "                    quant_config=self.fp8_config,\n"
         "                    moe_config=layer.moe_config,\n"
         "                )\n"
-        + FP8_PB_WO_MOE_DISPATCH
-        + '            if quant_algo == "NVFP4":\n',
+        + FP8_PB_WO_MOE_DISPATCH +
+        "            if quant_algo == \"NVFP4\":\n",
         "FP8_PB_WO MoE dispatch",
     )
 
-    Path(OUT).write_text(src)
+    open(OUT, "w").write(src)
     print("ok", OUT)
 
 
