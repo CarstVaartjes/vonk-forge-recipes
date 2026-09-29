@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Installable Candidate two-Spark native-vision profile for the official DeepSeek V4 Flash Vision Experimental checkpoint. It reproduces MiaAI-Lab c444d703 on the immutable Anemll ARM64 runtime, including current image routing, cache-layout, narrow-image, role-validation, and shared-memory recovery fixes, with OpenAI image_url input, the 32-layer ViT and aligner, FP4/FP8 weights, NVFP4 DS-MLA KV, DSpark K6, 1M context, and a measured 17.04 GiB / 2,331,430-token KV pool at 0.835 utilization; Vonk physical image and dual-Spark acceptance remain pending.",
+    "description": "Installable Candidate two-Spark native-vision profile for the official DeepSeek V4 Flash Vision Experimental checkpoint. It reproduces MiaAI-Lab 97e87332 on the immutable Anemll ARM64 runtime, including the per-forward routing-kind and limit-mm-per-prompt image-cap vision fixes, the single-lane partial-prefill default, and low default reasoning effort, with OpenAI image_url input, the 32-layer ViT and aligner, FP4/FP8 weights, NVFP4 DS-MLA KV, DSpark K6, and 1M context; Vonk physical image and dual-Spark acceptance remain pending.",
     "tags": [
       "executable",
       "candidate",
@@ -987,6 +987,173 @@
       }
     }
   ],
+  "options": [
+    {
+      "choices": [
+        {
+          "args": [
+            {
+              "name": "default-chat-template-kwargs",
+              "value": "{\"thinking\":false}"
+            }
+          ],
+          "help": "Thinking disabled by default (thinking=false).",
+          "label": "Off",
+          "value": "off"
+        },
+        {
+          "default": true,
+          "help": "Thinking on with reasoning_effort low (upstream default).",
+          "label": "Low",
+          "value": "low"
+        },
+        {
+          "args": [
+            {
+              "name": "default-chat-template-kwargs",
+              "value": "{\"thinking\":true,\"reasoning_effort\":\"high\"}"
+            }
+          ],
+          "help": "Thinking on with reasoning_effort high.",
+          "label": "High",
+          "value": "high"
+        },
+        {
+          "args": [
+            {
+              "name": "default-chat-template-kwargs",
+              "value": "{\"thinking\":true,\"reasoning_effort\":\"max\"}"
+            }
+          ],
+          "help": "Thinking on with reasoning_effort max: longest reasoning, slowest first answer.",
+          "label": "Max",
+          "value": "max"
+        }
+      ],
+      "help": "Chat template default when a request does not set thinking or reasoning_effort; requests can still override it. Upstream default is low.",
+      "label": "Default reasoning effort",
+      "name": "thinking"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Strictly serialized prefills (upstream default).",
+          "label": "One lane",
+          "value": "one"
+        },
+        {
+          "env": {
+            "DSPARK_MAX_INFLIGHT_PREFILLS": "2"
+          },
+          "help": "Two prefills in flight; upstream claims a better TTFT spread on 4x8K bursts, unmeasured here.",
+          "label": "Two lanes",
+          "value": "two"
+        },
+        {
+          "env": {
+            "DSPARK_MAX_INFLIGHT_PREFILLS": "3"
+          },
+          "help": "Three prefills in flight; upstream reports mixed results (worse median TTFT on 8-wide bursts).",
+          "label": "Three lanes",
+          "value": "three"
+        }
+      ],
+      "help": "How many long prompts may prefill at once (DSPARK_MAX_INFLIGHT_PREFILLS). Upstream claims 1 is the most starvation-proof; 2 was operator-qualified upstream on TP=2 to improve time-to-first-token spread on admission-limited shapes; 3 is a limited upstream sample only.",
+      "label": "Concurrent prefills",
+      "name": "prefill_lanes"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Sample drafts from the drafter distribution (upstream default).",
+          "label": "Probabilistic",
+          "value": "probabilistic"
+        },
+        {
+          "args": [
+            {
+              "name": "speculative-config",
+              "value": "{\"method\":\"dspark\",\"num_speculative_tokens\":6,\"draft_sample_method\":\"greedy\"}"
+            }
+          ],
+          "help": "Take the drafter argmax; a deterministic draft, acceptance rate not measured here.",
+          "label": "Greedy",
+          "value": "greedy"
+        }
+      ],
+      "help": "How the DSpark drafter samples its speculative tokens (draft_sample_method).",
+      "label": "Draft sampling",
+      "name": "draft_sampling"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "--async-scheduling enabled (upstream default).",
+          "label": "On",
+          "value": "on"
+        },
+        {
+          "args": [
+            {
+              "name": "async-scheduling",
+              "value": false
+            }
+          ],
+          "help": "Scheduling in step with execution; slower, for A/B diagnosis.",
+          "label": "Off",
+          "value": "off"
+        }
+      ],
+      "help": "vLLM async scheduling overlaps scheduling with execution. Upstream added an off switch for A/B tests of tool-call issues.",
+      "label": "Async scheduling",
+      "name": "async_scheduling"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Client stop strings stay inactive while the model reasons (upstream default).",
+          "label": "Dormant until </think>",
+          "value": "dormant"
+        },
+        {
+          "env": {
+            "DSPARK_SUPPRESS_STOPS_IN_REASONING": "0"
+          },
+          "help": "Stop strings may fire mid-reasoning.",
+          "label": "Stock vLLM",
+          "value": "stock"
+        }
+      ],
+      "help": "Whether client stop strings can fire inside the <think> block.",
+      "label": "Stop strings in reasoning",
+      "name": "reasoning_stops"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "No per-step scheduler log (upstream default).",
+          "label": "Off",
+          "value": "off"
+        },
+        {
+          "env": {
+            "DSPARK_ISSUE43_SCHED_DIAG": "1"
+          },
+          "help": "DSPARK_ISSUE43_SCHED_DIAG=1.",
+          "label": "On",
+          "value": "on"
+        }
+      ],
+      "help": "Logs one compact line per scheduler step (scheduled prefill and decode tokens per request); useful for debugging, adds log volume.",
+      "label": "Scheduler diagnostics",
+      "name": "scheduler_diagnostics"
+    }
+  ],
   "provenance": {
     "attribution": [
       "DeepSeek AI",
@@ -994,11 +1161,11 @@
       "Anemll",
       "vLLM contributors"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/c444d7032957f5a5437261d5366fd06b27a01760"
+    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/97e8733238f81f5fdc44b241f8996a7858825744"
   },
   "release": {
-    "released_at": "2026-09-23",
-    "version": "1.1.7"
+    "released_at": "2026-09-16",
+    "version": "1.2.0"
   },
   "runtime": {
     "arguments": [
@@ -1115,7 +1282,7 @@
       {
         "name": "default-chat-template-kwargs",
         "setting": null,
-        "value": "{\"thinking\":true,\"reasoning_effort\":\"max\"}"
+        "value": "{\"thinking\":true,\"reasoning_effort\":\"low\"}"
       },
       {
         "name": "generation-config",
@@ -1189,7 +1356,7 @@
       },
       {
         "name": "DSPARK_MAX_INFLIGHT_PREFILLS",
-        "value": "2"
+        "value": "1"
       },
       {
         "name": "TORCH_CUDA_ARCH_LIST",

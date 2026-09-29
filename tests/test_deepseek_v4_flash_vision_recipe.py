@@ -47,7 +47,7 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
     def test_adapter_is_pinned_and_fail_closed(self) -> None:
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
         for value in (
-            "c444d7032957f5a5437261d5366fd06b27a01760",
+            "97e8733238f81f5fdc44b241f8996a7858825744",
             'ai.vonkforge.runtime-interface="v1"',
             "getent passwd 10001",
         ):
@@ -66,6 +66,53 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
         self.assertEqual(self.recipe["settings"]["context_tokens"]["value"], 1_048_576)
         self.assertEqual(json.loads(arguments["limit-mm-per-prompt"]), {"image": 8})
         self.assertEqual(self.recipe["interfaces"][0]["adapter"], "openai")
+
+    def test_options_default_to_the_upstream_defaults(self) -> None:
+        from vonk_forge_contracts import read_recipe
+
+        recipe = read_recipe(load(RECIPE))
+        self.assertEqual(
+            recipe.resolve_options(),
+            {
+                "thinking": "low",
+                "prefill_lanes": "one",
+                "draft_sampling": "probabilistic",
+                "async_scheduling": "on",
+                "reasoning_stops": "dormant",
+                "scheduler_diagnostics": "off",
+            },
+        )
+        base = {a.name: a.value for a in recipe.runtime.arguments}
+        self.assertEqual(
+            base["default-chat-template-kwargs"],
+            '{"thinking":true,"reasoning_effort":"low"}',
+        )
+        self.assertIs(base["async-scheduling"], True)
+        environment = {e.name: e.value for e in recipe.runtime.environment}
+        self.assertEqual(environment["DSPARK_MAX_INFLIGHT_PREFILLS"], "1")
+        # Choosing every default is the same runtime as choosing nothing.
+        self.assertEqual(
+            recipe.with_option_choices(recipe.resolve_options()).runtime,
+            recipe.runtime,
+        )
+
+    def test_non_default_choices_change_only_their_binding(self) -> None:
+        from vonk_forge_contracts import read_recipe
+
+        recipe = read_recipe(load(RECIPE))
+        chosen = recipe.with_option_choices(
+            {
+                "async_scheduling": "off",
+                "prefill_lanes": "two",
+                "draft_sampling": "greedy",
+            }
+        )
+        arguments = {a.name: a.value for a in chosen.runtime.arguments}
+        environment = {e.name: e.value for e in chosen.runtime.environment}
+        self.assertIs(arguments["async-scheduling"], False)
+        self.assertEqual(environment["DSPARK_MAX_INFLIGHT_PREFILLS"], "2")
+        speculative = json.loads(str(arguments["speculative-config"]))
+        self.assertEqual(speculative["draft_sample_method"], "greedy")
 
     def test_release_binds_the_current_recipe_digest(self) -> None:
         index = load(GENERATED / "catalog-index.json")

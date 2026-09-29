@@ -412,7 +412,7 @@
     {
       "file": "adapters/deepseek/mia-vllm-vision/patches/vision_exp/image_processor.py",
       "rule": "reportMissingImports",
-      "count": 7,
+      "count": 8,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
