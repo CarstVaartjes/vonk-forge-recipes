@@ -158,22 +158,6 @@ Keep non-root execution, a read-only root, and declared writable volumes. If an
 engine needs an additional invariant, fix the central engine implementation
 and exercise actual writes and cache reuse; do not scatter recipe workarounds.
 
-### Options: user-selectable runtime variants
-
-When users can reasonably choose between ways to run the same weights, declare an
-`options` list instead of publishing near-duplicate recipes. Each option has a
-`name`, `label` and `help`, and 2 to 16 `choices`: `value`, `label`, `help`,
-exactly one `default`, and the literal runtime `args` and `env` the choice sets.
-A choice's argument or variable replaces the recipe's own of the same name in
-place, otherwise it is appended, so an option that needs a different CUDA graph
-list carries the whole replacement `compilation-config`. Two options may not
-change the same argument or variable. The recipe's own arguments and environment
-are the defaults: the default choice normally adds nothing. Options cannot
-change weights, the image or the build; different weights are a different Model
-and recipe. Anything an option needs at run time must already be in the image
-(for example a patch applied at build and switched by an environment variable),
-and it may not download or build anything.
-
 Artifact jobs receive their declared files under `/inputs`, plus
 `/inputs/manifest.json`, and write their outputs under `/outputs`. Read
 the manifest with the platform's `RecipeJobInputManifest` Pydantic model and
@@ -184,6 +168,75 @@ names, including uppercase names. The two native LTX adapters bundle the same
 changing this shared contract, rebuild that wheel from the platform's
 `agent_protocol` source, replace both adapter copies, and run the actual
 manifest-producer-to-adapter tests before rebuilding the catalog.
+
+### Options: user-selectable runtime variants
+
+When users can reasonably choose between ways to run the same weights, declare an
+`options` list instead of publishing near-duplicate recipes (contract 2.1.0).
+
+| Field | Rule |
+| --- | --- |
+| option `name` | Slug, unique in the recipe. |
+| option `label`, `help` | What the user sees in the web select and `vonkctl`; say what changes and the trade-off. |
+| `choices` | 2 to 16 fixed named values. There are no free-form values. |
+| choice `value` | Slug, unique within its option. |
+| choice `label`, `help` | Shown next to the value; state measured or upstream-documented effects only. |
+| choice `default` | Exactly one choice per option is `true`. It applies whenever the user does not choose. |
+| choice `args` | Literal runtime arguments (`name` and `value`, never a `setting` binding). |
+| choice `env` | Environment variables as `{NAME: value}`. |
+
+**The default is the recipe as it runs today.** The recipe's own `runtime.arguments`
+and `runtime.environment` hold the upstream defaults, so the default choice
+normally adds nothing (`args` and `env` left out); when upstream's default
+changes, change the base runtime and the default choice together. Choices carry
+only what differs from it.
+
+**Binding.** The chosen choice is merged into the runtime before the platform
+compiles it, identically on every rank. An argument or variable with the name
+the recipe already sets replaces it in place; a new name is appended. So an
+option that needs a different CUDA graph list carries the whole replacement
+`compilation-config` argument, and a choice that turns a feature off writes the
+variable's off value instead of leaving it out. Two options may not change the
+same argument or variable. Options cannot change weights, the image or the
+build: different weights are a different Model and recipe, and anything a choice
+needs at run time (for example a patch applied at build and switched by an
+environment variable) must already be in the image. A choice may not download or
+build anything.
+
+**Forbidden.** A choice is trusted recipe data with the same limits as
+`runtime.arguments` and `runtime.environment`: the platform still owns
+security, users, networks, mounts, ports, writable paths, caches and telemetry.
+The contract checks the structure (bounds, names, one default, unique names and
+values, no conflicting options, every choice merges into a valid runtime) and
+the library validation compiles every choice against the platform policy, so a
+choice that sets a platform-owned variable such as `HOME` or a cache path, a
+reserved `VONK_*` name or a loader-injection variable fails the library check.
+Run it as in section 5.
+
+Example (a real option from the GLM 5.3 Flash EXL3 recipe, abridged):
+
+```json
+"options": [
+  {
+    "name": "verification",
+    "label": "Draft verification",
+    "help": "How many drafted tokens the target verifies per step.",
+    "choices": [
+      {"value": "standard", "label": "Standard", "default": true,
+       "help": "Verify all 7 drafted tokens every step (upstream default)."},
+      {"value": "adaptive-k", "label": "Adaptive length",
+       "help": "Verify a per-step prefix; needs extra CUDA graph sizes.",
+       "args": [{"name": "compilation-config",
+                 "value": "{\"cudagraph_capture_sizes\":[1,2,3,4,5,6,8,9,10,12,15,16,20,24,32]}"}],
+       "env": {"GLM53_ADAPTIVE_K": "ema"}}
+    ]
+  }
+]
+```
+
+Do not offer an option whose extra inputs the recipe cannot declare (for
+example a preset that needs downloaded vectors, or one upstream documents as
+ineffective): leave it out and say so in the version note.
 
 ## 4. Version and explain what changed
 
