@@ -1,0 +1,11 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "requirements-flashinfer.txt"
+  ],
+  "renamed": {},
+  "source": {
+    "repo": "MiaAI-Lab/Laguna-S-2.1-DGX-Spark-RTX-6000-PRO",
+    "commit": "750a52ead5e92d4f8c2b42321c6695bcc3cf6360"
+  }
+}
