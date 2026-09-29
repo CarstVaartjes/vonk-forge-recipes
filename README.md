@@ -44,7 +44,7 @@ Which engines each model family runs on.
 | MOSS-VL |  |  |  |  |  |  |  |  | ✓ |
 | MOVA |  |  |  |  |  |  |  |  | ✓ |
 | Muse Glimmer | ✓ |  |  |  |  |  |  |  |  |
-| Nemotron | ✓ | ✓ | ✓ | ✓ |  |  |  |  |  |
+| Nemotron | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  |
 | Ornith | ✓ |  |  |  |  |  |  |  |  |
 | Pixal3D |  |  |  |  |  |  |  |  | ✓ |
 | Qwen (text and vision) | ✓ | ✓ |  | ✓ | ✓ |  |  |  |  |
