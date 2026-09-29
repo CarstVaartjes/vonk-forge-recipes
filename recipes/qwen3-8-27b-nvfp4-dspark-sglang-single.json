@@ -365,11 +365,11 @@
       "MiaAI-Lab",
       "SGLang contributors"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark/tree/9d21dcd331232792e7d39f4f84db7dd46635905d"
+    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark/tree/9fb18edf8cfb3364e8aa89258e6d5ab1fe1fd11a"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.2.0"
+    "released_at": "2026-09-09",
+    "version": "1.2.1"
   },
   "runtime": {
     "arguments": [
