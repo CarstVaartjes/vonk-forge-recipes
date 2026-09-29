@@ -1,0 +1,12 @@
+{
+  "source": {
+    "repo": "r0b0tlab/nvidia-qwen-3.6-27B-sm121-nvfp4",
+    "commit": "d0343b430a2853f0422665c93aac0fe9984a7a79"
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE"
+  }
+}
