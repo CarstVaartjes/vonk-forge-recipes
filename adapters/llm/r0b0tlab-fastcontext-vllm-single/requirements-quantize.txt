@@ -1,0 +1,5 @@
+nvidia-modelopt[hf]>=0.44.0
+transformers>=5.4
+datasets
+accelerate
+safetensors

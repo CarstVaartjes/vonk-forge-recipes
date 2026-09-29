@@ -1,0 +1,358 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/llm/r0b0tlab-fastcontext-vllm-single"
+      },
+      "dockerfile": "adapters/llm/r0b0tlab-fastcontext-vllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "fastcontext-1-0-4b-rl-nvfp4-r0b0tlab-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "FastContext-1.0-4B-RL-NVFP4"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "r0b0tlab's vLLM serve of its NVIDIA ModelOpt NVFP4 checkpoint of Microsoft FastContext-1.0-4B-RL, the async repository-exploration subagent model: fp8 KV cache, FlashInfer attention, chunked prefill, hermes tool-call parser, 131,072 context, 16 sequences, 0.40 memory utilization (a small model that leaves room for a second workload). Upstream requires only vLLM >= 0.23 with --quantization modelopt and publishes no image, so the engine here is the catalog's digest-pinned vLLM base (0.28.x), not an upstream-validated build. Licence: MIT (repository and model card; information only). Upstream reports with-vs-without-NVFP4 comparisons against the BF16 model; not measured here.",
+    "tags": [
+      "agentic",
+      "candidate",
+      "executable",
+      "fastcontext",
+      "nvfp4",
+      "openai",
+      "r0b0tlab",
+      "single",
+      "small",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "FastContext 1.0 4B RL NVFP4 vLLM single Spark (r0b0tlab)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "primary-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-3dfc2b232ef2-b335630551",
+          "id": "primary-readme-3dfc2b232ef2-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-3b203de2eeb7-587cb980af",
+          "id": "primary-config-3b203de2eeb7-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-779100d8742e-97dd3d578b",
+          "id": "primary-generation-config-779100d8742e-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-fde104dee100-a481ad90fa",
+          "id": "primary-hf-quant-config-fde104dee100-a481ad90fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-599bab540750-b0d6dcfed4",
+          "id": "primary-merges-599bab540750-b0d6dcfed4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-a67950597011-9d75c1098f",
+          "id": "primary-model-a67950597011-9d75c1098f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-aeb13307a71a-224931eb13",
+          "id": "primary-tokenizer-aeb13307a71a-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-a62ff0a2472a-94d5c6ba8f",
+          "id": "primary-tokenizer-config-a62ff0a2472a-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+          "id": "primary-vocab-ca10d7e9fb3e-ba05d8e2e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "5fd32737235333ff9baa8ccc4e7290dd6581ca7f255118e5cf42fc4ea8985a95",
+        "kind": "model",
+        "publisher": "r0b0tlab",
+        "slug": "fastcontext-1-0-4b-rl-nvfp4-98eace51"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Microsoft (FastContext-1.0-4B-RL)",
+      "r0b0tlab (NVFP4 quantization, serve configs, MIT)",
+      "vLLM contributors (Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/r0b0tlab/FastContext-1.0-4B-RL-NVFP4/tree/136de6a5cb5cd485ab57a0b8de373be409d9dc37"
+  },
+  "release": {
+    "released_at": "2026-06-18",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "FastContext-1.0-4B-RL-NVFP4"
+      },
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "modelopt"
+      },
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "dtype",
+        "setting": null,
+        "value": "auto"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "flashinfer"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.40"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 8192
+      },
+      {
+        "name": "enable-chunked-prefill",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "hermes"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 16
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 131072
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 2838062199,
+            "image_bytes": 25000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 40000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "FastContext-1.0-4B-RL-NVFP4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
