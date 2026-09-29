@@ -5329,6 +5329,22 @@
         ]
       }
     },
+    "vonk-forge/qwen3-5-0-8b-vision-llamacpp-tonyd2wild-single": {
+      "alias": "qwen3.5-0.8b-vision",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded 4-slot concurrency and long-context canaries at the default 262K context"
+        ],
+        "recovery": [
+          "Controller stop/start with warm restart"
+        ]
+      }
+    },
     "vonk-forge/nemotron-3-nano-30b-a3b-fp8-nvidia-vllm-single": {
       "alias": "nemotron-3-nano",
       "smoke_cases": [
