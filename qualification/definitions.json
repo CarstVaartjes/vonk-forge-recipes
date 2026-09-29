@@ -4626,6 +4626,19 @@
           "Bounded 32K to 128K long-context ladder and declared concurrency canaries"
         ]
       }
+    },
+    "vonk-forge/nemotron-labs-3-puzzle-75b-a9b-nvfp4-vllm-mia-single": {
+      "alias": "Nemotron-75b-Puzzle",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded 32K to 128K long-context ladder and declared concurrency canaries"
+        ]
+      }
     }
   }
 }
