@@ -80,7 +80,7 @@ Which Spark counts each model family runs on.
 | MiMo |  | ✓ | ✓ | ✓ |  |
 | MiniMax H3 | ✓ |  |  |  |  |
 | MiniMax M2 |  | ✓ |  |  |  |
-| MiniMax M3 |  |  | ✓ |  |  |
+| MiniMax M3 |  | ✓ | ✓ |  |  |
 | MOSS-VL | ✓ |  |  |  |  |
 | MOVA | ✓ |  |  |  |  |
 | Muse Glimmer | ✓ |  |  |  |  |
