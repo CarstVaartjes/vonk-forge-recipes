@@ -453,9 +453,7 @@ def preflight(name: str, path: Path, edits, requires) -> str | None:
 def atomic_write(path: Path, text: str) -> None:
     """Write via a sibling temp file + os.replace: the target is never left
     truncated, even if this process dies mid-write."""
-    fd, tmp = tempfile.mkstemp(
-        prefix=f".{path.name}.", suffix=".glm53", dir=path.parent
-    )
+    fd, tmp = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".glm53", dir=path.parent)
     try:
         with os.fdopen(fd, "w") as fh:
             fh.write(text)

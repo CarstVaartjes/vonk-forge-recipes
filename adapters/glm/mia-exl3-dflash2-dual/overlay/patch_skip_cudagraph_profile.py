@@ -15,7 +15,6 @@ that path: ``peak_activation_memory`` adds the *applied* value).
 
 Idempotent; fails closed on anchor drift.
 """
-
 from __future__ import annotations
 
 import os
@@ -56,9 +55,7 @@ def verified_state(src: str) -> str:
     if MARK in src:
         raise SystemExit(f"{TARGET}: partial mark — source drift")
     if src.count(OLD) != 1:
-        raise SystemExit(
-            f"{TARGET}: expected exactly one profile_cudagraph_memory gate, got {src.count(OLD)}"
-        )
+        raise SystemExit(f"{TARGET}: expected exactly one profile_cudagraph_memory gate, got {src.count(OLD)}")
     if "envs.VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS" not in src:
         raise SystemExit(f"{TARGET}: flag not referenced — source drift")
     return "stock"

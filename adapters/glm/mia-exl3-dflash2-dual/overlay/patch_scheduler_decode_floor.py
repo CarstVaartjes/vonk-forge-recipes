@@ -47,7 +47,6 @@ Fair knobs (read at runtime; identical on every rank):
 Versioned installer: `# [glm53-decode-floor:v5]`. v1 (no version), v2, v3
 and v4 images are unpatched then re-patched. Fail closed if anchors drift.
 """
-
 from __future__ import annotations
 
 import inspect
@@ -166,6 +165,7 @@ V2_WAITING_MAMBA_NEW = """                        num_new_tokens = self._mamba_b
 """
 
 
+
 # Frozen v3 anchors for migration from the reviewed implementation.
 V3_BEGIN_NEW = """        self.current_step += 1
         _GLM53_MIXED.begin_step(self)  # [glm53-decode-floor:v3]
@@ -252,7 +252,6 @@ V3_WAITING_MAMBA_NEW = """                        num_new_tokens = self._mamba_b
                             break
 """
 
-
 class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
     """Bound contention using completion feedback, without synchronizing GPUs."""
 
@@ -326,9 +325,7 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
             self.share = 0.30
         self.share = min(1.0, max(0.0, self.share))
         try:
-            self.interval_s = (
-                int(self._e("GLM53_FAIR_PREFILL_MAX_INTERVAL_MS", "2000")) / 1000.0
-            )
+            self.interval_s = int(self._e("GLM53_FAIR_PREFILL_MAX_INTERVAL_MS", "2000")) / 1000.0
         except ValueError:
             self.interval_s = 2.0
         if self.interval_s <= 0:
@@ -339,9 +336,7 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
             self.max_chunks = 1
         self.max_chunks = max(1, min(self.max_chunks, 16))
         try:
-            self.max_step_s = max(
-                0.001, int(self._e("GLM53_FAIR_PREFILL_MAX_STEP_MS", "2000")) / 1000.0
-            )
+            self.max_step_s = max(0.001, int(self._e("GLM53_FAIR_PREFILL_MAX_STEP_MS", "2000")) / 1000.0)
         except ValueError:
             self.max_step_s = 2.0
         if self.mode == "fair" and not self.logged_boot:
@@ -353,6 +348,7 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
                 flush=True,
             )
             self.logged_boot = True
+
 
     @staticmethod
     def prefill_remaining(request, computed=None):
@@ -371,7 +367,8 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
             if not q:
                 continue
             try:
-                yield from q
+                for r in q:
+                    yield r
             except TypeError:
                 continue
 
@@ -396,6 +393,7 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
             for k in dead:
                 store.pop(k, None)
 
+
     @property
     def inflight_prefill(self):
         return sum(bool(r["prefill_tokens"]) for r in self.inflight.values())
@@ -403,11 +401,8 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
     def _shape(self, decodes, prefills):
         history = max((int(r.num_computed_tokens) for r in decodes), default=0)
         position = max((int(r.num_computed_tokens) for r in prefills), default=0)
-        return (
-            len(decodes),
-            (history // 4096).bit_length(),
-            (position // 4096).bit_length(),
-        )
+        return (len(decodes), (history // 4096).bit_length(),
+                (position // 4096).bit_length())
 
     def _cost_model(self):
         """Fit step cost dt = a + b*n over recent prefill-bearing steps.
@@ -423,8 +418,8 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
         """
         if self._model_cache is not None:
             return self._model_cache
-        mixed = [(n, dt) for _, n, dt in self.mixed_samples[-self.FIT_WINDOW :]]
-        pts = mixed + [(n, dt) for n, dt in self.solo_samples[-self.FIT_WINDOW :]]
+        mixed = [(n, dt) for _, n, dt in self.mixed_samples[-self.FIT_WINDOW:]]
+        pts = mixed + [(n, dt) for n, dt in self.solo_samples[-self.FIT_WINDOW:]]
         if len(pts) < 2 or len({n for n, _ in pts}) < 2:
             return None
         cnt = float(len(pts))
@@ -473,15 +468,9 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
         return min(self.max_step_s, self._est_dt(max(self.chunk, max(self.LADDER))))
 
     def _rank_prefills(self, prefills):
-        return sorted(
-            prefills,
-            key=lambda r: (
-                self.last_service.get(r.request_id, 0.0),
-                self.rr_seq.get(r.request_id, 0),
-                self.arrival[r.request_id],
-                r.request_id,
-            ),
-        )
+        return sorted(prefills, key=lambda r: (
+            self.last_service.get(r.request_id, 0.0),
+            self.rr_seq.get(r.request_id, 0), self.arrival[r.request_id], r.request_id))
 
     def _promote_next(self):
         grants = (self._open_rec or {}).get("grants", {})
@@ -511,12 +500,9 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
             self._release(request.request_id, "zero_progress")
 
     def protect_decode(self, request):
-        return (
-            self.mode == "fair"
-            and self._open_rec is not None
-            and self._open_rec["had_decode"]
-            and self.needs_prefill_compute(request)
-        )
+        return (self.mode == "fair" and self._open_rec is not None
+                and self._open_rec["had_decode"]
+                and self.needs_prefill_compute(request))
 
     def begin_step(self, sched):
         now = self._now()
@@ -539,20 +525,14 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
         self._prune(self._live_ids(sched))
         running = list(sched.running)
         waiting = list(self._iter_waiting(sched))
-        prefills = list(
-            {
-                r.request_id: r
-                for r in running + waiting
-                if self.needs_prefill_compute(r)
-            }.values()
-        )
+        prefills = list({r.request_id: r for r in running + waiting
+                         if self.needs_prefill_compute(r)}.values())
         decodes = [r for r in running if not self.needs_prefill_compute(r)]
         # The base loop checks eligibility and reserves BOTH token and input/draft
         # capacity by executing these requests first. Preserve order within groups.
         if self.mode == "fair":
-            sched.running[:] = decodes + [
-                r for r in running if self.needs_prefill_compute(r)
-            ]
+            sched.running[:] = decodes + [r for r in running
+                                         if self.needs_prefill_compute(r)]
         for r in running + waiting:
             self.arrival.setdefault(r.request_id, now)
         self._candidates = self._rank_prefills(prefills)
@@ -560,12 +540,9 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
         self.selected = set()
         sched._glm53_align_prefill_limit = None
         self._open_rec = {
-            "step_id": int(sched.current_step),
-            "t_submit": now,
-            "had_decode": bool(decodes),
-            "had_prefill_demand": bool(prefills),
-            "shape": self._shape(decodes, prefills),
-            "grants": {},
+            "step_id": int(sched.current_step), "t_submit": now,
+            "had_decode": bool(decodes), "had_prefill_demand": bool(prefills),
+            "shape": self._shape(decodes, prefills), "grants": {},
             "borrowed": False,
         }
         # Do not forgive debt while a decoder or its outstanding work remains.
@@ -593,10 +570,8 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
         remaining = self.prefill_remaining(request, computed)
         if remaining <= 0 or self.mode == "off":
             return None
-        peer_decode = any(
-            r is not request and not self.needs_prefill_compute(r)
-            for r in sched.running
-        )
+        peer_decode = any(r is not request and not self.needs_prefill_compute(r)
+                          for r in sched.running)
         if self.mode == "skip":
             return 0 if peer_decode else None
         if self.mode == "cap":
@@ -632,12 +607,8 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
             # after all shared debt is repaid: queue churn or several aged
             # newcomers cannot repeatedly overdraw the decoder.
             due = rid not in self.last_service or age >= self.interval_s
-            if (
-                due
-                and self.credit >= -1e-9
-                and not rec["grants"]
-                and not rec["borrowed"]
-            ):
+            if (due and self.credit >= -1e-9 and not rec["grants"]
+                    and not rec["borrowed"]):
                 borrowed = True
             else:
                 self._release(rid, "credit")
@@ -658,11 +629,8 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
         self._open_rec = None
         if rec is None:
             return
-        scheduled = {
-            rid: int(n)
-            for rid, n in scheduler_output.num_scheduled_tokens.items()
-            if n > 0
-        }
+        scheduled = {rid: int(n) for rid, n in scheduler_output.num_scheduled_tokens.items()
+                     if n > 0}
         requests = getattr(sched, "requests", {})
         prefill = {}
         for rid, n in scheduled.items():
@@ -675,22 +643,14 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
         for rid, (_, estimate, _) in rec["grants"].items():
             # Never publish/charge a tentative grant that alignment, allocation,
             # encoder caps or preemption removed from the final scheduler output.
-            actual_est = (
-                min(estimate, self._est_dt(prefill[rid], rec["shape"]))
-                if rid in prefill
-                else 0.0
-            )
+            actual_est = min(estimate, self._est_dt(prefill[rid], rec["shape"])) if rid in prefill else 0.0
             self.credit += estimate - actual_est
             reserved += actual_est
         if not scheduled:
             # Empty schedules do not necessarily have a completion callback.
             return
-        rec.update(
-            output=scheduler_output,
-            scheduled=scheduled,
-            prefill_tokens=prefill,
-            reserved=reserved,
-        )
+        rec.update(output=scheduler_output, scheduled=scheduled,
+                   prefill_tokens=prefill, reserved=reserved)
         del rec["grants"]
         if self.mode == "fair":
             self.inflight[id(scheduler_output)] = rec
@@ -709,11 +669,9 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
         dt = max(0.0, now - start)
         self.last_account_mono = max(now, self.last_account_mono or now)
         actual = scheduler_output.num_scheduled_tokens
-        served = {
-            rid: min(n, max(0, int(actual.get(rid, 0))))
-            for rid, n in rec["prefill_tokens"].items()
-            if int(actual.get(rid, 0)) > 0
-        }
+        served = {rid: min(n, max(0, int(actual.get(rid, 0))))
+                  for rid, n in rec["prefill_tokens"].items()
+                  if int(actual.get(rid, 0)) > 0}
         for rid, n in served.items():
             self.last_service[rid] = now
             self.rr_n += 1
@@ -734,13 +692,10 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
             self.solo_samples = self.solo_samples[-32:]
             self._model_cache = None
         if n and self.hist_every > 0:
-            print(
-                f"[glm53-decode-floor] completed_step={rec['step_id']} "
-                f"contention={int(rec['had_decode'])} prefill_tokens={served} "
-                f"reserved_s={rec['reserved']:.3f} accounted_s={dt:.3f} "
-                f"credit={self.credit:.3f} timing=host_busy_proxy",
-                flush=True,
-            )
+            print(f"[glm53-decode-floor] completed_step={rec['step_id']} "
+                  f"contention={int(rec['had_decode'])} prefill_tokens={served} "
+                  f"reserved_s={rec['reserved']:.3f} accounted_s={dt:.3f} "
+                  f"credit={self.credit:.3f} timing=host_busy_proxy", flush=True)
         self._prune(self._live_ids(sched))
 
     def _maybe_log(self):
@@ -748,27 +703,19 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
             return
         rec = self._open_rec or {}
         remaining = sum(self.prefill_remaining(r) for r in self._candidates)
-        target, estimate = self._target(None, self.max_step_s) or (
-            self.chunk,
-            self._est_dt(self.chunk),
-        )
+        target, estimate = (self._target(None, self.max_step_s)
+                            or (self.chunk, self._est_dt(self.chunk)))
         rate = target / estimate if estimate > 0 else 0.0
         eta = remaining / (self.share * rate) if self.share * rate > 0 else float("inf")
         model = self._cost_model()
-        fit = (
-            f"fit_fixed_s={model[0]:.3f} fit_us_per_tok={model[1] * 1e6:.0f}"
-            if model
-            else "fit=none"
-        )
-        print(
-            f"[glm53-decode-floor] step={rec.get('step_id', self.steps)} "
-            f"mode={self.step_mode} defer={self.defer_reason} "
-            f"inflight={self.inflight_prefill} credit={self.credit:.3f} "
-            f"remaining={remaining} target={target} est_s={estimate:.3f} {fit} "
-            f"eta_est_s={eta:.1f} max_step_s={self.max_step_s:.3f} "
-            f"missed={self.missed_prefill} timing=host_busy_proxy",
-            flush=True,
-        )
+        fit = (f"fit_fixed_s={model[0]:.3f} fit_us_per_tok={model[1] * 1e6:.0f}"
+               if model else "fit=none")
+        print(f"[glm53-decode-floor] step={rec.get('step_id', self.steps)} "
+              f"mode={self.step_mode} defer={self.defer_reason} "
+              f"inflight={self.inflight_prefill} credit={self.credit:.3f} "
+              f"remaining={remaining} target={target} est_s={estimate:.3f} {fit} "
+              f"eta_est_s={eta:.1f} max_step_s={self.max_step_s:.3f} "
+              f"missed={self.missed_prefill} timing=host_busy_proxy", flush=True)
 
     @staticmethod
     def aligned_new_tokens(
@@ -783,6 +730,7 @@ class _Glm53MixedPrefill:  # [glm53-decode-floor:v5]
             if aligned_end > start or block_size <= max_prefill_tokens:
                 end = aligned_end
         return max(0, end - start)
+
 
 
 def _helper_text() -> str:
@@ -982,19 +930,19 @@ WAITING_ALLOC_NEW = """                    if request.has_encoder_inputs:
                 # KVTransfer:"""
 
 V4_PAIRS = (
-    (BEGIN_NEW, BEGIN_OLD, "begin"),
-    (OBS_NEW, OBS_OLD, "obs"),
-    (RUNNING_NEW, RUNNING_OLD, "running"),
-    (WAITING_NEW, WAITING_OLD, "waiting"),
-    (ALIGN_NEW, ALIGN_OLD, "align"),
-    (RUNNING_MAMBA_NEW, RUNNING_MAMBA_OLD, "running_mamba"),
-    (WAITING_MAMBA_NEW, WAITING_MAMBA_OLD, "waiting_mamba"),
-    (FIN_NEW, FIN_OLD, "fin"),
-    (RUNNING_ZERO_NEW, RUNNING_ZERO_OLD, "running_zero"),
-    (WAITING_ZERO_NEW, WAITING_ZERO_OLD, "waiting_zero"),
-    (PREFILL_PREEMPT_NEW, PREFILL_PREEMPT_OLD, "prefill_preempt"),
-    (RUNNING_ALLOC_NEW, RUNNING_ALLOC_OLD, "running_alloc"),
-    (WAITING_ALLOC_NEW, WAITING_ALLOC_OLD, "waiting_alloc"),
+    (BEGIN_NEW, BEGIN_OLD, 'begin'),
+    (OBS_NEW, OBS_OLD, 'obs'),
+    (RUNNING_NEW, RUNNING_OLD, 'running'),
+    (WAITING_NEW, WAITING_OLD, 'waiting'),
+    (ALIGN_NEW, ALIGN_OLD, 'align'),
+    (RUNNING_MAMBA_NEW, RUNNING_MAMBA_OLD, 'running_mamba'),
+    (WAITING_MAMBA_NEW, WAITING_MAMBA_OLD, 'waiting_mamba'),
+    (FIN_NEW, FIN_OLD, 'fin'),
+    (RUNNING_ZERO_NEW, RUNNING_ZERO_OLD, 'running_zero'),
+    (WAITING_ZERO_NEW, WAITING_ZERO_OLD, 'waiting_zero'),
+    (PREFILL_PREEMPT_NEW, PREFILL_PREEMPT_OLD, 'prefill_preempt'),
+    (RUNNING_ALLOC_NEW, RUNNING_ALLOC_OLD, 'running_alloc'),
+    (WAITING_ALLOC_NEW, WAITING_ALLOC_OLD, 'waiting_alloc'),
 )
 
 
@@ -1111,9 +1059,7 @@ def unpatch_v4(text: str) -> str:
 
 # v5 uses the same scheduler anchors as v4 with the marker advanced; the v4
 # insertions above stay frozen so a v4 image can be unpatched exactly.
-V5_PAIRS = tuple(
-    (new.replace(MARK_V4, MARK_V5), old, label) for new, old, label in V4_PAIRS
-)
+V5_PAIRS = tuple((new.replace(MARK_V4, MARK_V5), old, label) for new, old, label in V4_PAIRS)
 
 
 def unpatch_v5(text: str) -> str:

@@ -9,6 +9,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+
 KPOOL = Path(
     "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/"
     "sparse_attn_indexer_kpool.py"
@@ -21,7 +22,8 @@ KPOOL_NEW = (
 
 
 def _align_timestamps(timestamps: list, t_groups: int) -> list:
-    t_groups = max(t_groups, 1)
+    if t_groups < 1:
+        t_groups = 1
     if not timestamps:
         return [0] * t_groups
     n = len(timestamps)
@@ -32,7 +34,7 @@ def _align_timestamps(timestamps: list, t_groups: int) -> list:
     if n < t_groups:
         return timestamps + [timestamps[-1]] * (t_groups - n)
     last = n - 1
-    return [timestamps[round(i * last / (t_groups - 1))] for i in range(t_groups)]
+    return [timestamps[int(round(i * last / (t_groups - 1)))] for i in range(t_groups)]
 
 
 def _use_glm4v_timestamps(hf_processor) -> bool:
@@ -114,7 +116,7 @@ def _install_import_hook() -> None:
         applying = True
         try:
             apply()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             print(f"glm53: video apply() failed: {exc!r}", file=sys.stderr)
         finally:
             applying = False
@@ -168,7 +170,7 @@ _install_import_hook()
 if "vllm.model_executor.models.glm4_1v" in sys.modules:
     try:
         apply()
-    except Exception:  # noqa: BLE001, S110
+    except Exception:
         pass
 
 

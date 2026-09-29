@@ -64,22 +64,19 @@ from typing import Any
 
 import torch
 
-
 def _tp_world() -> int:
     try:
         from vllm.distributed import get_tensor_model_parallel_world_size
-
         return get_tensor_model_parallel_world_size()
-    except Exception:  # standalone / tests  # noqa: BLE001
+    except Exception:  # standalone / tests
         return 1
 
 
 def _tp_rank() -> int:
     try:
         from vllm.distributed import get_tensor_model_parallel_rank
-
         return get_tensor_model_parallel_rank()
-    except Exception:  # standalone / tests  # noqa: BLE001
+    except Exception:  # standalone / tests
         return 0
 
 
@@ -87,7 +84,7 @@ try:  # inside the vLLM image
     from vllm.logger import init_logger
 
     logger = init_logger(__name__)
-except Exception:  # standalone (tests)  # noqa: BLE001
+except Exception:  # standalone (tests)
     import logging
 
     logger = logging.getLogger("glm53_ablit")
@@ -167,9 +164,7 @@ def load_direction(path: Path) -> torch.Tensor:
     if r.dim() == 2 and r.shape[0] == 1:  # some exports store a [1, N] row
         r = r.squeeze(0)
     if r.dim() != 1:
-        raise AblitError(
-            f"{path}: 'directions' must be 1-D (or [1, N]), got {tuple(r.shape)}"
-        )
+        raise AblitError(f"{path}: 'directions' must be 1-D (or [1, N]), got {tuple(r.shape)}")
     r = r.to(torch.float32)
     norm = r.norm()
     if not torch.isfinite(norm) or float(norm) <= 0:
@@ -230,8 +225,7 @@ def _refuse_exl3_o_proj(name: str, mod: Any) -> None:
     if getattr(mod, "_exl3_linear_n_shards", None) is not None:
         raise AblitError(
             f"ablit: {name} is EXL3-dense (pack non_routed_exl3); ABLIT edits "
-            "BF16 o_proj only — unset ABLIT or serve a non-dense-EXL3 pack"
-        )
+            "BF16 o_proj only — unset ABLIT or serve a non-dense-EXL3 pack")
 
 
 def unwrap_text_model(model: Any) -> Any:
@@ -306,15 +300,10 @@ def load_transplant_tensors(
     tdir = Path(ablit_dir) / TRANSPLANT_SUBDIR
     manifest_path = tdir / "MANIFEST.json"
     if not manifest_path.is_file():
-        raise AblitError(
-            f"ABLIT_METHOD=transplant but {manifest_path} is missing "
-            "— run ablit/fetch_transplant.py first"
-        )
+        raise AblitError(f"ABLIT_METHOD=transplant but {manifest_path} is missing "
+                         "— run ablit/fetch_transplant.py first")
     manifest = json.loads(manifest_path.read_text())
-    meta = {
-        int(k): v
-        for k, v in (manifest.get("layers") or manifest.get("tensors") or {}).items()
-    }
+    meta = {int(k): v for k, v in (manifest.get("layers") or manifest.get("tensors") or {}).items()}
     out: dict[int, torch.Tensor] = {}
     for L in layers:
         if L not in meta:
@@ -327,19 +316,16 @@ def load_transplant_tensors(
         if len(raw) != int(info["nbytes"]):
             raise AblitError(
                 f"transplant L{L}: expected {info['nbytes']} bytes, got {len(raw)} "
-                "— re-run ablit/fetch_transplant.py"
-            )
+                "— re-run ablit/fetch_transplant.py")
         if info["dtype"] != "BF16":
             raise AblitError(f"transplant L{L}: unsupported dtype {info['dtype']}")
         t = torch.frombuffer(bytearray(raw), dtype=torch.bfloat16).reshape(
-            tuple(info["shape"])
-        )
+            tuple(info["shape"]))
         out[L] = t
     if not out:
         raise AblitError(
             f"no transplant tensors under {tdir} cover ABLIT_LAYERS — "
-            "run ablit/fetch_transplant.py first"
-        )
+            "run ablit/fetch_transplant.py first")
     return out
 
 
@@ -354,12 +340,8 @@ def apply_transplant(
     candidates = walk_o_proj(text_model)
     want = set(layers)
     world, rank = _tp_world(), _tp_rank()
-    report: dict[str, Any] = {
-        "edited_layers": [],
-        "skipped": [],
-        "mtp_edited": False,
-        "deltas": {},
-    }
+    report: dict[str, Any] = {"edited_layers": [], "skipped": [], "mtp_edited": False,
+                              "deltas": {}}
     seen_ids: set[int] = set()
     for name, idx, mod in candidates:
         if id(mod) in seen_ids:
@@ -374,8 +356,7 @@ def apply_transplant(
         if idx not in donors:
             raise AblitError(
                 f"ABLIT_METHOD=transplant has no donor tensor for layer {idx} "
-                "— fetch it with ablit/fetch_transplant.py"
-            )
+                "— fetch it with ablit/fetch_transplant.py")
         donor = donors[idx]
         _refuse_exl3_o_proj(name, mod)
         weight = getattr(mod, "weight", None)
@@ -391,26 +372,17 @@ def apply_transplant(
         # columns land on the last rank's dummy heads, which are zero in the
         # stock weights too. Padding of a full rank width or more is a real
         # mismatch, not head padding.
-        if donor.shape[0] != weight.shape[0] or not (
-            full_in == padded_in
-            or (world == 3 and full_in < padded_in < full_in + local_in)
-        ):
+        if (donor.shape[0] != weight.shape[0]
+                or not (full_in == padded_in or (world == 3 and full_in < padded_in < full_in + local_in))):
             raise AblitError(
                 f"ablit transplant: {name} shape {tuple(weight.shape)} does not "
-                f"match donor {tuple(donor.shape)} at TP={world}"
-            )
+                f"match donor {tuple(donor.shape)} at TP={world}")
         if padded_in != full_in:
             donor = torch.nn.functional.pad(donor, (0, padded_in - full_in))
             logger.info(
                 "ablit: transplant %s donor padded %d -> %d input columns for TP=%d head padding",
-                name,
-                full_in,
-                padded_in,
-                world,
-            )
-        shard = (
-            donor if world == 1 else donor[:, rank * local_in : (rank + 1) * local_in]
-        )
+                name, full_in, padded_in, world)
+        shard = donor if world == 1 else donor[:, rank * local_in:(rank + 1) * local_in]
         # Donors come from torch.frombuffer on CPU; o_proj is already on the
         # worker GPU. Compare and copy on weight's device (proj path already
         # does r.to(weight.device); transplant forgot).
@@ -419,9 +391,7 @@ def apply_transplant(
             w32 = weight.data.float()
             d32 = shard.float()
             rel_l2 = float((d32 - w32).norm() / w32.norm().clamp_min(1e-9))
-            mean_rel = float(
-                (d32 - w32).abs().mean() / w32.abs().mean().clamp_min(1e-9)
-            )
+            mean_rel = float((d32 - w32).abs().mean() / w32.abs().mean().clamp_min(1e-9))
             weight.data.copy_(shard)
         report["edited_layers"].append(idx)
         report["deltas"][idx] = {"rel_l2": rel_l2, "mean_rel": mean_rel}
@@ -429,12 +399,7 @@ def apply_transplant(
             report["mtp_edited"] = True
         logger.info(
             "ablit: transplanted %s (donor L%d) shape=%s rel_l2=%.4f mean_rel=%.4f",
-            name,
-            idx,
-            tuple(weight.shape),
-            rel_l2,
-            mean_rel,
-        )
+            name, idx, tuple(weight.shape), rel_l2, mean_rel)
     report["edited_layers"].sort()
     return report
 
@@ -459,18 +424,15 @@ def maybe_apply(model: Any) -> dict[str, Any] | None:
         )
         if have_transplant:
             if method == "auto":
-                logger.info(
-                    "ablit: ABLIT_METHOD=auto -> transplant "
-                    "(ablit/transplant/ present; direction proj does "
-                    "not align with stock o_proj on this model)"
-                )
+                logger.info("ablit: ABLIT_METHOD=auto -> transplant "
+                            "(ablit/transplant/ present; direction proj does "
+                            "not align with stock o_proj on this model)")
             donors = load_transplant_tensors(ablit_dir, layers)
             report = apply_transplant(model, donors, layers, include_mtp)
             if not report["edited_layers"] and not report["mtp_edited"]:
                 raise AblitError(
                     "ABLIT=1 transplant matched no o_proj — ABLIT_LAYERS="
-                    f"{layers_spec} matched nothing under this model"
-                )
+                    f"{layers_spec} matched nothing under this model")
             deltas = list(report["deltas"].values())
             logger.info(
                 "ablit: ON method=transplant layers=%s edited=%s mtp=%s "
@@ -486,12 +448,9 @@ def maybe_apply(model: Any) -> dict[str, Any] | None:
         if method == "transplant":
             raise AblitError(
                 "ABLIT_METHOD=transplant but ablit/transplant/ is missing or "
-                "empty — run: python3 ablit/fetch_transplant.py"
-            )
-        logger.info(
-            "ablit: ABLIT_METHOD=auto -> proj (no ablit/transplant/ "
-            "tensors found — falling back to direction orthogonalization)"
-        )
+                "empty — run: python3 ablit/fetch_transplant.py")
+        logger.info("ablit: ABLIT_METHOD=auto -> proj (no ablit/transplant/ "
+                    "tensors found — falling back to direction orthogonalization)")
 
     # ABLIT_METHOD=proj (or auto fallback): direction orthogonalization
     direction = os.environ.get("ABLIT_DIRECTION") or "dealign"

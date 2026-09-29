@@ -68,20 +68,12 @@ HERE = Path(__file__).resolve().parent
 PATCH = next(
     (
         p
-        for p in (
-            HERE / "patch_apc_no_store.py",
-            HERE.parent / "overlay" / "patch_apc_no_store.py",
-        )
+        for p in (HERE / "patch_apc_no_store.py", HERE.parent / "overlay" / "patch_apc_no_store.py")
         if p.is_file()
     ),
     None,
 )
 START = HERE.parent / "start.sh"
-if not START.is_file():
-    # This adapter vendors the upstream launcher as upstream-start.sh (byte-
-    # identical to the checkout's start.sh), so the launcher legs still run
-    # from the repo instead of only in-image.
-    START = HERE.parent / "upstream-start.sh"
 # start.sh's generic caller-override block: exports win over .env, explicit
 # empties included (#161/#92). Lifted by its own sentinels.
 CALLER_BEGIN = "_caller_overrides=()"
@@ -147,7 +139,7 @@ class SamplingParams(
         pass
 '''
 
-REPLICA_REQUEST = """# replica of vllm/v1/request.py (anchor context only)
+REPLICA_REQUEST = '''# replica of vllm/v1/request.py (anchor context only)
 from vllm.sampling_params import SamplingParams
 
 
@@ -175,9 +167,9 @@ class Request:
 
     def is_finished(self) -> bool:
         return False
-"""
+'''
 
-REPLICA_BLOCK_POOL = """# replica of vllm/v1/core/block_pool.py (anchor context only)
+REPLICA_BLOCK_POOL = '''# replica of vllm/v1/core/block_pool.py (anchor context only)
 from vllm.logger import init_logger
 
 logger = init_logger(__name__)
@@ -235,7 +227,7 @@ class BlockPool:
         assert dst_block.block_hash is None
         for block_hash in [src_block.block_hash]:
             self._insert_block_hash(block_hash, dst_block, num_tokens=None)
-"""
+'''
 
 REPLICAS = {
     "GLM53_SAMPLING_PARAMS_PY": REPLICA_SAMPLING,
@@ -250,9 +242,7 @@ def source_root() -> Path | None:
     if all((root / rel).is_file() for rel in REL.values()):
         return root
     if raw:
-        raise SystemExit(
-            f"GLM53_VLLM_SRC_ROOT={root} lacks one of {sorted(REL.values())}"
-        )
+        raise SystemExit(f"GLM53_VLLM_SRC_ROOT={root} lacks one of {sorted(REL.values())}")
     return None
 
 
@@ -273,9 +263,9 @@ def stage(into: Path, root: Path | None, pristine_only: bool) -> dict[str, Path]
 def run_patcher(staged: dict[str, Path]) -> subprocess.CompletedProcess[str]:
     env = {k: v for k, v in os.environ.items() if not k.startswith("GLM53_")}
     env.update({k: str(v) for k, v in staged.items()})
-    return subprocess.run(  # noqa: PLW1510
-        [sys.executable, str(PATCH)], env=env, capture_output=True, text=True
-    )
+    return subprocess.run([sys.executable, str(PATCH)], env=env, capture_output=True, text=True)
+
+
 
 
 # Other overlays a staged source may already carry: the in-image gate runs this
@@ -309,20 +299,13 @@ def part_a(root: Path | None) -> None:
     with tempfile.TemporaryDirectory() as raw:
         tmp = Path(raw)
         staged = stage(tmp, root, pristine_only=True)
-        using_real = root is not None and all(
-            MARK not in (root / r).read_text() for r in REL.values()
-        )
-        print(
-            f"  sources: {'pre-no-store ' + str(root) if using_real else 'vendored replicas'}"
-        )
+        using_real = root is not None and all(MARK not in (root / r).read_text() for r in REL.values())
+        print(f"  sources: {'pre-no-store ' + str(root) if using_real else 'vendored replicas'}")
         if using_real:
             print(f"  staged-source overlays: {overlay_provenance(root)}")
 
         r = run_patcher(staged)
-        check(
-            r.returncode == 0,
-            f"A1 first application exits 0 ({r.stdout.strip().splitlines()[-1] if r.stdout.strip() else r.stderr.strip()[:120]})",
-        )
+        check(r.returncode == 0, f"A1 first application exits 0 ({r.stdout.strip().splitlines()[-1] if r.stdout.strip() else r.stderr.strip()[:120]})")
         texts = {k: p.read_text() for k, p in staged.items()}
         for k, p in staged.items():
             try:
@@ -333,12 +316,9 @@ def part_a(root: Path | None) -> None:
                 print(f"       {exc}")
             check(ok, f"A1 {p.name} parses")
 
+
         r2 = run_patcher(staged)
-        check(
-            r2.returncode == 0
-            and all(p.read_text() == texts[k] for k, p in staged.items()),
-            "A3 re-apply exits 0 and is byte-identical (idempotent)",
-        )
+        check(r2.returncode == 0 and all(p.read_text() == texts[k] for k, p in staged.items()), "A3 re-apply exits 0 and is byte-identical (idempotent)")
 
     # A4 drift: every anchor, one at a time, and no file may be written.
     for fname, (_, edits, _requires) in patcher.PLAN.items():
@@ -355,10 +335,7 @@ def part_a(root: Path | None) -> None:
                 before = {k: p.read_text() for k, p in staged.items()}
                 r = run_patcher(staged)
                 untouched = all(p.read_text() == before[k] for k, p in staged.items())
-                check(
-                    r.returncode != 0 and label in (r.stderr + r.stdout) and untouched,
-                    f"A4 drifted {fname}:{label} -> exit {r.returncode}, named in the error, nothing written",
-                )
+                check(r.returncode != 0 and label in (r.stderr + r.stdout) and untouched, f"A4 drifted {fname}:{label} -> exit {r.returncode}, named in the error, nothing written")
     # A5 partial marker: a file with SOME of its marks is refused, nothing written.
     with tempfile.TemporaryDirectory() as raw:
         tmp = Path(raw)
@@ -366,22 +343,14 @@ def part_a(root: Path | None) -> None:
         run_patcher(staged)
         bp = staged["GLM53_BLOCK_POOL_PY"]
         text = bp.read_text()
-        text = text.replace(
-            BLOCK_POOL_PARTIAL_LINE,
-            '        if getattr(request, "skip_writing_prefix_cache", False):\n',
-            1,
-        )
+        text = text.replace(BLOCK_POOL_PARTIAL_LINE, "        if getattr(request, \"skip_writing_prefix_cache\", False):\n", 1)
         bp.write_text(text)
         # and make the other two pristine again so they WOULD be written
         pristine = stage(tmp, root, pristine_only=True)
         bp.write_text(text)
         before = {k: p.read_text() for k, p in pristine.items()}
         r = run_patcher(pristine)
-        check(
-            r.returncode != 0
-            and all(p.read_text() == before[k] for k, p in pristine.items()),
-            f"A5 partially-marked block_pool.py refused (rc={r.returncode}) and the other two files stay untouched",
-        )
+        check(r.returncode != 0 and all(p.read_text() == before[k] for k, p in pristine.items()), f"A5 partially-marked block_pool.py refused (rc={r.returncode}) and the other two files stay untouched")
     with tempfile.TemporaryDirectory() as raw:
         tmp = Path(raw)
         staged = stage(tmp, root, pristine_only=True)
@@ -389,25 +358,14 @@ def part_a(root: Path | None) -> None:
         bp = staged["GLM53_BLOCK_POOL_PY"]
         text = bp.read_text()
         # every MARK still present, but one guard body edited -> not "complete"
-        edited = text.replace(
-            '_glm53_log_nostore(request, "full")', "pass  # edited", 1
-        )
-        check(
-            edited != text and edited.count(MARK) == text.count(MARK),
-            "A5 fixture: marks intact, one snippet altered",
-        )
+        edited = text.replace('_glm53_log_nostore(request, "full")', 'pass  # edited', 1)
+        check(edited != text and edited.count(MARK) == text.count(MARK), "A5 fixture: marks intact, one snippet altered")
         bp.write_text(edited)
         r = run_patcher(staged)
-        check(
-            r.returncode != 0 and bp.read_text() == edited,
-            f"A5 fully-marked file with an altered snippet is refused (rc={r.returncode}), not skipped as applied",
-        )
+        check(r.returncode != 0 and bp.read_text() == edited, f"A5 fully-marked file with an altered snippet is refused (rc={r.returncode}), not skipped as applied")
         bp.write_text(text[: len(text) // 2])
         r = run_patcher(staged)
-        check(
-            r.returncode != 0 and bp.read_text() == text[: len(text) // 2],
-            f"A5 truncated (already-marked) file is refused (rc={r.returncode})",
-        )
+        check(r.returncode != 0 and bp.read_text() == text[: len(text) // 2], f"A5 truncated (already-marked) file is refused (rc={r.returncode})")
     with tempfile.TemporaryDirectory() as raw:
         tmp = Path(raw)
         staged = stage(tmp, root, pristine_only=True)
@@ -415,15 +373,8 @@ def part_a(root: Path | None) -> None:
         missing.unlink()
         before = {k: p.read_bytes() for k, p in staged.items() if p.exists()}
         r = run_patcher(staged)
-        check(
-            r.returncode != 0
-            and all(staged[k].read_bytes() == data for k, data in before.items()),
-            "A6 missing target -> refused, nothing written",
-        )
-        check(
-            not [p for p in tmp.iterdir() if p.suffix == ".glm53"],
-            "A6 no temp-file litter left behind",
-        )
+        check(r.returncode != 0 and all(staged[k].read_bytes() == data for k, data in before.items()), "A6 missing target -> refused, nothing written")
+        check(not [p for p in tmp.iterdir() if p.suffix == ".glm53"], "A6 no temp-file litter left behind")
 
 
 BLOCK_POOL_PARTIAL_LINE = '        if getattr(request, "skip_writing_prefix_cache", False):  # [glm53-apc-no-store]\n'
@@ -498,145 +449,53 @@ def part_b() -> None:
     print("Part B: resolver semantics (helper block exec'd in a bare namespace)")
     ns, log = helper_namespace(None)
     parse = ns["_glm53_parse_no_store"]
-    accepted = {True: True, False: False, "1": True, "0": False}
+    accepted = {True: True, False: False, 1: True, 0: False, "1": True, "0": False}
     for value, want in accepted.items():
         check(parse(value, "t") is want, f"B1 accept {value!r} -> {want}")
-    rejected = [
-        2,
-        -1,
-        1.0,
-        0.0,
-        "true",
-        "false",
-        "yes",
-        "no",
-        " 1",
-        "1 ",
-        "01",
-        "",
-        None,
-        [1],
-        {"a": 1},
-        b"1",
-        "True",
-    ]
+    rejected = [2, -1, 1.0, 0.0, "true", "false", "yes", "no", " 1", "1 ", "01", "", None, [1], {"a": 1}, b"1", "True"]
     for value in rejected:
         check(raises_value_error(parse, value, "t"), f"B1 reject {value!r}")
 
     try:
         from pydantic import TypeAdapter
-
         xargs_type = dict[str, str | int | float | list[str | int | float]] | None
         ta = TypeAdapter(xargs_type)
-        coerced = {
-            j: ta.validate_json(j)["skip_writing_prefix_cache"]
-            for j in (
-                '{"skip_writing_prefix_cache": true}',
-                '{"skip_writing_prefix_cache": false}',
-                '{"skip_writing_prefix_cache": "1"}',
-                '{"skip_writing_prefix_cache": 1.0}',
-            )
-        }
-        check(
-            coerced['{"skip_writing_prefix_cache": true}'] == 1
-            and coerced['{"skip_writing_prefix_cache": false}'] == 0
-            and all(not isinstance(v, bool) for v in coerced.values()),
-            f"B1 pydantic coerces a JSON boolean in the vllm_xargs type to int 1/0 (never a bool) -> {coerced}",
-        )
-        check(
-            parse(coerced['{"skip_writing_prefix_cache": true}'], "t") is True
-            and parse(coerced['{"skip_writing_prefix_cache": false}'], "t") is False,
-            "B1 ... which the strict parser accepts with the intended meaning",
-        )
-        check(
-            raises_value_error(
-                parse, coerced['{"skip_writing_prefix_cache": 1.0}'], "t"
-            ),
-            "B1 ... while JSON 1.0 stays a float and is rejected",
-        )
+        coerced = {j: ta.validate_json(j)["skip_writing_prefix_cache"] for j in ('{"skip_writing_prefix_cache": true}', '{"skip_writing_prefix_cache": false}', '{"skip_writing_prefix_cache": "1"}', '{"skip_writing_prefix_cache": 1.0}')}
+        check(coerced['{"skip_writing_prefix_cache": true}'] == 1 and coerced['{"skip_writing_prefix_cache": false}'] == 0 and all(not isinstance(v, bool) for v in coerced.values()), f"B1 pydantic coerces a JSON boolean in the vllm_xargs type to int 1/0 (never a bool) -> {coerced}")
+        check(parse(coerced['{"skip_writing_prefix_cache": true}'], "t") is True and parse(coerced['{"skip_writing_prefix_cache": false}'], "t") is False, "B1 ... which the strict parser accepts with the intended meaning")
+        check(raises_value_error(parse, coerced['{"skip_writing_prefix_cache": 1.0}'], "t"), "B1 ... while JSON 1.0 stays a float and is rejected")
     except ImportError:
-        print(
-            "  --   B1 pydantic not importable here: vllm_xargs coercion leg skipped (runs in the image / venv)"
-        )
+        print("  --   B1 pydantic not importable here: vllm_xargs coercion leg skipped (runs in the image / venv)")
 
     validate = ns["_glm53_validate_no_store_params"]
     resolve = ns["_glm53_resolve_no_store"]
     p = Params(typed="1")
     validate(p)
-    check(
-        p.skip_writing_prefix_cache is True,
-        "B2 typed field normalised to bool by validation",
-    )
-    check(
-        raises_value_error(validate, Params(typed="yes")),
-        "B2 typed 'yes' rejected at the API boundary",
-    )
-    check(
-        raises_value_error(validate, Params(extra={"skip_writing_prefix_cache": 1.0})),
-        "B2 extra_args 1.0 rejected at the API boundary",
-    )
+    check(p.skip_writing_prefix_cache is True, "B2 typed field normalised to bool by validation")
+    check(raises_value_error(validate, Params(typed="yes")), "B2 typed 'yes' rejected at the API boundary")
+    check(raises_value_error(validate, Params(extra={"skip_writing_prefix_cache": 1.0})), "B2 extra_args 1.0 rejected at the API boundary")
 
     check(resolve(None, "r") is False, "B3 no sampling params -> False")
     check(resolve(Params(), "r") is False, "B3 unset -> False")
-    check(
-        resolve(Params(extra={"skip_writing_prefix_cache": 1}), "r") is True,
-        "B3 extra_args 1 -> True",
-    )
-    check(
-        resolve(Params(extra={"skip_writing_prefix_cache": "0"}), "r") is False,
-        "B3 extra_args '0' -> False",
-    )
+    check(resolve(Params(extra={"skip_writing_prefix_cache": 1}), "r") is True, "B3 extra_args 1 -> True")
+    check(resolve(Params(extra={"skip_writing_prefix_cache": "0"}), "r") is False, "B3 extra_args '0' -> False")
     check(resolve(Params(typed=True), "r") is True, "B3 typed True -> True")
-    check(
-        resolve(Params(typed=False, extra={"skip_writing_prefix_cache": 1}), "r")
-        is False,
-        "B3 typed False wins over extra_args 1 (precedence typed > extra_args)",
-    )
-    check(
-        resolve(Params(typed=True, extra={"skip_writing_prefix_cache": 0}), "r")
-        is True,
-        "B3 typed True wins over extra_args 0",
-    )
+    check(resolve(Params(typed=False, extra={"skip_writing_prefix_cache": 1}), "r") is False, "B3 typed False wins over extra_args 1 (precedence typed > extra_args)")
+    check(resolve(Params(typed=True, extra={"skip_writing_prefix_cache": 0}), "r") is True, "B3 typed True wins over extra_args 0")
     n_before = len(log.lines)
-    check(
-        resolve(Params(extra={"skip_writing_prefix_cache": "yes"}), "r") is False,
-        "B3 unparseable value in the engine -> False, never raises",
-    )
-    check(
-        any(ln.startswith("WARN:") for ln in log.lines[n_before:]),
-        "B3 ... and it is logged as a warning",
-    )
-    check(
-        any(
-            "INFO" in ln and "first request resolved skip_writing_prefix_cache=1" in ln
-            for ln in log.lines
-        ),
-        "B3 resolution receipt logged",
-    )
+    check(resolve(Params(extra={"skip_writing_prefix_cache": "yes"}), "r") is False, "B3 unparseable value in the engine -> False, never raises")
+    check(any(ln.startswith("WARN:") for ln in log.lines[n_before:]), "B3 ... and it is logged as a warning")
+    check(any("INFO" in ln and "first request resolved skip_writing_prefix_cache=1" in ln for ln in log.lines), "B3 resolution receipt logged")
 
     # Kill switch matrix. Rule: parse/reject BEFORE the switch; the switch only
     # decides whether a valid 1 is honoured.
     for env_value, enabled in ((None, True), ("1", True), ("0", False)):
         ns2, log2 = helper_namespace(env_value)
-        got = ns2["_glm53_resolve_no_store"](
-            Params(extra={"skip_writing_prefix_cache": 1}), "r"
-        )
-        check(
-            got is enabled,
-            f"B4 valid 1 under GLM53_APC_NO_STORE={env_value!r} -> {enabled}",
-        )
-        check(
-            raises_value_error(
-                ns2["_glm53_validate_no_store_params"],
-                Params(extra={"skip_writing_prefix_cache": "yes"}),
-            ),
-            f"B4 malformed value still rejected under GLM53_APC_NO_STORE={env_value!r}",
-        )
+        got = ns2["_glm53_resolve_no_store"](Params(extra={"skip_writing_prefix_cache": 1}), "r")
+        check(got is enabled, f"B4 valid 1 under GLM53_APC_NO_STORE={env_value!r} -> {enabled}")
+        check(raises_value_error(ns2["_glm53_validate_no_store_params"], Params(extra={"skip_writing_prefix_cache": "yes"})), f"B4 malformed value still rejected under GLM53_APC_NO_STORE={env_value!r}")
         if not enabled:
-            check(
-                any("ignoring skip_writing_prefix_cache=1" in ln for ln in log2.lines),
-                "B4 kill switch logs the ignore once",
-            )
+            check(any("ignoring skip_writing_prefix_cache=1" in ln for ln in log2.lines), "B4 kill switch logs the ignore once")
     for bad in ("", " 1", "yes", "2", "true", "01"):
         try:
             helper_namespace(bad)
@@ -1126,24 +985,12 @@ def part_c(root: Path | None) -> None:
     print("Part C: behaviour on a real vLLM (patched copies injected via sys.modules)")
     require = os.environ.get("GLM53_REQUIRE_VLLM", "") == "1"
     if root is None:
-        check(
-            not require,
-            "C0 no vLLM source root -> Part C skipped"
-            + (" (GLM53_REQUIRE_VLLM=1: failing)" if require else ""),
-        )
+        check(not require, "C0 no vLLM source root -> Part C skipped" + (" (GLM53_REQUIRE_VLLM=1: failing)" if require else ""))
         return
-    probe = subprocess.run(  # noqa: PLW1510
-        [sys.executable, "-c", "import vllm.v1.core.kv_cache_manager, torch"],
-        capture_output=True,
-        text=True,
-    )
+    probe = subprocess.run([sys.executable, "-c", "import vllm.v1.core.kv_cache_manager, torch"], capture_output=True, text=True)
     if probe.returncode != 0:
         msg = probe.stderr.strip().splitlines()[-1] if probe.stderr.strip() else "?"
-        check(
-            not require,
-            f"C0 `import vllm` failed under {sys.executable}: {msg} -> Part C skipped"
-            + (" (GLM53_REQUIRE_VLLM=1: failing)" if require else ""),
-        )
+        check(not require, f"C0 `import vllm` failed under {sys.executable}: {msg} -> Part C skipped" + (" (GLM53_REQUIRE_VLLM=1: failing)" if require else ""))
         return
     with tempfile.TemporaryDirectory() as raw:
         tmp = Path(raw)
@@ -1155,23 +1002,12 @@ def part_c(root: Path | None) -> None:
         # flag through explicitly so C3L can require the retention composition.
         if os.environ.get("GLM53_REQUIRE_COMPOSITION", "") == "1":
             env["GLM53_REQUIRE_COMPOSITION"] = "1"
-        r = subprocess.run(  # noqa: PLW1510
-            [sys.executable, str(script), str(root), str(PATCH), str(tmp)],
-            capture_output=True,
-            text=True,
-            env=env,
-        )
+        r = subprocess.run([sys.executable, str(script), str(root), str(PATCH), str(tmp)], capture_output=True, text=True, env=env)
         for line in r.stdout.splitlines():
             if line.startswith(("  ok", "  FAIL", "  skip", "       ")):
                 print(line)
-        summary = next(
-            (ln for ln in r.stdout.splitlines() if ln.startswith("PARTC_RESULT")), ""
-        )
-        fails = [
-            ln[len("PARTC_FAIL ") :]
-            for ln in r.stdout.splitlines()
-            if ln.startswith("PARTC_FAIL ")
-        ]
+        summary = next((ln for ln in r.stdout.splitlines() if ln.startswith("PARTC_RESULT")), "")
+        fails = [ln[len("PARTC_FAIL "):] for ln in r.stdout.splitlines() if ln.startswith("PARTC_FAIL ")]
         FAILURES.extend(fails)
         global CHECKS
         try:
@@ -1224,9 +1060,7 @@ def caller_gate(export: str | None, dotenv: str) -> tuple[int, str, str]:
         }
         if export is not None:
             env["GLM53_APC_NO_STORE"] = export
-        r = subprocess.run(  # noqa: PLW1510
-            ["bash", "-c", script], text=True, capture_output=True, env=env
-        )
+        r = subprocess.run(["bash", "-c", script], text=True, capture_output=True, env=env)
         return r.returncode, r.stdout.strip(), r.stderr.strip()
 
 
@@ -1236,57 +1070,31 @@ def part_d() -> None:
         # The Dockerfile copies the test into the image WITHOUT start.sh, so
         # the launcher legs are host-only; a checkout missing its launcher is
         # still an error (PATCH sits next to the test only in the flat image).
-        check(
-            PATCH.parent == HERE,
-            "D0 no start.sh next to the test: launcher legs are host-only (in-image run)",
-        )
+        check(PATCH.parent == HERE, "D0 no start.sh next to the test: launcher legs are host-only (in-image run)")
         return
     guard = guard_source()
     for label, export, dotenv, want in (
-        (
-            "caller unset: the .env value is what the ranks get",
-            None,
-            "GLM53_APC_NO_STORE=0\n",
-            (0, "0"),
-        ),
+        ("caller unset: the .env value is what the ranks get", None, "GLM53_APC_NO_STORE=0\n", (0, "0")),
         ("a caller export wins over .env", "1", "GLM53_APC_NO_STORE=0\n", (0, "1")),
-        (
-            "an explicitly empty caller export wins, then the guard rejects it",
-            "",
-            "GLM53_APC_NO_STORE=0\n",
-            (2, ""),
-        ),
+        ("an explicitly empty caller export wins, then the guard rejects it", "", "GLM53_APC_NO_STORE=0\n", (2, "")),
     ):
         rc, out, err = caller_gate(export, dotenv)
         check((rc, out) == want, f"D1 {label} (rc={rc} out={out!r} {err[:80]!r})")
 
     def run(value: str | None) -> tuple[int, str, str]:
-        script = (
-            guard
-            + "\nGPU_MEM_UTIL=0.87; MAX_MODEL_LEN=1000000; MAX_NUM_SEQS=4; MAX_NUM_BATCHED_TOKENS=1024; GLM53_INDEXER_WORKSPACE=stock; GLM53_SPINWAIT_MS=stock\n"
-            + "validate_numeric_config || exit $?\n"
-            + 'printf "%s\\n" "${GLM53_APC_NO_STORE-unset}"\n'
-        )
+        script = guard + "\nGPU_MEM_UTIL=0.87; MAX_MODEL_LEN=1000000; MAX_NUM_SEQS=4; MAX_NUM_BATCHED_TOKENS=1024; GLM53_INDEXER_WORKSPACE=stock; GLM53_SPINWAIT_MS=stock\n" + "validate_numeric_config || exit $?\n" + 'printf "%s\\n" "${GLM53_APC_NO_STORE-unset}"\n'
         env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "LC_ALL": "C"}
         if value is not None:
             env["GLM53_APC_NO_STORE"] = value
-        r = subprocess.run(  # noqa: PLW1510
-            ["bash", "-c", script], text=True, capture_output=True, env=env
-        )
+        r = subprocess.run(["bash", "-c", script], text=True, capture_output=True, env=env)
         return r.returncode, r.stdout.strip(), r.stderr.strip()
 
     for value, out in ((None, "unset"), ("0", "0"), ("1", "1")):
         rc, o, e = run(value)
-        check(
-            rc == 0 and o == out,
-            f"D2 GLM53_APC_NO_STORE={value!r} accepted (rc={rc} out={o!r} {e[:60]})",
-        )
+        check(rc == 0 and o == out, f"D2 GLM53_APC_NO_STORE={value!r} accepted (rc={rc} out={o!r} {e[:60]})")
     for value in ("", " ", "01", "2", "yes", "true", "1 ", " 1", "1\r", "0x1", "-1"):
         rc, o, e = run(value)
-        check(
-            rc == 2 and "GLM53_APC_NO_STORE" in e,
-            f"D3 GLM53_APC_NO_STORE={value!r} rejected rc=2 with a named error (rc={rc} {e[:60]!r})",
-        )
+        check(rc == 2 and "GLM53_APC_NO_STORE" in e, f"D3 GLM53_APC_NO_STORE={value!r} rejected rc=2 with a named error (rc={rc} {e[:60]!r})")
 
 
 # ------------------------------------------------------------------ main -----
@@ -1296,9 +1104,7 @@ def main() -> int:
     if PATCH is None:
         raise SystemExit("missing overlay/patch_apc_no_store.py")
     root = source_root()
-    print(
-        f"overlay: {PATCH}\nsources: {root or '(none: replicas only, Part C skipped)'}  python: {sys.executable}"
-    )
+    print(f"overlay: {PATCH}\nsources: {root or '(none: replicas only, Part C skipped)'}  python: {sys.executable}")
     part_a(root)
     part_b()
     part_c(root)

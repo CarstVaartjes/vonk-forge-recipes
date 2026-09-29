@@ -579,9 +579,7 @@ def main() -> int:
         text = replace_once(text, INIT_OLD, INIT_FINAL, "retention-init")
         text = replace_once(text, BASE_CACHE_OLD, BASE_CACHE_NEW, "base-cache_blocks")
         text = replace_once(text, HYBRID_LOOP_OLD, HYBRID_LOOP_NEW, "hybrid-loop")
-        text = replace_once(
-            text, HYBRID_CACHE_OLD, HYBRID_CACHE_NEW, "hybrid-cache_blocks"
-        )
+        text = replace_once(text, HYBRID_CACHE_OLD, HYBRID_CACHE_NEW, "hybrid-cache_blocks")
         text = replace_once(text, FREE_OLD, FREE_METHOD_NEW, "free-order release")
         text = replace_once(
             text,

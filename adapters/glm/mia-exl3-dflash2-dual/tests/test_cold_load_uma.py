@@ -7,7 +7,6 @@
 * the mmap-staging flag follows the kernel page size (64 KiB -> on, 4 KiB -> off);
 * the budget helper's arithmetic is exercised with fake meminfo/mem_get_info.
 """
-
 from __future__ import annotations
 
 import importlib.util
@@ -20,12 +19,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 PATCH = next(
-    p
-    for p in (
-        HERE / "patch_cold_load_uma.py",
-        ROOT / "overlay" / "patch_cold_load_uma.py",
-    )
-    if p.is_file()
+    p for p in (HERE / "patch_cold_load_uma.py", ROOT / "overlay" / "patch_cold_load_uma.py") if p.is_file()
 )
 spec = importlib.util.spec_from_file_location("patch_cold_load_uma", PATCH)
 mod = importlib.util.module_from_spec(spec)
@@ -82,9 +76,7 @@ def test_fixture_apply():
     assert "max_free_mem_usage=_GLM53_UMA_STATE" in out
     assert "param = param.clone()" in out
     # helpers precede the safetensors iterator's use of the stage flag at runtime
-    assert out.index("_GLM53_UMA_STAGE_MMAP =") < out.index(
-        "def instanttensor_weights_iterator("
-    )
+    assert out.index("_GLM53_UMA_STAGE_MMAP =") < out.index("def instanttensor_weights_iterator(")
 
 
 def test_partial_marks_fail_closed():
@@ -100,55 +92,26 @@ def test_partial_marks_fail_closed():
 def test_stage_flag_follows_page_size():
     out = _run(FIXTURE)
     ns: dict = {}
-    helper_src = out[
-        out.index("# [glm53-cold-load-uma:v1] helpers") : out.index(
-            "def instanttensor_weights_iterator("
-        )
-    ]
+    helper_src = out[out.index("# [glm53-cold-load-uma:v1] helpers") : out.index("def instanttensor_weights_iterator(")]
     fake_os = types.SimpleNamespace(
         sysconf=lambda k: 65536, environ={}, sync=lambda: None, path=os.path
     )
-    exec(  # noqa: S102
-        helper_src,
-        {
-            "os": fake_os,
-            "logger": None,
-            "current_platform": None,
-            "__builtins__": __builtins__,
-        },
-        ns,
-    )
+    exec(helper_src, {"os": fake_os, "logger": None, "current_platform": None, "__builtins__": __builtins__}, ns)
     assert ns["_GLM53_UMA_STAGE_MMAP"] is True
     ns = {}
     fake_os.sysconf = lambda k: 4096
-    exec(  # noqa: S102
-        helper_src,
-        {
-            "os": fake_os,
-            "logger": None,
-            "current_platform": None,
-            "__builtins__": __builtins__,
-        },
-        ns,
-    )
+    exec(helper_src, {"os": fake_os, "logger": None, "current_platform": None, "__builtins__": __builtins__}, ns)
     assert ns["_GLM53_UMA_STAGE_MMAP"] is False
 
 
 def _budget_ns(logs, meminfo, cuda_free, drop, env=None):
     """Exec the helper slice with fake os/torch/platform; returns the namespace."""
     out = _run(FIXTURE)
-    helper_src = out[
-        out.index("# [glm53-cold-load-uma:v1] helpers") : out.index(
-            "def instanttensor_weights_iterator("
-        )
-    ]
+    helper_src = out[out.index("# [glm53-cold-load-uma:v1] helpers") : out.index("def instanttensor_weights_iterator(")]
 
     class L:
-        def info(self, *a):
-            logs.append(("info", a))
-
-        def warning(self, *a):
-            logs.append(("warn", a))
+        def info(self, *a): logs.append(("info", a))
+        def warning(self, *a): logs.append(("warn", a))
 
     fake_os = types.SimpleNamespace(
         sysconf=lambda k: 65536, environ=env or {}, sync=lambda: None, path=os.path
@@ -161,13 +124,8 @@ def _budget_ns(logs, meminfo, cuda_free, drop, env=None):
     )
     plat = types.SimpleNamespace(is_cuda=lambda: True)
     ns: dict = {}
-    g = {
-        "os": fake_os,
-        "logger": L(),
-        "current_platform": plat,
-        "__builtins__": __builtins__,
-    }
-    exec(helper_src, g, ns)  # noqa: S102
+    g = {"os": fake_os, "logger": L(), "current_platform": plat, "__builtins__": __builtins__}
+    exec(helper_src, g, ns)
     # stub the meminfo reader and drop_caches; the helper looks these up as
     # globals of the exec namespace
     ns["_glm53_meminfo_kib"] = lambda f: meminfo[f]
@@ -180,10 +138,7 @@ def _budget_ns(logs, meminfo, cuda_free, drop, env=None):
 
 def test_budget_math():
     logs: list = []
-    meminfo = {
-        "MemFree": 2 << 20,
-        "MemAvailable": 110 << 20,
-    }  # KiB: 2 GiB free, 110 GiB avail
+    meminfo = {"MemFree": 2 << 20, "MemAvailable": 110 << 20}  # KiB: 2 GiB free, 110 GiB avail
     dropped = {"n": 0}
     cuda_free = [2 << 30]
 
@@ -198,9 +153,7 @@ def test_budget_math():
     finally:
         del sys.modules["torch"]
     st = ns["_GLM53_UMA_STATE"]
-    assert dropped["n"] == 1, (
-        "should drop caches when MemFree is short but MemAvailable suffices"
-    )
+    assert dropped["n"] == 1, "should drop caches when MemFree is short but MemAvailable suffices"
     assert st["max_free_mem_usage"] == 0.5
     assert st["buffer_size"] == 4 << 30
     assert any(k == "info" for k, _ in logs)
@@ -261,14 +214,8 @@ def test_budget_math_discrete_gpu_unchanged():
 
     # env overrides pass through unchanged on the discrete path
     ns = _budget_ns(
-        [],
-        meminfo,
-        cuda_free,
-        drop,
-        env={
-            "INSTANTTENSOR_MAX_FREE_MEM_USAGE": "0.7",
-            "INSTANTTENSOR_BUFFER_SIZE": str(2 << 30),
-        },
+        [], meminfo, cuda_free, drop,
+        env={"INSTANTTENSOR_MAX_FREE_MEM_USAGE": "0.7", "INSTANTTENSOR_BUFFER_SIZE": str(2 << 30)},
     )
     try:
         ns["_glm53_uma_prepare_instanttensor_budget"](["/dev/null"])
@@ -281,14 +228,8 @@ def test_budget_math_env_overrides_win_on_uma():
     free = 2 * 647100416
     meminfo = {"MemFree": free // 1024, "MemAvailable": 100 << 20}
     ns = _budget_ns(
-        [],
-        meminfo,
-        [free],
-        lambda: False,
-        env={
-            "INSTANTTENSOR_MAX_FREE_MEM_USAGE": "1.5",
-            "INSTANTTENSOR_BUFFER_SIZE": str(2 << 30),
-        },
+        [], meminfo, [free], lambda: False,
+        env={"INSTANTTENSOR_MAX_FREE_MEM_USAGE": "1.5", "INSTANTTENSOR_BUFFER_SIZE": str(2 << 30)},
     )
     try:
         ns["_glm53_uma_prepare_instanttensor_budget"](["/dev/null"])
@@ -321,24 +262,19 @@ def test_bare_env_budget_raised_when_page_cache_is_full():
     free = 2 * 647100416  # ~1.2 GiB cuda free == MemFree, as in the #230 receipt
     largest = 1268776960
     st, logs = _run_budget(
-        {"MemFree": free // 1024, "MemAvailable": 100 << 20},
-        free,
-        {"INSTANTTENSOR_MAX_FREE_MEM_USAGE": "0.8"},
-        largest,
+        {"MemFree": free // 1024, "MemAvailable": 100 << 20}, free,
+        {"INSTANTTENSOR_MAX_FREE_MEM_USAGE": "0.8"}, largest,
     )
     assert st["max_free_mem_usage"] > 1, st
     assert st["buffer_size"] == 4 << 30
     assert int(free * st["max_free_mem_usage"]) >= st["buffer_size"] + largest, st
-    assert any(
-        k == "warn" and "INSTANTTENSOR_MAX_FREE_MEM_USAGE" in a[0] for k, a in logs
-    ), logs
+    assert any(k == "warn" and "INSTANTTENSOR_MAX_FREE_MEM_USAGE" in a[0] for k, a in logs), logs
 
 
 def test_bare_env_budget_kept_when_it_fits():
     free = 60 << 30  # plenty of cuda free: the caller's fraction already holds the load
     st, logs = _run_budget(
-        {"MemFree": free // 1024, "MemAvailable": 100 << 20},
-        free,
+        {"MemFree": free // 1024, "MemAvailable": 100 << 20}, free,
         {"INSTANTTENSOR_MAX_FREE_MEM_USAGE": "0.8"},
     )
     assert st["max_free_mem_usage"] == 0.8, st
@@ -348,12 +284,9 @@ def test_bare_env_budget_kept_when_it_fits():
 def test_bare_env_budget_kept_when_it_covers_the_buffer():
     """Between the buffer and the full load window the override already loads
     on main; the fix must not touch it (only the abort case is changed)."""
-    free = (
-        6 << 30
-    )  # 0.8 x 6 GiB = 4.8 GiB >= the 4 GiB pinned buffer, < the ~9.8 GiB window
+    free = 6 << 30  # 0.8 x 6 GiB = 4.8 GiB >= the 4 GiB pinned buffer, < the ~9.8 GiB window
     st, logs = _run_budget(
-        {"MemFree": free // 1024, "MemAvailable": 100 << 20},
-        free,
+        {"MemFree": free // 1024, "MemAvailable": 100 << 20}, free,
         {"INSTANTTENSOR_MAX_FREE_MEM_USAGE": "0.8"},
     )
     assert st["max_free_mem_usage"] == 0.8, st
@@ -364,8 +297,7 @@ def test_bare_env_budget_kept_when_it_covers_the_buffer():
 def test_bare_env_budget_never_lowered():
     free = 2 * 647100416
     st, _ = _run_budget(
-        {"MemFree": free // 1024, "MemAvailable": 100 << 20},
-        free,
+        {"MemFree": free // 1024, "MemAvailable": 100 << 20}, free,
         {"INSTANTTENSOR_MAX_FREE_MEM_USAGE": "9.0"},
     )
     assert st["max_free_mem_usage"] == 9.0, st
@@ -375,12 +307,8 @@ def test_explicit_pair_untouched_on_full_cache():
     """Setting INSTANTTENSOR_BUFFER_SIZE too is an explicit choice: leave both."""
     free = 2 * 647100416
     st, logs = _run_budget(
-        {"MemFree": free // 1024, "MemAvailable": 100 << 20},
-        free,
-        {
-            "INSTANTTENSOR_MAX_FREE_MEM_USAGE": "0.8",
-            "INSTANTTENSOR_BUFFER_SIZE": str(1 << 30),
-        },
+        {"MemFree": free // 1024, "MemAvailable": 100 << 20}, free,
+        {"INSTANTTENSOR_MAX_FREE_MEM_USAGE": "0.8", "INSTANTTENSOR_BUFFER_SIZE": str(1 << 30)},
     )
     assert st == {"max_free_mem_usage": 0.8, "buffer_size": 1 << 30}, st
     assert not any(k == "warn" for k, _ in logs), logs
@@ -455,35 +383,17 @@ def test_budget_math_kill_switch():
 
 def test_env_number_parsing():
     out = _run(FIXTURE)
-    helper_src = out[
-        out.index("# [glm53-cold-load-uma:v1] helpers") : out.index(
-            "def instanttensor_weights_iterator("
-        )
-    ]
+    helper_src = out[out.index("# [glm53-cold-load-uma:v1] helpers") : out.index("def instanttensor_weights_iterator(")]
     warns: list = []
 
     class L:
-        def info(self, *a):
-            pass
-
-        def warning(self, *a):
-            warns.append(a)
+        def info(self, *a): pass
+        def warning(self, *a): warns.append(a)
 
     ns: dict = {}
     env = {"INSTANTTENSOR_MAX_FREE_MEM_USAGE": "abc", "INSTANTTENSOR_BUFFER_SIZE": "-5"}
-    fake_os = types.SimpleNamespace(
-        sysconf=lambda k: 65536, environ=env, sync=lambda: None, path=os.path
-    )
-    exec(  # noqa: S102
-        helper_src,
-        {
-            "os": fake_os,
-            "logger": L(),
-            "current_platform": None,
-            "__builtins__": __builtins__,
-        },
-        ns,
-    )
+    fake_os = types.SimpleNamespace(sysconf=lambda k: 65536, environ=env, sync=lambda: None, path=os.path)
+    exec(helper_src, {"os": fake_os, "logger": L(), "current_platform": None, "__builtins__": __builtins__}, ns)
     fn = ns["_glm53_env_number"]
     assert fn("INSTANTTENSOR_MAX_FREE_MEM_USAGE", float, 0.0, 1.0) is None
     assert fn("INSTANTTENSOR_BUFFER_SIZE", int, 1, None) is None

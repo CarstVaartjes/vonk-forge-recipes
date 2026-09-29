@@ -5,6 +5,11 @@ name = "vonk-forge-recipes"
 version = "0.0.0"
 requires-python = ">=3.14"
 
+[tool.pytest.ini_options]
+# Adapter tests are upstream's (they need torch/vllm) and run only in upstream's
+# image build, never in our CI. Our tests/ validate adapter files from outside.
+norecursedirs = ["adapters", ".git", "node_modules", ".venv"]
+
 [tool.ruff]
 # The pinned formatter and linter are the repository's formatting authority for
 # our own code: tools/, scripts/, tests/, contracts/ and platform helpers.

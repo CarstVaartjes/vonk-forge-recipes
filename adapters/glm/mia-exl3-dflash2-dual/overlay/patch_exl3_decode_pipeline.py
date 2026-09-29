@@ -26,56 +26,41 @@ Usage (in the image build, after the aarch64 stub patch):
     python3 patch_exl3_decode_pipeline.py /tmp/exllamav3/exllamav3/exllamav3_ext
 """
 
-import sys
 from pathlib import Path
+import sys
 
 
 def once(text, old, new):
     if text.count(old) != 1:
-        raise RuntimeError(f"Expected one native source anchor: {old!r}")
+        raise RuntimeError(f'Expected one native source anchor: {old!r}')
     return text.replace(old, new, 1)
 
 
 def patch(root):
     root = Path(root)
-    quant = root / "quant"
-    host_path = quant / "exl3_moe.cu"
+    quant = root / 'quant'
+    host_path = quant / 'exl3_moe.cu'
     host = host_path.read_text()
-    if "GLM53_EXL3_MOE_FAST" in host:
-        raise RuntimeError(
-            "Decode pipeline patch already present; use a clean source tree"
-        )
-    kernel = (quant / "exl3_moe_kernel.cuh").read_text()
-    kernel = once(
-        kernel,
-        "template<int t_bits, int MOE_TILESIZE_N>",
-        "template<int t_bits, int MOE_TILESIZE_N, bool shared_input>",
-    )
-    kernel = once(
-        kernel,
-        "void exl3_moe_kernel(EXL3_MOE_KERNEL_ARGS)",
-        "void glm53_exl3_moe_fast_kernel(EXL3_MOE_KERNEL_ARGS)",
-    )
-    redundant = """                had_hf_r_128_inner<true, false>
+    if 'GLM53_EXL3_MOE_FAST' in host:
+        raise RuntimeError('Decode pipeline patch already present; use a clean source tree')
+    kernel = (quant / 'exl3_moe_kernel.cuh').read_text()
+    kernel = once(kernel, 'template<int t_bits, int MOE_TILESIZE_N>',
+                  'template<int t_bits, int MOE_TILESIZE_N, bool shared_input>')
+    kernel = once(kernel, 'void exl3_moe_kernel(EXL3_MOE_KERNEL_ARGS)',
+                  'void glm53_exl3_moe_fast_kernel(EXL3_MOE_KERNEL_ARGS)')
+    redundant = '''                had_hf_r_128_inner<true, false>
                 (
                     in_ptr,
                     temp_state_u + 128 * warp_idx,
                     exp_up_suh + 128 * token_off,
                     0.088388347648f
-                );"""
-    kernel = once(
-        kernel,
-        redundant,
-        "                if constexpr (!shared_input) {\n"
-        + redundant
-        + "\n                }",
-    )
-    kernel = once(
-        kernel,
-        "gemm_up(temp_state_u, temp_intermediate_u, exp_up_trellis, K_up);",
-        "gemm_up(shared_input ? temp_state_g : temp_state_u, temp_intermediate_u, exp_up_trellis, K_up);",
-    )
-    wrapper = """#include "exl3_moe_instances.cuh"
+                );'''
+    kernel = once(kernel, redundant,
+                  '                if constexpr (!shared_input) {\n' + redundant + '\n                }')
+    kernel = once(kernel,
+                  'gemm_up(temp_state_u, temp_intermediate_u, exp_up_trellis, K_up);',
+                  'gemm_up(shared_input ? temp_state_g : temp_state_u, temp_intermediate_u, exp_up_trellis, K_up);')
+    wrapper = '''#include "exl3_moe_instances.cuh"
 #undef MOE_FRAG_STAGES
 #define MOE_FRAG_STAGES 1
 #undef MOE_SH_STAGES
@@ -85,8 +70,8 @@ fp_exl3_moe_kernel glm53_exl3_moe_fast_k4_n256(bool shared_input) {
     return shared_input ? glm53_exl3_moe_fast_kernel<4, 256, true>
                         : glm53_exl3_moe_fast_kernel<4, 256, false>;
 }
-"""
-    helper = """
+'''
+    helper = '''
 #include <cstdlib>
 #include <cstring>
 
@@ -110,34 +95,27 @@ static bool glm53_fast_moe_enabled(int device) {
     }
     return supported[device] == 1;
 }
-"""
-    host = once(host, "#include <set>", "#include <set>\n" + helper)
-    anchor = "    fp_exl3_moe_kernel kernel = exl3_moe_kernel_instances[2 * K + N_off];"
-    host = once(
-        host,
-        anchor,
-        anchor
-        + """
+'''
+    host = once(host, '#include <set>', '#include <set>\n' + helper)
+    anchor = '    fp_exl3_moe_kernel kernel = exl3_moe_kernel_instances[2 * K + N_off];'
+    host = once(host, anchor, anchor + '''
     if (K == 4 && N_off == 1 && glm53_fast_moe_enabled(device)) {
         kernel = glm53_exl3_moe_fast_k4_n256(
             gate_ptrs_suh.data_ptr() == up_ptrs_suh.data_ptr());
     }
-""",
-    )
-    bindings_path = root / "bindings.cpp"
-    bindings = once(
-        bindings_path.read_text(),
-        '    m.def("exl3_moe", &exl3_moe, "exl3_moe");',
-        '    m.def("exl3_moe", &exl3_moe, "exl3_moe");\n'
-        '    m.def("glm53_fast_moe_version", []() { return 1; });',
-    )
+''')
+    bindings_path = root / 'bindings.cpp'
+    bindings = once(bindings_path.read_text(),
+                    '    m.def("exl3_moe", &exl3_moe, "exl3_moe");',
+                    '    m.def("exl3_moe", &exl3_moe, "exl3_moe");\n'
+                    '    m.def("glm53_fast_moe_version", []() { return 1; });')
     # Validate every anchor before writing any source file.
-    (quant / "glm53_exl3_moe_fast_kernel.cuh").write_text(kernel)
-    (quant / "comp_units/glm53_exl3_moe_fast.cu").write_text(wrapper)
+    (quant / 'glm53_exl3_moe_fast_kernel.cuh').write_text(kernel)
+    (quant / 'comp_units/glm53_exl3_moe_fast.cu').write_text(wrapper)
     host_path.write_text(host)
     bindings_path.write_text(bindings)
-    print(f"Installed opt-in SM121 K4/N256 decode pipeline into {root}")
+    print(f'Installed opt-in SM121 K4/N256 decode pipeline into {root}')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     patch(sys.argv[1])

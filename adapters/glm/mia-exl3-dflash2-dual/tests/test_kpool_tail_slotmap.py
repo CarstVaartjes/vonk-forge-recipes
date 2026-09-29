@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Regression tests for the K-pool tail one-block circular slot-map clamp."""
-
 from __future__ import annotations
 
 import os
@@ -8,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -20,9 +20,10 @@ PATCH = next(
     if p.is_file()
 )
 sys.path.insert(0, str(PATCH.parent))
-from patch_kpool_tail_slotmap import (
+from patch_kpool_tail_slotmap import (  # noqa: E402
     ANCHOR,
     MARK,
+    PATCHED,
     circular_slot_ids,
     count_overruns,
     prepare,
@@ -34,8 +35,7 @@ INSTALLED = Path(
 )
 
 # Exact vLLM 487ecf187 / glm53-flash image kernel fragment.
-PINNED_FIXTURE = (
-    """import triton
+PINNED_FIXTURE = '''import triton
 import triton.language as tl
 
 
@@ -76,9 +76,7 @@ def _compute_slot_mapping_kernel(
         ) * CP_KV_CACHE_INTERLEAVE_SIZE + (
             virtual_block_offsets % CP_KV_CACHE_INTERLEAVE_SIZE
         )
-"""
-    + ANCHOR
-)
+''' + ANCHOR
 
 
 def _run_patch(target: Path) -> subprocess.CompletedProcess[str]:
@@ -96,7 +94,7 @@ def _run_patch(target: Path) -> subprocess.CompletedProcess[str]:
 def test_circular_math() -> None:
     # Tail group: one entry, block_size == index_kpool == 4.
     row = [17]
-    positions = list(range(64))
+    positions = list(range(0, 64))
     assert count_overruns(positions, block_size=4, stride=1) == 60
     patched = circular_slot_ids(positions, row, 4, clamp=True)
     assert patched[:4] == [68, 69, 70, 71]  # 17*4 + 0..3
@@ -186,11 +184,7 @@ def test_recipe_wiring_if_present() -> None:
     assert 'KPOOL_TAIL_PATCH_HOST="${KPOOL_TAIL_PATCH_HOST:-' in launcher
     # Both ranks apply the one pinned list (GLM53_OVERLAY_ORDER) that
     # write_inner_scripts emits into the head and worker inner scripts.
-    order = launcher[
-        launcher.index("GLM53_OVERLAY_ORDER=(") : launcher.index(
-            ")", launcher.index("GLM53_OVERLAY_ORDER=(")
-        )
-    ]
+    order = launcher[launcher.index("GLM53_OVERLAY_ORDER=(") : launcher.index(")", launcher.index("GLM53_OVERLAY_ORDER=("))]
     assert "\n    patch_kpool_tail_slotmap.py\n" in order
     assert 'emit_overlay_block >> "$HEAD_SCRIPT"' in launcher
     assert 'emit_overlay_block >> "$WORKER_SCRIPT"' in launcher
