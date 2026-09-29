@@ -25,14 +25,14 @@ concurrency:
 jobs:
   validate:
     if: ${{ !inputs.producer_only }}
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@a2578cb10e60d002efcd1a2f45437c71e0b093ea
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@f26923bdd462aec433895c5675358f57adce8b01
     with:
       # Use the reviewed Forge validator for this launch contract. Its exact
       # published commit verifies declared source namespaces, Model payload
       # separation and archive identities independently of this recipe PR.
       # Pinned to the platform commit whose validator builds the catalog index
       # and packages from this checkout before validating them.
-      platform_ref: a2578cb10e60d002efcd1a2f45437c71e0b093ea
+      platform_ref: f26923bdd462aec433895c5675358f57adce8b01
 
   # Pull requests and main pushes get these checks inside producer-contracts
   # (one runner, not three); a skipped job still satisfies its required check.
