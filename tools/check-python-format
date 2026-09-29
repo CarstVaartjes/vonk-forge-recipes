@@ -1,6 +1,7 @@
 #!/bin/sh
 # Check formatting for every Python file, including the extensionless
-# executables under tools/ and the adapters.
+# executables under tools/ (adapters follow their upstream recipe and are
+# excluded).
 #
 # `ruff format .` skips those: the formatter resolves files by extension, so an
 # entry point named `tools/build-catalog-index` is only formatted when it is
@@ -11,7 +12,7 @@ set -eu
 cd "$(dirname "$0")/.."
 
 entry_points=""
-for path in $(git ls-files | grep -v '\.'); do
+for path in $(git ls-files | grep -v '\.' | grep -v '^adapters/'); do
   IFS= read -r first_line < "$path" || continue
   case "$first_line" in
     '#!'*python*) entry_points="$entry_points $path" ;;

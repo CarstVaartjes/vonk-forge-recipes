@@ -8,7 +8,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 import pytest
 from generated_catalog import GENERATED
@@ -16,9 +16,6 @@ from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 ROOT = Path(__file__).resolve().parents[1]
 QUALIFICATION_ROOT = ROOT / "qualification"
-PLAN_PATH = ROOT / "docs/recipe-qualification-plan-2026-09-24.md"
-AUTHORITY_PATH = QUALIFICATION_ROOT / "authorities/nl-family-aware-20260924.json"
-CAMPAIGN_PATH = QUALIFICATION_ROOT / "campaigns/nl-family-aware-20260924.json"
 
 
 def _authority_namespace() -> dict[str, Any]:
@@ -146,80 +143,28 @@ def test_authority_requires_the_generated_catalog(tmp_path: Path) -> None:
     """Without a generated catalog there is nothing to bind: fail closed."""
 
     with pytest.raises(ValueError, match="run tools/build-catalog-index"):
-        AUTHORITY_TOOL["_build"](tmp_path)
+        AUTHORITY_TOOL["build"](tmp_path)
 
 
-def test_authority_writes_nothing_when_the_build_fails(
-    monkeypatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    """Writing an output before the build succeeds must fail."""
+def test_authority_is_derived_from_the_catalog_and_covers_every_recipe() -> None:
+    """Adding a recipe needs no edit to any list, count or generated file."""
 
-    outputs = (
-        AUTHORITY_PATH,
-        CAMPAIGN_PATH,
-        PLAN_PATH,
+    outputs = AUTHORITY_TOOL["build"](GENERATED)
+    authority = json.loads(
+        outputs[f"authorities/{AUTHORITY_TOOL['AUTHORITY_ID']}.json"]
     )
-    before = {path: path.read_bytes() for path in outputs}
-
-    def unavailable(catalog_root: Path | None = None) -> dict[Path, bytes]:
-        raise ValueError("pinned catalog is unavailable")
-
-    monkeypatch.setitem(AUTHORITY_TOOL, "_build", unavailable)
-    monkeypatch.setattr(sys, "argv", ["build-qualification-authority", "--check"])
-    assert AUTHORITY_TOOL["main"]() == 1
-    assert "pinned catalog is unavailable" in capsys.readouterr().err
-    assert {path: path.read_bytes() for path in outputs} == before
-
-
-def _authority_document() -> dict[str, Any]:
-    return cast(Any, _document(AUTHORITY_PATH))
-
-
-def test_plan_prose_changes_never_invalidate_the_generated_inventory() -> None:
-    """A prose edit, renamed heading or moved paragraph must not go stale."""
-
-    text = PLAN_PATH.read_text(encoding="utf-8")
-    authority = _authority_document()
-    refresh = AUTHORITY_TOOL["_refresh_plan"]
-    assert refresh(text, authority) == text
-
-    edited = text.replace(
-        "Keep this inventory complete.",
-        "Keep this inventory complete and reviewed by its owner.",
-        1,
-    )
-    assert edited != text
-    assert refresh(edited, authority) == edited
-
-    renamed = edited.replace(
-        "## Complete inventory and current batch assignments",
-        "## Inventory and campaign order",
-        1,
-    )
-    assert renamed != edited
-    assert refresh(renamed, authority) == renamed
-
-
-def test_plan_without_the_generated_inventory_block_fails_closed() -> None:
-    """A missing, duplicated or reversed marker must fail closed."""
-
-    text = PLAN_PATH.read_text(encoding="utf-8")
-    authority = _authority_document()
-    begin = AUTHORITY_TOOL["_INVENTORY_BEGIN"]
-    end = AUTHORITY_TOOL["_INVENTORY_END"]
-    assert text.count(begin) == 1
-    assert text.count(end) == 1
-    swapped = text.replace(begin, "<!-- swap -->", 1)
-    swapped = swapped.replace(end, begin, 1).replace("<!-- swap -->", end, 1)
-
-    for broken in (
-        text.replace(begin, "", 1),
-        text.replace(end, "", 1),
-        text.replace(begin, f"{begin}\n{begin}", 1),
-        text.replace(begin, "", 1).replace(end, "", 1),
-        swapped,
-    ):
-        with pytest.raises(ValueError):
-            AUTHORITY_TOOL["_plan_rows"](broken)
-        with pytest.raises(ValueError):
-            AUTHORITY_TOOL["_refresh_plan"](broken, authority)
+    scheduled = {
+        assignment["recipe"]
+        for batch in authority["batches"]
+        for assignment in batch["assignments"]
+    }
+    in_scope = {row["key"] for row in authority["recipes"]}
+    excluded = set(authority["scope"]["excluded_topology_recipe_keys"])
+    on_disk = set()
+    for path in (ROOT / "recipes").glob("*.json"):
+        identity = json.loads(path.read_bytes())["identity"]
+        on_disk.add(f"{identity['publisher']}/{identity['slug']}")
+    assert in_scope == scheduled
+    assert not in_scope & excluded
+    assert in_scope | excluded == on_disk
+    assert authority["catalog"]["recipe_count"] == len(on_disk)

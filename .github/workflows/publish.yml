@@ -119,7 +119,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Coverage is derived offline from this build and the committed authority.
+          # Coverage is derived offline from this build (the authority is derived from it, not committed).
           "$RELEASE_TEST_PYTHON" tools/build-catalog-index --source-commit "$GITHUB_SHA"
           "$RELEASE_TEST_PYTHON" tools/build-family-aware-coverage
           "$RELEASE_TEST_PYTHON" tools/build-catalog-index \

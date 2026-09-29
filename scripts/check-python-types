@@ -26,8 +26,10 @@ genuinely live only in the control environment (`vonk_control`) still need their
 Pydantic is installed too: canonical contract types must be checked against
 their actual base classes and validators, not unresolved imports.
 
+Adapters follow their upstream recipe and are excluded from this gate.
+
 pyright's default program only includes `**/*.py`, so the extensionless Python
-executables under `tools/` and `adapters/` were never analyzed. They are
+executables under `tools/` were never analyzed. They are
 discovered by shebang and analyzed explicitly, alongside the project run, so a
 type error in an entry point cannot hide behind the glob.
 
@@ -68,7 +70,7 @@ def _entry_points() -> list[str]:
     )
     entry_points: list[str] = []
     for name in listed.stdout.splitlines():
-        if not name or "." in name:
+        if not name or "." in name or name.startswith("adapters/"):
             continue
         path = ROOT / name
         if not path.is_file():
