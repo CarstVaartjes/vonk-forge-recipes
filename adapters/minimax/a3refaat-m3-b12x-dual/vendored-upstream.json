@@ -1,0 +1,12 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "td-patches/",
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "repo": "a3refaat/spark-vllm-docker",
+    "commit": "f942437ea9aed3fc91e888d9f9c6ebb2cf094dad"
+  }
+}
