@@ -457,10 +457,6 @@
       {
         "name": "VLLM_ENGINE_READY_TIMEOUT_S",
         "value": "3600"
-      },
-      {
-        "name": "RAY_memory_usage_threshold",
-        "value": "0.99"
       }
     ],
     "lifecycle": {
