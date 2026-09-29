@@ -1,0 +1,10 @@
+The nvfp4-kv-diffkv, fix-mimo-v2-vllm, fix-modelopt-mixed-mxfp8 and
+fix-prometheus-instrumentator-router mods under mods/, and the launch profile
+(upstream-launch.sh, upstream-env.sh), are from
+https://github.com/tonyd2wild/MiMo-V2.5-TP2-1M-NVFP4-KV-2xDGX-Spark at commit
+6dae0a60dd3f90580029c2dd981a0cd5de49fc4e (MIT for the recipe files, see
+LICENSE.upstream). The upstream licence file states that the mods are the work
+of their respective upstream authors under their own licences; the patched
+files are derived from vLLM (Apache-2.0). The drop-caches and
+ray-keep-node-nccl-hca mods are host and orchestration helpers and are not
+part of the image.
