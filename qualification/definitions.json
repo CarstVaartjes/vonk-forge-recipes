@@ -4513,6 +4513,23 @@
         ]
       }
     },
+    "vonk-forge/diffusiongemma-26b-nvfp4-r0b0tlab-vllm-single": {
+      "alias": "diffusiongemma-26b-a4b-it-nvfp4",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded 64K-context and 16-request concurrency canaries with streaming"
+        ],
+        "recovery": [
+          "Controller stop/start and warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/gemma-4-26b-a4b-vllm-single": {
       "alias": "gemma-4-26b-a4b-it",
       "smoke_cases": [
