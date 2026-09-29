@@ -1,61 +1,50 @@
 #!/usr/bin/env python3
-"""Bake the upstream Qwen3.8 Spark compatibility patches into the OCI image."""
+"""Bake the vLLM 0.30 Qwen4Exp overlays for the Spark Flash Next lane.
+
+Both overlays follow MiaAI-Lab's ``start-v030.sh`` lane: the reduced MTP draft
+vocabulary and the vllm#55557 FP8 KV backport (used only when the recipe
+selects ``--kv-cache-dtype fp8``; BF16 KV, the lane default, is unchanged).
+"""
 
 from __future__ import annotations
 
 import ast
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 BUILD = Path(__file__).resolve().parent
-SITE = Path("/usr/local/lib/python3.12/dist-packages/vllm")
-QWEN = SITE / "models/qwen3_8_flash_next/nvidia"
+QWEN = Path("/usr/local/lib/python3.12/dist-packages/vllm/models/qwen4_exp/nvidia")
+FP8 = BUILD / "v030_fp8kv"
 
 
-def copy_original(source: Path, name: str) -> None:
-    target = BUILD / name
+def run(script: str, *args: str) -> None:
+    subprocess.run([sys.executable, str(BUILD / script), *args], check=True, cwd=BUILD)
+
+
+def install_checked(source: Path, target: Path) -> None:
+    ast.parse(source.read_text(), filename=str(target))
     shutil.copyfile(source, target)
 
 
-def run(script: str) -> None:
-    subprocess.run(["python3", str(BUILD / script)], check=True, cwd=BUILD)
-
-
-def install_checked(source: str, target: Path) -> None:
-    text = (BUILD / source).read_text()
-    ast.parse(text, filename=str(target))
-    shutil.copyfile(BUILD / source, target)
-
-
 def main() -> None:
-    required = {
-        "ple_layer.py": QWEN / "ple_layer.py",
-        "qsa_ops_patched.py.orig": QWEN / "ops/qsa.py",
-        "qsa_nvidia_patched.py.orig": QWEN / "qsa.py",
-        "modelopt_patched.py.orig": SITE
-        / "model_executor/layers/quantization/modelopt.py",
-    }
-    for name, source in required.items():
+    for source in (QWEN / "mtp.py", QWEN / "qsa.py", QWEN / "ops/qsa.py"):
         if not source.is_file():
             raise SystemExit(f"pinned vLLM image is missing {source}")
-        if name == "ple_layer.py":
-            copy_original(source, "ple_layer_patched.py.orig")
-        else:
-            copy_original(source, name)
+    shutil.copyfile(QWEN / "mtp.py", BUILD / "mtp_v030_patched.py.orig")
+    (FP8 / "orig/ops").mkdir(parents=True)
+    shutil.copyfile(QWEN / "qsa.py", FP8 / "orig/qsa.py")
+    shutil.copyfile(QWEN / "ops/qsa.py", FP8 / "orig/ops/qsa.py")
 
-    run("patch_ple_layer.py")
-    run("patch_modelopt_mxfp8.py")
-    run("patch_modelopt_fp8_block_moe.py")
-    run("patch_qsa_fp8_kv.py")
+    run("patch_mtp_draft_vocab_v030.py")
+    run("patch_qsa_fp8_kv_v030.py")
 
-    install_checked("ple_layer_patched.py", QWEN / "ple_layer.py")
-    install_checked(
-        "modelopt_patched.py", SITE / "model_executor/layers/quantization/modelopt.py"
-    )
-    install_checked("qsa_ops_patched.py", QWEN / "ops/qsa.py")
-    install_checked("qsa_nvidia_patched.py", QWEN / "qsa.py")
-    print("Qwen3.8 vLLM compatibility patches baked into the image")
+    install_checked(BUILD / "mtp_v030_patched.py", QWEN / "mtp.py")
+    install_checked(FP8 / "qsa.py", QWEN / "qsa.py")
+    install_checked(FP8 / "ops/qsa.py", QWEN / "ops/qsa.py")
+    shutil.copyfile(BUILD / "draft_vocab_en_code_47k.txt", "/etc/vllm-draft-vocab.txt")
+    print("Qwen3.8 vLLM 0.30 lane overlays baked into the image")
 
 
 if __name__ == "__main__":
