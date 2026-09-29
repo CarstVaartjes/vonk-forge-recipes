@@ -10,7 +10,7 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-**114 recipes** for **32 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+**117 recipes** for **33 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
@@ -38,10 +38,10 @@ Number of recipes per model family and engine.
 | MOSS-VL |  |  |  |  |  |  |  |  | 1 |
 | MOVA |  |  |  |  |  |  |  |  | 2 |
 | Muse Glimmer | 1 |  |  |  |  |  |  |  |  |
-| Nemotron | 8 | 1 |  |  |  |  |  |  |  |
+| Nemotron | 8 | 2 |  |  |  |  |  |  |  |
 | Ornith | 1 |  |  |  |  |  |  |  |  |
 | Pixal3D |  |  |  |  |  |  |  |  | 1 |
-| Qwen (text and vision) | 10 | 4 |  |  | 3 |  |  |  |  |
+| Qwen (text and vision) | 10 | 5 |  |  | 3 |  |  |  |  |
 | Qwen Image |  |  |  |  |  |  | 6 | 5 |  |
 | SkinTokens |  |  |  |  |  |  |  |  | 1 |
 | Step 3.7 Flash | 1 |  |  |  |  |  |  |  |  |
@@ -50,7 +50,8 @@ Number of recipes per model family and engine.
 | TripoSG |  |  |  |  |  |  |  |  | 1 |
 | UI-Mate | 1 |  |  |  |  |  |  |  |  |
 | Wan |  |  |  |  |  |  |  | 3 | 2 |
-| **Total** | **55** | **9** | **0** | **0** | **3** | **3** | **13** | **10** | **21** |
+| XYZ Aquila | 1 |  |  |  |  |  |  |  |  |
+| **Total** | **56** | **11** | **0** | **0** | **3** | **3** | **13** | **10** | **21** |
 
 ### Spark variants
 
@@ -90,6 +91,7 @@ Which Spark counts each family runs on, and who provides them.
 | TripoSG | VAST-AI |  |  |  |  |
 | UI-Mate | Tencent |  |  |  |  |
 | Wan | Comfy-Org, modelscope, Wan-Video |  |  |  |  |
+| XYZ Aquila | r0b0tlab |  |  |  |  |
 
 ### Tracked creators
 
@@ -99,7 +101,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | --- | --- | --- | ---: |
 | [MiaAI-Lab](https://github.com/MiaAI-Lab) | Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling. | SGLang, TensorFold, vLLM | 15 |
 | [tonyd2wild](https://github.com/tonyd2wild) | Multi-Spark (2 and 4) vLLM recipes for large MoE models: GLM, MiMo. | vLLM | 8 |
-| [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. | SGLang, vLLM | 11 |
+| [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. | SGLang, vLLM | 14 |
 | [drowzeys (keyz)](https://github.com/drowzeys) | Large multi-Spark vLLM builds with prebuilt images: GLM, MiMo, abliterated variants. | vLLM | 4 |
 | [NVIDIA playbooks](https://github.com/NVIDIA/dgx-spark-playbooks) | Official DGX Spark playbooks and NVIDIA model releases: Nemotron, NVFP4 checkpoints. | diffusers, vLLM | 8 |
 | [eugr](https://github.com/eugr) | spark-vllm-docker: vLLM container builds for dual DGX Spark; llama-benchy benchmarking. |  | 0 |
@@ -340,7 +342,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 </details>
 
-<details><summary>Nemotron (9)</summary>
+<details><summary>Nemotron (10)</summary>
 
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
@@ -373,7 +375,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 </details>
 
-<details><summary>Qwen (text and vision) (17)</summary>
+<details><summary>Qwen (text and vision) (18)</summary>
 
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
@@ -475,6 +477,14 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | [wan-2-2-ti2v-5b-comfyui-single](recipes/wan-2-2-ti2v-5b-comfyui-single.json) | ComfyUI | 1 | Comfy-Org |
 | [wan-dancer-14b-disk-offload-pytorch-single](recipes/wan-dancer-14b-disk-offload-pytorch-single.json) | pytorch-pipeline | 1 | modelscope |
 | [wan-dancer-14b-pytorch-single](recipes/wan-dancer-14b-pytorch-single.json) | pytorch-pipeline | 1 | Wan-Video |
+
+</details>
+
+<details><summary>XYZ Aquila (1)</summary>
+
+| Recipe | Engine | Sparks | Creator |
+| --- | --- | ---: | --- |
+| [xyz-aquila-mini-nvfp4-r0b0tlab-vllm-single](recipes/xyz-aquila-mini-nvfp4-r0b0tlab-vllm-single.json) | vLLM | 1 | r0b0tlab |
 
 </details>
 <!-- overview:end -->
