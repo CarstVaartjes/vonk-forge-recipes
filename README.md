@@ -378,6 +378,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | --- | --- | ---: | --- |
 | [qwen3-5-9b-vllm-single](recipes/qwen3-5-9b-vllm-single.json) | vLLM | 1 | Qwen |
 | [qwen3-6-27b-vllm-single](recipes/qwen3-6-27b-vllm-single.json) | vLLM | 1 | Qwen |
+| [qwen3-6-35b-a3b-nvfp4-redhat-r0b0tlab-sglang-single](recipes/qwen3-6-35b-a3b-nvfp4-redhat-r0b0tlab-sglang-single.json) | SGLang | 1 | r0b0tlab |
 | [qwen3-6-35b-a3b-nvfp4-vllm-single](recipes/qwen3-6-35b-a3b-nvfp4-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |
 | [qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single](recipes/qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single.json) | vLLM | 1 | drowzeys (keyz) |
 | [qwen3-8-27b-ashhart-tensorfold-single](recipes/qwen3-8-27b-ashhart-tensorfold-single.json) | TensorFold | 1 | ashhart |
