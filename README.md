@@ -27,7 +27,7 @@ Number of recipes per model family and engine.
 | HunyuanVideo |  |  |  |  |  |  | 3 |  |  |
 | HunyuanVideo Foley |  |  |  |  |  |  |  |  | 2 |
 | Hy3 kodelow | 2 |  |  |  |  |  |  |  |  |
-| Inkling |  | 2 |  |  |  |  |  |  |  |
+| Inkling |  | 3 |  |  |  |  |  |  |  |
 | Laguna | 3 |  |  |  |  |  |  |  |  |
 | Leanstral | 1 |  |  |  |  |  |  |  |  |
 | LFM2.5 | 2 |  |  |  |  |  |  |  |  |
@@ -67,7 +67,7 @@ Which Spark counts each family runs on, and who provides them.
 | HunyuanVideo | hunyuanvideo-community |  |  |  |  |
 | HunyuanVideo Foley | tencent |  |  |  |  |
 | Hy3 kodelow |  | MiaAI-Lab, tonyd2wild |  |  |  |
-| Inkling |  | sgl-project |  |  | sgl-project |
+| Inkling |  | MiaAI-Lab, sgl-project |  |  | sgl-project |
 | Laguna | poolside |  |  |  |  |
 | Leanstral |  | MiaAI-Lab |  |  |  |
 | LFM2.5 | LiquidAI |  |  |  |  |
@@ -238,12 +238,13 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 </details>
 
-<details><summary>Inkling (2)</summary>
+<details><summary>Inkling (3)</summary>
 
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
 | [inkling-975b-a41b-nvfp4-sglang-eight](recipes/inkling-975b-a41b-nvfp4-sglang-eight.json) | SGLang | 8 | sgl-project |
 | [inkling-small-nvfp4-sglang-dual](recipes/inkling-small-nvfp4-sglang-dual.json) | SGLang | 2 | sgl-project |
+| [inkling-small-nvfp4-sglang-mia-dual](recipes/inkling-small-nvfp4-sglang-mia-dual.json) | SGLang | 2 | MiaAI-Lab |
 
 </details>
 
