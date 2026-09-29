@@ -148,7 +148,7 @@
     {
       "file": "adapters/deepseek/mia-vllm-vision/patches/vision_exp/image_processor.py",
       "rule": "reportMissingImports",
-      "count": 7,
+      "count": 5,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
@@ -202,7 +202,7 @@
     {
       "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/model_executor/layers/attention/mla_attention.py",
       "rule": "reportMissingImports",
-      "count": 38,
+      "count": 37,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
@@ -220,13 +220,13 @@
     {
       "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/utils/torch_utils.py",
       "rule": "reportAttributeAccessIssue",
-      "count": 3,
+      "count": 6,
       "reason": "The attribute comes from an upstream vLLM/SGLang class whose untyped runtime surface pyright cannot resolve from the host."
     },
     {
       "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/utils/torch_utils.py",
       "rule": "reportMissingImports",
-      "count": 19,
+      "count": 17,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
@@ -238,7 +238,7 @@
     {
       "file": "adapters/glm/drowzeys-glm53-1m/overlays/nvfp4-b12x/v1/attention/backends/mla/b12x_mla_sparse.py",
       "rule": "reportMissingImports",
-      "count": 35,
+      "count": 34,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
@@ -592,7 +592,7 @@
     {
       "file": "adapters/glm/mia-exl3-dflash2-dual/tests/test_loadclone.py",
       "rule": "reportAttributeAccessIssue",
-      "count": 1,
+      "count": 3,
       "reason": "The attribute comes from an upstream vLLM/SGLang class whose untyped runtime surface pyright cannot resolve from the host."
     },
     {
@@ -868,7 +868,7 @@
     {
       "file": "adapters/three-d/hunyuan3d-omni/run.py",
       "rule": "reportMissingImports",
-      "count": 6,
+      "count": 5,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
@@ -886,7 +886,7 @@
     {
       "file": "adapters/three-d/skintokens/run.py",
       "rule": "reportMissingImports",
-      "count": 10,
+      "count": 9,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
@@ -916,7 +916,7 @@
     {
       "file": "adapters/three-d/trellis2-native/pixal3d_job.py",
       "rule": "reportMissingImports",
-      "count": 7,
+      "count": 6,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
@@ -934,7 +934,7 @@
     {
       "file": "adapters/three-d/triposg/run.py",
       "rule": "reportMissingImports",
-      "count": 7,
+      "count": 6,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
@@ -970,7 +970,7 @@
     {
       "file": "adapters/video/ltx25-diffusers-fp8-canary/run.py",
       "rule": "reportMissingImports",
-      "count": 10,
+      "count": 8,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
@@ -982,7 +982,7 @@
     {
       "file": "adapters/video/ltx25-diffusers/run.py",
       "rule": "reportMissingImports",
-      "count": 10,
+      "count": 8,
       "reason": "Adapter overlays import vLLM, SGLang, torch, CUDA, cutlass and Triton modules that exist only inside the pinned container image, never in the host environment that runs pyright."
     },
     {
