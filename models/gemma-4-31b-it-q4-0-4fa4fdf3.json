@@ -1,0 +1,96 @@
+{
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-9f9bb74d6656-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "9f9bb74d665681b069c32008d4012a945d7e0f2c2a8b55113e3487d02b95c2f4",
+      "size_bytes": 2488
+    },
+    {
+      "id": "readme-5f4c9e4289ab-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "5f4c9e4289abcb4f78591e2d49c4b528d6f8bce0fdd6db68690b754846885684",
+      "size_bytes": 669
+    },
+    {
+      "id": "gemma-4-31b-it-q4-0-031dc1c5fa9c-8410300e52",
+      "path": "gemma-4-31B-it-Q4_0.gguf",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "031dc1c5fa9c5a0abbf3c39c5173fb2af65f5ac2dc2a090268561d3c72dcd834",
+      "size_bytes": 17992313088
+    },
+    {
+      "id": "mmproj-gemma-4-31b-it-q8-0-8872f1dd7ba6-e93ebbf176",
+      "path": "mmproj-gemma-4-31B-it-Q8_0.gguf",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8872f1dd7ba6a750a039c04b45812511f4ecf004e229420cea58c8049a970fb6",
+      "size_bytes": 809541728
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "gguf-q4-0"
+  },
+  "identity": {
+    "family": {
+      "publisher": "ggml-org",
+      "slug": "gemma",
+      "title": "Google Gemma"
+    },
+    "model": {
+      "publisher": "ggml-org",
+      "slug": "gemma-4-31b",
+      "title": "Gemma 4 31B"
+    },
+    "publisher": "ggml-org",
+    "slug": "gemma-4-31b-it-q4-0-4fa4fdf3",
+    "variant": "IT Q4_0 4fa4fdf3",
+    "version": "IT Q4_0 4fa4fdf3"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Google DeepMind",
+      "ggml-org"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://ai.google.dev/gemma/docs/gemma_4_license"
+  },
+  "metadata": {
+    "description": "ggml-org GGUF conversion of Gemma 4 31B IT at Q4_0, plus the Q8_0 vision projector.",
+    "tags": [
+      "ggml-org",
+      "gemma",
+      "language",
+      "gguf",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/ggml-org/gemma-4-31B-it-GGUF",
+    "revision": "4fa4fdf38bee237b5c9e8a5b4e72cf39404c9dcc"
+  }
+}
