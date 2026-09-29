@@ -35,18 +35,9 @@ class Ltx25Fp8CanaryTests(unittest.TestCase):
         canary = load(ROOT / "recipes" / f"{CANARY_SLUG}.json")
         bf16 = load(ROOT / "recipes" / f"{BF16_SLUG}.json")
         self.assertEqual(canary["models"], bf16["models"])
-        self.assertEqual(
-            canary["topology"]["roles"][0]["resources"]["memory"]["startup_peak_bytes"],
-            110_000_000_000,
-        )
+        memory = canary["topology"]["roles"][0]["resources"]["memory"]
         self.assertLessEqual(
-            max(
-                canary["topology"]["roles"][0]["resources"]["memory"][
-                    "startup_peak_bytes"
-                ],
-                120_000_000_000,
-            ),
-            126_946_283_520,
+            memory["peak_bytes"] + memory["reserve_bytes"], 126_946_283_520
         )
         self.assertIn("canary", canary["metadata"]["tags"])
 

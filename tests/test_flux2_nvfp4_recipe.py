@@ -40,12 +40,7 @@ class Flux2NVFP4RecipeTests(unittest.TestCase):
             model["source"]["revision"], "1db2b2f776c24b76f1122e5f69ab1949fc620068"
         )
         self.assertEqual(model["format"]["quantization"], "nvfp4")
-        from vonk_forge_contracts import ModelDefinition
-
-        canonical = ModelDefinition.model_validate(model).model_dump(mode="json")
-        self.assertEqual(
-            recipe["models"][0]["model"]["content_sha256"], digest(canonical)
-        )
+        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest(model))
         self.assertTrue(
             {"candidate", "executable", "nvfp4"} <= set(recipe["metadata"]["tags"])
         )

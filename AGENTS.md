@@ -23,10 +23,15 @@ keeping old formats usable alongside it.
   with a declared `None` default, missing and explicit `null` are equivalent.
   Required fields must always be present, even when `null` is an allowed value.
   Preserve meaningful false/zero/empty values and engine-owned JSON nulls.
-  Use the authoritative model and canonical serialization helpers for document
-  identities; never strip nulls blindly from arbitrary dictionaries. Platform
+  A document's identity is `document_sha256` of its published JSON; never
+  strip nulls blindly from arbitrary dictionaries. Platform
   wire consumers must use the Pydantic → JSON Schema → typify Rust chain and
   test real serialized producer/consumer handoffs, including signed bytes.
+- The library release version is the contract version (`CONTRACT_VERSION`):
+  an additive contract change is a minor bump, a breaking one a major bump.
+  Recipe and Model changes never bump it; publication updates the current
+  release in place. A recipe's `release.version` is its upstream project's
+  version when the upstream publishes one, else the recipe's own semver.
 - For an upstream refresh, check the actual source repositories and record
   old/new pins and retained-version reasons. Preserve specialized forks when
   their implementation is required. A structural edit alone is not a refresh.
@@ -75,10 +80,9 @@ tools/check-python-lint              # ruff check, plus extensionless entry poin
 tools/check-python-format            # ruff format, plus extensionless entry points
 scripts/check-python-types           # pyright==1.1.414, reviewed baseline
 
-# Producer suite (CI installs the same wheel and extras).
+# Producer suite (CI installs the same extras).
 uv run --python 3.14 --no-project --with pytest==9.1.1 \
   --with-editable contracts --with 'jsonschema>=4.24,<5' \
-  --with ./adapters/video/ltx2-sync-native/vonk_agent_protocol-3.0.0-py3-none-any.whl \
   python -m pytest -q -m "not lane"
 ```
 

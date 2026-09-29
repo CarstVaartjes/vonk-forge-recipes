@@ -17,9 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from generated_catalog import GENERATED
 from vonk_forge_contracts import (
-    ModelDefinition,
-    RecipeDefinition,
-    content_sha256,
+    document_sha256,
 )
 
 ADAPTER = ROOT / "adapters/video/wan-dancer-native"
@@ -30,7 +28,6 @@ PACKAGE = GENERATED / "packages/wan-dancer-14b-pytorch-single.tar.gz"
 BASE_IMAGE = {
     "repository": "nvcr.io/nvidia/cuda",
     "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-    "platform": "linux/arm64",
 }
 BUILD_NETWORK_HOSTS = [
     "download.pytorch.org",
@@ -57,7 +54,7 @@ PLATFORM_OWNED_CACHE_ENVIRONMENT = {
 
 def canonical_digest(path: Path) -> str:
     document = json.loads(path.read_text(encoding="utf-8"))
-    return content_sha256(ModelDefinition.model_validate(document))
+    return document_sha256(document)
 
 
 def package_manifest() -> dict[str, object]:
@@ -78,9 +75,7 @@ class WanDancerAuthorityTests(unittest.TestCase):
         self.assertEqual(
             recipe["models"][0]["model"]["content_sha256"], canonical_digest(MODEL)
         )
-        execution = recipe["execution"]
-        self.assertEqual(execution["mode"], "build")
-        build = execution["build"]
+        build = recipe["execution"]["build"]
         self.assertEqual(build["base_image"], BASE_IMAGE)
         self.assertEqual(build["context"], {"path": "adapters/video/wan-dancer-native"})
         self.assertEqual(
@@ -90,9 +85,7 @@ class WanDancerAuthorityTests(unittest.TestCase):
             build["patches"],
             [{"path": "adapters/video/wan-dancer-native/patch-upstream.py"}],
         )
-        self.assertEqual(
-            build["network"], {"mode": "public", "hosts": BUILD_NETWORK_HOSTS}
-        )
+        self.assertEqual(build["network"], {"hosts": BUILD_NETWORK_HOSTS})
         self.assertEqual(
             json.loads(MODEL.read_text())["source"]["revision"],
             "85ce88dd8d025459dcf0fe93982d6da8b9002957",
@@ -104,10 +97,8 @@ class WanDancerAuthorityTests(unittest.TestCase):
         )
         self.assertEqual(recipe["topology"]["node_count"], 1)
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        self.assertEqual(memory["startup_peak_bytes"], 120000000000)
-        self.assertEqual(memory["steady_state_bytes"], 110000000000)
-        self.assertEqual(memory["runtime_growth_bytes"], 8000000000)
-        self.assertEqual(memory["system_reserve_bytes"], 8000000000)
+        self.assertEqual(memory["peak_bytes"], 120000000000)
+        self.assertEqual(memory["reserve_bytes"], 8000000000)
         runtime = recipe["runtime"]
         self.assertEqual(
             set(runtime),
@@ -132,7 +123,7 @@ class WanDancerAuthorityTests(unittest.TestCase):
         )
         self.assertEqual(
             manifest["recipe_content_sha256"],
-            content_sha256(RecipeDefinition.model_validate(recipe)),
+            document_sha256(recipe),
         )
         package_paths = {item["path"] for item in manifest["files"]}
         self.assertTrue(
@@ -157,8 +148,9 @@ class WanDancerAuthorityTests(unittest.TestCase):
                 self.assertIsNotNone(packaged)
                 payload = packaged.read()
                 if path == "models/wan-dancer-14b.json":
-                    model = ModelDefinition.model_validate(json.loads(payload))
-                    self.assertEqual(content_sha256(model), canonical_digest(MODEL))
+                    self.assertEqual(
+                        document_sha256(json.loads(payload)), canonical_digest(MODEL)
+                    )
                 else:
                     self.assertEqual(payload, (ROOT / path).read_bytes())
         interface = recipe["interfaces"][0]
@@ -174,15 +166,6 @@ class WanDancerAuthorityTests(unittest.TestCase):
         self.assertEqual(output["max_total_bytes"], 536870912)
         self.assertEqual(output["slots"][0]["media_types"], ["video/mp4"])
         self.assertIn("H.264/AAC", output["slots"][0]["description"])
-        configuration = recipe["validation"]["benchmarks"][0]["configuration"]
-        self.assertEqual(configuration["video_codec"], "h264")
-        self.assertEqual(configuration["audio_codec"], "aac")
-        self.assertEqual(configuration["audio_sample_rate"], 44100)
-        self.assertEqual(configuration["maximum_generation_pixels"], 921600)
-        self.assertEqual(
-            configuration["output_frame_rule"],
-            "floor((music-duration-seconds-0.2)*30)",
-        )
 
     def test_vendored_source_is_bounded_and_fail_closed_patch_applies(self) -> None:
         parts = sorted((ADAPTER / "vendor").glob("*.part-*"))

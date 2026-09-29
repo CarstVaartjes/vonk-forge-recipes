@@ -1,38 +1,10 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "chat",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "code-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "c5d93567f1ff2de4dbba6018b58a653654c1309a",
-      "source_url": "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -6796,7 +6768,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "nvfp4_aqlm_hybrid"
   },
@@ -6807,7 +6778,6 @@
       "title": "GLM 5.2"
     },
     "model": {
-      "architecture": "GLM-5V sparse mixture-of-experts transformer",
       "publisher": "jarrelscy",
       "slug": "glm-5-2-aqlm-hybrid",
       "title": "GLM 5.2 NVFP4 AQLM Hybrid"
@@ -6823,25 +6793,8 @@
       "Z.ai",
       "jarrelscy"
     ],
-    "operator_acceptance_required": true,
     "spdx": "MIT",
     "url": "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid/blob/c5d93567f1ff2de4dbba6018b58a653654c1309a/LICENSE"
-  },
-  "limits": {
-    "context_tokens": 348160,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision; the inventory includes every model, configuration, tokenizer, source, and Terminal-Bench trace file present in the exact snapshot.",
-    "publisher": "jarrelscy",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "jarrelscy",
-      "slug": "glm-5-2-aqlm-hybrid"
-    }
   },
   "metadata": {
     "description": "Exact public GLM 5.2 NVFP4 AQLM Hybrid c5d93567 checkpoint with the complete 751-file pinned Hugging Face snapshot, including non-runtime Terminal-Bench trace evidence.",
@@ -6856,22 +6809,9 @@
     "image",
     "text"
   ],
-  "parameters": {
-    "active": 40000000000,
-    "total": 744000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Z.ai",
-      "jarrelscy"
-    ],
-    "source_revision": "c5d93567f1ff2de4dbba6018b58a653654c1309a",
-    "source_url": "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid",
     "revision": "c5d93567f1ff2de4dbba6018b58a653654c1309a"
-  },
-  "supersedes": null
+  }
 }

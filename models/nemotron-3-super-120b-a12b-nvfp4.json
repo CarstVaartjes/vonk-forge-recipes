@@ -1,28 +1,8 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "reasoning",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "ff433f5493e25d631c9f12b5d55c674229923d02",
-      "source_url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "reasoning",
+    "text-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -351,7 +331,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "nvfp4"
   },
@@ -362,7 +341,6 @@
       "title": "NVIDIA Nemotron"
     },
     "model": {
-      "architecture": "LatentMoE hybrid Mamba-2, attention, and sparse mixture-of-experts transformer",
       "publisher": "nvidia",
       "slug": "nemotron-3-super-120b-a12b",
       "title": "Nemotron 3 Super 120B-A12B"
@@ -377,25 +355,8 @@
     "attribution": [
       "NVIDIA Corporation"
     ],
-    "operator_acceptance_required": true,
     "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/"
-  },
-  "limits": {
-    "context_tokens": 1048576,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision; weights, runtime code, tokenizer, reasoning parser, and deployment guidance are byte-identical to 445d56f3, while the model card adds NVIDIA's public summary of training content.",
-    "publisher": "nvidia",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "nvidia",
-      "slug": "nemotron-3-super-120b-a12b"
-    }
   },
   "metadata": {
     "description": "Exact public NVFP4 ff433f54 checkpoint with NVIDIA's current DGX Spark vLLM 0.27.1 and MTPv2 deployment guidance.",
@@ -409,21 +370,9 @@
   "modalities": [
     "text"
   ],
-  "parameters": {
-    "active": 12000000000,
-    "total": 120000000000
-  },
-  "provenance": {
-    "attribution": [
-      "NVIDIA Corporation"
-    ],
-    "source_revision": "ff433f5493e25d631c9f12b5d55c674229923d02",
-    "source_url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
     "revision": "ff433f5493e25d631c9f12b5d55c674229923d02"
-  },
-  "supersedes": null
+  }
 }

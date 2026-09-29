@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
-        "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
@@ -12,13 +10,10 @@
       },
       "dockerfile": "adapters/llm/vllm-openai/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": []
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -57,7 +52,6 @@
           "file_id": "metadata-d1a8f4a1d2e3",
           "id": "primary-metadata-d1a8f4a1d2e3",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -68,7 +62,6 @@
           "file_id": "runtime-e3b0c44298fc",
           "id": "primary-runtime-e3b0c44298fc",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -79,7 +72,6 @@
           "file_id": "readme-75a09249ef13",
           "id": "primary-readme-75a09249ef13",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -90,7 +82,6 @@
           "file_id": "accuracy-chart-6fd72a7dcf86",
           "id": "primary-accuracy-chart-6fd72a7dcf86",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -101,7 +92,6 @@
           "file_id": "bias-6970c9d29da7",
           "id": "primary-bias-6970c9d29da7",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -112,7 +102,6 @@
           "file_id": "chat-template-575fb74f54ed",
           "id": "primary-chat-template-575fb74f54ed",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -123,7 +112,6 @@
           "file_id": "config-14a1ad3ab6ec",
           "id": "primary-config-14a1ad3ab6ec",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -134,7 +122,6 @@
           "file_id": "configuration-nemotron-h-0fc818c10506",
           "id": "primary-configuration-nemotron-h-0fc818c10506",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -145,7 +132,6 @@
           "file_id": "explainability-0d2e55b6cb27",
           "id": "primary-explainability-0d2e55b6cb27",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -156,7 +142,6 @@
           "file_id": "generation-config-27d520b2df55",
           "id": "primary-generation-config-27d520b2df55",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -167,7 +152,6 @@
           "file_id": "hf-quant-config-dbabb3970ad6",
           "id": "primary-hf-quant-config-dbabb3970ad6",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -178,7 +162,6 @@
           "file_id": "model-00001-of-00017-3d31c241fb77",
           "id": "primary-model-00001-of-00017-3d31c241fb77",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -189,7 +172,6 @@
           "file_id": "model-00002-of-00017-78d4a5ad2684",
           "id": "primary-model-00002-of-00017-78d4a5ad2684",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -200,7 +182,6 @@
           "file_id": "model-00003-of-00017-ecb72debb5d2",
           "id": "primary-model-00003-of-00017-ecb72debb5d2",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -211,7 +192,6 @@
           "file_id": "model-00004-of-00017-a7d1c68e8272",
           "id": "primary-model-00004-of-00017-a7d1c68e8272",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -222,7 +202,6 @@
           "file_id": "model-00005-of-00017-1d432c9c7834",
           "id": "primary-model-00005-of-00017-1d432c9c7834",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -233,7 +212,6 @@
           "file_id": "model-00006-of-00017-037ea60b87cb",
           "id": "primary-model-00006-of-00017-037ea60b87cb",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -244,7 +222,6 @@
           "file_id": "model-00007-of-00017-3c0527dac96f",
           "id": "primary-model-00007-of-00017-3c0527dac96f",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -255,7 +232,6 @@
           "file_id": "model-00008-of-00017-ef6e73f64c3d",
           "id": "primary-model-00008-of-00017-ef6e73f64c3d",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -266,7 +242,6 @@
           "file_id": "model-00009-of-00017-b4f598068350",
           "id": "primary-model-00009-of-00017-b4f598068350",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -277,7 +252,6 @@
           "file_id": "model-00010-of-00017-bf8bf1f4e2e0",
           "id": "primary-model-00010-of-00017-bf8bf1f4e2e0",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -288,7 +262,6 @@
           "file_id": "model-00011-of-00017-ac436f2e1af8",
           "id": "primary-model-00011-of-00017-ac436f2e1af8",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -299,7 +272,6 @@
           "file_id": "model-00012-of-00017-7814c9ae0dc3",
           "id": "primary-model-00012-of-00017-7814c9ae0dc3",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -310,7 +282,6 @@
           "file_id": "model-00013-of-00017-b13aa79c0879",
           "id": "primary-model-00013-of-00017-b13aa79c0879",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -321,7 +292,6 @@
           "file_id": "model-00014-of-00017-1d8781b2643c",
           "id": "primary-model-00014-of-00017-1d8781b2643c",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -332,7 +302,6 @@
           "file_id": "model-00015-of-00017-5f6c3c0f8420",
           "id": "primary-model-00015-of-00017-5f6c3c0f8420",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -343,7 +312,6 @@
           "file_id": "model-00016-of-00017-a5f795056a1a",
           "id": "primary-model-00016-of-00017-a5f795056a1a",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -354,7 +322,6 @@
           "file_id": "model-00017-of-00017-218355cf69f1",
           "id": "primary-model-00017-of-00017-218355cf69f1",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -365,7 +332,6 @@
           "file_id": "model-safetensors-index-e0ca77ceed3a",
           "id": "primary-model-safetensors-index-e0ca77ceed3a",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -376,7 +342,6 @@
           "file_id": "modeling-nemotron-h-e1cb5fc02e88",
           "id": "primary-modeling-nemotron-h-e1cb5fc02e88",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -387,7 +352,6 @@
           "file_id": "privacy-aea46e6515ca",
           "id": "primary-privacy-aea46e6515ca",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -398,7 +362,6 @@
           "file_id": "safety-dbb015ffcafe",
           "id": "primary-safety-dbb015ffcafe",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -409,7 +372,6 @@
           "file_id": "special-tokens-map-e9435fefd6d8",
           "id": "primary-special-tokens-map-e9435fefd6d8",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -420,7 +382,6 @@
           "file_id": "super-v3-reasoning-parser-f7fc71d1697e",
           "id": "primary-super-v3-reasoning-parser-f7fc71d1697e",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -431,7 +392,6 @@
           "file_id": "tokenizer-623c34567aeb",
           "id": "primary-tokenizer-623c34567aeb",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -442,7 +402,6 @@
           "file_id": "tokenizer-config-10f93eabcb9b",
           "id": "primary-tokenizer-config-10f93eabcb9b",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -452,7 +411,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "bbed20984d1f2e59b0f7bf5e2bd03b56d4a50c8e33e06fa90feaaf124c9ff865",
+        "content_sha256": "6aa6f5e0542e5676862996deb985c8017b081fcfe98da045671439c722a5c09c",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-super-120b-a12b-nvfp4"
@@ -464,7 +423,6 @@
           "file_id": "metadata-gitattributes-11ad7efa2497",
           "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-metadata-gitatt",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -475,7 +433,6 @@
           "file_id": "readme-505b2b8d7626",
           "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-readme-505b2b8d",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -486,7 +443,6 @@
           "file_id": "config-699f34f0fc64",
           "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-config-699f34f0",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -497,7 +453,6 @@
           "file_id": "configuration-nemotron-h-2b3ce37ae17d",
           "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-configuration-n",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -508,7 +463,6 @@
           "file_id": "generation-config-dc5b4dbdff26",
           "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-generation-conf",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -519,7 +473,6 @@
           "file_id": "weights-f0114c95f8a8",
           "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-weights-f0114c9",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -530,7 +483,6 @@
           "file_id": "model-safetensors-index-7f36923c963a",
           "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-model-safetenso",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -540,7 +492,7 @@
       ],
       "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2",
       "model": {
-        "content_sha256": "d98f236f7b13efbf69122d145c76b449c409c7156c14192e8b9788ba3f92f491",
+        "content_sha256": "8226a040e300fc4c423955926d2e7d7e4a273e934f16e7504dc85be0b3c1a879",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-super-120b-a12b-bf16-mtpv2"
@@ -551,199 +503,9 @@
     "attribution": [
       "nvidia"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4/tree/ff433f5493e25d631c9f12b5d55c674229923d02"
   },
   "release": {
-    "history": [
-      {
-        "version": "2.2.0",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "2775cd1cc96ef987b5056e546be6785b82044d2ab06712da8dfef9c10da3b080",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved to the official vLLM 0.30.0 ARM64 image from vLLM 0.27.1.",
-            "details": "docker.io/vllm/vllm-openai v0.30.0-aarch64 @sha256:4864d466 (build commit ced6857a, CUDA 13.0) replaces v0.27.1-aarch64 @sha256:1c8e60a0. Every launch option, parser and model architecture this recipe uses is present at v0.30.0. Upstream 0.29 makes Model Runner V2 the default and 0.28-0.30 remove only options this recipe does not use. NVIDIA's model card still names v0.27.1 for DGX Spark; its launch options used here are unchanged at v0.30.0 and the snapshot's super_v3 reasoning plugin imports resolve there. Physical GB10 startup, memory and output acceptance is still required.",
-            "references": [
-              "https://github.com/vllm-project/vllm/releases/tag/v0.28.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
-              "https://github.com/vllm-project/vllm/compare/v0.27.1...v0.30.0"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "2.1.6"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "d43457ff362830a6de4f1941023385d63b7d32c03966db39ef4856886bfcd140",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "2.1.5"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "feb6c5ed030d565938a597b64b74fd9089e0d9be9abddae020803fc2259dab55",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "2.1.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "The only upstream change is a 234-byte README addition linking NVIDIA's public summary of training content. Weights, runtime code, tokenizer, parser, vLLM 0.27.1 launch, and MTPv2 companion are byte-identical, so existing deployments need no rebuild or restart.",
-            "kind": "metadata",
-            "references": [
-              "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4/tree/ff433f5493e25d631c9f12b5d55c674229923d02",
-              "https://developer.download.nvidia.com/assets/nemo/docs/public-summary-of-training-content-for-nvidia-nemotron.pdf"
-            ],
-            "summary": "Advanced the immutable target to NVIDIA's current ff433f54 model-card revision."
-          }
-        ],
-        "prior_recipe_content_sha256": "30f07a81ab63f9112225f30c1e42d08ce4c473c39cdf0a56cb30f6b52ee84de8",
-        "released_at": "2026-08-29",
-        "upgrade_effect": "none",
-        "version": "2.1.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Routed non-root vLLM caches to the writable outputs mount."
-          }
-        ],
-        "prior_recipe_content_sha256": "0406438e7b6effadfa4ffcdd29ecac04883232e2bdc6e301656c70f634791b84",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "reprepare",
-        "version": "2.1.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "b5760f665c95c145a72e19bcfe7be5b7ee8022221e6906108d4d20d97f1b0985",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "2.1.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "The target advances to 445d56f3; its weights, code, tokenizer, and super_v3 parser are unchanged from 4f0cf9da, while the updated model card changes the Spark runtime and recommends MTPv2. The exact 5.88 GB companion is now hydrated into /models/drafter, so offline startup performs no hidden Hugging Face download.",
-            "kind": "runtime",
-            "references": [
-              "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4/tree/445d56f38229f7a37ae5207734f7e8af0fa9a2c8",
-              "https://huggingface.co/nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2/tree/c929f8a55d0527fea9f58b4cedc9e0c855cfc421",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.27.1"
-            ],
-            "summary": "Followed NVIDIA's revised DGX Spark contract by moving to immutable vLLM 0.27.1 and adding the separately released MTPv2 speculative-decoding head."
-          }
-        ],
-        "prior_recipe_content_sha256": "2862da6dce3915ea9091adc86f693086bdb772b9639150f66c019ce1b184e82c",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "The reviewed launch now includes explicit FP4/Marlin execution, FP8 KV cache, Mamba cache settings, and MTP speculative decoding with no startup download.",
-            "kind": "runtime",
-            "references": [
-              "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4/tree/4f0cf9daaeb7a4d5e23f80a00e7ed15f0e03caf6",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.20.0"
-            ],
-            "summary": "Made the Super recipe executable with NVIDIA's immutable vLLM 0.20.0 ARM64 image and snapshot-owned super_v3 parser plugin."
-          }
-        ],
-        "prior_recipe_content_sha256": "68bd5dca013c50a33d35d735234106d2fdcbb7a1240487a3e153d8fab1670273",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [
-              "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4/tree/4f0cf9daaeb7a4d5e23f80a00e7ed15f0e03caf6"
-            ],
-            "summary": "Applied FP8 KV, Mamba cache, and MTP settings and recorded the unsupported super_v3 parser and explicit FP4/Marlin requirements."
-          }
-        ],
-        "prior_recipe_content_sha256": "1416dda4f2015b126a8a6f132e31557882824faf4667f32c2c762ca695eb573c",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "restart",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of Nemotron 3 Super 120B-A12B NVFP4 vLLM single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "10af945bbf1c34bf523680bc480146a9d828422f05b5446a41ed38f88d928e89",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "39654260773dd767d1b0b3ac413045b08b56c37d44727252de10a231a6532683",
-        "released_at": "2026-08-17",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "2.2.0"
   },
@@ -839,36 +601,25 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "VLLM_NVFP4_GEMM_BACKEND",
-        "secret": null,
         "value": "marlin"
       },
       {
         "name": "VLLM_USE_FLASHINFER_MOE_FP4",
-        "secret": null,
         "value": "0"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": {
       "change_effect": "restart",
@@ -883,19 +634,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -905,41 +650,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 86250573651,
-            "cache_bytes": 4000000000,
             "image_bytes": 12000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 172501147302
+            "working_bytes": 176501147302
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 4000000000,
-            "startup_peak_bytes": 118000000000,
-            "steady_state_bytes": 102000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "timeout_seconds": 600
-        },
-        "framework": "openai",
-        "name": "bounded-chat"
-      }
-    ],
     "serving": {
       "checks": [
         {

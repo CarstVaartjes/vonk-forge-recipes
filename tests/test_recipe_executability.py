@@ -10,8 +10,8 @@ ROOT = Path(__file__).resolve().parents[1]
 RECIPES = ROOT / "recipes"
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 
+from catalog_documents import catalog_models
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
-from vonk_forge_contracts.canonical import content_sha256
 from vonk_forge_contracts.resolver import (
     validate_recipe_models,
     validate_recipe_package_paths,
@@ -79,7 +79,7 @@ class RecipeExecutabilityTests(unittest.TestCase):
             recipe = RecipeDefinition.model_validate(
                 json.loads(path.read_text(encoding="utf-8"))
             )
-            validate_recipe_models(recipe, models.values())
+            validate_recipe_models(recipe, catalog_models())
             package_paths = {
                 item.relative_to(ROOT).as_posix()
                 for item in ROOT.rglob("*")
@@ -88,7 +88,6 @@ class RecipeExecutabilityTests(unittest.TestCase):
                 and item.suffix != ".pyc"
             }
             validate_recipe_package_paths(recipe, package_paths)
-            self.assertEqual(content_sha256(recipe), content_sha256(recipe))
 
     def test_every_recipe_has_an_executable_contract(self) -> None:
         recipes = recipe_documents()

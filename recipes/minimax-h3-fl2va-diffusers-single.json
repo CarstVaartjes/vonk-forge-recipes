@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -22,13 +20,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -46,7 +41,6 @@
           "image/webp",
           "text/plain"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -103,7 +97,6 @@
       },
       "output": {
         "max_total_bytes": 1073741824,
-        "path": "/outputs",
         "slots": [
           {
             "description": "Generated H.264/AAC MP4 with requested 32-multiple geometry and 120..345 frames at 24 fps, plus synchronized 32 kHz stereo audio.",
@@ -121,8 +114,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -157,7 +149,6 @@
           "file_id": "artifact-01",
           "id": "primary-artifact-01",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -168,7 +159,6 @@
           "file_id": "artifact-02",
           "id": "primary-artifact-02",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -179,7 +169,6 @@
           "file_id": "artifact-03",
           "id": "primary-artifact-03",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -190,7 +179,6 @@
           "file_id": "artifact-04",
           "id": "primary-artifact-04",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -201,7 +189,6 @@
           "file_id": "artifact-05",
           "id": "primary-artifact-05",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -212,7 +199,6 @@
           "file_id": "artifact-06",
           "id": "primary-artifact-06",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -223,7 +209,6 @@
           "file_id": "artifact-07",
           "id": "primary-artifact-07",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -234,7 +219,6 @@
           "file_id": "artifact-08",
           "id": "primary-artifact-08",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -245,7 +229,6 @@
           "file_id": "artifact-09",
           "id": "primary-artifact-09",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -256,7 +239,6 @@
           "file_id": "artifact-10",
           "id": "primary-artifact-10",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -267,7 +249,6 @@
           "file_id": "artifact-11",
           "id": "primary-artifact-11",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -278,7 +259,6 @@
           "file_id": "artifact-12",
           "id": "primary-artifact-12",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -289,7 +269,6 @@
           "file_id": "artifact-13",
           "id": "primary-artifact-13",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -300,7 +279,6 @@
           "file_id": "artifact-14",
           "id": "primary-artifact-14",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -311,7 +289,6 @@
           "file_id": "artifact-15",
           "id": "primary-artifact-15",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -322,7 +299,6 @@
           "file_id": "artifact-16",
           "id": "primary-artifact-16",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -333,7 +309,6 @@
           "file_id": "artifact-17",
           "id": "primary-artifact-17",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -344,7 +319,6 @@
           "file_id": "artifact-18",
           "id": "primary-artifact-18",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -355,7 +329,6 @@
           "file_id": "artifact-19",
           "id": "primary-artifact-19",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -366,7 +339,6 @@
           "file_id": "artifact-20",
           "id": "primary-artifact-20",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -377,7 +349,6 @@
           "file_id": "artifact-21",
           "id": "primary-artifact-21",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -388,7 +359,6 @@
           "file_id": "artifact-22",
           "id": "primary-artifact-22",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -399,7 +369,6 @@
           "file_id": "artifact-23",
           "id": "primary-artifact-23",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -410,7 +379,6 @@
           "file_id": "artifact-24",
           "id": "primary-artifact-24",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -421,7 +389,6 @@
           "file_id": "artifact-25",
           "id": "primary-artifact-25",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -432,7 +399,6 @@
           "file_id": "artifact-26",
           "id": "primary-artifact-26",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -443,7 +409,6 @@
           "file_id": "artifact-27",
           "id": "primary-artifact-27",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -454,7 +419,6 @@
           "file_id": "artifact-28",
           "id": "primary-artifact-28",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -465,7 +429,6 @@
           "file_id": "artifact-29",
           "id": "primary-artifact-29",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -476,7 +439,6 @@
           "file_id": "artifact-30",
           "id": "primary-artifact-30",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -487,7 +449,6 @@
           "file_id": "artifact-31",
           "id": "primary-artifact-31",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -498,7 +459,6 @@
           "file_id": "artifact-32",
           "id": "primary-artifact-32",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -509,7 +469,6 @@
           "file_id": "artifact-33",
           "id": "primary-artifact-33",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -520,7 +479,6 @@
           "file_id": "artifact-34",
           "id": "primary-artifact-34",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -531,7 +489,6 @@
           "file_id": "artifact-35",
           "id": "primary-artifact-35",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -542,7 +499,6 @@
           "file_id": "artifact-36",
           "id": "primary-artifact-36",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -553,7 +509,6 @@
           "file_id": "artifact-37",
           "id": "primary-artifact-37",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -564,7 +519,6 @@
           "file_id": "artifact-38",
           "id": "primary-artifact-38",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -575,7 +529,6 @@
           "file_id": "artifact-39",
           "id": "primary-artifact-39",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -586,7 +539,6 @@
           "file_id": "artifact-40",
           "id": "primary-artifact-40",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -597,7 +549,6 @@
           "file_id": "artifact-41",
           "id": "primary-artifact-41",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -608,7 +559,6 @@
           "file_id": "artifact-42",
           "id": "primary-artifact-42",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -619,7 +569,6 @@
           "file_id": "artifact-43",
           "id": "primary-artifact-43",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -630,7 +579,6 @@
           "file_id": "artifact-44",
           "id": "primary-artifact-44",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -641,7 +589,6 @@
           "file_id": "artifact-45",
           "id": "primary-artifact-45",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -652,7 +599,6 @@
           "file_id": "artifact-46",
           "id": "primary-artifact-46",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -663,7 +609,6 @@
           "file_id": "artifact-47",
           "id": "primary-artifact-47",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -674,7 +619,6 @@
           "file_id": "artifact-48",
           "id": "primary-artifact-48",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -685,7 +629,6 @@
           "file_id": "artifact-49",
           "id": "primary-artifact-49",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -696,7 +639,6 @@
           "file_id": "artifact-50",
           "id": "primary-artifact-50",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -707,7 +649,6 @@
           "file_id": "artifact-51",
           "id": "primary-artifact-51",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -718,7 +659,6 @@
           "file_id": "artifact-52",
           "id": "primary-artifact-52",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -729,7 +669,6 @@
           "file_id": "artifact-53",
           "id": "primary-artifact-53",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -740,7 +679,6 @@
           "file_id": "artifact-54",
           "id": "primary-artifact-54",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -751,7 +689,6 @@
           "file_id": "artifact-55",
           "id": "primary-artifact-55",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -762,7 +699,6 @@
           "file_id": "artifact-56",
           "id": "primary-artifact-56",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -773,7 +709,6 @@
           "file_id": "artifact-57",
           "id": "primary-artifact-57",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -784,7 +719,6 @@
           "file_id": "artifact-58",
           "id": "primary-artifact-58",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -795,7 +729,6 @@
           "file_id": "artifact-59",
           "id": "primary-artifact-59",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -806,7 +739,6 @@
           "file_id": "artifact-60",
           "id": "primary-artifact-60",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -817,7 +749,6 @@
           "file_id": "artifact-61",
           "id": "primary-artifact-61",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -828,7 +759,6 @@
           "file_id": "artifact-62",
           "id": "primary-artifact-62",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -838,7 +768,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "cdcda2730da511149502341b9fabc8411321f710ef12cacd044a2fbf00aa8642",
+        "content_sha256": "300be8da891511c435734c86ef3f6b3a37ed25216f65435021f0d8930d78ade6",
         "kind": "model",
         "publisher": "minimax",
         "slug": "minimax-h3-fl2va-42ed227e"
@@ -850,188 +780,9 @@
       "MiniMaxAI",
       "Hugging Face"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.0.9",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "62ef17ec1c6c2c85c4013c3da60ac68ce6340468d2e68541ed5324ab785c4fc5",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved the CUDA runtime base to 13.4.1 and refreshed PyTorch 2.14.0, torchvision 0.29.0, Transformers 5.17.0 and Accelerate 1.15.0.",
-            "details": "Base image nvcr.io/nvidia/cuda 13.0.1-runtime-ubuntu24.04 -> 13.4.1-runtime-ubuntu24.04 (arm64 digest 2eaf346843c9); its NVIDIA_REQUIRE_CUDA keeps the driver>=580 branch clause. torch 2.13.0 -> 2.14.0 and torchvision 0.28.0 -> 0.29.0 (cu130 aarch64 wheels), transformers 5.15.1 -> 5.17.0, accelerate 1.14.0 -> 1.15.0. av 18.1.0, torchao 0.18.0 (pure-Python wheel on aarch64), Pillow 12.3.0, safetensors 0.8.0 and sentencepiece 0.2.2 are already the latest releases. Model revision and adapter settings are unchanged.",
-            "references": [
-              "https://github.com/pytorch/pytorch/releases/tag/v2.14.0",
-              "https://github.com/pytorch/vision/releases/tag/v0.29.0",
-              "https://github.com/huggingface/transformers/releases/tag/v5.17.0",
-              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "compatibility",
-            "summary": "Kept Diffusers at commit efabd60d61c2 because it is newer than the v0.40.0 release.",
-            "details": "The GitHub compare v0.40.0...efabd60d61c2 reports the pinned commit 15 commits ahead of the latest stable Diffusers tag (diverged only by the release-branch version commit), so no stable release contains it. Its MiniMax H3 modular encoder imports Qwen3VLForConditionalGeneration/Qwen3VLProcessor, which Transformers 5.17 keeps; only deprecated vision-helper methods were removed.",
-            "references": [
-              "https://github.com/huggingface/diffusers/compare/v0.40.0...efabd60d61c2b7aabf9f182bee6b5b6058980304",
-              "https://github.com/huggingface/transformers/pull/48367"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu130 metadata requires cuda-toolkit==13.0.3.0; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "a46fc039f9ca04df6c5383b3cdb491cc508c9a41083b81a332c904c60f1cc69c",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.8"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Declared the official cu130 PyTorch wheel-object host for source builds.",
-            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/torch/",
-              "https://download.pytorch.org/whl/cu130/torchvision/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "c7e4de1eb860e522919a852c8711135ed85f928f0954f32803bec1735f4e0710",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.7"
-      },
-      {
-        "changes": [
-          {
-            "details": "The current Diffusers compare range is large, but the exact MiniMax H3 modular pipeline source used by this adapter is byte-identical at the selected efabd60d pin and current c5469b7c head. The specialized FL2VA/reference workflows therefore retain their exact runtime pin and model closure.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/huggingface/diffusers/compare/efabd60d61c2b7aabf9f182bee6b5b6058980304...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
-              "https://github.com/huggingface/diffusers/tree/efabd60d61c2b7aabf9f182bee6b5b6058980304/src/diffusers/modular_pipelines/minimax_h3"
-            ],
-            "summary": "Retained the MiniMax H3 Diffusers pin because its modular implementation is unchanged."
-          }
-        ],
-        "prior_recipe_content_sha256": "9f9053f7c886c5a253121c35cf9671bd70a5221b233218fa7b69e747b9ff6711",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.0.6"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.0.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "be2f7d33ed88ed89a5fbc7a4fbeeeb8362e865ce12f04ccf1e872b45042282db",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "6777aec751e1d43f716c30430a905afc9e46ad2bf7d11d9c4cbcc9d17d2e81a4",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
-            "kind": "security",
-            "references": [],
-            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
-          }
-        ],
-        "prior_recipe_content_sha256": "3d0cc380ae32b9c19e9b0cf2da5a8dd5522dd63690d166c65f41604ca106f1e6",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The pinned license excludes the European Union, United Kingdom, Republic of Korea, and United States of America; no selected artifacts or runtime behavior changed.",
-            "kind": "fix",
-            "references": [
-              "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE"
-            ],
-            "summary": "Enforced the exact MiniMax H3 Community License territorial exclusions during install and run admission."
-          }
-        ],
-        "prior_recipe_content_sha256": "405bfbcf878ee3eb8f6c8e627652541074901be2433306ace7d73fd63fbc0f55",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "none",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "Pins the exact root Modular Diffusers loader closure at 42ed227e: shared conditioning, schedulers, audio/video VAEs, and the FL2VA transformer only. It supports text generation and optional first/last keyframes, excludes ordered Ref2VA inputs and duplicate checkpoint layouts, and remains physically unaccepted.",
-            "kind": "initial",
-            "references": [
-              "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe",
-              "https://github.com/huggingface/diffusers/blob/efabd60d61c2b7aabf9f182bee6b5b6058980304/docs/source/en/api/pipelines/minimax_h3.md"
-            ],
-            "summary": "Added a separate official FL2VA-only Candidate without changing the full Ref2VA-capable recipe."
-          },
-          {
-            "details": null,
-            "kind": "performance",
-            "references": [
-              "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/model_index.json"
-            ],
-            "summary": "Reduced retained model artifacts from 498.475 GB to 144.051 GB and peak declared disk from 1.517 TB to 454.153 GB by excluding unused layouts."
-          }
-        ],
-        "prior_recipe_content_sha256": "e2f60df2dfc868f087e4416eff951679d03e55167385a15b9403950804d706e2",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.0.9"
   },
@@ -1075,45 +826,30 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -1123,63 +859,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 144051160615,
-            "cache_bytes": 8000000000,
             "image_bytes": 2000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 288102321230
+            "working_bytes": 296102321230
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 8000000000,
-            "startup_peak_bytes": 112000000000,
-            "steady_state_bytes": 96000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 112000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "model_evaluations": 3,
-          "profile": "smoke-only",
-          "sigma_grid_points": 4,
-          "smoke_only": true,
-          "timeout_seconds": 14400
-        },
-        "framework": "diffusers",
-        "name": "smoke-only-startup"
-      },
-      {
-        "configuration": {
-          "model_evaluations": 30,
-          "profile": "balanced",
-          "sigma_grid_points": 31,
-          "timeout_seconds": 28800
-        },
-        "framework": "diffusers",
-        "name": "balanced-generation"
-      },
-      {
-        "configuration": {
-          "model_evaluations": 50,
-          "profile": "qualification-reference",
-          "sigma_grid_points": 51,
-          "timeout_seconds": 43200
-        },
-        "framework": "diffusers",
-        "name": "qualification-reference"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -1191,11 +886,9 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/prompt.txt",
-            "input_path": "/inputs",
             "input_slots": {
               "prompt": "qualification/fixtures/prompt.txt"
             },
-            "output_path": "/outputs",
             "output_slot": "video",
             "transport": "job"
           }

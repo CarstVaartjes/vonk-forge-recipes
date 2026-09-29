@@ -18,7 +18,7 @@ from typing import Any
 import pytest
 from generated_catalog import GENERATED
 from pydantic import ValidationError
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
 from vonk_forge_contracts.model import ModelSource
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,15 +32,12 @@ ChatRequest = runpy.run_path(str(FIXTURE / "context/request_contract.py"))[
 
 def _documents() -> tuple[dict[str, Any], dict[str, Any], dict[str, dict[str, Any]]]:
     model = json.loads((FIXTURE / "model.json").read_text(encoding="utf-8"))
-    model = ModelDefinition.model_validate(model).model_dump(
-        mode="json", exclude_unset=False, exclude_none=False
-    )
     recipe = json.loads((FIXTURE / "recipe.json").read_text(encoding="utf-8"))
     key = f"{model['identity']['publisher']}/{model['identity']['slug']}"
     return model, recipe, {key: model}
 
 
-def test_canonical_canary_is_schema2_and_excluded_from_public_catalog() -> None:
+def test_canonical_canary_is_valid_and_excluded_from_public_catalog() -> None:
     model_document, recipe_document, _ = _documents()
     model = ModelDefinition.model_validate(model_document)
     recipe = RecipeDefinition.model_validate(recipe_document)
@@ -48,10 +45,9 @@ def test_canonical_canary_is_schema2_and_excluded_from_public_catalog() -> None:
     assert isinstance(model.source, ModelSource)
     assert model.identity.publisher == recipe.identity.publisher == "vonk-forge-test"
     assert recipe.identity.slug == "canonical-synthetic-canary"
-    assert recipe_document["models"][0]["model"]["content_sha256"] == content_sha256(
-        model
+    assert recipe_document["models"][0]["model"]["content_sha256"] == document_sha256(
+        model_document
     )
-    assert recipe.execution.mode == "build"
     model_file = model.files[0]
     assert model_file.path == "configuration.json"
     assert (
@@ -65,7 +61,6 @@ def test_canonical_canary_is_schema2_and_excluded_from_public_catalog() -> None:
         == "2d4464e2ead06bc9bc718c781309ad1e7baded626d66e8dcdc8b469ba185faf0"
     )
     assert model_file.size_bytes == 51
-    assert recipe.execution.build.base_image.platform == "linux/arm64"
     assert recipe.execution.build.base_image.digest != "0" * 64
     assert recipe.execution.build.base_image.digest != "f" * 64
 

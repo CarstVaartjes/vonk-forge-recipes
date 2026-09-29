@@ -1,38 +1,10 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "code-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "tool-use",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
-      "source_url": "https://huggingface.co/meta-models/Muse-Glimmer-30B"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "code-generation",
+    "image-understanding",
+    "text-generation",
+    "tool-use"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -154,7 +126,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -165,7 +136,6 @@
       "title": "Muse Glimmer"
     },
     "model": {
-      "architecture": "Dense Muse Glimmer multimodal transformer with 28B hybrid-attention text decoder and 2B Perception Encoder",
       "publisher": "meta",
       "slug": "muse-glimmer-30b",
       "title": "Muse Glimmer 30B"
@@ -180,25 +150,8 @@
     "attribution": [
       "Meta"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B/blob/a4e59da52a7bc87ae7251dd5545c0dd437c44b68/LICENSE"
-  },
-  "limits": {
-    "context_tokens": 131072,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "meta",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "meta",
-      "slug": "muse-glimmer-30b"
-    }
   },
   "metadata": {
     "description": "Exact public Muse Glimmer 30B BF16 a4e59da5 checkpoint.",
@@ -213,21 +166,9 @@
     "image",
     "text"
   ],
-  "parameters": {
-    "active": 29776626688,
-    "total": 29776626688
-  },
-  "provenance": {
-    "attribution": [
-      "Meta"
-    ],
-    "source_revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
-    "source_url": "https://huggingface.co/meta-models/Muse-Glimmer-30B"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
     "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68"
-  },
-  "supersedes": null
+  }
 }

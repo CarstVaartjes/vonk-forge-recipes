@@ -17,15 +17,12 @@ Several recipes can use the same Model—for example, with different engines or 
 | `metadata` | Description and tags. |
 | `modalities` | The kinds of data the model handles: text, images, audio, video, 3D or embeddings. |
 | `source` | Where the files come from, with an exact source revision. |
-| `access` | Whether the source is public or requires access approval and a token. The token itself stays in Controller secrets. |
-| `lineage` | Whether this is an official, derived or quantized model, and which model it comes from. |
-| `dependencies`, `supersedes` | Exact references to companion Models and, when applicable, the Model record this replaces. |
-| `format` | File format, numerical precision and quantization. |
-| `parameters`, `limits` | Model size and applicable limits, such as context length. |
-| `license` | Usage terms and any required acknowledgement. |
+| `requires_token` | Whether downloading the files needs a provider account token (a gated repository). The token itself stays in Controller secrets. |
+| `dependencies` | Exact references to companion Models. |
+| `format` | Numerical precision and quantization. |
+| `license` | Usage terms, attribution and any territorial notice. |
 | `files` | Each file’s ID, path, content hash, byte size and purpose, such as weights or tokenizer. |
-| `capabilities` | Supported features and the evidence behind them; unknown support stays unknown. |
-| `provenance` | Sources and attribution for the record. |
+| `capabilities` | The names of the features the model supports. |
 
 Family, model, version and variant names are **data**, not Python classes. Adding a new family or version does not require changing the contract. File hashes and sizes live here once; recipes reference them.
 
@@ -39,20 +36,22 @@ Family, model, version and variant names are **data**, not Python classes. Addin
 | --- | --- |
 | `identity`, `metadata` | Publisher, unique name, title, description and tags. |
 | `models` | Exact Model references, selected file IDs, and where each Spark role reads those files. |
-| `execution` | Either a ready-made container image identified by its content hash, or the source and build instructions for creating one. |
-| `runtime` | Engine, launch command, arguments, environment and start/stop steps. |
+| `execution` | How to build the container image: a pinned ARM64 base image, the build context, Dockerfile, patches and the hosts the build may reach. |
+| `runtime` | Engine, launch command, arguments, environment and stop timeout. |
 | `settings` | Generation, embedding or job settings, including whether changing a value needs a restart or rebuild. |
-| `topology` | Number of Sparks, their roles, how they work together, and memory, disk and network requirements. |
+| `topology` | Number of Sparks, their roles, parallelism and start order, and each role's memory and disk needs. |
 | `interfaces` | How an application uses the model: an API or a file-based job. |
-| `validation` | Representative requests or job inputs, expected results and benchmark declarations. |
-| `release` | Current version and date, with recent changes, source links and whether an update needs a restart, preparation or rebuild. |
+| `validation` | Representative requests or job inputs and their expected results. |
+| `release` | The version the recipe runs and its date: the upstream project's version when it publishes one, otherwise the recipe's own. |
 | `provenance` | Where the recipe came from and who should be credited. |
 
-Both documents declare `schema_version: 2` and their `kind` (`model` or `recipe`). Pydantic checks their structure; the shared resolver checks that a recipe references the right Models and files. Running the declared tests checks actual model behavior.
+Both documents declare their `kind` (`model` or `recipe`). Pydantic checks their structure; the shared resolver checks that a recipe references the right Models (by the `document_sha256` of their JSON) and files. Running the declared tests checks actual model behavior.
 
-Each recipe is one JSON file, including its version notes. Its downloadable package adds the exact Model snapshots, build sources and test fixtures it needs; it contains no model weights or container images.
+The contracts have one semantic version, `CONTRACT_VERSION`, which is also the version of the published library release (`v2.0.0`). Recipe and Model changes update that release in place; an additive contract change publishes a new minor release and a breaking one a new major release.
 
-Examples: [ready-made image](contracts/src/vonk_forge_contracts/examples/recipe-image.json) · [build from source](contracts/src/vonk_forge_contracts/examples/recipe-source-build.json) · [two Sparks](contracts/src/vonk_forge_contracts/examples/recipe-dual.json) · [file-based job](contracts/src/vonk_forge_contracts/examples/recipe-job.json). These use synthetic data to show the structure.
+Each recipe is one JSON file. Its downloadable package adds the exact Model snapshots, build sources and test fixtures it needs; it contains no model weights or container images.
+
+Examples: [build from source](contracts/src/vonk_forge_contracts/examples/recipe-source-build.json) · [two Sparks](contracts/src/vonk_forge_contracts/examples/recipe-dual.json) · [file-based job](contracts/src/vonk_forge_contracts/examples/recipe-job.json). These use synthetic data to show the structure.
 
 ## What the Controller handles
 

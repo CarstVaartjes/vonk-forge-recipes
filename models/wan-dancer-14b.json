@@ -1,33 +1,9 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "audio-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "video-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "85ce88dd8d025459dcf0fe93982d6da8b9002957",
-      "source_url": "https://huggingface.co/Wan-AI/Wan-Dancer-14B"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "audio-understanding",
+    "image-understanding",
+    "video-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -239,7 +215,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -250,7 +225,6 @@
       "title": "Wan-Dancer"
     },
     "model": {
-      "architecture": "Wan-Dancer hierarchical global/local diffusion transformer",
       "publisher": "wan-ai",
       "slug": "wan-dancer-14b",
       "title": "Wan-Dancer 14B"
@@ -266,25 +240,8 @@
       "Wan-AI",
       "Wan-Video"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://github.com/Wan-Video/Wan-Dancer/blob/e6c87a94ec733230dac15b924c015f6e6501e618/LICENSE"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "wan-ai",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "wan-ai",
-      "slug": "wan-dancer-14b"
-    }
   },
   "metadata": {
     "description": "Exact public Wan-Dancer 14B checkpoint.",
@@ -300,22 +257,9 @@
     "image",
     "video"
   ],
-  "parameters": {
-    "active": 14000000000,
-    "total": 14000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Wan-AI",
-      "Wan-Video"
-    ],
-    "source_revision": "85ce88dd8d025459dcf0fe93982d6da8b9002957",
-    "source_url": "https://huggingface.co/Wan-AI/Wan-Dancer-14B"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Wan-AI/Wan-Dancer-14B",
     "revision": "85ce88dd8d025459dcf0fe93982d6da8b9002957"
-  },
-  "supersedes": null
+  }
 }

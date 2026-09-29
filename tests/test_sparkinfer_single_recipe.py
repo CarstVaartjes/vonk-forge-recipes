@@ -12,9 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from generated_catalog import GENERATED
 from vonk_forge_contracts import (
-    ModelDefinition,
-    RecipeDefinition,
-    content_sha256,
+    document_sha256,
 )
 
 ADAPTER_ROOT = ROOT / "adapters/deepseek/sparkinfer-single"
@@ -34,8 +32,7 @@ def _document(path: Path) -> dict[str, object]:
 
 
 def _canonical_digest(path: Path) -> str:
-    contract = ModelDefinition if path.parent.name == "models" else RecipeDefinition
-    return content_sha256(contract.model_validate(_document(path)))
+    return document_sha256(_document(path))
 
 
 def _catalog_entry(slug: str) -> dict[str, object]:

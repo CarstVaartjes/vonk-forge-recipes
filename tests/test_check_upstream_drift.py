@@ -133,10 +133,6 @@ class DiscoveryTests(unittest.TestCase):
                 "repository": "https://huggingface.co/example/model",
                 "revision": PINNED,
             }
-            model["lineage"]["source_model"]["publisher"] = "example"
-            model["lineage"]["source_model"]["slug"] = "source-model"
-            model["provenance"]["source_revision"] = PINNED
-            model["capabilities"]["provenance"]["source_revision"] = PINNED
             recipe = json.loads(
                 (
                     ROOT
@@ -146,7 +142,6 @@ class DiscoveryTests(unittest.TestCase):
             recipe["identity"] = {"publisher": "example", "slug": "recipe"}
             recipe["provenance"] = {
                 "attribution": ["Example"],
-                "source_kind": "local",
                 "source_reference": f"https://github.com/example/recipe/tree/{PINNED}",
             }
             (root / "models/model.json").write_text(json.dumps(model))

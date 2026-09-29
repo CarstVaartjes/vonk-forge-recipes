@@ -117,31 +117,6 @@ def test_vision_serving_uses_a_real_png_payload() -> None:
     assert struct.unpack(">II", payload[16:24]) == (64, 64)
 
 
-def test_release_history_is_typed_recipe_metadata_without_self_digest() -> None:
-    recipes = [
-        json.loads(path.read_text()) for path in ROOT.joinpath("recipes").glob("*.json")
-    ]
-    assert recipes
-    entries = [entry for recipe in recipes for entry in recipe["release"]["history"]]
-    assert entries
-    assert all("recipe_content_sha256" not in entry for entry in entries)
-    assert all(
-        entry.get("prior_recipe_content_sha256") is None
-        or len(entry["prior_recipe_content_sha256"]) == 64
-        for entry in entries
-    )
-    assert {entry["upgrade_effect"] for entry in entries} <= {
-        "none",
-        "restart",
-        "reprepare",
-        "rebuild",
-    }
-    assert all(
-        recipe["release"]["history"][0]["version"] == recipe["release"]["version"]
-        for recipe in recipes
-    )
-
-
 def test_source_bundle_ignores_generated_python_cache_files(tmp_path: Path) -> None:
     context = tmp_path / "context"
     context.mkdir()
@@ -232,30 +207,17 @@ def test_platform_owned_cache_variables_are_not_recipe_inputs() -> None:
         assert not PLATFORM_OWNED_ENVIRONMENT & names, path.name
 
 
-def test_model_access_lineage_and_related_model_references_are_preserved() -> None:
-    restricted = {}
-    supersedes = []
-    for path in ROOT.joinpath("models").glob("*.json"):
-        document = json.loads(path.read_text())
-        access = document["access"]
-        assert set(access) == {"visibility", "gated", "authentication"}
-        if access["visibility"] == "restricted":
-            restricted[document["identity"]["slug"]] = access
-        if document["supersedes"] is not None:
-            supersedes.append(document["identity"]["slug"])
-        lineage = document["lineage"]
-        assert set(lineage) == {"publisher", "relation", "source_model", "derivation"}
-        assert set(lineage["source_model"]) == {"kind", "publisher", "slug"}
-    assert set(restricted) == {
+def test_gated_models_declare_that_they_require_a_token() -> None:
+    gated = {
+        json.loads(path.read_text())["identity"]["slug"]
+        for path in ROOT.joinpath("models").glob("*.json")
+        if json.loads(path.read_text())["requires_token"]
+    }
+    assert gated == {
         "glm-5-3-flash-nvfp4-ablit-l15-43-mtp-l45-80b6d18d",
         "glm-5-3-flash-nvfp4-abliterated-d7f8afa8",
         "ltx-2-5-22b-distilled-bf16-diffusers",
     }
-    assert all(
-        value == {"visibility": "restricted", "gated": True, "authentication": "token"}
-        for value in restricted.values()
-    )
-    assert supersedes == []
 
 
 def test_model_territorial_restrictions_preserve_all_published_records() -> None:

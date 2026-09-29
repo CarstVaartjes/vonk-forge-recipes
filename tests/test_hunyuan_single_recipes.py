@@ -65,8 +65,8 @@ def video_module():
 
 class HunyuanSingleRecipeAuthorityTests(unittest.TestCase):
     def test_hunyuan_recipes_select_exact_models_and_job_interface(self) -> None:
-        from vonk_forge_contracts import ModelDefinition, RecipeDefinition
-        from vonk_forge_contracts.canonical import content_sha256
+        from catalog_documents import model_digest
+        from vonk_forge_contracts import RecipeDefinition
 
         expected_model_counts = {
             "hunyuan-video-foley-xl-pytorch-single": 3,
@@ -83,11 +83,8 @@ class HunyuanSingleRecipeAuthorityTests(unittest.TestCase):
                 self.assertEqual(recipe["topology"]["node_count"], 1)
                 for selection in recipe["models"]:
                     model_slug = selection["model"]["slug"]
-                    model = ModelDefinition.model_validate(
-                        load(ROOT / "models" / f"{model_slug}.json")
-                    )
                     self.assertEqual(
-                        selection["model"]["content_sha256"], content_sha256(model)
+                        selection["model"]["content_sha256"], model_digest(model_slug)
                     )
                 self.assertEqual(
                     recipe["interfaces"][0]["adapter"],
@@ -96,9 +93,7 @@ class HunyuanSingleRecipeAuthorityTests(unittest.TestCase):
                     else recipe["interfaces"][0]["adapter"],
                 )
 
-    def test_current_upstream_revisions_and_tencent_license_acceptance_are_explicit(
-        self,
-    ) -> None:
+    def test_current_upstream_revisions_are_pinned(self) -> None:
         expected = {
             "hunyuan-video-15-distilled": "1abb14f06518f37448dcf3a6917dd086dd7045c7",
             "hunyuan-video-15-i2v-step-distilled": "854c04a4c8a53d990b418c7478f0802c0fc8c726",
@@ -111,12 +106,6 @@ class HunyuanSingleRecipeAuthorityTests(unittest.TestCase):
             self.assertEqual(
                 load(ROOT / "models" / f"{slug}.json")["source"]["revision"], revision
             )
-        for slug in RECIPE_SLUGS:
-            recipe = load(ROOT / "recipes" / f"{slug}.json")
-            model = load(
-                ROOT / "models" / f"{recipe['models'][0]['model']['slug']}.json"
-            )
-            self.assertIn("operator_acceptance_required", model["license"])
 
     def test_offloaded_hunyuan_video_envelope_fits_healthy_spark(self) -> None:
         for slug in RECIPE_SLUGS[:3]:
@@ -124,12 +113,7 @@ class HunyuanSingleRecipeAuthorityTests(unittest.TestCase):
                 "resources"
             ]["memory"]
             self.assertLessEqual(
-                max(
-                    memory["startup_peak_bytes"],
-                    memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
-                )
-                + memory["system_reserve_bytes"],
-                128_000_000_000,
+                memory["peak_bytes"] + memory["reserve_bytes"], 128_000_000_000
             )
 
 

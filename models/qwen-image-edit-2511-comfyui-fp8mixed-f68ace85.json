@@ -1,23 +1,7 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "image-editing",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "f68ace85e60b4a02a323e394253731947657b7d2",
-      "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "image-editing"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -31,7 +15,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "fp8mixed"
   },
@@ -42,7 +25,6 @@
       "title": "Qwen Image Edit"
     },
     "model": {
-      "architecture": "20B multimodal diffusion transformer image-editing pipeline",
       "publisher": "qwen",
       "slug": "qwen-image-edit",
       "title": "Qwen Image Edit"
@@ -58,25 +40,8 @@
       "Qwen",
       "Comfy-Org"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/blob/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9/LICENSE"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Comfy-Org's upstream-supported mixed-precision FP8 conversion of the official Qwen Image Edit 2511 transformer for native ComfyUI MixedPrecisionOps; no runtime-side shard merging is required.",
-    "publisher": "Comfy-Org",
-    "relation": "quantized",
-    "source_model": {
-      "kind": "model",
-      "publisher": "qwen",
-      "slug": "qwen-image-edit"
-    }
   },
   "metadata": {
     "description": "Exact Comfy-Org mixed-precision FP8 Qwen Image Edit 2511 transformer for core ComfyUI MixedPrecisionOps, used with the catalog's immutable scaled-FP8 Qwen-VL encoder and Qwen Image VAE companions.",
@@ -95,22 +60,9 @@
   "modalities": [
     "image"
   ],
-  "parameters": {
-    "active": null,
-    "total": 20000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Qwen",
-      "Comfy-Org"
-    ],
-    "source_revision": "f68ace85e60b4a02a323e394253731947657b7d2",
-    "source_url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI",
     "revision": "f68ace85e60b4a02a323e394253731947657b7d2"
-  },
-  "supersedes": null
+  }
 }

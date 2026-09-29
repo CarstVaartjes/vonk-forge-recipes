@@ -9,11 +9,12 @@ The schema describes the structure. Adding a family, model, version or quantizat
 [`ModelDefinition`](src/vonk_forge_contracts/model.py) describes one exact model version and variant:
 
 - A unique record identity, with family and logical model information for grouping, plus version and variant labels.
-- Modalities, format, precision and quantization; parameter counts and applicable limits when known.
-- Source identity, license and provenance. Git-backed sources bind an immutable revision; a GitHub release source binds a release ID and the asset IDs for the files below.
-- Access requirements, without credentials; official, derived or quantized lineage; exact companion Model references and an optional superseded Model reference.
+- Modalities, precision and quantization.
+- Source identity and license. Git-backed sources bind an immutable revision; a GitHub release source binds a release ID and the asset IDs for the files below.
+- `requires_token`: whether downloading the files needs a provider account token (a gated repository). No credentials are stored in the document.
+- Exact companion Model references.
 - A canonical file manifest: file ID, relative path, SHA-256, exact byte length and purpose such as weights or tokenizer.
-- Capability facts with their evidence status. Unknown support remains unknown. Capability evidence can come from a different source or revision than the weights.
+- `capabilities`: the names of the capabilities the model supports. A name is data, not an enum, so a newer catalog may add one.
 
 The file manifest is the only source for file hashes and byte lengths. Download/cache totals are computed from it, including content deduplication. Recipes do not repeat these facts. A GitHub release locator names only the public release and asset; this source branch uses anonymous access and does not accept provider credentials. It does not replace the file's SHA-256 or byte length.
 
@@ -23,32 +24,27 @@ See the [complete synthetic Model example](src/vonk_forge_contracts/examples/mod
 
 ## Recipe: how to run it
 
-[`RecipeDefinition`](src/vonk_forge_contracts/recipe.py) selects exact Model documents and the files needed by each topology role. A selector names a file in that model manifest and its read-only mount destination.
+[`RecipeDefinition`](src/vonk_forge_contracts/recipe.py) selects exact Model documents, by the `document_sha256` of their published JSON, and the files needed by each topology role. A selector names a file in that model manifest and its mount destination; model mounts are always read-only.
 
-Execution has two mutually exclusive forms:
+Every recipe builds its image (`execution.build`): the author supplies a digest-pinned base image (always the linux/arm64 image for DGX Spark), the recipe-owned build context, Dockerfile and patches, and `network.hosts`, the only hosts the build may reach (an empty list builds offline). The platform runs the build. Model weights remain separate from container images.
 
-| Form | Author supplies | Platform supplies |
-|---|---|---|
-| Image | Final OCI image identity pinned by digest, target platform | Fetching, verified local caching, distribution and import |
-| Source build | Pinned base image and recipe-owned source/context, Dockerfile and patches | Build execution and a receipt binding the final image to those exact inputs |
+The recipe also declares its runtime engine, entrypoint, ordered arguments, environment and stop timeout, applicable settings, topology and resource envelope, serving interface, and representative tests. Generation, embedding and job settings have different typed structures; an image/audio/3D job does not need an invented LLM context length.
 
-Model weights remain separate from container images. Image archive sizes and transfer receipts are produced by the platform, not copied into recipe authoring fields. A direct-image recipe needs no fake Dockerfile or build job.
-
-The recipe also declares its runtime engine and launch intent, applicable settings, topology and resource envelope, serving interface, and representative tests. Generation, embedding and job settings have different typed structures; an image/audio/3D job does not need an invented LLM context length.
+The topology declares `node_count`, its roles with their resources, parallelism and start order. Everything else follows from the node count: one node runs alone; more nodes share one connected fabric with a 200 Gbit/s floor, losing a rank withdraws the endpoint, recovery restarts the workers and then the entrypoint, and stopping starts with the endpoint owner. `RecipeTopology` exposes these as `mode`, `world_size`, `fabric_connectivity`, `fabric_minimum_bandwidth_mbps` and `stop_order`. Each role declares unified memory as `peak_bytes` plus `reserve_bytes`, and disk as image, artifact, working (staging plus caches) and safety-margin bytes. Job inputs are staged read-only under `/inputs`; jobs write outputs under `/outputs`.
 
 Runtime arguments are ordered trusted process data. Their names and bounded JSON-safe values pass through unchanged, including options unfamiliar to the Controller; compatibility resolution may report whether the pinned engine can execute them, but it does not define an allowlist. Repeated names retain their input order. An empty string is passed as an empty argv token. `value: null` is reserved for a setting-bound argument and requires `setting`; it is not a literal null value. For literal booleans, `true` emits the presence flag and `false` omits it. Each serialized name or value is limited to 65,536 UTF-8 bytes, a rendered argv is limited to 1 MiB, and a recipe has at most 128 runtime arguments. Structured values use compact, deterministic JSON. Platform-owned environment, mounts, writable paths, and other security constraints remain authoritative and are checked separately.
 
-`release` keeps the version, date and changelog inside the same Recipe JSON file. Its `history` is newest first; the first entry matches the current version and date. Each entry records concise changes, optional upstream links, and an `upgrade_effect` of `none`, `restart`, `reprepare` or `rebuild`. Full document identity includes these notes; model-file and image identities let the Controller reuse cached bytes when only the notes change.
+`release` is `{version, released_at}`: the upstream project's version and release date when the upstream publishes versions (for example `1.6`, released 2026-09-17), otherwise the recipe's own semantic version. It carries no history; Git holds it.
 
 Engine invariants—such as vLLM writable cache paths—belong to the platform's engine implementation. Harness catalog entities, runtime-distribution documents and patch-bundle catalog entities are not extra documents the author maintains.
 
-Examples: [direct image](src/vonk_forge_contracts/examples/recipe-image.json), [source build](src/vonk_forge_contracts/examples/recipe-source-build.json), [two Sparks](src/vonk_forge_contracts/examples/recipe-dual.json), [container job](src/vonk_forge_contracts/examples/recipe-job.json).
+Examples: [source build](src/vonk_forge_contracts/examples/recipe-source-build.json), [two Sparks](src/vonk_forge_contracts/examples/recipe-dual.json), [container job](src/vonk_forge_contracts/examples/recipe-job.json).
 
 ## Validation and serving tests
 
 Validation has distinct responsibilities:
 
-1. Pydantic validates strict types, required fields, mutually exclusive branches and relationships within the document.
+1. Pydantic validates strict types, required fields and relationships within the document.
 2. The shared resolver checks exact Model references and selected file IDs. Package validation checks that required source and fixture paths belong to the self-contained recipe package.
 3. The Controller resolves engine compatibility, capacity and executable images against the actual platform. Real serving and hardware tests observe runtime behavior.
 
@@ -58,31 +54,33 @@ Optional fields with a `None` default accept omission or explicit `null`;
 omit unused optional fields when sending or authoring a document. Required
 fields must always be present, including `null` when their type allows it.
 Preserve meaningful false, zero, empty values and engine-owned JSON values.
-Use the shared model and canonical serialization helpers for identities, not
-an independent null-removal pass. The platform's wire chain is Pydantic → JSON
-Schema → typify → Rust, with the same model-aware normalization before signing
-or hashing on each side. Round-trip tests must verify actual serialized bytes
-and signatures as well as structural acceptance.
 
-OpenAI checks declare an HTTP request. Container jobs declare filesystem fixture and output-slot bindings; `/outputs` is a directory, not an HTTP endpoint. Tests must exercise representative inference. Health alone is insufficient. Unknown assertions must fail validation, and accepted assertions must be enforced by the executor. Restart and cache reuse belong to the maintainer qualification run.
+## Versions, identity and reading
+
+`CONTRACT_VERSION` (`2.0.0`) is the semantic version of these contracts and of
+the recipe library release that publishes the catalog (`v2.0.0`). Documents
+carry no schema version. Recipe and Model changes never change the library
+version; publication updates the release in place and records `updated_at`.
+An additive contract change (a new optional field) is a minor version and a
+new release (`v2.1.0`); a breaking change is a major version (`v3.0.0`).
+
+A document's identity is `document_sha256`: the SHA-256 of its canonical JSON
+(sorted keys, compact separators, UTF-8) exactly as published, not of a
+re-serialized parse. Hash a document once when it is published or imported
+and keep the digest with it. Recipe and Model references hold the referenced
+Model's `document_sha256`, and the resolvers take Models keyed by it.
+
+Consumers read published documents with `read_model` and `read_recipe`, which
+ignore fields a newer minor contract added. Authoring and the catalog build
+validate strictly, rejecting unknown fields.
+
+OpenAI checks declare an HTTP request. Container jobs declare filesystem fixture and output-slot bindings; the fixture is staged as the input when the interface declares one, and `/outputs` is a directory, not an HTTP endpoint. Tests must exercise representative inference. Health alone is insufficient. Unknown assertions must fail validation, and accepted assertions must be enforced by the executor. Restart and cache reuse belong to the maintainer qualification run.
 
 The examples use synthetic sources and image identities to illustrate the contract; they are not runnable model recommendations.
 
-## Reuse and PostgreSQL
+## Reuse
 
-This is an ordinary reusable Python package; publishing to PyPI is unnecessary. Consumers follow the latest `main`, explicitly refresh it during CI/builds, and include it in their built application. Record the resolved commit for traceability. A lockfile must not silently prevent the requested latest-main refresh.
-
-Catalog tooling and the Controller use the same validators and canonical serialization. The web consumes generated schemas/types. PostgreSQL stores validated canonical documents and digests, with query projections derived from those objects and database uniqueness/reference constraints. Pydantic does not automatically alter SQL tables.
-
-## Test report: what was actually run
-
-[`TestReport`](src/vonk_forge_contracts/test_report.py) is the execution evidence for exactly one recipe revision. It binds the recipe, source bundle and build inputs by digest to the image that was actually run, the topology and node count that were exercised, the runtime that ran it, and the named checks that passed. The Controller requires a report before publication export; the catalog accepts and stores it.
-
-It is schema 1, while the authoring roots are schema 2. Each document owns its own version, and no document accepts two. The published JSON Schema keeps the catalog identifier `https://api.vonkforge.ai/schemas/test-report/v1.schema.json` so publishers see one stable identity.
-
-The generated JSON Schema is structural. Run ordering (`finished_at` not before `started_at`) and unique check names are model-only rules, so a non-Python consumer that validates only the schema does not enforce them.
-
-Private API, Spark execution-plan, operation-progress, build-receipt and telemetry contracts remain platform-owned. Test reports are the one execution-evidence document that is published, so they are defined here rather than duplicated per consumer.
+This is an ordinary reusable Python package; publishing to PyPI is unnecessary. The platform pins a contracts commit and follows the newest library release within that contract's major version. Catalog tooling and the Controller use the same validators; the Controller stores each published document as received, with its digest.
 
 ## Release evidence
 

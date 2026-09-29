@@ -1,28 +1,8 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "reasoning",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "7a27e9eb8179b2c2eb71eb214f0dab14ec6a63f2",
-      "source_url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-int4"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "reasoning",
+    "text-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -342,7 +322,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "int4-group32"
   },
@@ -353,7 +332,6 @@
       "title": "Ling 3.0"
     },
     "model": {
-      "architecture": "BailingMoeV3 hybrid Kimi Delta Attention and MLA mixture-of-experts transformer",
       "publisher": "inclusionai",
       "slug": "ling-3-0-flash",
       "title": "Ling 3.0 Flash"
@@ -368,25 +346,8 @@
     "attribution": [
       "InclusionAI"
     ],
-    "operator_acceptance_required": false,
     "spdx": "MIT",
     "url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-int4/blob/7a27e9eb8179b2c2eb71eb214f0dab14ec6a63f2/LICENSE"
-  },
-  "limits": {
-    "context_tokens": 262144,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "inclusionai",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "inclusionai",
-      "slug": "ling-3-0-flash"
-    }
   },
   "metadata": {
     "description": "Exact public Ling 3.0 Flash INT4 7a27e9eb checkpoint.",
@@ -400,21 +361,9 @@
   "modalities": [
     "text"
   ],
-  "parameters": {
-    "active": 5100000000,
-    "total": 124000000000
-  },
-  "provenance": {
-    "attribution": [
-      "InclusionAI"
-    ],
-    "source_revision": "7a27e9eb8179b2c2eb71eb214f0dab14ec6a63f2",
-    "source_url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-int4"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/inclusionAI/Ling-3.0-flash-int4",
     "revision": "7a27e9eb8179b2c2eb71eb214f0dab14ec6a63f2"
-  },
-  "supersedes": null
+  }
 }

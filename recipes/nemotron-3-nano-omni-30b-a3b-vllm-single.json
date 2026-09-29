@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
-        "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
@@ -12,13 +10,10 @@
       },
       "dockerfile": "adapters/nvidia/nemotron/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": []
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -60,7 +55,6 @@
           "file_id": "metadata-34448b82c17d",
           "id": "primary-metadata-34448b82c17d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -71,7 +65,6 @@
           "file_id": "readme-57e90233a9ef",
           "id": "primary-readme-57e90233a9ef",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -82,7 +75,6 @@
           "file_id": "audio-model-a3bbb1e79c00",
           "id": "primary-audio-model-a3bbb1e79c00",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -93,7 +85,6 @@
           "file_id": "chat-template-41428e0c65e3",
           "id": "primary-chat-template-41428e0c65e3",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -104,7 +95,6 @@
           "file_id": "config-59d8f791406c",
           "id": "primary-config-59d8f791406c",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -115,7 +105,6 @@
           "file_id": "configuration-18c8a588133f",
           "id": "primary-configuration-18c8a588133f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -126,7 +115,6 @@
           "file_id": "configuration-nemotron-h-09a8200ee1b1",
           "id": "primary-configuration-nemotron-h-09a8200ee1b1",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -137,7 +125,6 @@
           "file_id": "configuration-radio-68cc673c2f87",
           "id": "primary-configuration-radio-68cc673c2f87",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -148,7 +135,6 @@
           "file_id": "evs-79f0659f3532",
           "id": "primary-evs-79f0659f3532",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -159,7 +145,6 @@
           "file_id": "generation-config-dbe3dfa851ad",
           "id": "primary-generation-config-dbe3dfa851ad",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -170,7 +155,6 @@
           "file_id": "hf-quant-config-402c8d74e1dc",
           "id": "primary-hf-quant-config-402c8d74e1dc",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -181,7 +165,6 @@
           "file_id": "image-processing-84b29e96e509",
           "id": "primary-image-processing-84b29e96e509",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -192,7 +175,6 @@
           "file_id": "model-00001-of-00003-089da47c8822",
           "id": "primary-model-00001-of-00003-089da47c8822",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -203,7 +185,6 @@
           "file_id": "model-00002-of-00003-3004edb5d9b8",
           "id": "primary-model-00002-of-00003-3004edb5d9b8",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -214,7 +195,6 @@
           "file_id": "model-00003-of-00003-16c197ed062b",
           "id": "primary-model-00003-of-00003-16c197ed062b",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -225,7 +205,6 @@
           "file_id": "model-safetensors-index-4e4bf04e5d0d",
           "id": "primary-model-safetensors-index-4e4bf04e5d0d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -236,7 +215,6 @@
           "file_id": "modeling-4be8b30a75fc",
           "id": "primary-modeling-4be8b30a75fc",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -247,7 +225,6 @@
           "file_id": "modeling-nemotron-h-64edc908fd02",
           "id": "primary-modeling-nemotron-h-64edc908fd02",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -258,7 +235,6 @@
           "file_id": "preprocessor-config-a80b0f0decc0",
           "id": "primary-preprocessor-config-a80b0f0decc0",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -269,7 +245,6 @@
           "file_id": "processing-75ab1784f2cc",
           "id": "primary-processing-75ab1784f2cc",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -280,7 +255,6 @@
           "file_id": "processing-utils-f107d30e96bf",
           "id": "primary-processing-utils-f107d30e96bf",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -291,7 +265,6 @@
           "file_id": "special-tokens-map-e3a4f63da745",
           "id": "primary-special-tokens-map-e3a4f63da745",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -302,7 +275,6 @@
           "file_id": "tokenizer-e5e7dc84d72e",
           "id": "primary-tokenizer-e5e7dc84d72e",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -313,7 +285,6 @@
           "file_id": "tokenizer-config-37399ab83007",
           "id": "primary-tokenizer-config-37399ab83007",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -324,7 +295,6 @@
           "file_id": "video-io-3801db0a418d",
           "id": "primary-video-io-3801db0a418d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -335,7 +305,6 @@
           "file_id": "video-processing-9cc25c47e6d8",
           "id": "primary-video-processing-9cc25c47e6d8",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -345,7 +314,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ffb0d97dfde72da128ce1c44c6bbb881cdc099d3c830f36d7c083eb49990f2e7",
+        "content_sha256": "b90740f0a268263d56254574bd923639febbb7c6c7d8d6ae1165ef01d5cd5bcf",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-nano-omni-30b-a3b-reasoning-nvfp4"
@@ -356,200 +325,9 @@
     "attribution": [
       "nvidia"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4/tree/16993199e436da4ba75ddc410855f87e0d996ee6"
   },
   "release": {
-    "history": [
-      {
-        "version": "2.1.0",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "36d285713b8248f2a071e138113cc2175ff71d066ab4e37395295b93469f6c51",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved to the official vLLM 0.30.0 ARM64 image from vLLM 0.20.0.",
-            "details": "docker.io/vllm/vllm-openai v0.30.0-aarch64 @sha256:4864d466 (build commit ced6857a, CUDA 13.0) replaces v0.20.0-aarch64 @sha256:871fc9b7. Every launch option, parser and model architecture this recipe uses is present at v0.30.0. Upstream 0.29 makes Model Runner V2 the default and 0.28-0.30 remove only options this recipe does not use. The build now uses the shared adapters/nvidia/nemotron wrapper; the version-named nemotron-vllm-0-20-0 adapter was removed. Physical GB10 startup, memory and output acceptance is still required.",
-            "references": [
-              "https://github.com/vllm-project/vllm/releases/tag/v0.28.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
-              "https://github.com/vllm-project/vllm/compare/v0.20.0...v0.30.0"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "2.0.7"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "1850f48285625776ecda19855ccbe04793a8387a88591f4369d626b460baf7ea",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.6"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "e3d8e1809acadcb0194e54add409e967e09945bc0aeac80f4bd0db92325bcd75",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "2.0.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "The refreshed immutable checkpoint and language-model-only runtime contract are unchanged. A separate full-media identity remains deferred until the required vLLM audio extra and dependency inventory can be pinned exactly.",
-            "kind": "metadata",
-            "references": [
-              "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4/tree/16993199e436da4ba75ddc410855f87e0d996ee6"
-            ],
-            "summary": "Made the existing Omni recipe explicitly text-only in its title, description, and capability tags."
-          }
-        ],
-        "prior_recipe_content_sha256": "9ce13960369a44d4571cfe2719208944ce3b5e75140d135610e78996d9d6c943",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "none",
-        "version": "2.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "The sole upstream change after dc5f0b0b is a 234-byte README addition. Weights, configuration, tokenizer, remote code, launch guidance, vLLM 0.20.0 runtime, and the text-only single-Spark contract remain byte-identical.",
-            "kind": "metadata",
-            "references": [
-              "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4/commit/16993199e436da4ba75ddc410855f87e0d996ee6",
-              "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4/compare/dc5f0b0bfddf8b6e0f5891475be9af05b80126fe...16993199e436da4ba75ddc410855f87e0d996ee6"
-            ],
-            "summary": "Refreshed the immutable model snapshot after NVIDIA added its public training-content summary link; all executable artifacts and runtime pins are unchanged."
-          }
-        ],
-        "prior_recipe_content_sha256": "add7123431ff0c5697b221c97dbd2bdb4750879e9504ebc13e0fdd9cb8af8931",
-        "released_at": "2026-08-29",
-        "upgrade_effect": "none",
-        "version": "2.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "3599a5e61beb6932860853898a8fba8e15840da97895c8d12e7f59e2759dc3b0",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "2.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The runtime image, source commit, dependency closure, adapter, and text-only launch arguments are unchanged; only authority metadata and its resulting content digest changed.",
-            "kind": "metadata",
-            "references": [
-              "https://github.com/vllm-project/vllm/releases/tag/v0.20.0"
-            ],
-            "summary": "Corrected the vLLM 0.20.0 authority description and pinned drift monitoring to the immutable v0.20.0 tag."
-          }
-        ],
-        "prior_recipe_content_sha256": "0501b52f793876bb9ac1fd014c8274846df383cc9bdb62e881c90c041a100830",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "none",
-        "version": "2.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "Language-model-only mode intentionally excludes audio, image, and video features, so every advertised capability is available without installing hidden runtime extras.",
-            "kind": "runtime",
-            "references": [
-              "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4/tree/dc5f0b0bfddf8b6e0f5891475be9af05b80126fe",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.20.0"
-            ],
-            "summary": "Converted the profile into an explicit executable text-serving recipe on NVIDIA's immutable vLLM 0.20.0 ARM64 runtime."
-          }
-        ],
-        "prior_recipe_content_sha256": "47212d1786cbac96741eea91556e656de05df5d8bf7d1bd56be5dc22cd1b57ff",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [
-              "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4/tree/dc5f0b0bfddf8b6e0f5891475be9af05b80126fe",
-              "https://github.com/vllm-project/recipes/blob/main/models/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16.yaml"
-            ],
-            "summary": "Applied FP8 KV, batching, and prefix caching while restricting qualification to text until multimodal controls are allowlisted."
-          }
-        ],
-        "prior_recipe_content_sha256": "0b1042527a2216ad774a164bcd2baa751a3929a42a53614513198eef8961ad2c",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "restart",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of Nemotron 3 Nano Omni 30B-A3B NVFP4 vLLM single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "e1b36755639b8230ec9f80c33c6cde9f733935c9ad97588a19c6a94b7f503db6",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "6b2fb50ccf5e471e8497e51c9df7aeead654c5e6c648ad91c5ce342b276612af",
-        "released_at": "2026-08-17",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "2.1.0"
   },
@@ -625,26 +403,17 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": {
       "change_effect": "restart",
@@ -659,19 +428,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -681,41 +444,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 22431648055,
-            "cache_bytes": 4000000000,
             "image_bytes": 12000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 44863296110
+            "working_bytes": 48863296110
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 4000000000,
-            "startup_peak_bytes": 90000000000,
-            "steady_state_bytes": 78000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 90000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "timeout_seconds": 600
-        },
-        "framework": "openai",
-        "name": "bounded-chat"
-      }
-    ],
     "serving": {
       "checks": [
         {

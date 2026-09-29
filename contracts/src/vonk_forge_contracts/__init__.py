@@ -1,15 +1,20 @@
 """Standalone public contracts for the Vonk Forge recipe library.
 
 The package exports the two author-facing roots, ``ModelDefinition`` and
-``RecipeDefinition``, plus the ``TestReport`` that records the execution
-evidence for one recipe revision.  The small nested classes are implementation
-details of those roots and can evolve without creating a second public
-authority.
+``RecipeDefinition``, and the qualification authority the maintainer campaign
+reads. ``CONTRACT_VERSION`` is the semantic version of these contracts, and it
+is also the recipe library's release version: an optional or additive change is
+a minor release, a breaking change a major one. Recipe content changes never
+change it; a release records when its recipes were last updated instead.
+
+Consumers read published documents with ``read_model``/``read_recipe``, which
+ignore fields a newer minor release added, and identify a document by the
+``document_sha256`` of its published JSON.
 """
 
 from __future__ import annotations
 
-from .canonical import content_sha256
+from .canonical import canonical_json, document_sha256, read_model, read_recipe
 from .model import GitHubReleaseAsset, GitHubReleaseSource, ModelDefinition
 from .qualification_authority import (
     QualificationAuthority,
@@ -18,31 +23,22 @@ from .qualification_authority import (
     QualificationCampaignManifest,
     RecipeAuthorityRow,
     RecoveryCoverage,
-    RecoveryCoverageConsumption,
     RecoveryCoverageDefinition,
     RecoveryCoverageMember,
-    RecoveryCoverageReceipt,
-    RecoveryCoverageReceiptEnvelope,
     RecoveryCoverageRef,
-    RecoveryCoverageUse,
-    RecoveryNodeBuildIdentity,
-    RecoveryNodeEvidence,
-    RecoveryRankEvidence,
     campaign_authority_json_schema,
     campaign_manifest_json_schema,
-    recovery_coverage_consumption_json_schema,
     recovery_coverage_id,
-    recovery_coverage_receipt_json_schema,
-    recovery_coverage_use_json_schema,
-    recovery_receipt_sha256,
 )
 from .recipe import RecipeDefinition
-from .recipe_test_report import TestReport
 
-__version__ = "0.1.0"
-CONTRACT_VERSION = 2
+CONTRACT_VERSION = "2.0.0"
+__version__ = CONTRACT_VERSION
+CONTRACT_MAJOR = int(CONTRACT_VERSION.split(".", 1)[0])
 
 __all__ = [
+    "CONTRACT_MAJOR",
+    "CONTRACT_VERSION",
     "GitHubReleaseAsset",
     "GitHubReleaseSource",
     "ModelDefinition",
@@ -53,25 +49,16 @@ __all__ = [
     "RecipeAuthorityRow",
     "RecipeDefinition",
     "RecoveryCoverage",
-    "RecoveryCoverageConsumption",
     "RecoveryCoverageDefinition",
     "RecoveryCoverageMember",
-    "RecoveryCoverageReceipt",
-    "RecoveryCoverageReceiptEnvelope",
     "RecoveryCoverageRef",
-    "RecoveryCoverageUse",
-    "RecoveryNodeBuildIdentity",
-    "RecoveryNodeEvidence",
-    "RecoveryRankEvidence",
-    "TestReport",
     "campaign_authority_json_schema",
     "campaign_manifest_json_schema",
-    "content_sha256",
-    "recovery_coverage_consumption_json_schema",
+    "canonical_json",
+    "document_sha256",
+    "read_model",
+    "read_recipe",
     "recovery_coverage_id",
-    "recovery_coverage_receipt_json_schema",
-    "recovery_coverage_use_json_schema",
-    "recovery_receipt_sha256",
 ]
 
 
@@ -93,23 +80,3 @@ def recipe_json_schema() -> dict[str, object]:
         "$id": "https://api.vonkforge.ai/contracts/recipe-definition-v2.schema.json",
         **RecipeDefinition.model_json_schema(ref_template="#/$defs/{model}"),
     }
-
-
-def test_report_json_schema() -> dict[str, object]:
-    """Return the generated JSON Schema for :class:`TestReport`.
-
-    The identifier is the published catalog-contract URL rather than the
-    ``/contracts/`` namespace used by the authoring roots, because this
-    document is served to publishers as ``schemas/test-report/v1``.
-    """
-
-    return {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/schemas/test-report/v1.schema.json",
-        **TestReport.model_json_schema(ref_template="#/$defs/{model}"),
-    }
-
-
-# This is a schema accessor, not a pytest test, and consumers import it into
-# test modules.  Tell pytest not to collect it.
-test_report_json_schema.__test__ = False

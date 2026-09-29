@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -22,13 +20,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -45,7 +40,6 @@
           "image/png",
           "image/webp"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -87,7 +81,6 @@
       },
       "output": {
         "max_total_bytes": 16777216,
-        "path": "/outputs",
         "slots": [
           {
             "description": "Single edited PNG image.",
@@ -105,8 +98,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -135,7 +127,6 @@
           "file_id": "metadata-gitattributes",
           "id": "primary-metadata-gitattributes",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -146,7 +137,6 @@
           "file_id": "metadata-readme",
           "id": "primary-metadata-readme",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -157,7 +147,6 @@
           "file_id": "metadata-model-index",
           "id": "primary-metadata-model-index",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -168,7 +157,6 @@
           "file_id": "processor-added-tokens",
           "id": "primary-processor-added-tokens",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -179,7 +167,6 @@
           "file_id": "processor-chat-template",
           "id": "primary-processor-chat-template",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -190,7 +177,6 @@
           "file_id": "processor-merges",
           "id": "primary-processor-merges",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -201,7 +187,6 @@
           "file_id": "processor-preprocessor",
           "id": "primary-processor-preprocessor",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -212,7 +197,6 @@
           "file_id": "processor-special-tokens",
           "id": "primary-processor-special-tokens",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -223,7 +207,6 @@
           "file_id": "processor-tokenizer",
           "id": "primary-processor-tokenizer",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -234,7 +217,6 @@
           "file_id": "processor-tokenizer-config",
           "id": "primary-processor-tokenizer-config",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -245,7 +227,6 @@
           "file_id": "processor-video-config",
           "id": "primary-processor-video-config",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -256,7 +237,6 @@
           "file_id": "processor-vocab",
           "id": "primary-processor-vocab",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -267,7 +247,6 @@
           "file_id": "scheduler-config",
           "id": "primary-scheduler-config",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -278,7 +257,6 @@
           "file_id": "text-encoder-config",
           "id": "primary-text-encoder-config",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -289,7 +267,6 @@
           "file_id": "text-encoder-generation-config",
           "id": "primary-text-encoder-generation-config",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -300,7 +277,6 @@
           "file_id": "text-encoder-weights-01",
           "id": "primary-text-encoder-weights-01",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -311,7 +287,6 @@
           "file_id": "text-encoder-weights-02",
           "id": "primary-text-encoder-weights-02",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -322,7 +297,6 @@
           "file_id": "text-encoder-weights-03",
           "id": "primary-text-encoder-weights-03",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -333,7 +307,6 @@
           "file_id": "text-encoder-weights-04",
           "id": "primary-text-encoder-weights-04",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -344,7 +317,6 @@
           "file_id": "text-encoder-index",
           "id": "primary-text-encoder-index",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -355,7 +327,6 @@
           "file_id": "tokenizer-added-tokens",
           "id": "primary-tokenizer-added-tokens",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -366,7 +337,6 @@
           "file_id": "tokenizer-chat-template",
           "id": "primary-tokenizer-chat-template",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -377,7 +347,6 @@
           "file_id": "tokenizer-merges",
           "id": "primary-tokenizer-merges",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -388,7 +357,6 @@
           "file_id": "tokenizer-special-tokens",
           "id": "primary-tokenizer-special-tokens",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -399,7 +367,6 @@
           "file_id": "tokenizer-config",
           "id": "primary-tokenizer-config",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -410,7 +377,6 @@
           "file_id": "tokenizer-vocab",
           "id": "primary-tokenizer-vocab",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -421,7 +387,6 @@
           "file_id": "transformer-config",
           "id": "primary-transformer-config",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -432,7 +397,6 @@
           "file_id": "transformer-weights-01",
           "id": "primary-transformer-weights-01",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -443,7 +407,6 @@
           "file_id": "transformer-weights-02",
           "id": "primary-transformer-weights-02",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -454,7 +417,6 @@
           "file_id": "transformer-weights-03",
           "id": "primary-transformer-weights-03",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -465,7 +427,6 @@
           "file_id": "transformer-weights-04",
           "id": "primary-transformer-weights-04",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -476,7 +437,6 @@
           "file_id": "transformer-weights-05",
           "id": "primary-transformer-weights-05",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -487,7 +447,6 @@
           "file_id": "transformer-index",
           "id": "primary-transformer-index",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -498,7 +457,6 @@
           "file_id": "vae-config",
           "id": "primary-vae-config",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -509,7 +467,6 @@
           "file_id": "vae-weights",
           "id": "primary-vae-weights",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -519,7 +476,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f94419b170c1ef011c5d38b89f4f7db960b0aef961c04f54d88f53b0bdc8ef2d",
+        "content_sha256": "24b1e547b7eba18616763f64c4fea3b2fb0676739f3f2365bd5032bc0fb51278",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-6f3ccc0b"
@@ -530,255 +487,9 @@
     "attribution": [
       "Qwen"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/tree/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.1.10",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "db753bbc32360750c049a43a14521c034252aa66b9b8fb138724145ac6217abb",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved the CUDA runtime base to 13.4.1 and refreshed PyTorch 2.14.0, torchvision 0.29.0, Transformers 5.17.0 and Accelerate 1.15.0.",
-            "details": "Base image nvcr.io/nvidia/cuda 13.0.1-runtime-ubuntu24.04 -> 13.4.1-runtime-ubuntu24.04 (arm64 digest 2eaf346843c9); its NVIDIA_REQUIRE_CUDA keeps the driver>=580 branch clause. torch 2.13.0 -> 2.14.0 and torchvision 0.28.0 -> 0.29.0 (cu130 aarch64 wheels), transformers 5.15.1 -> 5.17.0, accelerate 1.14.0 -> 1.15.0. Pillow 12.3.0, safetensors 0.8.0 and sentencepiece 0.2.2 are already the latest releases. Model revision and adapter settings are unchanged.",
-            "references": [
-              "https://github.com/pytorch/pytorch/releases/tag/v2.14.0",
-              "https://github.com/pytorch/vision/releases/tag/v0.29.0",
-              "https://github.com/huggingface/transformers/releases/tag/v5.17.0",
-              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "compatibility",
-            "summary": "Kept Diffusers at commit c5469b7ceb60 because it is newer than the v0.40.0 release.",
-            "details": "The GitHub compare v0.40.0...c5469b7ceb60 reports the pinned commit 79 commits ahead of the latest stable Diffusers tag (diverged only by the release-branch version commit), so no stable release contains it yet. The Qwen pipelines it imports use no Transformers API removed in 5.16/5.17.",
-            "references": [
-              "https://github.com/huggingface/diffusers/compare/v0.40.0...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
-              "https://github.com/huggingface/diffusers/releases/tag/v0.40.0"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu130 metadata requires cuda-toolkit==13.0.3.0; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "a8da54dcc497abb68f23e5b5f616d606baa43329112d8372830ea2223e63ca41",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.9"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Declared the official cu130 PyTorch wheel-object host for source builds.",
-            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/torch/",
-              "https://download.pytorch.org/whl/cu130/torchvision/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "14f67a8dcf48c87695c14848a8839077a85b5bd7cbdbc4c5b9ea6b13f2924c82",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.8"
-      },
-      {
-        "changes": [
-          {
-            "details": "The current Diffusers source preserves the Qwen pipeline call surface used by this adapter; the selected prompt/image/layer arguments remain accepted without changing model files or recipe settings.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/huggingface/diffusers/compare/d035dcd7cc7c88e0a154609b62887d50bba9fdc2...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
-              "https://github.com/huggingface/diffusers/tree/c5469b7ceb606edd7ba6570dcd17d38590a18db6/src/diffusers"
-            ],
-            "summary": "Rebuilt the Diffusers media adapter at upstream commit c5469b7ceb60."
-          }
-        ],
-        "prior_recipe_content_sha256": "d0f6419ce274c141d30ea263d3a2d624b0bb374fb71cc145e3a943c1997aa1a2",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.7"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.1.6"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "7bffdddc23d6eb8c0dcd9d2e0303c435614bb306edea633dbd65df026ad91c1a",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.5"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "13f3d7bcb1a87abe790c55a6b0a6b94f27923fdbff4f53e0d59f54b856155d4e",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.1.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
-            "kind": "security",
-            "references": [],
-            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
-          }
-        ],
-        "prior_recipe_content_sha256": "398f83975b1bd4f48c94ba64b3172b6ad7da8a6e668c24ffca9d147cecf2e164",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.3"
-      },
-      {
-        "changes": [
-          {
-            "details": "Published its exact single-Spark admission envelopes and directs operators to Lightning for latency or FP8mixed ComfyUI for additional headroom. Candidate qualification is unchanged.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Identified the official BF16 Diffusers path as a quality-reference variant."
-          }
-        ],
-        "prior_recipe_content_sha256": "5fead827cba6522bf7ca6ab09aa78085e9693d74dee078bb8b89ae7d4debf4dd",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "none",
-        "version": "1.1.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "Declared separate prompt and one-or-two-reference image slots plus the exact edited-PNG output.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Added typed artifact input and output slot contracts."
-          }
-        ],
-        "prior_recipe_content_sha256": "eec95a8c3a157e95a1924aafeb7e71bae918727f2341243fd43cab87b631f173",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "none",
-        "version": "1.1.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Added one bounded UTF-8 prompt file to the existing one-or-two-image input contract."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Rejects missing, extra, invalid, or oversized prompt and image inputs before model loading."
-          }
-        ],
-        "prior_recipe_content_sha256": "86a7603136c76ed71c2e63f31301e9d0d21cc2f4c714f611bdd07dcd3c37b6d5",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "a9cc26617d2ccf3d38fa1d8b91fe0004d2726e286f230e4bdf5d38f606b18263",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of Qwen Image Edit 2511 Diffusers single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "f3c6d28c74f76fc74240b15ae2a6cbf36c83a63077251c73daf0aaf7808def91",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/196412520f07d424d8731a9441392a65eed6c881"
-            ],
-            "summary": "Bound the legacy Qwen Image Edit candidate to the corrected adapter digest."
-          }
-        ],
-        "prior_recipe_content_sha256": "404523292c6aa22fdcf57c4987c573f615427c4d586724dfb5570e1045f91146",
-        "released_at": "2026-08-16",
-        "upgrade_effect": "rebuild",
-        "version": "0.2.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/f8d5a81ee2c0fac20703fbfa79b1ad7e8b5a6203"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "beba9f9ca777a4acd82077e0d0dfb0cd930bb007ac4a7ac0d4a2898e6d1e223a",
-        "released_at": "2026-08-16",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.1.10"
   },
@@ -817,40 +528,26 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -860,40 +557,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 57720463453,
-            "cache_bytes": 8000000000,
             "image_bytes": 2000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 70000000000
+            "working_bytes": 78000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 8000000000,
-            "startup_peak_bytes": 118000000000,
-            "steady_state_bytes": 98000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "num_inference_steps": 40,
-          "timeout_seconds": 14400
-        },
-        "framework": "diffusers",
-        "name": "bounded-image-edit"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -905,12 +584,10 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/tiny.png",
-            "input_path": "/inputs",
             "input_slots": {
               "image": "qualification/fixtures/tiny.png",
               "prompt": "qualification/fixtures/prompt.txt"
             },
-            "output_path": "/outputs",
             "output_slot": "image",
             "transport": "job"
           }

@@ -3,7 +3,8 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256
+from catalog_documents import model_digest
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL_RECIPE_PAIRS = {
@@ -39,7 +40,9 @@ class ExplicitHuggingFaceManifestTests(unittest.TestCase):
                     )
                 )
                 selection = next(item for item in recipe.models if item.id == "primary")
-                self.assertEqual(selection.model.content_sha256, content_sha256(model))
+                self.assertEqual(
+                    selection.model.content_sha256, model_digest(model_slug)
+                )
                 by_id = {item.id: item for item in model.files}
                 selected_ids = {item.file_id for item in selection.files}
                 self.assertEqual(len(selected_ids), len(selection.files))
@@ -85,7 +88,9 @@ class ExplicitHuggingFaceManifestTests(unittest.TestCase):
         selections = {item.id: item for item in recipe.models}
         self.assertEqual(set(selections), {"primary", "background-removal"})
         bria_selection = selections["background-removal"]
-        self.assertEqual(bria_selection.model.content_sha256, content_sha256(bria))
+        self.assertEqual(
+            bria_selection.model.content_sha256, model_digest("bria-rmbg-1-4")
+        )
         self.assertEqual(
             bria_selection.model.content_sha256,
             next(
@@ -103,9 +108,7 @@ class ExplicitHuggingFaceManifestTests(unittest.TestCase):
                 for item in bria_selection.files
             )
         )
-        self.assertEqual(bria.access.visibility, "public")
-        self.assertFalse(bria.access.gated)
-        self.assertTrue(bria.license.operator_acceptance_required)
+        self.assertFalse(bria.requires_token)
         self.assertEqual(bria.license.spdx, "other")
         self.assertEqual(
             bria.license.url,

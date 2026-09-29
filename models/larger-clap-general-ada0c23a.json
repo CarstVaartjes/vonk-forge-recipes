@@ -1,23 +1,5 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "audio-understanding",
-        "evidence_status": "unknown",
-        "support": "unknown"
-      }
-    ],
-    "provenance": {
-      "source_revision": "ada0c23a36c4e8582805bb38fec3905903f18b41",
-      "source_url": "https://huggingface.co/laion/larger_clap_general/blob/ada0c23a36c4e8582805bb38fec3905903f18b41/README.md"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -94,7 +76,6 @@
     }
   ],
   "format": {
-    "container": "other",
     "precision": "unspecified",
     "quantization": "none"
   },
@@ -105,7 +86,6 @@
       "title": "CLAP"
     },
     "model": {
-      "architecture": "Contrastive language-audio pretraining transformer",
       "publisher": "laion",
       "slug": "larger-clap-general",
       "title": "LAION CLAP Larger General"
@@ -120,25 +100,8 @@
     "attribution": [
       "laion"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/laion/larger_clap_general/blob/ada0c23a36c4e8582805bb38fec3905903f18b41/README.md"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official LAION-CLAP larger-general upstream checkpoint at the pinned Hugging Face revision.",
-    "publisher": "laion",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "laion",
-      "slug": "larger-clap-general"
-    }
   },
   "metadata": {
     "description": "Pinned LAION-CLAP larger-general files required by the HunyuanVideo-Foley offline text encoder.",
@@ -153,21 +116,9 @@
     "audio",
     "text"
   ],
-  "parameters": {
-    "active": null,
-    "total": null
-  },
-  "provenance": {
-    "attribution": [
-      "laion"
-    ],
-    "source_revision": "ada0c23a36c4e8582805bb38fec3905903f18b41",
-    "source_url": "https://huggingface.co/laion/larger_clap_general/blob/ada0c23a36c4e8582805bb38fec3905903f18b41/README.md"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/laion/larger_clap_general",
     "revision": "ada0c23a36c4e8582805bb38fec3905903f18b41"
-  },
-  "supersedes": null
+  }
 }

@@ -5,20 +5,16 @@ import runpy
 import sys
 import unittest
 from pathlib import Path
-from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition
+from catalog_documents import catalog_models
+from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.resolver import validate_recipe_models
 
 
 def read(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
-
-
-def model(recipe: dict[str, Any], index: int = 0) -> dict[str, object]:
-    return read(ROOT / "models" / f"{recipe['models'][index]['model']['slug']}.json")
 
 
 class OriginAlignedProfileTests(unittest.TestCase):
@@ -30,17 +26,11 @@ class OriginAlignedProfileTests(unittest.TestCase):
             ROOT / "recipes/qwen3-8-flash-next-nvfp4-sglang-dual.json",
             ROOT / "recipes/deepseek-v4-flash-0731-mia-dual.json",
         ]
-        models = [
-            ModelDefinition.model_validate(read(p))
-            for p in sorted((ROOT / "models").glob("*.json"))
-        ]
         tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         for path in paths:
             with self.subTest(recipe=path.name):
                 recipe = RecipeDefinition.model_validate(read(path))
-                validate_recipe_models(recipe, models)
-                assert recipe.execution.mode == "build"
-                self.assertIn(recipe.execution.build.network.mode, {"none", "public"})
+                validate_recipe_models(recipe, catalog_models())
                 context = ROOT / recipe.execution.build.context.path
                 _archive, _, digest = tool["source_bundle"](context)
                 self.assertRegex(digest, r"^[a-f0-9]{64}$")
@@ -58,7 +48,6 @@ class OriginAlignedProfileTests(unittest.TestCase):
         self.assertEqual(args["tensor-parallel-size"], 2)
         self.assertEqual(args["max-num-batched-tokens"], 4096)
         self.assertIn("candidate", recipe["metadata"]["tags"])
-        self.assertEqual(model(recipe)["license"]["operator_acceptance_required"], True)
 
     def test_deepseek_profile_keeps_mia_runtime_and_two_model_selection(self) -> None:
         recipe = read(ROOT / "recipes/deepseek-v4-flash-0731-mia-dual.json")
@@ -69,9 +58,6 @@ class OriginAlignedProfileTests(unittest.TestCase):
         self.assertEqual(args["max-num-batched-tokens"], 8192)
         self.assertEqual(args["moe-backend"], "flashinfer_b12x")
         self.assertEqual(recipe["topology"]["node_count"], 2)
-        self.assertIn(
-            model(recipe)["license"]["operator_acceptance_required"], {True, False}
-        )
 
 
 if __name__ == "__main__":

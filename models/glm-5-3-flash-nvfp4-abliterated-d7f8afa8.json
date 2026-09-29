@@ -1,43 +1,11 @@
 {
-  "access": {
-    "authentication": "token",
-    "gated": true,
-    "visibility": "restricted"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "chat",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "code-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "video-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "d7f8afa81e62c156446fda43304d704563622590",
-      "source_url": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation",
+    "video-understanding"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -1176,7 +1144,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "nvfp4-weight-only-routed-experts"
   },
@@ -1187,7 +1154,6 @@
       "title": "GLM 5.3 LibertAI"
     },
     "model": {
-      "architecture": "GLM5 Next sparse and linear attention multimodal MoE transformer",
       "publisher": "drowzeys",
       "slug": "glm-5-3-flash-nvfp4-abliterated",
       "title": "GLM 5.3 Flash NVFP4 Abliterated"
@@ -1205,25 +1171,8 @@
       "DealignAI",
       "drowzeys"
     ],
-    "operator_acceptance_required": true,
     "spdx": "MIT",
     "url": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock/blob/d7f8afa81e62c156446fda43304d704563622590/LICENSE-KEYS.md"
-  },
-  "limits": {
-    "context_tokens": 1048576,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "LibertAI NVFP4 body with DealignAI self_attn.o_proj tensors for layers 15 through 45, including MTP; layers 0 through 14 remain stock.",
-    "publisher": "drowzeys",
-    "relation": "derived",
-    "source_model": {
-      "kind": "model",
-      "publisher": "libertaidai",
-      "slug": "glm-5-3-flash-nvfp4"
-    }
   },
   "metadata": {
     "description": "Fail-closed gated inventory at d7f8afa81e62c156446fda43304d704563622590: 126 files and 194692710561 bytes have exact SHA-256 values, but Hugging Face returns HTTP 401 for 13 Git files totaling 50928 bytes (.gitattributes, ABLIT_META.json, CREDITS.md, LICENSE-KEYS.md, METHOD.md, RESPONSIBLE_USE.md, VARIATIONS.json, ablit/LAYER_MAP.json, chat_template.jinja, config.json, generation_config.json, processor_config.json, tokenizer_config.json). The prior synthetic snapshot digest was removed; authenticate and refresh all 139 paths before reactivation.",
@@ -1244,24 +1193,9 @@
     "text",
     "video"
   ],
-  "parameters": {
-    "active": 18000000000,
-    "total": 321320000000
-  },
-  "provenance": {
-    "attribution": [
-      "Z.ai",
-      "LibertAI",
-      "DealignAI",
-      "drowzeys"
-    ],
-    "source_revision": "d7f8afa81e62c156446fda43304d704563622590",
-    "source_url": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock"
-  },
-  "schema_version": 2,
+  "requires_token": true,
   "source": {
     "repository": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock",
     "revision": "d7f8afa81e62c156446fda43304d704563622590"
-  },
-  "supersedes": null
+  }
 }

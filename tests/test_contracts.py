@@ -19,14 +19,15 @@ from vonk_forge_contracts import (
     GitHubReleaseSource,
     ModelDefinition,
     RecipeDefinition,
-    content_sha256,
+    document_sha256,
     model_json_schema,
+    read_model,
+    read_recipe,
     recipe_json_schema,
 )
 from vonk_forge_contracts.recipe import (
     MAX_RUNTIME_ARGV_TOKEN_BYTES,
     RecipeJobServingRequest,
-    RecipeLifecycle,
     RecipeRuntime,
     RecipeRuntimeArgument,
     _runtime_argument_tokens,
@@ -67,27 +68,17 @@ def test_github_release_source_binds_all_model_files_and_unique_assets() -> None
     assert isinstance(model.source, GitHubReleaseSource)
     assert model.source.provider == "github-release"
     assert model.source.release_id == 264676230
-    baseline_digest = content_sha256(model)
+    baseline_digest = document_sha256(document)
     round_tripped = ModelDefinition.model_validate_json(model.model_dump_json())
     assert isinstance(round_tripped.source, GitHubReleaseSource)
-    assert content_sha256(round_tripped) == baseline_digest
-
-    reordered = copy.deepcopy(document)
-    reordered["source"]["assets"].reverse()
-    assert content_sha256(ModelDefinition.model_validate(reordered)) == baseline_digest
 
     changed_release = copy.deepcopy(document)
     changed_release["source"]["release_id"] += 1
-    assert (
-        content_sha256(ModelDefinition.model_validate(changed_release))
-        != baseline_digest
-    )
+    assert document_sha256(changed_release) != baseline_digest
 
     changed_asset = copy.deepcopy(document)
     changed_asset["source"]["assets"][0]["asset_id"] += 100
-    assert (
-        content_sha256(ModelDefinition.model_validate(changed_asset)) != baseline_digest
-    )
+    assert document_sha256(changed_asset) != baseline_digest
 
     for mutation in (
         lambda source: source["assets"].pop(),
@@ -107,47 +98,23 @@ def test_github_release_source_binds_all_model_files_and_unique_assets() -> None
             ModelDefinition.model_validate(invalid)
 
     restricted = copy.deepcopy(document)
-    restricted["access"].update(
-        visibility="restricted", gated=True, authentication="token"
-    )
+    restricted["requires_token"] = True
     with pytest.raises(ValidationError, match="public, anonymous"):
         ModelDefinition.model_validate(restricted)
 
 
-def test_hugging_face_source_and_model_digest_remain_unchanged() -> None:
-    document = json.loads((ROOT / "models/pixal3d.json").read_text(encoding="utf-8"))
-    model = ModelDefinition.model_validate(document)
-
-    assert model.source.model_dump(mode="json") == document["source"]
-    assert content_sha256(model) == (
-        "9c05718ac147b5d4a0a2fcb7971a55eda645932321240805b399651b48da1478"
-    )
-
-
 def test_examples_validate_against_the_two_roots_and_generated_schemas() -> None:
     model = load("model-definition.json")
-    recipe = load("recipe-image.json")
     parsed_model = ModelDefinition.model_validate(model)
-    parsed_recipe = RecipeDefinition.model_validate(recipe)
-    for name in (
-        "recipe-image.json",
-        "recipe-source-build.json",
-        "recipe-job.json",
-        "recipe-dual.json",
-    ):
-        validate_recipe_models(
-            RecipeDefinition.model_validate(load(name)), [parsed_model]
-        )
+    models = {document_sha256(model): parsed_model}
+    for name in ("recipe-source-build.json", "recipe-job.json", "recipe-dual.json"):
+        recipe = load(name)
+        validate_recipe_models(RecipeDefinition.model_validate(recipe), models)
+        Draft202012Validator(recipe_json_schema()).validate(recipe)
     Draft202012Validator(model_json_schema()).validate(model)
-    Draft202012Validator(recipe_json_schema()).validate(recipe)
     assert parsed_model.kind == "model"
-    assert parsed_model.modalities == ["image", "text"]
-    assert [fact.capability for fact in parsed_model.capabilities.facts] == [
-        "image-generation",
-        "text-generation",
-    ]
+    assert set(parsed_model.capabilities) == {"image-generation", "text-generation"}
     assert parsed_model.download_bytes == parsed_model.installed_bytes == 1024
-    assert parsed_recipe.identity.slug == "synthetic-tiny-image"
 
 
 def test_model_manifest_deduplicates_download_projection_and_rejects_conflicting_size() -> (
@@ -186,7 +153,7 @@ def test_zero_byte_model_file_requires_the_empty_content_digest() -> None:
 
 
 def test_model_selection_accepts_large_but_bounded_shard_manifests() -> None:
-    recipe = load("recipe-image.json")
+    recipe = load("recipe-source-build.json")
     recipe["models"][0]["files"] = [
         {
             **recipe["models"][0]["files"][0],
@@ -203,107 +170,62 @@ def test_model_selection_accepts_large_but_bounded_shard_manifests() -> None:
         RecipeDefinition.model_validate(recipe)
 
 
-def test_capability_facts_are_set_semantics_and_normalized() -> None:
+def test_capabilities_are_open_unique_names() -> None:
     document = load("model-definition.json")
-    facts = document["capabilities"]["facts"]
-    facts.append(
-        {
-            "capability": "chat",
-            "support": "unknown",
-            "evidence_status": "unknown",
-        }
-    )
-    facts.reverse()
-    parsed = ModelDefinition.model_validate(document)
-    assert [fact.capability for fact in parsed.capabilities.facts] == [
-        "chat",
-        "image-generation",
-        "text-generation",
-    ]
-    document["capabilities"]["facts"].append(
-        {
-            "capability": "chat",
-            "support": "supported",
-            "evidence_status": "declared",
-        }
-    )
-    with pytest.raises(ValidationError, match="duplicate or contradict"):
+    document["capabilities"].append("a-capability-from-a-newer-catalog")
+    ModelDefinition.model_validate(document)
+    document["capabilities"].append("image-generation")
+    with pytest.raises(ValidationError, match="unique"):
         ModelDefinition.model_validate(document)
 
 
 def test_model_and_recipe_are_strict_and_reject_wrong_types_or_extra_fields() -> None:
     model = load("model-definition.json")
-    for value in (True, 2.0):
-        model["schema_version"] = value
+    model["requires_token"] = 0
+    with pytest.raises(ValidationError):
+        ModelDefinition.model_validate(model)
+    recipe = load("recipe-source-build.json")
+    for field in ("schema_version", "unexpected"):
+        invalid = copy.deepcopy(recipe)
+        invalid[field] = 2
         with pytest.raises(ValidationError):
-            ModelDefinition.model_validate(model)
-    model["schema_version"] = 2
-    ModelDefinition.model_validate(model)
-    recipe = load("recipe-image.json")
-    for value in (True, 2.0):
-        recipe["schema_version"] = value
-        with pytest.raises(ValidationError):
-            RecipeDefinition.model_validate(recipe)
-    recipe["schema_version"] = 2
-    RecipeDefinition.model_validate(recipe)
-    recipe["unexpected"] = "field"
+            RecipeDefinition.model_validate(invalid)
+
+
+def test_readers_ignore_fields_a_newer_minor_contract_added() -> None:
+    model = load("model-definition.json")
+    recipe = load("recipe-source-build.json")
+    model["added_later"] = {"any": "shape"}
+    recipe["topology"]["added_later"] = True
+    assert read_model(model).identity.slug == "synthetic-tiny-fp16"
+    assert read_recipe(recipe).identity.slug == "synthetic-tiny-build"
     with pytest.raises(ValidationError):
         RecipeDefinition.model_validate(recipe)
 
 
-def test_nested_capability_schema_version_is_strict() -> None:
-    model = load("model-definition.json")
-    for value in (True, 2.0):
-        model["capabilities"]["schema_version"] = value
-        with pytest.raises(ValidationError):
-            ModelDefinition.model_validate(model)
-    model["capabilities"]["schema_version"] = 2
-    ModelDefinition.model_validate(model)
+def test_document_digest_hashes_the_published_json_not_a_parse() -> None:
+    document = load("model-definition.json")
+    digest = document_sha256(document)
+    reordered = dict(reversed(list(document.items())))
+    assert document_sha256(reordered) == digest
+    extended = {**document, "added_later": 1}
+    assert read_model(extended) == read_model(document)
+    assert document_sha256(extended) != digest
+    with pytest.raises(TypeError):
+        document_sha256(cast(Any, ModelDefinition.model_validate(document)))
 
 
-def test_schema_version_is_strict_for_json_numbers_and_booleans() -> None:
-    model = load("model-definition.json")
-    recipe = load("recipe-image.json")
-    for document, contract in ((model, ModelDefinition), (recipe, RecipeDefinition)):
-        for value in (True, 2.0):
-            document["schema_version"] = value
-            with pytest.raises(ValidationError):
-                contract.model_validate_json(json.dumps(document))
-        document["schema_version"] = 2
-        contract.model_validate_json(json.dumps(document))
-
-    model["capabilities"]["schema_version"] = 2.0
-    with pytest.raises(ValidationError):
-        ModelDefinition.model_validate_json(json.dumps(model))
-
-
-def _build_execution() -> dict[str, Any]:
-    return {
-        "mode": "build",
-        "build": {
-            "base_image": {
-                "repository": "registry.example/vonk/base",
-                "digest": "f" * 64,
-                "platform": "linux/arm64",
-            },
-            "context": {"path": "context.tar"},
-            "dockerfile": "Dockerfile",
-            "patches": [],
-            "target": None,
-            "arguments": [],
-            "network": {"mode": "none", "hosts": []},
-        },
-    }
-
-
-def test_image_and_source_build_are_mutually_exclusive() -> None:
-    image = load("recipe-image.json")
-    build = copy.deepcopy(image)
-    build["execution"] = _build_execution()
-    RecipeDefinition.model_validate(build)
-    image["execution"]["build"] = _build_execution()["build"]
-    with pytest.raises(ValidationError):
-        RecipeDefinition.model_validate(image)
+def test_topology_derives_mode_fabric_and_stop_order() -> None:
+    single = RecipeDefinition.model_validate(load("recipe-source-build.json"))
+    dual = RecipeDefinition.model_validate(load("recipe-dual.json"))
+    assert (single.topology.mode, single.topology.world_size) == ("single", 1)
+    assert single.topology.fabric_connectivity == "none"
+    assert single.topology.fabric_minimum_bandwidth_mbps == 0
+    assert (dual.topology.mode, dual.topology.world_size) == ("distributed", 2)
+    assert dual.topology.fabric_connectivity == "connected"
+    assert dual.topology.fabric_minimum_bandwidth_mbps > 0
+    assert dual.topology.start_order == ["worker", "entrypoint"]
+    assert dual.topology.stop_order == ["entrypoint", "worker"]
 
 
 def test_runtime_settings_are_checked_against_the_active_settings_variant() -> None:
@@ -404,7 +326,7 @@ def test_runtime_argument_utf8_and_rendered_argv_boundaries() -> None:
             "entrypoint": ["launcher"],
             "arguments": arguments,
             "environment": [],
-            "lifecycle": {"pre_start": [], "post_stop": [], "stop_timeout_seconds": 1},
+            "lifecycle": {"stop_timeout_seconds": 1},
         }
     )
     assert len(runtime.arguments) == 15
@@ -418,73 +340,47 @@ def test_runtime_argument_utf8_and_rendered_argv_boundaries() -> None:
                     {"name": "last", "value": "x" * MAX_RUNTIME_ARGV_TOKEN_BYTES},
                 ],
                 "environment": [],
-                "lifecycle": {
-                    "pre_start": [],
-                    "post_stop": [],
-                    "stop_timeout_seconds": 1,
-                },
+                "lifecycle": {"stop_timeout_seconds": 1},
             }
         )
 
 
-def test_runtime_argv_allows_shell_punctuation_and_rejects_nul() -> None:
-    lifecycle = RecipeLifecycle.model_validate(
-        {
-            "pre_start": [["launcher", "value with spaces; $HOME/Δ", '{"json": true}']],
-            "post_stop": [],
-            "stop_timeout_seconds": 1,
-        }
+def test_entrypoint_allows_shell_punctuation_and_rejects_nul() -> None:
+    runtime = {
+        "engine": "engine",
+        "entrypoint": ["launcher", "value with spaces; $HOME/Δ", '{"json": true}'],
+        "arguments": [],
+        "environment": [],
+        "lifecycle": {"stop_timeout_seconds": 1},
+    }
+    assert RecipeRuntime.model_validate(runtime).entrypoint[1] == (
+        "value with spaces; $HOME/Δ"
     )
-    assert lifecycle.pre_start == [
-        ["launcher", "value with spaces; $HOME/Δ", '{"json": true}']
-    ]
+    runtime["entrypoint"] = ["launcher", "bad\x00value"]
     with pytest.raises(ValidationError, match="NUL"):
-        RecipeLifecycle.model_validate(
-            {
-                "pre_start": [["launcher", "bad\x00value"]],
-                "post_stop": [],
-                "stop_timeout_seconds": 1,
-            }
-        )
+        RecipeRuntime.model_validate(runtime)
 
 
 def test_output_cap_requires_a_positive_integer() -> None:
-    image = load("recipe-image.json")
-    image["validation"]["serving"]["checks"][0]["request"]["body"]["max_tokens"] = 0
+    recipe = load("recipe-source-build.json")
+    recipe["validation"]["serving"]["checks"][0]["request"]["body"]["max_tokens"] = 0
     with pytest.raises(ValidationError, match="positive"):
-        RecipeDefinition.model_validate(image)
+        RecipeDefinition.model_validate(recipe)
 
 
 def test_job_serving_request_is_filesystem_fixture_binding() -> None:
     request = RecipeJobServingRequest.model_validate(
-        {
-            "transport": "job",
-            "fixture": "prompt",
-            "output_path": "/outputs",
-            "output_slot": "image",
-        }
+        {"transport": "job", "fixture": "prompt", "output_slot": "image"}
     )
-    assert request.input_path is None
-    assert request.output_path == "/outputs"
-    with pytest.raises(ValidationError, match="input_path"):
-        RecipeJobServingRequest.model_validate(
-            {
-                "transport": "job",
-                "fixture": "prompt",
-                "input_slots": {"prompt": "prompt"},
-                "output_path": "/outputs",
-                "output_slot": "image",
-            }
-        )
-    with pytest.raises(ValidationError):
-        RecipeJobServingRequest.model_validate(
-            {
-                "transport": "job",
-                "fixture": "../secret",
-                "output_path": "/outputs",
-                "output_slot": "image",
-            }
-        )
+    assert request.input_slots == {}
+    for invalid in (
+        {"fixture": "../secret"},
+        {"fixture": "prompt", "output_path": "/outputs"},
+    ):
+        with pytest.raises(ValidationError):
+            RecipeJobServingRequest.model_validate(
+                {"transport": "job", "output_slot": "image", **invalid}
+            )
 
 
 def test_job_serving_bindings_match_declared_interface_slots() -> None:
@@ -496,12 +392,11 @@ def test_job_serving_bindings_match_declared_interface_slots() -> None:
 
     job = load("recipe-job.json")
     request = job["validation"]["serving"]["checks"][0]["request"]
-    request.update(input_path="/inputs", input_slots={"prompt": "prompt"})
+    request.update(input_slots={"prompt": "prompt"})
     with pytest.raises(ValidationError, match="interface input"):
         RecipeDefinition.model_validate(job)
 
     job["interfaces"][0]["input"] = {
-        "path": "/inputs",
         "required": True,
         "media_types": ["text/plain"],
         "max_bytes": 1024,
@@ -526,7 +421,7 @@ def test_job_serving_bindings_match_declared_interface_slots() -> None:
 
 
 def test_vision_checks_require_image_content_and_applicable_assertions() -> None:
-    recipe = load("recipe-image.json")
+    recipe = load("recipe-source-build.json")
     RecipeDefinition.model_validate(recipe)
     recipe["validation"]["serving"]["checks"][0]["request"]["body"]["messages"][0][
         "content"
@@ -534,7 +429,7 @@ def test_vision_checks_require_image_content_and_applicable_assertions() -> None
     with pytest.raises(ValidationError, match="image_url"):
         RecipeDefinition.model_validate(recipe)
 
-    recipe = load("recipe-image.json")
+    recipe = load("recipe-source-build.json")
     recipe["validation"]["serving"]["checks"][0]["assertions"].append(
         "completion.nonempty"
     )
@@ -542,15 +437,18 @@ def test_vision_checks_require_image_content_and_applicable_assertions() -> None
         RecipeDefinition.model_validate(recipe)
 
 
-def test_build_network_hosts_match_network_mode() -> None:
-    image = load("recipe-image.json")
-    image["execution"] = _build_execution()
-    image["execution"]["build"]["network"]["hosts"] = ["registry.example"]
-    with pytest.raises(ValidationError, match="must not declare hosts"):
-        RecipeDefinition.model_validate(image)
-    image["execution"]["build"]["network"] = {"mode": "public", "hosts": []}
-    with pytest.raises(ValidationError, match="nonempty host allowlist"):
-        RecipeDefinition.model_validate(image)
+def test_build_network_hosts_are_unique_and_empty_means_offline() -> None:
+    recipe = load("recipe-source-build.json")
+    network = recipe["execution"]["build"]["network"]
+    assert network["hosts"] == []
+    network["hosts"] = ["registry.example"]
+    RecipeDefinition.model_validate(recipe)
+    network["hosts"] = ["registry.example", "registry.example"]
+    with pytest.raises(ValidationError, match="unique"):
+        RecipeDefinition.model_validate(recipe)
+    network.update(hosts=[], mode="none")
+    with pytest.raises(ValidationError):
+        RecipeDefinition.model_validate(recipe)
 
 
 def test_job_fixture_is_required_to_be_in_the_self_contained_package() -> None:
@@ -561,9 +459,9 @@ def test_job_fixture_is_required_to_be_in_the_self_contained_package() -> None:
             ).read_text()
         )
     )
-    validate_recipe_package_paths(recipe, ["blank"])
-    with pytest.raises(ValueError, match="missing"):
-        validate_recipe_package_paths(recipe, [])
+    validate_recipe_package_paths(recipe, ["blank", "context.tar", "Dockerfile"])
+    with pytest.raises(ValueError, match="blank"):
+        validate_recipe_package_paths(recipe, ["context.tar", "Dockerfile"])
 
 
 def test_source_build_closure_requires_context_dockerfile_and_patches() -> None:
@@ -583,11 +481,11 @@ def test_source_build_closure_requires_context_dockerfile_and_patches() -> None:
 def test_pure_model_resolver_binds_identity_version_file_and_selector_digest() -> None:
     model_document = load("model-definition.json")
     model = ModelDefinition.model_validate(model_document)
-    recipe_document = load("recipe-image.json")
-    digest = content_sha256(model)
+    recipe_document = load("recipe-source-build.json")
+    digest = document_sha256(model_document)
     recipe_document["models"][0]["model"]["content_sha256"] = digest
     recipe = RecipeDefinition.model_validate(recipe_document)
-    validate_recipe_models(recipe, [model])
+    validate_recipe_models(recipe, {digest: model})
 
     for mutation in (
         lambda value: value["models"][0]["model"].update(publisher="wrong-owner"),
@@ -598,27 +496,12 @@ def test_pure_model_resolver_binds_identity_version_file_and_selector_digest() -
         mutation(invalid)
         with pytest.raises((ValidationError, ValueError)):
             candidate = RecipeDefinition.model_validate(invalid)
-            validate_recipe_models(candidate, [model])
+            validate_recipe_models(candidate, {digest: model})
     changed_model = copy.deepcopy(model_document)
     changed_model["files"][0]["sha256"] = "a" * 64
     changed = ModelDefinition.model_validate(changed_model)
     with pytest.raises(ValueError, match="digest does not match"):
-        validate_recipe_models(recipe, [changed])
-
-
-def test_content_digest_normalizes_defaults_and_rejects_raw_dicts() -> None:
-    document = load("recipe-image.json")
-    recipe = RecipeDefinition.model_validate(document)
-    omitted = copy.deepcopy(document)
-    omitted["settings"].pop("knobs")
-    normalized = RecipeDefinition.model_validate(omitted)
-    assert content_sha256(recipe) == content_sha256(normalized)
-    assert content_sha256(recipe) == content_sha256(
-        RecipeDefinition.model_validate(recipe.model_dump())
-    )
-    with pytest.raises(TypeError, match="validated"):
-        # The test passes a deliberately invalid raw dict, not a validated model.
-        content_sha256(cast(Any, document))
+        validate_recipe_models(recipe, {document_sha256(changed_model): changed})
 
 
 def test_checked_in_schemas_are_generated_from_the_same_models() -> None:
@@ -650,47 +533,30 @@ def test_checked_in_schemas_are_generated_from_the_same_models() -> None:
     assert result.returncode == 0, result.stderr
 
 
-def test_model_access_requires_consistent_visibility_and_authentication() -> None:
-    document = load("model-definition.json")
-    document["access"] = {
-        "visibility": "restricted",
-        "gated": True,
-        "authentication": "token",
-    }
-    ModelDefinition.model_validate(document)
-    for access in (
-        {"visibility": "public", "gated": True, "authentication": "none"},
-        {"visibility": "restricted", "gated": False, "authentication": "token"},
-        {"visibility": "public", "gated": False, "authentication": "token"},
-    ):
-        document["access"] = access
-        with pytest.raises(ValidationError, match="must agree"):
-            ModelDefinition.model_validate(document)
-
-
 def test_model_references_resolve_and_reject_swapped_digest() -> None:
-    source = ModelDefinition.model_validate(load("model-definition.json"))
-    target_document = copy.deepcopy(source.model_dump(mode="json"))
+    target_document = load("model-definition.json")
     target_document["identity"]["slug"] = "synthetic-target"
     target_document["identity"]["model"]["slug"] = "synthetic-target"
-    target_document["lineage"]["source_model"]["slug"] = "synthetic-target"
+    target_digest = document_sha256(target_document)
     target = ModelDefinition.model_validate(target_document)
-    source_document = source.model_dump(mode="json")
+    source_document = load("model-definition.json")
     source_document["dependencies"] = [
         {
             "kind": "model",
             "publisher": target.identity.publisher,
             "slug": target.identity.slug,
-            "content_sha256": content_sha256(target),
+            "content_sha256": target_digest,
         }
     ]
-    source = ModelDefinition.model_validate(source_document)
-    validate_model_references([source, target])
+
+    def models() -> dict[str, ModelDefinition]:
+        source = ModelDefinition.model_validate(source_document)
+        return {document_sha256(source_document): source, target_digest: target}
+
+    validate_model_references(models())
     source_document["dependencies"][0]["content_sha256"] = "0" * 64
     with pytest.raises(ValueError, match="digest does not match"):
-        validate_model_references(
-            [ModelDefinition.model_validate(source_document), target]
-        )
+        validate_model_references(models())
 
 
 def test_model_license_accepts_typed_territorial_restrictions() -> None:

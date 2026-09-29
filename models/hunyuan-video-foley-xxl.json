@@ -1,37 +1,17 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "audio-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "video-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "3abd4e833b95b8db0fc9c687afc52483a48e9a97",
-      "source_url": "https://huggingface.co/tencent/HunyuanVideo-Foley"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "audio-generation",
+    "video-understanding"
+  ],
   "dependencies": [
     {
-      "content_sha256": "a2402aa7e09d5f5fcf0bf4ba9f76ed8922c6f947facdb6510cd01ff5fcb9a174",
+      "content_sha256": "b9369da043d15102a1d0846ead9d50e40e9e281032deb791a27561781bb62185",
       "kind": "model",
       "publisher": "google",
       "slug": "siglip2-base-patch16-512-a89f5c50"
     },
     {
-      "content_sha256": "78f14aa76f1bbb6aac675cd3c0ad6fddc9d0dad9b791a75b8494a732cc5aaf91",
+      "content_sha256": "93ad9df26ac5d64c323fc4f34eb557ecbfd100ccb65e067601e7499543f428d2",
       "kind": "model",
       "publisher": "laion",
       "slug": "larger-clap-general-ada0c23a"
@@ -103,7 +83,6 @@
     }
   ],
   "format": {
-    "container": "other",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -114,7 +93,6 @@
       "title": "HunyuanVideo Foley"
     },
     "model": {
-      "architecture": "upstream-native generation pipeline",
       "publisher": "tencent",
       "slug": "hunyuan-video-foley",
       "title": "HunyuanVideo Foley"
@@ -129,7 +107,6 @@
     "attribution": [
       "tencent"
     ],
-    "operator_acceptance_required": true,
     "spdx": "LicenseRef-Tencent-Hunyuan-Community",
     "territorial_restrictions": {
       "denied_jurisdictions": [
@@ -140,22 +117,6 @@
       "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
     },
     "url": "https://huggingface.co/tencent/HunyuanVideo-Foley/blob/3abd4e833b95b8db0fc9c687afc52483a48e9a97/LICENSE"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Immutable public upstream snapshot at the pinned revision.",
-    "publisher": "tencent",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "tencent",
-      "slug": "hunyuan-video-foley"
-    }
   },
   "metadata": {
     "description": "Immutable public snapshot at 3abd4e83.",
@@ -169,21 +130,9 @@
     "audio",
     "video"
   ],
-  "parameters": {
-    "active": null,
-    "total": null
-  },
-  "provenance": {
-    "attribution": [
-      "tencent"
-    ],
-    "source_revision": "3abd4e833b95b8db0fc9c687afc52483a48e9a97",
-    "source_url": "https://huggingface.co/tencent/HunyuanVideo-Foley"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/tencent/HunyuanVideo-Foley",
     "revision": "3abd4e833b95b8db0fc9c687afc52483a48e9a97"
-  },
-  "supersedes": null
+  }
 }

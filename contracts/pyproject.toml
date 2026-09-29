@@ -1,6 +1,6 @@
 [project]
 name = "vonk-forge-public-contracts"
-version = "0.1.0"
+version = "2.0.0"
 description = "Standalone Pydantic v2 authoring contracts for Vonk Forge recipes"
 requires-python = ">=3.14"
 dependencies = ["pydantic>=2.13,<3"]

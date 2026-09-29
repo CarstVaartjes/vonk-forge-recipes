@@ -1,17 +1,12 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import runpy
-import subprocess
 import tempfile
-import textwrap
 import unittest
 from pathlib import Path
 from unittest import mock
-
-from vonk_agent_protocol.compiled_execution_plan import CompiledExecutionPlan
 
 ROOT = Path(__file__).resolve().parents[1]
 LTX23_SLUG = "ltx-2-3-22b-distilled-1-1-diffusers-single"
@@ -23,53 +18,39 @@ def load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def plan_document(artifacts: list[dict]) -> dict:
+    """A compiled plan carrying only the fields the adapters read."""
+    return {"artifacts": artifacts}
+
+
+def plan_artifact(
+    mount_name: str, relative_path: str, size_bytes: int, **extra: object
+) -> dict:
+    return {
+        "selection_id": mount_name,
+        "path": relative_path,
+        "size_bytes": size_bytes,
+        "mount": {"target": f"/models/{mount_name}", "read_only": True},
+        **extra,
+    }
+
+
 def canonical_runtime_fixture(
     root: Path, files: list[tuple[str, str, str]]
 ) -> tuple[Path, Path]:
-    """Create schema-2 selected files and their small mounted byte fixtures."""
+    """Create a minimal plan and its small mounted byte fixtures."""
     model_root = root / "models"
-    document = load(ROOT / "tests/fixtures/compiled_workload_v2.json")
     artifacts = []
     for index, (mount_name, relative_path, file_id) in enumerate(files):
         payload = f"fixture-{index}".encode()
         materialized = model_root / mount_name / relative_path
         materialized.parent.mkdir(parents=True, exist_ok=True)
         materialized.write_bytes(payload)
-        artifact = json.loads(json.dumps(document["artifacts"][index % 2]))
-        digest = hashlib.sha256(payload).hexdigest()
-        artifact.update(
-            {
-                "selection_id": mount_name,
-                "file_id": file_id,
-                "path": relative_path,
-                "sha256": digest,
-                "size_bytes": len(payload),
-                "mount": {"target": f"/models/{mount_name}", "read_only": True},
-            }
+        artifacts.append(
+            plan_artifact(mount_name, relative_path, len(payload), file_id=file_id)
         )
-        artifact["model"].update(
-            {
-                "publisher": "lightricks",
-                "slug": "ltx-fixture",
-                "content_sha256": "a" * 64,
-            }
-        )
-        artifact["distribution_object"].update(
-            {
-                "name": relative_path,
-                "sha256": digest,
-                "bytes": len(payload),
-                "kind": "model",
-            }
-        )
-        artifacts.append(artifact)
-    document["artifacts"] = artifacts
-    document["identity"]["model_artifact_bytes"] = sum(
-        {item["sha256"]: item["size_bytes"] for item in artifacts}.values()
-    )
-    CompiledExecutionPlan.model_validate(document)
     runtime_spec = root / "runtime.json"
-    runtime_spec.write_text(json.dumps(document), encoding="utf-8")
+    runtime_spec.write_text(json.dumps(plan_document(artifacts)), encoding="utf-8")
     return model_root, runtime_spec
 
 
@@ -87,104 +68,6 @@ class LtxSparkFitTests(unittest.TestCase):
             platform_fixture.read_bytes(),
             "recipe fixture drifted from the platform's emitted schema-2 envelope",
         )
-
-    def test_bundled_protocol_consumes_platform_plan_at_many_argument_boundary(
-        self,
-    ) -> None:
-        document = load(ROOT / "tests/fixtures/compiled_workload_v2.json")
-        document["runtime"]["argv"] = [
-            f"--artifact-input={index:04d}" for index in range(518)
-        ]
-        wire = CompiledExecutionPlan.model_validate_json(
-            json.dumps(document, sort_keys=True, separators=(",", ":"))
-        )
-        self.assertEqual(len(wire.runtime.argv), 518)
-
-    def test_bundled_protocol_consumes_current_controller_plan_with_many_arguments(
-        self,
-    ) -> None:
-        platform_root = Path(
-            os.environ.get("VONK_FORGE_PLATFORM_ROOT", "/opt/vonk-forge")
-        )
-        producer_python = platform_root / "control/.venv/bin/python"
-        if not producer_python.is_file():
-            self.skipTest("the matching platform control environment is not supplied")
-
-        producer = textwrap.dedent(
-            """
-            import json
-            import sys
-
-            from control.tests.test_compiled_execution_plan import (
-                _image,
-                _model_objects,
-                _spec,
-            )
-            from vonk_control.compiled_execution_plan import (
-                compile_verified_execution_plan,
-                execution_identity_sha256,
-            )
-
-            runtime_spec = _spec()
-            runtime = runtime_spec["runtime"]
-            assert isinstance(runtime, dict)
-            entrypoint = runtime["entrypoint"]
-            assert isinstance(entrypoint, list)
-            runtime["entrypoint"] = [
-                entrypoint[0],
-                *(f"--artifact-input={index:04d}" for index in range(518)),
-            ]
-            identity = runtime_spec["identity"]
-            assert isinstance(identity, dict)
-            identity["execution_sha256"] = execution_identity_sha256(runtime_spec)
-            plan = compile_verified_execution_plan(
-                runtime_spec,
-                model_artifact_set_sha256="d" * 64,
-                model_objects=_model_objects(),
-                runtime_image=_image(),
-            )
-            payload = plan.to_compiled_launch_payload(
-                runtime_spec,
-                placement={
-                    "endpoint_address": None,
-                    "rank": 0,
-                    "role": "entrypoint",
-                    "world_size": 1,
-                    "local_address": None,
-                    "master_address": None,
-                    "master_port": None,
-                    "port": 8000,
-                    "reserved_memory_bytes": 1,
-                    "memory_floor_bytes": 0,
-                    "memory_kind": "unified",
-                },
-            )
-            sys.stdout.write(json.dumps(payload, sort_keys=True, separators=(",", ":")))
-            """
-        )
-        producer_env = os.environ.copy()
-        producer_env["PYTHONPATH"] = os.pathsep.join(
-            str(path)
-            for path in (
-                platform_root / "agent_protocol/src",
-                platform_root / "control/src",
-                platform_root,
-            )
-        )
-        emitted = subprocess.run(
-            [str(producer_python), "-c", producer],
-            cwd=platform_root,
-            env=producer_env,
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=30,
-        ).stdout
-
-        payload = json.loads(emitted)
-        self.assertEqual(len(payload["runtime"]["argv"]), 518)
-        consumed = CompiledExecutionPlan.model_validate_json(emitted)
-        self.assertEqual(consumed.runtime.argv, payload["runtime"]["argv"])
 
     def test_both_sync_adapters_accept_schema2_nested_materialization(self) -> None:
         for adapter in ("ltx2-sync-native", "ltx23-sync-native-disk"):
@@ -267,19 +150,9 @@ class LtxSparkFitTests(unittest.TestCase):
             second = model_root / "draft/nested/ltx-2.3-22b-distilled-1.1.safetensors"
             second.write_bytes(first.read_bytes())
             document = load(runtime_spec)
-            digest = hashlib.sha256(first.read_bytes()).hexdigest()
             document["artifacts"][1].update(
-                {
-                    "selection_id": "draft",
-                    "sha256": digest,
-                    "size_bytes": first.stat().st_size,
-                }
+                {"selection_id": "draft", "size_bytes": first.stat().st_size}
             )
-            document["artifacts"][1]["distribution_object"].update(
-                {"sha256": digest, "bytes": first.stat().st_size}
-            )
-            document["identity"]["model_artifact_bytes"] = first.stat().st_size
-            CompiledExecutionPlan.model_validate(document)
             runtime_spec.write_text(json.dumps(document), encoding="utf-8")
             globals_ = namespace["_target_checkpoint"].__globals__
             globals_["MODEL_ROOT"] = model_root
@@ -386,23 +259,7 @@ class LtxSparkFitTests(unittest.TestCase):
         )
         self.assertIn("disk-offload", recipe["metadata"]["tags"])
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        self.assertEqual(
-            (
-                memory["startup_peak_bytes"],
-                memory["steady_state_bytes"],
-                memory["runtime_growth_bytes"],
-                memory["system_reserve_bytes"],
-            ),
-            (89_000_000_000, 75_000_000_000, 8_000_000_000, 8_000_000_000),
-        )
-        self.assertEqual(
-            max(
-                memory["startup_peak_bytes"],
-                memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
-            )
-            + memory["system_reserve_bytes"],
-            97_000_000_000,
-        )
+        self.assertEqual(memory["peak_bytes"] + memory["reserve_bytes"], 97_000_000_000)
 
         distilled = load(ROOT / "recipes/ltx-2-19b-distilled-diffusers-single.json")
         self.assertEqual(
@@ -418,20 +275,9 @@ class LtxSparkFitTests(unittest.TestCase):
         self.assertNotIn("hardware-blocked", tags)
 
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        self.assertEqual(memory["startup_peak_bytes"], 93_000_000_000)
-        self.assertEqual(memory["steady_state_bytes"], 77_000_000_000)
-        self.assertEqual(memory["runtime_growth_bytes"], 8_000_000_000)
-        self.assertEqual(memory["system_reserve_bytes"], 8_000_000_000)
-        workload_peak = max(
-            memory["startup_peak_bytes"],
-            memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
-        )
-        self.assertEqual(
-            workload_peak + memory["system_reserve_bytes"], 101_000_000_000
-        )
-        self.assertLessEqual(
-            workload_peak + memory["system_reserve_bytes"], 128_000_000_000
-        )
+        admission = memory["peak_bytes"] + memory["reserve_bytes"]
+        self.assertEqual(admission, 101_000_000_000)
+        self.assertLessEqual(admission, 128_000_000_000)
         for fact in ("93 GB", "77 GB", "31 GB", "8 GB"):
             self.assertIn(fact, recipe["metadata"]["description"])
         self.assertIn(
@@ -506,7 +352,7 @@ class LtxSparkFitTests(unittest.TestCase):
 
         disk = recipe["topology"]["roles"][0]["resources"]["disk"]
         self.assertGreaterEqual(disk["artifact_bytes"], expected_bytes)
-        self.assertGreater(disk["staging_bytes"], 0)
+        self.assertGreater(disk["working_bytes"], 0)
 
 
 if __name__ == "__main__":

@@ -1,28 +1,8 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
-      "source_url": "https://huggingface.co/Qwen/Qwen3.5-9B"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "image-understanding",
+    "text-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -171,7 +151,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bfloat16",
     "quantization": "none"
   },
@@ -182,7 +161,6 @@
       "title": "Qwen"
     },
     "model": {
-      "architecture": "Qwen3.5 dense hybrid Gated DeltaNet and attention multimodal transformer",
       "publisher": "qwen",
       "slug": "qwen3-5-9b",
       "title": "Qwen3.5 9B"
@@ -197,25 +175,8 @@
     "attribution": [
       "Qwen"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen3.5-9B/blob/c202236235762e1c871ad0ccb60c8ee5ba337b9a/LICENSE"
-  },
-  "limits": {
-    "context_tokens": 262144,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official Qwen3.5-9B Hugging Face checkpoint.",
-    "publisher": "qwen",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "qwen",
-      "slug": "qwen3-5-9b"
-    }
   },
   "metadata": {
     "description": "Exact Qwen3.5-9B multimodal checkpoint revision for a candidate single-Spark vLLM recipe.",
@@ -233,21 +194,9 @@
     "image",
     "text"
   ],
-  "parameters": {
-    "active": 9000000000,
-    "total": 9000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Qwen"
-    ],
-    "source_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
-    "source_url": "https://huggingface.co/Qwen/Qwen3.5-9B"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Qwen/Qwen3.5-9B",
     "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
-  },
-  "supersedes": null
+  }
 }

@@ -1,28 +1,8 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
-      "source_url": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "image-understanding",
+    "text-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -225,7 +205,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "modelopt-mixed-w4a16-nvfp4-fp8"
   },
@@ -236,7 +215,6 @@
       "title": "Ornith 1.5"
     },
     "model": {
-      "architecture": "Qwen3_5MoeForConditionalGeneration",
       "publisher": "ornith-ai",
       "slug": "ornith-1-5-35b-a3b",
       "title": "Ornith 1.5 35B-A3B"
@@ -251,25 +229,8 @@
     "attribution": [
       "Ornith AI"
     ],
-    "operator_acceptance_required": true,
     "spdx": "MIT",
     "url": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4/blob/94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa/LICENSE"
-  },
-  "limits": {
-    "context_tokens": 262144,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "ornith-ai",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "ornith-ai",
-      "slug": "ornith-1-5-35b-a3b"
-    }
   },
   "metadata": {
     "description": "Exact public NVFP4 94e431d9 checkpoint.",
@@ -284,21 +245,9 @@
     "image",
     "text"
   ],
-  "parameters": {
-    "active": 3000000000,
-    "total": 35000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Ornith AI"
-    ],
-    "source_revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa",
-    "source_url": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
     "revision": "94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa"
-  },
-  "supersedes": null
+  }
 }

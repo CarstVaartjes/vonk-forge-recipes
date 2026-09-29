@@ -80,7 +80,6 @@ class HunyuanOCRAuthorityTests(unittest.TestCase):
             "dflash/dflash.py",
         ):
             self.assertIn(required, paths)
-        self.assertTrue(model["license"]["operator_acceptance_required"])
         restrictions = model["license"]["territorial_restrictions"]
         self.assertEqual(restrictions["denied_jurisdictions"], ["EU", "GB", "KR"])
         self.assertIn("Tencent Hunyuan Community License", restrictions["notice"])

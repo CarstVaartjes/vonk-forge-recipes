@@ -23,7 +23,6 @@ from pydantic import (
     model_validator,
 )
 
-from ._schema_version import SchemaVersion
 from .model import ModelReference
 
 
@@ -46,18 +45,9 @@ Scalar = StrictStr | StrictInt | StrictBool | StrictFloat
 type JsonValue = Scalar | None | list[JsonValue] | dict[StrictStr, JsonValue]
 type RuntimeArgumentValue = Scalar | list[JsonValue] | dict[StrictStr, JsonValue]
 ChangeEffect = Literal["none", "restart", "reprepare", "rebuild"]
-ReleaseChangeKind = Literal[
-    "initial",
-    "model",
-    "runtime",
-    "performance",
-    "fix",
-    "security",
-    "compatibility",
-    "breaking",
-    "metadata",
-]
-ReleaseUpgradeEffect = Literal["none", "restart", "reprepare", "rebuild"]
+
+# Every Spark shares one fabric bandwidth floor for multi-node topologies.
+DISTRIBUTED_FABRIC_MINIMUM_MBPS = 200_000
 
 
 # Runtime options are trusted recipe data, but still cross a process boundary.
@@ -186,8 +176,8 @@ class RecipeMetadata(_RecipeContract):
 
 
 class RecipeMount(_RecipeContract):
+    # Model files are always mounted read-only.
     target: AbsolutePath
-    read_only: Literal[True]
 
 
 class RecipeModelFile(_RecipeContract):
@@ -218,33 +208,22 @@ class RecipeImage(_RecipeContract):
     repository: StrictStr = Field(
         min_length=1, max_length=512, pattern=r"^[a-z0-9][a-z0-9._/-]*$"
     )
+    # Always the linux/arm64 image for DGX Spark.
     digest: Sha256
-    platform: Literal["linux/arm64"]
 
 
 class BuildPatch(_RecipeContract):
     path: RelativePath
 
 
-class BuildArgument(_RecipeContract):
-    name: StrictStr = Field(
-        min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]{0,63}$"
-    )
-    value: Scalar
-
-
 class BuildNetwork(_RecipeContract):
-    mode: Literal["none", "public"]
+    # The build reaches only these hosts; an empty list builds offline.
     hosts: list[StrictStr] = Field(max_length=64)
 
     @model_validator(mode="after")
-    def allowlist_matches_mode(self) -> BuildNetwork:
+    def unique_hosts(self) -> BuildNetwork:
         if len(self.hosts) != len(set(self.hosts)):
             raise ValueError("build network hosts must be unique")
-        if self.mode == "none" and self.hosts:
-            raise ValueError("network mode none must not declare hosts")
-        if self.mode == "public" and not self.hosts:
-            raise ValueError("public build network requires a nonempty host allowlist")
         if any(not host for host in self.hosts):
             raise ValueError("build network hosts must be nonempty")
         return self
@@ -255,24 +234,13 @@ class RecipeBuildDefinition(_RecipeContract):
     context: BuildContext
     dockerfile: RelativePath
     patches: list[BuildPatch] = Field(max_length=64)
-    target: StrictStr | None = Field(default=None, max_length=64)
-    arguments: list[BuildArgument] = Field(max_length=64)
     network: BuildNetwork
 
 
-class RecipeImageExecution(_RecipeContract):
-    mode: Literal["image"]
-    image: RecipeImage
+class RecipeExecution(_RecipeContract):
+    """The platform builds every recipe image from its pinned base and context."""
 
-
-class RecipeBuildExecution(_RecipeContract):
-    mode: Literal["build"]
     build: RecipeBuildDefinition
-
-
-RecipeExecution = Annotated[
-    RecipeImageExecution | RecipeBuildExecution, Field(discriminator="mode")
-]
 
 
 class _RecipeSettings(_RecipeContract):
@@ -352,34 +320,18 @@ class RecipeRuntimeArgument(_RecipeContract):
 
 class RecipeRuntimeEnvironment(_RecipeContract):
     name: StrictStr = Field(min_length=1, max_length=128)
-    value: Scalar | None = None
-    secret: StrictStr | None = None
+    value: Scalar
 
-    @field_validator("name", "secret")
+    @field_validator("name")
     @classmethod
-    def names_have_no_nul(cls, value: str | None) -> str | None:
-        return (
-            None
-            if value is None
-            else _reject_nul(value, label="runtime environment field")
-        )
+    def name_has_no_nul(cls, value: str) -> str:
+        return _reject_nul(value, label="runtime environment name")
 
     @field_validator("value")
     @classmethod
-    def value_has_no_nul(cls, value: Scalar | None) -> Scalar | None:
+    def value_has_no_nul(cls, value: Scalar) -> Scalar:
         _validate_runtime_argument_value(value)
         return value
-
-    @model_validator(mode="after")
-    def one_source(self) -> RecipeRuntimeEnvironment:
-        if (self.value is None) == (self.secret is None):
-            raise ValueError("exactly one of value or secret is required")
-        return self
-
-
-class RecipeFailurePolicy(_RecipeContract):
-    rank_loss: Literal["not-applicable", "withdraw-endpoint"]
-    recovery: Literal["restart-entrypoint", "restart-worker-then-entrypoint"]
 
 
 Argv = Annotated[
@@ -393,15 +345,7 @@ Argv = Annotated[
 
 
 class RecipeLifecycle(_RecipeContract):
-    pre_start: list[Argv] = Field(max_length=16)
-    post_stop: list[Argv] = Field(max_length=16)
     stop_timeout_seconds: StrictInt = Field(ge=1, le=600)
-    failure: RecipeFailurePolicy | None = None
-
-    @field_validator("pre_start", "post_stop")
-    @classmethod
-    def lifecycle_argv_has_no_nul(cls, value: list[list[str]]) -> list[list[str]]:
-        return [_validate_argv(tokens) for tokens in value]
 
 
 class RecipeRuntime(_RecipeContract):
@@ -426,19 +370,19 @@ class RecipeRuntime(_RecipeContract):
 
 
 class RecipeMemoryResources(_RecipeContract):
-    kind: Literal["unified", "host", "accelerator"]
-    startup_peak_bytes: StrictInt = Field(ge=1)
-    steady_state_bytes: StrictInt = Field(ge=1)
-    runtime_growth_bytes: StrictInt = Field(ge=0)
-    system_reserve_bytes: StrictInt = Field(ge=0)
+    """Unified (DGX Spark) memory one role needs."""
+
+    # The most the workload uses at any time: startup or steady state.
+    peak_bytes: StrictInt = Field(ge=1)
+    # Memory left to the host operating system and runtime.
+    reserve_bytes: StrictInt = Field(ge=0)
 
 
 class RecipeDiskResources(_RecipeContract):
     image_bytes: StrictInt = Field(ge=0)
     artifact_bytes: StrictInt = Field(ge=0)
-    staging_bytes: StrictInt = Field(ge=0)
-    cache_bytes: StrictInt = Field(ge=0)
-    rollback_bytes: StrictInt = Field(ge=0)
+    # Scratch space the workload writes: staging plus caches.
+    working_bytes: StrictInt = Field(ge=0)
     safety_margin_bytes: StrictInt = Field(ge=0)
 
 
@@ -455,36 +399,52 @@ class RecipeTopologyRole(_RecipeContract):
 
 
 class RecipeParallelism(_RecipeContract):
-    world_size: StrictInt = Field(ge=1)
     tensor: StrictInt = Field(ge=1)
     pipeline: StrictInt = Field(ge=1)
     data: StrictInt = Field(ge=1)
     backend: StrictStr = Field(min_length=1, max_length=64)
 
 
-class RecipeFabric(_RecipeContract):
-    connectivity: Literal["none", "connected", "full_mesh", "switch"]
-    minimum_bandwidth_mbps: StrictInt = Field(ge=0)
-
-
 class RecipeTopology(_RecipeContract):
+    """Roles and their start order; everything else follows from node_count.
+
+    One node runs alone. More nodes share one connected fabric: losing a rank
+    withdraws the endpoint, recovery restarts the workers and then the
+    entrypoint, and stopping always starts with the endpoint owner.
+    """
+
     name: StrictStr = Field(min_length=1, max_length=64)
-    mode: Literal[
-        "single",
-        "distributed",
-        "tensor_parallel",
-        "pipeline_parallel",
-        "data_parallel",
-        "hybrid",
-        "ray",
-        "mpi",
-    ]
     node_count: StrictInt = Field(ge=1)
     roles: list[RecipeTopologyRole] = Field(min_length=1, max_length=32)
     parallelism: RecipeParallelism
-    fabric: RecipeFabric
     start_order: list[StrictStr] = Field(min_length=1, max_length=32)
-    stop_order: list[StrictStr] = Field(min_length=1, max_length=32)
+
+    @property
+    def distributed(self) -> bool:
+        return self.node_count > 1
+
+    @property
+    def mode(self) -> Literal["single", "distributed"]:
+        return "distributed" if self.distributed else "single"
+
+    @property
+    def world_size(self) -> int:
+        return self.node_count
+
+    @property
+    def fabric_connectivity(self) -> Literal["none", "connected"]:
+        return "connected" if self.distributed else "none"
+
+    @property
+    def fabric_minimum_bandwidth_mbps(self) -> int:
+        return DISTRIBUTED_FABRIC_MINIMUM_MBPS if self.distributed else 0
+
+    @property
+    def stop_order(self) -> list[str]:
+        """The endpoint owner stops first, then the other roles in order."""
+
+        owners = [role.name for role in self.roles if role.endpoint_owner]
+        return owners + [role.name for role in self.roles if not role.endpoint_owner]
 
 
 class RecipeFileSlot(_RecipeContract):
@@ -524,7 +484,7 @@ class RecipeOutputSlot(RecipeFileSlot):
 
 
 class RecipeJobInput(_RecipeContract):
-    path: Literal["/inputs"]
+    # Inputs are staged read-only under /inputs.
     required: StrictBool
     media_types: list[StrictStr] = Field(min_length=1, max_length=16)
     max_bytes: StrictInt = Field(ge=1, le=1073741824)
@@ -534,7 +494,7 @@ class RecipeJobInput(_RecipeContract):
 
 
 class RecipeJobOutput(_RecipeContract):
-    path: Literal["/outputs"]
+    # The job writes its outputs under /outputs.
     max_total_bytes: StrictInt = Field(ge=1, le=2147483648)
     slots: list[RecipeOutputSlot] = Field(min_length=1, max_length=32)
 
@@ -550,7 +510,6 @@ class RecipeOpenAIInterface(_RecipeContract):
 
 class RecipeJobInterface(_RecipeContract):
     adapter: Literal["image-job", "audio-job", "video-job", "mesh-job", "artifact-job"]
-    path: Literal["/outputs"]
     input: RecipeJobInput | None = None
     output: RecipeJobOutput
 
@@ -616,20 +575,14 @@ class RecipeHttpServingRequest(_RecipeContract):
 
 
 class RecipeJobServingRequest(_RecipeContract):
+    """A job check stages its fixture as the input when the interface has one."""
+
     transport: Literal["job"]
     fixture: RelativePath
-    input_path: Literal["/inputs"] | None = None
     input_slots: dict[Identifier, RelativePath] = Field(
         default_factory=dict, max_length=32
     )
-    output_path: Literal["/outputs"]
     output_slot: Identifier
-
-    @model_validator(mode="after")
-    def input_binding(self) -> RecipeJobServingRequest:
-        if self.input_path is None and self.input_slots:
-            raise ValueError("input slots require input_path /inputs")
-        return self
 
 
 ServingRequest = Annotated[
@@ -746,80 +699,28 @@ class RecipeServingValidation(_RecipeContract):
     checks: list[RecipeValidationCheck] = Field(min_length=1, max_length=32)
 
 
-class RecipeBenchmark(_RecipeContract):
-    name: StrictStr = Field(min_length=1, max_length=64)
-    framework: StrictStr = Field(min_length=1, max_length=64)
-    configuration: dict[StrictStr, Scalar]
-
-
 class RecipeValidation(_RecipeContract):
-    benchmarks: list[RecipeBenchmark] = Field(max_length=32)
     serving: RecipeServingValidation
 
 
 class RecipeProvenance(_RecipeContract):
-    source_kind: Literal["local", "workload_run", "global", "fork"]
     source_reference: StrictStr | None = Field(default=None, max_length=2048)
     attribution: list[StrictStr] = Field(max_length=32)
 
 
-class RecipeReleaseChange(_RecipeContract):
-    kind: ReleaseChangeKind
-    summary: StrictStr = Field(min_length=1, max_length=160)
-    details: StrictStr | None = Field(default=None, max_length=1000)
-    references: list[
-        Annotated[
-            StrictStr, Field(min_length=1, max_length=500, pattern=r"^https://[^\s]+$")
-        ]
-    ] = Field(default_factory=list, max_length=8)
-
-    @model_validator(mode="after")
-    def unique_references(self) -> RecipeReleaseChange:
-        if len(self.references) != len(set(self.references)):
-            raise ValueError("release change references must be unique")
-        return self
-
-
-class RecipeReleaseHistoryEntry(_RecipeContract):
-    version: Annotated[
-        StrictStr,
-        Field(
-            min_length=5,
-            max_length=64,
-            pattern=r"^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$",
-        ),
-    ]
-    released_at: Annotated[StrictStr, Field(pattern=r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")]
-    # The current release deliberately omits its own digest to avoid a
-    # circular identity. Older entries retain their digest as explicitly
-    # historical evidence under a non-authoritative name.
-    prior_recipe_content_sha256: Sha256 | None = None
-    upgrade_effect: ReleaseUpgradeEffect
-    changes: list[RecipeReleaseChange] = Field(min_length=1, max_length=16)
-
-    @field_validator("released_at")
-    @classmethod
-    def valid_date(cls, value: str) -> str:
-        try:
-            parsed = date.fromisoformat(value)
-        except ValueError as error:
-            raise ValueError("released_at must be an ISO 8601 calendar date") from error
-        if parsed.isoformat() != value:
-            raise ValueError("released_at must use YYYY-MM-DD form")
-        return value
-
-
 class RecipeRelease(_RecipeContract):
-    version: Annotated[
-        StrictStr,
-        Field(
-            min_length=5,
-            max_length=64,
-            pattern=r"^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$",
-        ),
-    ]
+    """The version this recipe runs.
+
+    When the upstream project publishes versions, this is the upstream version
+    and its release date (for example ``1.6`` released 2026-09-17). A recipe
+    whose upstream has no versions carries its own semantic version instead.
+    The recipe library's own version follows the contract, not recipe content.
+    """
+
+    version: StrictStr = Field(
+        min_length=1, max_length=64, pattern=r"^[0-9A-Za-z][0-9A-Za-z.+_-]{0,63}$"
+    )
     released_at: Annotated[StrictStr, Field(pattern=r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")]
-    history: list[RecipeReleaseHistoryEntry] = Field(min_length=1, max_length=32)
 
     @field_validator("released_at")
     @classmethod
@@ -831,27 +732,11 @@ class RecipeRelease(_RecipeContract):
         if parsed.isoformat() != value:
             raise ValueError("released_at must use YYYY-MM-DD form")
         return value
-
-    @model_validator(mode="after")
-    def ordered_history(self) -> RecipeRelease:
-        if (
-            self.history[0].version != self.version
-            or self.history[0].released_at != self.released_at
-        ):
-            raise ValueError("release current version/date must match history[0]")
-        versions = [entry.version for entry in self.history]
-        if len(versions) != len(set(versions)):
-            raise ValueError("release history versions must be unique")
-        dates = [date.fromisoformat(entry.released_at) for entry in self.history]
-        if dates != sorted(dates, reverse=True):
-            raise ValueError("release history must be newest-first by date")
-        return self
 
 
 class RecipeDefinition(_RecipeContract):
     """The sole public recipe authoring contract."""
 
-    schema_version: SchemaVersion = 2
     kind: Literal["recipe"] = "recipe"
     identity: RecipeIdentity
     metadata: RecipeMetadata
@@ -887,24 +772,12 @@ class RecipeDefinition(_RecipeContract):
         if len(owners) != 1 or owners[0].count != 1:
             raise ValueError("exactly one single-node role must own the endpoint")
         p = self.topology.parallelism
-        if (
-            p.world_size != p.tensor * p.pipeline * p.data
-            or p.world_size != self.topology.node_count
-        ):
-            raise ValueError("world_size and parallelism product must equal node_count")
-        if (self.topology.node_count == 1) != (
-            self.topology.fabric.connectivity == "none"
-        ):
-            raise ValueError(
-                "one-node topology requires no fabric; multi-node topology requires fabric"
-            )
-        if (
-            set(self.topology.start_order) != set(role_names)
-            or len(self.topology.start_order) != len(role_names)
-            or set(self.topology.stop_order) != set(role_names)
-            or len(self.topology.stop_order) != len(role_names)
-        ):
-            raise ValueError("topology orders must contain every role exactly once")
+        if p.tensor * p.pipeline * p.data != self.topology.node_count:
+            raise ValueError("parallelism product must equal node_count")
+        if set(self.topology.start_order) != set(role_names) or len(
+            self.topology.start_order
+        ) != len(role_names):
+            raise ValueError("topology start order must contain every role once")
         if len({selection.id for selection in self.models}) != len(self.models):
             raise ValueError("model selection IDs must be unique")
         selectors = {
@@ -967,13 +840,11 @@ class RecipeDefinition(_RecipeContract):
                         "job request output_slot is not declared by the interface"
                     )
                 if interface.input is None:
-                    if request.input_path is not None or request.input_slots:
+                    if request.input_slots:
                         raise ValueError(
                             "job request input bindings require an interface input"
                         )
                 else:
-                    if interface.input.required and request.input_path is None:
-                        raise ValueError("required job interface input must be bound")
                     declared_input_ids = {
                         slot.id for slot in interface.input.slots or []
                     }

@@ -44,7 +44,7 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
                 "resources"
             ]["disk"]
             self.assertGreater(disk["artifact_bytes"], 0)
-            self.assertGreater(disk["staging_bytes"], 0)
+            self.assertGreater(disk["working_bytes"], 0)
 
     def test_glm_tp4_tracks_current_public_source_profile(self) -> None:
         recipe = load(ROOT / "recipes/glm-5-3-flash-nvfp4-vllm-four.json")

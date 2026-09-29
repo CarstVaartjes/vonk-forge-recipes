@@ -39,7 +39,6 @@ class Vllm028MigrationTests(unittest.TestCase):
         recipe = load("recipes/qwen3-6-27b-vllm-single.json")
         base = recipe["execution"]["build"]["base_image"]
         self.assertEqual(f"{base['repository']}@sha256:{base['digest']}", IMAGE)
-        self.assertEqual(base["platform"], "linux/arm64")
         dockerfile = (ROOT / recipe["execution"]["build"]["dockerfile"]).read_text()
         self.assertIn("ced6857afa0ea7b2e3f0846a62e1394e90f15607", dockerfile)
         self.assertIn("vllm-openai", base["repository"])

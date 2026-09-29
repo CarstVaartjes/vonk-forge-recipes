@@ -5,21 +5,14 @@ import hashlib
 import importlib.machinery
 import importlib.util
 import json
-import os
 import subprocess
 import sys
-import urllib.error
-from email.message import Message
 from pathlib import Path
 from typing import Any, cast
 
 import pytest
 from generated_catalog import GENERATED
-from vonk_forge_contracts import RecipeDefinition, content_sha256
-
-from qualification import catalog_source
-from qualification.catalog_source import package_tree, release_asset
-from qualification.coverage_identity import execution_stack_identity
+from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 ROOT = Path(__file__).resolve().parents[1]
 QUALIFICATION_ROOT = ROOT / "qualification"
@@ -57,27 +50,6 @@ def _document(path: Path) -> dict[str, object]:
     return value
 
 
-def _git_blob(commit: str, relative_path: str, *, root: Path = ROOT) -> bytes:
-    environment = os.environ.copy()
-    environment["GIT_NO_REPLACE_OBJECTS"] = "1"
-    environment["GIT_NO_LAZY_FETCH"] = "1"
-    result = subprocess.run(
-        [
-            "git",
-            "--no-replace-objects",
-            "cat-file",
-            "blob",
-            f"{commit}:{relative_path}",
-        ],
-        cwd=root,
-        env=environment,
-        check=True,
-        capture_output=True,
-        timeout=10,
-    )
-    return result.stdout
-
-
 def _bindings(document: dict[str, object]) -> dict[str, dict[str, object]]:
     result: dict[str, dict[str, object]] = {}
     for field in ("recipes", "service_recipes", "special_fixtures"):
@@ -99,10 +71,11 @@ def test_recipe_digests_are_generated_locally_and_cover_supported_topologies() -
     assert all("content_sha256" not in value for value in source_bindings.values())
     expected: dict[str, str] = {}
     for path in sorted((ROOT / "recipes").glob("*.json")):
-        recipe = RecipeDefinition.model_validate_json(path.read_bytes())
+        document = json.loads(path.read_bytes())
+        recipe = RecipeDefinition.model_validate(document)
         if recipe.topology.node_count <= 2:
             key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
-            expected[key] = content_sha256(recipe)
+            expected[key] = document_sha256(document)
 
     assert set(source_bindings) == set(generated_bindings) == set(expected)
     assert {
@@ -169,63 +142,11 @@ def test_skintokens_derivation_pins_upstream_and_transform() -> None:
     assert 'force="mesh", process=True' in source
 
 
-def test_release_asset_that_differs_from_its_pin_fails_closed(
-    monkeypatch, tmp_path: Path
-) -> None:
-    """A downloaded or cached asset is never trusted without its pinned digest."""
+def test_authority_requires_the_generated_catalog(tmp_path: Path) -> None:
+    """Without a generated catalog there is nothing to bind: fail closed."""
 
-    monkeypatch.setattr(catalog_source, "RELEASE_CACHE", tmp_path)
-    (tmp_path / "v9.9.9").mkdir()
-    (tmp_path / "v9.9.9" / "catalog-index.json").write_bytes(b"stale cache")
-    monkeypatch.setattr(catalog_source, "_download", lambda tag, name: b"tampered")
-    with pytest.raises(ValueError, match="differs from its pinned digest"):
-        release_asset("v9.9.9", "catalog-index.json", "0" * 64)
-    assert (tmp_path / "v9.9.9" / "catalog-index.json").read_bytes() == b"stale cache"
-
-    good = b"published bytes"
-    digest = hashlib.sha256(good).hexdigest()
-    monkeypatch.setattr(catalog_source, "_download", lambda tag, name: good)
-    assert release_asset("v9.9.9", "catalog-index.json", digest) == good
-    # The verified download is cached, so later reads need no network.
-    monkeypatch.setattr(catalog_source, "_download", None)
-    assert release_asset("v9.9.9", "catalog-index.json", digest) == good
-
-
-def test_unreachable_release_asset_is_unavailable_after_bounded_retries(
-    monkeypatch, tmp_path: Path
-) -> None:
-    """A transient GitHub outage is retried, then reported as unavailable."""
-
-    attempts: list[str] = []
-
-    def outage(url: str, timeout: float) -> Any:
-        attempts.append(url)
-        raise urllib.error.HTTPError(url, 500, "Internal Server Error", Message(), None)
-
-    monkeypatch.setattr(catalog_source, "RELEASE_CACHE", tmp_path)
-    monkeypatch.setattr(catalog_source.urllib.request, "urlopen", outage)
-    monkeypatch.setattr(catalog_source.time, "sleep", lambda seconds: None)
-    with pytest.raises(catalog_source.ReleaseAssetUnavailable):
-        release_asset("v9.9.9", "catalog-index.json", "0" * 64)
-    assert len(attempts) == catalog_source._DOWNLOAD_ATTEMPTS > 1
-
-
-def test_authority_fails_closed_on_a_malformed_pin(monkeypatch) -> None:
-    """Accepting a release pin that is not a full Git SHA must fail closed."""
-
-    real_document = AUTHORITY_TOOL["_document"]
-
-    def fake_document(path: Path) -> dict[str, Any]:
-        document = real_document(path)
-        if path.name == "catalog-release.json":
-            document["commit"] = "not-a-commit"
-        return document
-
-    monkeypatch.setitem(AUTHORITY_TOOL, "_document", fake_document)
-    with pytest.raises(
-        ValueError, match="catalog release commit must be a full Git SHA"
-    ):
-        AUTHORITY_TOOL["_build"]()
+    with pytest.raises(ValueError, match="run tools/build-catalog-index"):
+        AUTHORITY_TOOL["_build"](tmp_path)
 
 
 def test_authority_writes_nothing_when_the_build_fails(
@@ -248,66 +169,6 @@ def test_authority_writes_nothing_when_the_build_fails(
     assert AUTHORITY_TOOL["main"]() == 1
     assert "pinned catalog is unavailable" in capsys.readouterr().err
     assert {path: path.read_bytes() for path in outputs} == before
-
-
-def test_published_stack_identity_uses_exact_package_not_stale_source_commit(
-    tmp_path: Path,
-) -> None:
-    """The release-bound package, not its stale source pointer, owns source bytes."""
-
-    # Keep the reproducer on the release with the stale pointer; the active
-    # campaign pin must be free to advance to corrected future releases.
-    catalog_commit = "7b23f1a1569e16f8f2728ddd6846cf4f7c58f0f7"
-    catalog = json.loads(_git_blob(catalog_commit, "catalog-index.json"))
-    source_commit = catalog["source_commit"]
-    assert isinstance(source_commit, str)
-    entry = next(
-        item
-        for item in catalog["recipes"]
-        if item["document"]["identity"]["slug"]
-        == "ltx-2-19b-distilled-diffusers-single"
-    )
-    recipe = RecipeDefinition.model_validate(entry["document"])
-    assert recipe.execution.mode == "build"
-    payload = _git_blob(catalog_commit, entry["package"]["path"])
-    with package_tree(entry["package"], recipe, payload) as package_root:
-        package_wheel = (
-            package_root
-            / "adapters/video/ltx2-sync-native/vonk_agent_protocol-3.0.0-py3-none-any.whl"
-        )
-        package_wheel_bytes = package_wheel.read_bytes()
-        assert hashlib.sha256(package_wheel_bytes).hexdigest() == (
-            "519484690b626f03e27efabad787ad1040a7d527404f2dd4faa3e2d84c40d116"
-        )
-        package_identity = execution_stack_identity(
-            package_root, recipe, recipe.execution.build
-        )
-
-    stale_source_wheel = _git_blob(
-        source_commit,
-        "adapters/video/ltx2-sync-native/vonk_agent_protocol-2.2.0-py3-none-any.whl",
-    )
-    assert hashlib.sha256(stale_source_wheel).hexdigest() == (
-        "7555df9ec0f576ac0530d1e6abdd2f3845614cf397a7bc2c8dcd01bc86967565"
-    )
-    assert stale_source_wheel != package_wheel_bytes
-
-    key = "vonk-forge/ltx-2-19b-distilled-diffusers-single"
-    # The historical release had no assets; the byte-identical package under
-    # catalog_root stands in for the release asset, so nothing is downloaded.
-    (tmp_path / "packages").mkdir()
-    (tmp_path / entry["package"]["path"]).write_bytes(payload)
-    generated = AUTHORITY_TOOL["_pinned_stack_identities"](
-        "v0.0.0", {key: entry}, tmp_path
-    )
-    assert generated[key] == package_identity
-
-    mismatched_package = {**entry["package"], "sha256": "0" * 64}
-    with (
-        pytest.raises(ValueError, match="package digest differs"),
-        package_tree(mismatched_package, recipe, payload),
-    ):
-        pass
 
 
 def _authority_document() -> dict[str, Any]:

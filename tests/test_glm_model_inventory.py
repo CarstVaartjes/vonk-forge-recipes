@@ -4,7 +4,7 @@ import json
 import unittest
 from pathlib import Path
 
-from vonk_forge_contracts import ModelDefinition
+from vonk_forge_contracts import document_sha256
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -14,17 +14,7 @@ def load(path: str) -> dict:
 
 
 def digest(model: dict) -> str:
-    return (
-        __import__("hashlib")
-        .sha256(
-            json.dumps(
-                ModelDefinition.model_validate(model).model_dump(mode="json"),
-                sort_keys=True,
-                separators=(",", ":"),
-            ).encode()
-        )
-        .hexdigest()
-    )
+    return document_sha256(model)
 
 
 class GlmModelInventoryTests(unittest.TestCase):

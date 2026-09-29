@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -23,13 +21,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -43,7 +38,6 @@
         "media_types": [
           "text/plain"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -65,7 +59,6 @@
       },
       "output": {
         "max_total_bytes": 1073741824,
-        "path": "/outputs",
         "slots": [
           {
             "description": "Generated 768x512 H.264/AAC MP4 with exactly 97 frames at 24 fps and one synchronized 24 kHz stereo audio stream.",
@@ -83,8 +76,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -116,7 +108,6 @@
           "file_id": "artifact-01",
           "id": "primary-artifact-01",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -127,7 +118,6 @@
           "file_id": "artifact-02",
           "id": "primary-artifact-02",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -138,7 +128,6 @@
           "file_id": "artifact-03",
           "id": "primary-artifact-03",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -149,7 +138,6 @@
           "file_id": "artifact-04",
           "id": "primary-artifact-04",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -160,7 +148,6 @@
           "file_id": "artifact-05",
           "id": "primary-artifact-05",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -171,7 +158,6 @@
           "file_id": "artifact-06",
           "id": "primary-artifact-06",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -182,7 +168,6 @@
           "file_id": "artifact-07",
           "id": "primary-artifact-07",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -193,7 +178,6 @@
           "file_id": "artifact-08",
           "id": "primary-artifact-08",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -204,7 +188,6 @@
           "file_id": "artifact-09",
           "id": "primary-artifact-09",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -215,7 +198,6 @@
           "file_id": "artifact-10",
           "id": "primary-artifact-10",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -226,7 +208,6 @@
           "file_id": "artifact-11",
           "id": "primary-artifact-11",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -237,7 +218,6 @@
           "file_id": "artifact-12",
           "id": "primary-artifact-12",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -248,7 +228,6 @@
           "file_id": "artifact-13",
           "id": "primary-artifact-13",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -259,7 +238,6 @@
           "file_id": "artifact-14",
           "id": "primary-artifact-14",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -270,7 +248,6 @@
           "file_id": "artifact-15",
           "id": "primary-artifact-15",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -281,7 +258,6 @@
           "file_id": "artifact-16",
           "id": "primary-artifact-16",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -292,7 +268,6 @@
           "file_id": "artifact-17",
           "id": "primary-artifact-17",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -303,7 +278,6 @@
           "file_id": "artifact-18",
           "id": "primary-artifact-18",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -314,7 +288,6 @@
           "file_id": "artifact-19",
           "id": "primary-artifact-19",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -325,7 +298,6 @@
           "file_id": "artifact-20",
           "id": "primary-artifact-20",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -336,7 +308,6 @@
           "file_id": "artifact-21",
           "id": "primary-artifact-21",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -347,7 +318,6 @@
           "file_id": "artifact-22",
           "id": "primary-artifact-22",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -358,7 +328,6 @@
           "file_id": "artifact-23",
           "id": "primary-artifact-23",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -369,7 +338,6 @@
           "file_id": "artifact-24",
           "id": "primary-artifact-24",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -380,7 +348,6 @@
           "file_id": "artifact-25",
           "id": "primary-artifact-25",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -391,7 +358,6 @@
           "file_id": "artifact-26",
           "id": "primary-artifact-26",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -402,7 +368,6 @@
           "file_id": "artifact-27",
           "id": "primary-artifact-27",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -413,7 +378,6 @@
           "file_id": "artifact-28",
           "id": "primary-artifact-28",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -423,7 +387,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "6de2a4df6c1bf2de9c5b878d4d36424da889027a0ba2409ee28d8ba5cda85516",
+        "content_sha256": "9253bb344fb0bab7f19db2aed480e1e27649848b478a4b5064b7ba99de828e47",
         "kind": "model",
         "publisher": "lightricks",
         "slug": "ltx-2-19b-dev-fp4-dfcc2108"
@@ -434,272 +398,9 @@
     "attribution": [
       "Lightricks"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
   },
   "release": {
-    "history": [
-      {
-        "version": "2.3.7",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "7af305dae2b6fb76d807a5ecab44186c5e23f9b74084b407ce649460fce4a36d",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Pin the official LTX-2 v1.3.0 release tag (598ab412) instead of the untagged main sync commit a95ab856.",
-            "details": "Lightricks/LTX-2 v1.3.0 (2026-08-26) is the newest stable release. Its tagged commit 598ab41247a77dbfe29b5186e915bcf4f9040ec7 has the identical git tree (a10010cd) as the previously pinned main commit a95ab856, so ltx-core/ltx-pipelines code is unchanged; only the source identity and archive SHA-256 (946465df...) change. LTX-2 v1.3.0 still pins torch==2.13.0 (cu132) and transformers<5.15, so those stay.",
-            "references": [
-              "https://github.com/Lightricks/LTX-2/releases/tag/v1.3.0",
-              "https://github.com/Lightricks/LTX-2/compare/a95ab856bf29407b6b066ede0abe1846050db56c...598ab41247a77dbfe29b5186e915bcf4f9040ec7"
-            ]
-          },
-          {
-            "kind": "runtime",
-            "summary": "Move the base image to NVIDIA CUDA 13.4.1 runtime (Ubuntu 24.04, ARM64 digest-pinned).",
-            "details": "Base image moved from nvcr.io/nvidia/cuda:13.2.1-runtime-ubuntu24.04 to 13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962 (linux/arm64). Its NVIDIA_REQUIRE_CUDA keeps the driver>=580,<581 branch clause, so admission on the Spark driver is unchanged. PyTorch still ships its own CUDA user-space wheels.",
-            "references": [
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "runtime",
-            "summary": "Refresh accelerate to 1.15.0 and huggingface-hub to 1.33.0 (latest 1.x) in the locked closure.",
-            "details": "accelerate 1.14.0 -> 1.15.0 and huggingface-hub 1.28.0 -> 1.33.0. huggingface-hub 2.0.0 is not adopted because the pinned transformers 5.14.1 requires huggingface-hub<2.0; transformers stays at 5.14.1 because LTX-2 v1.3.0 declares transformers<5.15. Model files are unchanged.",
-            "references": [
-              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
-              "https://pypi.org/project/huggingface-hub/1.33.0/"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu132 metadata requires cuda-toolkit==13.2.1; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu132/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "617e8bb17b22a3aac4cae9970d219d46422d6e9070eee9e78f2ed418842ed52b",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.3.6"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "2.3.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "336f207e156bc629437b8bd60c9d29d11389f4b26f815ae36bf2590fde20eeab",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "2.3.4"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "3c4b2151e8514c4970feb7c6fa06715e4735b2f7617af5fd400aa358284042c8",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "2.3.3"
-      },
-      {
-        "changes": [
-          {
-            "details": "LTX-2.5 BF16 is the current fidelity baseline and its fixed FP8-cast sequential-offload variant is the current lower-memory canary. Runtime, artifacts, build context, topology, interfaces, validation, and provenance are unchanged.",
-            "kind": "metadata",
-            "references": [
-              "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
-              "https://huggingface.co/Lightricks/LTX-2.5-Diffusers/tree/426936f8b22dc28e4def61e515478b0b7e4a53cc"
-            ],
-            "summary": "Marked the historical LTX-2 profile superseded while retaining its directly deployable immutable execution contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "baff135e07ea79ae4eb19729ee543edd77805a26c9b3922839ab58a63188b2e1",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "2.3.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "Added codeload.github.com and download-r2.pytorch.org, and removed nvcr.io because verified base images are transferred separately from Dockerfile build egress.",
-            "kind": "fix",
-            "references": [],
-            "summary": "Corrected public build egress for the pinned LTX source archive and PyTorch wheel redirects."
-          }
-        ],
-        "prior_recipe_content_sha256": "32f866c8eb41e0de62f3c18ce9d9ba6107c9c2ca8846402ac45c4cd5e62999a4",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "rebuild",
-        "version": "2.3.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "The FP4-only adapter now requests disk rather than CPU offload and remains bound exclusively to this recipe. Pinned upstream quantifies disk offload at about 5 GB host RAM plus 5 GB accelerator memory versus about 36 GB host RAM plus 5 GB accelerator memory for CPU offload. The conservative Candidate envelope subtracts only that documented 31 GB host-memory delta: startup 120 to 89 GB and steady 106 to 75 GB, with growth and system reserve unchanged at 8 GB each. Admission therefore requires 97 GB including reserve; physical acceptance remains pending.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/Lightricks/LTX-2/blob/a95ab856bf29407b6b066ede0abe1846050db56c/packages/ltx-pipelines/src/ltx_pipelines/utils/types.py",
-              "https://github.com/Lightricks/LTX-2/blob/a95ab856bf29407b6b066ede0abe1846050db56c/packages/ltx-pipelines/src/ltx_pipelines/utils/args.py"
-            ],
-            "summary": "Selected the pinned upstream's explicit disk-streaming offload mode for the LTX-2 19B dev FP4 single-Spark Candidate."
-          }
-        ],
-        "prior_recipe_content_sha256": "06b3a57766d29b92544870a51879b9fc7f22a09784b0402d7f31a9182ce99c03",
-        "released_at": "2026-08-31",
-        "upgrade_effect": "rebuild",
-        "version": "2.3.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "The adapter fails closed unless ltx-pipelines is version 1.3.0 and PipelineOutput exposes video, audio, num_frames, tiling_config, keyframes, and video_latent.",
-            "kind": "runtime",
-            "references": [
-              "https://github.com/Lightricks/LTX-2/tree/a95ab856bf29407b6b066ede0abe1846050db56c"
-            ],
-            "summary": "Refreshed the native pipeline from LTX 1.2 to exact 1.3.0 source and its named six-field PipelineOutput contract."
-          },
-          {
-            "details": "The FP4 build now uses the same deterministic archive and dependency-lock path as the other native LTX adapters.",
-            "kind": "fix",
-            "references": [],
-            "summary": "Replaced live Git package resolution with a checksummed source archive and added the required TorchVision and cuDNN 9.24 pins."
-          },
-          {
-            "details": "LTX 1.3 contains DFR and keyframe-aware decode support, but this recipe does not claim those artifact-dependent paths and remains a physical-acceptance Candidate.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Kept the declared two-stage interface and conservative memory envelope while inheriting upstream decode-tiling OOM fixes."
-          }
-        ],
-        "prior_recipe_content_sha256": "b458ed9412c5c8036ba79f2210dead04f0843dae56fcf1e6bd1bd4baef6576a5",
-        "released_at": "2026-08-31",
-        "upgrade_effect": "rebuild",
-        "version": "2.2.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "The checkpoint, distilled LoRA, spatial upscaler, Gemma shards and indexes, and tokenizer closure remain byte-identical. Repository metadata and unrelated checkpoints are no longer downloaded. Gemma now receives the common root containing both text_encoder and tokenizer. The image/build allowance matches the conservative 8 GB envelope used by the same pinned LTX 1.2 runtime family.",
-            "kind": "fix",
-            "references": [],
-            "summary": "Filtered the pinned Hugging Face snapshot to the 25 immutable files required by the native FP4 runtime."
-          }
-        ],
-        "prior_recipe_content_sha256": "bfed18fb1fe5e0768c5c765448038e017c0fe8c1bf5b33a94824c46955cb7868",
-        "released_at": "2026-08-29",
-        "upgrade_effect": "rebuild",
-        "version": "2.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "breaking",
-            "references": [],
-            "summary": "Replaced the hidden default prompt with one required bounded UTF-8 prompt file and declared exact synchronized-MP4 output bounds."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Removed automatic duration for the legacy checkpoint by fixing 97 frames at 768x512/24 fps and validating synchronized H.264/AAC before publication."
-          }
-        ],
-        "prior_recipe_content_sha256": "4688f67ce0605752479a6bbe93337d7d2364c3787b87e4c4abebe73ef155f0ea",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "8a46c10fc4a865e0a218ce3e8d2091513d16c7494d37deffced6679d5de83290",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.1.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [
-              "https://github.com/Lightricks/LTX-2/blob/400fd31054597515f47125691032c04b1c3ee24e/packages/ltx-core/pyproject.toml"
-            ],
-            "summary": "Replaced unavailable ARM64 CUDA 13.2 Torch and TorchAudio pins with the current upstream-tested 2.13.0 and 2.11.0 wheels."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [
-              "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
-            ],
-            "summary": "Corrected the recipe's whole-snapshot artifact and dependent disk resource sizes."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "The candidate still requires an ARM64 container build and physical Spark canary before acceptance."
-          }
-        ],
-        "prior_recipe_content_sha256": "3b323df19e414b5ee7fcf96927fca74ad654389cf4bb6ff834a35325b0a1d6da",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of LTX-2 19B dev FP4 native pipeline single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "ef300f5792389eed64b03db4fb92f43043080731d61eecfe1b0d2383699dc588",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "2.3.7"
   },
@@ -733,40 +434,26 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -776,40 +463,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 77447526016,
-            "cache_bytes": 8000000000,
             "image_bytes": 8000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 154895052032
+            "working_bytes": 162895052032
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 8000000000,
-            "startup_peak_bytes": 89000000000,
-            "steady_state_bytes": 75000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 89000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "frames": 97,
-          "timeout_seconds": 3600
-        },
-        "framework": "ltx-pipelines",
-        "name": "bounded-video"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -821,11 +490,9 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/prompt.txt",
-            "input_path": "/inputs",
             "input_slots": {
               "prompt": "qualification/fixtures/prompt.txt"
             },
-            "output_path": "/outputs",
             "output_slot": "video",
             "transport": "job"
           }

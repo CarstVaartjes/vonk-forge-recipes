@@ -1,23 +1,7 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "image-editing",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
-      "source_url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "image-editing"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -337,7 +321,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "bf16"
   },
@@ -348,7 +331,6 @@
       "title": "Qwen Image Edit"
     },
     "model": {
-      "architecture": "20B multimodal diffusion transformer image-editing pipeline",
       "publisher": "qwen",
       "slug": "qwen-image-edit",
       "title": "Qwen Image Edit"
@@ -363,25 +345,8 @@
     "attribution": [
       "Qwen"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/blob/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9/LICENSE"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official Qwen Image Edit 2511 checkpoint.",
-    "publisher": "Qwen",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "qwen",
-      "slug": "qwen-image-edit"
-    }
   },
   "metadata": {
     "description": "Exact official Qwen Image Edit 2511 checkpoint for a candidate single-Spark Diffusers image-editing recipe.",
@@ -397,21 +362,9 @@
   "modalities": [
     "image"
   ],
-  "parameters": {
-    "active": null,
-    "total": 20000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Qwen"
-    ],
-    "source_revision": "6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9",
-    "source_url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511",
     "revision": "6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9"
-  },
-  "supersedes": null
+  }
 }

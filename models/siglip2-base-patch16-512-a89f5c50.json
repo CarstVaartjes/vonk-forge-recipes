@@ -1,23 +1,5 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "image-understanding",
-        "evidence_status": "unknown",
-        "support": "unknown"
-      }
-    ],
-    "provenance": {
-      "source_revision": "a89f5c5093f902bf39d3cd4d81d2c09867f0724b",
-      "source_url": "https://huggingface.co/google/siglip2-base-patch16-512/blob/a89f5c5093f902bf39d3cd4d81d2c09867f0724b/README.md"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -85,7 +67,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "unspecified",
     "quantization": "none"
   },
@@ -96,7 +77,6 @@
       "title": "SigLIP 2"
     },
     "model": {
-      "architecture": "Vision-language transformer encoder",
       "publisher": "google",
       "slug": "siglip2-base-patch16-512",
       "title": "SigLIP 2 Base Patch16 512"
@@ -111,25 +91,8 @@
     "attribution": [
       "google"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/google/siglip2-base-patch16-512/blob/a89f5c5093f902bf39d3cd4d81d2c09867f0724b/README.md"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official SigLIP 2 Base upstream checkpoint at the pinned Hugging Face revision.",
-    "publisher": "google",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "google",
-      "slug": "siglip2-base-patch16-512"
-    }
   },
   "metadata": {
     "description": "Pinned SigLIP 2 Base files for the HunyuanVideo-Foley offline image encoder.",
@@ -143,21 +106,9 @@
   "modalities": [
     "image"
   ],
-  "parameters": {
-    "active": null,
-    "total": null
-  },
-  "provenance": {
-    "attribution": [
-      "google"
-    ],
-    "source_revision": "a89f5c5093f902bf39d3cd4d81d2c09867f0724b",
-    "source_url": "https://huggingface.co/google/siglip2-base-patch16-512/blob/a89f5c5093f902bf39d3cd4d81d2c09867f0724b/README.md"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/google/siglip2-base-patch16-512",
     "revision": "a89f5c5093f902bf39d3cd4d81d2c09867f0724b"
-  },
-  "supersedes": null
+  }
 }

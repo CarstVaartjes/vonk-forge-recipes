@@ -1,31 +1,11 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "audio-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "video-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
-      "source_url": "https://huggingface.co/Lightricks/LTX-2"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "audio-generation",
+    "video-generation"
+  ],
   "dependencies": [
     {
-      "content_sha256": "f431b07dc9945d9683df64dfc2cbbc1e2bf2bfd79376c39b36011982553ce24e",
+      "content_sha256": "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
       "kind": "model",
       "publisher": "lightricks",
       "slug": "ltx-2-gemma3-text-encoder-dfcc2108"
@@ -61,7 +41,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -72,7 +51,6 @@
       "title": "LTX"
     },
     "model": {
-      "architecture": "19B synchronized audio-video diffusion transformer with Gemma text conditioning",
       "publisher": "lightricks",
       "slug": "ltx-2",
       "title": "LTX-2"
@@ -87,25 +65,8 @@
     "attribution": [
       "Lightricks"
     ],
-    "operator_acceptance_required": true,
     "spdx": "LTX-2 Community License Agreement",
     "url": "https://huggingface.co/Lightricks/LTX-2/blob/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/LICENSE"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": 65,
-    "resolution_pixels": 393216,
-    "sample_rate_hz": 24000
-  },
-  "lineage": {
-    "derivation": "Official monolithic synchronized audio-video checkpoint with the exact required spatial upscaler and, where applicable, distilled refinement LoRA.",
-    "publisher": "Lightricks",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "lightricks",
-      "slug": "ltx-2"
-    }
   },
   "metadata": {
     "description": "Exact executable checkpoint closure at dfcc2108 with a digest-bound Gemma 3 companion dependency.",
@@ -121,21 +82,9 @@
     "audio",
     "video"
   ],
-  "parameters": {
-    "active": null,
-    "total": 19000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Lightricks"
-    ],
-    "source_revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
-    "source_url": "https://huggingface.co/Lightricks/LTX-2"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Lightricks/LTX-2",
     "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
-  },
-  "supersedes": null
+  }
 }

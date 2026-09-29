@@ -1,17 +1,5 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [],
-    "provenance": {
-      "source_revision": "d1f71a588deaf2b9b9cea7c6fff66cb10847cc86",
-      "source_url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -223,7 +211,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bfloat16",
     "quantization": "none"
   },
@@ -234,7 +221,6 @@
       "title": "OpenMOSS MOSS-VL"
     },
     "model": {
-      "architecture": "MOSS-VL 11B cross-attention vision-language transformer with XRoPE timestamp encoding",
       "publisher": "openmoss",
       "slug": "moss-vl-realtime-11b",
       "title": "MOSS-VL-Realtime 11B"
@@ -249,26 +235,9 @@
     "attribution": [
       "OpenMOSS"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "territorial_restrictions": null,
     "url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/blob/d1f71a588deaf2b9b9cea7c6fff66cb10847cc86/README.md"
-  },
-  "limits": {
-    "context_tokens": 262144,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at d1f71a58. The weight shards are unchanged; the snapshot fixes cached-vision query RoPE, aligns preprocessing defaults with the 0708 model, updates offline system prompts, and makes media budgets and MRoPE position IDs correct per sample for batched vision inputs.",
-    "publisher": "openmoss",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "openmoss",
-      "slug": "moss-vl-realtime-11b"
-    }
   },
   "metadata": {
     "description": "Exact public Realtime 0708 BF16 d1f71a58 checkpoint with per-sample media budgets, batched-vision MRoPE fixes, cached-vision RoPE correction, and synchronized preprocessing defaults.",
@@ -284,21 +253,9 @@
     "text",
     "video"
   ],
-  "parameters": {
-    "active": 11000000000,
-    "total": 11000000000
-  },
-  "provenance": {
-    "attribution": [
-      "OpenMOSS"
-    ],
-    "source_revision": "d1f71a588deaf2b9b9cea7c6fff66cb10847cc86",
-    "source_url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime",
     "revision": "d1f71a588deaf2b9b9cea7c6fff66cb10847cc86"
-  },
-  "supersedes": null
+  }
 }

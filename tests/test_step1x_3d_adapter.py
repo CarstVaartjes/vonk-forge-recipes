@@ -11,7 +11,7 @@ import unittest
 from pathlib import Path
 from typing import Protocol, cast
 
-from vonk_forge_contracts.canonical import content_sha256
+from catalog_documents import catalog_models, model_digest
 from vonk_forge_contracts.model import ModelDefinition
 from vonk_forge_contracts.recipe import RecipeDefinition
 from vonk_forge_contracts.resolver import (
@@ -31,13 +31,11 @@ class GeometryLabelEncoder(Protocol):
 
 
 def _model_definitions() -> dict[tuple[str, str], ModelDefinition]:
-    documents = [
-        ModelDefinition.model_validate(json.loads(path.read_text(encoding="utf-8")))
-        for path in sorted((ROOT / "models").glob("*.json"))
-    ]
-    validate_model_references(documents)
+    models = catalog_models()
+    validate_model_references(models)
     return {
-        (model.identity.publisher, model.identity.slug): model for model in documents
+        (model.identity.publisher, model.identity.slug): model
+        for model in models.values()
     }
 
 
@@ -484,16 +482,12 @@ class LabelEncoder:
                 )
                 selections = {selection.id: selection for selection in recipe.models}
                 self.assertEqual(set(selections), set(expected_mounts))
-                selected_models = [
-                    models[(selection.model.publisher, selection.model.slug)]
-                    for selection in recipe.models
-                ]
-                validate_recipe_models(recipe, selected_models)
+                validate_recipe_models(recipe, catalog_models())
 
                 primary = selections["primary"]
                 primary_model = models[("stepfun-ai", primary_slug)]
                 self.assertEqual(
-                    primary.model.content_sha256, content_sha256(primary_model)
+                    primary.model.content_sha256, model_digest(primary_slug)
                 )
                 self.assertEqual(
                     {selector.file_id for selector in primary.files},
@@ -577,8 +571,7 @@ class LabelEncoder:
                 "unet/diffusion_pytorch_model.safetensors",
             },
         )
-        self.assertTrue(sdxl.license.operator_acceptance_required)
-        self.assertFalse(sdxl.access.gated)
+        self.assertFalse(sdxl.requires_token)
         self.assertEqual(
             {item.path for item in models[("madebyollin", "sdxl-vae-fp16-fix")].files},
             {"config.json", "diffusion_pytorch_model.safetensors"},
