@@ -4434,6 +4434,20 @@
         ]
       }
     },
+    "vonk-forge/qwen3-6-27b-nvfp4-r0b0tlab-vllm-single": {
+      "alias": "nvidia/Qwen3.6-27B-NVFP4",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming and declared concurrency canaries"
+        ]
+      }
+    },
     "vonk-forge/qwen3-8-27b-vllm-single": {
       "alias": "qwen3-8-27b",
       "smoke_cases": [
