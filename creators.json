@@ -26,6 +26,7 @@
     {"name": "Ling", "prefixes": ["ling-"]},
     {"name": "LTX", "prefixes": ["ltx-"]},
     {"name": "MiMo", "prefixes": ["mimo-"]},
+    {"name": "MiniMax M2", "prefixes": ["minimax-m2"]},
     {"name": "MiniMax H3", "prefixes": ["minimax-"]},
     {"name": "MOSS-VL", "prefixes": ["moss-vl"]},
     {"name": "MOVA", "prefixes": ["mova-"]},
