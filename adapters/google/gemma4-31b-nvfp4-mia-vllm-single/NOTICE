@@ -1,0 +1,18 @@
+Gemma 4 31B IT NVFP4 with MTP assistant on one DGX Spark (vLLM)
+
+Vendored upstream files (byte-identical, provenance spelling upstream-<name>):
+  upstream-README.md, upstream-start.sh, upstream-stop.sh, chat_template.jinja
+from https://github.com/MiaAI-Lab/Gemma-4-31B-IT-NVFP4-Recipe
+at commit ac429cca70aedfa4afb446cefc5f5f1bfa1e8802.
+
+The upstream repository carries no licence file (GitHub reports none); its
+terms are unspecified. Its README states the scripts and configuration are
+under the MIT License and the model weights under the Gemma licence. It is
+credited here for the launch settings and the chat template.
+
+Our files: Dockerfile, vllm-wrapper.sh, verify-runtime.py and this notice.
+
+The models, nvidia/Gemma-4-31B-IT-NVFP4 and google/gemma-4-31B-it-assistant,
+are published under Google's Gemma terms (the model cards point to
+https://ai.google.dev/gemma/apache_2 and
+https://ai.google.dev/gemma/docs/gemma_4_license). vLLM is Apache-2.0.

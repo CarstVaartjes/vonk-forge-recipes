@@ -1,0 +1,12 @@
+{
+  "ours": [
+    "NOTICE",
+    "verify-runtime.py",
+    "vllm-wrapper.sh"
+  ],
+  "renamed": {},
+  "source": {
+    "commit": "ac429cca70aedfa4afb446cefc5f5f1bfa1e8802",
+    "repo": "MiaAI-Lab/Gemma-4-31B-IT-NVFP4-Recipe"
+  }
+}

@@ -1,0 +1,193 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation",
+    "video-understanding"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "file--quant-summary-cfc2fb2a5047-e17ab81a0d",
+      "path": ".quant_summary.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "cfc2fb2a50470c99741e85254efe1d69438f246e967fcc532119eee34bc321ab",
+      "size_bytes": 278886
+    },
+    {
+      "id": "readme-892a023119d3-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "892a023119d33a23dac8764e469bbc1728e49294aba63bcb90d2899131fa093d",
+      "size_bytes": 7562
+    },
+    {
+      "id": "chat-template-94899c0f917d-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "94899c0f917d93f6fe81c95744d1e8ddab2d21d39228d2e4aec1fb2a25bff413",
+      "size_bytes": 16934
+    },
+    {
+      "id": "config-aa03a6a490fb-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "aa03a6a490fb743b8186f09c60ec39a30fdbaf7c3a18dfef8e52a62c2beb9ae4",
+      "size_bytes": 9464
+    },
+    {
+      "id": "generation-config-d4226bbe3117-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d4226bbe3117d2d253ba4609720ba82c6c4ce4627a9a6ae05387c78983ac03de",
+      "size_bytes": 208
+    },
+    {
+      "id": "hf-quant-config-7295b239347a-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7295b239347a50abc3888c4a8208b8644eb0bd3d92810117bdea1768e5f21129",
+      "size_bytes": 3748
+    },
+    {
+      "id": "model-00001-of-00004-4d955de1f740-1913267ec8",
+      "path": "model-00001-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4d955de1f740f16dcf3e9206a42082102cbf2d1b0c42adf1fc39190e186e3ae8",
+      "size_bytes": 9954637578
+    },
+    {
+      "id": "model-00002-of-00004-f8418783fa27-60f6088da9",
+      "path": "model-00002-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f8418783fa27ab2a3a92baaebe6c65c762bfe236fe0f7ec1e3c05b5617a1e6e4",
+      "size_bytes": 9977124474
+    },
+    {
+      "id": "model-00003-of-00004-5cfe8ee0f73c-fc35f2c4d5",
+      "path": "model-00003-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5cfe8ee0f73c48536a21680d87257e5d7d93fc6706a236dc6a909f86e0ec578a",
+      "size_bytes": 9999145338
+    },
+    {
+      "id": "model-00004-of-00004-4dbb1ed31e59-5078e75d62",
+      "path": "model-00004-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4dbb1ed31e5954cd9722a4789087f797417de40fc66a90ed5b46bfecfb7d3091",
+      "size_bytes": 2702570418
+    },
+    {
+      "id": "model-safetensors-index-aff5569bed01-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "aff5569bed013db014afe23db3986434729bb33d9f817017cc0617cd479212b9",
+      "size_bytes": 174516
+    },
+    {
+      "id": "processor-config-32bdf45d2ad4-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "32bdf45d2ad4cc29a0822ddd157a182de76644f0419a6228d151495256e9813c",
+      "size_bytes": 1689
+    },
+    {
+      "id": "tokenizer-cc8d3a0ce364-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "cc8d3a0ce36466ccc1278bf987df5f71db1719b9ca6b4118264f45cb627bfe0f",
+      "size_bytes": 32169626
+    },
+    {
+      "id": "tokenizer-config-e467669cfe17-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e467669cfe172dfb0c4e7de7bfbe7553c42bfa5de95acd71f423f58a434d80de",
+      "size_bytes": 2094
+    }
+  ],
+  "format": {
+    "precision": "nvfp4",
+    "quantization": "modelopt"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "gemma-4-31b",
+      "title": "Gemma 4 31B"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "gemma-4-31b-it-nvfp4",
+      "title": "Gemma 4 31B IT NVFP4"
+    },
+    "publisher": "nvidia",
+    "slug": "gemma-4-31b-it-nvfp4-4135a98a",
+    "variant": "31B IT NVFP4 4135a98a",
+    "version": "31B IT NVFP4 4135a98a"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Google DeepMind",
+      "NVIDIA"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://ai.google.dev/gemma/apache_2"
+  },
+  "metadata": {
+    "description": "NVIDIA ModelOpt NVFP4 quantization of google/gemma-4-31B-it at an exact Hugging Face revision.",
+    "tags": [
+      "nvidia",
+      "gemma-4-31b",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/Gemma-4-31B-IT-NVFP4",
+    "revision": "4135a98a9b728a548947683219633b25682223ac"
+  }
+}
