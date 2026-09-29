@@ -1,0 +1,9 @@
+{
+  "source": {
+    "repo": "r0b0tlab/step37-flash-nvfp4-sm121-vllm-docker",
+    "commit": "e79e192dbe1120302406abed97bf26be4c189484"
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ]
+}

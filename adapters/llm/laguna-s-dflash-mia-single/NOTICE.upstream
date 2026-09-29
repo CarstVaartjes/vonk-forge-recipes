@@ -1,0 +1,6 @@
+README.md, start.sh, stop.sh, .gitignore and bench.png are vendored byte-identical from
+https://github.com/MiaAI-Lab/Laguna-S-2.1-DGX-Spark-RTX-6000-PRO at commit
+750a52ead5e92d4f8c2b42321c6695bcc3cf6360. The upstream repository ships no licence file.
+Dockerfile and requirements-flashinfer.txt are ours: they replace the runtime FlashInfer
+bootstrap in start.sh with build-time installation of the same pinned wheels. start.sh and
+stop.sh are not executed by the recipe; they document the upstream launch configuration.
