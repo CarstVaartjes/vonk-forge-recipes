@@ -1,0 +1,581 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3",
+        "repository": "nvcr.io/nvidia/pytorch"
+      },
+      "context": {
+        "path": "adapters/qwen/flash-next-exl3-tensorfold-single"
+      },
+      "dockerfile": "adapters/qwen/flash-next-exl3-tensorfold-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "files.pythonhosted.org",
+          "pypi.org"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-exl3-3-05bpw-ashhart-tensorfold-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "Qwen3.8-Flash-Next"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Single-DGX-Spark Qwen3.8 Flash Next on Ash Hart's TensorFold engine v0.4.0 (exact decoding, custom CUDA kernels JIT-compiled on first start, stock upstream source) with turboderp's EXL3 3.05 bits-per-weight pack (branch 3.05bpw_h5_ng5; 85 GB including a 32.6 GB n-gram table that stays memory-mapped from the checkpoint; MTP layer included). TensorFold marks its EXL3 path experimental and runs it on one GPU only (upstream refuses --tp 2 and --ple-on-ssd on EXL3 packs); the platform harness has no distributed support anyway. Serves one request at a time by default (upstream CUDA default; the concurrency setting enables shared rounds) at the 262,144-token window with a bf16 KV cache. Text only: stock TensorFold has no image or video path for Flash Next. Upstream measured on one DGX Spark: 81 tok/s code sampled and 59 tok/s chat sampled (MLX 4-bit checkpoint: 77 and 63), prefill at about 0.4x the MLX checkpoint, 52 GB of GPU memory for the weights and 57.6 GiB allocated after loading at 262,144 tokens (upstream claims, unmeasured here); the memory envelope below adds the mapped n-gram table to that figure. Only the 3.05bpw_h5_ng5 branch is measured upstream. The model weights are under the Qwen Community License 1.0 (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses); TensorFold is MIT.",
+    "tags": [
+      "engine",
+      "kernel-jit",
+      "exl3",
+      "experimental",
+      "mtp",
+      "qwen3.8",
+      "reasoning",
+      "spark",
+      "tensorfold"
+    ],
+    "title": "Qwen3.8 Flash Next EXL3 3.05bpw TensorFold single Spark"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-d3b10d515fb2-618cd5b83d",
+          "id": "primary-metadata-d3b10d515fb2-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-a0dc42256084-c693279643",
+          "id": "primary-license-a0dc42256084-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-35ca37ccc366-b335630551",
+          "id": "primary-readme-35ca37ccc366-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-c3cf9e34abf4-00824420d1",
+          "id": "primary-chat-template-c3cf9e34abf4-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-92ce0839c71b-587cb980af",
+          "id": "primary-config-92ce0839c71b-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-e70c136c1b78-97dd3d578b",
+          "id": "primary-generation-config-e70c136c1b78-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "id": "primary-merges-a9d356d7bdf1-b0d6dcfed4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00007-248b0490f3a1-7174d6af0f",
+          "id": "primary-model-00001-of-00007-248b0490f3a1-7174d6af0f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00007-b51039a706e5-1a4d5d40b2",
+          "id": "primary-model-00002-of-00007-b51039a706e5-1a4d5d40b2",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00007-053f5337aabd-8b57abb0fb",
+          "id": "primary-model-00003-of-00007-053f5337aabd-8b57abb0fb",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00007-eb3ee11406c1-82082f708e",
+          "id": "primary-model-00004-of-00007-eb3ee11406c1-82082f708e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00007-d188dced0538-5b20d2b8b6",
+          "id": "primary-model-00005-of-00007-d188dced0538-5b20d2b8b6",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00007-3792d95808ec-7a0e2a031d",
+          "id": "primary-model-00006-of-00007-3792d95808ec-7a0e2a031d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00007-ce89387b7c29-443a3b9ef8",
+          "id": "primary-model-00007-of-00007-ce89387b7c29-443a3b9ef8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-318339ceddd7-0a05be8238",
+          "id": "primary-model-safetensors-index-318339ceddd7-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mtp-hyper-connection-mixer-patch-9b29ae894138-9bbe8001cd",
+          "id": "primary-mtp-hyper-connection-mixer-patch-9b29ae894138-9bbe8001cd",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "ngram-embedding-32006bf33c1e-651a5f9db3",
+          "id": "primary-ngram-embedding-32006bf33c1e-651a5f9db3",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "primary-preprocessor-config-27225450ac9c-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "qbench-prompts-80b3b8c6d41e-ad1a2ae833",
+          "id": "primary-qbench-prompts-80b3b8c6d41e-ad1a2ae833",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "qbench-prompts-f2b3f16d2f92-19411f315b",
+          "id": "primary-qbench-prompts-f2b3f16d2f92-19411f315b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "quantization-config-c6ad4cb2f24b-6f24389fb3",
+          "id": "primary-quantization-config-c6ad4cb2f24b-6f24389fb3",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-0997f410c57a-224931eb13",
+          "id": "primary-tokenizer-0997f410c57a-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
+          "id": "primary-tokenizer-config-b11349aafa7c-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "primary-vocab-ce99b4cb2983-ba05d8e2e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "d6cd8d8088bc89cad9c81f31b0c533d3bc8bd9d15ef7ca827f791daecf67557d",
+        "kind": "model",
+        "publisher": "turboderp",
+        "slug": "qwen3-8-flash-next-exl3-3-05bpw-69e33439"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "bf16 KV cache (upstream default).",
+          "label": "bf16",
+          "value": "bf16"
+        },
+        {
+          "args": [
+            {
+              "name": "kv-dtype",
+              "value": "int8"
+            }
+          ],
+          "help": "int8 KV cache, 1.68x smaller than bf16; quality unmeasured.",
+          "label": "int8",
+          "value": "int8"
+        },
+        {
+          "args": [
+            {
+              "name": "kv-dtype",
+              "value": "int4"
+            }
+          ],
+          "help": "int4 KV cache, 2.64x smaller than bf16; quality unmeasured.",
+          "label": "int4",
+          "value": "int4"
+        }
+      ],
+      "help": "Precision of the per-stream KV cache (--kv-dtype). int8 and int4 store keys and values as codes with one fp16 scale per 32 values (ExLlamaV3's -cq 8 and -cq 4 scheme); upstream says a quantized cache changes the output, so replies differ from bf16's, while drafted output still equals serial output at the same dtype. A token costs 30,784 bytes in bf16, 18,304 in int8 and 11,648 in int4 (upstream figures).",
+      "label": "KV cache precision",
+      "name": "kv_dtype"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Open a think block by default (upstream default: --thinking).",
+          "label": "Think first",
+          "value": "thinking"
+        },
+        {
+          "args": [
+            {
+              "name": "thinking",
+              "value": false
+            },
+            {
+              "name": "no-thinking",
+              "value": true
+            }
+          ],
+          "help": "Answer without a think block unless a request asks for one.",
+          "label": "Answer directly",
+          "value": "direct"
+        }
+      ],
+      "help": "Whether the chat template opens a think block by default. A request can still set chat_template_kwargs.enable_thinking; reasoning comes back separately from the answer.",
+      "label": "Thinking",
+      "name": "thinking"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "At most 6 MTP drafts a round; a chain stops before a draft under 30 percent (TensorFold's CUDA default).",
+          "label": "MTP, 6 drafts, confidence 0.30",
+          "value": "mtp-6-030"
+        },
+        {
+          "args": [
+            {
+              "name": "mtp-confidence",
+              "value": 0.6
+            }
+          ],
+          "help": "Stricter chains. MiaAI-Lab's sweep of 2026-09-29 on the MLX 4-bit checkpoint under her patched engine found 6 drafts at 0.60 about 3 to 4 percent faster than 0.30 (a claim about another checkpoint, not measured on NVFP4).",
+          "label": "MTP, 6 drafts, confidence 0.60",
+          "value": "mtp-6-060"
+        },
+        {
+          "args": [
+            {
+              "name": "mtp-drafts",
+              "value": 3
+            }
+          ],
+          "help": "At most 3 MTP drafts a round (--mtp-drafts 3); speed unmeasured.",
+          "label": "MTP, 3 drafts, confidence 0.30",
+          "value": "mtp-3-030"
+        },
+        {
+          "args": [
+            {
+              "name": "no-drafts",
+              "value": true
+            }
+          ],
+          "help": "Serial one-token-at-a-time reference decoding (--no-drafts); slower.",
+          "label": "No drafting",
+          "value": "serial"
+        }
+      ],
+      "help": "The checkpoint's own MTP head drafts tokens and the target verifies each against its serial sample, so outputs are unchanged by drafting (upstream claim). --mtp-drafts caps the chain and --mtp-confidence stops it before a draft under that probability.",
+      "label": "MTP drafting",
+      "name": "drafting"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Ash Hart (TensorFold)",
+      "turboderp (ExLlamaV3)",
+      "Qwen contributors"
+    ],
+    "source_reference": "https://github.com/ashhart/TensorFold/tree/7a00336b2f6d1a1a3e0ba49d1ef5b4b82e927759"
+  },
+  "release": {
+    "released_at": "2026-09-29",
+    "version": "0.4.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "host",
+        "setting": null,
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "setting": null,
+        "value": 8000
+      },
+      {
+        "name": "name",
+        "setting": null,
+        "value": "Qwen3.8-Flash-Next"
+      },
+      {
+        "name": "parallel",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "context",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "thinking",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "tensorfold",
+    "entrypoint": [
+      "/opt/vonk/bin/tensorfold-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TENSORFOLD_NO_UPDATE_CHECK",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 85139442313,
+            "image_bytes": 26000000000,
+            "safety_margin_bytes": 15000000000,
+            "working_bytes": 8000000000
+          },
+          "memory": {
+            "peak_bytes": 95000000000,
+            "reserve_bytes": 13100000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "Qwen3.8-Flash-Next"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
