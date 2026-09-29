@@ -1,6 +1,8 @@
 {
   "capabilities": [
-    "image-understanding"
+    "chat",
+    "text-generation",
+    "tool-use"
   ],
   "dependencies": [],
   "files": [
@@ -165,18 +167,18 @@
   "identity": {
     "family": {
       "publisher": "nvidia",
-      "slug": "nvidia-qwen",
-      "title": "NVIDIA Qwen"
+      "slug": "qwen3-6-nvidia",
+      "title": "Qwen3.6 NVIDIA"
     },
     "model": {
       "publisher": "nvidia",
       "slug": "qwen3-6-27b-nvfp4",
-      "title": "NVIDIA Qwen3.6 27B NVFP4"
+      "title": "Qwen3.6 27B NVFP4"
     },
     "publisher": "nvidia",
     "slug": "qwen3-6-27b-nvfp4-0893e160",
-    "variant": "NVFP4 0893e160",
-    "version": "NVFP4 0893e160"
+    "variant": "Qwen3.6 27B NVFP4 0893e160",
+    "version": "Qwen3.6 27B NVFP4 0893e160"
   },
   "kind": "model",
   "license": {
@@ -185,19 +187,19 @@
       "Qwen"
     ],
     "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/nvidia/Qwen3.6-27B-NVFP4/blob/0893e1606ff3d5f97a441f405d5fc541a6bdf404/README.md"
+    "url": "https://huggingface.co/nvidia/Qwen3.6-27B-NVFP4/blob/0893e1606ff3d5f97a441f405d5fc541a6bdf404/LICENSE"
   },
   "metadata": {
-    "description": "Exact NVIDIA Model Optimizer NVFP4 checkpoint for Qwen3.6 27B dense multimodal inference.",
+    "description": "Exact public NVIDIA Qwen3.6 27B NVFP4 (ModelOpt native W4A4) at 0893e160, the revision r0b0tlab's SM121 runtime pins.",
     "tags": [
       "nvidia",
-      "nvidia-qwen",
-      "image",
+      "qwen3-6-nvidia",
+      "language",
       "candidate"
     ]
   },
   "modalities": [
-    "image"
+    "text"
   ],
   "requires_token": false,
   "source": {
