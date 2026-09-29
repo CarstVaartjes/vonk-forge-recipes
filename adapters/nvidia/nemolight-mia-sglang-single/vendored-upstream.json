@@ -1,0 +1,11 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "sglang-serve"
+  ],
+  "renamed": {},
+  "source": {
+    "repo": "MiaAI-Lab/Nemotron3.5-Lightning-DGX-Spark-RTX-5090-6000-PRO",
+    "commit": "38c16a403ea57f26f1828fa572270245ae51f01d"
+  }
+}

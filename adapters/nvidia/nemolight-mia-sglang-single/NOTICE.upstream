@@ -1,0 +1,6 @@
+The launch profile (start.sh) is from
+https://github.com/MiaAI-Lab/Nemotron3.5-Lightning-DGX-Spark-RTX-5090-6000-PRO at
+commit 38c16a403ea57f26f1828fa572270245ae51f01d (MIT, see LICENSE.upstream). The
+recipe runs its DGX Spark lane (SGLang, DSpark speculative decoding); the RTX 5090 /
+RTX 6000 PRO memory guidance in the upstream README is not modelled. The SGLang image is
+lmsysorg/sglang:dev-nemotron3-5-lightning pinned by its linux/arm64 manifest digest.
