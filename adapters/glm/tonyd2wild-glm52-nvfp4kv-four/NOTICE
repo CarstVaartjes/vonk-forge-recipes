@@ -1,0 +1,21 @@
+GLM-5.2 NVFP4 KV cache — 4x DGX Spark
+Copyright 2026 tonyd2wild
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Third-party components redistributed here under Apache-2.0:
+
+- port/b12x-nvfp4/ contains PATCHED COPIES of files from the b12x package
+  (PyPI: b12x, Apache-2.0). Original copyright remains with the b12x authors.
+  Patches add an NVFP4 (E2M1) KV-record read mode; the fp8 path is unchanged.
+- port/nvfp4_glm_kernels.py adapts the E2M1 store kernel and quantization
+  scheme from danielwoz/vllm-dspark-nvfp4 (Apache-2.0), which itself builds on
+  the DSpark vLLM fork lineage and Keys' NVFP4 image (v0.21).
+- serve/speednight-nvfp4.sh and the overlay approach derive from the launch
+  harness lineage credited in the companion repo
+  (GLM-5.2-QuantTrio-200K-4x-DGX-Spark--36tok-s): CosmicRaisins/glm-5.2-gb10
+  (Apache-2.0), Zatz, back199640, ciprianveg, eugr.
+- Recipe/tuning reference: 0xdfi/GLM-5.2-1M-4x-DGX-Spark (FINDINGS + serve
+  config for the NVFP4+GLM combination).
+
+See README.md "Credits" for the full acknowledgment table.

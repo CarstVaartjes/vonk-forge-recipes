@@ -1,0 +1,11 @@
+The files outside quanttrio-kernels/ and the adapter's own packaging files are
+byte-identical copies of tonyd2wild/GLM-5.2-NVFP4-KV-4x-DGX-Spark-300kctx-42tok-s at
+34e81562984bda993e0c9ed01ed6900c17e4857b (Apache-2.0, see LICENSE and NOTICE).
+
+quanttrio-kernels/ holds the ten Triton sparse-MLA kernel files that upstream calls its
+"KNOWNGOOD overlay" (/var/tmp/glm-triton) but does not vendor. They are byte-identical
+copies of kernels/*.py in tonyd2wild/GLM-5.2-QuantTrio-200K-4x-DGX-Spark--36tok-s at
+162d7a766e4bc9de1809ff724339538380c43b0c (originally CosmicRaisins/glm-5.2-gb10,
+Apache-2.0). They are listed under "ours" in vendored-upstream.json because the checker
+compares one source repository per adapter. Upstream's apply_nvfp4_plumbing.py overlay
+mode was checked to apply cleanly to exactly these files.
