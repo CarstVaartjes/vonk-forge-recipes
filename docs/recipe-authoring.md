@@ -386,3 +386,7 @@ database initialization must reflect that baseline; cleanup is not permission
 to delete live volumes or data. Current private wire/build/job schemas and API
 route versions are independent contracts, so inspect their meaning instead of
 replacing every occurrence of an older-looking version number.
+
+## README overview
+
+The README overview (engines, Spark variants, creators, per-family listings) is generated from `recipes/`, `models/` and `creators.json` by `tools/build-readme-overview`. Recipe PRs must not edit it; the `Refresh recipe overview` workflow regenerates it after merge. When a rescan adds or changes a tracked creator, edit `creators.json` (also holds the family grouping rules) and run the tool locally to preview.

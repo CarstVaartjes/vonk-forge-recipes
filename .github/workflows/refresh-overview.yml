@@ -1,0 +1,59 @@
+name: Refresh recipe overview
+
+# The README overview (engines, Spark variants, creators) is generated from
+# recipes/, models/ and creators.json. Recipe PRs never regenerate it, so they
+# cannot conflict on README.md; this workflow refreshes it after each merge.
+#
+# Loop safety: the bot commit only touches README.md, which is not in the
+# trigger paths, pushes made with GITHUB_TOKEN do not start workflows, and the
+# job also skips when the actor is github-actions[bot].
+on:
+  push:
+    branches: [main]
+    paths:
+      - "recipes/**"
+      - "models/**"
+      - "creators.json"
+      - "tools/build-readme-overview"
+  workflow_dispatch:
+
+concurrency:
+  group: refresh-recipe-overview
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Regenerate the overview
+        run: python3 tools/build-readme-overview
+
+      - name: Commit the refreshed overview
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- README.md; then
+            echo "overview is current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Refresh recipe overview" -- README.md
+          # The main ruleset requires pull requests. If the bot is not a
+          # bypass actor the push is rejected: warn instead of failing, since
+          # the publish workflow also ships the overview with the release.
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then exit 0; fi
+            git pull --rebase origin main
+            python3 tools/build-readme-overview
+            git commit --amend --no-edit -- README.md || true
+          done
+          echo "::warning::Could not push the overview to main (branch rules?). The release still carries recipe-overview.md."
