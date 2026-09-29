@@ -1,0 +1,1196 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "d84a123255b822fc22508635218000187221794f59c0694c33b0650d1e377d58",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/deepseek/mia-exl3-v41-dual"
+      },
+      "dockerfile": "adapters/deepseek/mia-exl3-v41-dual/Dockerfile",
+      "network": {
+        "hosts": [
+          "codeload.github.com",
+          "docker.io",
+          "github.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-1-flash-exl3-mia-dual"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "DeepSeek-v4.1-Flash-EXL3"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Installable Candidate reproducing MiaAI-Lab's public 6f7d1590 kit (release 2026-09-19, no upstream version tag) on the digest-pinned vllm/vllm-openai:deepseekv41-flash-0909 arm64 image, the only base carrying the DeepseekV41 architecture: the 196 GiB Mia-AiLab EXL3 2.9 bpw checkpoint at 64ba41b6, tensor-parallel 2 over the Spark fabric, native DSpark (k=3), file-backed Engram tables read from shards 47 and 48 of the official deepseek-ai/DeepSeek-V4.1-Flash checkpoint (dba1be0a, declared as a second Model, about 189 GiB per node), 600k context, 2 sequences, a 2.5 GiB pinned KV pool, vision input and tools. Chosen over sfxnz's 3de91468 kit (MIT, 2.0 bpw pack, claims 39.6 tok/s greedy) because it is a single self-contained Dockerfile, the higher-quality 2.9 bpw pack and the closest sibling of the existing Mia EXL3 recipe; sfxnz's kit needs a chain of patch images, a 334 GB pack and further first-use kernel compilation. The kit source is AGPL-3.0 with earlier MIT contributions (upstream-LICENSE, upstream-LICENSE-MIT); both Models are MIT. Upstream claims (not measured here): about 23 to 39 tok/s single stream depending on workload, 774,400-token KV pool, and a first boot of about 25 minutes. Not exposed: the cooperative-MoE binary (needs an unpinned prebuilt library), Engram row packing (a host-side artifact), the language-model-only switch, the memory-guard watchdog and the third-party abliterated overlay. The engine-ready timeout is 3600 s (upstream 1500 s) because upstream reports a first boot of about 25 minutes. Thinking is on by default (reasoning effort high), so a small max_tokens can return empty content unless chat_template_kwargs.enable_thinking is false. Vonk physical acceptance is pending.",
+    "tags": [
+      "candidate",
+      "deepseek",
+      "deepseek-v4-1",
+      "dspark",
+      "executable",
+      "exl3",
+      "mia",
+      "multimodal",
+      "reasoning",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "DeepSeek V4.1 Flash EXL3 2.9 bpw Mia two Sparks"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-b2e1dc084b91-618cd5b83d",
+          "id": "primary-metadata-b2e1dc084b91-618cd5b83d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "deepseek-v41-tech-report-ba68e2e40408-37281b8667",
+          "id": "primary-deepseek-v41-tech-report-ba68e2e40408-37281b8667",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "license-f2c6c6028156-c693279643",
+          "id": "primary-license-f2c6c6028156-c693279643",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-a1b6f421d178-b335630551",
+          "id": "primary-readme-a1b6f421d178-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "chat-template-7d1356675e42-00824420d1",
+          "id": "primary-chat-template-7d1356675e42-00824420d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "config-8b2cb821118c-587cb980af",
+          "id": "primary-config-8b2cb821118c-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00039-a4f64372b9b6-6467600fe4",
+          "id": "primary-model-00001-of-00039-a4f64372b9b6-6467600fe4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00039-7c6f42288584-b3eefdb328",
+          "id": "primary-model-00002-of-00039-7c6f42288584-b3eefdb328",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00039-96b530520254-eba0e023a5",
+          "id": "primary-model-00003-of-00039-96b530520254-eba0e023a5",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00039-00b6755b2be1-22d20a25b3",
+          "id": "primary-model-00004-of-00039-00b6755b2be1-22d20a25b3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00039-cf600746d279-545a6b3ac0",
+          "id": "primary-model-00005-of-00039-cf600746d279-545a6b3ac0",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00039-69d9d4cc8020-e88137e81b",
+          "id": "primary-model-00006-of-00039-69d9d4cc8020-e88137e81b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00039-fe30eae28340-3f0821eb88",
+          "id": "primary-model-00007-of-00039-fe30eae28340-3f0821eb88",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00039-59f5ddeb5a70-76337fd4f0",
+          "id": "primary-model-00008-of-00039-59f5ddeb5a70-76337fd4f0",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00039-525eb19e98d1-c3d148435e",
+          "id": "primary-model-00009-of-00039-525eb19e98d1-c3d148435e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00039-e21d19cd0524-fafc0988b9",
+          "id": "primary-model-00010-of-00039-e21d19cd0524-fafc0988b9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00039-b3ce83d74704-2cc65c68fe",
+          "id": "primary-model-00011-of-00039-b3ce83d74704-2cc65c68fe",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00039-46aca54ebbcb-8349e3e3a0",
+          "id": "primary-model-00012-of-00039-46aca54ebbcb-8349e3e3a0",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00039-e7076f3c089f-4a02a2735a",
+          "id": "primary-model-00013-of-00039-e7076f3c089f-4a02a2735a",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00039-611e59e7424e-1e72afbfad",
+          "id": "primary-model-00014-of-00039-611e59e7424e-1e72afbfad",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00039-2cf5357b75eb-a035e979be",
+          "id": "primary-model-00015-of-00039-2cf5357b75eb-a035e979be",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00039-0def761dac33-fdf86548d7",
+          "id": "primary-model-00016-of-00039-0def761dac33-fdf86548d7",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00039-358db52ff31e-6f84572a34",
+          "id": "primary-model-00017-of-00039-358db52ff31e-6f84572a34",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00018-of-00039-df3c7016c0e9-c47def37a4",
+          "id": "primary-model-00018-of-00039-df3c7016c0e9-c47def37a4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00019-of-00039-112e9a7553dd-892cf2c4be",
+          "id": "primary-model-00019-of-00039-112e9a7553dd-892cf2c4be",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00020-of-00039-dfec038e987e-9c6146e489",
+          "id": "primary-model-00020-of-00039-dfec038e987e-9c6146e489",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00021-of-00039-fd8b3384ad7b-502b86cba1",
+          "id": "primary-model-00021-of-00039-fd8b3384ad7b-502b86cba1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00022-of-00039-8b0119b56fc0-091fe8a85e",
+          "id": "primary-model-00022-of-00039-8b0119b56fc0-091fe8a85e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00023-of-00039-bac75629e86c-6b8995210e",
+          "id": "primary-model-00023-of-00039-bac75629e86c-6b8995210e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00024-of-00039-ac3a8216e5a0-a76335258a",
+          "id": "primary-model-00024-of-00039-ac3a8216e5a0-a76335258a",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00025-of-00039-350c5155c601-e5cb20e35a",
+          "id": "primary-model-00025-of-00039-350c5155c601-e5cb20e35a",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00026-of-00039-e419a674256f-b65b2b3f02",
+          "id": "primary-model-00026-of-00039-e419a674256f-b65b2b3f02",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00027-of-00039-0a43f6d44f03-b344ac8e09",
+          "id": "primary-model-00027-of-00039-0a43f6d44f03-b344ac8e09",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00028-of-00039-009ff46bcdbe-242afb74b1",
+          "id": "primary-model-00028-of-00039-009ff46bcdbe-242afb74b1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00029-of-00039-af001e6806a4-7b3a4ba36f",
+          "id": "primary-model-00029-of-00039-af001e6806a4-7b3a4ba36f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00030-of-00039-ffbdae1e5e2f-25ce473105",
+          "id": "primary-model-00030-of-00039-ffbdae1e5e2f-25ce473105",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00031-of-00039-b8311ec0892b-c397f5437e",
+          "id": "primary-model-00031-of-00039-b8311ec0892b-c397f5437e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00032-of-00039-63a37b6acf2e-41b8ee9b1d",
+          "id": "primary-model-00032-of-00039-63a37b6acf2e-41b8ee9b1d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00033-of-00039-0440b562e466-15358f5c98",
+          "id": "primary-model-00033-of-00039-0440b562e466-15358f5c98",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00034-of-00039-fe77c23bfb56-d52288d4a2",
+          "id": "primary-model-00034-of-00039-fe77c23bfb56-d52288d4a2",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00035-of-00039-fff364d35b8f-9627fc64fe",
+          "id": "primary-model-00035-of-00039-fff364d35b8f-9627fc64fe",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00036-of-00039-b0a88ebf3dfa-3dea84db5c",
+          "id": "primary-model-00036-of-00039-b0a88ebf3dfa-3dea84db5c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00037-of-00039-74af1518df9f-05e5d6ddef",
+          "id": "primary-model-00037-of-00039-74af1518df9f-05e5d6ddef",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00038-of-00039-1c5276c42203-a71cb9ad6c",
+          "id": "primary-model-00038-of-00039-1c5276c42203-a71cb9ad6c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00039-of-00039-eaa32d71ee33-8c028ad6c0",
+          "id": "primary-model-00039-of-00039-eaa32d71ee33-8c028ad6c0",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-e35cb7c2f779-0a05be8238",
+          "id": "primary-model-safetensors-index-e35cb7c2f779-0a05be8238",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "quantization-config-2949806ec66f-6f24389fb3",
+          "id": "primary-quantization-config-2949806ec66f-6f24389fb3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-c90dfa01249d-224931eb13",
+          "id": "primary-tokenizer-c90dfa01249d-224931eb13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-e81000b44859-94d5c6ba8f",
+          "id": "primary-tokenizer-config-e81000b44859-94d5c6ba8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "f81014fb1ca7459b706bb16797572b950ebc8026703af6c02b19a0bc1d3216d8",
+        "kind": "model",
+        "publisher": "mia-ai-lab",
+        "slug": "deepseek-v4-1-flash-exl3-2-9bpw-64ba41b6"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "config-8be45ce04760-587cb980af",
+          "id": "engram-config-8be45ce04760-587cb980af",
+          "mount": {
+            "target": "/models/engram"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00047-of-00048-824db4881320-a8608c02bd",
+          "id": "engram-model-00047-of-00048-824db4881320-a8608c02bd",
+          "mount": {
+            "target": "/models/engram"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00048-of-00048-976330f49543-aff6c0ae41",
+          "id": "engram-model-00048-of-00048-976330f49543-aff6c0ae41",
+          "mount": {
+            "target": "/models/engram"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-74b0686a3d28-0a05be8238",
+          "id": "engram-model-safetensors-index-74b0686a3d28-0a05be8238",
+          "mount": {
+            "target": "/models/engram"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "dependency-deepseek-v4-1-flash-dba1be0a",
+      "model": {
+        "content_sha256": "3557980356ff5a14cd62aaf3bebeddc3b002409a3192e7daef4b49168ade1771",
+        "kind": "model",
+        "publisher": "deepseek-ai",
+        "slug": "deepseek-v4-1-flash-dba1be0a"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default: 3 drafted tokens per step.",
+          "label": "DSpark, 3 tokens",
+          "value": "dspark-3"
+        },
+        {
+          "args": [
+            {
+              "name": "speculative-config",
+              "setting": null,
+              "value": "{\"method\":\"dspark\",\"num_speculative_tokens\":5}"
+            }
+          ],
+          "help": "The checkpoint's draft block size ceiling (5); upstream measured it slower than 3 on prose.",
+          "label": "DSpark, 5 tokens",
+          "value": "dspark-5"
+        },
+        {
+          "env": {
+            "DSV41_SPECULATION": "off"
+          },
+          "help": "No speculation. Upstream: frees about 3.5 GiB per node and is faster once the batch is wide.",
+          "label": "Off",
+          "value": "off"
+        }
+      ],
+      "help": "DSpark drafts tokens with the draft experts stored in the checkpoint (no separate drafter is downloaded). Upstream reports k=3 as measured faster than k=5 on prose; speed statements here are upstream claims until measured on Vonk hardware.",
+      "label": "Speculative decoding",
+      "name": "speculation"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default.",
+          "label": "Agent (1536 tokens, 96 threads)",
+          "value": "agent"
+        },
+        {
+          "args": [
+            {
+              "name": "max-num-batched-tokens",
+              "setting": null,
+              "value": 1024
+            }
+          ],
+          "env": {
+            "DSV41_IO_THREADS": "32"
+          },
+          "help": "Upstream's previous pair; leaves more memory margin during a very long prefill.",
+          "label": "Low resource (1024 tokens, 32 threads)",
+          "value": "low-resource"
+        }
+      ],
+      "help": "Chunked-prefill size and Engram reader threads. The larger pair is upstream's measured agent-workload setting; the smaller pair is its low-resource override. A large prefill chunk lowers free memory during very long prompts.",
+      "label": "Prefill and Engram I/O",
+      "name": "prefill"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default.",
+          "label": "Every 4096 tokens",
+          "value": "periodic-4096"
+        },
+        {
+          "args": [
+            {
+              "name": "prefix-cache-retention-interval",
+              "setting": null,
+              "value": 0
+            }
+          ],
+          "help": "Upstream's documented rollback.",
+          "label": "Latest boundary only",
+          "value": "latest-only"
+        }
+      ],
+      "help": "Periodic prefix-cache checkpoints every 4096 tokens keep long agent conversations cacheable; 0 restores the image's latest-boundary-only behaviour (it does not disable prefix caching).",
+      "label": "Prefix-cache retention",
+      "name": "prefix-retention"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "DeepSeek AI",
+      "MiaAI-Lab (AGPL-3.0; prior MIT contributions retained in upstream-LICENSE-MIT)",
+      "Turboderp",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks/tree/6f7d1590ad49a2b8995188e45d7b9db31e677452"
+  },
+  "release": {
+    "released_at": "2026-09-19",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "DeepSeek-v4.1-Flash-EXL3"
+      },
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 2
+      },
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "exl3"
+      },
+      {
+        "name": "tokenizer-mode",
+        "setting": null,
+        "value": "deepseek_v41"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "deepseek_v41"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "deepseek_v41"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-prompt-tokens-details",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "no-enable-flashinfer-autotune",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "hf-overrides",
+        "setting": null,
+        "value": "{\"engram_table_dir\":\"/models/engram\"}"
+      },
+      {
+        "name": "prefix-cache-retention-interval",
+        "setting": null,
+        "value": 4096
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.88"
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 1536
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 2684354560
+      },
+      {
+        "name": "block-size",
+        "setting": null,
+        "value": 64
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"dspark\",\"num_speculative_tokens\":3}"
+      },
+      {
+        "name": "chat-template",
+        "setting": null,
+        "value": "/opt/dsv41/chat_template.jinja"
+      },
+      {
+        "name": "mm-encoder-tp-mode",
+        "setting": null,
+        "value": "data"
+      },
+      {
+        "name": "limit-mm-per-prompt",
+        "setting": null,
+        "value": "{\"image\":100}"
+      },
+      {
+        "name": "skip-mm-profiling",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "compilation-config",
+        "setting": null,
+        "value": "{\"cudagraph_capture_sizes\":[1,2,3,4,6,8,12,18,24]}"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models/target"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "DO_NOT_TRACK",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_ENGINE_READY_TIMEOUT_S",
+        "value": "3600"
+      },
+      {
+        "name": "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS",
+        "value": "1800"
+      },
+      {
+        "name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_DISABLE_SHARED_EXPERTS_STREAM",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_SPARSE_INDEXER_MAX_LOGITS_MB",
+        "value": "256"
+      },
+      {
+        "name": "EXL3_FUSED_MOE",
+        "value": "1"
+      },
+      {
+        "name": "EXL3_MOE_ROW_TILE",
+        "value": "0"
+      },
+      {
+        "name": "EXL3_TEMP_ROWS_FUSED",
+        "value": "16"
+      },
+      {
+        "name": "EXL3_FAT_GROUPED",
+        "value": "1"
+      },
+      {
+        "name": "EXL3_FAT_KERNEL",
+        "value": "0"
+      },
+      {
+        "name": "GLM53_SUPPRESS_STOPS_IN_REASONING",
+        "value": "1"
+      },
+      {
+        "name": "GLM53_MIXED_PREFILL_CHUNK",
+        "value": "0"
+      },
+      {
+        "name": "GLM53_SPINWAIT_MS",
+        "value": "stock"
+      },
+      {
+        "name": "DSV41_SOURCE",
+        "value": "/models/engram"
+      },
+      {
+        "name": "DSV41_CACHE_GIB",
+        "value": "0"
+      },
+      {
+        "name": "DSV41_RESIDENT_SCALES",
+        "value": "0"
+      },
+      {
+        "name": "DSV41_IO_THREADS",
+        "value": "96"
+      },
+      {
+        "name": "DSV41_CACHE_WAYS",
+        "value": "4"
+      },
+      {
+        "name": "DSV41_STATS_SECONDS",
+        "value": "60"
+      },
+      {
+        "name": "DSV41_EXL3_SERIAL_STREAMS",
+        "value": "1"
+      },
+      {
+        "name": "DSV41_DROP_PAGE_CACHE",
+        "value": "1"
+      },
+      {
+        "name": "DSV41_SKIP_MIXED_WARMUP",
+        "value": "0"
+      },
+      {
+        "name": "DSV41_INDEXER_PREFILL_FACTOR",
+        "value": "1"
+      },
+      {
+        "name": "DSV41_PREFILL_EMPTY_CACHE_TOKENS",
+        "value": "8192"
+      },
+      {
+        "name": "DSV41_PREFILL_EMPTY_CACHE_MEMAVAIL_GIB",
+        "value": "2.5"
+      },
+      {
+        "name": "DSV41_PREFILL_END_EMPTY_CACHE",
+        "value": "0"
+      },
+      {
+        "name": "TORCH_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "FLASHINFER_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "FLASHINFER_DISABLE_VERSION_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "value": "expandable_segments:True"
+      },
+      {
+        "name": "NCCL_IB_DISABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IB_ROCE_VERSION_NUM",
+        "value": "2"
+      },
+      {
+        "name": "NCCL_NET",
+        "value": "IB"
+      },
+      {
+        "name": "NCCL_NET_PLUGIN",
+        "value": "none"
+      },
+      {
+        "name": "NCCL_NVLS_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CUMEM_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IB_MERGE_NICS",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CROSS_NIC",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IGNORE_CPU_AFFINITY",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_DEBUG",
+        "value": "WARN"
+      },
+      {
+        "name": "NCCL_BUFFSIZE",
+        "value": "1048576"
+      },
+      {
+        "name": "NCCL_LL128_BUFFSIZE",
+        "value": "262144"
+      },
+      {
+        "name": "NCCL_PROTO",
+        "value": "^LL128"
+      },
+      {
+        "name": "NCCL_MAX_NCHANNELS",
+        "value": "8"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 2
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 600000
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "dual",
+    "node_count": 2,
+    "parallelism": {
+      "backend": "mp",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 2
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 413759848412,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 24000000000,
+            "working_bytes": 20000000000
+          },
+          "memory": {
+            "peak_bytes": 119000000000,
+            "reserve_bytes": 6000000000
+          }
+        }
+      },
+      {
+        "count": 1,
+        "endpoint_owner": false,
+        "name": "worker",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 413759848412,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 24000000000,
+            "working_bytes": 20000000000
+          },
+          "memory": {
+            "peak_bytes": 119000000000,
+            "reserve_bytes": 6000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "worker",
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "chat_template_kwargs": {
+                "enable_thinking": false
+              },
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "DeepSeek-v4.1-Flash-EXL3"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

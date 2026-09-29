@@ -3,16 +3,16 @@
   "authority_id": "nl-family-aware-20260924",
   "catalog": {
     "repository": "CarstVaartjes/vonk-forge-recipes",
-    "commit": "30dc60b2ed6631951c50ef6232043c4c5625e5ea",
+    "commit": "f7cbccc9f5276b435937c52d501a88df13aebddb",
     "release_tag": "v2.1.0",
-    "source_commit": "30dc60b2ed6631951c50ef6232043c4c5625e5ea",
-    "catalog_index_sha256": "4655d2d30322154fa0e9839e1fc024173c4131f1e7bd3d7ab4c5b3f25675194f",
-    "qualification_index_sha256": "191b9e2d5bc0b0aad101943584e6829500129c0a16f286b7fa19eae2e6cf8ace",
-    "recipe_count": 87
+    "source_commit": "f7cbccc9f5276b435937c52d501a88df13aebddb",
+    "catalog_index_sha256": "90017bb386eaccfddafe0063eb74238c937c235d9369a8fb03309c6134a3f8ed",
+    "qualification_index_sha256": "fc9e3840c93f2663dec9dc3f95db7a870b1c2fa06d08ae8e07df0b58839b0120",
+    "recipe_count": 88
   },
   "scope": {
     "maximum_node_count": 2,
-    "recipe_count": 83,
+    "recipe_count": 84,
     "excluded_topology_recipe_keys": [
       "vonk-forge/glm-5-3-flash-nvfp4-vllm-four",
       "vonk-forge/glm-5-2-quanttrio-vllm-four",
@@ -4205,6 +4205,69 @@
           "role": "dedicated"
         }
       ]
+    },
+    {
+      "sequence": 84,
+      "key": "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual",
+      "content_sha256": "dc741763003519ace1832d8e72fd4daffd399dae3c606caf5a703fb72e4cea7e",
+      "node_count": 2,
+      "interface": "openai-service",
+      "recipe_version": "1.0.0",
+      "package": {
+        "path": "packages/deepseek-v4-1-flash-exl3-mia-dual.tar.gz",
+        "sha256": "211b910488eaa8e6bfa112dc1422ab1bd61fb131f465480c4491a9fb7148f6ad",
+        "expected_bytes": 162090,
+        "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
+      },
+      "disposition": "actionable",
+      "model_license_refs": [
+        {
+          "key": "mia-ai-lab/deepseek-v4-1-flash-exl3-2-9bpw-64ba41b6",
+          "content_sha256": "f81014fb1ca7459b706bb16797572b950ebc8026703af6c02b19a0bc1d3216d8",
+          "spdx": "MIT",
+          "url": "https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw/blob/64ba41b6c916a587db06eae2e19b7845f7be6e6b/LICENSE",
+          "attribution": [
+            "DeepSeek AI",
+            "MiaAI-Lab",
+            "Turboderp"
+          ]
+        },
+        {
+          "key": "deepseek-ai/deepseek-v4-1-flash-dba1be0a",
+          "content_sha256": "3557980356ff5a14cd62aaf3bebeddc3b002409a3192e7daef4b49168ade1771",
+          "spdx": "MIT",
+          "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/blob/dba1be0a40aa45a94ad051997016db3960a90277/LICENSE",
+          "attribution": [
+            "DeepSeek AI"
+          ]
+        }
+      ],
+      "qualification_inputs": [
+        "generic-image-png"
+      ],
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "review_gates": [],
+      "runtime_stack_sha256": "ad70a491349948f82579deffa9a3c204d8d329dbe71553d73fb65695c5ab253a",
+      "topology_sha256": "580b9b8a28126e47bd43ea15203c3181ad1f77c316a603577c5d8e20639923d7",
+      "recovery_coverage_refs": [
+        {
+          "coverage_id": "3ab5bf20dcbf7a03382e6b26295de909a22edc7a91a5cb82351ae086cb0339b9",
+          "failure_mode": "dual-host-restart",
+          "representative_recipe": "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual",
+          "role": "dedicated"
+        },
+        {
+          "coverage_id": "80be5cd7fb5f83d3e8c331850754072f2e478887a20563fc1172a231b1cc8cb8",
+          "failure_mode": "dual-rank-loss-recovery",
+          "representative_recipe": "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual",
+          "role": "dedicated"
+        }
+      ]
     }
   ],
   "batches": [
@@ -4951,6 +5014,18 @@
           "node_count": 2
         }
       ]
+    },
+    {
+      "sequence": 48,
+      "id": "batch-048",
+      "mode": "exclusive-dual",
+      "assignments": [
+        {
+          "recipe": "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual",
+          "lane": 1,
+          "node_count": 2
+        }
+      ]
     }
   ],
   "recovery_coverage": [
@@ -5069,6 +5144,26 @@
       "shared": false,
       "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
       "coverage_id": "c2898dd4ab90b8fd0461cff9e1f1408a4ab695b55c908577679a0ea06ad909e9"
+    },
+    {
+      "failure_mode": "dual-host-restart",
+      "representative_recipe": "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual",
+      "members": [
+        {
+          "recipe": "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual",
+          "recipe_content_sha256": "dc741763003519ace1832d8e72fd4daffd399dae3c606caf5a703fb72e4cea7e",
+          "package_sha256": "211b910488eaa8e6bfa112dc1422ab1bd61fb131f465480c4491a9fb7148f6ad",
+          "model_content_sha256s": [
+            "3557980356ff5a14cd62aaf3bebeddc3b002409a3192e7daef4b49168ade1771",
+            "f81014fb1ca7459b706bb16797572b950ebc8026703af6c02b19a0bc1d3216d8"
+          ],
+          "runtime_stack_sha256": "ad70a491349948f82579deffa9a3c204d8d329dbe71553d73fb65695c5ab253a",
+          "topology_sha256": "580b9b8a28126e47bd43ea15203c3181ad1f77c316a603577c5d8e20639923d7"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "coverage_id": "3ab5bf20dcbf7a03382e6b26295de909a22edc7a91a5cb82351ae086cb0339b9"
     },
     {
       "failure_mode": "dual-host-restart",
@@ -5262,6 +5357,26 @@
       "shared": false,
       "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
       "coverage_id": "f24e3e4520fc53295cbc50d5f0a4113d91258d2421ec4c95f890738ffe2bfa0f"
+    },
+    {
+      "failure_mode": "dual-rank-loss-recovery",
+      "representative_recipe": "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual",
+      "members": [
+        {
+          "recipe": "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual",
+          "recipe_content_sha256": "dc741763003519ace1832d8e72fd4daffd399dae3c606caf5a703fb72e4cea7e",
+          "package_sha256": "211b910488eaa8e6bfa112dc1422ab1bd61fb131f465480c4491a9fb7148f6ad",
+          "model_content_sha256s": [
+            "3557980356ff5a14cd62aaf3bebeddc3b002409a3192e7daef4b49168ade1771",
+            "f81014fb1ca7459b706bb16797572b950ebc8026703af6c02b19a0bc1d3216d8"
+          ],
+          "runtime_stack_sha256": "ad70a491349948f82579deffa9a3c204d8d329dbe71553d73fb65695c5ab253a",
+          "topology_sha256": "580b9b8a28126e47bd43ea15203c3181ad1f77c316a603577c5d8e20639923d7"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "coverage_id": "80be5cd7fb5f83d3e8c331850754072f2e478887a20563fc1172a231b1cc8cb8"
     },
     {
       "failure_mode": "dual-rank-loss-recovery",
