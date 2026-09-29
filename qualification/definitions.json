@@ -3974,6 +3974,23 @@
         ]
       }
     },
+    "vonk-forge/deepseek-v4-flash-vision-exp-sfxnz-vllm-dual": {
+      "alias": "deepseek-ai/DeepSeek-V4-Flash-Vision-Exp",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context, two-stream concurrency, and eight-image input canaries"
+        ],
+        "recovery": [
+          "Controller-only rank-loss, warm-cache recovery, and image-input revalidation"
+        ]
+      }
+    },
     "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual": {
       "alias": "DeepSeek-v4.1-Flash-EXL3",
       "smoke_cases": [

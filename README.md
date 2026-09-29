@@ -10,7 +10,7 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-**98 recipes** for **31 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+**102 recipes** for **31 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
@@ -18,7 +18,7 @@ Number of recipes per model family and engine.
 
 | Model family | vLLM | SGLang | TensorRT-LLM | llama.cpp | TensorFold | ds4 | diffusers | ComfyUI | pytorch-pipeline |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| DeepSeek V4 Flash | 6 |  |  |  |  | 3 |  |  |  |
+| DeepSeek V4 Flash | 7 |  |  |  |  | 3 |  |  |  |
 | FLUX.2 |  |  |  |  |  |  |  | 2 |  |
 | Gemma | 2 |  |  |  |  |  |  |  |  |
 | GLM | 9 |  |  |  |  |  |  |  |  |
@@ -33,7 +33,7 @@ Number of recipes per model family and engine.
 | LFM2.5 | 2 |  |  |  |  |  |  |  |  |
 | Ling |  | 1 |  |  |  |  |  |  |  |
 | LTX |  |  |  |  |  |  | 2 |  | 5 |
-| MiMo | 1 |  |  |  |  |  |  |  |  |
+| MiMo | 1 | 1 |  |  |  |  |  |  |  |
 | MiniMax H3 | 1 |  |  |  |  |  | 2 |  |  |
 | MOSS-VL |  |  |  |  |  |  |  |  | 1 |
 | MOVA |  |  |  |  |  |  |  |  | 2 |
@@ -41,7 +41,7 @@ Number of recipes per model family and engine.
 | Nemotron | 7 |  |  |  |  |  |  |  |  |
 | Ornith | 1 |  |  |  |  |  |  |  |  |
 | Pixal3D |  |  |  |  |  |  |  |  | 1 |
-| Qwen (text and vision) | 10 | 1 |  |  | 1 |  |  |  |  |
+| Qwen (text and vision) | 10 | 2 |  |  | 2 |  |  |  |  |
 | Qwen Image |  |  |  |  |  |  | 6 | 5 |  |
 | SkinTokens |  |  |  |  |  |  |  |  | 1 |
 | Step1X-3D |  |  |  |  |  |  |  |  | 3 |
@@ -49,7 +49,7 @@ Number of recipes per model family and engine.
 | TripoSG |  |  |  |  |  |  |  |  | 1 |
 | UI-Mate | 1 |  |  |  |  |  |  |  |  |
 | Wan |  |  |  |  |  |  |  | 3 | 2 |
-| **Total** | **46** | **4** | **0** | **0** | **1** | **3** | **13** | **10** | **21** |
+| **Total** | **47** | **6** | **0** | **0** | **2** | **3** | **13** | **10** | **21** |
 
 ### Spark variants
 
@@ -57,7 +57,7 @@ Which Spark counts each family runs on, and who provides them.
 
 | Model family | 1 Spark | 2 Sparks | 3 Sparks | 4 Sparks | 8 Sparks |
 | --- | --- | --- | --- | --- | --- |
-| DeepSeek V4 Flash | 0xSero, antirez, MiaAI-Lab | MiaAI-Lab, r0b0tlab |  |  |  |
+| DeepSeek V4 Flash | 0xSero, antirez, MiaAI-Lab | MiaAI-Lab, r0b0tlab, sfxnz |  |  |  |
 | FLUX.2 | black-forest-labs, Comfy-Org |  |  |  |  |
 | Gemma | google |  |  |  |  |
 | GLM | r0b0tlab | drowzeys (keyz), MiaAI-Lab, r0b0tlab, tonyd2wild | MiaAI-Lab | drowzeys (keyz), tonyd2wild |  |
@@ -72,7 +72,7 @@ Which Spark counts each family runs on, and who provides them.
 | LFM2.5 | LiquidAI |  |  |  |  |
 | Ling | MiaAI-Lab |  |  |  |  |
 | LTX | Lightricks |  |  |  |  |
-| MiMo |  | tonyd2wild |  |  |  |
+| MiMo |  | MiaAI-Lab, tonyd2wild |  |  |  |
 | MiniMax H3 | MiniMaxAI | r0b0tlab |  |  |  |
 | MOSS-VL | OpenMOSS-Team |  |  |  |  |
 | MOVA | OpenMOSS-Team |  |  |  |  |
@@ -80,7 +80,7 @@ Which Spark counts each family runs on, and who provides them.
 | Nemotron | drowzeys (keyz), NVIDIA playbooks |  |  |  |  |
 | Ornith | ornith-ai |  |  |  |  |
 | Pixal3D | TencentARC |  |  |  |  |
-| Qwen (text and vision) | drowzeys (keyz), MiaAI-Lab, NVIDIA playbooks, Qwen, r0b0tlab | MiaAI-Lab, sfxnz |  |  |  |
+| Qwen (text and vision) | ashhart, drowzeys (keyz), MiaAI-Lab, NVIDIA playbooks, Qwen, r0b0tlab | MiaAI-Lab, sfxnz |  |  |  |
 | Qwen Image | Comfy-Org, lightx2v, NVIDIA playbooks, Qwen |  |  |  |  |
 | SkinTokens | VAST-AI |  |  |  |  |
 | Step1X-3D | stepfun-ai |  |  |  |  |
@@ -95,13 +95,13 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 | Creator | Focus | Engines | Recipes |
 | --- | --- | --- | ---: |
-| [MiaAI-Lab](https://github.com/MiaAI-Lab) | Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling. | SGLang, TensorFold, vLLM | 13 |
+| [MiaAI-Lab](https://github.com/MiaAI-Lab) | Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling. | SGLang, TensorFold, vLLM | 14 |
 | [tonyd2wild](https://github.com/tonyd2wild) | Multi-Spark (2 and 4) vLLM recipes for large MoE models: GLM, MiMo. | vLLM | 3 |
-| [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. | vLLM | 5 |
+| [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. | SGLang, vLLM | 6 |
 | [drowzeys (keyz)](https://github.com/drowzeys) | Large multi-Spark vLLM builds with prebuilt images: GLM, MiMo, abliterated variants. | vLLM | 4 |
 | [NVIDIA playbooks](https://github.com/NVIDIA/dgx-spark-playbooks) | Official DGX Spark playbooks and NVIDIA model releases: Nemotron, NVFP4 checkpoints. | diffusers, vLLM | 8 |
 | [eugr](https://github.com/eugr) | spark-vllm-docker: vLLM container builds for dual DGX Spark; llama-benchy benchmarking. |  | 0 |
-| [sfxnz](https://github.com/sfxnz) | Dual-Spark vLLM TP=2 cookbooks: Qwen3.8, GLM 5.3, DeepSeek V4.1 EXL3. | vLLM | 1 |
+| [sfxnz](https://github.com/sfxnz) | Dual-Spark vLLM TP=2 cookbooks: Qwen3.8, GLM 5.3, DeepSeek V4.1 EXL3. | vLLM | 2 |
 | [0xSero](https://github.com/0xSero) | SparkInfer builds and local-ai-recipe-kit; DeepSeek V4 Flash on one Spark. | vLLM | 2 |
 | [antirez](https://github.com/antirez/ds4) | ds4: the DeepSeek 4 Flash inference engine (Metal, CUDA, ROCm). | ds4 | 3 |
 
@@ -109,6 +109,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 | Source | Recipes |
 | --- | ---: |
+| [ashhart](https://github.com/ashhart) | 1 |
 | [black-forest-labs](https://huggingface.co/black-forest-labs) | 1 |
 | [Comfy-Org](https://huggingface.co/Comfy-Org) | 8 |
 | [google](https://huggingface.co/google) | 2 |
@@ -135,7 +136,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 ### Recipes by family
 
-<details><summary>DeepSeek V4 Flash (9)</summary>
+<details><summary>DeepSeek V4 Flash (10)</summary>
 
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
@@ -148,6 +149,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | [deepseek-v4-flash-0731-sparkinfer-single](recipes/deepseek-v4-flash-0731-sparkinfer-single.json) | vLLM | 1 | 0xSero |
 | [deepseek-v4-flash-0731-sparkinfer-target-only-canary-single](recipes/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single.json) | vLLM | 1 | 0xSero |
 | [deepseek-v4-flash-vision-exp-mia-dual](recipes/deepseek-v4-flash-vision-exp-mia-dual.json) | vLLM | 2 | MiaAI-Lab |
+| [deepseek-v4-flash-vision-exp-sfxnz-vllm-dual](recipes/deepseek-v4-flash-vision-exp-sfxnz-vllm-dual.json) | vLLM | 2 | sfxnz |
 
 </details>
 
@@ -286,10 +288,11 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 </details>
 
-<details><summary>MiMo (1)</summary>
+<details><summary>MiMo (2)</summary>
 
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
+| [mimo-v2-6-flash-rl-sglang-mia-dual](recipes/mimo-v2-6-flash-rl-sglang-mia-dual.json) | SGLang | 2 | MiaAI-Lab |
 | [mimo-v2-6-flash-rl-vllm-dual](recipes/mimo-v2-6-flash-rl-vllm-dual.json) | vLLM | 2 | tonyd2wild |
 
 </details>
@@ -359,7 +362,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 </details>
 
-<details><summary>Qwen (text and vision) (12)</summary>
+<details><summary>Qwen (text and vision) (14)</summary>
 
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
@@ -367,10 +370,12 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | [qwen3-6-27b-vllm-single](recipes/qwen3-6-27b-vllm-single.json) | vLLM | 1 | Qwen |
 | [qwen3-6-35b-a3b-nvfp4-vllm-single](recipes/qwen3-6-35b-a3b-nvfp4-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |
 | [qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single](recipes/qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single.json) | vLLM | 1 | drowzeys (keyz) |
+| [qwen3-8-27b-ashhart-tensorfold-single](recipes/qwen3-8-27b-ashhart-tensorfold-single.json) | TensorFold | 1 | ashhart |
 | [qwen3-8-27b-fp8-vllm-single](recipes/qwen3-8-27b-fp8-vllm-single.json) | vLLM | 1 | Qwen |
 | [qwen3-8-27b-nvfp4-dspark-sglang-single](recipes/qwen3-8-27b-nvfp4-dspark-sglang-single.json) | SGLang | 1 | MiaAI-Lab |
 | [qwen3-8-27b-nvfp4-mtp-r0b0tlab-vllm-single](recipes/qwen3-8-27b-nvfp4-mtp-r0b0tlab-vllm-single.json) | vLLM | 1 | r0b0tlab |
 | [qwen3-8-27b-vllm-single](recipes/qwen3-8-27b-vllm-single.json) | vLLM | 1 | Qwen |
+| [qwen3-8-flash-next-nvfp4-r0b0tlab-sglang-single](recipes/qwen3-8-flash-next-nvfp4-r0b0tlab-sglang-single.json) | SGLang | 1 | r0b0tlab |
 | [qwen3-8-flash-next-nvfp4-sfxnz-vllm-dual](recipes/qwen3-8-flash-next-nvfp4-sfxnz-vllm-dual.json) | vLLM | 2 | sfxnz |
 | [qwen3-8-flash-next-nvfp4-vllm-dual](recipes/qwen3-8-flash-next-nvfp4-vllm-dual.json) | vLLM | 2 | MiaAI-Lab |
 | [qwen3-8-flash-next-nvfp4-vllm-single](recipes/qwen3-8-flash-next-nvfp4-vllm-single.json) | vLLM | 1 | MiaAI-Lab |
