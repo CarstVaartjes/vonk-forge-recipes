@@ -4056,40 +4056,6 @@
         ]
       }
     },
-    "vonk-forge/deepseek-v4-flash-vision-exp-r0b0tlab-vllm-dual": {
-      "alias": "deepseek-v4-flash-vision-exp",
-      "smoke_cases": [
-        "M0",
-        "A391",
-        "T_REPORT",
-        "V_RED"
-      ],
-      "higher_tiers": {
-        "stress": [
-          "Bounded long-context, concurrency, and image-input canaries"
-        ],
-        "recovery": [
-          "Controller-only rank-loss, warm-cache recovery, and image-input revalidation"
-        ]
-      }
-    },
-    "vonk-forge/deepseek-v4-flash-vision-exp-r0b0tlab-vllm-dual": {
-      "alias": "deepseek-v4-flash-vision-exp",
-      "smoke_cases": [
-        "M0",
-        "A391",
-        "T_REPORT",
-        "V_RED"
-      ],
-      "higher_tiers": {
-        "stress": [
-          "Bounded long-context, concurrency, and image-input canaries"
-        ],
-        "recovery": [
-          "Controller-only rank-loss, warm-cache recovery, and image-input revalidation"
-        ]
-      }
-    },
     "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual": {
       "alias": "deepseek-v4-flash-vision-exp",
       "smoke_cases": [
@@ -5084,6 +5050,18 @@
         ],
         "recovery": [
           "Controller stop/start with warm kernel-cache restart"
+        ]
+      }
+    },
+    "vonk-forge/deepseek-v4-flash-ds4-dspark-port-drowzeys-single": {
+      "alias": "deepseek-v4-flash",
+      "smoke_cases": [
+        "M0",
+        "A391"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming canaries"
         ]
       }
     }
