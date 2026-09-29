@@ -1,0 +1,10 @@
+{
+  "ours": [
+    "vllm"
+  ],
+  "renamed": {},
+  "source": {
+    "commit": "5a23ee406d403569fc789bb70eebb7ff20508fe2",
+    "repo": "MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM"
+  }
+}

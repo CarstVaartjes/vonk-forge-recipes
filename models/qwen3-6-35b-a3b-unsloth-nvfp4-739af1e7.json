@@ -1,0 +1,225 @@
+{
+  "capabilities": [
+    "image-understanding"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-fe81d528e7ee-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "fe81d528e7ee055bbcf6a310afe0f2808423a4a16d45225f29c285926abef08d",
+      "size_bytes": 1635
+    },
+    {
+      "id": "readme-053a5b96be76-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "053a5b96be765db4843b07c52bdf85a1dfeb8b2fff62e4fea850420b164e2ff1",
+      "size_bytes": 67380
+    },
+    {
+      "id": "chat-template-e84f32a23fdd-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e84f32a23fdda27689f868aa4a1a5621f41133e51a48d7f3efcbea2839574259",
+      "size_bytes": 7764
+    },
+    {
+      "id": "config-8824bfb6e9e7-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "8824bfb6e9e7147e3e11c12ad0236abb3385e50155f7cbec7439f2597db6cb1e",
+      "size_bytes": 22564
+    },
+    {
+      "id": "configuration-c1b09db41911-761e16ca02",
+      "path": "configuration.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "c1b09db419119513247e9b8b912c4b9897106c9b20c6cada7e107d993c5435eb",
+      "size_bytes": 58
+    },
+    {
+      "id": "generation-config-d0dbf670c6a3-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d0dbf670c6a372817b2ff92d5d47e3130d35de9c3a7164ba455fd7a88255b362",
+      "size_bytes": 214
+    },
+    {
+      "id": "model-00001-of-00006-ae6d6df8a4ba-5d02ea0374",
+      "path": "model-00001-of-00006.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ae6d6df8a4bac85af79c6912b7360533107a8de89f8eb106008c872203f477b1",
+      "size_bytes": 5002671628
+    },
+    {
+      "id": "model-00002-of-00006-071ab0aa7b8e-b612ec2587",
+      "path": "model-00002-of-00006.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "071ab0aa7b8e0ecf80227c6be51bfadb666d2b0566090ab261a439cbd765cb63",
+      "size_bytes": 5004247852
+    },
+    {
+      "id": "model-00003-of-00006-667efa338501-08fb78242a",
+      "path": "model-00003-of-00006.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "667efa338501b08242a495f8814800270b965905af973149d5955a5239f7fcfe",
+      "size_bytes": 5003545924
+    },
+    {
+      "id": "model-00004-of-00006-6d6fc2b95dcf-7ab493784e",
+      "path": "model-00004-of-00006.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "6d6fc2b95dcf24741ff5cb084c1b8fef3a4e7344c723b6e75b42bc33d8e6caa7",
+      "size_bytes": 5000600932
+    },
+    {
+      "id": "model-00005-of-00006-1e4d3ae27bab-5e100f73d0",
+      "path": "model-00005-of-00006.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1e4d3ae27bab1a572b88b3ca728b2c1368bc71364ca9e1c58763a56463f8b760",
+      "size_bytes": 4805878048
+    },
+    {
+      "id": "model-00006-of-00006-3458074b46f2-7f8009e2a8",
+      "path": "model-00006-of-00006.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3458074b46f2f92a86a6f8ad13684a664aadf7daec7e37a6f1ad90229d59ccf2",
+      "size_bytes": 1672502184
+    },
+    {
+      "id": "model-safetensors-index-74851913bc50-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "74851913bc5084f2eed33d4421220a32618b946a4ccc665929b0201cefb37ad9",
+      "size_bytes": 12796098
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "processor-config-d89ef49ce9cd-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d89ef49ce9cd37fbf510158e13c1ef063d9286411c1ec9049932dbe0487143b1",
+      "size_bytes": 1191
+    },
+    {
+      "id": "tokenizer-1a6329cee073-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "1a6329cee073f44581f13a111a96addf12a9d9a65b2ac6f81fa441ec1b63f5c9",
+      "size_bytes": 19989425
+    },
+    {
+      "id": "tokenizer-config-792fa3f0cb88-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "792fa3f0cb88b111e54ef3134c873531008c4df471d108da17903426e308aa7b",
+      "size_bytes": 1165
+    },
+    {
+      "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+      "path": "video_preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "size_bytes": 385
+    },
+    {
+      "id": "vocab-ce99b4cb2983-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+      "size_bytes": 6722759
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4"
+  },
+  "identity": {
+    "family": {
+      "publisher": "unsloth",
+      "slug": "unsloth-qwen",
+      "title": "Unsloth Qwen"
+    },
+    "model": {
+      "publisher": "unsloth",
+      "slug": "qwen3-6-35b-a3b-nvfp4",
+      "title": "Unsloth Qwen3.6 35B-A3B NVFP4"
+    },
+    "publisher": "unsloth",
+    "slug": "qwen3-6-35b-a3b-unsloth-nvfp4-739af1e7",
+    "variant": "NVFP4 739af1e7",
+    "version": "NVFP4 739af1e7"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Unsloth",
+      "Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen3.6-35B-A3B/blob/main/LICENSE"
+  },
+  "metadata": {
+    "description": "Unsloth NVFP4 checkpoint (mixed FP8 dense + NVFP4 experts) of Qwen3.6 35B-A3B, multimodal, calibrated on Unsloth + UltraChat data.",
+    "tags": [
+      "unsloth",
+      "unsloth-qwen",
+      "image",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/unsloth/Qwen3.6-35B-A3B-NVFP4",
+    "revision": "739af1e7aac320af1682ed1e0cce369af4c5265d"
+  }
+}

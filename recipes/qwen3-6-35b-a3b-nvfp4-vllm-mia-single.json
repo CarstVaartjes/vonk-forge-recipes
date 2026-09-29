@@ -1,0 +1,532 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "32445b36556244d8a721cd21a2b47a7915bc6408432d05aaeab205bb223ced8b",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/qwen/mia-qwen36-35b-vllm-single"
+      },
+      "dockerfile": "adapters/qwen/mia-qwen36-35b-vllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-6-35b-a3b-nvfp4-vllm-mia-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "unsloth/Qwen3.6-35B-A3B-NVFP4"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Executable Candidate binding of MiaAI-Lab's Qwen3.6-35B-A3B-NVFP4-vLLM kit for one DGX Spark: Unsloth's Qwen3.6-35B-A3B NVFP4 checkpoint on stock vLLM 0.24.0 (ARM64 digest) with flashinfer attention, Marlin MoE, fastsafetensors loading, an auto-dtype KV cache, MTP speculative decoding with three tokens, prefix caching, up to four images per prompt, the qwen3 reasoning and qwen3_coder tool-call parsers, and the froggeric v20 chat template with thinking on. Upstream's README names the NVIDIA checkpoint but its start.sh (the executable truth) serves unsloth/Qwen3.6-35B-A3B-NVFP4, which is what is pinned. Code: no licence file upstream (README says MIT); model: Apache-2.0. Vonk physical Spark acceptance is pending.",
+    "tags": [
+      "candidate",
+      "executable",
+      "mia",
+      "qwen",
+      "qwen3-6",
+      "moe",
+      "nvfp4",
+      "multimodal",
+      "vision",
+      "reasoning",
+      "tool-use",
+      "mtp",
+      "vllm",
+      "openai",
+      "single",
+      "spark"
+    ],
+    "title": "Qwen3.6 35B-A3B NVFP4 vLLM single Spark (Mia)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-fe81d528e7ee-618cd5b83d",
+          "id": "primary-metadata-fe81d528e7ee-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-053a5b96be76-b335630551",
+          "id": "primary-readme-053a5b96be76-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-e84f32a23fdd-00824420d1",
+          "id": "primary-chat-template-e84f32a23fdd-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-8824bfb6e9e7-587cb980af",
+          "id": "primary-config-8824bfb6e9e7-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-c1b09db41911-761e16ca02",
+          "id": "primary-configuration-c1b09db41911-761e16ca02",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-d0dbf670c6a3-97dd3d578b",
+          "id": "primary-generation-config-d0dbf670c6a3-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00006-ae6d6df8a4ba-5d02ea0374",
+          "id": "primary-model-00001-of-00006-ae6d6df8a4ba-5d02ea0374",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00006-071ab0aa7b8e-b612ec2587",
+          "id": "primary-model-00002-of-00006-071ab0aa7b8e-b612ec2587",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00006-667efa338501-08fb78242a",
+          "id": "primary-model-00003-of-00006-667efa338501-08fb78242a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00006-6d6fc2b95dcf-7ab493784e",
+          "id": "primary-model-00004-of-00006-6d6fc2b95dcf-7ab493784e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00006-1e4d3ae27bab-5e100f73d0",
+          "id": "primary-model-00005-of-00006-1e4d3ae27bab-5e100f73d0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00006-3458074b46f2-7f8009e2a8",
+          "id": "primary-model-00006-of-00006-3458074b46f2-7f8009e2a8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-74851913bc50-0a05be8238",
+          "id": "primary-model-safetensors-index-74851913bc50-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "primary-preprocessor-config-27225450ac9c-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-d89ef49ce9cd-27f0cb76af",
+          "id": "primary-processor-config-d89ef49ce9cd-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-1a6329cee073-224931eb13",
+          "id": "primary-tokenizer-1a6329cee073-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-792fa3f0cb88-94d5c6ba8f",
+          "id": "primary-tokenizer-config-792fa3f0cb88-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "primary-vocab-ce99b4cb2983-ba05d8e2e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "43dc4aa863b2ebef6f10588b11b0074b11e7fa8c6cb1182bbf615b1bfa90e781",
+        "kind": "model",
+        "publisher": "unsloth",
+        "slug": "qwen3-6-35b-a3b-unsloth-nvfp4-739af1e7"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "enable_thinking and preserve_thinking true (upstream default).",
+          "label": "On (default)",
+          "value": "on"
+        },
+        {
+          "args": [
+            {
+              "name": "default-chat-template-kwargs",
+              "setting": null,
+              "value": "{\"enable_thinking\":false,\"preserve_thinking\":true}"
+            }
+          ],
+          "help": "enable_thinking false; thinking blocks from history are still preserved.",
+          "label": "Off",
+          "value": "off"
+        },
+        {
+          "args": [
+            {
+              "name": "default-chat-template-kwargs",
+              "setting": null,
+              "value": "{\"enable_thinking\":true,\"preserve_thinking\":true,\"auto_disable_thinking_with_tools\":true}"
+            }
+          ],
+          "help": "Sets auto_disable_thinking_with_tools true so requests that define tools skip thinking.",
+          "label": "On, off when tools are defined",
+          "value": "off-with-tools"
+        }
+      ],
+      "help": "Default chat-template kwargs (froggeric v20 template). Upstream documents enable_thinking, preserve_thinking and auto_disable_thinking_with_tools.",
+      "label": "Thinking mode",
+      "name": "thinking"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "MiaAI-Lab",
+      "Unsloth",
+      "Qwen",
+      "froggeric",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM/tree/5a23ee406d403569fc789bb70eebb7ff20508fe2"
+  },
+  "release": {
+    "released_at": "2026-07-11",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "unsloth/Qwen3.6-35B-A3B-NVFP4"
+      },
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "flashinfer"
+      },
+      {
+        "name": "moe-backend",
+        "setting": null,
+        "value": "marlin"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.40"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 8192
+      },
+      {
+        "name": "enable-chunked-prefill",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "async-scheduling",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "limit-mm-per-prompt",
+        "setting": null,
+        "value": "{\"image\":4}"
+      },
+      {
+        "name": "allowed-media-domains",
+        "setting": null,
+        "value": "*"
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3,\"moe_backend\":\"triton\"}"
+      },
+      {
+        "name": "load-format",
+        "setting": null,
+        "value": "fastsafetensors"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "qwen3"
+      },
+      {
+        "name": "chat-template",
+        "setting": null,
+        "value": "/opt/vonk/chat_template.jinja"
+      },
+      {
+        "name": "default-chat-template-kwargs",
+        "setting": null,
+        "value": "{\"enable_thinking\":true,\"preserve_thinking\":true}"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "qwen3_coder"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_TARGET_DEVICE",
+        "value": "cuda"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 26529057596,
+            "image_bytes": 12000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 53058115192
+          },
+          "memory": {
+            "peak_bytes": 70000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "unsloth/Qwen3.6-35B-A3B-NVFP4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
