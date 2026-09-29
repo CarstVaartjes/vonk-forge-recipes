@@ -2,8 +2,10 @@
 """Generate the README overview (engines, Spark variants, creators) from the catalog.
 
 The output is derived from recipes/*.json, models/*.json and creators.json and is
-written between the overview markers in README.md. Recipe changes never need to
-regenerate it: the `Refresh recipe overview` workflow does that after merge.
+written between the overview markers in README.md. It only reflects structure
+(which recipes, families, engines, Spark counts and creators exist), never
+versions, dates or digests, so a normal version bump leaves it unchanged. Run it
+and commit README.md whenever recipes, models or creators.json change.
 """
 
 from __future__ import annotations
@@ -109,8 +111,7 @@ def render(root: Path) -> str:
 
     out = [
         (
-            f"**{len(rows)} recipes** for **{len(families)} model families**, using "
-            f"**{len(models)} Models**. This section is generated from `recipes/`, `models/` "
+            f"**{len(rows)} recipes** for **{len(families)} model families**. This section is generated from `recipes/`, `models/` "
             "and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand."
         ),
         "",
@@ -203,14 +204,13 @@ def render(root: Path) -> str:
         out += [
             f"<details><summary>{family} ({len(mine)})</summary>",
             "",
-            "| Recipe | Version | Released | Engine | Sparks | Creator |",
-            "| --- | --- | --- | --- | ---: | --- |",
+            "| Recipe | Engine | Sparks | Creator |",
+            "| --- | --- | ---: | --- |",
         ]
         for r in sorted(mine, key=lambda r: r["recipe"]["identity"]["slug"]):
-            release = r["recipe"]["release"]
             out.append(
-                f"| {link(r['recipe'])} | {release['version']} | {release['released_at']} "
-                f"| {engine_label(r['engine'])} | {r['sparks']} | {r['creator']} |"
+                f"| {link(r['recipe'])} | {engine_label(r['engine'])} "
+                f"| {r['sparks']} | {r['creator']} |"
             )
         out += ["", "</details>", ""]
     return "\n".join(out).rstrip() + "\n"
@@ -241,7 +241,14 @@ def main() -> int:
     current = readme_path.read_text()
     updated = splice(current, body)
     if args.check:
-        return 0 if updated == current else 1
+        if updated != current:
+            print(
+                "README.md overview is stale: run tools/build-readme-overview "
+                "and commit README.md",
+                file=sys.stderr,
+            )
+            return 1
+        return 0
     if updated != current:
         readme_path.write_text(updated)
     return 0

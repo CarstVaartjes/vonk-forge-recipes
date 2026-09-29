@@ -87,3 +87,35 @@ def test_readme_splice_replaces_only_the_marked_block() -> None:
     out = overview.splice(readme, "new\n")
     assert out == f"before\n{overview.START}\nnew\n{overview.END}\nafter\n"
     assert overview.splice(out, "new\n") == out
+
+
+def _copy_catalog(dest: Path) -> None:
+    import shutil
+
+    for name in ("recipes", "models"):
+        shutil.copytree(ROOT / name, dest / name)
+    shutil.copy(ROOT / "creators.json", dest / "creators.json")
+
+
+def test_version_bump_does_not_change_overview(tmp_path: Path) -> None:
+    _copy_catalog(tmp_path)
+    before = overview.render(tmp_path)
+    for path in (tmp_path / "recipes").glob("*.json"):
+        data = json.loads(path.read_text())
+        data["release"]["version"] = "999.0.0"
+        data["release"]["released_at"] = "2099-12-31"
+        path.write_text(json.dumps(data))
+    after = overview.render(tmp_path)
+    assert after == before
+    assert "999.0.0" not in after and "2099" not in after
+
+
+def test_check_flags_stale_readme(tmp_path: Path, capsys, monkeypatch) -> None:
+    _copy_catalog(tmp_path)
+    (tmp_path / "README.md").write_text(f"{overview.START}\nold\n{overview.END}\n")
+    monkeypatch.setattr(sys, "argv", ["x", "--root", str(tmp_path), "--check"])
+    assert overview.main() == 1
+    assert (
+        "run tools/build-readme-overview and commit README.md"
+        in capsys.readouterr().err
+    )

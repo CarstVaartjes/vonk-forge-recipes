@@ -389,4 +389,4 @@ replacing every occurrence of an older-looking version number.
 
 ## README overview
 
-The README overview (engines, Spark variants, creators, per-family listings) is generated from `recipes/`, `models/` and `creators.json` by `tools/build-readme-overview`. Recipe PRs must not edit it; the `Refresh recipe overview` workflow regenerates it after merge. When a rescan adds or changes a tracked creator, edit `creators.json` (also holds the family grouping rules) and run the tool locally to preview.
+The README overview (engines, Spark variants, creators, per-family listings) is generated from `recipes/`, `models/` and `creators.json` by `tools/build-readme-overview`. It only reflects structure (recipes, families, engines, Spark counts, creators), not versions or dates. After changing `recipes/`, `models/` or `creators.json`, run `tools/build-readme-overview` and commit `README.md`; CI fails when it is stale. On a `README.md` merge conflict, do not hand-merge: take either side, rerun the tool, and commit. When a rescan adds or changes a tracked creator, edit `creators.json` (also holds the family grouping rules) and run the tool locally to preview.
