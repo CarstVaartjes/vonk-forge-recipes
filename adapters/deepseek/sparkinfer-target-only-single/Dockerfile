@@ -23,7 +23,7 @@ RUN cat /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-aa \
          /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ae
 
 LABEL org.opencontainers.image.source="https://github.com/0xSero/deepseek-v4-flash-0731-spark-sparkinfer" \
-      org.opencontainers.image.revision="590d2172394dd83c1f36ff29f0dc9ec6032ea9e2" \
+      org.opencontainers.image.revision="d370c0f0806a9ac994dc5f354715576cc23840b9" \
       org.opencontainers.image.licenses="Apache-2.0" \
       org.opencontainers.image.description="Offline Vonk target-only canary adapter for DeepSeek V4 Flash on one DGX Spark"
 

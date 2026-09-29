@@ -1,7 +1,7 @@
 FROM docker.io/lmsysorg/sglang@sha256:b0d8718a4424bb22e448e04407ab3ce5f7399a4c5fc702d6fbe36c3772ec8862
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark" \
-      org.opencontainers.image.revision="9d21dcd331232792e7d39f4f84db7dd46635905d" \
+      org.opencontainers.image.revision="9fb18edf8cfb3364e8aa89258e6d5ab1fe1fd11a" \
       org.opencontainers.image.licenses="MIT"
 
 COPY --chmod=0755 sglang-serve /opt/vonk/bin/sglang-serve
