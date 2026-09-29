@@ -4220,6 +4220,22 @@
         ]
       }
     },
+    "vonk-forge/minimax-m3-w4a16-gptq-eagle3-tonyd2wild-vllm-dual": {
+      "alias": "minimax-m3",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "8K, 32K and 128K cold-prefill ladder plus a single-stream canary at the 196K default context (the default runs one sequence)"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache restart; the first start loads 224 GB of weights and JIT-compiles b12x kernels"
+        ]
+      }
+    },
     "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual": {
       "alias": "glm-5.3-flash",
       "smoke_cases": [

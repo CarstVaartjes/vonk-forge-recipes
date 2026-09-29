@@ -1,0 +1,12 @@
+Files vendored byte-identically from https://github.com/a3refaat/spark-vllm-docker,
+branch minimax-m3-4bit-w4a16, commit f942437ea9aed3fc91e888d9f9c6ebb2cf094dad (MIT, see
+LICENSE.upstream): vendor/b12x (the b12x kernel library), the mods used by the lane A
+recipe group (mods/minimax-m3-gptq-b12x-eagle3 and its members), patches/vllm/
+minimax-m3-fused-fp8-kv.patch, patches/strip-vllm-rs-binary.py and flashinfer_cache.patch.
+Upstream's Dockerfile and Dockerfile.deploy are not copied: the recipe's Dockerfile merges
+their stages and pins their inputs (see its header). td-patches/mod-prometheus-graceful-skip.patch
+is tonyd2wild's patch from https://github.com/tonyd2wild/MiniMax-M3-2x-DGX-Spark-36-tok-s at
+a8101fa423cac8140016e45110a2ccc8a0a72162 (the same repository documents the launch flow and the
+lane recipes); it is applied at build time to the vendored prometheus mod.
+The mods and kernels patch vLLM (Apache-2.0) and vendor FlashInfer, NCCL and other upstream
+projects under their own licences.
