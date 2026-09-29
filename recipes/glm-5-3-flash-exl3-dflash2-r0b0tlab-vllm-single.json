@@ -596,7 +596,7 @@
   },
   "release": {
     "released_at": "2026-09-20",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -684,14 +684,6 @@
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "VLLM_NO_USAGE_STATS",
-        "value": "1"
-      },
-      {
-        "name": "DO_NOT_TRACK",
         "value": "1"
       }
     ],
