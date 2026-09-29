@@ -1,0 +1,106 @@
+{
+  "capabilities": [],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-11ad7efa2497-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "readme-3e8f99828c98-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "3e8f99828c980d24129b29b1a4a102c9be7de5c63846ebf6019f358bee4f357a",
+      "size_bytes": 3885
+    },
+    {
+      "id": "config-f360cef0abbc-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f360cef0abbc5756fe3d173501ae2bc701ad56d5d124d970cf08a5b17af82ca0",
+      "size_bytes": 1626
+    },
+    {
+      "id": "dflash-1b8fcdf0e1b8-817fe2d011",
+      "path": "dflash.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "1b8fcdf0e1b84eb0faeeabce2e1c8cd5eb469f50892ae31695451cd03f3f6a80",
+      "size_bytes": 19080
+    },
+    {
+      "id": "dspark-805928129fe9-b784e2643b",
+      "path": "dspark.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "805928129fe98c809f4cd130ef91c8942ef3cc27392980250d0a967cec106351",
+      "size_bytes": 6346
+    },
+    {
+      "id": "model-c9d68f9ba297-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c9d68f9ba29701c9fdde6d17a28dde0d261a2b4fb99d030ef27188261c055c9b",
+      "size_bytes": 1799798970
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "radixark",
+      "slug": "inkling-radixark",
+      "title": "RadixArk Inkling deployments"
+    },
+    "model": {
+      "publisher": "radixark",
+      "slug": "inkling-small-dspark",
+      "title": "Inkling Small DSpark companion"
+    },
+    "publisher": "radixark",
+    "slug": "inkling-small-dspark-fcc210dc",
+    "variant": "Inkling Small DSpark Preview fcc210dc",
+    "version": "Inkling Small DSpark Preview fcc210dc"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "RadixArk",
+      "Thinking Machines Lab"
+    ],
+    "spdx": "NOASSERTION",
+    "url": "https://huggingface.co/RadixArk/Inkling-Small-DSpark-Preview/blob/fcc210dcf244cc2f550ef1f75507eb4146c17a57/README.md"
+  },
+  "metadata": {
+    "description": "Exact public Inkling Small DSpark Preview speculator checkpoint at fcc210dc (BF16, block_size 15, draft weights only; requires the matching Inkling Small NVFP4 target).",
+    "tags": [
+      "radixark",
+      "inkling-radixark",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/RadixArk/Inkling-Small-DSpark-Preview",
+    "revision": "fcc210dcf244cc2f550ef1f75507eb4146c17a57"
+  }
+}
