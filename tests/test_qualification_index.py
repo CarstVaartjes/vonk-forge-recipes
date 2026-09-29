@@ -14,6 +14,8 @@ import pytest
 from generated_catalog import GENERATED
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
+from qualification.definitions_loader import load_definitions
+
 ROOT = Path(__file__).resolve().parents[1]
 QUALIFICATION_ROOT = ROOT / "qualification"
 
@@ -60,7 +62,7 @@ def _bindings(document: dict[str, object]) -> dict[str, dict[str, object]]:
 
 
 def test_recipe_digests_are_generated_locally_and_cover_supported_topologies() -> None:
-    definitions = _document(QUALIFICATION_ROOT / "definitions.json")
+    definitions = load_definitions(QUALIFICATION_ROOT)
     generated = _document(GENERATED / "qualification" / "qualification-index.json")
     source_bindings = _bindings(definitions)
     generated_bindings = _bindings(generated)
@@ -81,7 +83,7 @@ def test_recipe_digests_are_generated_locally_and_cover_supported_topologies() -
 
 
 def test_qualification_assets_are_owned_and_digest_checked_here() -> None:
-    definitions = _document(QUALIFICATION_ROOT / "definitions.json")
+    definitions = load_definitions(QUALIFICATION_ROOT)
     fixtures = definitions["fixtures"]
     assert isinstance(fixtures, dict)
     assert fixtures
@@ -98,7 +100,7 @@ def test_qualification_assets_are_owned_and_digest_checked_here() -> None:
 
 
 def test_deepseek_vision_smoke_contract_is_recipe_owned() -> None:
-    definitions = _document(QUALIFICATION_ROOT / "definitions.json")
+    definitions = load_definitions(QUALIFICATION_ROOT)
     services = definitions["service_recipes"]
     assert isinstance(services, dict)
     contract = services["vonk-forge/deepseek-v4-flash-vision-exp-mia-dual"]
@@ -117,7 +119,7 @@ def test_cube_fixture_generator_is_byte_identical(tmp_path: Path) -> None:
         ],
         check=True,
     )
-    definitions = _document(QUALIFICATION_ROOT / "definitions.json")
+    definitions = load_definitions(QUALIFICATION_ROOT)
     fixtures = definitions["fixtures"]
     assert isinstance(fixtures, dict)
     fixture = fixtures["generic-mesh-glb"]
