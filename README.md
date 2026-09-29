@@ -146,6 +146,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | [deepseek-v4-1-flash-exl3-mia-dual](recipes/deepseek-v4-1-flash-exl3-mia-dual.json) | vLLM | 2 | MiaAI-Lab |
 | [deepseek-v4-flash-0731-ds4-dspark-latency-single](recipes/deepseek-v4-flash-0731-ds4-dspark-latency-single.json) | ds4 | 1 | antirez |
 | [deepseek-v4-flash-0731-ds4-single](recipes/deepseek-v4-flash-0731-ds4-single.json) | ds4 | 1 | antirez |
+| [deepseek-v4-flash-0731-dspark-tonyd2wild-vllm-dual](recipes/deepseek-v4-flash-0731-dspark-tonyd2wild-vllm-dual.json) | vLLM | 2 | tonyd2wild |
 | [deepseek-v4-flash-0731-mia-sparkinfer-single](recipes/deepseek-v4-flash-0731-mia-sparkinfer-single.json) | vLLM | 1 | MiaAI-Lab |
 | [deepseek-v4-flash-0731-r0b0tlab-vllm-dual](recipes/deepseek-v4-flash-0731-r0b0tlab-vllm-dual.json) | vLLM | 2 | r0b0tlab |
 | [deepseek-v4-flash-0731-sparkinfer-single](recipes/deepseek-v4-flash-0731-sparkinfer-single.json) | vLLM | 1 | 0xSero |
