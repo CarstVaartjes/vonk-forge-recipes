@@ -1,0 +1,375 @@
+{
+  "capabilities": [
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "video-understanding"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "license-a0dc42256084-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a0dc422560841fd68e06d974907f8b4c709bca44a67daad2b528437bdf676c08",
+      "size_bytes": 3235
+    },
+    {
+      "id": "readme-235f260dd21b-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "235f260dd21b6d66adb77722ca5533552e0c831346b1534ab00efc970a496e95",
+      "size_bytes": 10057
+    },
+    {
+      "id": "chat-template-c3cf9e34abf4-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+      "size_bytes": 8952
+    },
+    {
+      "id": "config-4efd5f41c47e-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "4efd5f41c47e8de9f55c678df4a237cbbc78e4d517dad42a906889f7d94f79a2",
+      "size_bytes": 5361
+    },
+    {
+      "id": "generation-config-e70c136c1b78-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e",
+      "size_bytes": 202
+    },
+    {
+      "id": "merges-a9d356d7bdf1-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+      "size_bytes": 3353259
+    },
+    {
+      "id": "model-00001-of-00022-308f20b7e35a-66c3c434ad",
+      "path": "model-00001-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "308f20b7e35a3e525f36eca0df286f6d1043cfeb621e7bbcf372a834c99cd66d",
+      "size_bytes": 5283195887
+    },
+    {
+      "id": "model-00002-of-00022-8af1a616f2f3-6047bb79c0",
+      "path": "model-00002-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8af1a616f2f39dbfe6ee92e959afb2414623fcb299aff1ced55984bfe810d608",
+      "size_bytes": 5250035137
+    },
+    {
+      "id": "model-00003-of-00022-519a0472252a-428e9f10de",
+      "path": "model-00003-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "519a0472252ac9a51af020686f462aa6be82ce655f948fd5f054d70949de17a6",
+      "size_bytes": 5250035154
+    },
+    {
+      "id": "model-00004-of-00022-b1ad7e951969-d176f7bfba",
+      "path": "model-00004-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b1ad7e951969eb8dc4e92762dc2e50bd47353c95990ae207db5da393d441400f",
+      "size_bytes": 5250035160
+    },
+    {
+      "id": "model-00005-of-00022-9ca797304c56-3f054a7098",
+      "path": "model-00005-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9ca797304c563bb65f2356b67d444511b11744bc5b5c8ec8345ae7d97d3e251c",
+      "size_bytes": 5250035164
+    },
+    {
+      "id": "model-00006-of-00022-8aab4c1dce7d-82589b5654",
+      "path": "model-00006-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8aab4c1dce7d8a0af645426b66d1caf30245d422d4c6b7029583959d675a1827",
+      "size_bytes": 5250035184
+    },
+    {
+      "id": "model-00007-of-00022-7908da37b2e3-3a5d7cdc74",
+      "path": "model-00007-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7908da37b2e3fa7f0de8b9734dad0759be7dc445716f3acd59c20c4842638db9",
+      "size_bytes": 5067850140
+    },
+    {
+      "id": "model-00008-of-00022-85beff20f250-cf64932166",
+      "path": "model-00008-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "85beff20f250bfe63e95f12c0460512aab92bcde8f7408fe9c20e3de0321bc1d",
+      "size_bytes": 5337131618
+    },
+    {
+      "id": "model-00009-of-00022-f7c03ae640e9-e7ee8ef226",
+      "path": "model-00009-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f7c03ae640e9bf0f7813ef2b2980afa83a883c02b3988e814e9921055fc08a28",
+      "size_bytes": 5337131558
+    },
+    {
+      "id": "model-00010-of-00022-6897f5222753-009e26e857",
+      "path": "model-00010-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "6897f52227533e720b243d6aef24c1293ad1eb02a1bb2ec6a6e4dc48d56d0c8f",
+      "size_bytes": 4970130103
+    },
+    {
+      "id": "model-00011-of-00022-905d27f9db88-8252ea3d5e",
+      "path": "model-00011-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "905d27f9db887284289a043f9638020258c5f90d52122cdce2e7aef941a431f2",
+      "size_bytes": 5341257482
+    },
+    {
+      "id": "model-00012-of-00022-c4d2bb76fa46-f85bce0fc3",
+      "path": "model-00012-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c4d2bb76fa4613f7386ddaa7045608c320f9736623211a814aa28fb370530dec",
+      "size_bytes": 4967968541
+    },
+    {
+      "id": "model-00013-of-00022-1f20a5e1f225-4aafe282da",
+      "path": "model-00013-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1f20a5e1f2256b2fb6a78fef52f9e66daa970f4318ab1be3abb32a1effedbbf3",
+      "size_bytes": 5337131651
+    },
+    {
+      "id": "model-00014-of-00022-860d12691792-78ace24cf5",
+      "path": "model-00014-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "860d12691792df5f08c9dfe245dc356773741f1edcc1fd430672ef06ac387635",
+      "size_bytes": 5337131799
+    },
+    {
+      "id": "model-00015-of-00022-259fb7577b82-e4e6781df6",
+      "path": "model-00015-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "259fb7577b8248f6dcbe6a932fe5d2f1c8869eda761ef3394fe6ad06065f216c",
+      "size_bytes": 4970130195
+    },
+    {
+      "id": "model-00016-of-00022-e931785f9ff4-26e60725af",
+      "path": "model-00016-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e931785f9ff4e0a567bf8c06df37639be46b4dae156e0f8b39b9d32a03d75792",
+      "size_bytes": 5341257440
+    },
+    {
+      "id": "model-00017-of-00022-4f4610dc4a86-1f2305b0c8",
+      "path": "model-00017-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4f4610dc4a862bf9d93d70cfd0ec037e8e7943a734794d34eb5c0d748b74747a",
+      "size_bytes": 4967968481
+    },
+    {
+      "id": "model-00018-of-00022-afdb48289201-9e10e62c45",
+      "path": "model-00018-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "afdb4828920186600f9d61537d1465979fb36692f4eddb8c5a961a6b72964b77",
+      "size_bytes": 5337131695
+    },
+    {
+      "id": "model-00019-of-00022-869d34c6e8f7-76f78b32fa",
+      "path": "model-00019-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "869d34c6e8f7db79bd4e54b9833d5b0db45eefac860c9bd64fbd312bf862a667",
+      "size_bytes": 5337131801
+    },
+    {
+      "id": "model-00020-of-00022-5ca2f994fec1-7587bc0e46",
+      "path": "model-00020-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5ca2f994fec1aa06fefef6646b9f072cf70f7f73aa8dab4c7c1a9a424afb4a52",
+      "size_bytes": 4970130135
+    },
+    {
+      "id": "model-00021-of-00022-58def6762f29-b95975f319",
+      "path": "model-00021-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "58def6762f29cc798437e5649a56ee75d053faca69138a2454dbdb34bb8a37c3",
+      "size_bytes": 5341257436
+    },
+    {
+      "id": "model-00022-of-00022-30a3c82b573d-317de6275d",
+      "path": "model-00022-of-00022.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "30a3c82b573d813a1d2349f1c05c308c0d415f3ca1bb67caa0bfaad8a6afa7a3",
+      "size_bytes": 3715570974
+    },
+    {
+      "id": "model-safetensors-index-8848503860c7-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "8848503860c7da8619fdc8d5e65201868f8f1d21d69d2e21166c95522379ff77",
+      "size_bytes": 420813
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "qwen-logo-e56f3a62991f-f86d0c6523",
+      "path": "qwen-logo.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "e56f3a62991f1d7475f0fd51b742bb293d9a228cd9dcbc1131b118d745e47cf3",
+      "size_bytes": 11203
+    },
+    {
+      "id": "tokenizer-0997f410c57a-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3",
+      "size_bytes": 12809320
+    },
+    {
+      "id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "b11349aafa7cdc6a320767cf7ceb29ed82f7eda5d65e8e0819e76f0ce947bf27",
+      "size_bytes": 17928
+    },
+    {
+      "id": "vocab-ce99b4cb2983-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+      "size_bytes": 6722759
+    }
+  ],
+  "format": {
+    "precision": "mlx-4bit-g32",
+    "quantization": "mlx-4bit-group32-mtp"
+  },
+  "identity": {
+    "family": {
+      "publisher": "vontra",
+      "slug": "qwen3-8-vontra",
+      "title": "Vontra Qwen3.8 MLX checkpoints"
+    },
+    "model": {
+      "publisher": "vontra",
+      "slug": "qwen3-8-flash-next-mlx-4bit-mtp",
+      "title": "Qwen3.8 Flash Next MLX 4-bit with MTP head"
+    },
+    "publisher": "vontra",
+    "slug": "qwen3-8-flash-next-mlx-4bit-mtp-dadefa80",
+    "variant": "Qwen3.8 Flash Next MLX 4-bit MTP dadefa80",
+    "version": "Qwen3.8 Flash Next MLX 4-bit MTP dadefa80"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "Vontra"
+    ],
+    "spdx": "LicenseRef-Qwen-Community-1.0",
+    "url": "https://huggingface.co/Vontra/Qwen3.8-Flash-Next-MLX-4bit-MTP/blob/dadefa8066e3be900a0d148d0f5a2f4eb1cf6534/LICENSE"
+  },
+  "metadata": {
+    "description": "Exact public Vontra MLX 4-bit (group size 32) conversion of Qwen3.8 Flash Next with the MTP draft head and vision tower, for TensorFold.",
+    "tags": [
+      "vontra",
+      "qwen3-8-vontra",
+      "multimodal",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image",
+    "text",
+    "video"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/Vontra/Qwen3.8-Flash-Next-MLX-4bit-MTP",
+    "revision": "dadefa8066e3be900a0d148d0f5a2f4eb1cf6534"
+  }
+}

@@ -128,12 +128,12 @@ def test_every_catalog_recipe_appears_once_with_its_topology() -> None:
     rows = _rows()
     catalog = _catalog()
     assert set(rows) == set(catalog)
-    assert len(rows) == 90
+    assert len(rows) == 91
     assert matrix["catalog"]["recipe_count"] == len(catalog)
-    assert matrix["catalog"]["in_scope_recipe_count"] == 86
+    assert matrix["catalog"]["in_scope_recipe_count"] == 87
     assert matrix["catalog"]["out_of_scope_recipe_count"] == 4
     groups = set(matrix["coverage_group_order"])
-    assert sorted(row["matrix_row"] for row in rows.values()) == list(range(1, 91))
+    assert sorted(row["matrix_row"] for row in rows.values()) == list(range(1, 92))
     for key, recipe in catalog.items():
         row = rows[key]
         assert row["node_count"] == recipe.topology.node_count
@@ -145,7 +145,7 @@ def test_every_catalog_recipe_appears_once_with_its_topology() -> None:
         assert row["build_source_file_count"] > 0
         assert row["stack_matches_authority"] in (True, False, None)
     assert sorted(row["node_count"] for row in rows.values()) == (
-        [1] * 74 + [2] * 12 + [3, 4, 4, 8]
+        [1] * 75 + [2] * 12 + [3, 4, 4, 8]
     )
 
 
@@ -168,13 +168,13 @@ def test_schedule_covers_every_in_scope_recipe_exactly_once() -> None:
         if row["in_scope"] and row["node_count"] == 1
     )
     assert sorted(lanes) == singles
-    assert len(assignments) == len(set(assignments)) == 86
+    assert len(assignments) == len(set(assignments)) == 87
     batches = matrix["batches"]
-    assert len(batches) == 49
+    assert len(batches) == 50
     assert sum(batch["mode"] == "paired-single" for batch in batches) == 37
-    assert sum(batch["mode"] == "single" for batch in batches) == 0
+    assert sum(batch["mode"] == "single" for batch in batches) == 1
     assert sum(batch["mode"] == "exclusive-dual" for batch in batches) == 12
-    assert [batch["sequence"] for batch in batches] == list(range(1, 50))
+    assert [batch["sequence"] for batch in batches] == list(range(1, 51))
     for batch in batches:
         if batch["mode"] == "paired-single":
             assert len(batch["assignments"]) == 2

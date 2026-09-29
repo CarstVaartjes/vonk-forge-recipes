@@ -4505,6 +4505,23 @@
           "Controller stop/start, exact alias, and offline warm-cache restart"
         ]
       }
+    },
+    "vonk-forge/qwen3-8-flash-next-tensorfold-single": {
+      "alias": "Qwen3.8-Flash-Next",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded 5-stream concurrency and long-context canaries, with the first-run kernel compile time recorded separately"
+        ],
+        "recovery": [
+          "Controller stop/start with warm kernel-cache restart"
+        ]
+      }
     }
   }
 }
