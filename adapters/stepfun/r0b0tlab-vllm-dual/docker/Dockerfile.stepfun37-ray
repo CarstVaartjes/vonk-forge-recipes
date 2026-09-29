@@ -1,0 +1,2 @@
+FROM vllm/vllm-openai:stepfun37
+RUN pip install --no-cache-dir ray==2.55.1
