@@ -9,7 +9,9 @@ derived values follow upstream's launchers:
   every scheduler width s up to --max-num-seqs (e.g. 4,8,12,16,20,24 for MTP 3
   and six sequences) whenever it captures FULL_DECODE_ONLY graphs;
 * the recipe's speculative-decoding option cannot remove an argument, so
-  VONK_QWEN_SPEC=off drops --speculative-config here.
+  VONK_QWEN_SPEC=off drops --speculative-config here;
+* upstream's CONTEXT profiles run vLLM's default prefill chunk (its launchers
+  leave --max-num-batched-tokens out), so VONK_QWEN_CHUNK=default drops it here.
 """
 
 from __future__ import annotations
@@ -95,6 +97,14 @@ def speculative(arguments: list[str]) -> int:
     return int(json.loads(raw).get("num_speculative_tokens", 0))
 
 
+def default_chunk(arguments: list[str]) -> None:
+    if os.environ.get("VONK_QWEN_CHUNK") == "default" and (
+        "--max-num-batched-tokens" in arguments
+    ):
+        index = arguments.index("--max-num-batched-tokens")
+        del arguments[index : index + 2]
+
+
 def capture_sizes(arguments: list[str], depth: int) -> None:
     raw = value(arguments, "--compilation-config")
     config = json.loads(raw) if raw else {}
@@ -120,6 +130,7 @@ def main() -> None:
             raise SystemExit(f"immutable model artifact is missing: {SOURCE / name}")
     placement(arguments)
     capture_sizes(arguments, speculative(arguments))
+    default_chunk(arguments)
     os.environ.setdefault("HF_HUB_OFFLINE", "1")
     os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
     vllm = next(
