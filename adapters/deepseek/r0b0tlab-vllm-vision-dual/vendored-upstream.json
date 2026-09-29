@@ -1,0 +1,9 @@
+{
+  "source": {
+    "repo": "r0b0tlab/dsv4-flash-vision-exp-vllm-sm121",
+    "commit": "d956795219d7eac63b3c3f2e30b7c36c9ed0b685"
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ]
+}
