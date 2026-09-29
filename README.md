@@ -10,47 +10,47 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-**109 recipes** for **32 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+**111 recipes** for **32 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
 Number of recipes per model family and engine.
 
-| Model family | vLLM | SGLang | TensorRT-LLM | llama.cpp | TensorFold | ds4 | diffusers | ComfyUI | pytorch-pipeline |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| DeepSeek V4 Flash | 10 |  |  |  |  | 3 |  |  |  |
-| FLUX.2 |  |  |  |  |  |  |  | 2 |  |
-| Gemma | 2 |  |  |  |  |  |  |  |  |
-| GLM | 9 |  |  |  |  |  |  |  |  |
-| Hunyuan3D |  |  |  |  |  |  |  |  | 1 |
-| HunyuanOCR |  |  |  |  |  |  |  |  | 1 |
-| HunyuanVideo |  |  |  |  |  |  | 3 |  |  |
-| HunyuanVideo Foley |  |  |  |  |  |  |  |  | 2 |
-| Hy3 kodelow | 2 |  |  |  |  |  |  |  |  |
-| Inkling |  | 2 |  |  |  |  |  |  |  |
-| Laguna | 3 |  |  |  |  |  |  |  |  |
-| Leanstral | 1 |  |  |  |  |  |  |  |  |
-| LFM2.5 | 2 |  |  |  |  |  |  |  |  |
-| Ling |  | 1 |  |  |  |  |  |  |  |
-| LTX |  |  |  |  |  |  | 2 |  | 5 |
-| MiMo | 2 | 1 |  |  |  |  |  |  |  |
-| MiniMax H3 | 1 |  |  |  |  |  | 2 |  |  |
-| MOSS-VL |  |  |  |  |  |  |  |  | 1 |
-| MOVA |  |  |  |  |  |  |  |  | 2 |
-| Muse Glimmer | 1 |  |  |  |  |  |  |  |  |
-| Nemotron | 8 |  |  |  |  |  |  |  |  |
-| Ornith | 1 |  |  |  |  |  |  |  |  |
-| Pixal3D |  |  |  |  |  |  |  |  | 1 |
-| Qwen (text and vision) | 10 | 2 |  |  | 2 |  |  |  |  |
-| Qwen Image |  |  |  |  |  |  | 6 | 5 |  |
-| SkinTokens |  |  |  |  |  |  |  |  | 1 |
-| Step 3.7 Flash | 1 |  |  |  |  |  |  |  |  |
-| Step1X-3D |  |  |  |  |  |  |  |  | 3 |
-| TRELLIS |  |  |  |  |  |  |  |  | 1 |
-| TripoSG |  |  |  |  |  |  |  |  | 1 |
-| UI-Mate | 1 |  |  |  |  |  |  |  |  |
-| Wan |  |  |  |  |  |  |  | 3 | 2 |
-| **Total** | **54** | **6** | **0** | **0** | **2** | **3** | **13** | **10** | **21** |
+| Model family | vLLM | SGLang | TensorRT-LLM | llama.cpp | TensorFold | ds4 | diffusers | ComfyUI | pytorch-pipeline | atlas |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| DeepSeek V4 Flash | 11 |  |  |  |  | 3 |  |  |  |  |
+| FLUX.2 |  |  |  |  |  |  |  | 2 |  |  |
+| Gemma | 2 |  |  |  |  |  |  |  |  |  |
+| GLM | 9 |  |  |  |  |  |  |  |  |  |
+| Hunyuan3D |  |  |  |  |  |  |  |  | 1 |  |
+| HunyuanOCR |  |  |  |  |  |  |  |  | 1 |  |
+| HunyuanVideo |  |  |  |  |  |  | 3 |  |  |  |
+| HunyuanVideo Foley |  |  |  |  |  |  |  |  | 2 |  |
+| Hy3 kodelow | 2 |  |  |  |  |  |  |  |  |  |
+| Inkling |  | 2 |  |  |  |  |  |  |  |  |
+| Laguna | 3 |  |  |  |  |  |  |  |  |  |
+| Leanstral | 1 |  |  |  |  |  |  |  |  |  |
+| LFM2.5 | 2 |  |  |  |  |  |  |  |  |  |
+| Ling |  | 1 |  |  |  |  |  |  |  |  |
+| LTX |  |  |  |  |  |  | 2 |  | 5 |  |
+| MiMo | 2 | 1 |  |  |  |  |  |  |  |  |
+| MiniMax H3 | 1 |  |  |  |  |  | 2 |  |  |  |
+| MOSS-VL |  |  |  |  |  |  |  |  | 1 |  |
+| MOVA |  |  |  |  |  |  |  |  | 2 |  |
+| Muse Glimmer | 1 |  |  |  |  |  |  |  |  |  |
+| Nemotron | 8 |  |  |  |  |  |  |  |  | 1 |
+| Ornith | 1 |  |  |  |  |  |  |  |  |  |
+| Pixal3D |  |  |  |  |  |  |  |  | 1 |  |
+| Qwen (text and vision) | 10 | 2 |  |  | 2 |  |  |  |  |  |
+| Qwen Image |  |  |  |  |  |  | 6 | 5 |  |  |
+| SkinTokens |  |  |  |  |  |  |  |  | 1 |  |
+| Step 3.7 Flash | 1 |  |  |  |  |  |  |  |  |  |
+| Step1X-3D |  |  |  |  |  |  |  |  | 3 |  |
+| TRELLIS |  |  |  |  |  |  |  |  | 1 |  |
+| TripoSG |  |  |  |  |  |  |  |  | 1 |  |
+| UI-Mate | 1 |  |  |  |  |  |  |  |  |  |
+| Wan |  |  |  |  |  |  |  | 3 | 2 |  |
+| **Total** | **55** | **6** | **0** | **0** | **2** | **3** | **13** | **10** | **21** | **1** |
 
 ### Spark variants
 
@@ -78,7 +78,7 @@ Which Spark counts each family runs on, and who provides them.
 | MOSS-VL | OpenMOSS-Team |  |  |  |  |
 | MOVA | OpenMOSS-Team |  |  |  |  |
 | Muse Glimmer | meta-models |  |  |  |  |
-| Nemotron | drowzeys (keyz), NVIDIA playbooks, sfxnz |  |  |  |  |
+| Nemotron | drowzeys (keyz), NVIDIA playbooks, r0b0tlab, sfxnz |  |  |  |  |
 | Ornith | ornith-ai |  |  |  |  |
 | Pixal3D | TencentARC |  |  |  |  |
 | Qwen (text and vision) | ashhart, drowzeys (keyz), MiaAI-Lab, NVIDIA playbooks, Qwen, r0b0tlab | MiaAI-Lab, sfxnz |  |  |  |
@@ -99,7 +99,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | --- | --- | --- | ---: |
 | [MiaAI-Lab](https://github.com/MiaAI-Lab) | Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling. | SGLang, TensorFold, vLLM | 15 |
 | [tonyd2wild](https://github.com/tonyd2wild) | Multi-Spark (2 and 4) vLLM recipes for large MoE models: GLM, MiMo. | vLLM | 8 |
-| [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. | SGLang, vLLM | 7 |
+| [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. | atlas, SGLang, vLLM | 9 |
 | [drowzeys (keyz)](https://github.com/drowzeys) | Large multi-Spark vLLM builds with prebuilt images: GLM, MiMo, abliterated variants. | vLLM | 4 |
 | [NVIDIA playbooks](https://github.com/NVIDIA/dgx-spark-playbooks) | Official DGX Spark playbooks and NVIDIA model releases: Nemotron, NVFP4 checkpoints. | diffusers, vLLM | 8 |
 | [eugr](https://github.com/eugr) | spark-vllm-docker: vLLM container builds for dual DGX Spark; llama-benchy benchmarking. |  | 0 |
@@ -138,7 +138,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 ### Recipes by family
 
-<details><summary>DeepSeek V4 Flash (13)</summary>
+<details><summary>DeepSeek V4 Flash (14)</summary>
 
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
@@ -340,7 +340,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 </details>
 
-<details><summary>Nemotron (8)</summary>
+<details><summary>Nemotron (9)</summary>
 
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
@@ -348,6 +348,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | [nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single](recipes/nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single.json) | vLLM | 1 | NVIDIA playbooks |
 | [nemotron-3-5-lightning-30b-a3b-vllm-single](recipes/nemotron-3-5-lightning-30b-a3b-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |
 | [nemotron-3-5-lightning-dspark-lowmem-canary-single](recipes/nemotron-3-5-lightning-dspark-lowmem-canary-single.json) | vLLM | 1 | NVIDIA playbooks |
+| [nemotron-3-5-lightning-dspark-r0b0tlab-atlas-single](recipes/nemotron-3-5-lightning-dspark-r0b0tlab-atlas-single.json) | atlas | 1 | r0b0tlab |
 | [nemotron-3-nano-30b-a3b-vllm-single](recipes/nemotron-3-nano-30b-a3b-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |
 | [nemotron-3-nano-omni-30b-a3b-vllm-single](recipes/nemotron-3-nano-omni-30b-a3b-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |
 | [nemotron-3-super-120b-a12b-vllm-single](recipes/nemotron-3-super-120b-a12b-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |

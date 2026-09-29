@@ -1,0 +1,10 @@
+{
+  "source": {
+    "repo": "r0b0tlab/nemotron-3.5-lightning-atlas-sm121",
+    "commit": "4ecde533459d6fc1407ad9f889e3a13ce872d91f"
+  },
+  "ours": [],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE"
+  }
+}

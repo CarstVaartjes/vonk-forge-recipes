@@ -1,0 +1,1058 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "d00a317bbe8ada857836c89bde54b75449d2b91086594db7cce1be27683483e4",
+        "repository": "ghcr.io/r0b0tlab/nemotron-3.5-lightning-atlas-sm121"
+      },
+      "context": {
+        "path": "adapters/nvidia/r0b0tlab-lightning-atlas-single"
+      },
+      "dockerfile": "adapters/nvidia/r0b0tlab-lightning-atlas-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-5-lightning-dspark-r0b0tlab-atlas-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "nvidia/nemotron-3.5-lightning-30b-a3b"
+      ],
+      "port": 8888
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "r0b0tlab's native Atlas runtime (Avarok-Cybersecurity's Rust/CUDA `spark` engine, AGPL-3.0-only, not vLLM or SGLang) for NVIDIA Nemotron 3.5 Lightning 30B-A3B NVFP4 with NVIDIA's official DSpark draft head on one Spark, from r0b0tlab/nemotron-3.5-lightning-atlas-sm121 at 4ecde533 (MIT; Atlas source 3f929293, binary sha256:1111f86b). UPSTREAM STATUS: 'public reproducibility WIP / not qualified' - the native source, build and runtime gates and the immutable image are complete, but the full r0b0bench core-subset run is not (the BFCL multi-turn lane stalled at 129/200 rows and is kept as diagnostic), so upstream makes no full-suite quality or throughput claim. Runs upstream's immutable image unchanged with its launch_serve.sh settings: DSpark gamma 4 (scheduler K=3) with a 1,024-token window, FP8 target KV with high-precision attention boundaries, BF16 drafter KV, 50,016-token context, batch 8, prefill 8,192, memory utilisation 0.75 (upstream warns not to serve DSpark at 0.85), the slai scheduling policy, qwen3_coder tool parser and thinking off by default. Upstream's selected-lane WIP numbers (not claims, not measured here): C1 84.18 tok/s and 152.84 / 168.42 / 155.84 aggregate at C2 / C4 / C6, GSM8K 191/200. The option switches to upstream's autoregressive profile; its 1M-token AR profile (batch 1, 3000 s request timeout) is not offered. Target checkpoint e8f3c7c4 is the revision r0b0tlab's sibling Nemotron repositories name; upstream provides weights locally. Physical Spark acceptance is pending.",
+    "tags": [
+      "agpl",
+      "atlas",
+      "candidate",
+      "dspark",
+      "executable",
+      "native",
+      "nemotron",
+      "nvfp4",
+      "r0b0tlab",
+      "reasoning",
+      "single",
+      "spark",
+      "speculative-decoding",
+      "tool-use",
+      "wip-upstream"
+    ],
+    "title": "Nemotron 3.5 Lightning NVFP4 DSpark Atlas single Spark (r0b0tlab)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-8e951b009695-618cd5b83d",
+          "id": "primary-metadata-8e951b009695-618cd5b83d",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-d7c8a9e5d189-c693279643",
+          "id": "primary-license-d7c8a9e5d189-c693279643",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-033ebc08bcd1-b335630551",
+          "id": "primary-readme-033ebc08bcd1-b335630551",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "accuracy-plot-1397995f8a5d-de05870682",
+          "id": "primary-accuracy-plot-1397995f8a5d-de05870682",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "agentic-coding-benchmarks-06cf5486ae94-cfad1a7135",
+          "id": "primary-agentic-coding-benchmarks-06cf5486ae94-cfad1a7135",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "bias-c5cedf15a6a2-132a86726b",
+          "id": "primary-bias-c5cedf15a6a2-132a86726b",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-58933db77d30-00824420d1",
+          "id": "primary-chat-template-58933db77d30-00824420d1",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-f1d98b530846-587cb980af",
+          "id": "primary-config-f1d98b530846-587cb980af",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "explainability-0633d9f35191-c9ed671e8a",
+          "id": "primary-explainability-0633d9f35191-c9ed671e8a",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-c67c90fcadf0-97dd3d578b",
+          "id": "primary-generation-config-c67c90fcadf0-97dd3d578b",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-529a5a524399-a481ad90fa",
+          "id": "primary-hf-quant-config-529a5a524399-a481ad90fa",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00052-672c8bda10fd-747296ee2c",
+          "id": "primary-model-00001-of-00052-672c8bda10fd-747296ee2c",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00052-b365ac815ea7-344b4eaf0e",
+          "id": "primary-model-00002-of-00052-b365ac815ea7-344b4eaf0e",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00052-8fbad8247cd4-a8289ae3eb",
+          "id": "primary-model-00003-of-00052-8fbad8247cd4-a8289ae3eb",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00052-243a94b1f2b3-2c85e03ed0",
+          "id": "primary-model-00004-of-00052-243a94b1f2b3-2c85e03ed0",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00052-e675767a4747-620cc56f7e",
+          "id": "primary-model-00005-of-00052-e675767a4747-620cc56f7e",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00052-8f8e9623934b-2e9058b60d",
+          "id": "primary-model-00006-of-00052-8f8e9623934b-2e9058b60d",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00052-306aee6514a7-afc67d213c",
+          "id": "primary-model-00007-of-00052-306aee6514a7-afc67d213c",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00052-31235989ff64-25cc7fd3e9",
+          "id": "primary-model-00008-of-00052-31235989ff64-25cc7fd3e9",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00052-bcd6b2645a6b-231f2e570c",
+          "id": "primary-model-00009-of-00052-bcd6b2645a6b-231f2e570c",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00052-5fae7d86c343-0c7744b219",
+          "id": "primary-model-00010-of-00052-5fae7d86c343-0c7744b219",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00052-10237b58cd28-25b2f215e4",
+          "id": "primary-model-00011-of-00052-10237b58cd28-25b2f215e4",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00052-dfa4a2312fc9-325a2ec00f",
+          "id": "primary-model-00012-of-00052-dfa4a2312fc9-325a2ec00f",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00052-41feb27e3376-a8f6251a78",
+          "id": "primary-model-00013-of-00052-41feb27e3376-a8f6251a78",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00052-16653126b271-c05536c499",
+          "id": "primary-model-00014-of-00052-16653126b271-c05536c499",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00052-1016d76b1b0d-c560e13fff",
+          "id": "primary-model-00015-of-00052-1016d76b1b0d-c560e13fff",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00052-70aaec01374f-050aabe40d",
+          "id": "primary-model-00016-of-00052-70aaec01374f-050aabe40d",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00052-67763384429d-be6373f4fb",
+          "id": "primary-model-00017-of-00052-67763384429d-be6373f4fb",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00018-of-00052-252e3fb2e6c3-f528b1f84a",
+          "id": "primary-model-00018-of-00052-252e3fb2e6c3-f528b1f84a",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00019-of-00052-3fd080a21df9-f607c07f4e",
+          "id": "primary-model-00019-of-00052-3fd080a21df9-f607c07f4e",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00020-of-00052-31dada97bfd5-23d7ce5e09",
+          "id": "primary-model-00020-of-00052-31dada97bfd5-23d7ce5e09",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00021-of-00052-601a05eb0b22-f0ecd540e3",
+          "id": "primary-model-00021-of-00052-601a05eb0b22-f0ecd540e3",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00022-of-00052-4b3eb401a315-0953717f26",
+          "id": "primary-model-00022-of-00052-4b3eb401a315-0953717f26",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00023-of-00052-1f92f9b4bc06-f0af75d31e",
+          "id": "primary-model-00023-of-00052-1f92f9b4bc06-f0af75d31e",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00024-of-00052-64d36b45162f-394eb16a60",
+          "id": "primary-model-00024-of-00052-64d36b45162f-394eb16a60",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00025-of-00052-1d8f5436a1e7-42da78e42e",
+          "id": "primary-model-00025-of-00052-1d8f5436a1e7-42da78e42e",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00026-of-00052-97e410e49188-c09dbca8dc",
+          "id": "primary-model-00026-of-00052-97e410e49188-c09dbca8dc",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00027-of-00052-e67fb58638bf-925851b35a",
+          "id": "primary-model-00027-of-00052-e67fb58638bf-925851b35a",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00028-of-00052-1800ab07214a-99c8680e9a",
+          "id": "primary-model-00028-of-00052-1800ab07214a-99c8680e9a",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00029-of-00052-045dc61dc334-f0311008ce",
+          "id": "primary-model-00029-of-00052-045dc61dc334-f0311008ce",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00030-of-00052-794679784bde-9f939e4527",
+          "id": "primary-model-00030-of-00052-794679784bde-9f939e4527",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00031-of-00052-727bb1bf4829-66dd669be3",
+          "id": "primary-model-00031-of-00052-727bb1bf4829-66dd669be3",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00032-of-00052-cc68cfd7f1e8-c910d94be9",
+          "id": "primary-model-00032-of-00052-cc68cfd7f1e8-c910d94be9",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00033-of-00052-ee8d3fc76401-83eddb8a14",
+          "id": "primary-model-00033-of-00052-ee8d3fc76401-83eddb8a14",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00034-of-00052-90c579b134e5-9e0ae438dd",
+          "id": "primary-model-00034-of-00052-90c579b134e5-9e0ae438dd",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00035-of-00052-d6b9441c3fb7-77a31293bf",
+          "id": "primary-model-00035-of-00052-d6b9441c3fb7-77a31293bf",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00036-of-00052-130ee06f0ba0-6bf49e9d32",
+          "id": "primary-model-00036-of-00052-130ee06f0ba0-6bf49e9d32",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00037-of-00052-7464b7b51237-fdf2ccf7cf",
+          "id": "primary-model-00037-of-00052-7464b7b51237-fdf2ccf7cf",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00038-of-00052-1a0ab61ef65a-def29ed362",
+          "id": "primary-model-00038-of-00052-1a0ab61ef65a-def29ed362",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00039-of-00052-9f31f2fa9502-4df43e6bd4",
+          "id": "primary-model-00039-of-00052-9f31f2fa9502-4df43e6bd4",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00040-of-00052-407f0e74455e-d28dc267aa",
+          "id": "primary-model-00040-of-00052-407f0e74455e-d28dc267aa",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00041-of-00052-4e8442377f26-11ae8e1602",
+          "id": "primary-model-00041-of-00052-4e8442377f26-11ae8e1602",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00042-of-00052-85ca012bff38-4163075556",
+          "id": "primary-model-00042-of-00052-85ca012bff38-4163075556",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00043-of-00052-01c56b23b7ea-874688f2cf",
+          "id": "primary-model-00043-of-00052-01c56b23b7ea-874688f2cf",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00044-of-00052-a3ebcaf00a08-cbeaddcfd6",
+          "id": "primary-model-00044-of-00052-a3ebcaf00a08-cbeaddcfd6",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00045-of-00052-e9d559259cb0-d7e1f6ae2a",
+          "id": "primary-model-00045-of-00052-e9d559259cb0-d7e1f6ae2a",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00046-of-00052-5e5cfe7a6e50-80652f06f9",
+          "id": "primary-model-00046-of-00052-5e5cfe7a6e50-80652f06f9",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00047-of-00052-96ffe8358c3e-2c64ad171e",
+          "id": "primary-model-00047-of-00052-96ffe8358c3e-2c64ad171e",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00048-of-00052-1dcdf08d0f47-7525fdae7c",
+          "id": "primary-model-00048-of-00052-1dcdf08d0f47-7525fdae7c",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00049-of-00052-25da4593995d-a68f3d37e2",
+          "id": "primary-model-00049-of-00052-25da4593995d-a68f3d37e2",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00050-of-00052-ef5b1baa53ab-d0eacd8fd7",
+          "id": "primary-model-00050-of-00052-ef5b1baa53ab-d0eacd8fd7",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00051-of-00052-2da1f6cbbcfb-2e1987747b",
+          "id": "primary-model-00051-of-00052-2da1f6cbbcfb-2e1987747b",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00052-of-00052-85db447be6ac-dc5f5cc850",
+          "id": "primary-model-00052-of-00052-85db447be6ac-dc5f5cc850",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-3c3bc7efa8d6-0a05be8238",
+          "id": "primary-model-safetensors-index-3c3bc7efa8d6-0a05be8238",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "privacy-8d7bcc6314e4-8ca73853d3",
+          "id": "primary-privacy-8d7bcc6314e4-8ca73853d3",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "safety-60f74211be1d-0f7043827d",
+          "id": "primary-safety-60f74211be1d-0f7043827d",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-e9435fefd6d8-c07a9be597",
+          "id": "primary-special-tokens-map-e9435fefd6d8-c07a9be597",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-623c34567aeb-224931eb13",
+          "id": "primary-tokenizer-623c34567aeb-224931eb13",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-10f93eabcb9b-94d5c6ba8f",
+          "id": "primary-tokenizer-config-10f93eabcb9b-94d5c6ba8f",
+          "mount": {
+            "target": "/model"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "1f40d1a709bd78a8ab18108b72e2efe2fd5140778fc4d6c53f3e32c1e7678a36",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-e8f3c7c4"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-gitattributes",
+          "id": "draft-metadata-gitattributes",
+          "mount": {
+            "target": "/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-license",
+          "id": "draft-metadata-license",
+          "mount": {
+            "target": "/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-readme",
+          "id": "draft-metadata-readme",
+          "mount": {
+            "target": "/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration",
+          "id": "draft-configuration",
+          "mount": {
+            "target": "/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "quantization-config",
+          "id": "draft-quantization-config",
+          "mount": {
+            "target": "/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights",
+          "id": "draft-weights",
+          "mount": {
+            "target": "/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "draft",
+      "model": {
+        "content_sha256": "54b07fa26f4a09e7fad6b26e3997dc83e2d514f91d15f5a503e5627a0ff0df94",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "args": [
+            {
+              "name": "dflash",
+              "value": true
+            },
+            {
+              "name": "draft-model",
+              "value": "/draft"
+            },
+            {
+              "name": "dflash-gamma",
+              "value": 4
+            },
+            {
+              "name": "dflash-window-size",
+              "value": 1024
+            }
+          ],
+          "default": true,
+          "env": {
+            "ATLAS_DFLASH_OPTION_B": "1",
+            "ATLAS_LIGHTNING_MAMBA_BATCH_IN": "1",
+            "ATLAS_LIGHTNING_MAMBA_BATCH_OUT": "1",
+            "ATLAS_LIGHTNING_MAMBA_EXACT_BATCHED": "1",
+            "ATLAS_LIGHTNING_MAMBA_EXACT_PERSISTENT": "1",
+            "ATLAS_NO_MTP_DRAFTER_CONTEXT": "1"
+          },
+          "help": "Upstream's launch_serve.sh: native DSpark (scheduler K=3), 1,024-token draft window, exact batched Mamba paths. Upstream's WIP selected-lane figure is 84.18 tok/s at C1.",
+          "label": "DSpark gamma 4",
+          "value": "dspark"
+        },
+        {
+          "help": "Upstream's AR product profile (batched multi-sequence decode is its default). Upstream's ladder for it: 77 / 104 / 148 / 197 tok/s at C1 / C2 / C4 / C8.",
+          "label": "Autoregressive",
+          "value": "ar"
+        }
+      ],
+      "help": "Whether the official DSpark draft head speeds up decoding.",
+      "label": "Decoding",
+      "name": "decoding"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "r0b0tlab (MIT)",
+      "Avarok-Cybersecurity (Atlas, AGPL-3.0-only)",
+      "NVIDIA Corporation (OpenMDW-1.1)",
+      "DeepSpec / DeepSeek AI (DSpark lineage)"
+    ],
+    "source_reference": "https://github.com/r0b0tlab/nemotron-3.5-lightning-atlas-sm121/tree/4ecde533459d6fc1407ad9f889e3a13ce872d91f"
+  },
+  "release": {
+    "released_at": "2026-08-20",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model-from-path",
+        "setting": null,
+        "value": "/model"
+      },
+      {
+        "name": "model-name",
+        "setting": null,
+        "value": "nvidia/nemotron-3.5-lightning-30b-a3b"
+      },
+      {
+        "name": "port",
+        "setting": null,
+        "value": 8888
+      },
+      {
+        "name": "max-seq-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-batch-size",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-prefill-tokens",
+        "setting": null,
+        "value": 8192
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "kv-high-precision-layers",
+        "setting": null,
+        "value": "max"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.75"
+      },
+      {
+        "name": "scheduling-policy",
+        "setting": null,
+        "value": "slai"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "qwen3_coder"
+      },
+      {
+        "name": "default-chat-template-kwargs",
+        "setting": null,
+        "value": "{\"enable_thinking\":false}"
+      }
+    ],
+    "engine": "atlas",
+    "entrypoint": [
+      "/usr/local/bin/spark",
+      "serve"
+    ],
+    "environment": [
+      {
+        "name": "RUST_LOG",
+        "value": "info"
+      },
+      {
+        "name": "ATLAS_MOE_EXPERT_GROUPED",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 8
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 50016
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 22932863021,
+            "image_bytes": 12000000000,
+            "safety_margin_bytes": 16000000000,
+            "working_bytes": 20000000000
+          },
+          "memory": {
+            "peak_bytes": 96000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "nvidia/nemotron-3.5-lightning-30b-a3b"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
