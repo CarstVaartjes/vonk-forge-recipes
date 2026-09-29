@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -23,13 +21,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -43,7 +38,6 @@
         "media_types": [
           "model/gltf-binary"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -65,7 +59,6 @@
       },
       "output": {
         "max_total_bytes": 536870912,
-        "path": "/outputs",
         "slots": [
           {
             "description": "The rigged SkinTokens binary glTF mesh.",
@@ -83,8 +76,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -113,7 +105,6 @@
           "file_id": "grpo-1400-f4e4706a11cf-0a004da47f",
           "id": "primary-001",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -124,7 +115,6 @@
           "file_id": "last-4843f49e58af-3417e359c3",
           "id": "primary-002",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -134,7 +124,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "e58ce376ac8d365d5d6e7cdcbd64080be193c5eb724eba69d9d067aabf9f80bb",
+        "content_sha256": "4833697faacb1957bafef238e6a7e0cfdfa2867ba33d52fadfd1b54a2ae9524a",
         "kind": "model",
         "publisher": "vast-ai",
         "slug": "skintokens"
@@ -145,302 +135,9 @@
     "attribution": [
       "vast-ai"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/VAST-AI/SkinTokens/tree/79736cad0fd84de384d5eede659b4ebd24effe33"
   },
   "release": {
-    "history": [
-      {
-        "version": "2.0.13",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "21c0037df2cd8e79977906ccf4b0969cb9a8ca774b94289d1131a7135e425ec3",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved the build base to NVIDIA CUDA 13.4.1 devel (Ubuntu 24.04, ARM64).",
-            "details": "nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04 ARM64 manifest sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37 replaces 13.2.1-devel; its NVIDIA_REQUIRE_CUDA keeps the driver>=580,<581 clause, so the Spark 580-series driver still admits it. flash-attn and other extensions now build with nvcc 13.4 for SM 12.1. Upstream source 273b691d and the model snapshot are unchanged.",
-            "references": [
-              "https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html",
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "runtime",
-            "summary": "Updated transformers, lightning, trimesh and requests to their latest stable releases; PyTorch held at 2.13.0.",
-            "details": "transformers 5.15.1->5.17.0, lightning 2.6.5->2.6.6, trimesh 5.0.0->5.1.0, requests 2.32.5->2.34.2. PyTorch stays at 2.13.0+cu132: PyTorch 2.14 ATen headers require C++20 and reject builds, while flash-attn 2.8.3.post1 (latest release; the C++20 fix is unreleased) pass -std=c++17 explicitly. nvcc 13.4 against the cu132 wheels is a same-major minor mismatch that torch.utils.cpp_extension only warns about.",
-            "references": [
-              "https://github.com/huggingface/transformers/releases/tag/v5.17.0",
-              "https://github.com/pytorch/pytorch/blob/v2.14.0/aten/src/ATen/ATen.h",
-              "https://github.com/Dao-AILab/flash-attention/pull/2879"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu132 metadata requires cuda-toolkit==13.2.1; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu132/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "3c5ee0edbaabddb29609cbcb703e4cbf1da3f5000517437dd059c474820ddc17",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.12"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Declared the official cu132 PyTorch wheel host and removed an unused torchaudio install request.",
-            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host, which is now explicitly permitted. The pinned upstream adapter source does not import torchaudio, and the stable cu132 index has no Python 3.12 ARM64 torchaudio 2.11.0 wheel, so the unnecessary request was removed. Model and runtime image pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu132/torch/",
-              "https://download.pytorch.org/whl/cu132/torchvision/",
-              "https://download.pytorch.org/whl/cu132/torchaudio/",
-              "https://huggingface.co/VAST-AI/SkinTokens/tree/79736cad0fd84de384d5eede659b4ebd24effe33"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "c475a5f4168ee7690ea822be837b5f11eb49616138be8998a57f38704445fa92",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.11"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe selects the TokenRig checkpoint and the separately referenced pretrained Skin VAE checkpoint from the exact upstream revision. The two local paths match the pinned source configuration and remove any reliance on a synthetic snapshot artifact.",
-            "kind": "model",
-            "references": [
-              "https://huggingface.co/VAST-AI/SkinTokens/tree/79736cad0fd84de384d5eede659b4ebd24effe33"
-            ],
-            "summary": "Select both pinned TokenRig inference checkpoints explicitly."
-          }
-        ],
-        "prior_recipe_content_sha256": "6045b3b4372067513117053d03c3995e0c8af673bfbe7fc2597940d88c154f7b",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "reprepare",
-        "version": "2.0.10"
-      },
-      {
-        "changes": [
-          {
-            "details": "Upstream main remains at 273b691d35989d71cd17ff2895fdc735097b92d1; the exact TokenRig adapter source and model snapshot therefore remain unchanged.",
-            "kind": "metadata",
-            "references": [
-              "https://github.com/VAST-AI-Research/SkinTokens/commit/273b691d35989d71cd17ff2895fdc735097b92d1"
-            ],
-            "summary": "Revalidated the SkinTokens source pin against upstream main."
-          }
-        ],
-        "prior_recipe_content_sha256": "c80418f46599030ae1358f67b0523a0bfe31ea899dbe6c8e7d17aadd25d0e9c5",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "2.0.9"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "2.0.8"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "b8b7effe30a73e106d10e54e778e58478edafe2be54aedd60480ab111b42833a",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.7"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "203cc376ca857537ec67c28a3b339934e6bf4adf24b5ad3b0c77734302303622",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "2.0.6"
-      },
-      {
-        "changes": [
-          {
-            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
-            "kind": "security",
-            "references": [],
-            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
-          }
-        ],
-        "prior_recipe_content_sha256": "1078fec55c9d6b58ecdb2c94ed0e515912e0a2bac08379fb7d7f21c98ab6283a",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "The installable Candidate is explicitly not accepted until its ARM64 container build and a physical GB10 rigged-GLB canary both pass.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Published SkinTokens native-build and physical acceptance gates."
-          }
-        ],
-        "prior_recipe_content_sha256": "c9195fb2bfd95242491df225153750b2d1aa5a00198ddd5dadaaabf6c47ef704",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "none",
-        "version": "2.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Validated bounded geometry, joints, inverse bind matrices, normals, and normalized skin weights before atomic GLB publication."
-          }
-        ],
-        "prior_recipe_content_sha256": "8631b1513364c4ef282567eaceb4964f8f1ed902dce83641fb12db2b244ff382",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared exact one-GLB input and single-GLB rigged output slots with bounded bytes."
-          }
-        ],
-        "prior_recipe_content_sha256": "e24e36e810c5f8096e01196467a3f88b8d1024d0852bc269b61b9e72db347b4f",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "none",
-        "version": "2.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "a997ed4332566bab38f038f39f2c466e2c88f2c1bae3d76d988e8c987ea02cf4",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "2.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/VAST-AI-Research/SkinTokens/tree/273b691d35989d71cd17ff2895fdc735097b92d1"
-            ],
-            "summary": "Replaced the metadata placeholder with the exact upstream TokenRig inference path and an offline GLB mesh input workflow."
-          },
-          {
-            "details": null,
-            "kind": "runtime",
-            "references": [],
-            "summary": "Added the CUDA 13.2 ARM64 native dependency authority and pinned Qwen3 configuration used by TokenRig."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Added a deterministic pure glTF exporter for generated joints, inverse bind matrices, and skin weights."
-          }
-        ],
-        "prior_recipe_content_sha256": "bc3c835b5b5c1772ec6edffe4f1d28ef5c0a7ebf26fb29dcc3e9040d3b13bdc1",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Marked the rigging checkpoint binding non-executable pending TokenRig source and a model-specific GLB adapter."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Added the authoritative isolated GLB mesh input contract."
-          },
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Corrected the checkpoint license to MIT."
-          }
-        ],
-        "prior_recipe_content_sha256": "bfb39565680b3412dd3895bece722fbfde601f24d3b3d0eecaeecc81c473b8a5",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of SkinTokens / TokenRig pytorch-pipeline single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "8fea688cd7ec61a40302a56d797c9fc970bfc1dca356d53eae113ad496adc47c",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "082bf899f66b71ba0970a957fbd838c727dd2d4c1b869def2990146e349c12b1",
-        "released_at": "2026-08-17",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "2.0.13"
   },
@@ -474,40 +171,26 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -517,39 +200,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 1618915724,
-            "cache_bytes": 8000000000,
             "image_bytes": 16000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 16000000000
+            "working_bytes": 24000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 8000000000,
-            "startup_peak_bytes": 48000000000,
-            "steady_state_bytes": 36000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 48000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "timeout_seconds": 14400
-        },
-        "framework": "pytorch-pipeline",
-        "name": "bounded-startup"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -561,11 +227,9 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/tiny.glb",
-            "input_path": "/inputs",
             "input_slots": {
               "mesh": "qualification/fixtures/tiny.glb"
             },
-            "output_path": "/outputs",
             "output_slot": "mesh",
             "transport": "job"
           }

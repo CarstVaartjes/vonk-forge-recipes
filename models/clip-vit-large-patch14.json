@@ -1,17 +1,5 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [],
-    "provenance": {
-      "source_revision": "32bd64288804d66eefd0ccbe215aa642df71cc41",
-      "source_url": "https://huggingface.co/openai/clip-vit-large-patch14/blob/32bd64288804d66eefd0ccbe215aa642df71cc41/config.json"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -25,7 +13,6 @@
     }
   ],
   "format": {
-    "container": "other",
     "precision": "metadata",
     "quantization": "none"
   },
@@ -36,7 +23,6 @@
       "title": "CLIP ViT Large Patch14"
     },
     "model": {
-      "architecture": "CLIP vision and text encoder configuration",
       "publisher": "openai",
       "slug": "clip-vit-large-patch14",
       "title": "CLIP ViT Large Patch14"
@@ -51,25 +37,8 @@
     "attribution": [
       "openai"
     ],
-    "operator_acceptance_required": false,
     "spdx": "MIT",
     "url": "https://github.com/openai/CLIP/blob/d05afc436d78f1c48dc0dbf8e5980a9d471f35f6/LICENSE"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Pinned CLIP configuration only; Step1X carries and loads the encoder weights from its own selected checkpoint.",
-    "publisher": "openai",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "openai",
-      "slug": "clip-vit-large-patch14"
-    }
   },
   "metadata": {
     "description": "Exact Step1X label-geometry offline dependency closure for CLIP configuration. No external CLIP weights are selected or required. The pinned model card cautions against deployed use; this is recorded separately from the upstream MIT license.",
@@ -83,21 +52,9 @@
   "modalities": [
     "image"
   ],
-  "parameters": {
-    "active": null,
-    "total": null
-  },
-  "provenance": {
-    "attribution": [
-      "openai"
-    ],
-    "source_revision": "32bd64288804d66eefd0ccbe215aa642df71cc41",
-    "source_url": "https://huggingface.co/openai/clip-vit-large-patch14/blob/32bd64288804d66eefd0ccbe215aa642df71cc41/config.json"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/openai/clip-vit-large-patch14",
     "revision": "32bd64288804d66eefd0ccbe215aa642df71cc41"
-  },
-  "supersedes": null
+  }
 }

@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
-        "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
@@ -12,13 +10,10 @@
       },
       "dockerfile": "adapters/liquidai/lfm25-vl-vllm/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": []
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -64,7 +59,6 @@
           "file_id": "metadata-31fcd4d7141f-618cd5b83d",
           "id": "primary-metadata-31fcd4d7141f-618cd5b83d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -75,7 +69,6 @@
           "file_id": "license-30adf9d64781-c693279643",
           "id": "primary-license-30adf9d64781-c693279643",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -86,7 +79,6 @@
           "file_id": "readme-2ad0e4f36a75-b335630551",
           "id": "primary-readme-2ad0e4f36a75-b335630551",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -97,7 +89,6 @@
           "file_id": "chat-template-86f4770449a4-00824420d1",
           "id": "primary-chat-template-86f4770449a4-00824420d1",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -108,7 +99,6 @@
           "file_id": "config-68ed2ea181e1-587cb980af",
           "id": "primary-config-68ed2ea181e1-587cb980af",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -119,7 +109,6 @@
           "file_id": "generation-config-5d182b864215-97dd3d578b",
           "id": "primary-generation-config-5d182b864215-97dd3d578b",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -130,7 +119,6 @@
           "file_id": "model-8413ba08bc74-9d75c1098f",
           "id": "primary-model-8413ba08bc74-9d75c1098f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -141,7 +129,6 @@
           "file_id": "processor-config-ad5ce6e2a0e1-27f0cb76af",
           "id": "primary-processor-config-ad5ce6e2a0e1-27f0cb76af",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -152,7 +139,6 @@
           "file_id": "tokenizer-8096ecb9f545-224931eb13",
           "id": "primary-tokenizer-8096ecb9f545-224931eb13",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -163,7 +149,6 @@
           "file_id": "tokenizer-config-ef6770d12dd9-94d5c6ba8f",
           "id": "primary-tokenizer-config-ef6770d12dd9-94d5c6ba8f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -173,7 +158,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "aa74e7c9210ee2e6d5139f9b2bdc16dfd5bcd5cb4ca83f7436a95e370c47c858",
+        "content_sha256": "6922e5d5e68e41de4e6abe97420860e832a45da791116452598b4d702df404a7",
         "kind": "model",
         "publisher": "liquidai",
         "slug": "lfm2-5-vl-3b-bf16-a3af5799"
@@ -184,142 +169,9 @@
     "attribution": [
       "liquidai"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/tree/a3af5799199acdd2a4f56ac4342816abb46c12a9"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.2.0",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "d2d09207d27c88cc7f0b4313494819f7d4899386936a3ace00e3d8142dab9e34",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Refresh the pinned official vLLM ARM64 runtime from 0.27.1 to stable 0.30.0.",
-            "details": "Moves from v0.27.1-aarch64 (1c8e60a0841b) to v0.30.0-aarch64 (4864d46625cb), build commit ced6857a, spanning v0.28-v0.30. Upstream v0.28 bumps Transformers to 5.15 and drops reasoning_content output; v0.29 makes Model Runner V2 the default. Removed flags/env vars in v0.28-v0.30 are not used here; every runtime option in this recipe still exists at v0.30.0. LFM2-VL and the lfm2 tool parser remain native vLLM implementations. Model pin unchanged: upstream a3af5799 -> 35a118d9 only edits README.md. This recipe now shares the vLLM 0.30.0 release with lfm2-5-vl-3b-vllm028-single (different image flavor and tuning).",
-            "references": [
-              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.28.0",
-              "https://github.com/vllm-project/vllm/compare/v0.27.1...v0.30.0",
-              "https://hub.docker.com/r/vllm/vllm-openai/tags?name=v0.30.0-aarch64",
-              "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/commit/35a118d938ce6d123ac2d371649f24a8efb69058"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.1.3"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "774b7b0a0fda5af26af68cc597ec092fc61887b172a043c298c3085230dfa6ff",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.2"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "40920fb0a1f9e8a0a235e56ae07d2ceb26aa3cf7f1c2827155f93eef451881da",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.1.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "The official correction sets min_tiles to 2 and text_config.max_position_embeddings to 32768. The model weights are unchanged, but config.json and processor_config.json changed, so the immutable model version and adapter source bundle are refreshed and existing installs require reinstall.",
-            "kind": "fix",
-            "references": [
-              "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/commit/a3af5799199acdd2a4f56ac4342816abb46c12a9",
-              "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/blob/a3af5799199acdd2a4f56ac4342816abb46c12a9/config.json",
-              "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/blob/a3af5799199acdd2a4f56ac4342816abb46c12a9/processor_config.json"
-            ],
-            "summary": "Pinned Liquid AI's corrected a3af5799 LFM2.5-VL snapshot."
-          }
-        ],
-        "prior_recipe_content_sha256": "65a63bb642cb822d7d3a815bdbb8f32df7f795549f6abc87bc3c1b2d87355619",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "9de420087749ac379cc9ff84adad8d799b41d34055dd62adae075c2ba8c89c54",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/tree/5a414ead75d45db003906d06fb62bd5b6846cec0"
-            ],
-            "summary": "Added the immutable official LFM2.5-VL-3B BF16 checkpoint as a complete one-Spark Pending recipe."
-          },
-          {
-            "details": null,
-            "kind": "runtime",
-            "references": [
-              "https://docs.liquid.ai/deployment/gpu-inference/vllm",
-              "https://docs.vllm.ai/projects/recipes/en/latest/LiquidAI/LFM2.5.html",
-              "https://github.com/vllm-project/vllm/blob/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/vllm/model_executor/models/lfm2_vl.py",
-              "https://github.com/vllm-project/vllm/blob/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/vllm/tool_parsers/lfm2_tool_parser.py"
-            ],
-            "summary": "Added offline CUDA 13 ARM64 vLLM serving with local images, multi-image prompting, and parsed LFM2 tool calls."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [
-              "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/blob/5a414ead75d45db003906d06fb62bd5b6846cec0/README.md"
-            ],
-            "summary": "Declared text, screen, scanned-document, OCR, layout, and normalized-coordinate grounding capabilities."
-          }
-        ],
-        "prior_recipe_content_sha256": "04d1a3aa417ed86590d0f335ef87351e57891fb90d16c8d7e22cfad47d956237",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.2.0"
   },
@@ -380,26 +232,17 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": {
       "change_effect": "restart",
@@ -414,19 +257,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -436,41 +273,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 6265014121,
-            "cache_bytes": 4000000000,
             "image_bytes": 12000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 32000000000
+            "working_bytes": 36000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 4000000000,
-            "startup_peak_bytes": 70000000000,
-            "steady_state_bytes": 64000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 70000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "timeout_seconds": 600
-        },
-        "framework": "openai",
-        "name": "bounded-chat"
-      }
-    ],
     "serving": {
       "checks": [
         {

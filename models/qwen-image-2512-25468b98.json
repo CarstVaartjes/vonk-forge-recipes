@@ -1,23 +1,7 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "image-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "25468b98e3276ca6700de15c6628e51b7de54a26",
-      "source_url": "https://huggingface.co/Qwen/Qwen-Image-2512"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "image-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -292,7 +276,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "bf16"
   },
@@ -303,7 +286,6 @@
       "title": "Qwen Image"
     },
     "model": {
-      "architecture": "20B multimodal diffusion transformer image-generation pipeline",
       "publisher": "qwen",
       "slug": "qwen-image-2512",
       "title": "Qwen Image 2512"
@@ -318,25 +300,8 @@
     "attribution": [
       "Qwen"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen-Image-2512/blob/25468b98e3276ca6700de15c6628e51b7de54a26/LICENSE.md"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official Qwen Image 2512 checkpoint.",
-    "publisher": "Qwen",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "qwen",
-      "slug": "qwen-image-2512"
-    }
   },
   "metadata": {
     "description": "Exact official Qwen Image 2512 checkpoint for a candidate single-Spark Diffusers recipe.",
@@ -352,21 +317,9 @@
   "modalities": [
     "image"
   ],
-  "parameters": {
-    "active": null,
-    "total": 20000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Qwen"
-    ],
-    "source_revision": "25468b98e3276ca6700de15c6628e51b7de54a26",
-    "source_url": "https://huggingface.co/Qwen/Qwen-Image-2512"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Qwen/Qwen-Image-2512",
     "revision": "25468b98e3276ca6700de15c6628e51b7de54a26"
-  },
-  "supersedes": null
+  }
 }

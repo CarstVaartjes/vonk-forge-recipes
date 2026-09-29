@@ -1,43 +1,11 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "chat",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "code-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "video-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "4d7ae4984b7db7de8f8457170b3f1a419ee76d52",
-      "source_url": "https://huggingface.co/google/gemma-4-26B-A4B-it"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation",
+    "video-understanding"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -150,7 +118,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -161,7 +128,6 @@
       "title": "Google Gemma"
     },
     "model": {
-      "architecture": "Gemma 4 multimodal mixture-of-experts transformer",
       "publisher": "google",
       "slug": "gemma-4-26b-a4b",
       "title": "Gemma 4 26B-A4B"
@@ -176,25 +142,8 @@
     "attribution": [
       "Google DeepMind"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://ai.google.dev/gemma/docs/gemma_4_license"
-  },
-  "limits": {
-    "context_tokens": 262144,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official Google instruction-tuned checkpoint at the pinned revision.",
-    "publisher": "google",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "google",
-      "slug": "gemma-4-26b-a4b"
-    }
   },
   "metadata": {
     "description": "Exact public instruction-tuned Gemma 4 26B-A4B checkpoint with Google's canonical chat template.",
@@ -213,21 +162,9 @@
     "text",
     "video"
   ],
-  "parameters": {
-    "active": 4000000000,
-    "total": 25805936206
-  },
-  "provenance": {
-    "attribution": [
-      "Google DeepMind"
-    ],
-    "source_revision": "4d7ae4984b7db7de8f8457170b3f1a419ee76d52",
-    "source_url": "https://huggingface.co/google/gemma-4-26B-A4B-it"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/google/gemma-4-26B-A4B-it",
     "revision": "4d7ae4984b7db7de8f8457170b3f1a419ee76d52"
-  },
-  "supersedes": null
+  }
 }

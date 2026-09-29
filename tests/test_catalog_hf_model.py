@@ -41,8 +41,6 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
             "Test model",
             "--model-description",
             "Test model.",
-            "--architecture",
-            "test-architecture",
             "--version-slug",
             "test-version",
             "--version",
@@ -51,18 +49,14 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
             "bf16",
             "--quantization",
             "none",
-            "--parameters-total",
-            "1",
-            "--parameters-active",
-            "1",
-            "--context-tokens",
-            "1",
             "--license-spdx",
             "MIT",
             "--license-url",
             "https://example.com/license",
             "--attribution",
             "Example",
+            "--capability",
+            "text-generation",
         ]
 
     def test_tree_follows_every_pagination_link(self) -> None:
@@ -108,6 +102,8 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
             self.assertEqual(namespace["main"](), 0)
             model = load(Path(directory) / "models/test-version.json")
             self.assertEqual(len(model["files"]), 419)
+            self.assertFalse(model["requires_token"])
+            self.assertEqual(model["capabilities"], ["text-generation"])
 
     def test_artifact_ids_include_full_path_for_repeated_identical_files(self) -> None:
         namespace = runpy.run_path(str(TOOL))
@@ -188,7 +184,7 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
         for option in (
             "--publisher",
             "--version-slug",
-            "--architecture",
+            "--requires-token",
             "--quantization",
         ):
             self.assertIn(option, result.stdout)
@@ -207,11 +203,7 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
             "qwen3-8-27b-1d4bf0f2",
         ):
             model = load(ROOT / f"models/{slug}.json")
-            capabilities = {
-                fact["capability"]
-                for fact in model["capabilities"]["facts"]
-                if fact["support"] == "supported"
-            }
+            capabilities = set(model["capabilities"])
             self.assertTrue(
                 capabilities & {"text-generation", "image-understanding"}, slug
             )

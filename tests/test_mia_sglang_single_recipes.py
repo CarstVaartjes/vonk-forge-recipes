@@ -72,12 +72,7 @@ class MiaSglangSingleRecipeTests(unittest.TestCase):
         self.assertEqual(recipe["settings"]["context_tokens"]["value"], 262144)
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
         self.assertEqual(
-            max(
-                memory["startup_peak_bytes"],
-                memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
-            )
-            + memory["system_reserve_bytes"],
-            126_000_000_000,
+            memory["peak_bytes"] + memory["reserve_bytes"], 126_000_000_000
         )
         self.assertIn("262144 context", recipe["metadata"]["description"])
 
@@ -116,7 +111,7 @@ class MiaSglangSingleRecipeTests(unittest.TestCase):
             recipe = load(path)
             self.assertEqual(recipe["runtime"]["engine"], "sglang")
             self.assertTrue(recipe["runtime"]["entrypoint"])
-            self.assertIn(recipe["execution"]["mode"], {"image", "build"})
+            self.assertTrue(recipe["execution"]["build"]["context"]["path"])
 
 
 if __name__ == "__main__":

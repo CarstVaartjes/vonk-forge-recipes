@@ -8,7 +8,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, content_sha256
+from vonk_forge_contracts import document_sha256
 
 
 def read(path: Path) -> dict[str, object]:
@@ -26,7 +26,7 @@ class QwenImageEditVariantMatrixTests(unittest.TestCase):
                 self.assertEqual(recipe["topology"]["node_count"], 1)
                 for selection in recipe["models"]:
                     model = read(ROOT / "models" / f"{selection['model']['slug']}.json")
-                    canonical = content_sha256(ModelDefinition.model_validate(model))
+                    canonical = document_sha256(model)
                     self.assertEqual(selection["model"]["content_sha256"], canonical)
                     self.assertTrue(selection["files"])
 
@@ -36,13 +36,10 @@ class QwenImageEditVariantMatrixTests(unittest.TestCase):
         for path in sorted((ROOT / "recipes").glob("qwen-image-edit-2511-*.json")):
             recipe = read(path)
             with self.subTest(recipe=path.name):
-                self.assertIn(
-                    recipe["execution"]["build"]["network"]["mode"], {"none", "public"}
-                )
                 topology: Any = recipe["topology"]
                 memory = topology["roles"][0]["resources"]["memory"]
                 self.assertLessEqual(
-                    memory["startup_peak_bytes"] + memory["system_reserve_bytes"],
+                    memory["peak_bytes"] + memory["reserve_bytes"],
                     128_000_000_000,
                 )
                 validation: Any = recipe["validation"]

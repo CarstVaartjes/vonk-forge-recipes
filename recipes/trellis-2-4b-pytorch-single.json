@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -24,13 +22,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -46,7 +41,6 @@
           "image/png",
           "image/webp"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -73,7 +67,6 @@
       },
       "output": {
         "max_total_bytes": 1073741824,
-        "path": "/outputs",
         "slots": [
           {
             "description": "The generated TRELLIS.2 binary glTF mesh.",
@@ -91,8 +84,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -121,7 +113,6 @@
           "file_id": "snapshot",
           "id": "primary-snapshot",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -131,7 +122,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "44b78835cb4768f0448c54a6d8f0009de783ab2e45507e929a4dbee8537d140b",
+        "content_sha256": "5c13691df9a719b52ab3ea091a814fdd19b67f4ab880744ee1775f2c50b99647",
         "kind": "model",
         "publisher": "microsoft",
         "slug": "trellis-2-4b"
@@ -144,266 +135,9 @@
       "Meta DINOv3 contributors",
       "camenduru DINOv3 mirror"
     ],
-    "source_kind": "global",
     "source_reference": "https://github.com/microsoft/TRELLIS.2/tree/75fbf0183001ed9876c8dbb35de6b68552ee08bd"
   },
   "release": {
-    "history": [
-      {
-        "version": "2.0.10",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "7dbffbce23a3e1b2c52277f985075e2246c58c53acdf7a2cd3f4a6a8852f4346",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved the build base to NVIDIA CUDA 13.4.1 devel (Ubuntu 24.04, ARM64).",
-            "details": "nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04 ARM64 manifest sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37 replaces 13.2.1-devel; its NVIDIA_REQUIRE_CUDA keeps the driver>=580,<581 clause, so the Spark 580-series driver still admits it. CuMesh, FlexGEMM, nvdiffrast v0.4.0, NATTEN v0.21.7, utils3d and o-voxel now build with nvcc 13.4 for SM 12.1. TRELLIS.2, Pixal3D and extension sources are unchanged (each is its upstream head or latest tag).",
-            "references": [
-              "https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html",
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "compatibility",
-            "summary": "Kept PyTorch 2.13.0 and the upstream-pinned Python stack because the compiled extensions still force C++17.",
-            "details": "PyTorch stays at 2.13.0+cu132: PyTorch 2.14 ATen headers require C++20 and reject builds, while CuMesh, FlexGEMM and o-voxel pass -std=c++17 explicitly. nvcc 13.4 against the cu132 wheels is a same-major minor mismatch that torch.utils.cpp_extension only warns about. utils3d stays at 9a4eb15 as TRELLIS.2 pins it; release 1.7 removes utils3d.torch.get_image_rays and intrinsics_from_fov_xy used by TRELLIS.2. Python packages keep the exact Pixal3D requirements.txt pins.",
-            "references": [
-              "https://github.com/pytorch/pytorch/blob/v2.14.0/aten/src/ATen/ATen.h",
-              "https://github.com/TencentARC/Pixal3D/blob/f7cf38429b0bd264f1995f0f8743a88b1c728b94/requirements.txt",
-              "https://github.com/EasternJournalist/utils3d/releases/tag/1.7"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu132 metadata requires cuda-toolkit==13.2.1; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu132/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "647879d325828f7a83e9cf14d9f3f5a329026fa85275090011c594897824a1f9",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.9"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Declared the official cu132 PyTorch wheel-object host for source builds.",
-            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu132/torch/",
-              "https://download.pytorch.org/whl/cu132/torchvision/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "1a5a50d2d04c42026a6f627ecc45c123c6ac9beb8b95e4392aaa1616dabc4b25",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.8"
-      },
-      {
-        "changes": [
-          {
-            "details": "The shared TRELLIS.2 source build now refreshes its pinned Pixal3D dependency from cdbb2bbffbf4e6f298b5f2af3d1d76a8d823d2af to f7cf38429b0bd264f1995f0f8743a88b1c728b94. The TRELLIS.2 engine pin remains 75fbf0183001ed9876c8dbb35de6b68552ee08bd, so the model snapshot is unchanged while the shared build context requires a rebuild.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/microsoft/TRELLIS.2/commit/75fbf0183001ed9876c8dbb35de6b68552ee08bd"
-            ],
-            "summary": "Rebuild TRELLIS.2 with the refreshed shared Pixal3D source context."
-          }
-        ],
-        "prior_recipe_content_sha256": "82ffe076ef67e447a0011e952b20eeb4954e83be9728b2033ac9c1451ad4cd99",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.7"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "2.0.6"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "9d501686bd29154dbba22071a124a8625a16f753e45be9786efeb4a0527913d3",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.5"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "251208898ec2329d1296289ef20c3d1d162fb66b4e2c3389c9b59eccf3c5b8c8",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "2.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Rejected symlinked, empty, over-16 MiB, and corrupt image inputs before loading the TRELLIS.2 pipeline."
-          },
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Exposed the pinned nvdiffrast dependency's non-commercial research and evaluation restriction on the recipe card."
-          }
-        ],
-        "prior_recipe_content_sha256": "a01291d9f6a8a0aa8b3172c278668ae665a9c400637e571d4b6a6844d85f26ab",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Validated embedded UV, base-color, and metallic-roughness PBR data on a bounded triangle mesh before atomic GLB publication."
-          }
-        ],
-        "prior_recipe_content_sha256": "65d1e5156e8928a94e525c35567bf40bd25e3b10a4aa7b9cb06daccd76bc9f2e",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Loaded FlexGEMM's shipped autotune cache read-only and disabled runtime cache writes for UID 10001."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared exact one-image input and single-GLB output slots with bounded bytes."
-          }
-        ],
-        "prior_recipe_content_sha256": "7a0f9536deb28dd40dddc21db1ba04c6c9c7fb8e946667af7dd62cb9ca4dfac1",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "breaking",
-            "references": [],
-            "summary": "Replaced the metadata-only checkpoint binding with a real pinned TRELLIS.2 image-to-GLB execution path."
-          },
-          {
-            "details": null,
-            "kind": "runtime",
-            "references": [],
-            "summary": "Added the exact companion sparse decoder, public DINOv3 encoder snapshot, native CuMesh, FlexGEMM, nvdiffrast, o-voxel, and ARM64 SDPA compatibility closure."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Kept Candidate status until the reproducible offline build and workload pass a physical DGX Spark canary."
-          }
-        ],
-        "prior_recipe_content_sha256": "f1de54916c6759856c1bf64a4c5f3644d9517007abe904b7cfd4ee78a6c0e542",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Marked the binding non-executable pending TRELLIS.2 source, its companion decoder, native extensions, and a GLB adapter."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Added the authoritative isolated image input contract."
-          },
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Corrected the checkpoint license to MIT."
-          }
-        ],
-        "prior_recipe_content_sha256": "f8dd39545b42797bb90b4d00be9a7fdffe292103afec954dbdfb403c577956b2",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of TRELLIS.2 4B pytorch-pipeline single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "17353e78581247f8b94aa50c9161dfc98d7ee7b6b1ae31465f3b911897a06922",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "7e5a50c2afe257e9697eb9f1c317e31ad2b1fa29d564377a63817114f2e8c6a1",
-        "released_at": "2026-08-17",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "2.0.10"
   },
@@ -437,40 +171,26 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -480,39 +200,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 17597661941,
-            "cache_bytes": 8000000000,
             "image_bytes": 12000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 36000000000
+            "working_bytes": 44000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 12000000000,
-            "startup_peak_bytes": 48000000000,
-            "steady_state_bytes": 32000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 48000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "timeout_seconds": 14400
-        },
-        "framework": "pytorch-pipeline",
-        "name": "bounded-startup"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -524,11 +227,9 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/tiny.png",
-            "input_path": "/inputs",
             "input_slots": {
               "image": "qualification/fixtures/tiny.png"
             },
-            "output_path": "/outputs",
             "output_slot": "mesh",
             "transport": "job"
           }

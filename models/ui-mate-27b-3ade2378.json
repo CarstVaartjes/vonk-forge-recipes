@@ -1,28 +1,8 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "tool-use",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "3ade2378fc84032d5017c1a9c93c4eaa77d65e57",
-      "source_url": "https://huggingface.co/tencent/UI-Mate-27B"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "image-understanding",
+    "tool-use"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -225,7 +205,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -236,7 +215,6 @@
       "title": "UI-Mate"
     },
     "model": {
-      "architecture": "Qwen3.5 conditional-generation vision-language transformer fine-tuned from Qwen3.6-27B for GUI action generation",
       "publisher": "tencent",
       "slug": "ui-mate-27b",
       "title": "UI-Mate 27B"
@@ -252,25 +230,8 @@
       "Tencent",
       "Tencent HY Frontier Team"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://github.com/Tencent/UI-Mate/blob/d185dc9d74cfcab3a890d7ffb2bb011ecdd64c64/LICENSE"
-  },
-  "limits": {
-    "context_tokens": 262144,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "tencent",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "tencent",
-      "slug": "ui-mate-27b"
-    }
   },
   "metadata": {
     "description": "Exact public UI-Mate 27B BF16 checkpoint.",
@@ -285,22 +246,9 @@
     "image",
     "text"
   ],
-  "parameters": {
-    "active": 27356728560,
-    "total": 27356728560
-  },
-  "provenance": {
-    "attribution": [
-      "Tencent",
-      "Tencent HY Frontier Team"
-    ],
-    "source_revision": "3ade2378fc84032d5017c1a9c93c4eaa77d65e57",
-    "source_url": "https://huggingface.co/tencent/UI-Mate-27B"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/tencent/UI-Mate-27B",
     "revision": "3ade2378fc84032d5017c1a9c93c4eaa77d65e57"
-  },
-  "supersedes": null
+  }
 }

@@ -8,7 +8,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, content_sha256
+from vonk_forge_contracts import document_sha256
 
 
 def read(path: Path) -> dict[str, object]:
@@ -16,7 +16,7 @@ def read(path: Path) -> dict[str, object]:
 
 
 def digest(value: dict[str, object]) -> str:
-    return content_sha256(ModelDefinition.model_validate(value))
+    return document_sha256(value)
 
 
 class QwenImage2512FP8LightningRecipeTests(unittest.TestCase):
@@ -39,9 +39,6 @@ class QwenImage2512FP8LightningRecipeTests(unittest.TestCase):
         self.assertEqual(args["num-inference-steps"], 4)
         self.assertEqual(args["width"], 1328)
         self.assertEqual(args["height"], 1328)
-        self.assertIn(
-            recipe["execution"]["build"]["network"]["mode"], {"none", "public"}
-        )
         validation: Any = recipe["validation"]
         self.assertTrue(validation["serving"]["checks"])
 

@@ -5,11 +5,12 @@ import runpy
 import sys
 import unittest
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition
+from catalog_documents import catalog_models
+from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.resolver import validate_recipe_models
 
 RECIPES = {
@@ -41,14 +42,10 @@ def arguments(recipe: dict[str, Any]) -> dict[str, object]:
 
 class NemotronExecutableRecipeTests(unittest.TestCase):
     def test_each_profile_resolves_exact_model_snapshots(self) -> None:
-        models = [
-            ModelDefinition.model_validate(read(path))
-            for path in sorted((ROOT / "models").glob("*.json"))
-        ]
         for name, path in RECIPES.items():
             with self.subTest(profile=name):
                 recipe = RecipeDefinition.model_validate(read(path))
-                validate_recipe_models(recipe, models)
+                validate_recipe_models(recipe, catalog_models())
                 model = recipe_model(read(path))
                 self.assertEqual(model["source"]["revision"], REVISIONS[name])
                 self.assertEqual(recipe.runtime.engine, "vllm")
@@ -103,12 +100,8 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
         model = recipe_model(recipe)
         self.assertEqual(model["modalities"], ["text"])
         self.assertFalse(
-            any(
-                fact["support"] == "supported"
-                and fact["capability"]
-                in {"image-understanding", "audio-understanding", "video-understanding"}
-                for fact in model["capabilities"]["facts"]
-            )
+            {"image-understanding", "audio-understanding", "video-understanding"}
+            & set(cast(list[str], model["capabilities"]))
         )
 
     def test_source_builds_are_offline_and_digest_pinned(self) -> None:
@@ -118,8 +111,7 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
             build = recipe["execution"]["build"]
             context = ROOT / build["context"]["path"]
             _archive, _, digest = tool["source_bundle"](context)
-            self.assertEqual(recipe["execution"]["mode"], "build")
-            self.assertEqual(build["network"]["mode"], "none")
+            self.assertEqual(build["network"]["hosts"], [])
             self.assertRegex(digest, r"^[a-f0-9]{64}$")
             dockerfile = (ROOT / build["dockerfile"]).read_text(encoding="utf-8")
             self.assertNotIn("pip install", dockerfile)

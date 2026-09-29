@@ -4,7 +4,7 @@ import json
 import unittest
 from pathlib import Path
 
-from vonk_forge_contracts.canonical import content_sha256
+from catalog_documents import model_digest
 from vonk_forge_contracts.model import ModelDefinition, ModelSource
 from vonk_forge_contracts.recipe import RecipeDefinition
 
@@ -55,7 +55,7 @@ class ExactModelFileClosureTests(unittest.TestCase):
                 selected_paths = {files_by_id[file_id].path for file_id in selected_ids}
 
                 self.assertEqual(primary.model.slug, model_slug)
-                self.assertEqual(primary.model.content_sha256, content_sha256(model))
+                self.assertEqual(primary.model.content_sha256, model_digest(model_slug))
                 self.assertGreater(len(manifest_paths), 1)
                 self.assertNotIn("snapshot", manifest_paths)
                 self.assertEqual(selected_paths, manifest_paths)
@@ -65,10 +65,7 @@ class ExactModelFileClosureTests(unittest.TestCase):
                     "no manifest file may be selected twice",
                 )
                 self.assertTrue(
-                    all(
-                        item.roles == ["entrypoint"] and item.mount.read_only is True
-                        for item in primary.files
-                    )
+                    all(item.roles == ["entrypoint"] for item in primary.files)
                 )
                 required_checkpoint = REQUIRED_PRIMARY_CHECKPOINTS.get(recipe_slug)
                 if required_checkpoint is not None:
@@ -105,7 +102,6 @@ class ExactModelFileClosureTests(unittest.TestCase):
                 self.assertTrue(
                     all(Path(path).suffix in {".bin", ".pth"} for path in weight_paths)
                 )
-                self.assertEqual(model.format.container, "other")
 
     def test_required_offline_dependencies_are_bound_to_adapter_mounts(self) -> None:
         expected_auxiliary = {
@@ -154,7 +150,7 @@ class ExactModelFileClosureTests(unittest.TestCase):
                     selected_refs.add(selected_ref)
                     self.assertEqual(selection.model.slug, doc_slug)
                     self.assertEqual(
-                        selection.model.content_sha256, content_sha256(aux_model)
+                        selection.model.content_sha256, model_digest(doc_slug)
                     )
                     self.assertEqual(
                         {item.file_id for item in selection.files},

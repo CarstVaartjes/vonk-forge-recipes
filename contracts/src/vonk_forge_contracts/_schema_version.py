@@ -18,12 +18,8 @@ def _strict_version(expected: int) -> BeforeValidator:
     return BeforeValidator(validate)
 
 
-# ``ModelDefinition`` and ``RecipeDefinition`` are schema 2; the recipe
-# execution ``TestReport`` and recovery coverage receipts are schema 1. The
-# qualification authority owns schema 4; the small campaign manifest remains
-# schema 2. Each document owns its own version.
-SchemaVersion = Annotated[Literal[2], _strict_version(2)]
-TestReportSchemaVersion = Annotated[Literal[1], _strict_version(1)]
-QualificationAuthoritySchemaVersion = Annotated[Literal[4], _strict_version(4)]
+# Model and Recipe documents carry no schema version: the recipe library
+# release they are published in names the contract version. The qualification
+# authority and its small campaign manifest keep their own document versions.
+QualificationAuthoritySchemaVersion = Annotated[Literal[5], _strict_version(5)]
 QualificationCampaignSchemaVersion = Annotated[Literal[2], _strict_version(2)]
-RecoveryCoverageReceiptSchemaVersion = Annotated[Literal[1], _strict_version(1)]

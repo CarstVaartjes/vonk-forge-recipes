@@ -59,7 +59,7 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
     def test_source_security_and_controller_resource_envelope_are_exact(self) -> None:
         recipe = load(RECIPE)
         build = recipe["execution"]["build"]
-        self.assertEqual(build["network"], {"mode": "none", "hosts": []})
+        self.assertEqual(build["network"], {"hosts": []})
         self.assertEqual(
             build["base_image"]["digest"],
             "4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6",
@@ -71,9 +71,7 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
             self.assertEqual(
                 role["resources"]["disk"]["artifact_bytes"], 202_566_174_700
             )
-            self.assertEqual(
-                role["resources"]["memory"]["startup_peak_bytes"], 126_000_000_000
-            )
+            self.assertEqual(role["resources"]["memory"]["peak_bytes"], 126_000_000_000)
         dockerfile = (ADAPTER / "Dockerfile").read_text()
         self.assertIn(
             'org.opencontainers.image.revision="3eef46632c45ffb6c397de0716c23b3d2d594798"',
@@ -106,15 +104,6 @@ class DrowzeysGlm53Dflash2DualRecipeTests(unittest.TestCase):
         )
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("exact Controller rendezvous", result.stderr)
-
-    def test_runtime_refresh_is_bound_to_current_upstream_profile(self) -> None:
-        recipe = load(RECIPE)
-        self.assertEqual(recipe["release"]["version"], "1.0.6")
-        self.assertEqual(recipe["release"]["history"][0]["upgrade_effect"], "restart")
-        self.assertIn(
-            "050081dc41ce6edd4d3f15fa19dc3410ba4210e3",
-            recipe["release"]["history"][0]["changes"][0]["references"][0],
-        )
 
 
 if __name__ == "__main__":

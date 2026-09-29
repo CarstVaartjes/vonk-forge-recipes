@@ -1,10 +1,8 @@
-"""Strict contracts for recipe qualification authorities and reusable evidence.
+"""Strict contracts for recipe qualification authorities.
 
 The qualification authority binds an ordered catalog to executable batches and
-explicit recovery-coverage identities. Shared recovery is scoped to one exact
-failure mode and one reviewed set of recipe, package, model, build and topology
-identities. Runtime receipts carry the physical evidence needed to consume that
-reference safely.
+recovery-coverage groups: one representative recipe exercises a failure mode
+for every member of its group. Campaign results are a plain log, not receipts.
 """
 
 from __future__ import annotations
@@ -26,13 +24,11 @@ from pydantic import (
 from ._schema_version import (
     QualificationAuthoritySchemaVersion,
     QualificationCampaignSchemaVersion,
-    RecoveryCoverageReceiptSchemaVersion,
 )
 from .model import ModelTerritorialRestrictions
 
 Sha256 = Annotated[StrictStr, Field(pattern=r"^[a-f0-9]{64}$")]
 GitSha = Annotated[StrictStr, Field(pattern=r"^[a-f0-9]{40}$")]
-OciDigest = Annotated[StrictStr, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
 RecipeKey = Annotated[
     StrictStr,
     Field(
@@ -41,7 +37,6 @@ RecipeKey = Annotated[
         pattern=r"^[a-z0-9][a-z0-9-]{1,62}/[a-z0-9][a-z0-9-]{1,62}$",
     ),
 ]
-NodeId = Annotated[StrictStr, Field(pattern=r"^spk_[0-9a-f]{32}$")]
 Identifier = Annotated[
     StrictStr,
     Field(min_length=1, max_length=256, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$"),
@@ -51,19 +46,6 @@ RecoveryFailureMode = Literal[
     "single-host-restart",
     "dual-rank-loss-recovery",
     "dual-host-restart",
-]
-RecoveryInvalidationField = Literal[
-    "recipe_content_sha256",
-    "package_sha256",
-    "model_content_sha256s",
-    "runtime_stack_sha256",
-    "topology_sha256",
-    "coverage_membership",
-    "runtime_image_digest",
-    "platform_build_sha256",
-    "agent_build_sha256",
-    "target_node_ids",
-    "smoke_receipt_sha256",
 ]
 
 
@@ -124,7 +106,6 @@ class ModelLicenseReference(_QualificationContract):
     spdx: Annotated[StrictStr, Field(min_length=1, max_length=128)]
     url: Annotated[StrictStr, Field(min_length=1, max_length=2048)]
     attribution: list[Annotated[StrictStr, Field(min_length=1, max_length=256)]]
-    operator_acceptance_required: StrictBool
     territorial_restrictions: ModelTerritorialRestrictions | None = None
 
 
@@ -133,7 +114,7 @@ class ReviewGate(_QualificationContract):
 
     __test__ = False
 
-    kind: Literal["capacity-review", "operator-acceptance-required"]
+    kind: Literal["capacity-review"]
     reason: Annotated[StrictStr, Field(min_length=1, max_length=2048)]
 
 
@@ -160,10 +141,7 @@ class RecipeAuthorityRow(_QualificationContract):
     interface: Annotated[StrictStr, Field(min_length=1, max_length=64)]
     recipe_version: Annotated[StrictStr, Field(min_length=1, max_length=64)]
     package: AuthorityPackage
-    disposition: Literal[
-        "actionable", "capacity-review", "operator-acceptance-required"
-    ]
-    operator_acceptance_required: StrictBool
+    disposition: Literal["actionable", "capacity-review"]
     model_license_refs: list[ModelLicenseReference]
     qualification_inputs: list[
         Annotated[StrictStr, Field(min_length=1, max_length=128)]
@@ -179,24 +157,11 @@ class RecipeAuthorityRow(_QualificationContract):
 
     @model_validator(mode="after")
     def consistent_review_gate(self) -> RecipeAuthorityRow:
-        if self.operator_acceptance_required != any(
-            reference.operator_acceptance_required
-            for reference in self.model_license_refs
-        ):
-            raise ValueError("operator acceptance must match the exact Model licenses")
         kinds = [gate.kind for gate in self.review_gates]
         if len(kinds) != len(set(kinds)):
             raise ValueError("review gate kinds must be unique")
-        if self.operator_acceptance_required != (
-            "operator-acceptance-required" in kinds
-        ):
-            raise ValueError("operator acceptance review gate is inconsistent")
         expected_disposition = (
-            "operator-acceptance-required"
-            if self.operator_acceptance_required
-            else "capacity-review"
-            if "capacity-review" in kinds
-            else "actionable"
+            "capacity-review" if "capacity-review" in kinds else "actionable"
         )
         if self.disposition != expected_disposition:
             raise ValueError("recipe disposition does not match its review gates")
@@ -281,7 +246,6 @@ class RecoveryCoverageDefinition(_QualificationContract):
     members: list[RecoveryCoverageMember] = Field(min_length=1)
     shared: StrictBool
     equivalence_rationale: Annotated[StrictStr, Field(min_length=1, max_length=2048)]
-    invalidated_by: list[RecoveryInvalidationField]
 
     @model_validator(mode="after")
     def valid_coverage_definition(self) -> RecoveryCoverageDefinition:
@@ -307,23 +271,6 @@ class RecoveryCoverageDefinition(_QualificationContract):
             raise ValueError(
                 "shared recovery requires identical runtime and topology identities"
             )
-        expected_invalidations = {
-            "recipe_content_sha256",
-            "package_sha256",
-            "model_content_sha256s",
-            "runtime_stack_sha256",
-            "topology_sha256",
-            "coverage_membership",
-            "runtime_image_digest",
-            "platform_build_sha256",
-            "agent_build_sha256",
-            "target_node_ids",
-            "smoke_receipt_sha256",
-        }
-        if set(self.invalidated_by) != expected_invalidations:
-            raise ValueError("recovery invalidation must bind every evidence identity")
-        if len(self.invalidated_by) != len(expected_invalidations):
-            raise ValueError("recovery invalidation fields must be unique")
         return self
 
 
@@ -338,78 +285,6 @@ class RecoveryCoverage(RecoveryCoverageDefinition):
     def valid_coverage_identity(self) -> RecoveryCoverage:
         if recovery_coverage_id(self) != self.coverage_id:
             raise ValueError("recovery coverage_id does not match its bound identities")
-        return self
-
-
-class RecoveryNodeEvidence(_QualificationContract):
-    """One physical node's restart proof."""
-
-    __test__ = False
-
-    node_id: NodeId
-    agent_build_sha256: Sha256
-    baseline_boot_id: Annotated[StrictStr, Field(min_length=1, max_length=128)]
-    recovered_boot_id: Annotated[StrictStr, Field(min_length=1, max_length=128)]
-    baseline_event_id: Identifier
-    offline_event_id: Identifier
-    recovered_event_id: Identifier
-
-    @model_validator(mode="after")
-    def boot_id_changed(self) -> RecoveryNodeEvidence:
-        if self.baseline_boot_id == self.recovered_boot_id:
-            raise ValueError("recovery receipt must prove a changed boot ID")
-        event_ids = [
-            self.baseline_event_id,
-            self.offline_event_id,
-            self.recovered_event_id,
-        ]
-        if len(event_ids) != len(set(event_ids)):
-            raise ValueError("host-restart event identities must be unique")
-        return self
-
-
-class RecoveryNodeBuildIdentity(_QualificationContract):
-    """The agent build running on a specific physical Spark."""
-
-    __test__ = False
-
-    node_id: NodeId
-    agent_build_sha256: Sha256
-
-
-class RecoveryRankEvidence(_QualificationContract):
-    """A dual-Spark rank loss and serving recovery without a host reboot."""
-
-    __test__ = False
-
-    lost_node_id: NodeId
-    recovered_node_id: NodeId
-    survivor_node_id: NodeId
-    node_builds: list[RecoveryNodeBuildIdentity] = Field(min_length=2, max_length=2)
-    rank_loss_event_id: Identifier
-    route_withdrawal_event_id: Identifier
-    rank_recovery_event_id: Identifier
-    recovered_smoke_receipt_sha256: Sha256
-
-    @model_validator(mode="after")
-    def distinct_rank_proof(self) -> RecoveryRankEvidence:
-        if self.lost_node_id != self.recovered_node_id:
-            raise ValueError("rank recovery must restore the lost node")
-        if self.lost_node_id == self.survivor_node_id:
-            raise ValueError("rank loss and survivor must identify distinct nodes")
-        node_ids = [node.node_id for node in self.node_builds]
-        if len(node_ids) != len(set(node_ids)) or set(node_ids) != {
-            self.lost_node_id,
-            self.survivor_node_id,
-        }:
-            raise ValueError("rank recovery must bind both exact node builds")
-        event_ids = [
-            self.rank_loss_event_id,
-            self.route_withdrawal_event_id,
-            self.rank_recovery_event_id,
-        ]
-        if len(event_ids) != len(set(event_ids)):
-            raise ValueError("rank recovery event identities must be unique")
         return self
 
 
@@ -570,231 +445,6 @@ class QualificationCampaignManifest(_QualificationContract):
     )
 
 
-class RecoveryCoverageReceipt(_QualificationContract):
-    """Physical source evidence that may be referenced for shared recovery."""
-
-    __test__ = False
-
-    schema_version: RecoveryCoverageReceiptSchemaVersion
-    coverage_id: Sha256
-    failure_mode: RecoveryFailureMode
-    representative_recipe: RecipeKey
-    recipe_content_sha256: Sha256
-    package_sha256: Sha256
-    model_content_sha256s: list[Sha256]
-    runtime_stack_sha256: Sha256
-    topology_sha256: Sha256
-    runtime_image_digest: OciDigest
-    platform_build_sha256: Sha256
-    architecture: Literal["linux/arm64"]
-    smoke_receipt_sha256: Sha256
-    checkpoint_event_ids: list[Identifier] = Field(min_length=1)
-    nodes: list[RecoveryNodeEvidence] = Field(default_factory=list, max_length=2)
-    rank_recovery: RecoveryRankEvidence | None = None
-    passed: Literal[True]
-
-    @model_validator(mode="after")
-    def valid_node_proof(self) -> RecoveryCoverageReceipt:
-        node_ids = [node.node_id for node in self.nodes]
-        if len(node_ids) != len(set(node_ids)):
-            raise ValueError("recovery receipt node identities must be unique")
-        if self.failure_mode == "single-host-restart" and len(self.nodes) != 1:
-            raise ValueError("single-host-restart requires one node proof")
-        if self.failure_mode == "dual-host-restart" and len(self.nodes) != 2:
-            raise ValueError("dual-host-restart requires both node proofs")
-        if self.failure_mode in {"single-host-restart", "dual-host-restart"} and (
-            self.rank_recovery is not None
-        ):
-            raise ValueError("host-restart receipts cannot contain rank-loss evidence")
-        if self.failure_mode == "dual-rank-loss-recovery" and (
-            self.nodes or self.rank_recovery is None
-        ):
-            raise ValueError(
-                "dual rank recovery requires rank evidence and no reboot proof"
-            )
-        if len(self.checkpoint_event_ids) != len(set(self.checkpoint_event_ids)):
-            raise ValueError("recovery checkpoint event identities must be unique")
-        if self.failure_mode in {"single-host-restart", "dual-host-restart"}:
-            expected_event_ids = {
-                event_id
-                for node in self.nodes
-                for event_id in (
-                    node.baseline_event_id,
-                    node.offline_event_id,
-                    node.recovered_event_id,
-                )
-            }
-        else:
-            rank = self.rank_recovery
-            if rank is None:
-                raise ValueError("dual rank recovery evidence is missing")
-            expected_event_ids = {
-                rank.rank_loss_event_id,
-                rank.route_withdrawal_event_id,
-                rank.rank_recovery_event_id,
-            }
-        if set(self.checkpoint_event_ids) != expected_event_ids:
-            raise ValueError(
-                "recovery checkpoints must exactly bind the typed source events"
-            )
-        if self.failure_mode == "dual-rank-loss-recovery":
-            rank = self.rank_recovery
-            if (
-                rank is None
-                or rank.recovered_smoke_receipt_sha256 != self.smoke_receipt_sha256
-            ):
-                raise ValueError("rank recovery smoke identity must match the receipt")
-        if self.model_content_sha256s != sorted(set(self.model_content_sha256s)):
-            raise ValueError(
-                "recovery receipt Model identities must be unique and sorted"
-            )
-        return self
-
-
-class RecoveryCoverageUse(_QualificationContract):
-    """A durable, digest-addressed use of one representative receipt."""
-
-    __test__ = False
-
-    schema_version: RecoveryCoverageReceiptSchemaVersion
-    coverage_id: Sha256
-    failure_mode: RecoveryFailureMode
-    member_recipe: RecipeKey
-    representative_recipe: RecipeKey
-    representative_receipt_sha256: Sha256
-    member_recipe_content_sha256: Sha256
-    member_package_sha256: Sha256
-    member_model_content_sha256s: list[Sha256]
-    member_runtime_stack_sha256: Sha256
-    member_topology_sha256: Sha256
-    member_runtime_image_digest: OciDigest
-    member_platform_build_sha256: Sha256
-    member_nodes: list[RecoveryNodeBuildIdentity] = Field(min_length=1, max_length=2)
-    member_smoke_receipt_sha256: Sha256
-
-    @model_validator(mode="after")
-    def coherent_reference(self) -> RecoveryCoverageUse:
-        if self.member_recipe == self.representative_recipe:
-            raise ValueError("a representative cannot consume its own shared receipt")
-        node_ids = [node.node_id for node in self.member_nodes]
-        if len(node_ids) != len(set(node_ids)):
-            raise ValueError("recovery use node identities must be unique")
-        expected_nodes = 1 if self.failure_mode == "single-host-restart" else 2
-        if len(self.member_nodes) != expected_nodes:
-            raise ValueError("recovery use must identify every affected Spark build")
-        if self.member_model_content_sha256s != sorted(
-            set(self.member_model_content_sha256s)
-        ):
-            raise ValueError("recovery use Model identities must be unique and sorted")
-        return self
-
-
-class RecoveryCoverageReceiptEnvelope(_QualificationContract):
-    """A content-addressed source receipt and typed shared-use references."""
-
-    __test__ = False
-
-    receipt: RecoveryCoverageReceipt
-    receipt_sha256: Sha256
-
-    @model_validator(mode="after")
-    def digest_matches_payload(self) -> RecoveryCoverageReceiptEnvelope:
-        if recovery_receipt_sha256(self.receipt) != self.receipt_sha256:
-            raise ValueError("representative recovery receipt digest is invalid")
-        return self
-
-
-class RecoveryCoverageConsumption(_QualificationContract):
-    """Validate one member's use against the bound group and source receipt."""
-
-    __test__ = False
-
-    coverage: RecoveryCoverage
-    representative_receipt: RecoveryCoverageReceiptEnvelope
-    use: RecoveryCoverageUse
-
-    @model_validator(mode="after")
-    def exact_receipt_and_member(self) -> RecoveryCoverageConsumption:
-        coverage = self.coverage
-        receipt = self.representative_receipt.receipt
-        use = self.use
-        if not coverage.shared:
-            raise ValueError("a dedicated recovery definition cannot be reused")
-        if (
-            coverage.coverage_id != receipt.coverage_id
-            or coverage.coverage_id != use.coverage_id
-            or coverage.failure_mode != receipt.failure_mode
-            or coverage.failure_mode != use.failure_mode
-            or coverage.representative_recipe != receipt.representative_recipe
-            or coverage.representative_recipe != use.representative_recipe
-        ):
-            raise ValueError("recovery receipt does not match the typed coverage scope")
-        representative = next(
-            (
-                item
-                for item in coverage.members
-                if item.recipe == receipt.representative_recipe
-            ),
-            None,
-        )
-        member = next(
-            (item for item in coverage.members if item.recipe == use.member_recipe),
-            None,
-        )
-        if (
-            representative is None
-            or member is None
-            or member.recipe == representative.recipe
-        ):
-            raise ValueError("recovery use is outside the representative member group")
-        if (
-            receipt.recipe_content_sha256 != representative.recipe_content_sha256
-            or receipt.package_sha256 != representative.package_sha256
-            or receipt.model_content_sha256s != representative.model_content_sha256s
-            or receipt.runtime_stack_sha256 != representative.runtime_stack_sha256
-            or receipt.topology_sha256 != representative.topology_sha256
-        ):
-            raise ValueError(
-                "representative receipt identity differs from its authority"
-            )
-        if (
-            use.member_recipe_content_sha256 != member.recipe_content_sha256
-            or use.member_package_sha256 != member.package_sha256
-            or use.member_model_content_sha256s != member.model_content_sha256s
-            or use.member_runtime_stack_sha256 != member.runtime_stack_sha256
-            or use.member_topology_sha256 != member.topology_sha256
-        ):
-            raise ValueError("member use identity differs from its authority")
-        if (
-            use.representative_receipt_sha256
-            != self.representative_receipt.receipt_sha256
-        ):
-            raise ValueError(
-                "member use does not bind the exact representative receipt"
-            )
-        if (
-            use.member_runtime_image_digest != receipt.runtime_image_digest
-            or use.member_platform_build_sha256 != receipt.platform_build_sha256
-        ):
-            raise ValueError("shared recovery runtime image or platform build changed")
-        if receipt.failure_mode in {"single-host-restart", "dual-host-restart"}:
-            receipt_node_builds = receipt.nodes
-        else:
-            rank_recovery = receipt.rank_recovery
-            if rank_recovery is None:
-                raise ValueError("dual rank recovery evidence is missing")
-            receipt_node_builds = rank_recovery.node_builds
-        representative_nodes = sorted(
-            (node.node_id, node.agent_build_sha256) for node in receipt_node_builds
-        )
-        member_nodes = sorted(
-            (node.node_id, node.agent_build_sha256) for node in use.member_nodes
-        )
-        if member_nodes != representative_nodes:
-            raise ValueError("shared recovery target Spark or agent build changed")
-        return self
-
-
 def _canonical_sha256(value: object) -> str:
     payload = json.dumps(
         value,
@@ -824,18 +474,12 @@ def recovery_coverage_id(
     return _canonical_sha256(document)
 
 
-def recovery_receipt_sha256(value: RecoveryCoverageReceipt) -> str:
-    """Return the stable digest referenced when another row reuses this receipt."""
-
-    return _canonical_sha256(value.model_dump(mode="json", exclude_none=True))
-
-
 def campaign_authority_json_schema() -> dict[str, object]:
     """Return the generated JSON Schema for the paired qualification authority."""
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/qualification-authority-v4.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/qualification-authority-v5.schema.json",
         **QualificationAuthority.model_json_schema(ref_template="#/$defs/{model}"),
     }
 
@@ -852,40 +496,5 @@ def campaign_manifest_json_schema() -> dict[str, object]:
     }
 
 
-def recovery_coverage_receipt_json_schema() -> dict[str, object]:
-    """Return the schema for a content-addressed representative recovery receipt."""
-
-    return {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/recovery-coverage-receipt-v1.schema.json",
-        **RecoveryCoverageReceiptEnvelope.model_json_schema(
-            ref_template="#/$defs/{model}"
-        ),
-    }
-
-
-def recovery_coverage_use_json_schema() -> dict[str, object]:
-    """Return the schema for one durable use of a representative receipt."""
-
-    return {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/recovery-coverage-use-v1.schema.json",
-        **RecoveryCoverageUse.model_json_schema(ref_template="#/$defs/{model}"),
-    }
-
-
-def recovery_coverage_consumption_json_schema() -> dict[str, object]:
-    """Return the schema for validating a shared use with its source receipt."""
-
-    return {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/recovery-coverage-consumption-v1.schema.json",
-        **RecoveryCoverageConsumption.model_json_schema(ref_template="#/$defs/{model}"),
-    }
-
-
 campaign_authority_json_schema.__test__ = False
 campaign_manifest_json_schema.__test__ = False
-recovery_coverage_receipt_json_schema.__test__ = False
-recovery_coverage_use_json_schema.__test__ = False
-recovery_coverage_consumption_json_schema.__test__ = False

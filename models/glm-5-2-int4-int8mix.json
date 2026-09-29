@@ -1,33 +1,9 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "chat",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "code-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "1d3bcfe5ec549ecd000fd80b37f191183842e983",
-      "source_url": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "text-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -1310,7 +1286,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "compressed_tensors_w4a16_w8a16"
   },
@@ -1321,7 +1296,6 @@
       "title": "GLM 5.2"
     },
     "model": {
-      "architecture": "GLM sparse mixture-of-experts transformer with DSA and MTP",
       "publisher": "quanttrio",
       "slug": "glm-5-2-int4-int8mix",
       "title": "GLM 5.2 Int4 Int8Mix"
@@ -1337,25 +1311,8 @@
       "Z.ai",
       "QuantTrio"
     ],
-    "operator_acceptance_required": true,
     "spdx": "MIT",
     "url": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix/blob/main/LICENSE"
-  },
-  "limits": {
-    "context_tokens": 1048576,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "quanttrio",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "quanttrio",
-      "slug": "glm-5-2-int4-int8mix"
-    }
   },
   "metadata": {
     "description": "Exact public GLM 5.2 Int4 Int8Mix checkpoint.",
@@ -1369,22 +1326,9 @@
   "modalities": [
     "text"
   ],
-  "parameters": {
-    "active": 40000000000,
-    "total": 744000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Z.ai",
-      "QuantTrio"
-    ],
-    "source_revision": "1d3bcfe5ec549ecd000fd80b37f191183842e983",
-    "source_url": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix",
     "revision": "1d3bcfe5ec549ecd000fd80b37f191183842e983"
-  },
-  "supersedes": null
+  }
 }

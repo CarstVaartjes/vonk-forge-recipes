@@ -1,23 +1,7 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "image-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "5f526678002e43af5551dadb73ce2e8c91b43afe",
-      "source_url": "https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "image-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -49,7 +33,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -60,7 +43,6 @@
       "title": "FLUX.2"
     },
     "model": {
-      "architecture": "4B rectified-flow image diffusion transformer",
       "publisher": "black-forest-labs",
       "slug": "flux-2-klein-4b",
       "title": "FLUX.2 Klein 4B"
@@ -76,25 +58,8 @@
       "Black Forest Labs",
       "Comfy-Org"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4B/blob/e7b7dc27f91deacad38e78976d1f2b499d76a294/LICENSE.md"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Comfy-Org single-file conversion of the Apache-2.0 FLUX.2 Klein 4B checkpoint and required companions.",
-    "publisher": "Comfy-Org",
-    "relation": "derived",
-    "source_model": {
-      "kind": "model",
-      "publisher": "black-forest-labs",
-      "slug": "flux-2-klein-4b"
-    }
   },
   "metadata": {
     "description": "Exact Comfy-Org BF16 FLUX.2 Klein 4B diffusion, Qwen3 encoder, and VAE files for core ComfyUI inference.",
@@ -110,22 +75,9 @@
   "modalities": [
     "image"
   ],
-  "parameters": {
-    "active": 4000000000,
-    "total": 4000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Black Forest Labs",
-      "Comfy-Org"
-    ],
-    "source_revision": "5f526678002e43af5551dadb73ce2e8c91b43afe",
-    "source_url": "https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b",
     "revision": "5f526678002e43af5551dadb73ce2e8c91b43afe"
-  },
-  "supersedes": null
+  }
 }

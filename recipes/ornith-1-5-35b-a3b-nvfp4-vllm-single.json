@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
-        "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
@@ -12,13 +10,10 @@
       },
       "dockerfile": "adapters/llm/vllm-openai/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": []
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -62,7 +57,6 @@
           "file_id": "file--c72cd14e9557-618cd5b83d",
           "id": "primary-file--c72cd14e9557-618cd5b83d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -73,7 +67,6 @@
           "file_id": "file--quant-summary-53ad6a368188-e17ab81a0d",
           "id": "primary-file--quant-summary-53ad6a368188-e17ab81a0d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -84,7 +77,6 @@
           "file_id": "file--d790a1d453a7-04dcd99eb1",
           "id": "primary-file--d790a1d453a7-04dcd99eb1",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -95,7 +87,6 @@
           "file_id": "readme-a4f67cd2a7b7-b335630551",
           "id": "primary-readme-a4f67cd2a7b7-b335630551",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -106,7 +97,6 @@
           "file_id": "ornith-35b-eval-758a8f72b41a-ab9a132fdf",
           "id": "primary-ornith-35b-eval-758a8f72b41a-ab9a132fdf",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -117,7 +107,6 @@
           "file_id": "ornith-logo-458ee0d85bae-76cc6f44ab",
           "id": "primary-ornith-logo-458ee0d85bae-76cc6f44ab",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -128,7 +117,6 @@
           "file_id": "chat-template-182e77dd83bd-00824420d1",
           "id": "primary-chat-template-182e77dd83bd-00824420d1",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -139,7 +127,6 @@
           "file_id": "config-319ee1293a27-587cb980af",
           "id": "primary-config-319ee1293a27-587cb980af",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -150,7 +137,6 @@
           "file_id": "generation-config-e70c136c1b78-97dd3d578b",
           "id": "primary-generation-config-e70c136c1b78-97dd3d578b",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -161,7 +147,6 @@
           "file_id": "hf-quant-config-c619bbfc5a50-a481ad90fa",
           "id": "primary-hf-quant-config-c619bbfc5a50-a481ad90fa",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -172,7 +157,6 @@
           "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
           "id": "primary-merges-a9d356d7bdf1-b0d6dcfed4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -183,7 +167,6 @@
           "file_id": "model-00001-of-00003-648fe8317148-5ad6951325",
           "id": "primary-model-00001-of-00003-648fe8317148-5ad6951325",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -194,7 +177,6 @@
           "file_id": "model-00002-of-00003-cb5c5978721a-b421ec05d0",
           "id": "primary-model-00002-of-00003-cb5c5978721a-b421ec05d0",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -205,7 +187,6 @@
           "file_id": "model-00003-of-00003-8303cef7d375-c5bdb3d6ec",
           "id": "primary-model-00003-of-00003-8303cef7d375-c5bdb3d6ec",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -216,7 +197,6 @@
           "file_id": "model-safetensors-index-52af7e400d01-0a05be8238",
           "id": "primary-model-safetensors-index-52af7e400d01-0a05be8238",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -227,7 +207,6 @@
           "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
           "id": "primary-preprocessor-config-27225450ac9c-36afccab5d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -238,7 +217,6 @@
           "file_id": "processor-config-d89ef49ce9cd-27f0cb76af",
           "id": "primary-processor-config-d89ef49ce9cd-27f0cb76af",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -249,7 +227,6 @@
           "file_id": "tokenizer-5f9e4d4901a9-224931eb13",
           "id": "primary-tokenizer-5f9e4d4901a9-224931eb13",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -260,7 +237,6 @@
           "file_id": "tokenizer-config-5186f0defcd7-94d5c6ba8f",
           "id": "primary-tokenizer-config-5186f0defcd7-94d5c6ba8f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -271,7 +247,6 @@
           "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
           "id": "primary-video-preprocessor-config-7768af27c1fa-35d01a7325",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -282,7 +257,6 @@
           "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
           "id": "primary-vocab-ce99b4cb2983-ba05d8e2e4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -292,7 +266,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "b0cf2f7fa105dc33394c795594fd4721fe07053e399b52cf8cef67b0e3bde7bb",
+        "content_sha256": "8a33a3e7d4f5950e91a83109184533f2ff6738c4b3ccf51ceff37d7924cf3b0f",
         "kind": "model",
         "publisher": "ornith-ai",
         "slug": "ornith-1-5-35b-a3b-nvfp4-94e431d9"
@@ -303,75 +277,9 @@
     "attribution": [
       "ornith-ai"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4/tree/94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.1.0",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "be2eeb5b286e4138769bc517e1e65ff19598b6cbc805054e450a2aa8491e6e32",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved to the official vLLM 0.30.0 ARM64 image from vLLM 0.27.1.",
-            "details": "docker.io/vllm/vllm-openai v0.30.0-aarch64 @sha256:4864d466 (build commit ced6857a, CUDA 13.0) replaces v0.27.1-aarch64 @sha256:1c8e60a0. Every launch option, parser and model architecture this recipe uses is present at v0.30.0. Upstream 0.29 makes Model Runner V2 the default and 0.28-0.30 remove only options this recipe does not use. Physical GB10 startup, memory and output acceptance is still required.",
-            "references": [
-              "https://github.com/vllm-project/vllm/releases/tag/v0.28.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
-              "https://github.com/vllm-project/vllm/compare/v0.27.1...v0.30.0"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": "Updated the immutable model snapshot from 9660379a2f2c429c465eeed2f3a0f2433fc4381e to 94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa; refreshed every selected file hash and size from the complete public HF tree, including the three NVFP4 shards and runtime configuration files.",
-            "kind": "runtime",
-            "references": [
-              "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4/tree/94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa"
-            ],
-            "summary": "Refresh the Ornith NVFP4 checkpoint to the current upstream snapshot."
-          }
-        ],
-        "prior_recipe_content_sha256": "68b547e750c540eef19be7a0270d49b46c2e769e84728080e9ec6cfe04c84715",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial executable Candidate recipe for sfxnz's measured Ornith 1.5 35B-A3B NVFP4 single-Spark profile."
-          }
-        ],
-        "prior_recipe_content_sha256": "0a630168ee322bfffa4533f96788020f21ea39cb5f66037f4a85fad5e7442226",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.1.0"
   },
@@ -462,26 +370,17 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": {
       "change_effect": "restart",
@@ -496,19 +395,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -518,41 +411,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 23420417532,
-            "cache_bytes": 4000000000,
             "image_bytes": 12000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 46840835064
+            "working_bytes": 50840835064
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 4000000000,
-            "startup_peak_bytes": 65000000000,
-            "steady_state_bytes": 59000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 65000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "timeout_seconds": 600
-        },
-        "framework": "openai",
-        "name": "bounded-chat"
-      }
-    ],
     "serving": {
       "checks": [
         {

@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from generated_catalog import GENERATED
-from vonk_forge_contracts import RecipeDefinition, content_sha256
+from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 RUNTIME_IMAGE = (
     "docker.io/vllm/vllm-openai@sha256:"
@@ -24,7 +24,7 @@ def load(path: str) -> dict[str, object]:
 
 
 def digest(document: dict[str, object]) -> str:
-    return content_sha256(RecipeDefinition.model_validate(document))
+    return document_sha256(document)
 
 
 def catalog_entry(slug: str) -> dict[str, object]:
@@ -99,9 +99,6 @@ class Vllm028ModelVariantTests(unittest.TestCase):
             ["gemma-4-26b-a4b-it-vllm028"],
         )
         self.assertEqual(self.gemma["interfaces"][0]["health_path"], "/v1/models")
-        self.assertTrue(
-            all(item["mount"]["read_only"] for item in self.gemma["models"][0]["files"])
-        )
 
     def test_lfm_exact_image_and_tool_contract(self) -> None:
         arguments = {
@@ -124,9 +121,6 @@ class Vllm028ModelVariantTests(unittest.TestCase):
             ["lfm2-5-vl-3b-vllm028"],
         )
         self.assertEqual(self.lfm["interfaces"][0]["health_path"], "/v1/models")
-        self.assertTrue(
-            all(item["mount"]["read_only"] for item in self.lfm["models"][0]["files"])
-        )
 
     def test_build_time_interface_screens_and_source_bundles_are_exact(self) -> None:
         module = catalog_index_module()
@@ -175,12 +169,6 @@ class Vllm028ModelVariantTests(unittest.TestCase):
                 release = definition.release
                 self.assertEqual(release.version, version)
                 self.assertEqual(release.released_at, released_at)
-                self.assertEqual(release.history[0].version, version)
-                self.assertEqual(release.history[0].released_at, released_at)
-                self.assertRegex(
-                    release.history[0].prior_recipe_content_sha256 or "",
-                    r"^[a-f0-9]{64}$",
-                )
                 entry = catalog_entry(slug)
                 recipe_digest = digest(recipe)
                 self.assertEqual(entry["content_sha256"], recipe_digest)

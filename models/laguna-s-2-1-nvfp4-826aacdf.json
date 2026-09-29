@@ -1,33 +1,9 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "code-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "reasoning",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "tool-use",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "826aacdf6d8b2699d4e367def6f17c83b06044c2",
-      "source_url": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "code-generation",
+    "reasoning",
+    "tool-use"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -581,7 +557,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "nvfp4"
   },
@@ -592,7 +567,6 @@
       "title": "Poolside Laguna"
     },
     "model": {
-      "architecture": "Sliding-window attention and gated sparse mixture-of-experts transformer",
       "publisher": "poolside",
       "slug": "laguna-s-2-1",
       "title": "Laguna S 2.1"
@@ -607,25 +581,8 @@
     "attribution": [
       "Poolside"
     ],
-    "operator_acceptance_required": true,
     "spdx": "LicenseRef-OpenMDW-1.1",
     "url": "https://www.poolside.ai/legal/openmdw-1-1"
-  },
-  "limits": {
-    "context_tokens": 1048576,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "poolside",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "poolside",
-      "slug": "laguna-s-2-1"
-    }
   },
   "metadata": {
     "description": "Exact public 1M-context NVFP4 64734b3a checkpoint.",
@@ -638,21 +595,9 @@
   "modalities": [
     "text"
   ],
-  "parameters": {
-    "active": 8500000000,
-    "total": 117600000000
-  },
-  "provenance": {
-    "attribution": [
-      "Poolside"
-    ],
-    "source_revision": "826aacdf6d8b2699d4e367def6f17c83b06044c2",
-    "source_url": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4",
     "revision": "826aacdf6d8b2699d4e367def6f17c83b06044c2"
-  },
-  "supersedes": null
+  }
 }

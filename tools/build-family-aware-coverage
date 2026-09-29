@@ -39,7 +39,7 @@ from vonk_forge_contracts import (
     GitHubReleaseSource,
     ModelDefinition,
     RecipeDefinition,
-    content_sha256,
+    document_sha256,
 )
 from vonk_forge_contracts.qualification_authority import QualificationAuthority
 from vonk_forge_contracts.recipe import RecipeBuildDefinition
@@ -137,17 +137,17 @@ def _indexed_recipes(catalog_root: Path) -> dict[str, dict[str, Any]]:
     indexed: dict[str, dict[str, Any]] = {}
     for entry in entries:
         document = _require_object(entry, "catalog recipe entry")
-        recipe = RecipeDefinition.model_validate(document["document"])
+        embedded = _require_object(document.get("document"), "catalog recipe document")
+        recipe = RecipeDefinition.model_validate(embedded)
         key = _recipe_key(recipe)
         if key in indexed:
             raise ValueError(f"catalog contains duplicate recipe key: {key}")
-        digest = content_sha256(recipe)
+        digest = document_sha256(embedded)
         if digest != document.get("content_sha256"):
             raise ValueError(f"catalog content digest is not canonical: {key}")
         package = _require_object(document.get("package"), f"package: {key}")
         tree_path = RECIPE_DIRECTORY / f"{recipe.identity.slug}.json"
-        tree = RecipeDefinition.model_validate(_json_document(tree_path))
-        if content_sha256(tree) != digest:
+        if document_sha256(_json_document(tree_path)) != digest:
             raise ValueError(
                 f"authored recipe document disagrees with catalog index: {key}"
             )
@@ -180,12 +180,11 @@ def _indexed_models(catalog_root: Path) -> dict[str, ModelDefinition]:
         key = _model_key(model)
         if key in indexed:
             raise ValueError(f"catalog contains duplicate Model key: {key}")
-        digest = content_sha256(model)
+        digest = document_sha256(embedded)
         if digest != document.get("content_sha256"):
             raise ValueError(f"catalog Model content digest is not canonical: {key}")
         tree_path = MODEL_DIRECTORY / f"{model.identity.slug}.json"
-        tree = ModelDefinition.model_validate(_json_document(tree_path))
-        if content_sha256(tree) != digest:
+        if document_sha256(_json_document(tree_path)) != digest:
             raise ValueError(
                 f"authored Model document disagrees with catalog index: {key}"
             )
@@ -214,15 +213,6 @@ def _authority(recipe_keys: set[str]) -> dict[str, Any]:
         "batches": document["batches"],
         "recovery_coverage": document["recovery_coverage"],
     }
-
-
-def _build_definition(recipe: RecipeDefinition) -> RecipeBuildDefinition:
-    execution = recipe.execution
-    if execution.mode != "build":
-        raise ValueError(
-            f"recipe does not declare a build execution: {_recipe_key(recipe)}"
-        )
-    return execution.build
 
 
 def _fork_signals(
@@ -270,11 +260,9 @@ def _stack(recipe: RecipeDefinition, build: RecipeBuildDefinition) -> dict[str, 
         "base_image": {
             "repository": build.base_image.repository,
             "digest": build.base_image.digest,
-            "platform": build.base_image.platform,
         },
         "build_context": build.context.path,
         "dockerfile": build.dockerfile,
-        "target": build.target,
         "patches": [patch.path for patch in build.patches],
     }
 
@@ -283,10 +271,8 @@ def _declared_artifact_bytes(recipe: RecipeDefinition) -> int:
     return max(role.resources.disk.artifact_bytes for role in recipe.topology.roles)
 
 
-def _declared_steady_state_bytes(recipe: RecipeDefinition) -> int:
-    return max(
-        role.resources.memory.steady_state_bytes for role in recipe.topology.roles
-    )
+def _declared_peak_memory_bytes(recipe: RecipeDefinition) -> int:
+    return max(role.resources.memory.peak_bytes for role in recipe.topology.roles)
 
 
 def _review_gate_kinds(authority_row: dict[str, Any]) -> set[str]:
@@ -307,7 +293,7 @@ def _row(
     recovery_by_recipe: dict[str, list[dict[str, Any]]],
 ) -> dict[str, Any]:
     key = _recipe_key(recipe)
-    build = _build_definition(recipe)
+    build = recipe.execution.build
     interface_document = recipe.validation.serving.interface
     interface = (
         "openai-service" if interface_document == "openai" else interface_document
@@ -335,11 +321,8 @@ def _row(
                 "variant": model.identity.variant,
                 "precision": model.format.precision,
                 "quantization": model.format.quantization,
-                "parameters_total": model.parameters.total,
-                "parameters_active": model.parameters.active,
                 "modalities": list(model.modalities),
-                "visibility": model.access.visibility,
-                "gated": model.access.gated,
+                "requires_token": model.requires_token,
                 "license_spdx": model.license.spdx,
                 "source_repository": source_repository,
                 "source_revision": source_revision,
@@ -376,24 +359,14 @@ def _row(
             "name": recipe.topology.name,
             "node_count": node_count,
             "parallelism": recipe.topology.parallelism.model_dump(mode="json"),
-            "fabric": recipe.topology.fabric.model_dump(mode="json"),
-            "rank_loss": (
-                recipe.runtime.lifecycle.failure.rank_loss
-                if recipe.runtime.lifecycle.failure is not None
-                else None
-            ),
-            "recovery": (
-                recipe.runtime.lifecycle.failure.recovery
-                if recipe.runtime.lifecycle.failure is not None
-                else None
-            ),
+            "fabric_connectivity": recipe.topology.fabric_connectivity,
         },
         "families": sorted({item["family"] for item in selections}),
         "quantizations": sorted({item["quantization"] for item in selections}),
         "precisions": sorted({item["precision"] for item in selections}),
         "modalities": sorted({m for item in selections for m in item["modalities"]}),
         "declared_artifact_bytes": _declared_artifact_bytes(recipe),
-        "declared_steady_state_bytes": _declared_steady_state_bytes(recipe),
+        "declared_peak_memory_bytes": _declared_peak_memory_bytes(recipe),
         "models": selections,
         "authority": None,
         "authority_divergence": None,
@@ -428,9 +401,6 @@ def _row(
         "content_sha256": authority_row.get("content_sha256"),
         "package_sha256": (authority_row.get("package") or {}).get("sha256"),
         "disposition": authority_row.get("disposition"),
-        "operator_acceptance_required": authority_row.get(
-            "operator_acceptance_required"
-        ),
         "review_gate_kinds": sorted(_review_gate_kinds(authority_row)),
         "smoke_cases": list(authority_row.get("smoke_cases") or []),
         "qualification_inputs": list(authority_row.get("qualification_inputs") or []),
@@ -631,7 +601,6 @@ def _recovery_coverage(
                     {tuple(member["model_content_sha256s"]) for member in members}
                 )
                 > 1,
-                "physical_receipts_required": True,
             }
         )
         for member in members:
@@ -653,8 +622,6 @@ def _recovery_coverage(
         {
             "ladder_owner": f"{PLAN_REFERENCE}#current-batch-execution-gates",
             "definitions": entries,
-            "physical_receipts_required": True,
-            "reference_contract_enforced": True,
         },
         refs_by_recipe,
     )
@@ -674,9 +641,11 @@ def _build(catalog_root: Path) -> dict[str, bytes]:
         package = metadata["package"]
         if not isinstance(package, dict):
             raise TypeError(f"current indexed package is malformed: {key}")
-        with current_catalog_package_tree(catalog_root, package, recipe) as tree:
+        with current_catalog_package_tree(
+            catalog_root, package, recipe, metadata["content_sha256"]
+        ) as tree:
             stack_identities[key] = execution_stack_identity(
-                tree, recipe, _build_definition(recipe)
+                tree, recipe, recipe.execution.build
             )
 
     batch_lookup: dict[str, tuple[str, int, str]] = {}
@@ -770,7 +739,6 @@ def _build(catalog_root: Path) -> dict[str, bytes]:
             "bound_catalog_index_sha256": bound_catalog_index_sha256,
             "bound_release_tag": authority["catalog"].get("release_tag"),
             "bound_catalog_commit": authority["catalog"].get("commit"),
-            "source_commit": authority["catalog"].get("source_commit"),
             "catalog_binding_current": catalog_index_sha256
             == bound_catalog_index_sha256,
         },
@@ -785,7 +753,7 @@ def _build(catalog_root: Path) -> dict[str, bytes]:
             "shared model or image reuse requires an identical stack_id and model identity",
             "each recipe still needs its own physical inference and declared assertions",
             "distributed evidence is independent of single-Spark evidence",
-            "recovery reuse requires the exact typed coverage receipt and member-use contract",
+            "shared recovery evidence covers only members with an identical stack and topology",
         ],
     }
     return {
@@ -836,7 +804,6 @@ def _render_report(matrix: dict[str, Any]) -> str:
             f"{matrix['catalog']['recipe_count']} recipe documents |"
         ),
         f"| Catalog release | {matrix['catalog']['bound_release_tag']} at `{matrix['catalog']['bound_catalog_commit']}` |",
-        f"| Catalog source_commit metadata | `{matrix['catalog']['source_commit']}` |",
         f"| Qualification authority | `{matrix['catalog']['authority_id']}` |",
         (
             f"| Scope | {matrix['catalog']['in_scope_recipe_count']} recipes within "
@@ -861,10 +828,8 @@ def _render_report(matrix: dict[str, Any]) -> str:
             "package of the current catalog."
         ),
         (
-            "The catalog `source_commit` is provenance metadata, not the source-byte "
-            "authority. Stack identities use the local package after its size, "
-            "digest and canonical closure validate, and are compared with the "
-            "identity the authority recorded."
+            "Stack identities use the local package after its size and digest "
+            "validate, and are compared with the identity the authority recorded."
         ),
         (
             "Specialized forks stay distinct from generic engine evidence. Every "
@@ -877,8 +842,7 @@ def _render_report(matrix: dict[str, Any]) -> str:
         ),
         (
             "Recovery references bind explicit members and exact stack/topology "
-            "identities. A physical receipt and member-use validation remain required "
-            "before sharing recovery evidence."
+            "identities; one representative run covers a failure mode for its group."
         ),
         "",
         "## Coverage groups",
@@ -1015,10 +979,8 @@ def _render_report(matrix: dict[str, Any]) -> str:
             "",
             (
                 "These definitions are validated against the current Pydantic "
-                "authority contract. Sharing still requires the exact representative "
-                "receipt and a member-use record that binds recipe, package, Models, "
-                "stack, topology, runtime image, platform/agent builds, target nodes "
-                "and smoke receipt."
+                "authority contract. A group shares one representative recovery run "
+                "because its members have identical stack and topology identities."
             ),
             "",
             "| Coverage ID | Failure mode | Representative | Members | Shared | Model review |",
@@ -1076,7 +1038,7 @@ def _render_report(matrix: dict[str, Any]) -> str:
             "- Cache readiness remains owned by the live Controller cache surface.",
             "- Structural validity does not prove an image build or runtime acceptance.",
             "- Controller and runner deployment require separate live evidence.",
-            "- Physical inference, declared assertions and recovery receipts remain recipe-specific evidence.",
+            "- Physical inference and declared assertions remain recipe-specific evidence.",
             "- Declared footprints do not replace a fresh whole-fleet admission preview.",
             "",
         ]

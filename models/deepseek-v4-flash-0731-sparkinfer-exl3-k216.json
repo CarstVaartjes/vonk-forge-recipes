@@ -1,33 +1,9 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "chat",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "code-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "ce5ff0f1efb2e184aafc759d281bfae47d3a359c",
-      "source_url": "https://huggingface.co/0xSero/deepseek-v4-flash-0731-spark"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "text-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -1742,7 +1718,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "reap-k216-exl3-trellis-3_0bpw"
   },
@@ -1753,7 +1728,6 @@
       "title": "DeepSeek Flash"
     },
     "model": {
-      "architecture": "DeepSeek V4 sparse mixture-of-experts transformer with DSpark speculative module",
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-flash-0731",
       "title": "DeepSeek V4 Flash 0731"
@@ -1771,25 +1745,8 @@
       "REAP authors",
       "TurboDerp"
     ],
-    "operator_acceptance_required": false,
     "spdx": "MIT",
     "url": "https://huggingface.co/0xSero/deepseek-v4-flash-0731-spark/blob/ce5ff0f1efb2e184aafc759d281bfae47d3a359c/LICENSE"
-  },
-  "limits": {
-    "context_tokens": 1048576,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "REAP K216 expert pruning followed by EXL3/Trellis rank-sliced TP4 quantization at 3.0 average bits per weight; the runtime losslessly coalesces rank slices to TP1. Source checkpoint deepseek-ai/DeepSeek-V4-Flash-0731@9e165c30e2704aec5d9d593cce3eebd58bbef1cb.",
-    "publisher": "0xsero",
-    "relation": "derived",
-    "source_model": {
-      "kind": "model",
-      "publisher": "deepseek-ai",
-      "slug": "deepseek-v4-flash-0731"
-    }
   },
   "metadata": {
     "description": "Exact public 0xSero rank-sliced EXL3/Trellis checkpoint for one DGX Spark. REAP retains 216 of 256 routed experts; all 190 files are bound to the immutable source revision with exact sizes and SHA-256 checksums.",
@@ -1808,24 +1765,9 @@
   "modalities": [
     "text"
   ],
-  "parameters": {
-    "active": 13000000000,
-    "total": 241000000000
-  },
-  "provenance": {
-    "attribution": [
-      "DeepSeek AI",
-      "0xSero",
-      "REAP authors",
-      "TurboDerp"
-    ],
-    "source_revision": "ce5ff0f1efb2e184aafc759d281bfae47d3a359c",
-    "source_url": "https://huggingface.co/0xSero/deepseek-v4-flash-0731-spark"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/0xSero/deepseek-v4-flash-0731-spark",
     "revision": "ce5ff0f1efb2e184aafc759d281bfae47d3a359c"
-  },
-  "supersedes": null
+  }
 }

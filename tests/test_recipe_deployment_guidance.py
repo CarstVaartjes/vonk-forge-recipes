@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from generated_catalog import GENERATED
-from vonk_forge_contracts import RecipeDefinition, content_sha256
+from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 
 def load(path: str) -> dict[str, object]:
@@ -17,7 +17,7 @@ def load(path: str) -> dict[str, object]:
 
 
 def canonical_digest(path: str) -> str:
-    return content_sha256(RecipeDefinition.model_validate(load(path)))
+    return document_sha256(load(path))
 
 
 def catalog_entry(slug: str) -> dict[str, object]:
@@ -50,8 +50,6 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
         self.assertNotIn("default", latency_tags)
         self.assertEqual(latency["settings"]["context_tokens"]["value"], 1_048_576)
 
-        self.assertEqual(standard["execution"]["mode"], "build")
-        self.assertEqual(latency["execution"]["mode"], "build")
         self.assertEqual(standard["topology"]["node_count"], 1)
         self.assertEqual(latency["topology"]["node_count"], 1)
 
@@ -92,7 +90,6 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
             "combining reasoning with JSON-schema structured output is not supported",
             recipe["metadata"]["description"],
         )
-        self.assertEqual(recipe["execution"]["mode"], "build")
 
     def test_release_metadata_and_package_bind_current_recipe_digests(self) -> None:
         slugs = (

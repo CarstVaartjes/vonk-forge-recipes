@@ -72,18 +72,8 @@ class Ltx25CatalogTests(unittest.TestCase):
             [item["id"] for item in selection["files"]],
             ["primary-filtered-snapshot", "primary-filtered-snapshot-2"],
         )
-        self.assertTrue(model["license"]["operator_acceptance_required"])
         self.assertEqual(model["license"]["spdx"], "LicenseRef-LTX-2-Community")
-        from vonk_forge_contracts import ModelDefinition
-
-        model_digest = hashlib.sha256(
-            json.dumps(
-                ModelDefinition.model_validate(model).model_dump(mode="json"),
-                sort_keys=True,
-                separators=(",", ":"),
-            ).encode()
-        ).hexdigest()
-        self.assertEqual(selection["model"]["content_sha256"], model_digest)
+        self.assertEqual(selection["model"]["content_sha256"], _digest(MODEL_VERSION))
         index = _document(GENERATED / "catalog-index.json")
         entry = next(
             item
@@ -96,13 +86,7 @@ class Ltx25CatalogTests(unittest.TestCase):
         disk = role["resources"]["disk"]
         self.assertGreaterEqual(disk["artifact_bytes"], model["files"][0]["size_bytes"])
         memory = role["resources"]["memory"]
-        required = (
-            max(
-                memory["startup_peak_bytes"],
-                memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
-            )
-            + memory["system_reserve_bytes"]
-        )
+        required = memory["peak_bytes"] + memory["reserve_bytes"]
         self.assertEqual(required, 128_000_000_000)
         input_contract = recipe["interfaces"][0]["input"]
         self.assertEqual(input_contract["max_bytes"], 81_920)

@@ -17,7 +17,6 @@ class Lfm25VlRecipeTests(unittest.TestCase):
     def test_checkpoint_inventory_is_exact_and_complete(self) -> None:
         version = load(ROOT / "models/lfm2-5-vl-3b-bf16-a3af5799.json")
         self.assertEqual(version["source"]["revision"], REVISION)
-        self.assertEqual(version["parameters"]["total"], 3_123_483_888)
         paths = {item["path"] for item in version["files"]}
         self.assertTrue(
             {

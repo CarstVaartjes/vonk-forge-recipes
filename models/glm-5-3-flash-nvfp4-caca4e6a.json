@@ -1,43 +1,11 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "chat",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "code-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "video-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "caca4e6a4ebbd66f159d3d2fc256683fd6e27177",
-      "source_url": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation",
+    "video-understanding"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -1221,7 +1189,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "nvfp4-weight-only-routed-experts"
   },
@@ -1232,7 +1199,6 @@
       "title": "GLM 5.3 LibertAI"
     },
     "model": {
-      "architecture": "GLM5 Next sparse and linear attention multimodal MoE transformer",
       "publisher": "libertaidai",
       "slug": "glm-5-3-flash-nvfp4",
       "title": "GLM 5.3 Flash NVFP4"
@@ -1248,25 +1214,8 @@
       "Z.ai",
       "LibertAI"
     ],
-    "operator_acceptance_required": true,
     "spdx": "MIT",
     "url": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/blob/caca4e6a4ebbd66f159d3d2fc256683fd6e27177/LICENSE"
-  },
-  "limits": {
-    "context_tokens": 1048576,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "libertaidai",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "libertaidai",
-      "slug": "glm-5-3-flash-nvfp4"
-    }
   },
   "metadata": {
     "description": "Exact public GLM 5.3 Flash NVFP4 caca4e6a checkpoint; its 120 weight shards and runtime configuration are byte-identical to the prior 92d8bfb9 inventory, while the upstream README is refreshed.",
@@ -1282,22 +1231,9 @@
     "text",
     "video"
   ],
-  "parameters": {
-    "active": 18000000000,
-    "total": 321320000000
-  },
-  "provenance": {
-    "attribution": [
-      "Z.ai",
-      "LibertAI"
-    ],
-    "source_revision": "caca4e6a4ebbd66f159d3d2fc256683fd6e27177",
-    "source_url": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",
     "revision": "caca4e6a4ebbd66f159d3d2fc256683fd6e27177"
-  },
-  "supersedes": null
+  }
 }

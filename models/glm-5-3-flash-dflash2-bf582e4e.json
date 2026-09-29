@@ -1,23 +1,7 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a",
-      "source_url": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "text-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -67,7 +51,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -78,7 +61,6 @@
       "title": "GLM 5.3 DFlash"
     },
     "model": {
-      "architecture": "Five-layer non-causal Qwen3 DFlash2 speculative draft transformer",
       "publisher": "incoai",
       "slug": "glm-5-3-flash-dflash2",
       "title": "GLM 5.3 Flash DFlash2"
@@ -93,25 +75,8 @@
     "attribution": [
       "IncoAI"
     ],
-    "operator_acceptance_required": true,
     "spdx": "CC-BY-NC-ND-4.0",
     "url": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/blob/bf582e4eacc1810f76656d1811693ff6c6737d2a/README.md"
-  },
-  "limits": {
-    "context_tokens": 1048576,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "incoai",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "incoai",
-      "slug": "glm-5-3-flash-dflash2"
-    }
   },
   "metadata": {
     "description": "Exact public GLM 5.3 Flash DFlash2 bf582e4e checkpoint.",
@@ -125,21 +90,9 @@
   "modalities": [
     "text"
   ],
-  "parameters": {
-    "active": 1000000000,
-    "total": 1000000000
-  },
-  "provenance": {
-    "attribution": [
-      "IncoAI"
-    ],
-    "source_revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a",
-    "source_url": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2",
     "revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a"
-  },
-  "supersedes": null
+  }
 }

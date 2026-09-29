@@ -115,17 +115,8 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
     def test_recipe_execution_and_model_closure_are_explicit(self) -> None:
         for slug in COMFY_RECIPES:
             recipe = load(ROOT / "recipes" / f"{slug}.json")
-            self.assertIn(recipe["execution"]["mode"], {"build", "image"})
             self.assertTrue(recipe["models"])
-            self.assertTrue(
-                all(
-                    item["mount"]["read_only"]
-                    for selection in recipe["models"]
-                    for item in selection["files"]
-                )
-            )
-            build = recipe["execution"].get("build")
-            self.assertIsNotNone(build)
+            build = recipe["execution"]["build"]
             dockerfile = (ROOT / build["dockerfile"]).read_text(encoding="utf-8")
             self.assertIn(COMFY_REVISION, dockerfile)
             self.assertIn(COMFY_ARCHIVE_SHA256, dockerfile)
@@ -175,15 +166,6 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
         }
         self.assertIn("workflow-sha256", arguments)
         self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")
-        self.assertEqual(
-            recipe["validation"]["benchmarks"][0]["configuration"]["steps"], 50
-        )
-        self.assertEqual(
-            recipe["validation"]["benchmarks"][0]["configuration"]["width"], 1328
-        )
-        self.assertEqual(
-            recipe["validation"]["benchmarks"][0]["configuration"]["height"], 1328
-        )
 
     def test_core_source_is_pinned_without_custom_node_supply_chain(self) -> None:
         recipe = load(ROOT / "recipes/qwen-image-2512-comfyui-single.json")

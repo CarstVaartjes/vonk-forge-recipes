@@ -1048,7 +1048,7 @@
     {
       "file": "tests/test_nemotron_executable_recipes.py",
       "rule": "reportIndexIssue",
-      "count": 6,
+      "count": 4,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
@@ -1060,13 +1060,13 @@
     {
       "file": "tests/test_nvidia_single_recipe_audit.py",
       "rule": "reportIndexIssue",
-      "count": 11,
+      "count": 7,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
       "file": "tests/test_origin_aligned_profiles.py",
       "rule": "reportIndexIssue",
-      "count": 6,
+      "count": 4,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
@@ -1090,7 +1090,7 @@
     {
       "file": "tests/test_qwen_image_2512_fp8_lightning_recipe.py",
       "rule": "reportIndexIssue",
-      "count": 4,
+      "count": 3,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
@@ -1102,13 +1102,13 @@
     {
       "file": "tests/test_qwen_image_edit_fp8mixed_recipe.py",
       "rule": "reportIndexIssue",
-      "count": 7,
+      "count": 6,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
       "file": "tests/test_qwen_image_edit_int8_convrot_recipe.py",
       "rule": "reportIndexIssue",
-      "count": 7,
+      "count": 6,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
@@ -1120,7 +1120,7 @@
     {
       "file": "tests/test_qwen_image_edit_variant_matrix.py",
       "rule": "reportIndexIssue",
-      "count": 3,
+      "count": 2,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
@@ -1138,13 +1138,13 @@
     {
       "file": "tests/test_recipe_deployment_guidance.py",
       "rule": "reportIndexIssue",
-      "count": 26,
+      "count": 23,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
       "file": "tests/test_recipe_operator_guidance.py",
       "rule": "reportIndexIssue",
-      "count": 14,
+      "count": 13,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
@@ -1170,12 +1170,6 @@
       "rule": "reportAttributeAccessIssue",
       "count": 4,
       "reason": "The attribute is reached through a dynamically loaded adapter module or a dict-backed fixture."
-    },
-    {
-      "file": "tests/test_recipe_releases.py",
-      "rule": "reportIndexIssue",
-      "count": 10,
-      "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
       "file": "tests/test_sparkinfer_single_recipe.py",
@@ -1282,7 +1276,7 @@
     {
       "file": "tests/test_ui_mate_executable_recipe.py",
       "rule": "reportIndexIssue",
-      "count": 12,
+      "count": 9,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
@@ -1294,7 +1288,7 @@
     {
       "file": "tests/test_vllm028_model_variants.py",
       "rule": "reportIndexIssue",
-      "count": 26,
+      "count": 24,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {

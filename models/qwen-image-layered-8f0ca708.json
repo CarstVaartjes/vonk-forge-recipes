@@ -1,23 +1,7 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "image-editing",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf",
-      "source_url": "https://huggingface.co/Qwen/Qwen-Image-Layered"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "image-editing"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -319,7 +303,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "bf16"
   },
@@ -330,7 +313,6 @@
       "title": "Qwen Image"
     },
     "model": {
-      "architecture": "20B multimodal diffusion transformer image-layer decomposition pipeline",
       "publisher": "qwen",
       "slug": "qwen-image-layered",
       "title": "Qwen Image Layered"
@@ -345,25 +327,8 @@
     "attribution": [
       "Qwen"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen-Image-Layered/blob/8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf/README.md"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": 409600,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official Qwen Image Layered checkpoint.",
-    "publisher": "Qwen",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "qwen",
-      "slug": "qwen-image-layered"
-    }
   },
   "metadata": {
     "description": "Exact official Qwen Image Layered checkpoint for a candidate single-Spark Diffusers image-decomposition recipe.",
@@ -380,21 +345,9 @@
   "modalities": [
     "image"
   ],
-  "parameters": {
-    "active": null,
-    "total": 20000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Qwen"
-    ],
-    "source_revision": "8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf",
-    "source_url": "https://huggingface.co/Qwen/Qwen-Image-Layered"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Qwen/Qwen-Image-Layered",
     "revision": "8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf"
-  },
-  "supersedes": null
+  }
 }

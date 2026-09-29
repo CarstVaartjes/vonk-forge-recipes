@@ -25,8 +25,8 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
         )
         self.assertNotIn("physical-oom-gated", recommended_tags)
         recommended_memory = recommended["topology"]["roles"][0]["resources"]["memory"]
-        self.assertEqual(recommended_memory["startup_peak_bytes"], 78_000_000_000)
-        self.assertEqual(recommended_memory["system_reserve_bytes"], 8_000_000_000)
+        self.assertEqual(recommended_memory["peak_bytes"], 78_000_000_000)
+        self.assertEqual(recommended_memory["reserve_bytes"], 8_000_000_000)
 
         for slug in (
             "wan-2-2-i2v-14b-comfyui-single",
@@ -40,8 +40,8 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
                 )
                 self.assertNotIn("recommended", tags)
                 memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-                self.assertEqual(memory["startup_peak_bytes"], 118_000_000_000)
-                self.assertEqual(memory["system_reserve_bytes"], 8_000_000_000)
+                self.assertEqual(memory["peak_bytes"], 118_000_000_000)
+                self.assertEqual(memory["reserve_bytes"], 8_000_000_000)
 
     def test_native_three_d_candidates_publish_their_acceptance_gates(self) -> None:
         for slug in ("skintokens-pytorch-single", "triposg-pytorch-single"):
@@ -108,8 +108,6 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
         self.assertIn("non-actuating", description)
         self.assertIn("approve", description)
         self.assertIn("execute actions externally", description)
-        benchmark = recipe["validation"]["benchmarks"][0]
-        self.assertEqual(benchmark["name"], "bounded-action-proposal")
 
 
 if __name__ == "__main__":

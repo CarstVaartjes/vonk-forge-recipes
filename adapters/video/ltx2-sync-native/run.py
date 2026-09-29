@@ -9,10 +9,6 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from pydantic import ValidationError
-from vonk_agent_protocol.compiled_execution_plan import CompiledExecutionPlan
-from vonk_agent_protocol.job_inputs import RecipeJobInputManifest
-
 MODEL_ROOT = Path("/models")
 INPUT_ROOT = Path("/inputs")
 MAX_PROMPT_BYTES = 16 * 1024
@@ -91,15 +87,23 @@ def _materialized_path(mount_target: str, relative_path: str) -> Path:
 
 
 def _runtime_artifacts() -> list[dict[str, object]]:
+    # Read only the fields this adapter needs, so the Controller's plan can
+    # evolve without a matching adapter release.
     try:
-        plan = CompiledExecutionPlan.model_validate_json(
-            RUNTIME_SPEC.read_text(encoding="utf-8")
-        )
-    except (OSError, ValidationError) as error:
+        plan = json.loads(RUNTIME_SPEC.read_text(encoding="utf-8"))
+        artifacts = [
+            {
+                "path": str(item["path"]),
+                "size_bytes": int(item["size_bytes"]),
+                "target": str(item["mount"]["target"]),
+            }
+            for item in plan["artifacts"]
+        ]
+    except (OSError, ValueError, KeyError, TypeError) as error:
         raise SystemExit(f"invalid Vonk runtime contract: {error}") from error
     result: list[dict[str, object]] = []
-    for artifact in plan.artifacts:
-        path = _materialized_path(artifact.mount.target, artifact.path)
+    for artifact in artifacts:
+        path = _materialized_path(str(artifact["target"]), str(artifact["path"]))
         try:
             path.resolve(strict=True).relative_to(MODEL_ROOT.resolve())
         except (FileNotFoundError, OSError, ValueError) as error:
@@ -108,11 +112,9 @@ def _runtime_artifacts() -> list[dict[str, object]]:
             ) from error
         if not path.is_file() or path.is_symlink():
             raise SystemExit("Vonk selected model file is not a regular file")
-        if path.stat().st_size != artifact.size_bytes:
+        if path.stat().st_size != artifact["size_bytes"]:
             raise SystemExit("Vonk selected model file size changed")
-        normalized = artifact.model_dump(mode="json")
-        normalized["materialized_path"] = path
-        result.append(normalized)
+        result.append({**artifact, "materialized_path": path})
     return result
 
 
@@ -183,20 +185,25 @@ def _load_prompt() -> str:
     if manifest_path.is_symlink() or not manifest_path.is_file():
         raise SystemExit("a regular Vonk job input manifest is required")
     try:
-        manifest = RecipeJobInputManifest.model_validate_json(
-            manifest_path.read_bytes()
-        )
-    except (OSError, ValidationError) as error:
+        files = json.loads(manifest_path.read_bytes())["files"]
+        if not isinstance(files, list) or not all(
+            isinstance(item, dict) for item in files
+        ):
+            raise ValueError("manifest files must be objects")
+    except (OSError, ValueError, KeyError, TypeError) as error:
         raise SystemExit(f"invalid Vonk job input manifest: {error}") from error
-    if len(manifest.files) != 1:
+    if len(files) != 1:
         raise SystemExit("exactly one declared UTF-8 prompt file is required")
-    prompt = manifest.files[0]
-    if prompt.slot != "prompt" or prompt.media_type != "text/plain":
+    prompt = files[0]
+    if prompt.get("slot") != "prompt" or prompt.get("media_type") != "text/plain":
         raise SystemExit("the prompt slot requires a text/plain input")
-    declared = {prompt.name, "manifest.json"}
+    prompt_name = str(prompt.get("name", ""))
+    if not prompt_name or "/" in prompt_name or prompt_name in {".", ".."}:
+        raise SystemExit("the prompt file name is invalid")
+    declared = {prompt_name, "manifest.json"}
     if {path.name for path in INPUT_ROOT.iterdir()} != declared:
         raise SystemExit("job input files do not match the manifest")
-    prompt_path = INPUT_ROOT / prompt.name
+    prompt_path = INPUT_ROOT / prompt_name
     if (
         prompt_path.suffix.lower() != ".txt"
         or prompt_path.is_symlink()
@@ -204,7 +211,7 @@ def _load_prompt() -> str:
     ):
         raise SystemExit("exactly one regular UTF-8 .txt prompt file is required")
     size = prompt_path.stat().st_size
-    if size != prompt.size_bytes:
+    if size != prompt.get("size_bytes"):
         raise SystemExit("prompt file size does not match the job manifest")
     if not 1 <= size <= MAX_PROMPT_BYTES:
         raise SystemExit("prompt.txt must contain 1..16384 UTF-8 bytes")

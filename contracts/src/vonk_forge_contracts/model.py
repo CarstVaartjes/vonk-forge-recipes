@@ -3,6 +3,8 @@
 The catalog stores one immutable model version/variant as one document.  The
 family, logical model, and exact version are deliberately nested so a model
 document is self describing when it is copied into a recipe package.
+
+Recipes reference a model by the ``document_sha256`` of its published JSON.
 """
 
 from __future__ import annotations
@@ -22,8 +24,6 @@ from pydantic import (
     field_validator,
     model_validator,
 )
-
-from ._schema_version import SchemaVersion
 
 _SLUG = r"^[a-z0-9][a-z0-9-]{1,62}$"
 _TOKEN = r"^[a-z0-9][a-z0-9_-]{0,127}$"
@@ -59,7 +59,6 @@ class ModelRecord(_ModelContract):
     publisher: Slug
     slug: Slug
     title: StrictStr = Field(min_length=1, max_length=120)
-    architecture: StrictStr = Field(min_length=1, max_length=128)
 
 
 class ModelIdentity(_ModelContract):
@@ -192,40 +191,8 @@ class ModelFile(_ModelContract):
 
 
 class ModelFormat(_ModelContract):
-    container: Literal["gguf", "safetensors", "onnx", "other"]
     precision: StrictStr = Field(min_length=1, max_length=64, pattern=_TOKEN)
     quantization: StrictStr = Field(min_length=1, max_length=64, pattern=_TOKEN)
-
-
-class ModelParameters(_ModelContract):
-    total: StrictInt | None = Field(default=None, ge=1)
-    active: StrictInt | None = Field(default=None, ge=1)
-
-
-class ModelLimits(_ModelContract):
-    context_tokens: StrictInt | None = Field(default=None, ge=1)
-    resolution_pixels: StrictInt | None = Field(default=None, ge=1)
-    frames: StrictInt | None = Field(default=None, ge=1)
-    sample_rate_hz: StrictInt | None = Field(default=None, ge=1)
-
-
-class ModelAccess(_ModelContract):
-    visibility: Literal["public", "restricted"]
-    gated: StrictBool
-    authentication: Literal["none", "token"]
-
-    @model_validator(mode="after")
-    def consistent_access(self) -> ModelAccess:
-        expected_gated = self.visibility == "restricted"
-        expected_authentication = "token" if expected_gated else "none"
-        if (
-            self.gated != expected_gated
-            or self.authentication != expected_authentication
-        ):
-            raise ValueError(
-                "model access visibility, gated, and authentication must agree"
-            )
-        return self
 
 
 class ModelReference(_ModelContract):
@@ -233,19 +200,6 @@ class ModelReference(_ModelContract):
     publisher: StrictStr = Field(min_length=1, max_length=128)
     slug: Slug
     content_sha256: Sha256
-
-
-class ModelLineageSource(_ModelContract):
-    kind: Literal["model"] = "model"
-    publisher: StrictStr = Field(min_length=1, max_length=128)
-    slug: Slug
-
-
-class ModelLineage(_ModelContract):
-    publisher: StrictStr = Field(min_length=1, max_length=128)
-    relation: Literal["official", "derived", "quantized"]
-    source_model: ModelLineageSource
-    derivation: StrictStr = Field(min_length=1, max_length=2000)
 
 
 class ModelTerritorialRestrictions(_ModelContract):
@@ -266,7 +220,6 @@ class ModelLicense(_ModelContract):
     spdx: StrictStr = Field(min_length=1, max_length=128)
     url: StrictStr = Field(min_length=1, max_length=512)
     attribution: list[StrictStr] = Field(max_length=32)
-    operator_acceptance_required: StrictBool
     territorial_restrictions: ModelTerritorialRestrictions | None = None
 
     @field_validator("url")
@@ -275,104 +228,32 @@ class ModelLicense(_ModelContract):
         return _https_or_http(value, "license.url")
 
 
-CapabilityName = Literal[
-    "chat",
-    "text-generation",
-    "text-understanding",
-    "reasoning",
-    "tool-use",
-    "code-generation",
-    "ocr",
-    "image-generation",
-    "image-understanding",
-    "image-editing",
-    "video-generation",
-    "video-understanding",
-    "audio-generation",
-    "audio-understanding",
-    "embeddings",
-    "3d-generation",
+# A capability name is data, not a closed enum: a newer catalog may declare a
+# capability this contract release does not know yet, and readers keep it.
+CapabilityName = Annotated[
+    StrictStr, Field(min_length=1, max_length=40, pattern=r"^[a-z0-9][a-z0-9-]{0,39}$")
 ]
-
-
-class ModelCapabilityFact(_ModelContract):
-    capability: CapabilityName
-    support: Literal["supported", "unsupported", "unknown"]
-    evidence_status: Literal["declared", "tested", "contradicted", "unknown"]
-
-    @model_validator(mode="after")
-    def evidence_consistency(self) -> ModelCapabilityFact:
-        if self.evidence_status == "contradicted" and self.support != "unknown":
-            raise ValueError("contradicted capability facts require unknown support")
-        if self.evidence_status == "unknown" and self.support != "unknown":
-            raise ValueError("unknown capability evidence cannot claim support")
-        return self
-
-
-class ModelCapabilityProvenance(_ModelContract):
-    source_url: StrictStr = Field(min_length=1, max_length=512)
-    source_revision: Revision
-
-    @field_validator("source_url")
-    @classmethod
-    def evidence_url(cls, value: str) -> str:
-        parsed = urlsplit(_https_or_http(value, "capabilities.provenance.source_url"))
-        if parsed.scheme != "https" or parsed.query or parsed.fragment:
-            raise ValueError(
-                "capability evidence must use an HTTPS URL without query or fragment"
-            )
-        return value
-
-
-class ModelCapabilities(_ModelContract):
-    schema_version: SchemaVersion = 2
-    facts: list[ModelCapabilityFact] = Field(max_length=64)
-    provenance: ModelCapabilityProvenance
-
-    @model_validator(mode="after")
-    def facts_are_stable(self) -> ModelCapabilities:
-        names = [fact.capability for fact in self.facts]
-        if len(names) != len(set(names)):
-            raise ValueError(
-                "capability facts must not duplicate or contradict a capability"
-            )
-        self.facts = sorted(self.facts, key=lambda fact: fact.capability)
-        return self
-
-
-class ModelProvenance(_ModelContract):
-    source_url: StrictStr = Field(min_length=1, max_length=512)
-    source_revision: Revision
-    attribution: list[StrictStr] = Field(max_length=32)
-
-    @field_validator("source_url")
-    @classmethod
-    def provenance_url(cls, value: str) -> str:
-        return _https_or_http(value, "provenance.source_url")
 
 
 class ModelDefinition(_ModelContract):
     """One exact model version and variant, including its complete manifest."""
 
-    schema_version: SchemaVersion = 2
     kind: Literal["model"] = "model"
     identity: ModelIdentity
     metadata: ModelMetadata
-    access: ModelAccess
-    lineage: ModelLineage
+    # A provider account token is needed to download the files (a gated
+    # repository). Public models download anonymously.
+    requires_token: StrictBool
     dependencies: list[ModelReference] = Field(max_length=32)
-    supersedes: ModelReference | None = None
     modalities: list[Literal["text", "image", "audio", "video", "3d", "embeddings"]] = (
         Field(min_length=1, max_length=6)
     )
     source: ModelSource | GitHubReleaseSource
     format: ModelFormat
-    parameters: ModelParameters
-    limits: ModelLimits
     license: ModelLicense
     files: list[ModelFile] = Field(min_length=1)
-    capabilities: ModelCapabilities
-    provenance: ModelProvenance
+    # The capabilities this model supports, by name.
+    capabilities: list[CapabilityName] = Field(max_length=64)
 
     @model_validator(mode="after")
     def exact_snapshot(self) -> ModelDefinition:
@@ -381,7 +262,7 @@ class ModelDefinition(_ModelContract):
         if len(ids) != len(set(ids)):
             raise ValueError("file IDs must be unique")
         if isinstance(self.source, GitHubReleaseSource):
-            if self.access.visibility != "public":
+            if self.requires_token:
                 raise ValueError(
                     "GitHub release sources require public, anonymous model access"
                 )
@@ -393,15 +274,11 @@ class ModelDefinition(_ModelContract):
             raise ValueError("file paths must be unique")
         if len(self.modalities) != len(set(self.modalities)):
             raise ValueError("modalities must be unique")
+        if len(self.capabilities) != len(set(self.capabilities)):
+            raise ValueError("capabilities must be unique")
         dependency_keys = [(item.publisher, item.slug) for item in self.dependencies]
         if len(dependency_keys) != len(set(dependency_keys)):
             raise ValueError("model dependencies must be unique")
-        if self.supersedes is not None and (
-            self.supersedes.publisher,
-            self.supersedes.slug,
-        ) == (self.identity.publisher, self.identity.slug):
-            raise ValueError("model cannot supersede itself")
-        self.modalities = sorted(self.modalities)
         sizes: dict[str, int] = {}
         for item in self.files:
             previous = sizes.setdefault(item.sha256, item.size_bytes)

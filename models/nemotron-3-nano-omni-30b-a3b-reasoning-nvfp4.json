@@ -1,28 +1,8 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "reasoning",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "16993199e436da4ba75ddc410855f87e0d996ee6",
-      "source_url": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "reasoning",
+    "text-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -261,7 +241,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "nvfp4"
   },
@@ -272,7 +251,6 @@
       "title": "NVIDIA Nemotron"
     },
     "model": {
-      "architecture": "Nemotron H hybrid Mamba-2, attention, and sparse mixture-of-experts multimodal transformer",
       "publisher": "nvidia",
       "slug": "nemotron-3-nano-omni-30b-a3b",
       "title": "Nemotron 3 Nano Omni 30B-A3B"
@@ -287,25 +265,8 @@
     "attribution": [
       "NVIDIA Corporation"
     ],
-    "operator_acceptance_required": true,
     "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-agreement/"
-  },
-  "limits": {
-    "context_tokens": 131072,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official upstream checkpoint at the pinned revision.",
-    "publisher": "nvidia",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "nvidia",
-      "slug": "nemotron-3-nano-omni-30b-a3b"
-    }
   },
   "metadata": {
     "description": "Exact public Reasoning NVFP4 16993199 checkpoint.",
@@ -319,21 +280,9 @@
   "modalities": [
     "text"
   ],
-  "parameters": {
-    "active": 3500000000,
-    "total": 30000000000
-  },
-  "provenance": {
-    "attribution": [
-      "NVIDIA Corporation"
-    ],
-    "source_revision": "16993199e436da4ba75ddc410855f87e0d996ee6",
-    "source_url": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4",
     "revision": "16993199e436da4ba75ddc410855f87e0d996ee6"
-  },
-  "supersedes": null
+  }
 }

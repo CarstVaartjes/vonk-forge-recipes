@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -24,13 +22,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -46,7 +41,6 @@
           "image/png",
           "image/webp"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -73,7 +67,6 @@
       },
       "output": {
         "max_total_bytes": 1073741824,
-        "path": "/outputs",
         "slots": [
           {
             "description": "The generated Pixal3D binary glTF mesh.",
@@ -91,8 +84,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -121,7 +113,6 @@
           "file_id": "snapshot",
           "id": "primary-snapshot",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -131,7 +122,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "9c05718ac147b5d4a0a2fcb7971a55eda645932321240805b399651b48da1478",
+        "content_sha256": "25f49066454eda89a249416444fd333b0b8b40a6e0eba511ab19a7730d0dd501",
         "kind": "model",
         "publisher": "tencentarc",
         "slug": "pixal3d"
@@ -145,273 +136,9 @@
       "Meta DINOv3 contributors",
       "camenduru DINOv3 mirror"
     ],
-    "source_kind": "global",
     "source_reference": "https://github.com/TencentARC/Pixal3D/tree/f7cf38429b0bd264f1995f0f8743a88b1c728b94"
   },
   "release": {
-    "history": [
-      {
-        "version": "2.0.10",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "3db62b050891af6ea20f331805b74ea7f180a6a1efa6c54029422eadf63ec081",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved the build base to NVIDIA CUDA 13.4.1 devel (Ubuntu 24.04, ARM64).",
-            "details": "nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04 ARM64 manifest sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37 replaces 13.2.1-devel; its NVIDIA_REQUIRE_CUDA keeps the driver>=580,<581 clause, so the Spark 580-series driver still admits it. CuMesh, FlexGEMM, nvdiffrast v0.4.0, NATTEN v0.21.7, utils3d and o-voxel now build with nvcc 13.4 for SM 12.1. TRELLIS.2, Pixal3D and extension sources are unchanged (each is its upstream head or latest tag).",
-            "references": [
-              "https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html",
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "compatibility",
-            "summary": "Kept PyTorch 2.13.0 and the upstream-pinned Python stack because the compiled extensions still force C++17.",
-            "details": "PyTorch stays at 2.13.0+cu132: PyTorch 2.14 ATen headers require C++20 and reject builds, while CuMesh, FlexGEMM and o-voxel pass -std=c++17 explicitly. nvcc 13.4 against the cu132 wheels is a same-major minor mismatch that torch.utils.cpp_extension only warns about. utils3d stays at 9a4eb15 as TRELLIS.2 pins it; release 1.7 removes utils3d.torch.get_image_rays and intrinsics_from_fov_xy used by TRELLIS.2. Python packages keep the exact Pixal3D requirements.txt pins. The TencentARC/Pixal3D Hugging Face head b0cb2e1b adds only multi-view (_mv) checkpoints and pipeline_mv.json. The single-image files this recipe loads are byte-identical, so the model stays at 0b31f916.",
-            "references": [
-              "https://github.com/pytorch/pytorch/blob/v2.14.0/aten/src/ATen/ATen.h",
-              "https://github.com/TencentARC/Pixal3D/blob/f7cf38429b0bd264f1995f0f8743a88b1c728b94/requirements.txt",
-              "https://github.com/EasternJournalist/utils3d/releases/tag/1.7",
-              "https://huggingface.co/TencentARC/Pixal3D/commits/main"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu132 metadata requires cuda-toolkit==13.2.1; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu132/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "23770e1d46912da353d397cebd1535ba9c1089fc40d5fc243a195d6b41584bb9",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.9"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Declared the official cu132 PyTorch wheel-object host for source builds.",
-            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu132/torch/",
-              "https://download.pytorch.org/whl/cu132/torchvision/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "7c43cce575fa7e21a947bddba5602d1ea1e687b16a06bc342725235992a76ff6",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.8"
-      },
-      {
-        "changes": [
-          {
-            "details": "Updated the build source from cdbb2bbffbf4e6f298b5f2af3d1d76a8d823d2af to f7cf38429b0bd264f1995f0f8743a88b1c728b94. The upstream delta adds a multi-view pipeline and leaves the existing single-image Pixal3DImageTo3DPipeline adapter path intact; the model snapshot remains pinned to its exact 0b31f916 revision.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/TencentARC/Pixal3D/compare/cdbb2bbffbf4e6f298b5f2af3d1d76a8d823d2af...f7cf38429b0bd264f1995f0f8743a88b1c728b94"
-            ],
-            "summary": "Refresh Pixal3D source to the current compatible upstream main."
-          }
-        ],
-        "prior_recipe_content_sha256": "3c5228217be242fa257988b44f85fcd25439c4fe5dca936b99345cbf50048f12",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.7"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "2.0.6"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "03ef260eef45609d7f0f49217e497a5dc17093d6fe8db7db0a2fbe1c5518ba46",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.5"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "d2e9d4a765738c052a56fef730e20bd0b99aceb8b49e3d6039a788a77c2939b1",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "2.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Rejected symlinked, empty, and over-16 MiB image inputs before loading the Pixal3D pipeline."
-          },
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Exposed the pinned nvdiffrast dependency's non-commercial research and evaluation restriction on the recipe card."
-          }
-        ],
-        "prior_recipe_content_sha256": "4f9d810e4b2d2c32b8b0c7d9e93620b333ed1ed74890c192c30824c4250b1990",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Required embedded UV, base-color, and metallic-roughness PBR data on a valid triangle mesh before atomic GLB publication."
-          }
-        ],
-        "prior_recipe_content_sha256": "489996d2236568c133e679ce162b97e127319e3e09159c7576eb7cfd1bd2a87b",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Loaded FlexGEMM's shipped autotune cache read-only and disabled runtime cache writes for UID 10001."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Validated image input before model loading and structurally validated GLB output before atomic publication."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared exact one-image input and single-GLB output slots with bounded bytes."
-          }
-        ],
-        "prior_recipe_content_sha256": "3c5990f5121ca1339eec0cfc6b9aa682b782c24efc9829c707641eee206e70c9",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "breaking",
-            "references": [],
-            "summary": "Replaced the metadata-only checkpoint binding with a real pinned Pixal3D image-to-GLB execution path."
-          },
-          {
-            "details": null,
-            "kind": "runtime",
-            "references": [],
-            "summary": "Added local DINOv3 and NAF, native mesh dependencies, bounded camera calibration, and ARM64 SDPA without runtime downloads."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Kept Candidate status until the reproducible offline build and workload pass a physical DGX Spark canary."
-          }
-        ],
-        "prior_recipe_content_sha256": "41dca745a9b3bad638f47f9387cfe7a4af881fce57dffb3ff6b9bf03fb6324da",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Marked the checkpoint binding non-executable pending its TRELLIS.2 source, native extensions, and GLB adapter."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Added the authoritative isolated image input contract."
-          },
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Corrected the checkpoint license to MIT."
-          }
-        ],
-        "prior_recipe_content_sha256": "e31fa7abd9b8fbc7e19782e795677a6be5295b6db1b5cdaeb14664b9f1027cab",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of Pixal3D pytorch-pipeline single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "7f2147015e98bfd53e3cac833b727c526287b131b7bda2a22e5273adcdb9742d",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "6a02d8e08a6e9df730e6e99af46c2c835222e605b4f90b604a1ad2558ca8724d",
-        "released_at": "2026-08-17",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "2.0.10"
   },
@@ -445,40 +172,26 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -488,39 +201,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 25260137890,
-            "cache_bytes": 8000000000,
             "image_bytes": 12000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 51000000000
+            "working_bytes": 59000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 12000000000,
-            "startup_peak_bytes": 64000000000,
-            "steady_state_bytes": 48000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 64000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "timeout_seconds": 14400
-        },
-        "framework": "pytorch-pipeline",
-        "name": "bounded-startup"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -532,11 +228,9 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/tiny.png",
-            "input_path": "/inputs",
             "input_slots": {
               "image": "qualification/fixtures/tiny.png"
             },
-            "output_path": "/outputs",
             "output_slot": "mesh",
             "transport": "job"
           }

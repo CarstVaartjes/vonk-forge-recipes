@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Generate the exact ordered <=2-Spark qualification authority and campaign."""
+"""Generate the exact ordered <=2-Spark qualification authority and campaign.
+
+The authority binds the catalog that ``tools/build-catalog-index`` generated
+from this checkout: its source commit, contract release tag, index digests and
+the stack identity of every package.
+"""
 
 from __future__ import annotations
 
@@ -26,22 +31,15 @@ from vonk_forge_contracts.qualification_authority import (
     RecoveryCoverageMember,
     RecoveryCoverageRef,
     RecoveryFailureMode,
-    RecoveryInvalidationField,
     recovery_coverage_id,
 )
 
-from qualification.catalog_source import (
-    pinned_catalog_package_tree,
-    release_asset,
-    release_checksums,
-)
+from qualification.catalog_source import current_catalog_package_tree
 from qualification.coverage_identity import execution_stack_identity
 
 AUTHORITY_ID = "nl-family-aware-20260924"
 AUTHORITY_PATH = QUALIFICATION / f"authorities/{AUTHORITY_ID}.json"
 CAMPAIGN_PATH = QUALIFICATION / f"campaigns/{AUTHORITY_ID}.json"
-RETIRED_AUTHORITY_PATH = QUALIFICATION / "authorities/nl-sequential-2c118a99.json"
-RETIRED_CAMPAIGN_PATH = QUALIFICATION / "campaigns/nl-sequential-2c118a99.json"
 PLAN_PATH = ROOT / "docs/recipe-qualification-plan-2026-09-24.md"
 _RECIPE_ROW = re.compile(r"[a-z0-9][a-z0-9-]{0,62}/[a-z0-9][a-z0-9-]{0,62}\Z")
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
@@ -53,20 +51,6 @@ _FIXTURE_MARKERS = {"$fixture_data_uri", "$fixture_base64"}
 # without the block fails closed instead of silently regenerating prose.
 _INVENTORY_BEGIN = "<!-- generated:begin qualification-inventory -->"
 _INVENTORY_END = "<!-- generated:end qualification-inventory -->"
-
-_RECOVERY_INVALIDATION_FIELDS: list[RecoveryInvalidationField] = [
-    "recipe_content_sha256",
-    "package_sha256",
-    "model_content_sha256s",
-    "runtime_stack_sha256",
-    "topology_sha256",
-    "coverage_membership",
-    "runtime_image_digest",
-    "platform_build_sha256",
-    "agent_build_sha256",
-    "target_node_ids",
-    "smoke_receipt_sha256",
-]
 
 
 def _document_bytes(content: bytes, description: str) -> dict[str, Any]:
@@ -206,13 +190,11 @@ def _model_license_refs(
         if not isinstance(identity, dict) or not isinstance(license_value, dict):
             raise TypeError(f"Model license is malformed: {digest}")
         key = f"{identity.get('publisher')}/{identity.get('slug')}"
-        operator_acceptance_required = license_value.get("operator_acceptance_required")
         spdx = license_value.get("spdx")
         url = license_value.get("url")
         attribution = license_value.get("attribution")
         if (
             key != f"{reference.get('publisher')}/{reference.get('slug')}"
-            or type(operator_acceptance_required) is not bool
             or not isinstance(spdx, str)
             or not spdx
             or not isinstance(url, str)
@@ -227,7 +209,6 @@ def _model_license_refs(
             "spdx": spdx,
             "url": url,
             "attribution": attribution,
-            "operator_acceptance_required": operator_acceptance_required,
         }
         restrictions = license_value.get("territorial_restrictions")
         if restrictions is not None:
@@ -241,8 +222,6 @@ def _campaign_gate(row: dict[str, Any]) -> str:
     if row["node_count"] > 2:
         return "out of scope (>2 Sparks)"
     labels = ["single-Spark" if row["node_count"] == 1 else "dual-Spark"]
-    if "operator-acceptance-required" in kinds:
-        labels.append("operator acceptance required")
     if "capacity-review" in kinds:
         labels.append("capacity review")
     return "; ".join(labels)
@@ -365,14 +344,11 @@ def _recovery_coverage_definitions(
             members=members,
             shared=shared,
             equivalence_rationale=(
-                "Every member binds the same published runtime stack and topology. "
-                "Each receipt and reuse must still match that recipe's exact content, "
-                "package, Models, image, platform build, agent build, target nodes, "
-                "and smoke receipt."
+                "Every member binds the same published runtime stack and topology, "
+                "so one representative recovery run covers the group."
                 if shared
                 else "Recovery evidence is dedicated to this exact recipe and failure mode."
             ),
-            invalidated_by=_RECOVERY_INVALIDATION_FIELDS,
         )
         coverage = RecoveryCoverage(
             **definition.model_dump(mode="json", exclude_none=True),
@@ -398,23 +374,19 @@ def _recovery_coverage_definitions(
     return definitions, refs_by_recipe
 
 
-def _pinned_stack_identities(
-    release_tag: str,
-    catalog_recipes: dict[str, dict[str, Any]],
-    catalog_root: Path | None = None,
+def _stack_identities(
+    catalog_recipes: dict[str, dict[str, Any]], catalog_root: Path
 ) -> dict[str, dict[str, Any]]:
-    """Hash each published stack from the exact package in the pinned release."""
+    """Hash each stack from the digest-verified package of the generated catalog."""
 
     identities: dict[str, dict[str, Any]] = {}
     for key, entry in catalog_recipes.items():
         recipe = RecipeDefinition.model_validate(entry["document"])
-        if recipe.execution.mode != "build":
-            raise ValueError(f"qualification stack identity requires a build: {key}")
         package = entry.get("package")
         if not isinstance(package, dict):
-            raise TypeError(f"published recipe package is missing: {key}")
-        with pinned_catalog_package_tree(
-            release_tag, package, recipe, catalog_root=catalog_root
+            raise TypeError(f"catalog recipe package is missing: {key}")
+        with current_catalog_package_tree(
+            catalog_root, package, recipe, entry["content_sha256"]
         ) as package_root:
             identities[key] = execution_stack_identity(
                 package_root, recipe, recipe.execution.build
@@ -483,40 +455,36 @@ def _refresh_plan(text: str, authority: dict[str, Any]) -> str:
     return text[:start] + "".join(lines) + text[stop:]
 
 
-def _build(catalog_root: Path | None = None) -> dict[Path, bytes]:
+def _build(catalog_root: Path = ROOT) -> dict[Path, bytes]:
     plan_text = PLAN_PATH.read_text(encoding="utf-8")
     plan_rows = _plan_rows(plan_text)
-    release = _document(QUALIFICATION / "catalog-release.json")
     gate_review = _document(QUALIFICATION / "review-gates.json")
+    if gate_review.get("schema_version") != 2:
+        raise ValueError("qualification review gates must be schema 2")
 
-    if release.get("schema_version") != 2 or gate_review.get("schema_version") != 2:
-        raise ValueError("qualification authority input schemas must be 2")
-    catalog_commit = release.get("commit")
-    release_tag = release.get("release_tag")
-    repository = release.get("repository")
+    index_path = catalog_root / "catalog-index.json"
+    qualification_path = catalog_root / "qualification" / "qualification-index.json"
+    if not index_path.is_file() or not qualification_path.is_file():
+        raise ValueError(
+            f"generated catalog is missing under {catalog_root}; "
+            "run tools/build-catalog-index"
+        )
+    catalog_bytes = index_path.read_bytes()
+    qualification_bytes = qualification_path.read_bytes()
+    catalog = _document_bytes(catalog_bytes, "catalog-index.json")
+    qualification = _document_bytes(qualification_bytes, "qualification-index.json")
+    repository = catalog.get("repository")
     if repository != "CarstVaartjes/vonk-forge-recipes":
-        raise ValueError("catalog release repository does not match this library")
-    if not isinstance(catalog_commit, str) or _COMMIT.fullmatch(catalog_commit) is None:
-        raise ValueError("catalog release commit must be a full Git SHA")
-    if not isinstance(release_tag, str) or not re.fullmatch(
-        r"v[0-9]+\.[0-9]+\.[0-9]+", release_tag
-    ):
-        raise ValueError("catalog release tag is invalid")
-
-    checksums = release_checksums(release)
-    catalog_bytes = release_asset(
-        release_tag, "catalog-index.json", checksums["catalog-index.json"]
-    )
-    qualification_bytes = release_asset(
-        release_tag, "qualification-index.json", checksums["qualification-index.json"]
-    )
-    catalog = _document_bytes(catalog_bytes, "pinned catalog-index.json")
-    qualification = _document_bytes(
-        qualification_bytes, "pinned qualification-index.json"
-    )
+        raise ValueError("catalog repository does not match this library")
     source_commit = catalog.get("source_commit")
-    if source_commit != catalog_commit:
-        raise ValueError("released catalog was not built from the release commit")
+    if not isinstance(source_commit, str) or _COMMIT.fullmatch(source_commit) is None:
+        raise ValueError("catalog source commit must be a full Git SHA")
+    contract_version = catalog.get("contract_version")
+    if not isinstance(contract_version, str) or not re.fullmatch(
+        r"[0-9]+\.[0-9]+\.[0-9]+", contract_version
+    ):
+        raise ValueError("catalog contract version is invalid")
+    release_tag = f"v{contract_version}"
 
     catalog_recipes: dict[str, dict[str, Any]] = {}
     for entry in catalog.get("recipes", []):
@@ -550,9 +518,7 @@ def _build(catalog_root: Path | None = None) -> dict[Path, bytes]:
             raise ValueError(f"catalog Model identity is duplicated: {model_key}")
         model_documents[model_key] = entity["document"]
 
-    stack_identities = _pinned_stack_identities(
-        release_tag, catalog_recipes, catalog_root
-    )
+    stack_identities = _stack_identities(catalog_recipes, catalog_root)
 
     capacity_reviews = gate_review.get("capacity_reviews")
     if not isinstance(capacity_reviews, dict):
@@ -631,35 +597,13 @@ def _build(catalog_root: Path | None = None) -> dict[Path, bytes]:
             raise ValueError(f"qualification fixture reference is absent for {key}")
 
         license_refs = _model_license_refs(recipe, models_by_digest)
-        operator_acceptance_required = any(
-            ref["operator_acceptance_required"] for ref in license_refs
-        )
         review_gates: list[dict[str, str]] = []
-        if operator_acceptance_required:
-            review_gates.append(
-                {
-                    "kind": "operator-acceptance-required",
-                    "reason": (
-                        "At least one exact referenced Model declares "
-                        "operator_acceptance_required=true. An operator must "
-                        "explicitly acknowledge the displayed license terms for "
-                        "this recipe before physical execution; territorial "
-                        "metadata is informational and is not an admission rule."
-                    ),
-                }
-            )
         capacity_reason = capacity_reviews.get(key)
         if capacity_reason is not None:
             if not isinstance(capacity_reason, str) or not capacity_reason:
                 raise ValueError(f"capacity review reason is invalid: {key}")
             review_gates.append({"kind": "capacity-review", "reason": capacity_reason})
-        disposition = (
-            "operator-acceptance-required"
-            if operator_acceptance_required
-            else "capacity-review"
-            if capacity_reason is not None
-            else "actionable"
-        )
+        disposition = "capacity-review" if capacity_reason is not None else "actionable"
         row: dict[str, Any] = {
             "sequence": len(campaign_rows) + 1,
             "key": key,
@@ -674,7 +618,6 @@ def _build(catalog_root: Path | None = None) -> dict[Path, bytes]:
             "node_count": node_count,
             "interface": interface,
             "disposition": disposition,
-            "operator_acceptance_required": operator_acceptance_required,
             "model_license_refs": license_refs,
             "qualification_inputs": qualification_inputs,
             "smoke_cases": smoke_cases,
@@ -705,11 +648,11 @@ def _build(catalog_root: Path | None = None) -> dict[Path, bytes]:
 
     authority_model = QualificationAuthority.model_validate(
         {
-            "schema_version": 4,
+            "schema_version": 5,
             "authority_id": AUTHORITY_ID,
             "catalog": {
                 "repository": repository,
-                "commit": catalog_commit,
+                "commit": source_commit,
                 "release_tag": release_tag,
                 "source_commit": source_commit,
                 "catalog_index_sha256": hashlib.sha256(catalog_bytes).hexdigest(),
@@ -765,8 +708,9 @@ def main() -> int:
         "--catalog-root",
         type=Path,
         default=ROOT,
-        help="directory of generated catalog outputs whose packages may stand "
-        "in for identical release assets (default: this checkout)",
+        help="directory holding the generated catalog-index.json, "
+        "qualification/qualification-index.json and packages/ "
+        "(default: this checkout; run tools/build-catalog-index first)",
     )
     args = parser.parse_args()
     try:
@@ -776,25 +720,17 @@ def main() -> int:
             for path, expected in outputs.items()
             if not path.exists() or path.read_bytes() != expected
         ]
-        retired = [
-            path
-            for path in (RETIRED_AUTHORITY_PATH, RETIRED_CAMPAIGN_PATH)
-            if path.exists()
-        ]
         if args.check:
-            if stale or retired:
-                affected = stale + retired
+            if stale:
                 raise ValueError(
                     "qualification authority outputs are stale: "
-                    + ", ".join(path.relative_to(ROOT).as_posix() for path in affected)
+                    + ", ".join(path.relative_to(ROOT).as_posix() for path in stale)
                 )
             print("qualification authority is current (81 recipes, paired schedule)")
             return 0
         for path, content in outputs.items():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(content)
-        for path in (RETIRED_AUTHORITY_PATH, RETIRED_CAMPAIGN_PATH):
-            path.unlink(missing_ok=True)
         print("refreshed qualification authority and batched campaign (81 recipes)")
         return 0
     except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:

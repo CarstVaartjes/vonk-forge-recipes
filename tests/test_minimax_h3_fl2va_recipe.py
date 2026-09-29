@@ -64,7 +64,7 @@ class MiniMaxH3Fl2vaRecipeTests(unittest.TestCase):
         role = recipe["topology"]["roles"][0]
         self.assertEqual(recipe["topology"]["node_count"], 1)
         self.assertGreater(role["resources"]["disk"]["artifact_bytes"], 0)
-        self.assertGreater(role["resources"]["memory"]["startup_peak_bytes"], 0)
+        self.assertGreater(role["resources"]["memory"]["peak_bytes"], 0)
 
 
 if __name__ == "__main__":

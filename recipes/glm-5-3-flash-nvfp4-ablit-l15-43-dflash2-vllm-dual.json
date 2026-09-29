@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6",
-        "platform": "linux/arm64",
         "repository": "ghcr.io/tonyd2wild/vllm-glm53-flash"
       },
       "context": {
@@ -12,13 +10,10 @@
       },
       "dockerfile": "adapters/glm/tonyd2wild-dflash2-dual/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": []
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -64,7 +59,6 @@
           "file_id": "gitattributes-d1a8f4a1",
           "id": "primary-gitattributes-d1a8f4a1",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -76,7 +70,6 @@
           "file_id": "ablit-meta-0ee97d0d",
           "id": "primary-ablit-meta-0ee97d0d",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -88,7 +81,6 @@
           "file_id": "credits-d3771150",
           "id": "primary-credits-d3771150",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -100,7 +92,6 @@
           "file_id": "layer-map-666b2fe0",
           "id": "primary-layer-map-666b2fe0",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -112,7 +103,6 @@
           "file_id": "license-f4f9c3f4",
           "id": "primary-license-f4f9c3f4",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -124,7 +114,6 @@
           "file_id": "license-keys-f4f9c3f4",
           "id": "primary-license-keys-f4f9c3f4",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -136,7 +125,6 @@
           "file_id": "method-fea52eb6",
           "id": "primary-method-fea52eb6",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -148,7 +136,6 @@
           "file_id": "readme-d56e57c9",
           "id": "primary-readme-d56e57c9",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -160,7 +147,6 @@
           "file_id": "responsible-use-895e5deb",
           "id": "primary-responsible-use-895e5deb",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -172,7 +158,6 @@
           "file_id": "variations-869a8d45",
           "id": "primary-variations-869a8d45",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -184,7 +169,6 @@
           "file_id": "refusal-bf-oproj-2f032225",
           "id": "primary-refusal-bf-oproj-2f032225",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -196,7 +180,6 @@
           "file_id": "refusal-dealign-late-ef297400",
           "id": "primary-refusal-dealign-late-ef297400",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -208,7 +191,6 @@
           "file_id": "chat-template-34d5ee66",
           "id": "primary-chat-template-34d5ee66",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -220,7 +202,6 @@
           "file_id": "chat-template-thinking-off-dbf7ca0b",
           "id": "primary-chat-template-thinking-off-dbf7ca0b",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -232,7 +213,6 @@
           "file_id": "config-29c9f417",
           "id": "primary-config-29c9f417",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -244,7 +224,6 @@
           "file_id": "generation-config-e9e93ee3",
           "id": "primary-generation-config-e9e93ee3",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -256,7 +235,6 @@
           "file_id": "model-00001-6b6846fb",
           "id": "primary-model-00001-6b6846fb",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -268,7 +246,6 @@
           "file_id": "model-00002-f8316bca",
           "id": "primary-model-00002-f8316bca",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -280,7 +257,6 @@
           "file_id": "model-00003-d26cf1a3",
           "id": "primary-model-00003-d26cf1a3",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -292,7 +268,6 @@
           "file_id": "model-00004-49aac2ea",
           "id": "primary-model-00004-49aac2ea",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -304,7 +279,6 @@
           "file_id": "model-00005-2c054fbe",
           "id": "primary-model-00005-2c054fbe",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -316,7 +290,6 @@
           "file_id": "model-00006-d6705ac4",
           "id": "primary-model-00006-d6705ac4",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -328,7 +301,6 @@
           "file_id": "model-00007-93ac9987",
           "id": "primary-model-00007-93ac9987",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -340,7 +312,6 @@
           "file_id": "model-00008-7d61f4c2",
           "id": "primary-model-00008-7d61f4c2",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -352,7 +323,6 @@
           "file_id": "model-00009-6ded1f8c",
           "id": "primary-model-00009-6ded1f8c",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -364,7 +334,6 @@
           "file_id": "model-00010-2bfd1774",
           "id": "primary-model-00010-2bfd1774",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -376,7 +345,6 @@
           "file_id": "model-index-015faae9",
           "id": "primary-model-index-015faae9",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -388,7 +356,6 @@
           "file_id": "model-mtp-378f8875",
           "id": "primary-model-mtp-378f8875",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -400,7 +367,6 @@
           "file_id": "processor-config-aae38374",
           "id": "primary-processor-config-aae38374",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -412,7 +378,6 @@
           "file_id": "recipe-yaml-c90bdcc6",
           "id": "primary-recipe-yaml-c90bdcc6",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -424,7 +389,6 @@
           "file_id": "tokenizer-0cfe2c09",
           "id": "primary-tokenizer-0cfe2c09",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -436,7 +400,6 @@
           "file_id": "tokenizer-config-77af7d47",
           "id": "primary-tokenizer-config-77af7d47",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -447,7 +410,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "782f169e835149cecca8fce987b72f4af0238a5f466d4bd8ea34ff8e511e54d0",
+        "content_sha256": "b83de96826fba1fdde173beae7b9c677ac5d87e33a38af982d06c392202c0ffa",
         "kind": "model",
         "publisher": "drowzeys",
         "slug": "glm-5-3-flash-nvfp4-ablit-l15-43-mtp-l45-80b6d18d"
@@ -459,7 +422,6 @@
           "file_id": "metadata-70e0ed421d65-618cd5b83d",
           "id": "drafter-metadata-70e0ed421d65-618cd5b83d",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -471,7 +433,6 @@
           "file_id": "readme-2014434d3e36-b335630551",
           "id": "drafter-readme-2014434d3e36-b335630551",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -483,7 +444,6 @@
           "file_id": "dflash2-figure-6d8dcc9a9472-e520c8f797",
           "id": "drafter-dflash2-figure-6d8dcc9a9472-e520c8f797",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -495,7 +455,6 @@
           "file_id": "config-c4aeac010119-587cb980af",
           "id": "drafter-config-c4aeac010119-587cb980af",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -507,7 +466,6 @@
           "file_id": "model-b038e1d9d1e7-9d75c1098f",
           "id": "drafter-model-b038e1d9d1e7-9d75c1098f",
           "mount": {
-            "read_only": true,
             "target": "/models/drafter"
           },
           "roles": [
@@ -518,7 +476,7 @@
       ],
       "id": "dependency-glm-5-3-flash-dflash2-bf582e4e",
       "model": {
-        "content_sha256": "b8070ed88ec4e098ae05d7b50befd6a0c17ae0a378a68860409daf71244d2abc",
+        "content_sha256": "877e81d8d00e7561d56d1f8e57ac5b0c4b1bdbf17c03e790ad35ba6aed3c4e97",
         "kind": "model",
         "publisher": "incoai",
         "slug": "glm-5-3-flash-dflash2-bf582e4e"
@@ -535,121 +493,9 @@
       "IncoAI",
       "vLLM contributors"
     ],
-    "source_kind": "global",
     "source_reference": "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark/tree/3eef46632c45ffb6c397de0716c23b3d2d594798"
   },
   "release": {
-    "history": [
-      {
-        "changes": [
-          {
-            "details": "The authored six-GiB KV allocation and current Vonk multimodal template are now the sole engine defaults; the placement-only wrapper preserves explicit, repeated, empty, JSON, and opaque engine arguments.",
-            "kind": "runtime",
-            "references": [
-              "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark/tree/050081dc41ce6edd4d3f15fa19dc3410ba4210e3"
-            ],
-            "summary": "Make the current L15-43 runtime profile authored and overrideable."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-06",
-        "upgrade_effect": "restart",
-        "version": "1.0.6"
-      },
-      {
-        "changes": [
-          {
-            "details": "Adopt the current tonyd2wild TP2 DFlash2 launcher profile from commit 050081dc41ce6edd4d3f15fa19dc3410ba4210e3: 6,442,450,944-byte KV allocation with the existing 262K context, DFlash2 K7, FP8 E4M3 KV, eager execution, and 8K batched-token contract. The target and DFlash2 companion revisions remain unchanged.",
-            "kind": "runtime",
-            "references": [
-              "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark/tree/050081dc41ce6edd4d3f15fa19dc3410ba4210e3"
-            ],
-            "summary": "Adopt the upstream TP2 DFlash2 six-GiB KV-cache profile."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "restart",
-        "version": "1.0.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe's model pin is the current Drowzeys replacement ID, keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45 at 80b6d18d77e3020f2384597081d405f19893f101. Its lineage is Red Hat compressed-tensors NVFP4 with refusal directions on layers 15 through 43 and MTP layer 45, with layer 44 stock; it is not interchangeable with the withdrawn L15-45 NVFP4-KV B12X 1M artifact. No model digest or specialized DFlash2 runtime setting changed.",
-            "kind": "model",
-            "references": [
-              "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45/tree/80b6d18d77e3020f2384597081d405f19893f101",
-              "https://github.com/drowzeys/keys-vllm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated/tree/c36b5958412158a69629e7fbed321312e6d0761d"
-            ],
-            "summary": "Record the current Drowzeys replacement weight ID and its distinct model lineage."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Use the Vonk GLM multimodal chat template supplied by the vLLM harness."
-          }
-        ],
-        "prior_recipe_content_sha256": "ff75e0b301083fa2f0f7b95769fa1c1152766a648fb0f3652d02e19fc66b4809",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "7cf3db0b81e6eea8757d2b588e8d0155a42be305f5ba6cfa20825e73e1214a1e",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "Pins the complete gated 32-file L15-43/MTP-L45 checkpoint, current bf582e4e DFlash2 drafter, public tonyd2wild 3eef4663 source, digest-pinned ARM64 image, exact required SM121 sparse-indexer replacement, Controller-native worker-first TP2, block size 2304, FP8 E4M3 KV, Marlin MoE, 0.85 GMU, 8K batched tokens, and the exact thinking-off template. Installation requires separate acceptance of Drowzeys' responsible-use gate and the drafter's CC-BY-NC-ND-4.0 terms. The historical withdrawn ModelOpt/native-mp/1M identity remains unchanged; physical Vonk acceptance is pending.",
-            "kind": "initial",
-            "references": [
-              "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45/tree/80b6d18d77e3020f2384597081d405f19893f101",
-              "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/tree/bf582e4eacc1810f76656d1811693ff6c6737d2a",
-              "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark/tree/3eef46632c45ffb6c397de0716c23b3d2d594798"
-            ],
-            "summary": "Added Drowzeys' compressed-tensors GLM 5.3 Flash DFlash2 two-Spark Candidate."
-          }
-        ],
-        "prior_recipe_content_sha256": "ec9a7aa89e24d1500ed2060cfd8699aea94b501cebbb6370c31b10ab2d1c340e",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-06",
     "version": "1.0.6"
   },
@@ -770,111 +616,85 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "DO_NOT_TRACK",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "VLLM_ENGINE_READY_TIMEOUT_S",
-        "secret": null,
         "value": "3600"
       },
       {
         "name": "TORCH_CUDA_ARCH_LIST",
-        "secret": null,
         "value": "12.1a"
       },
       {
         "name": "FLASHINFER_CUDA_ARCH_LIST",
-        "secret": null,
         "value": "12.1a"
       },
       {
         "name": "FLASHINFER_DISABLE_VERSION_CHECK",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "PYTORCH_CUDA_ALLOC_CONF",
-        "secret": null,
         "value": "expandable_segments:True"
       },
       {
         "name": "NCCL_NET",
-        "secret": null,
         "value": "IB"
       },
       {
         "name": "NCCL_IB_DISABLE",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "NCCL_IB_ROCE_VERSION_NUM",
-        "secret": null,
         "value": "2"
       },
       {
         "name": "NCCL_NET_PLUGIN",
-        "secret": null,
         "value": "none"
       },
       {
         "name": "NCCL_NVLS_ENABLE",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "NCCL_CROSS_NIC",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "NCCL_IB_MERGE_NICS",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "NCCL_CUMEM_ENABLE",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "NCCL_IGNORE_CPU_AFFINITY",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TORCH_NCCL_ASYNC_ERROR_HANDLING",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "NCCL_DEBUG",
-        "secret": null,
         "value": "WARN"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "withdraw-endpoint",
-        "recovery": "restart-worker-then-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 180
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": {
       "change_effect": "restart",
@@ -889,19 +709,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "connected",
-      "minimum_bandwidth_mbps": 200000
-    },
-    "mode": "distributed",
     "name": "dual",
     "node_count": 2,
     "parallelism": {
       "backend": "mp",
       "data": 1,
       "pipeline": 1,
-      "tensor": 2,
-      "world_size": 2
+      "tensor": 2
     },
     "roles": [
       {
@@ -911,18 +725,13 @@
         "resources": {
           "disk": {
             "artifact_bytes": 202566174700,
-            "cache_bytes": 40000000000,
             "image_bytes": 30000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 24000000000,
-            "staging_bytes": 25000000000
+            "working_bytes": 65000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 3000000000,
-            "startup_peak_bytes": 126000000000,
-            "steady_state_bytes": 120000000000,
-            "system_reserve_bytes": 5000000000
+            "peak_bytes": 126000000000,
+            "reserve_bytes": 5000000000
           }
         }
       },
@@ -933,18 +742,13 @@
         "resources": {
           "disk": {
             "artifact_bytes": 202566174700,
-            "cache_bytes": 40000000000,
             "image_bytes": 30000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 24000000000,
-            "staging_bytes": 25000000000
+            "working_bytes": 65000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 3000000000,
-            "startup_peak_bytes": 126000000000,
-            "steady_state_bytes": 120000000000,
-            "system_reserve_bytes": 5000000000
+            "peak_bytes": 126000000000,
+            "reserve_bytes": 5000000000
           }
         }
       }
@@ -952,52 +756,9 @@
     "start_order": [
       "worker",
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint",
-      "worker"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "temperature": 0,
-          "thinking": false,
-          "timeout_seconds": 600
-        },
-        "framework": "openai",
-        "name": "bounded-thinking-off-chat"
-      },
-      {
-        "configuration": {
-          "max_output_tokens": 400,
-          "record_draft_acceptance": true,
-          "requests": 1,
-          "temperature": 0,
-          "thinking": false,
-          "timeout_seconds": 1200
-        },
-        "framework": "openai",
-        "name": "dflash2-acceptance"
-      },
-      {
-        "configuration": {
-          "max_output_tokens": 256,
-          "prompt_tokens": 32768,
-          "reject_repeated_suffix": true,
-          "reject_replacement_characters": true,
-          "requests": 3,
-          "temperature": 0,
-          "thinking": false,
-          "timeout_seconds": 1800
-        },
-        "framework": "openai",
-        "name": "long-context-corruption-regression"
-      }
-    ],
     "serving": {
       "checks": [
         {

@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e",
-        "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
@@ -12,13 +10,10 @@
       },
       "dockerfile": "adapters/llm/vllm-openai-028/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": []
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -64,7 +59,6 @@
           "file_id": "metadata-34448b82c17d",
           "id": "primary-metadata-34448b82c17d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -75,7 +69,6 @@
           "file_id": "license-bbedc3fda330",
           "id": "primary-license-bbedc3fda330",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -86,7 +79,6 @@
           "file_id": "readme-57e4bdb258ee",
           "id": "primary-readme-57e4bdb258ee",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -97,7 +89,6 @@
           "file_id": "chat-template-c3cf9e34abf4",
           "id": "primary-chat-template-c3cf9e34abf4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -108,7 +99,6 @@
           "file_id": "config-191e0af23210",
           "id": "primary-config-191e0af23210",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -119,7 +109,6 @@
           "file_id": "crc32-b42dd291f5f9",
           "id": "primary-crc32-b42dd291f5f9",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -130,7 +119,6 @@
           "file_id": "generation-config-e70c136c1b78",
           "id": "primary-generation-config-e70c136c1b78",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -141,7 +129,6 @@
           "file_id": "merges-a9d356d7bdf1",
           "id": "primary-merges-a9d356d7bdf1",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -152,7 +139,6 @@
           "file_id": "model-00001-of-00018-ba0ce20aae48",
           "id": "primary-model-00001-of-00018-ba0ce20aae48",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -163,7 +149,6 @@
           "file_id": "model-00002-of-00018-06a148c01bfb",
           "id": "primary-model-00002-of-00018-06a148c01bfb",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -174,7 +159,6 @@
           "file_id": "model-00003-of-00018-2e1bf62cbcd4",
           "id": "primary-model-00003-of-00018-2e1bf62cbcd4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -185,7 +169,6 @@
           "file_id": "model-00004-of-00018-511e34063187",
           "id": "primary-model-00004-of-00018-511e34063187",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -196,7 +179,6 @@
           "file_id": "model-00005-of-00018-635cb53446dc",
           "id": "primary-model-00005-of-00018-635cb53446dc",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -207,7 +189,6 @@
           "file_id": "model-00006-of-00018-0bc5214fac60",
           "id": "primary-model-00006-of-00018-0bc5214fac60",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -218,7 +199,6 @@
           "file_id": "model-00007-of-00018-80b0c49033e9",
           "id": "primary-model-00007-of-00018-80b0c49033e9",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -229,7 +209,6 @@
           "file_id": "model-00008-of-00018-7192c5b66185",
           "id": "primary-model-00008-of-00018-7192c5b66185",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -240,7 +219,6 @@
           "file_id": "model-00009-of-00018-af3c48cc37af",
           "id": "primary-model-00009-of-00018-af3c48cc37af",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -251,7 +229,6 @@
           "file_id": "model-00010-of-00018-163490a76f3b",
           "id": "primary-model-00010-of-00018-163490a76f3b",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -262,7 +239,6 @@
           "file_id": "model-00011-of-00018-5f3ae1b948ae",
           "id": "primary-model-00011-of-00018-5f3ae1b948ae",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -273,7 +249,6 @@
           "file_id": "model-00012-of-00018-a3de1c711467",
           "id": "primary-model-00012-of-00018-a3de1c711467",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -284,7 +259,6 @@
           "file_id": "model-00013-of-00018-06ab79a41f74",
           "id": "primary-model-00013-of-00018-06ab79a41f74",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -295,7 +269,6 @@
           "file_id": "model-00014-of-00018-4138ed946030",
           "id": "primary-model-00014-of-00018-4138ed946030",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -306,7 +279,6 @@
           "file_id": "model-00015-of-00018-69224e27b9de",
           "id": "primary-model-00015-of-00018-69224e27b9de",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -317,7 +289,6 @@
           "file_id": "model-00016-of-00018-73cb9a1089fb",
           "id": "primary-model-00016-of-00018-73cb9a1089fb",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -328,7 +299,6 @@
           "file_id": "model-00017-of-00018-beb51f010561",
           "id": "primary-model-00017-of-00018-beb51f010561",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -339,7 +309,6 @@
           "file_id": "model-00018-of-00018-1d3479509e21",
           "id": "primary-model-00018-of-00018-1d3479509e21",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -350,7 +319,6 @@
           "file_id": "model-safetensors-index-770420940766",
           "id": "primary-model-safetensors-index-770420940766",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -361,7 +329,6 @@
           "file_id": "preprocessor-config-27225450ac9c",
           "id": "primary-preprocessor-config-27225450ac9c",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -372,7 +339,6 @@
           "file_id": "tokenizer-0997f410c57a",
           "id": "primary-tokenizer-0997f410c57a",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -383,7 +349,6 @@
           "file_id": "tokenizer-config-b11349aafa7c",
           "id": "primary-tokenizer-config-b11349aafa7c",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -394,7 +359,6 @@
           "file_id": "video-preprocessor-config-7768af27c1fa",
           "id": "primary-video-preprocessor-config-7768af27c1fa",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -405,7 +369,6 @@
           "file_id": "vocab-ce99b4cb2983",
           "id": "primary-vocab-ce99b4cb2983",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -415,7 +378,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "961df0376abdbb95c3bc5d73fd6d5f2aa5cda8849a1535e0b8756924b8f81cb1",
+        "content_sha256": "d98a57fe2e0cd6390c68f9a41aef460f4d2a68cfe11660696b6ff8d425aac460",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen3-8-27b-1d4bf0f2"
@@ -426,151 +389,9 @@
     "attribution": [
       "qwen"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/Qwen/Qwen3.8-27B/tree/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.2.0",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "472129be897d9d43c7f7b17504bc65a0594024d7595f5272ac877ae5cf7a9007",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Refresh the pinned official vLLM ARM64 runtime from 0.28.0 to stable 0.30.0.",
-            "details": "Moves from v0.28.0-aarch64-ubuntu2404 (41b54fb42c66) to v0.30.0-aarch64-ubuntu2404 (e06f024cf1dd), build commit ced6857a. Upstream v0.29 makes Model Runner V2 the default and deprecates V1; v0.29/v0.30 removals (PyAV video decoder, api_server module entrypoint, VLLM_PREFIX_CACHE_RETENTION_INTERVAL, VLLM_MM_HASHER_ALGORITHM, GPTQ g_idx) are not used here. Every runtime option in this recipe still exists at v0.30.0. Qwen3.5/Qwen3-Next Triton kernels and GDN gated RMSNorm are warmed at startup in v0.30 (#54797, #54251); the qwen3 reasoning parser and qwen3_coder tool parser are still registered. Model pin unchanged (HF head equals the pinned revision). Needs Spark re-qualification.",
-            "references": [
-              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
-              "https://github.com/vllm-project/vllm/compare/v0.28.0...v0.30.0",
-              "https://hub.docker.com/r/vllm/vllm-openai/tags?name=v0.30.0-aarch64"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.1.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "f4627aef169bf61f27768bafaaf2fbf10c957ae9d1c2774d7378089dc18659de",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "baa1d9be9eebd089090f55be173a7238beaeedaf06ee20b0793ab06ff2233bc5",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.1.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The immutable official checkpoint and runtime contract are unchanged. Bounded text chat is qualified; Spark vision serving remains unproven.",
-            "kind": "metadata",
-            "references": [
-              "https://huggingface.co/Qwen/Qwen3.8-27B/tree/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
-            ],
-            "summary": "Marked BF16 as an alternative to the FP8 default and made its text-only qualification boundary explicit."
-          }
-        ],
-        "prior_recipe_content_sha256": "ad0c85bc2e50c24d465926f085565b6895ed6a911fa88d100c89c1eb0fa1ee2e",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "none",
-        "version": "1.1.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "runtime",
-            "references": [],
-            "summary": "Migrated to the official vLLM 0.28.0 ARM64 release image and pinned the changed batch and CUDA-graph defaults."
-          }
-        ],
-        "prior_recipe_content_sha256": "8622e6a92603d5a7befd87d68b6009585fa9e7d5c39a5de2c0bb832c581aea62",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Routed non-root vLLM caches to the writable outputs mount."
-          },
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the model's native multimodal, vision, reasoning, and agentic capabilities."
-          }
-        ],
-        "prior_recipe_content_sha256": "d52374ad1d8b26adcba24c4206dfbe4dee57721c9d969828a1a9082aabedb80f",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "deb462e1a1dc7e380667ebbb45d810236c69b660aad758fad38987c158f13b42",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of Qwen3.8 27B BF16 vLLM single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "81e734db72d5f077a2ece166004c74e9025fa63707f1ffd68f3f4acd1fa04078",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.2.0"
   },
@@ -631,26 +452,17 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": {
       "change_effect": "restart",
@@ -665,19 +477,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -687,41 +493,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 55586114863,
-            "cache_bytes": 4000000000,
             "image_bytes": 12000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 111172229726
+            "working_bytes": 115172229726
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 4000000000,
-            "startup_peak_bytes": 108000000000,
-            "steady_state_bytes": 96000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 108000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "timeout_seconds": 600
-        },
-        "framework": "openai",
-        "name": "bounded-chat"
-      }
-    ],
     "serving": {
       "checks": [
         {

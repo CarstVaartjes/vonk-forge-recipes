@@ -60,138 +60,6 @@ Controller fixes, then reload profile 1 and in parallel start the single-Spark
 job batches, beginning with Step1X-3D geometry (batch-001). Job batches do not
 depend on the GLM dual-Spark gate.
 
-## Execution checkpoint — 2026-09-27
-
-The live application status below was refreshed through 2026-09-27
-19:03:43 UTC. Re-read durable operations before acting; this timed snapshot
-is not a completion claim.
-
-Platform [PR #916](https://github.com/CarstVaartjes/vonk-forge/pull/916)
-merged as `575f1e42a978507641d182d5bf4b7d1d442f4a6d`; its final PR head was
-`14c6e1ee`, and all required CI checks passed. Installer publication run
-`36334662903` accepted and promoted development generation
-`9e950b346c0bba0e8266a5ba8929399d8171df79cc8ec8a5daf2bdc0ac836560`, with NAS
-and ARM64 candidate acceptance. PR #916 completes the source and CI path for
-exact Stop handling, including fail-closed handling of hook-bearing plans,
-selected whole-fleet reconciliation, degraded recovery, singleton host-reboot
-recovery, startup retry, and final-verify expiry with actionable logging.
-
-Platform [PR #914](https://github.com/CarstVaartjes/vonk-forge/pull/914) was
-conflict-resolved and auto-merged as
-`0ccd225620c1ed2c1e1660f355274010b9188fbe`, ahead of the physical gate as
-requested. Its source contains the PR #916 merge commit
-`575f1e42a978507641d182d5bf4b7d1d442f4a6d`. Development-image run
-`36335738730` succeeded. Signed installer acceptance/publication run
-`36336301588` succeeded: NAS and ARM64 candidate acceptance, signed receipt,
-and promotion all passed. Public dev `current.manifest` is schema 2, generation
-`e2ee090625a9101425e89aa02b6fecc20b51dcb5b36cd4473edd452ab5dfcfb1`, source
-`0ccd225620c1ed2c1e1660f355274010b9188fbe`; this exact signed generation is
-confirmed deployed on the NAS and includes the merged #916 source. The separately
-accepted #916 generation above remains its own publication evidence and is not
-the manifest identity for this deployment. Version string
-`0.1.1~dev.617+g575f1e42a978` reuses the agent package version; use the manifest
-source and generation for provenance.
-
-The preceding platform PR #913 deployment was merge
-`03b2d6cddbf2a13c922ed15c5e65a0322766afed`, accepted generation
-`a9fc4cf592dcf67f2ea0b54b1a8b1f4353835f8c135a70ca77609009f7a97629`, and
-Controller image `sha256:25b83b51cb4b81f3340ba993a820c1a98f936342ecac8115e2863dbb82a27012`.
-Its final PR head was `e326429f7f884167f43cd04ac192be9ed9177da1`; required CI run
-`36275927334` passed, including 272 affected real-PostgreSQL profile tests with
-zero failures or skips and two final typed pair/same-key tests. Development
-image run `36276218398` and installer acceptance run `36276601591` accepted the
-generation above. Its deployment check found 11 healthy services and recreated
-only API and worker containers; `.env`, secrets, and named-volume identities
-were preserved. These are historical #913 details, not current post-reset
-health counts.
-
-Fresh repository validation on 2026-09-27 passed all 85 recipes against platform
-`0ccd225620c1ed2c1e1660f355274010b9188fbe` and recipe checkout
-`1066cdda984865c58d8f793b9e00cce69ca9ee8a`. Per-recipe structural qualification
-passed 85/85 in 57 seconds. `tools/build-catalog-index --check` reported both
-indexes current for 85 recipes; `scripts/validate-recipe-library --json` passed
-with 102 catalog entities, identity-verified packages, and a passing secret
-scan. The campaign still schedules 81 one- or two-Spark recipes (72 single-Spark
-recipes in 36 paired batches and nine exclusive dual-Spark recipes); four wider
-topologies remain outside physical scope.
-
-`catalog_binding_current=false` for the checked-in campaign authority: it remains
-bound to v1.0.17 at catalog commit
-`efbbba29bd4c706c73d295d24047787be3f36d78` and catalog-index digest
-`400bc65b6a723e0ce674e0c0e604893b52bfb0c1168fd1a095aef48098e29f5c`. The
-current checkout's catalog-index digest is
-`9fa5b698e3d0600cce086fcfa761295e94bd03f07e634032d67a4f0529cd2b4d`; its
-qualification-index digest remains the authority-bound
-`e30d9d4f3b679a18d0f11a13235ad1fcc926a867bb782e69b627a51d59556f39`. These
-repository checks do not publish a catalog or refresh the campaign authority.
-The successful live profile preview below is separate from that authority
-refresh and does not prove physical inference or recovery.
-
-After authorization, the logical Controller database was dropped and recreated
-in full. A later clarification described the intended scope as removing only
-the troublesome tables; record the full database recreation as the action that
-actually occurred, not as a table-scoped reset. Other named volumes and separate
-databases were preserved. The old profile application and operation records
-are gone: the profile-1 application
-`3e865d60-acd6-405f-b2e5-7891772668d9` and request
-`17f0e0fb-de96-4a8b-88c4-817dff7ea6e3` were not reconciled before that reset and
-must not be reported as completed or still running.
-
-Both Sparks were manually re-enrolled with their original Controller node IDs
-and are online-ready. As post-reset bootstrap, the orphan managed vLLM
-container on Spark2 was stopped after its exact label was checked. That stop
-does not establish new inference or physical recovery. A new profile 1 revision
-2 has the exact two-Spark GLM assignment. Model cache preparation succeeded for
-149/149 artifacts. Runtime-image build job `993a875b` succeeded at
-2026-09-27 18:58:51 UTC with exact image
-`sha256:02a7342b3ac67f031dc93b7bc8e839aa857d9b45ec4498a5b45f54f78501f88f`;
-cache operation `08fc3b7c` (request-key prefix `7cb8da8e`) still reported
-`running/build-wait` at 18:59 UTC. By 19:00 UTC the Controller cache reported
-ready, and a fresh profile preview was allowed with zero blockers.
-
-The reviewed profile-1 application was submitted with plan-digest prefix
-`113a6635` and request key
-`07ad74ac-2cfe-43ce-bac1-d9fbe0412cec`; application
-`36d22487-a750-468c-944b-92d9a3e81419` was running at 19:01:31 UTC in the
-`target-copy` phase with 143,748,166,088 bytes complete of approximately
-398,196,823,414 planned. By 19:03:43 UTC it had transferred 360.9 GB of
-398.2 GB planned and was still running. Re-read this same durable operation
-before retrying or making a new request. No workload-ready state, published endpoint, inference, or fault-to-recovery
-result is established yet.
-
-The physical campaign still covers 81 one- and two-Spark recipes; four wider
-topologies remain outside physical scope. No current-identity physical
-inference or fault-to-recovery result is recorded. First complete the current
-profile application and its declared serving/inference checks. Fault injection
-and physical recovery remain separate gates; retain the pending explicit
-authorization before fault injection.
-
-Earlier read-only checks on both Sparks found current run
-`1f444de3-99aa-41b1-a417-f61409fdc7ca` metadata and installed spec/runtime valid;
-historical run `e85c4710-e437-4d12-8191-499596aa2a4c` failed current parsing at
-`/` and `/runtime/placement`. These dated checks prove metadata compatibility
-only, not inference or recovery.
-
-Earlier component-branch results remain historical: observer isolation,
-child-progress, refusal, helper, and protocol cases were tested independently
-before integration. PR #916 merges the core exact-Stop, whole-fleet,
-degraded-recovery, reboot, startup-retry, and final-verify/logging path with all
-required CI passing. Its source is included in the deployed #914 manifest; no
-live recovery or physical acceptance is established.
-
-Signed-hook support and replacement of the 16 MiB aggregate parent-payload cap
-remain explicit held/future proposals, not blockers to the merged #916 release.
-Other unapproved stop-authority proposals remain held as recorded. Do not roll
-back per-hook receipts; that proposal was rejected because it would weaken
-crash/restart safeguards. Preserve strict `phases: null` handling, exact plan
-and `run_generation` binding, one-shot hook markers, and actionable blockers for
-revoked authority, integrity failures, changed plans, unavailable resources,
-and provider/license gaps.
-
-The dated cache and health observations below remain historical evidence. Reuse
-model and recipe-image artifacts by their exact bound identities; a changed
-platform source SHA alone does not invalidate those artifacts.
-
 ## Upstream audit outcome
 
 The live audit checked 178 watched model and recipe sources at
@@ -277,7 +145,7 @@ profiles: every profile always owns the entire fleet, including idle nodes.
   approved mechanism; observation mode does not perform them.
 - A recipe-local failure remains local in the evidence. Integrity, authority,
   changed-plan or fleet-ownership failures stop the batch. Resume reconciles
-  the original operation and completed lane receipts instead of duplicating
+  the original operation and completed lane results instead of duplicating
   loads or rerunning already-proven work unnecessarily.
 
 ### Standing full-fleet profile target (not shipped)
@@ -303,20 +171,15 @@ evidence remain pending.
 
 ### Evidence reuse and recovery coverage
 
-Earlier working GLM-5.3 runs remain historical physical evidence; this campaign
-must not describe them as never tested. Match their actual model, recipe,
-image, topology, platform and test receipts before reusing any particular
-claim. A changed identity invalidates the affected evidence, not automatically
-every unrelated build or cached asset. Record missing provenance as an evidence
-gap instead of inventing a fresh pass.
+Earlier working GLM-5.3 runs remain physical evidence for the recipe, model
+and image they ran; this campaign must not describe them as never tested.
 
-Every recipe needs an attributable inference result, including all its declared
-smoke cases and fixtures. Shared build checks can be reused only for identical
-artifacts. Recovery coverage definitions bind the exact runtime stack, topology
-and member identities; this release has no shared recovery group, so each recipe
-keeps dedicated recovery receipts. Any future shared receipt must satisfy the
-typed representative and member-use contract, including its invalidation
-conditions.
+Every recipe needs an inference result for all its declared smoke cases and
+fixtures. Shared build checks can be reused only for identical artifacts.
+Recovery coverage definitions bind the exact runtime stack, topology and member
+identities: one representative recovery run covers every member of a shared
+group. This catalog has no shared recovery group, so each recipe is recovered
+on its own.
 
 ### Implementation and execution order
 
@@ -327,90 +190,10 @@ conditions.
   recipes remain explicitly outside available physical capacity. The derived
   matrix is `family-aware-coverage-2026-09-24.md`, generated by
   `tools/build-family-aware-coverage` and published with each signed release
-  (from v1.1.0 on, bound to that authority's release). The
+  (bound to the catalog the authority was generated from). The
   typed recovery definitions are explicit but no group is shared in this
   release; representative selection is a build-cost choice, not a readiness,
   cache or physical claim.
-- [x] Complete the paired campaign runner source integration for lane evidence,
-  exclusive recovery, resumable batches, fleet ownership, stale plans,
-  wrong-recipe/node evidence, duplicate apply after disconnect and premature
-  lane replacement. Platform PR #893 merged as `4c8cf45540bca1f32c6c9b1b963c68783aa644bb`; required CI run `36089768144` passed. This records source and CI completion, not successful physical recovery.
-- [x] Merge the approved recovery identity correction and real-PostgreSQL
-  contention fix. Platform PR #894 merged as
-  `1b1e10f9847ed185ab1e2f4f006e4c797ca9b5a1`; final source head was
-  `e7188a946219684fa2c24b4a8f4a66dce212876d`. Required CI run `36106444427`
-  passed. Six focused availability cases included one real-PostgreSQL
-  contention/recovery case; the other five covered explicit retry and model-child
-  behavior. There were also 26 provenance tests, one receipt-builder test and
-  106 earlier identity tests. Type checking reported one existing exception;
-  there was no database schema change.
-- [x] Accept the signed PR #894 publication. Installer acceptance workflow
-  `36107593799` accepted generation
-  `bad7e9e7d903eac0db3acb41ad21d444f61283a2f696c66cb4f01a4d0c6f4abf` for
-  source `1b1e10f9847ed185ab1e2f4f006e4c797ca9b5a1`; development-image workflow
-  `36106900488` also succeeded.
-- [x] Complete the PR #894 NAS deployment and verify the Controller/CLI state.
-  Deployment verification reports 11 healthy services, nine retained
-  containers, two replaced containers (API and worker), preserved volume mounts
-  and no added paths. The live bundle hashes match staging without a rewrite;
-  the API reports the signed source commit. The installed CLI updated from
-  `4c8cf45540bca1f32c6c9b1b963c68783aa644bb` to
-  `1b1e10f9847ed185ab1e2f4f006e4c797ca9b5a1`. The staged `.env` and 62 secret
-  files are unchanged. No agent rollout was needed because the accepted package
-  digest matches the previous package.
-- [x] Verify the installed CLI helper consumes fresh Controller provenance
-  under the canonical `agent_build_sha256` identity. Both Sparks passed at
-  `07:39:16 UTC`; their observed agent build digests match the signed target.
-  This verifies the identity boundary only. No physical inference or recovery
-  receipt is implied, and the Controller's own publication boundary remains
-  unknown.
-- [x] Complete the initial signed publication and Controller/CLI deployment
-  for platform PR #893, and review the authority bound to recipe release
-  v1.0.17. Publication run `36090614107` accepted generation
-  `f057a9e59058d7beb7098d721fd21c07fbddd9ca39b1327babd9557e4756095e` for source
-  `4c8cf45540bca1f32c6c9b1b963c68783aa644bb`; deployment completed on 2026-09-25
-  at 03:45 UTC. This is the prior baseline and does not complete physical
-  qualification.
-- [x] Complete platform PR #912 publication and deployment. It merged as
-  `1b685415695d79dadf4d418a48844bc81bc1e6a5`; accepted generation
-  `f8081e89e13c9e52c9e3ea39095c3d55355e4b0098824494a286f9c8f18a47f7` was the
-  deployed baseline before PR #913 superseded it. This deployment did not prove
-  serving or physical acceptance.
-- [x] Merge platform PR #913 and complete its combined source/CI validation;
-  merge, final-head, and test evidence are recorded in the execution checkpoint
-  above.
-- [x] Complete PR #913 signed publication and NAS deployment. Accepted
-  generation, health, replacement, preserved-state, and Controller-image
-  evidence are recorded in the execution checkpoint above. This completes
-  deployment only; load, inference, and physical recovery remain open.
-- [x] Complete and merge the core recovery source integration in platform PR
-  #916: exact Stop plans fail closed when they contain hooks the path cannot
-  safely execute; selected whole-fleet reconciliation; degraded recovery;
-  singleton host-reboot recovery; startup retry; and final-verify expiry with
-  actionable logging. Required CI passed. Its source is included in the
-  deployed #914 manifest recorded below; physical recovery remains open.
-- [x] Accept and promote the signed PR #916 development publication, including
-  NAS and ARM64 candidate acceptance. Generation and run are recorded above.
-- [x] Merge platform PR #914 as `0ccd225620c1ed2c1e1660f355274010b9188fbe`,
-  build its development image in run `36335738730`, and complete signed
-  installer acceptance/publication in run `36336301588`, including NAS/ARM64
-  candidate acceptance, signed receipt, and promotion. The exact signed
-  generation `e2ee090625a9101425e89aa02b6fecc20b51dcb5b36cd4473edd452ab5dfcfb1`
-  is deployed on the NAS; its source contains merged PR #916.
-- [x] The authorized logical Controller database reset dropped and recreated the
-  full database. A later clarification specified only troublesome tables as the
-  intended scope. Other named volumes and separate databases were preserved.
-  The previous profile application and operation records were lost rather than
-  reconciled.
-- [x] Both Sparks were manually re-enrolled with their original Controller node
-  IDs and are online-ready. The exact-label-verified orphan managed vLLM
-  container on Spark2 was stopped as post-reset bootstrap. This is not inference
-  or recovery evidence.
-- [x] Profile 1 revision 2 was recreated with the exact two-Spark GLM assignment;
-  its model cache preparation succeeded (149/149 artifacts). The exact runtime
-  image is
-  `sha256:02a7342b3ac67f031dc93b7bc8e839aa857d9b45ec4498a5b45f54f78501f88f`;
-  the fresh preview is allowed with zero blockers.
 - [ ] Complete the current profile-1 application and verify its declared serving
   and inference checks. At 2026-09-27 19:03:43 UTC application
   `36d22487-a750-468c-944b-92d9a3e81419` was still in `target-copy`, with
@@ -430,9 +213,8 @@ conditions.
   caches and provider gates clear.
 - [ ] Fault injection is authorized (see *Operating principles*); run it with
   the authorized mechanism. A physical single-Spark reboot fault remains
-  unproved. Exercise recovery after a recoverable fault clears and capture an
-  attributable exact-identity fault-to-recovery receipt. Do not claim physical
-  recovery from serving, inference, or metadata alone.
+  unproved. Exercise recovery after a recoverable fault clears. Do not claim
+  physical recovery from serving, inference, or metadata alone.
 - [ ] Independently of profile 1, add the official NAF checkpoint as a
   canonical Pixal3D Model selection, use the next recipe revision, regenerate
   and validate package/catalog/qualification outputs, publish the catalog, and
@@ -440,18 +222,15 @@ conditions.
   verification, runtime use, and license disposition as separate gates.
 - [ ] After the provider gates, resume the full physical campaign across all
   81 one- and two-Spark recipes, using paired single-Spark lanes and exclusive
-  dual-Spark work. Keep the four wider topologies out of scope. Reconcile
-  historical receipts against current recipe, model, image, topology, and
-  platform identities; preserve provider, license, authority, integrity, and
-  actual-resource blockers; reuse completed cache work only for its exact
-  bound artifact identity.
+  dual-Spark work. Keep the four wider topologies out of scope. Reuse completed
+  cache work only for its exact bound artifact identity.
 - [ ] Produce the final per-recipe report after physical execution, separating
   source freshness, structural validation, timestamped cache evidence,
   inference and recovery state. The 2026-09-25 evidence-inventory snapshot was
   removed because it went stale; build the report from the live sources
   instead: the recipes and models on `main`, the qualification authority and
   campaign under `qualification/`, the signed release assets, and the
-  Controller's qualification receipts.
+  campaign's result log.
 
 Use bounded GPT-6 Luna Max agents for independent audits or implementation,
 each in its own task-owned worktree. Avoid agents for routine polling, duplicate
@@ -459,116 +238,6 @@ audits and repeated full suites on unchanged inputs. Integrate related fixes,
 run focused regression checks during iteration and the required combined gates
 before release. Refresh campaign authority after relevant artifacts settle,
 not after every intermediate failed build.
-
-## Historical execution status snapshot — 2026-09-25
-
-The live cache, Fleet, node, fit, and health observations in this snapshot are
-dated evidence from 2026-09-25. Refresh them before making current admission or
-readiness decisions.
-
-The accepted recipe release remains v1.0.17
-(`efbbba29bd4c706c73d295d24047787be3f36d78`); recipe `main` includes the prior
-report update through `506a4af6f9c8c52acf0213aba7f2ab63bbad254f`. The structural
-evidence remains bound to recipe checkout
-`784bda637a45c9fab6b18fc0cd2faa2669ab9800` and platform PR #893 merge
-`4c8cf45540bca1f32c6c9b1b963c68783aa644bb`. Required CI run `36089768144`
-passed with no database schema change; structural validation passed all 85 exact
-recipe identities at `2026-09-25T03:29:03.058743Z`. Structural success makes no
-physical qualification claim.
-
-Platform PR #894 merged as `1b1e10f9847ed185ab1e2f4f006e4c797ca9b5a1` at
-07:17:31 UTC; its final source head is `e7188a946219684fa2c24b4a8f4a66dce212876d`.
-Required CI run `36106444427` passed. Six focused availability cases included
-one real-PostgreSQL contention/recovery case; the other five covered explicit
-retry and model-child behavior. There were also 26 provenance tests, one
-receipt-builder test and 106 earlier identity tests. Type checking reported one
-existing exception, and no database schema changed. Development-image workflow
-`36106900488` and installer acceptance workflow `36107593799` succeeded.
-
-The installer accepted signed generation
-`bad7e9e7d903eac0db3acb41ad21d444f61283a2f696c66cb4f01a4d0c6f4abf` for source
-`1b1e10f9847ed185ab1e2f4f006e4c797ca9b5a1` (release
-`0.1.1~dev.611+gf2be83c2f165`). The accepted API digest is
-`sha256:c56a3bac9cc625bcff74a3cf9482efcb3b93c128d2f09eede85bbeaa4aead4b7`; all
-four image digests are retained in the JSON report. The agent package digest
-`0dd85a2fc642fb5143a8c7fc8f04430108286e27c7e579d0035b427c7a168c71` matches the
-previous package, so no agent rollout was needed. Staging preserved `.env` and
-all 62 secret files with no Compose diff. Deployment verification found 11
-healthy services, nine retained containers, two replaced containers (API and
-worker), preserved volume mounts and no added paths. API build provenance matches
-the accepted source and all staged bundle hashes match the live bundle; the CLI
-updated from platform source `4c8cf45540bca1f32c6c9b1b963c68783aa644bb` to
-`1b1e10f9847ed185ab1e2f4f006e4c797ca9b5a1`.
-
-The installed site-packages helper passed fresh Controller-provenance validation
-at `2026-09-25T07:39:16.008465Z` on Spark 3542 and
-`2026-09-25T07:39:16.021975Z` on Spark 2297. Both observations bind Controller
-image `sha256:c56a3bac9cc625bcff74a3cf9482efcb3b93c128d2f09eede85bbeaa4aead4b7`
-and agent build `f1198ce592e940e17c7bbe017f4c9755df25f74351163851279c4eb95fe713bf`;
-optional package receipts are absent on both nodes. The Controller's own
-publication boundary remains unknown. This proves the corrected identity-bound
-producer/consumer path, not physical inference or recovery; no physical recovery
-receipt exists.
-
-The prior signed schema-2 publication run `36090614107` accepted generation
-`f057a9e59058d7beb7098d721fd21c07fbddd9ca39b1327babd9557e4756095e` for source
-`4c8cf45540bca1f32c6c9b1b963c68783aa644bb`; the NAS deployment and Controller
-CLI update completed at 03:45 UTC. The verified API image was
-`sha256:519cf084dba79fd79c35f89053bd000f10e4f05d290d769e8ea50dfff5e16344`, with
-all 11 NAS services healthy. These facts describe the PR #893 baseline, not the
-merged PR #894 follow-up.
-
-The latest complete exact-identity cache assessment finished at
-`2026-09-25T07:03:08.790476+00:00`. Its 85 summary observations span
-`06:59:39.098475`–`07:03:06.507613 UTC`; all 85 identities matched with zero
-mismatches and zero command errors. The scan reports 3 cache-ready and 82
-blocked rows. The ready recipes are Step1X geometry, Step1X label geometry and
-GLM-5-3 Flash EXL3 DFlash2. Cache state is only a timestamped observation; it
-does not establish fit, inference, recovery or availability after the scan.
-Earlier Sep 24 counts are retained as historical evidence in the JSON report.
-
-Step1X label geometry's no-force preparation request
-`8800c9b1-39f8-4a37-9c65-998cf780919f` has parent operation
-`ed53ea64-ae62-490c-9b44-1a787d3d09ab`, recorded as failed and non-retryable
-with PostgreSQL `55P03` (`model_cache_operations` row-lock error). Later child
-progress showed the runtime-image child (13,611,009,024 bytes) and model-cache
-child (8,781,511,993 bytes across 14 items) succeeded, totaling
-22,392,521,017 bytes at `06:45:47.300430 UTC`. The full scan found this recipe
-identity cache-ready at `06:59:39.098659 UTC` (detail assessment
-`06:59:40.790032Z`). A separate fresh no-force request
-`86f1b561-3132-4342-b0e0-498fe9459fe7` then succeeded as operation
-`93795a0e-3f4e-44b8-b92a-1c152d0732f8` at `07:40:23.428405 UTC`, returning the
-same model-cache child and the same build/image identity for 22,392,521,017
-completed bytes. Its exact detail at `07:41:14.794466Z` remained cache-ready and
-fit only Spark 2297. Keep the original failed parent receipt intact; the later
-successful preparation and fit do not establish inference or recovery. Step1X
-geometry's earlier successful no-force preparation remains bound to its own
-recipe identity.
-
-The physical campaign remains incomplete. Fresh node snapshots at 07:38–07:39
-UTC show both Sparks online and ready, with zero loaded workloads, five installed
-records each, and disk reservations of 1,320,491,003,815 bytes on each node. On
-Spark 3542, five installed plans still fail canonical parsing because required
-`memory_floor_bytes` and `memory_kind` placement fields are absent; no capacity
-was discounted. No supported repair or per-installation uninstall assessment
-was available. LTX 2.5 per-file
-hashes, gated Meta DINOv3 access for TRELLIS 2/Pixal3D, and Pixal3D's unsupported
-GitHub-release NAF cache path remain provider/source blockers from the plan.
-
-The PR #893 deployment snapshot showed Spark 3542 already running the requested
-agent build and the Controller refusing another upgrade with HTTP 409. Authenticated
-binary/build digests matched the then-signed target; the optional agent package
-receipt remained an evidence gap, not a proven campaign blocker. No current-
-identity inference or physical recovery receipt has been recorded. The historical
-GLM 1.6.6 results remain valid only for their exact prior recipe, image and run
-identity. The 85-row report remains a progress snapshot, not the final
-post-campaign report.
-
-After the operator's subsequent Docker update, the Fleet read at
-`2026-09-25T07:51:08.014673Z` showed both Sparks online with no loaded workloads.
-The NAS check found all 11 services healthy, accepted Vonk image identities
-unchanged, and prior volume mounts preserved. Docker reported 29.6.2. This later
-health snapshot does not change the physical qualification or admission gaps.
 
 ## Current per-recipe procedure
 
@@ -707,44 +376,22 @@ each batch; earlier observations are not current admission evidence.
    reviewed digest with `--apply --cleanup-lane LANE --campaign-digest DIGEST`.
    After all required recovery checkpoints, that explicit cleanup apply records
    the terminal lane result and releases the batch; observation alone does not
-   finalize it. Reconcile cleanup and the completion of both lane receipts
+   finalize it. Reconcile cleanup and the completion of both lane results
    before advancing to the next batch. A failure local to one lane stays local
    in the evidence; integrity, authority, changed-plan and whole-Fleet ownership
    failures stop the batch.
 
 The current authority is
 `qualification/authorities/nl-family-aware-20260924.json`. It binds the
-85-recipe catalog of the signed release `v1.1.0` (release and source commit
-`0929ef6b467c4ffd64ca5ce685ed5a20e468923e`); the recipes, packages and
-qualification index are unchanged from v1.0.17, which published no release
-assets. It assigns 72 single-Spark recipes
-to 36 paired batches and schedules nine dual-Spark recipes exclusively. It
-contains 90 recipe-specific recovery definitions; no recovery group is shared
-in this release. The four recipes requiring more than two Sparks remain
-explicit exclusions. Operator acceptance and capacity review remain row-level
-gates, and territorial license notices are informational. Refresh authority
-and coverage only after the exact new catalog and packages have been accepted;
-the generators read the accepted catalog pin and record current indexed-package-
-versus-accepted stack divergences until then. Recipe PR #124 merged the typed
-contracts and generators; release workflow `36078172793` published v1.0.17 on
-2026-09-25 at 00:37 UTC. At that time this closed recipe publication, not
-platform runner deployment or physical qualification. The current platform deployment is recorded above; physical qualification
-remains open.
-
-The previous v1.0.16 catalog had a stale `source_commit` pointer to
-`a0ffd873…`, while the digest-verified LTX 2.19B package contained protocol
-wheel 3.0.0. Recipe release v1.0.17 corrected the catalog source pointer to
-`7b4ef279d4e531e51408ad08c11efd80483912e5`. Runtime-stack identities continue
-to bind the selected regular-file bytes in the exact catalog-pinned package;
-the `source_commit` field alone does not establish those bytes.
-
-Historical cache evidence for Step1X geometry 1.2.15 is exact. Its detail at
-`2026-09-25T03:48:58.288046Z` reports the recipe cache ready and fit allowed
-only on Spark 2297. A normal `force=false` preparation completed at
-`03:49:48.966382Z`, returned image digest
-`sha256:c8e6ac563cfa95c1f3a26bec630d8928aebc0b0fe994c2c7dea3a08794b1acbf`, and
-reused 11 model artifacts totaling 7,249,194,310 bytes. This is exact cache and
-image evidence, not inference or recovery evidence.
+85-recipe catalog generated from its recorded source commit for the contract
+release `v2.0.0` (`tools/build-catalog-index`, then
+`tools/build-qualification-authority`). It assigns 72 single-Spark recipes to
+36 paired batches and schedules nine dual-Spark recipes exclusively. It
+contains 90 recipe-specific recovery definitions; no recovery group is shared.
+The four recipes requiring more than two Sparks remain explicit exclusions.
+Capacity review is the only row-level gate; license terms and territorial
+notices are informational. Coverage hashes the current packages and reports
+stack divergences from the authority until the authority is regenerated.
 
 ## Complete inventory and current batch assignments
 
@@ -757,33 +404,33 @@ The authority assigns 72 one-Spark recipes to 36 batches and 9 two-Spark recipes
 
 | # | Recipe | Nodes | Batch | Lane | Check | Campaign gate | Source review |
 |---:|---|---:|---|---:|---|---|---|
-| 1 | `vonk-forge/step1x-3d-geometry-pytorch-single` | 1 | `batch-001` | 1 | job / 3600s | single-Spark; operator acceptance required | current |
-| 2 | `vonk-forge/step1x-3d-label-geometry-pytorch-single` | 1 | `batch-001` | 2 | job / 3600s | single-Spark; operator acceptance required | current |
+| 1 | `vonk-forge/step1x-3d-geometry-pytorch-single` | 1 | `batch-001` | 1 | job / 3600s | single-Spark | current |
+| 2 | `vonk-forge/step1x-3d-label-geometry-pytorch-single` | 1 | `batch-001` | 2 | job / 3600s | single-Spark | current |
 | 3 | `vonk-forge/flux-2-klein-4b-nvfp4-comfyui-single` | 1 | `batch-002` | 1 | job / 3600s | single-Spark | current |
-| 4 | `vonk-forge/skintokens-pytorch-single` | 1 | `batch-002` | 2 | job / 3600s | single-Spark; operator acceptance required | current |
-| 5 | `vonk-forge/trellis-2-4b-pytorch-single` | 1 | `batch-003` | 1 | job / 3600s | single-Spark; operator acceptance required | current |
-| 6 | `vonk-forge/triposg-pytorch-single` | 1 | `batch-003` | 2 | job / 3600s | single-Spark; operator acceptance required | current |
+| 4 | `vonk-forge/skintokens-pytorch-single` | 1 | `batch-002` | 2 | job / 3600s | single-Spark | current |
+| 5 | `vonk-forge/trellis-2-4b-pytorch-single` | 1 | `batch-003` | 1 | job / 3600s | single-Spark | current |
+| 6 | `vonk-forge/triposg-pytorch-single` | 1 | `batch-003` | 2 | job / 3600s | single-Spark | current |
 | 7 | `vonk-forge/flux-2-klein-4b-comfyui-single` | 1 | `batch-004` | 1 | job / 3600s | single-Spark | current |
-| 8 | `vonk-forge/pixal3d-pytorch-single` | 1 | `batch-004` | 2 | job / 3600s | single-Spark; operator acceptance required | retained: upstream added a distinct multiview checkpoint |
-| 9 | `vonk-forge/ornith-1-5-35b-a3b-nvfp4-vllm-single` | 1 | `batch-005` | 1 | service | single-Spark; operator acceptance required | current |
-| 10 | `vonk-forge/lfm2-5-vl-3b-vllm-single` | 1 | `batch-005` | 2 | service | single-Spark; operator acceptance required | current |
-| 11 | `vonk-forge/lfm2-5-vl-3b-vllm028-single` | 1 | `batch-006` | 1 | service | single-Spark; operator acceptance required | current |
+| 8 | `vonk-forge/pixal3d-pytorch-single` | 1 | `batch-004` | 2 | job / 3600s | single-Spark | retained: upstream added a distinct multiview checkpoint |
+| 9 | `vonk-forge/ornith-1-5-35b-a3b-nvfp4-vllm-single` | 1 | `batch-005` | 1 | service | single-Spark | current |
+| 10 | `vonk-forge/lfm2-5-vl-3b-vllm-single` | 1 | `batch-005` | 2 | service | single-Spark | current |
+| 11 | `vonk-forge/lfm2-5-vl-3b-vllm028-single` | 1 | `batch-006` | 1 | service | single-Spark | current |
 | 12 | `vonk-forge/qwen3-5-9b-vllm-single` | 1 | `batch-006` | 2 | service | single-Spark | current |
 | 13 | `vonk-forge/qwen3-6-35b-a3b-nvfp4-vllm-single` | 1 | `batch-007` | 1 | service | single-Spark | retained: recipe already uses current model pin |
 | 14 | `vonk-forge/qwen3-8-27b-fp8-vllm-single` | 1 | `batch-007` | 2 | service | single-Spark | current |
-| 15 | `vonk-forge/laguna-xs-2-1-nvfp4-vllm-single` | 1 | `batch-008` | 1 | service | single-Spark; operator acceptance required | current |
+| 15 | `vonk-forge/laguna-xs-2-1-nvfp4-vllm-single` | 1 | `batch-008` | 1 | service | single-Spark | current |
 | 16 | `vonk-forge/wan-2-2-ti2v-5b-comfyui-single` | 1 | `batch-008` | 2 | job / 3600s | single-Spark | retained: README-only change |
 | 17 | `vonk-forge/moss-vl-realtime-11b-pytorch-single` | 1 | `batch-009` | 1 | job / 1800s | single-Spark | updated to d1f71a58; transcript/NOTICE identities corrected |
-| 18 | `vonk-forge/ltx-2-19b-dev-bf16-diffusers-single` | 1 | `batch-009` | 2 | job / 3600s | single-Spark; operator acceptance required | current |
-| 19 | `vonk-forge/ltx-2-19b-dev-fp4-pytorch-single` | 1 | `batch-010` | 1 | job / 3600s | single-Spark; operator acceptance required | current |
-| 20 | `vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-single` | 1 | `batch-010` | 2 | service | single-Spark; operator acceptance required | retained: README-only model change |
-| 21 | `vonk-forge/nemotron-3-nano-30b-a3b-vllm-single` | 1 | `batch-011` | 1 | service | single-Spark; operator acceptance required | retained: README-only model change |
-| 22 | `vonk-forge/nemotron-3-nano-omni-30b-a3b-vllm-single` | 1 | `batch-011` | 2 | service | single-Spark; operator acceptance required | current |
-| 23 | `vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single` | 1 | `batch-012` | 1 | service | single-Spark; operator acceptance required | retained: upstream change is DFlash-only |
-| 24 | `vonk-forge/ltx-2-3-22b-distilled-1-1-diffusers-single` | 1 | `batch-012` | 2 | job / 3600s | single-Spark; operator acceptance required | retained: README-only change |
+| 18 | `vonk-forge/ltx-2-19b-dev-bf16-diffusers-single` | 1 | `batch-009` | 2 | job / 3600s | single-Spark | current |
+| 19 | `vonk-forge/ltx-2-19b-dev-fp4-pytorch-single` | 1 | `batch-010` | 1 | job / 3600s | single-Spark | current |
+| 20 | `vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-single` | 1 | `batch-010` | 2 | service | single-Spark | retained: README-only model change |
+| 21 | `vonk-forge/nemotron-3-nano-30b-a3b-vllm-single` | 1 | `batch-011` | 1 | service | single-Spark | retained: README-only model change |
+| 22 | `vonk-forge/nemotron-3-nano-omni-30b-a3b-vllm-single` | 1 | `batch-011` | 2 | service | single-Spark | current |
+| 23 | `vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single` | 1 | `batch-012` | 1 | service | single-Spark | retained: upstream change is DFlash-only |
+| 24 | `vonk-forge/ltx-2-3-22b-distilled-1-1-diffusers-single` | 1 | `batch-012` | 2 | job / 3600s | single-Spark | retained: README-only change |
 | 25 | `vonk-forge/qwen3-6-27b-vllm-single` | 1 | `batch-013` | 1 | service | single-Spark | current |
-| 26 | `vonk-forge/ltx-2-19b-distilled-fp8-diffusers-single` | 1 | `batch-013` | 2 | job / 3600s | single-Spark; operator acceptance required | current |
-| 27 | `vonk-forge/step1x-3d-texture-pytorch-single` | 1 | `batch-014` | 1 | job / 3600s | single-Spark; operator acceptance required | current |
+| 26 | `vonk-forge/ltx-2-19b-distilled-fp8-diffusers-single` | 1 | `batch-013` | 2 | job / 3600s | single-Spark | current |
+| 27 | `vonk-forge/step1x-3d-texture-pytorch-single` | 1 | `batch-014` | 1 | job / 3600s | single-Spark | current |
 | 28 | `vonk-forge/gemma-4-26b-a4b-vllm-single` | 1 | `batch-014` | 2 | service | single-Spark | current |
 | 29 | `vonk-forge/gemma-4-26b-a4b-vllm028-single` | 1 | `batch-015` | 1 | service | single-Spark | current |
 | 30 | `vonk-forge/qwen-image-2512-fp8-lightning-comfyui-single` | 1 | `batch-015` | 2 | job / 3600s | single-Spark | retained: selected model bytes unchanged |
@@ -792,16 +439,16 @@ The authority assigns 72 one-Spark recipes to 36 batches and 9 two-Spark recipes
 | 33 | `vonk-forge/ui-mate-27b-vllm-single` | 1 | `batch-017` | 1 | service | single-Spark | retained: only benchmark/demo material changed |
 | 34 | `vonk-forge/muse-glimmer-30b-bf16-vllm-single` | 1 | `batch-017` | 2 | service | single-Spark | current |
 | 35 | `vonk-forge/qwen3-8-27b-vllm-single` | 1 | `batch-018` | 1 | service | single-Spark | current |
-| 36 | `vonk-forge/ltx-2-5-22b-distilled-fp8-cast-diffusers-single` | 1 | `batch-018` | 2 | job / 3600s | single-Spark; operator acceptance required | current |
-| 37 | `vonk-forge/mova-360p-diffusers-single` | 1 | `batch-019` | 1 | job / 3600s | single-Spark; operator acceptance required | current |
+| 36 | `vonk-forge/ltx-2-5-22b-distilled-fp8-cast-diffusers-single` | 1 | `batch-018` | 2 | job / 3600s | single-Spark | current |
+| 37 | `vonk-forge/mova-360p-diffusers-single` | 1 | `batch-019` | 1 | job / 3600s | single-Spark | current |
 | 38 | `vonk-forge/deepseek-v4-flash-0731-ds4-dspark-latency-single` | 1 | `batch-019` | 2 | service | single-Spark | retained: upstream now spans other model/runtime paths |
 | 39 | `vonk-forge/deepseek-v4-flash-0731-ds4-single` | 1 | `batch-020` | 1 | service | single-Spark | retained: upstream now spans other model/runtime paths |
-| 40 | `vonk-forge/ltx-2-19b-distilled-diffusers-single` | 1 | `batch-020` | 2 | job / 3600s | single-Spark; operator acceptance required | current |
-| 41 | `vonk-forge/laguna-s-2-1-nvfp4-vllm-low-memory-canary-single` | 1 | `batch-021` | 1 | service | single-Spark; operator acceptance required | retained: recipe already uses current model pin |
-| 42 | `vonk-forge/mova-720p-diffusers-single` | 1 | `batch-021` | 2 | job / 3600s | single-Spark; operator acceptance required | current |
-| 43 | `vonk-forge/nemotron-3-5-lightning-dspark-lowmem-canary-single` | 1 | `batch-022` | 1 | service | single-Spark; operator acceptance required | retained: README-only model change |
-| 44 | `vonk-forge/nemotron-3-super-120b-a12b-vllm-single` | 1 | `batch-022` | 2 | service | single-Spark; operator acceptance required | current |
-| 45 | `vonk-forge/nvidia-qwen-image-flash-diffusers-single` | 1 | `batch-023` | 1 | job / 3600s | single-Spark; operator acceptance required | current |
+| 40 | `vonk-forge/ltx-2-19b-distilled-diffusers-single` | 1 | `batch-020` | 2 | job / 3600s | single-Spark | current |
+| 41 | `vonk-forge/laguna-s-2-1-nvfp4-vllm-low-memory-canary-single` | 1 | `batch-021` | 1 | service | single-Spark | retained: recipe already uses current model pin |
+| 42 | `vonk-forge/mova-720p-diffusers-single` | 1 | `batch-021` | 2 | job / 3600s | single-Spark | current |
+| 43 | `vonk-forge/nemotron-3-5-lightning-dspark-lowmem-canary-single` | 1 | `batch-022` | 1 | service | single-Spark | retained: README-only model change |
+| 44 | `vonk-forge/nemotron-3-super-120b-a12b-vllm-single` | 1 | `batch-022` | 2 | service | single-Spark | current |
+| 45 | `vonk-forge/nvidia-qwen-image-flash-diffusers-single` | 1 | `batch-023` | 1 | job / 3600s | single-Spark | current |
 | 46 | `vonk-forge/qwen-image-2512-comfyui-single` | 1 | `batch-023` | 2 | job / 3600s | single-Spark | retained: README-only change |
 | 47 | `vonk-forge/qwen-image-2512-diffusers-single` | 1 | `batch-024` | 1 | job / 3600s | single-Spark | current |
 | 48 | `vonk-forge/qwen-image-2512-lightning-diffusers-single` | 1 | `batch-024` | 2 | job / 3600s | single-Spark | current |
@@ -813,31 +460,31 @@ The authority assigns 72 one-Spark recipes to 36 batches and 9 two-Spark recipes
 | 54 | `vonk-forge/wan-2-2-t2v-14b-comfyui-single` | 1 | `batch-027` | 2 | job / 3600s | single-Spark | retained: README-only change |
 | 55 | `vonk-forge/wan-dancer-14b-disk-offload-pytorch-single` | 1 | `batch-028` | 1 | job / 3600s | single-Spark | retained: Wan-Dancer adapter path unchanged |
 | 56 | `vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single` | 1 | `batch-028` | 2 | service | single-Spark | updated: SHA-pinned XGrammar 0.2.3 bundled offline; forced tool-call smoke added |
-| 57 | `vonk-forge/ling-3-0-flash-dspark-sglang-single` | 1 | `batch-029` | 1 | service | single-Spark; operator acceptance required | current |
+| 57 | `vonk-forge/ling-3-0-flash-dspark-sglang-single` | 1 | `batch-029` | 1 | service | single-Spark | current |
 | 58 | `vonk-forge/deepseek-v4-flash-0731-mia-sparkinfer-single` | 1 | `batch-029` | 2 | service | single-Spark | current |
-| 59 | `vonk-forge/hunyuan-video-foley-xl-pytorch-single` | 1 | `batch-030` | 1 | job / 3600s | single-Spark; operator acceptance required | current |
-| 60 | `vonk-forge/hunyuan-video-foley-xxl-pytorch-single` | 1 | `batch-030` | 2 | job / 3600s | single-Spark; operator acceptance required | current |
-| 61 | `vonk-forge/hunyuanocr-1-5-vllm-dflash-single` | 1 | `batch-031` | 1 | job / 3600s | single-Spark; operator acceptance required | current |
+| 59 | `vonk-forge/hunyuan-video-foley-xl-pytorch-single` | 1 | `batch-030` | 1 | job / 3600s | single-Spark | current |
+| 60 | `vonk-forge/hunyuan-video-foley-xxl-pytorch-single` | 1 | `batch-030` | 2 | job / 3600s | single-Spark | current |
+| 61 | `vonk-forge/hunyuanocr-1-5-vllm-dflash-single` | 1 | `batch-031` | 1 | job / 3600s | single-Spark | current |
 | 62 | `vonk-forge/hunyuan3d-omni-pytorch-single` | 1 | `batch-031` | 2 | job / 3600s | single-Spark | current |
-| 63 | `vonk-forge/hunyuan-video-15-distilled-diffusers-single` | 1 | `batch-032` | 1 | job / 3600s | single-Spark; operator acceptance required | current |
-| 64 | `vonk-forge/hunyuan-video-15-i2v-step-distilled-diffusers-single` | 1 | `batch-032` | 2 | job / 3600s | single-Spark; operator acceptance required | current |
-| 65 | `vonk-forge/hunyuan-video-15-t2v-diffusers-single` | 1 | `batch-033` | 1 | job / 3600s | single-Spark; operator acceptance required | current |
-| 66 | `vonk-forge/minimax-h3-diffusers-single` | 1 | `batch-033` | 2 | job / 3600s | single-Spark; operator acceptance required | current |
-| 67 | `vonk-forge/minimax-h3-fl2va-diffusers-single` | 1 | `batch-034` | 1 | job / 3600s | single-Spark; operator acceptance required | current |
-| 68 | `vonk-forge/ltx-2-5-22b-distilled-bf16-diffusers-single` | 1 | `batch-034` | 2 | job / 3600s | single-Spark; operator acceptance required; capacity review | current |
-| 69 | `vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single` | 1 | `batch-035` | 1 | service | single-Spark; operator acceptance required; capacity review | retained: README-only model change |
+| 63 | `vonk-forge/hunyuan-video-15-distilled-diffusers-single` | 1 | `batch-032` | 1 | job / 3600s | single-Spark | current |
+| 64 | `vonk-forge/hunyuan-video-15-i2v-step-distilled-diffusers-single` | 1 | `batch-032` | 2 | job / 3600s | single-Spark | current |
+| 65 | `vonk-forge/hunyuan-video-15-t2v-diffusers-single` | 1 | `batch-033` | 1 | job / 3600s | single-Spark | current |
+| 66 | `vonk-forge/minimax-h3-diffusers-single` | 1 | `batch-033` | 2 | job / 3600s | single-Spark | current |
+| 67 | `vonk-forge/minimax-h3-fl2va-diffusers-single` | 1 | `batch-034` | 1 | job / 3600s | single-Spark | current |
+| 68 | `vonk-forge/ltx-2-5-22b-distilled-bf16-diffusers-single` | 1 | `batch-034` | 2 | job / 3600s | single-Spark; capacity review | current |
+| 69 | `vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single` | 1 | `batch-035` | 1 | service | single-Spark; capacity review | retained: README-only model change |
 | 70 | `vonk-forge/wan-dancer-14b-pytorch-single` | 1 | `batch-035` | 2 | job / 3600s | single-Spark; capacity review | current |
 | 71 | `vonk-forge/deepseek-v4-flash-0731-sparkinfer-single` | 1 | `batch-036` | 1 | service | single-Spark; capacity review | retained: fixed public image not republished |
-| 72 | `vonk-forge/laguna-s-2-1-nvfp4-vllm-single` | 1 | `batch-036` | 2 | service | single-Spark; operator acceptance required; capacity review | retained: recipe already uses current model pin |
+| 72 | `vonk-forge/laguna-s-2-1-nvfp4-vllm-single` | 1 | `batch-036` | 2 | service | single-Spark; capacity review | retained: recipe already uses current model pin |
 | 73 | `vonk-forge/deepseek-v4-flash-0731-mia-dual` | 2 | `batch-037` | 1 | service | dual-Spark | updated: selected issue 27/55/117/210 fixes verified in pinned image |
 | 74 | `vonk-forge/deepseek-v4-flash-vision-exp-mia-dual` | 2 | `batch-038` | 1 | service | dual-Spark | updated: selected issue 27/55/210 fixes verified in pinned image |
-| 75 | `vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual` | 2 | `batch-039` | 1 | service | dual-Spark; operator acceptance required | updated: Mamba alignment/state reclamation and tool-choice fixes verified in pinned image |
+| 75 | `vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual` | 2 | `batch-039` | 1 | service | dual-Spark | updated: Mamba alignment/state reclamation and tool-choice fixes verified in pinned image |
 | 76 | `vonk-forge/inkling-small-nvfp4-sglang-dual` | 2 | `batch-040` | 1 | service | dual-Spark | retained: moving SGLang main is not a release channel |
-| 77 | `vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual` | 2 | `batch-041` | 1 | service | dual-Spark; operator acceptance required | retained: upstream history was rewritten |
-| 78 | `vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual` | 2 | `batch-042` | 1 | service | dual-Spark; operator acceptance required | updated: preparation lock/helper waits bounded with recovery coverage |
-| 79 | `vonk-forge/glm-5-3-flash-nvfp4-vllm-dual` | 2 | `batch-043` | 1 | service | dual-Spark; operator acceptance required | current |
-| 80 | `vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual` | 2 | `batch-044` | 1 | service | dual-Spark; operator acceptance required | retained: upstream default/profile changed |
-| 81 | `vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual` | 2 | `batch-045` | 1 | service | dual-Spark; operator acceptance required | retained: upstream renamed the target checkpoint |
+| 77 | `vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual` | 2 | `batch-041` | 1 | service | dual-Spark | retained: upstream history was rewritten |
+| 78 | `vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual` | 2 | `batch-042` | 1 | service | dual-Spark | updated: preparation lock/helper waits bounded with recovery coverage |
+| 79 | `vonk-forge/glm-5-3-flash-nvfp4-vllm-dual` | 2 | `batch-043` | 1 | service | dual-Spark | current |
+| 80 | `vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual` | 2 | `batch-044` | 1 | service | dual-Spark | retained: upstream default/profile changed |
+| 81 | `vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual` | 2 | `batch-045` | 1 | service | dual-Spark | retained: upstream renamed the target checkpoint |
 | 82 | `vonk-forge/glm-5-3-flash-nvfp4-vllm-four` | 4 | — | — | no fixture | out of scope (>2 Sparks) | retained: upstream default changed model identity |
 | 83 | `vonk-forge/glm-5-2-quanttrio-vllm-four` | 4 | — | — | no fixture | out of scope (>2 Sparks) | current |
 | 84 | `vonk-forge/inkling-975b-a41b-nvfp4-sglang-eight` | 8 | — | — | no fixture | out of scope (>2 Sparks) | retained: moving SGLang main is not a release channel |

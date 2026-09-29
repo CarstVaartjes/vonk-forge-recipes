@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "a83948492cf13df455170fb42885f5ef4db54fefe0feff0f841ecbff464ac9d8",
-        "platform": "linux/arm64",
         "repository": "ghcr.io/anemll/dspark-vllm-gx10"
       },
       "context": {
@@ -12,13 +10,10 @@
       },
       "dockerfile": "adapters/deepseek/mia-vllm/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": []
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -56,7 +51,6 @@
           "file_id": "metadata-11ad7efa2497",
           "id": "primary-metadata-11ad7efa2497",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -68,7 +62,6 @@
           "file_id": "license-f2c6c6028156",
           "id": "primary-license-f2c6c6028156",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -80,7 +73,6 @@
           "file_id": "readme-252acafdc920",
           "id": "primary-readme-252acafdc920",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -92,7 +84,6 @@
           "file_id": "config-6c8f3d2d3b48",
           "id": "primary-config-6c8f3d2d3b48",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -104,7 +95,6 @@
           "file_id": "readme-294ed6493ebf",
           "id": "primary-readme-294ed6493ebf",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -116,7 +106,6 @@
           "file_id": "encoding-dsv4-abc0d2612025",
           "id": "primary-encoding-dsv4-abc0d2612025",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -128,7 +117,6 @@
           "file_id": "test-encoding-dsv4-c2bc54c4c934",
           "id": "primary-test-encoding-dsv4-c2bc54c4c934",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -140,7 +128,6 @@
           "file_id": "test-input-1-10e0c074c977",
           "id": "primary-test-input-1-10e0c074c977",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -152,7 +139,6 @@
           "file_id": "test-input-2-c44ae0db20fa",
           "id": "primary-test-input-2-c44ae0db20fa",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -164,7 +150,6 @@
           "file_id": "test-input-3-37bf8ef95e04",
           "id": "primary-test-input-3-37bf8ef95e04",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -176,7 +161,6 @@
           "file_id": "test-input-4-c45bbd0a1b7a",
           "id": "primary-test-input-4-c45bbd0a1b7a",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -188,7 +172,6 @@
           "file_id": "test-output-1-9b366d9d2eac",
           "id": "primary-test-output-1-9b366d9d2eac",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -200,7 +183,6 @@
           "file_id": "test-output-2-ca66b01a1ac3",
           "id": "primary-test-output-2-ca66b01a1ac3",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -212,7 +194,6 @@
           "file_id": "test-output-3-b3b1cd8748b7",
           "id": "primary-test-output-3-b3b1cd8748b7",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -224,7 +205,6 @@
           "file_id": "test-output-4-60e1643840ba",
           "id": "primary-test-output-4-60e1643840ba",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -236,7 +216,6 @@
           "file_id": "generation-config-5fccff80f55a",
           "id": "primary-generation-config-5fccff80f55a",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -248,7 +227,6 @@
           "file_id": "readme-b9fe8027f91f",
           "id": "primary-readme-b9fe8027f91f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -260,7 +238,6 @@
           "file_id": "config-c90861f3d10a",
           "id": "primary-config-c90861f3d10a",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -272,7 +249,6 @@
           "file_id": "convert-6efe65ebc66b",
           "id": "primary-convert-6efe65ebc66b",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -284,7 +260,6 @@
           "file_id": "generate-775fcfee2344",
           "id": "primary-generate-775fcfee2344",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -296,7 +271,6 @@
           "file_id": "kernel-59b325083d71",
           "id": "primary-kernel-59b325083d71",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -308,7 +282,6 @@
           "file_id": "model-c0c19e6c9fa4",
           "id": "primary-model-c0c19e6c9fa4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -320,7 +293,6 @@
           "file_id": "requirements-857e0b8b58e4",
           "id": "primary-requirements-857e0b8b58e4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -332,7 +304,6 @@
           "file_id": "model-00001-of-00048-f3668ba4cccf",
           "id": "primary-model-00001-of-00048-f3668ba4cccf",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -344,7 +315,6 @@
           "file_id": "model-00002-of-00048-77b26c939a0e",
           "id": "primary-model-00002-of-00048-77b26c939a0e",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -356,7 +326,6 @@
           "file_id": "model-00003-of-00048-412abf4c906f",
           "id": "primary-model-00003-of-00048-412abf4c906f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -368,7 +337,6 @@
           "file_id": "model-00004-of-00048-9610f56bc587",
           "id": "primary-model-00004-of-00048-9610f56bc587",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -380,7 +348,6 @@
           "file_id": "model-00005-of-00048-f87a5ac7b8be",
           "id": "primary-model-00005-of-00048-f87a5ac7b8be",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -392,7 +359,6 @@
           "file_id": "model-00006-of-00048-4a4f3764e3fc",
           "id": "primary-model-00006-of-00048-4a4f3764e3fc",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -404,7 +370,6 @@
           "file_id": "model-00007-of-00048-df81bb80e27a",
           "id": "primary-model-00007-of-00048-df81bb80e27a",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -416,7 +381,6 @@
           "file_id": "model-00008-of-00048-224968d2b27f",
           "id": "primary-model-00008-of-00048-224968d2b27f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -428,7 +392,6 @@
           "file_id": "model-00009-of-00048-04d69ef1071f",
           "id": "primary-model-00009-of-00048-04d69ef1071f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -440,7 +403,6 @@
           "file_id": "model-00010-of-00048-627145f4ebeb",
           "id": "primary-model-00010-of-00048-627145f4ebeb",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -452,7 +414,6 @@
           "file_id": "model-00011-of-00048-e4b8e601dcbe",
           "id": "primary-model-00011-of-00048-e4b8e601dcbe",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -464,7 +425,6 @@
           "file_id": "model-00012-of-00048-64ed4e5f6126",
           "id": "primary-model-00012-of-00048-64ed4e5f6126",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -476,7 +436,6 @@
           "file_id": "model-00013-of-00048-8dfe199d07c0",
           "id": "primary-model-00013-of-00048-8dfe199d07c0",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -488,7 +447,6 @@
           "file_id": "model-00014-of-00048-45db2f540f82",
           "id": "primary-model-00014-of-00048-45db2f540f82",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -500,7 +458,6 @@
           "file_id": "model-00015-of-00048-5810381a0f05",
           "id": "primary-model-00015-of-00048-5810381a0f05",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -512,7 +469,6 @@
           "file_id": "model-00016-of-00048-e0530b702477",
           "id": "primary-model-00016-of-00048-e0530b702477",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -524,7 +480,6 @@
           "file_id": "model-00017-of-00048-ed1113024711",
           "id": "primary-model-00017-of-00048-ed1113024711",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -536,7 +491,6 @@
           "file_id": "model-00018-of-00048-e393fea96da2",
           "id": "primary-model-00018-of-00048-e393fea96da2",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -548,7 +502,6 @@
           "file_id": "model-00019-of-00048-a74ca4d3e8e8",
           "id": "primary-model-00019-of-00048-a74ca4d3e8e8",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -560,7 +513,6 @@
           "file_id": "model-00020-of-00048-9f556769926e",
           "id": "primary-model-00020-of-00048-9f556769926e",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -572,7 +524,6 @@
           "file_id": "model-00021-of-00048-1671cce7f90d",
           "id": "primary-model-00021-of-00048-1671cce7f90d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -584,7 +535,6 @@
           "file_id": "model-00022-of-00048-decd67a4bd97",
           "id": "primary-model-00022-of-00048-decd67a4bd97",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -596,7 +546,6 @@
           "file_id": "model-00023-of-00048-c61a3e179cdb",
           "id": "primary-model-00023-of-00048-c61a3e179cdb",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -608,7 +557,6 @@
           "file_id": "model-00024-of-00048-fc27aeb42335",
           "id": "primary-model-00024-of-00048-fc27aeb42335",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -620,7 +568,6 @@
           "file_id": "model-00025-of-00048-a66b6b8d5821",
           "id": "primary-model-00025-of-00048-a66b6b8d5821",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -632,7 +579,6 @@
           "file_id": "model-00026-of-00048-657b89314fba",
           "id": "primary-model-00026-of-00048-657b89314fba",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -644,7 +590,6 @@
           "file_id": "model-00027-of-00048-fb01f21a0da0",
           "id": "primary-model-00027-of-00048-fb01f21a0da0",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -656,7 +601,6 @@
           "file_id": "model-00028-of-00048-b2fd5cbbb639",
           "id": "primary-model-00028-of-00048-b2fd5cbbb639",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -668,7 +612,6 @@
           "file_id": "model-00029-of-00048-9ec2fdf90027",
           "id": "primary-model-00029-of-00048-9ec2fdf90027",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -680,7 +623,6 @@
           "file_id": "model-00030-of-00048-9ed3c317bf96",
           "id": "primary-model-00030-of-00048-9ed3c317bf96",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -692,7 +634,6 @@
           "file_id": "model-00031-of-00048-d5078c3fca3e",
           "id": "primary-model-00031-of-00048-d5078c3fca3e",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -704,7 +645,6 @@
           "file_id": "model-00032-of-00048-163653848f00",
           "id": "primary-model-00032-of-00048-163653848f00",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -716,7 +656,6 @@
           "file_id": "model-00033-of-00048-f2cffd43f2a5",
           "id": "primary-model-00033-of-00048-f2cffd43f2a5",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -728,7 +667,6 @@
           "file_id": "model-00034-of-00048-0f9494512147",
           "id": "primary-model-00034-of-00048-0f9494512147",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -740,7 +678,6 @@
           "file_id": "model-00035-of-00048-9cb6a316989f",
           "id": "primary-model-00035-of-00048-9cb6a316989f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -752,7 +689,6 @@
           "file_id": "model-00036-of-00048-7e6761421fe9",
           "id": "primary-model-00036-of-00048-7e6761421fe9",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -764,7 +700,6 @@
           "file_id": "model-00037-of-00048-a59d662f1143",
           "id": "primary-model-00037-of-00048-a59d662f1143",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -776,7 +711,6 @@
           "file_id": "model-00038-of-00048-137fa617a74b",
           "id": "primary-model-00038-of-00048-137fa617a74b",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -788,7 +722,6 @@
           "file_id": "model-00039-of-00048-a29af1aa519d",
           "id": "primary-model-00039-of-00048-a29af1aa519d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -800,7 +733,6 @@
           "file_id": "model-00040-of-00048-8bc93d8a7d19",
           "id": "primary-model-00040-of-00048-8bc93d8a7d19",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -812,7 +744,6 @@
           "file_id": "model-00041-of-00048-fd312e7fdd6c",
           "id": "primary-model-00041-of-00048-fd312e7fdd6c",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -824,7 +755,6 @@
           "file_id": "model-00042-of-00048-4d19bf368083",
           "id": "primary-model-00042-of-00048-4d19bf368083",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -836,7 +766,6 @@
           "file_id": "model-00043-of-00048-b7103842ceb7",
           "id": "primary-model-00043-of-00048-b7103842ceb7",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -848,7 +777,6 @@
           "file_id": "model-00044-of-00048-422d3889fa20",
           "id": "primary-model-00044-of-00048-422d3889fa20",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -860,7 +788,6 @@
           "file_id": "model-00045-of-00048-a5be6aed7b84",
           "id": "primary-model-00045-of-00048-a5be6aed7b84",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -872,7 +799,6 @@
           "file_id": "model-00046-of-00048-5db924ca907e",
           "id": "primary-model-00046-of-00048-5db924ca907e",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -884,7 +810,6 @@
           "file_id": "model-00047-of-00048-62816173f9f6",
           "id": "primary-model-00047-of-00048-62816173f9f6",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -896,7 +821,6 @@
           "file_id": "model-00048-of-00048-cc43742bd24a",
           "id": "primary-model-00048-of-00048-cc43742bd24a",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -908,7 +832,6 @@
           "file_id": "model-safetensors-index-98efab455cf0",
           "id": "primary-model-safetensors-index-98efab455cf0",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -920,7 +843,6 @@
           "file_id": "tokenizer-8f9f37ca37fd",
           "id": "primary-tokenizer-8f9f37ca37fd",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -932,7 +854,6 @@
           "file_id": "tokenizer-config-6ac8c8dc065e",
           "id": "primary-tokenizer-config-6ac8c8dc065e",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -943,7 +864,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d0bbf10f1407344b4a7766b1de561ad0b85c22e79569b8aca485e666440b2ebf",
+        "content_sha256": "503139a3cfda9ec301a7b4830ac0ec0bf9e7669f9eda035a0549684c2c1ba54b",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-flash-0731-official"
@@ -957,299 +878,9 @@
       "Anemll",
       "vLLM contributors"
     ],
-    "source_kind": "global",
     "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/0107cef1835a56d1a2bcdabf7d9e1a085b70338b"
   },
   "release": {
-    "history": [
-      {
-        "version": "2.3.3",
-        "released_at": "2026-09-23",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "54b5129727710e049a8b9379a1595289007c27de0a0e1afb3b6d1c2082f1381e",
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Close pinned DeepSeek serialization, prefill, SHM-ring, and XGrammar retry regressions.",
-            "details": "Backports issue55 serialization safety and issue27 r3 exact running-prefill parity, plus the source-exact issue117 SHM-ring recovery also shipped by the Vision-Exp recipe. It also extends the reasoning-boundary XGrammar fix across both the backend and grammar manager as one validated two-file transaction (upstream issue210), so a partial application cannot leave the files inconsistent. The issue27 gate excludes decoder-only requests and non-running async reservations while warning on tracking undercount; issue55 retains empty tool_calls as a list. The source revision and exact Anemll digest remain unchanged. The strict post-patch tree hash was regenerated against that image. Rebuild required; no Spark acceptance is claimed.",
-            "references": [
-              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/12dace4cd7da47155ac4c19711a0d8d08b73834f",
-              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/a1fed70176c871d384ee86b8e58b88ffe79ca6d4",
-              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/eda7d3b844bfc2bd918592e8c6b4ab62d9c94d41",
-              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/cfbccaf878d02450966f10504105159d2b43d16f"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "2.3.2"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "54113c8f63c909e0044b5a72ae48d7f6cb32c4a6a46d977fcb397753a747efb4",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "2.3.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "Pins the exact upstream source archive and sets DSPARK_MAX_INFLIGHT_PREFILLS=1, matching Mia's current safe default while retaining strict fail-closed adapter hashing and Candidate physical acceptance.",
-            "kind": "fix",
-            "references": [
-              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/0107cef1835a56d1a2bcdabf7d9e1a085b70338b"
-            ],
-            "summary": "Advanced to MiaAI-Lab 0107cef and restored the shipped single partial-prefill lane."
-          }
-        ],
-        "prior_recipe_content_sha256": "3e74f5b62cf395882fe1c3e06fa2c3902833e92bdf2a99cda3c2086308918b5f",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "rebuild",
-        "version": "2.3.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "The immutable build now stops at the terminating token, ignores later speculative tokens, and resets cached termination state. The patch accepts only the pinned vLLM and xgrammar package versions plus exact stock bytes, publishes atomically, verifies the post-image, and fails the build closed on drift.",
-            "kind": "fix",
-            "references": [
-              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/de0bc1d07e12e86a1be876ff2f0f736dda68d155",
-              "https://github.com/vllm-project/vllm/pull/52805"
-            ],
-            "summary": "Backported Mia's source-exact XGrammar termination correction for speculative structured output."
-          },
-          {
-            "details": "Issue 138 changes Responses replay acceptance and issue 141 remains a stochastic workaround with outstanding two-rank validation, so neither is silently enabled in this exact recipe. Candidate qualification remains pending a fresh two-Spark canary.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/03d4776fa8977ed9f7fd077c4776ba164c7127b6"
-            ],
-            "summary": "Advanced the reviewed Mia source authority to 03d4776 without enabling its unqualified optional compatibility and sparse-MLA workarounds."
-          }
-        ],
-        "prior_recipe_content_sha256": "ad792e4a030dc55d83db5608746a0fb46d174e8c4c9311dd518832f15f070543",
-        "released_at": "2026-08-29",
-        "upgrade_effect": "rebuild",
-        "version": "2.2.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "Future safe runtime tunables can be admitted by a digest-bound distribution update without requiring a Spark agent or control-plane allowlist release. Reserved and code-injection variables remain blocked centrally.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Moved Mia-specific cache and NCCL diagnostics environment authority into the exact runtime distribution."
-          }
-        ],
-        "prior_recipe_content_sha256": "8e7ce3e6c0ac549c018d6757064e0cc8324fcb46f041040f10204dc24d84a86f",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "2.1.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "Vonk's typed recipe already bounds the numeric knobs added upstream; the candidate now persists the new compile cache and rank diagnostics under the writable outputs mount.",
-            "kind": "runtime",
-            "references": [],
-            "summary": "Advanced the reviewed Mia two-Spark source to 70a7cc4 with persistent B12X compile caching and NCCL flight-recorder diagnostics."
-          },
-          {
-            "details": "This records Mia's new boot-warmup coverage as qualification evidence without treating a future physical canary as already passed.",
-            "kind": "performance",
-            "references": [],
-            "summary": "Added a sampler-shape canary for top-k, top-p, and combined sampling paths."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared the complete contract installable while retaining Candidate qualification pending a fresh two-Spark build and canary."
-          }
-        ],
-        "prior_recipe_content_sha256": "1a1f69cf5b402652d3a46ec6da6f9b382a846f82356734148135bcd3e34f835e",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "rebuild",
-        "version": "2.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "Mixed prefill no longer creates extra persistent-cache variants from traffic-dependent sliced-pointer alignment.",
-            "kind": "performance",
-            "references": [
-              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/d5ae65cc173e9567de62d19defb885d091406962"
-            ],
-            "summary": "Added Mia's issue 133 fix that bounds global top-k Triton compilation to the two stable block-size variants."
-          },
-          {
-            "details": "The previous patch targeted vllm/v1/spec_decode/dspark.py, which is absent from the pinned image. The build now verifies the exact current NVIDIA DSpark loader and its layer-scoped gate/up shard mapping before applying any patches.",
-            "kind": "fix",
-            "references": [
-              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/0bafd3ecc1b91d1dab31662de525338e7ccc35ec",
-              "https://github.com/Anemll/dspark-vllm-gx10/commit/47503f8e38dadd4dededca798150db2619594fce"
-            ],
-            "summary": "Replaced the obsolete legacy-overlay shared-expert patch with a fail-closed build gate for the loader already integrated in the pinned Anemll runtime."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Kept the recipe Candidate pending a fresh two-Spark image build and inference/speculative-decoding canary."
-          }
-        ],
-        "prior_recipe_content_sha256": "560049bc6ee3256e95ce14e16ff1c3d2d921deeb61d4ecb51309e5db73573519",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "model",
-            "references": [
-              "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731/commit/7872f01b1d1fe23eabc4c98b48bffcef5a386062"
-            ],
-            "summary": "Advanced the official checkpoint authority to 7872f01; only README guidance changed and all 73 executable artifacts remain byte-identical."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [
-              "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731/commit/7872f01b1d1fe23eabc4c98b48bffcef5a386062"
-            ],
-            "summary": "Retained the Mia patch/runtime authority because every weight, configuration, tokenizer, encoding, and inference file is byte-identical."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Kept the recipe Candidate pending a fresh two-Spark import, inference, and speculative-decoding canary."
-          }
-        ],
-        "prior_recipe_content_sha256": "6bcfa435c295f1bbbaa672dd162865b4af54aa912352b5722476115d93d886e0",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "none",
-        "version": "2.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The build now maps shared_experts.w1 and shared_experts.w3 into the fused gate_up_proj parameter and fails closed if the pinned DSpark overlay drifts.",
-            "kind": "fix",
-            "references": [
-              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/commit/0bafd3ecc1b91d1dab31662de525338e7ccc35ec"
-            ],
-            "summary": "Backported Mia's Stage-C shared-expert loader fix for the DSpark gate and up checkpoint shards."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Kept the recipe Candidate pending a fresh two-Spark build and inference/speculative-decoding canary."
-          }
-        ],
-        "prior_recipe_content_sha256": "7e6cb843e3f99f56a7437c06cff12a0a7d9ad8ccd4559c55c918d5562e7cc0ef",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "model",
-            "references": [
-              "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731/tree/9e165c30e2704aec5d9d593cce3eebd58bbef1cb"
-            ],
-            "summary": "Switched from the historical DSpark preview snapshot to the official DeepSeek V4 Flash 0731 checkpoint."
-          },
-          {
-            "details": "MiaAI-Lab removed adaptive top-k after corruption findings and made the issue 31 GPU patch opt-in after a severe decode regression.",
-            "kind": "fix",
-            "references": [
-              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/blob/f104c39a8c6fa68d4ea0b342ad6eed172bc0e635/CHANGELOG.md"
-            ],
-            "summary": "Removed the reverted adaptive top-k and default-on thinking-budget hotfixes."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [
-              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/tree/f104c39a8c6fa68d4ea0b342ad6eed172bc0e635"
-            ],
-            "summary": "Added the empty-encoder-output and fail-closed current Mia patch revisions."
-          },
-          {
-            "details": null,
-            "kind": "performance",
-            "references": [
-              "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/blob/f104c39a8c6fa68d4ea0b342ad6eed172bc0e635/results/RESULTS-2026-08-14.md"
-            ],
-            "summary": "Enabled regular CUDA graphs, the GB10 spin-wait fix, persistent JIT caches, and the validated 0.835 text-serving memory profile."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "This release is a new candidate and requires a fresh two-Spark build and physical canary before acceptance."
-          }
-        ],
-        "prior_recipe_content_sha256": "ec8203a5a72a9ca7168700a137ee4fbcbb3a848a688f0eb9ef43b2a91b81bce5",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "rebuild",
-        "version": "2.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of DeepSeek V4 Flash 0731 Mia dual Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "8b1d89926b769ac2c2af8c744fd7781c9e9c69d887058a7085c69f513480bf17",
-        "released_at": "2026-08-16",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "This digest and the reviewed 1.0.0 successor were first published on 2026-08-16; the prior 1.0.0 date has been corrected to match repository history.",
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/2e3ba31a4cdd305eab29c6837ae342c68fd75dab"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "fb7e6314de7649871f080d9dc0c63dbb1ea827eaf5b47d24291c34f26b49ec35",
-        "released_at": "2026-08-16",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-23",
     "version": "2.3.3"
   },
@@ -1385,186 +1016,145 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "HF_HUB_DISABLE_XET",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "VLLM_PREFIX_CACHE_RETENTION_INTERVAL",
-        "secret": null,
         "value": "4096"
       },
       {
         "name": "VLLM_ALLOW_LONG_MAX_MODEL_LEN",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "VLLM_SPARSE_INDEXER_MAX_LOGITS_MB",
-        "secret": null,
         "value": "256"
       },
       {
         "name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "VLLM_USE_FLASHINFER_SAMPLER",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "VLLM_USE_BREAKABLE_CUDAGRAPH",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS",
-        "secret": null,
         "value": "1800"
       },
       {
         "name": "VLLM_USE_B12X_MOE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "VLLM_B12X_W4A16_FORCE_BLOCKS_PER_SM",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "VLLM_B12X_W4A16_FORCE_BLOCKS_MAX_M",
-        "secret": null,
         "value": "16"
       },
       {
         "name": "DSPARK_MAX_INFLIGHT_PREFILLS",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TORCH_CUDA_ARCH_LIST",
-        "secret": null,
         "value": "12.1a"
       },
       {
         "name": "FLASHINFER_CUDA_ARCH_LIST",
-        "secret": null,
         "value": "12.1a"
       },
       {
         "name": "CUTE_DSL_ARCH",
-        "secret": null,
         "value": "sm_121a"
       },
       {
         "name": "FLASHINFER_DISABLE_VERSION_CHECK",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TILELANG_CLEANUP_TEMP_FILES",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "DG_JIT_USE_NVRTC",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "DG_JIT_NVCC_COMPILER",
-        "secret": null,
         "value": "/usr/local/cuda/bin/nvcc"
       },
       {
         "name": "PYTORCH_CUDA_ALLOC_CONF",
-        "secret": null,
         "value": "expandable_segments:True"
       },
       {
         "name": "NCCL_NET",
-        "secret": null,
         "value": "IB"
       },
       {
         "name": "NCCL_IB_DISABLE",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "NCCL_IB_ADDR_FAMILY",
-        "secret": null,
         "value": "AF_INET"
       },
       {
         "name": "NCCL_IB_ROCE_VERSION_NUM",
-        "secret": null,
         "value": "2"
       },
       {
         "name": "NCCL_CROSS_NIC",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "NCCL_CUMEM_ENABLE",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "NCCL_IGNORE_CPU_AFFINITY",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "NCCL_DEBUG",
-        "secret": null,
         "value": "WARN"
       },
       {
         "name": "NCCL_NVLS_ENABLE",
-        "secret": null,
         "value": "0"
       },
       {
         "name": "TORCH_FR_BUFFER_SIZE",
-        "secret": null,
         "value": "2000"
       },
       {
         "name": "TORCH_NCCL_DUMP_ON_TIMEOUT",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TORCH_NCCL_ENABLE_MONITORING",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "withdraw-endpoint",
-        "recovery": "restart-worker-then-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 180
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": {
       "change_effect": "restart",
@@ -1579,19 +1169,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "connected",
-      "minimum_bandwidth_mbps": 200000
-    },
-    "mode": "distributed",
     "name": "dual",
     "node_count": 2,
     "parallelism": {
       "backend": "mp",
       "data": 1,
       "pipeline": 1,
-      "tensor": 2,
-      "world_size": 2
+      "tensor": 2
     },
     "roles": [
       {
@@ -1601,18 +1185,13 @@
         "resources": {
           "disk": {
             "artifact_bytes": 166898661074,
-            "cache_bytes": 50000000000,
             "image_bytes": 25000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 20000000000,
-            "staging_bytes": 10000000000
+            "working_bytes": 60000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 8000000000,
-            "startup_peak_bytes": 118000000000,
-            "steady_state_bytes": 108000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -1623,18 +1202,13 @@
         "resources": {
           "disk": {
             "artifact_bytes": 166898661074,
-            "cache_bytes": 50000000000,
             "image_bytes": 25000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 20000000000,
-            "staging_bytes": 10000000000
+            "working_bytes": 60000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 8000000000,
-            "startup_peak_bytes": 118000000000,
-            "steady_state_bytes": 108000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
@@ -1642,36 +1216,9 @@
     "start_order": [
       "worker",
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint",
-      "worker"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "timeout_seconds": 300
-        },
-        "framework": "openai",
-        "name": "bounded-chat"
-      },
-      {
-        "configuration": {
-          "max_output_tokens": 24,
-          "requests": 9,
-          "temperature": "0.8",
-          "timeout_seconds": 300,
-          "top_k": 40,
-          "top_p": "0.9"
-        },
-        "framework": "openai",
-        "name": "sampler-shape-canary"
-      }
-    ],
     "serving": {
       "checks": [
         {

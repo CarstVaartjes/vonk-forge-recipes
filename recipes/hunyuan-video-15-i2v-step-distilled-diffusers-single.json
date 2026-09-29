@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -21,13 +19,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -44,7 +39,6 @@
           "image/webp",
           "text/plain"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -86,7 +80,6 @@
       },
       "output": {
         "max_total_bytes": 1073741824,
-        "path": "/outputs",
         "slots": [
           {
             "description": "Generated MP4 video.",
@@ -104,8 +97,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -131,7 +123,6 @@
           "file_id": "metadata-caf3ca02d5e8-618cd5b83d",
           "id": "primary-001",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -142,7 +133,6 @@
           "file_id": "readme-97e453b0fa6b-b335630551",
           "id": "primary-002",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -153,7 +143,6 @@
           "file_id": "preprocessor-config-ec1f371074fb-ace603b1da",
           "id": "primary-003",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -164,7 +153,6 @@
           "file_id": "guider-config-8cc58a8bb048-5a4bb9dfdb",
           "id": "primary-004",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -175,7 +163,6 @@
           "file_id": "config-78bbe4544c7d-7408b0e2c4",
           "id": "primary-005",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -186,7 +173,6 @@
           "file_id": "model-d769e3a32a6a-239d514024",
           "id": "primary-006",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -197,7 +183,6 @@
           "file_id": "model-index-42d59fd7ad89-ee03ace9a3",
           "id": "primary-007",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -208,7 +193,6 @@
           "file_id": "scheduler-config-8ec387d5fa43-67ecb3dc37",
           "id": "primary-008",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -219,7 +203,6 @@
           "file_id": "config-40161074f1da-bcfd37e83e",
           "id": "primary-009",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -230,7 +213,6 @@
           "file_id": "model-00001-of-00003-a1b9f95e60d6-02972f2ff9",
           "id": "primary-010",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -241,7 +223,6 @@
           "file_id": "model-00002-of-00003-ab32a0fe73ed-6ecf8bd4b9",
           "id": "primary-011",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -252,7 +233,6 @@
           "file_id": "model-00003-of-00003-fe26b2e0da51-ab0456bfcf",
           "id": "primary-012",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -263,7 +243,6 @@
           "file_id": "model-safetensors-index-3374ab25b322-5fc12c01f9",
           "id": "primary-013",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -274,7 +253,6 @@
           "file_id": "config-d9ced170e0c3-576e8524c7",
           "id": "primary-014",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -285,7 +263,6 @@
           "file_id": "model-f0a1043fa206-91d4db77fb",
           "id": "primary-015",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -296,7 +273,6 @@
           "file_id": "added-tokens-58b54bbe36fc-67aa73d88f",
           "id": "primary-016",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -307,7 +283,6 @@
           "file_id": "chat-template-a0bc6f6fc7a2-875b211b57",
           "id": "primary-017",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -318,7 +293,6 @@
           "file_id": "merges-8831e4f1a044-ebbb0f71ea",
           "id": "primary-018",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -329,7 +303,6 @@
           "file_id": "special-tokens-map-76862e765266-9a6c011314",
           "id": "primary-019",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -340,7 +313,6 @@
           "file_id": "tokenizer-9c5ae00e602b-b87c178459",
           "id": "primary-020",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -351,7 +323,6 @@
           "file_id": "tokenizer-config-11d20a741a0e-47a6faaf45",
           "id": "primary-021",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -362,7 +333,6 @@
           "file_id": "vocab-ca10d7e9fb3e-8c35116cc3",
           "id": "primary-022",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -373,7 +343,6 @@
           "file_id": "added-tokens-6dbf3df426e1-c992a97bfb",
           "id": "primary-023",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -384,7 +353,6 @@
           "file_id": "special-tokens-map-f9ff8c543ce7-d9a3373af2",
           "id": "primary-024",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -395,7 +363,6 @@
           "file_id": "tokenizer-config-56adeaeff12e-25c5334061",
           "id": "primary-025",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -406,7 +373,6 @@
           "file_id": "config-d36328fcc924-98e965502a",
           "id": "primary-026",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -417,7 +383,6 @@
           "file_id": "diffusion-pytorch-model-00001-of-00002-a3ce050556ba-f940099643",
           "id": "primary-027",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -428,7 +393,6 @@
           "file_id": "diffusion-pytorch-model-00002-of-00002-374683b899a8-48c20e2a08",
           "id": "primary-028",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -439,7 +403,6 @@
           "file_id": "diffusion-pytorch-model-safetensors-ind-6b4af7af91fa-322b43acad",
           "id": "primary-029",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -450,7 +413,6 @@
           "file_id": "config-903c63784f93-101abd63da",
           "id": "primary-030",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -461,7 +423,6 @@
           "file_id": "diffusion-pytorch-model-89dcb55c5fc9-86e9ee3b4f",
           "id": "primary-031",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -471,7 +432,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "9d14c3e5153b9294d51b6d04cf415cf03ebdc7ce385e9c8a27cdffc73778f3da",
+        "content_sha256": "c665cdc7df4402b933e201b860b0a11025f5ae1926d5070a2f9cffa669e1b420",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan-video-15-i2v-step-distilled"
@@ -482,291 +443,9 @@
     "attribution": [
       "tencent"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled/tree/854c04a4c8a53d990b418c7478f0802c0fc8c726"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.5.0",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "1a4dbcba3b923e7197975307dc09746c42e3e26de71e02fe1bb728e349cdca6e",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved the hash-locked runtime to Diffusers 0.40.0, PyTorch 2.14.0, Transformers 5.17.0 on the CUDA 13.4.1 runtime base.",
-            "details": "Regenerated requirements.lock (uv pip compile, cp312, aarch64-manylinux_2_39, cu130): diffusers 0.39.0 -> 0.40.0, torch 2.13.0 -> 2.14.0, torchvision 0.28.0 -> 0.29.0, transformers 5.2.0 -> 5.17.0, accelerate 1.14.0 -> 1.15.0, huggingface-hub 1.4.1 -> 1.33.0 (2.0 is excluded by diffusers/transformers <2.0), numpy 2.4.2 -> 2.5.3, Pillow 12.1.1 -> 12.3.0, imageio 2.37.0 -> 2.38.0. The HunyuanVideo 1.5 pipelines, transformer, VAE and export_to_video source are byte-identical between v0.39.0 and v0.40.0. Base nvcr.io/nvidia/cuda 13.0.1 -> 13.4.1-runtime-ubuntu24.04 (arm64 2eaf346843c9).",
-            "references": [
-              "https://github.com/huggingface/diffusers/releases/tag/v0.40.0",
-              "https://github.com/huggingface/diffusers/compare/v0.39.0...v0.40.0",
-              "https://github.com/pytorch/pytorch/releases/tag/v2.14.0",
-              "https://github.com/huggingface/transformers/releases/tag/v5.17.0",
-              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "compatibility",
-            "summary": "Load the pipeline with dtype= instead of the deprecated torch_dtype= argument.",
-            "details": "Diffusers 0.40 deprecates torch_dtype in favour of dtype (it still works but warns, removal planned for 1.0.0). The adapter now loads the pipeline with dtype=torch.bfloat16; the loaded precision is unchanged.",
-            "references": [
-              "https://github.com/huggingface/diffusers/pull/14205",
-              "https://github.com/huggingface/diffusers/releases/tag/v0.40.0"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu130 metadata requires cuda-toolkit==13.0.3.0; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "342767c964e33d707786708c4d30a79dc5dcfefdc08ecefcc780dd584f99b88a",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.4.7"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Declared the official cu130 PyTorch wheel-object host for source builds.",
-            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/torch/",
-              "https://download.pytorch.org/whl/cu130/torchvision/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "dba8b3c1832d6eaaadba32b5074cdc134bee602d5110a9a6575005d8606c70db",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.4.6"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now binds all 31 files from the exact upstream 480p I2V step-distilled revision, including the image encoder and feature extractor as well as every tokenizer, transformer, VAE, scheduler, and configuration file required offline.",
-            "kind": "model",
-            "references": [
-              "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled/tree/854c04a4c8a53d990b418c7478f0802c0fc8c726"
-            ],
-            "summary": "Replace aggregate snapshot with exact pinned Diffusers file selections."
-          }
-        ],
-        "prior_recipe_content_sha256": "9a64910660148814474c187c641ddd009ef12cf25530f45c7b8da50889d537a9",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "reprepare",
-        "version": "1.4.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "The current Diffusers compare range contains broad source and documentation changes, but this adapter installs the hash-locked diffusers==0.39.0 wheel rather than the git source. Updating only the image label would misdescribe the executable runtime, so the exact a3608b512 pin remains until the locked dependency and focused runtime checks move together.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/huggingface/diffusers/compare/a3608b512ed7248499a44c61d954965ed9bdae4d...c5469b7ceb606edd7ba6570dcd17d38590a18db6",
-              "https://github.com/huggingface/diffusers/tree/a3608b512ed7248499a44c61d954965ed9bdae4d"
-            ],
-            "summary": "Retained the HunyuanVideo 1.5 runtime pin pending a matching lockfile update."
-          }
-        ],
-        "prior_recipe_content_sha256": "266659face887ca3c54629114503f665f125ba53563f0e1642370398a47aae49",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.4.4"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.4.3"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "5fed3741a3589c5fa3593d0cc353b7427b9aaacd711c842c3d4f5f23a3e2be05",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.4.2"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "d444ddd50878e4de0d190ffb2dade2ef37e18c770f1b935fed95ffd10c266a5d",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.4.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Fail closed in the EU, UK, and South Korea as required by the exact Tencent Hunyuan Community License Agreement."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Correct the offloaded single-Spark memory envelope to require 112 GB plus the existing 8 GB system reserve, allowing admission on a healthy 128 GB Spark."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Validate the exact 121-frame MP4 stream before atomically publishing output.mp4 and reject oversized or unsupported image inputs before model loading."
-          }
-        ],
-        "prior_recipe_content_sha256": "a62a299bc9ca84b9cf74a96c784460e6e802562db2de8cb9e0fde41122db37ef",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "rebuild",
-        "version": "1.4.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Declared separate required prompt and source-image slots plus the exact MP4 output contract."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Made the adapter consume the controller-authenticated slot manifest before model loading."
-          }
-        ],
-        "prior_recipe_content_sha256": "2b07298c861ea716c2caed0d9a58ded4fbab64f66fa07b0f949ac73b02b64db8",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "1.3.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "559787f5625634a36214539a87ead6913583d4b43b197c31d237f919ac45f9de",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.2.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [
-              "https://huggingface.co/hunyuanvideo-community/HunyuanVideo-1.5-Diffusers-480p_i2v_step_distilled/tree/854c04a4c8a53d990b418c7478f0802c0fc8c726",
-              "https://github.com/huggingface/diffusers/commit/a3608b512ed7248499a44c61d954965ed9bdae4d"
-            ],
-            "summary": "Replaced the incomplete native snapshot with the complete 480p I2V step-distilled Diffusers conversion, hash-locked runtime, and isolated image input."
-          },
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [],
-            "summary": "Bound 480p I2V to its self-contained step-distilled pipeline, recommended eight-step path, local-only loading, and exact image-to-video contract."
-          },
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Corrected the model authority from Apache-2.0 to the territorial Tencent Hunyuan Community License."
-          }
-        ],
-        "prior_recipe_content_sha256": "a1bc312d61e59ca26497b7389a1b5cf9efbc3c56008e331490f724ae348407d1",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [
-              "https://huggingface.co/tencent/HunyuanVideo-1.5/tree/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038"
-            ],
-            "summary": "Corrected the immutable HunyuanVideo 1.5 snapshot and dependent disk resource sizes from the complete upstream inventory."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Marked the candidate as requiring a model-specific image-conditioned adapter and input contract before acceptance."
-          }
-        ],
-        "prior_recipe_content_sha256": "272054659678ca76792ea24e2bd3fec5a9933ea1b2a927f7f570fdbea14b51ae",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of HunyuanVideo 1.5 I2V 480p step-distilled diffusers single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "9e6196be30d8b75c997dec9a2bf6567fa9cf9e5f747c9ad977094f5f4fa735a3",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "240d34c117d5147ddfe74b013946c46131d5ff916dec4f32654c6e5131abed18",
-        "released_at": "2026-08-17",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.5.0"
   },
@@ -810,45 +489,30 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -858,42 +522,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 34636998160,
-            "cache_bytes": 8000000000,
             "image_bytes": 2000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 69273996320
+            "working_bytes": 77273996320
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 8000000000,
-            "startup_peak_bytes": 112000000000,
-            "steady_state_bytes": 104000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 112000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "frames": 121,
-          "num_inference_steps": 8,
-          "resolution": 480,
-          "timeout_seconds": 14400
-        },
-        "framework": "diffusers",
-        "name": "bounded-480p-i2v-step-distilled"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -905,12 +549,10 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/tiny.png",
-            "input_path": "/inputs",
             "input_slots": {
               "image": "qualification/fixtures/tiny.png",
               "prompt": "qualification/fixtures/prompt.txt"
             },
-            "output_path": "/outputs",
             "output_slot": "video",
             "transport": "job"
           }

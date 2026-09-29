@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
-        "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
@@ -12,13 +10,10 @@
       },
       "dockerfile": "adapters/llm/laguna-s-vllm/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": []
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -60,7 +55,6 @@
           "file_id": "metadata-c96667522371",
           "id": "primary-metadata-c96667522371",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -71,7 +65,6 @@
           "file_id": "license-8a0c5e232551",
           "id": "primary-license-8a0c5e232551",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -82,7 +75,6 @@
           "file_id": "readme-6fc047880130",
           "id": "primary-readme-6fc047880130",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -93,7 +85,6 @@
           "file_id": "chat-template-444819b8ad46",
           "id": "primary-chat-template-444819b8ad46",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -104,7 +95,6 @@
           "file_id": "config-3b3a6e369129",
           "id": "primary-config-3b3a6e369129",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -115,7 +105,6 @@
           "file_id": "configuration-laguna-9446b4fca6f8",
           "id": "primary-configuration-laguna-9446b4fca6f8",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -126,7 +115,6 @@
           "file_id": "generation-config-81ff120c8c67",
           "id": "primary-generation-config-81ff120c8c67",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -137,7 +125,6 @@
           "file_id": "model-00001-of-00049-bafa5ef7ccfd",
           "id": "primary-model-00001-of-00049-bafa5ef7ccfd",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -148,7 +135,6 @@
           "file_id": "model-00002-of-00049-d91f55c3c81b",
           "id": "primary-model-00002-of-00049-d91f55c3c81b",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -159,7 +145,6 @@
           "file_id": "model-00003-of-00049-80e0783d4e23",
           "id": "primary-model-00003-of-00049-80e0783d4e23",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -170,7 +155,6 @@
           "file_id": "model-00004-of-00049-e3ee5dbe50a7",
           "id": "primary-model-00004-of-00049-e3ee5dbe50a7",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -181,7 +165,6 @@
           "file_id": "model-00005-of-00049-88bb23dc4e9a",
           "id": "primary-model-00005-of-00049-88bb23dc4e9a",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -192,7 +175,6 @@
           "file_id": "model-00006-of-00049-44d5cc53e65d",
           "id": "primary-model-00006-of-00049-44d5cc53e65d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -203,7 +185,6 @@
           "file_id": "model-00007-of-00049-d1a371ec20ca",
           "id": "primary-model-00007-of-00049-d1a371ec20ca",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -214,7 +195,6 @@
           "file_id": "model-00008-of-00049-df485c3c09d7",
           "id": "primary-model-00008-of-00049-df485c3c09d7",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -225,7 +205,6 @@
           "file_id": "model-00009-of-00049-3460f9cd677c",
           "id": "primary-model-00009-of-00049-3460f9cd677c",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -236,7 +215,6 @@
           "file_id": "model-00010-of-00049-5143801097f2",
           "id": "primary-model-00010-of-00049-5143801097f2",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -247,7 +225,6 @@
           "file_id": "model-00011-of-00049-50ed03d6c8ea",
           "id": "primary-model-00011-of-00049-50ed03d6c8ea",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -258,7 +235,6 @@
           "file_id": "model-00012-of-00049-e3b0c9afde98",
           "id": "primary-model-00012-of-00049-e3b0c9afde98",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -269,7 +245,6 @@
           "file_id": "model-00013-of-00049-83f91b41d1bc",
           "id": "primary-model-00013-of-00049-83f91b41d1bc",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -280,7 +255,6 @@
           "file_id": "model-00014-of-00049-7335bd2c696e",
           "id": "primary-model-00014-of-00049-7335bd2c696e",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -291,7 +265,6 @@
           "file_id": "model-00015-of-00049-419dbbcd9aba",
           "id": "primary-model-00015-of-00049-419dbbcd9aba",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -302,7 +275,6 @@
           "file_id": "model-00016-of-00049-2bc0b91dd994",
           "id": "primary-model-00016-of-00049-2bc0b91dd994",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -313,7 +285,6 @@
           "file_id": "model-00017-of-00049-33295ddcae43",
           "id": "primary-model-00017-of-00049-33295ddcae43",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -324,7 +295,6 @@
           "file_id": "model-00018-of-00049-86262f28e4be",
           "id": "primary-model-00018-of-00049-86262f28e4be",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -335,7 +305,6 @@
           "file_id": "model-00019-of-00049-12d70338ab96",
           "id": "primary-model-00019-of-00049-12d70338ab96",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -346,7 +315,6 @@
           "file_id": "model-00020-of-00049-d6f56b567023",
           "id": "primary-model-00020-of-00049-d6f56b567023",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -357,7 +325,6 @@
           "file_id": "model-00021-of-00049-ec304cbc979e",
           "id": "primary-model-00021-of-00049-ec304cbc979e",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -368,7 +335,6 @@
           "file_id": "model-00022-of-00049-2dc96ac8104c",
           "id": "primary-model-00022-of-00049-2dc96ac8104c",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -379,7 +345,6 @@
           "file_id": "model-00023-of-00049-039a3eeedd0a",
           "id": "primary-model-00023-of-00049-039a3eeedd0a",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -390,7 +355,6 @@
           "file_id": "model-00024-of-00049-caf75a44fa15",
           "id": "primary-model-00024-of-00049-caf75a44fa15",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -401,7 +365,6 @@
           "file_id": "model-00025-of-00049-8c4e33932c11",
           "id": "primary-model-00025-of-00049-8c4e33932c11",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -412,7 +375,6 @@
           "file_id": "model-00026-of-00049-1399e19f57ce",
           "id": "primary-model-00026-of-00049-1399e19f57ce",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -423,7 +385,6 @@
           "file_id": "model-00027-of-00049-b4e9fdc20059",
           "id": "primary-model-00027-of-00049-b4e9fdc20059",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -434,7 +395,6 @@
           "file_id": "model-00028-of-00049-ce15771b0aeb",
           "id": "primary-model-00028-of-00049-ce15771b0aeb",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -445,7 +405,6 @@
           "file_id": "model-00029-of-00049-16a2c6315931",
           "id": "primary-model-00029-of-00049-16a2c6315931",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -456,7 +415,6 @@
           "file_id": "model-00030-of-00049-b580ce6dd534",
           "id": "primary-model-00030-of-00049-b580ce6dd534",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -467,7 +425,6 @@
           "file_id": "model-00031-of-00049-38f197c2cdb3",
           "id": "primary-model-00031-of-00049-38f197c2cdb3",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -478,7 +435,6 @@
           "file_id": "model-00032-of-00049-e2e6dbb74fb8",
           "id": "primary-model-00032-of-00049-e2e6dbb74fb8",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -489,7 +445,6 @@
           "file_id": "model-00033-of-00049-05b86a9e41d4",
           "id": "primary-model-00033-of-00049-05b86a9e41d4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -500,7 +455,6 @@
           "file_id": "model-00034-of-00049-c4b176183375",
           "id": "primary-model-00034-of-00049-c4b176183375",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -511,7 +465,6 @@
           "file_id": "model-00035-of-00049-355e7e0a2649",
           "id": "primary-model-00035-of-00049-355e7e0a2649",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -522,7 +475,6 @@
           "file_id": "model-00036-of-00049-634998dddce9",
           "id": "primary-model-00036-of-00049-634998dddce9",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -533,7 +485,6 @@
           "file_id": "model-00037-of-00049-199d031732ac",
           "id": "primary-model-00037-of-00049-199d031732ac",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -544,7 +495,6 @@
           "file_id": "model-00038-of-00049-0867a16eba3e",
           "id": "primary-model-00038-of-00049-0867a16eba3e",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -555,7 +505,6 @@
           "file_id": "model-00039-of-00049-c4c14bf0eb9f",
           "id": "primary-model-00039-of-00049-c4c14bf0eb9f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -566,7 +515,6 @@
           "file_id": "model-00040-of-00049-dd4402d17daa",
           "id": "primary-model-00040-of-00049-dd4402d17daa",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -577,7 +525,6 @@
           "file_id": "model-00041-of-00049-36f9ae8d4e3e",
           "id": "primary-model-00041-of-00049-36f9ae8d4e3e",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -588,7 +535,6 @@
           "file_id": "model-00042-of-00049-157eb6284b32",
           "id": "primary-model-00042-of-00049-157eb6284b32",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -599,7 +545,6 @@
           "file_id": "model-00043-of-00049-5745559727a0",
           "id": "primary-model-00043-of-00049-5745559727a0",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -610,7 +555,6 @@
           "file_id": "model-00044-of-00049-55122368f6e8",
           "id": "primary-model-00044-of-00049-55122368f6e8",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -621,7 +565,6 @@
           "file_id": "model-00045-of-00049-e0b857108b6d",
           "id": "primary-model-00045-of-00049-e0b857108b6d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -632,7 +575,6 @@
           "file_id": "model-00046-of-00049-a6d1ea38de93",
           "id": "primary-model-00046-of-00049-a6d1ea38de93",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -643,7 +585,6 @@
           "file_id": "model-00047-of-00049-795619eb5f02",
           "id": "primary-model-00047-of-00049-795619eb5f02",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -654,7 +595,6 @@
           "file_id": "model-00048-of-00049-05a20b093032",
           "id": "primary-model-00048-of-00049-05a20b093032",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -665,7 +605,6 @@
           "file_id": "model-00049-of-00049-be9beed132e2",
           "id": "primary-model-00049-of-00049-be9beed132e2",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -676,7 +615,6 @@
           "file_id": "model-index-d21d362ea5b8",
           "id": "primary-model-index-d21d362ea5b8",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -687,7 +625,6 @@
           "file_id": "modeling-laguna-765fd328542d",
           "id": "primary-modeling-laguna-765fd328542d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -698,7 +635,6 @@
           "file_id": "special-tokens-map-70cd3459fde6",
           "id": "primary-special-tokens-map-70cd3459fde6",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -709,7 +645,6 @@
           "file_id": "tokenizer-809240f7a182",
           "id": "primary-tokenizer-809240f7a182",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -720,7 +655,6 @@
           "file_id": "tokenizer-config-8103b5dd4baf",
           "id": "primary-tokenizer-config-8103b5dd4baf",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -730,7 +664,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1fe9a3e71830c6c8862243e241818973b1b127ab74c46893dfcc5f78abb82058",
+        "content_sha256": "34753521b566ca18bec68cc971af8b00f3b7bca8db345fd557bc68db1a0ffc37",
         "kind": "model",
         "publisher": "poolside",
         "slug": "laguna-s-2-1-nvfp4-826aacdf"
@@ -741,196 +675,9 @@
     "attribution": [
       "poolside"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/tree/826aacdf6d8b2699d4e367def6f17c83b06044c2"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.1.0",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "63f1745eac4ede9069396c0a855479e4d86af38b10491cfb03210638c91c20c0",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved to the official vLLM 0.30.0 ARM64 image from vLLM 0.27.1.",
-            "details": "docker.io/vllm/vllm-openai v0.30.0-aarch64 @sha256:4864d466 (build commit ced6857a, CUDA 13.0) replaces v0.27.1-aarch64 @sha256:1c8e60a0. Every launch option, parser and model architecture this recipe uses is present at v0.30.0. Upstream 0.29 makes Model Runner V2 the default and 0.28-0.30 remove only options this recipe does not use. Physical GB10 startup, memory and output acceptance is still required.",
-            "references": [
-              "https://github.com/vllm-project/vllm/releases/tag/v0.28.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
-              "https://github.com/vllm-project/vllm/compare/v0.27.1...v0.30.0"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.0.8"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "cdcf8e4b854342eb4279b02e31cab466200a9df14d017b3737ebe1317a72c884",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.7"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "3b7f039b9863930d2e410b18cf6c35607f41d058c76826934d1a4cd7b1e2d705",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.0.6"
-      },
-      {
-        "changes": [
-          {
-            "details": "The upstream revision changes README metadata only; model weights, configuration, tokenizer, runtime image, and serving arguments remain byte-identical. Existing runtime containers do not require a rebuild, while the catalog now points at the current immutable source revision.",
-            "kind": "metadata",
-            "references": [
-              "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/commit/826aacdf6d8b2699d4e367def6f17c83b06044c2"
-            ],
-            "summary": "Pinned the current immutable Poolside Laguna S 2.1 NVFP4 snapshot at 826aacdf."
-          }
-        ],
-        "prior_recipe_content_sha256": "5d002b31ce3cb85dc2ff6f4acf798ec3386ce6ac0372061cc7c9a5b8dfa3a335",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.0.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "Laguna weights are mounted after the image is built and retain exact Poolside repository, revision, license, and attribution metadata in the model and recipe contracts. The image source, revision, and license labels now bind its Apache-2.0 vLLM payload instead of misidentifying the external model as image source code.",
-            "kind": "runtime",
-            "references": [
-              "https://github.com/vllm-project/vllm/tree/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
-              "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/tree/64734b3a449a05c79657451513d97544f2f53436"
-            ],
-            "summary": "Corrected OCI labels to identify the vLLM runtime actually baked into the image."
-          },
-          {
-            "details": "Upstream 826aacdf differs from the complete immutable 64734b3a snapshot only in README.md; all model, tokenizer, configuration, and weight payloads remain byte-identical. Physical single-Spark memory and runtime acceptance are still required.",
-            "kind": "metadata",
-            "references": [
-              "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/commit/826aacdf6d8b2699d4e367def6f17c83b06044c2"
-            ],
-            "summary": "Confirmed the newer upstream head changes documentation only."
-          }
-        ],
-        "prior_recipe_content_sha256": "6411a685d6f2b1aa518ffb1fc2fabd8b27a612751a0082b175188a98ed4cbf3a",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "fix",
-            "references": [
-              "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/tree/64734b3a449a05c79657451513d97544f2f53436"
-            ],
-            "summary": "Completed the immutable checkpoint manifest and corrected its snapshot and staging sizes."
-          },
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [
-              "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4"
-            ],
-            "summary": "Declared the GB10 CUDA architecture and bounded cold FlashInfer JIT concurrency."
-          }
-        ],
-        "prior_recipe_content_sha256": "18174702cf2eec28b2e5f8db0e201b0cd2e22efebe8e97c54331f4ce9a9083f3",
-        "released_at": "2026-08-29",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Routed non-root vLLM caches to the writable outputs mount."
-          }
-        ],
-        "prior_recipe_content_sha256": "0fc824ffa3f6a3eb430626696adf022b4f4b25c1fcd27fe2622d0c24f40ebe35",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "6acda1b9e242e555de0666091c9c057d829091e7349cd9b6e9199e64a573b0d6",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of Laguna S 2.1 NVFP4 vLLM single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "0541ad9cebe46ff88763ebb583f73b30ccd3b1b974ef4ce350f9ee0324005b50",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/8e19d5191b1b380f5d5a78d3991c23a1ea0bc63b"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "d168f415b63b3928ea0e2b3e0bfa1cca04b3698e9417e5cd869f03f8d92354cd",
-        "released_at": "2026-08-17",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.1.0"
   },
@@ -981,26 +728,17 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": {
       "change_effect": "restart",
@@ -1015,19 +753,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -1037,41 +769,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 99717279862,
-            "cache_bytes": 4000000000,
             "image_bytes": 12000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 199434559724
+            "working_bytes": 203434559724
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 4000000000,
-            "startup_peak_bytes": 122000000000,
-            "steady_state_bytes": 105000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 122000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "timeout_seconds": 600
-        },
-        "framework": "openai",
-        "name": "bounded-chat"
-      }
-    ],
     "serving": {
       "checks": [
         {

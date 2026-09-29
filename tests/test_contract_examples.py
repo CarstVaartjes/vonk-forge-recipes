@@ -14,7 +14,6 @@ def test_representative_contract_examples_validate() -> None:
     )
     assert {path.name for path in examples} >= {
         "model-definition.json",
-        "recipe-image.json",
         "recipe-source-build.json",
         "recipe-job.json",
         "recipe-dual.json",

@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -21,13 +19,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -44,7 +39,6 @@
           "image/png",
           "image/webp"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -86,7 +80,6 @@
       },
       "output": {
         "max_total_bytes": 1090519040,
-        "path": "/outputs",
         "slots": [
           {
             "description": "The timestamped frame sequence encoded as an MP4 replay.",
@@ -119,8 +112,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -153,7 +145,6 @@
           "file_id": "metadata-0715d5b5b152-618cd5b83d",
           "id": "primary-metadata-0715d5b5b152-618cd5b83d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -164,7 +155,6 @@
           "file_id": "readme-b86dfa85b45e-b335630551",
           "id": "primary-readme-b86dfa85b45e-b335630551",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -175,7 +165,6 @@
           "file_id": "architecture-28e51b34e031-aa0ed6aa56",
           "id": "primary-architecture-28e51b34e031-aa0ed6aa56",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -186,7 +175,6 @@
           "file_id": "benchmark-streaming-7366164e8e0b-f4b519c5c9",
           "id": "primary-benchmark-streaming-7366164e8e0b-f4b519c5c9",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -197,7 +185,6 @@
           "file_id": "logo-37bf0241f5fb-90580d12fb",
           "id": "primary-logo-37bf0241f5fb-90580d12fb",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -208,7 +195,6 @@
           "file_id": "chat-template-d272c68bd115-56edbbf8f7",
           "id": "primary-chat-template-d272c68bd115-56edbbf8f7",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -219,7 +205,6 @@
           "file_id": "config-ebab52596af1-587cb980af",
           "id": "primary-config-ebab52596af1-587cb980af",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -230,7 +215,6 @@
           "file_id": "configuration-moss-vl-0603337d493e-55d545c53a",
           "id": "primary-configuration-moss-vl-0603337d493e-55d545c53a",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -241,7 +225,6 @@
           "file_id": "generation-config-8b9afb365eaa-97dd3d578b",
           "id": "primary-generation-config-8b9afb365eaa-97dd3d578b",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -252,7 +235,6 @@
           "file_id": "model-00001-of-00005-3fe2d46a92e3-8453f51e85",
           "id": "primary-model-00001-of-00005-3fe2d46a92e3-8453f51e85",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -263,7 +245,6 @@
           "file_id": "model-00002-of-00005-18f357990793-516421cb37",
           "id": "primary-model-00002-of-00005-18f357990793-516421cb37",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -274,7 +255,6 @@
           "file_id": "model-00003-of-00005-cecf1e02afe5-05880bd763",
           "id": "primary-model-00003-of-00005-cecf1e02afe5-05880bd763",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -285,7 +265,6 @@
           "file_id": "model-00004-of-00005-57d794a266a1-c340da1f8a",
           "id": "primary-model-00004-of-00005-57d794a266a1-c340da1f8a",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -296,7 +275,6 @@
           "file_id": "model-00005-of-00005-34009172ba73-2bd52bf6f8",
           "id": "primary-model-00005-of-00005-34009172ba73-2bd52bf6f8",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -307,7 +285,6 @@
           "file_id": "model-safetensors-index-25dc84c05625-0a05be8238",
           "id": "primary-model-safetensors-index-25dc84c05625-0a05be8238",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -318,7 +295,6 @@
           "file_id": "modeling-moss-vl-278d1a6f18cc-c41619fc78",
           "id": "primary-modeling-moss-vl-278d1a6f18cc-c41619fc78",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -329,7 +305,6 @@
           "file_id": "preprocessor-config-b4553631864a-36afccab5d",
           "id": "primary-preprocessor-config-b4553631864a-36afccab5d",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -340,7 +315,6 @@
           "file_id": "processing-moss-vl-66bae14d9b47-2cd22ecdf2",
           "id": "primary-processing-moss-vl-66bae14d9b47-2cd22ecdf2",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -351,7 +325,6 @@
           "file_id": "tokenizer-e7bbd0f97840-224931eb13",
           "id": "primary-tokenizer-e7bbd0f97840-224931eb13",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -362,7 +335,6 @@
           "file_id": "tokenizer-config-e23084208a8e-94d5c6ba8f",
           "id": "primary-tokenizer-config-e23084208a8e-94d5c6ba8f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -373,7 +345,6 @@
           "file_id": "video-preprocessor-config-bbe22d3f192c-35d01a7325",
           "id": "primary-video-preprocessor-config-bbe22d3f192c-35d01a7325",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -384,7 +355,6 @@
           "file_id": "video-processing-moss-vl-f270b92b0bae-290a804ea4",
           "id": "primary-video-processing-moss-vl-f270b92b0bae-290a804ea4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -395,7 +365,6 @@
           "file_id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
           "id": "primary-vocab-ca10d7e9fb3e-ba05d8e2e4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -405,7 +374,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "31915e757287d5bab30458542c14c382226bbdcb30c39fecca949635c50c5ac5",
+        "content_sha256": "191f3e9452d1a36e627380782b590d64575a9a4b7ee369d7236b866999bc9450",
         "kind": "model",
         "publisher": "openmoss",
         "slug": "moss-vl-realtime-11b-bf16-d1f71a58"
@@ -416,254 +385,9 @@
     "attribution": [
       "OpenMOSS"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/tree/d1f71a588deaf2b9b9cea7c6fff66cb10847cc86"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.2.5",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "8757b246320d2db4dfc750371987e685222ab32490aaed120873be73a16fabe8",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved the CUDA runtime base from 13.0.1 to 13.4.1 (ubuntu24.04, arm64 digest 2eaf3468).",
-            "details": "The 13.4.1 runtime image keeps the brand=*,driver>=580,driver<581 requirement clause, so it stays admissible on the Spark 580-series driver. PyTorch continues to bring its own cu130 wheels.",
-            "references": [
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "runtime",
-            "summary": "Refreshed the PyTorch stack: torch 2.14.0, torchvision 0.29.0, accelerate 1.15.0, transformers 4.57.6, Pillow 12.3.0.",
-            "details": "transformers stays on the 4.57 line (4.57.3 -> 4.57.6 patch releases) because the MOSS-VL remote code targets 4.57.x (upstream requirements pin 4.57.1); transformers 5.x is a major API change not yet validated with this model. OpenMOSS/MOSS-VL has no tagged release, so the source reference stays at 288cc2dc; the model snapshot d1f71a58 is still the Hugging Face head.",
-            "references": [
-              "https://github.com/pytorch/pytorch/releases/tag/v2.14.0",
-              "https://github.com/pytorch/vision/releases/tag/v0.29.0",
-              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
-              "https://github.com/huggingface/transformers/releases/tag/v4.57.6",
-              "https://github.com/python-pillow/Pillow/releases/tag/12.3.0"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": "The exact openmoss/moss-vl-realtime-11b-bf16-d1f71a58 Model no longer declares that it supersedes the revision 25e81cb9 record, which was removed from the catalog because no recipe selected it. That changes the Model's content digest, so this recipe's exact model reference moves to the new digest. Weights, files, and runtime are unchanged.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Rebound the exact model reference after the superseded model record was removed; runtime behavior is unchanged."
-          }
-        ],
-        "prior_recipe_content_sha256": "80036fc05bf4808d5af3209696880a21c35a7b36db5d061ae2dbcdc72eb45b8c",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "none",
-        "version": "1.2.4"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu130 metadata requires cuda-toolkit==13.0.3.0; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "0f589d363a3af4efce182112b4bbdf46a308c1015548166b8cd317dda500a222",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.3"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Declared the official cu130 PyTorch wheel-object host for source builds.",
-            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/torch/",
-              "https://download.pytorch.org/whl/cu130/torchvision/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "65b4becb6e92c2ed77c960eec0ea3a4e7297932f9782eff1f94a29ffc222c510",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The replay transcript now identifies the unchanged BF16 weight snapshot separately from the current remote-code revision. The adapter notice points to the selected d1f71a58 source snapshot.",
-            "kind": "fix",
-            "references": [
-              "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/tree/06b067617677661194cf837970fe3a10f1a0e56d",
-              "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/tree/d1f71a588deaf2b9b9cea7c6fff66cb10847cc86"
-            ],
-            "summary": "Align the MOSS replay transcript and source notice with the current model pins."
-          }
-        ],
-        "prior_recipe_content_sha256": "ec7992aa56344a261b09e6c50aadd44bcdc59c2506ccb27a99513b42be359f06",
-        "released_at": "2026-09-23",
-        "upgrade_effect": "rebuild",
-        "version": "1.2.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "The BF16 weight shards are unchanged. Upstream fixes cached-vision query RoPE, aligns processor and inference defaults, synchronizes offline system prompts with training, and computes media budgets and MRoPE position IDs per sample for batched vision inputs.",
-            "kind": "fix",
-            "references": [
-              "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/compare/25e81cb952d5f353a5690f2c1ea09a725815df80...d1f71a588deaf2b9b9cea7c6fff66cb10847cc86",
-              "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/commit/d1f71a588deaf2b9b9cea7c6fff66cb10847cc86"
-            ],
-            "summary": "Refresh MOSS-VL-Realtime remote code to d1f71a58."
-          }
-        ],
-        "prior_recipe_content_sha256": "f441b4503252b8c4cfed62ea5bdc4a14e974cc9dd4541e3bda51b9037320c500",
-        "released_at": "2026-09-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.2.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "The exact BF16 weights, tokenizer, and configuration are unchanged. Upstream remote code now uses a 20 ms idle poll to keep in-process siblings responsive, drops invalid Unicode replacement characters from streamed chunks, and adds an NPU fallback while preserving the CUDA path. The adapter and source notices are bound to the verified revisions.",
-            "kind": "compatibility",
-            "references": [
-              "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/commit/25e81cb952d5f353a5690f2c1ea09a725815df80",
-              "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/compare/06b067617677661194cf837970fe3a10f1a0e56d...25e81cb952d5f353a5690f2c1ea09a725815df80",
-              "https://github.com/OpenMOSS/MOSS-VL/compare/560f8872c362b47a52ddf20ff6a1f9c8ac10b706...288cc2dcd145e53a3baf9c11fc9be298cf1b30d7"
-            ],
-            "summary": "Refresh MOSS-VL-Realtime remote code to 25e81cb9."
-          }
-        ],
-        "prior_recipe_content_sha256": "70b5a72ac7089b4e00ec6cd602532c36769d1577ea8d1b0cbd4bd1c27742537c",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.6"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.1.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "b68a4bef839f81fe69aa72f17ce8a22274ea5b93404764f4193c73b33a4ea5d2",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.4"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "bb386c79b263d9f6b95674db37e96f92434d039aa6c83f450a4ba41697b517a4",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.1.3"
-      },
-      {
-        "changes": [
-          {
-            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
-            "kind": "security",
-            "references": [],
-            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
-          }
-        ],
-        "prior_recipe_content_sha256": "6b3f3802322e6edb47490705d96329ef0473a14d95d04e1af7d4da24d9f39bdf",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The existing MP4 replay and JSONL transcript contract is unchanged; the catalog no longer implies that this recipe exposes the upstream WebSocket, camera, or screen-capture service.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Clarified that this installable contract is a bounded session-replay job rather than an interactive streaming service."
-          }
-        ],
-        "prior_recipe_content_sha256": "8e463bad03d9479b59f9d964af4692160559b29978f8dcc42cb1cfb1abed6102",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "none",
-        "version": "1.1.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "The adapter now discovers arbitrary controller-authenticated input names through /inputs/manifest.json, verifies every declared file and rejects unmanifested inputs. The contract reserves one bounded JSON session plus up to 31 bounded image frames within the platform's 32-file transport fence, and declares the MP4 replay and JSONL transcript as typed outputs.",
-            "kind": "runtime",
-            "references": [],
-            "summary": "Added typed session and frame slots to the one-shot job contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "f67fcf526ca23c23fab7a74e15e92c0a841cf1065e38ac1d4c8909899583c8e5",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "b420166f7afc86d705b1e7f8db0495720aceeae9bfea2611c624baf1611bdc59",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "The signed adapter replays a bounded ordered session through OpenMOSS's native create_realtime_session API, preserves timestamped frames, interrupting prompts, silence and round-control tokens, and correction-capable later chunks in an authoritative JSONL transcript, accompanied by a replay MP4. The CUDA 13 ARM64 dependency closure is hash-locked and runtime networking is disabled.",
-            "kind": "initial",
-            "references": [
-              "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/tree/06b067617677661194cf837970fe3a10f1a0e56d",
-              "https://github.com/OpenMOSS/MOSS-VL/tree/560f8872c362b47a52ddf20ff6a1f9c8ac10b706/realtime_inference"
-            ],
-            "summary": "Added the complete Pending single-Spark MOSS-VL-Realtime native session recipe."
-          }
-        ],
-        "prior_recipe_content_sha256": "02df574f00940aa6f24c1db2cf5260d6065aaf1c986d871b314009c43fc4eced",
-        "released_at": "2026-08-24",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.2.5"
   },
@@ -697,45 +421,30 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "PYTORCH_CUDA_ALLOC_CONF",
-        "secret": null,
         "value": "expandable_segments:True"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 60
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -745,42 +454,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 22695585762,
-            "cache_bytes": 4000000000,
             "image_bytes": 12000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 45391171524
+            "working_bytes": 49391171524
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 36000000000,
-            "startup_peak_bytes": 80000000000,
-            "steady_state_bytes": 72000000000,
-            "system_reserve_bytes": 12000000000
+            "peak_bytes": 108000000000,
+            "reserve_bytes": 12000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "frames": 3,
-          "interrupting_prompts": 2,
-          "max_new_tokens": 64,
-          "timeout_seconds": 1800
-        },
-        "framework": "openmoss-native",
-        "name": "bounded-realtime-session"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -792,12 +481,10 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/moss-session.json",
-            "input_path": "/inputs",
             "input_slots": {
               "frames": "qualification/fixtures/tiny.png",
               "session": "qualification/fixtures/moss-session.json"
             },
-            "output_path": "/outputs",
             "output_slot": "replay",
             "transport": "job"
           }

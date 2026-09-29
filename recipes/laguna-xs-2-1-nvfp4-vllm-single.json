@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
-        "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
@@ -12,13 +10,10 @@
       },
       "dockerfile": "adapters/llm/laguna-vllm/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": []
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -60,7 +55,6 @@
           "file_id": "metadata-gitattributes",
           "id": "primary-metadata-gitattributes",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -71,7 +65,6 @@
           "file_id": "metadata-license",
           "id": "primary-metadata-license",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -82,7 +75,6 @@
           "file_id": "metadata-readme",
           "id": "primary-metadata-readme",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -93,7 +85,6 @@
           "file_id": "tokenizer-chat-template",
           "id": "primary-tokenizer-chat-template",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -104,7 +95,6 @@
           "file_id": "configuration",
           "id": "primary-configuration",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -115,7 +105,6 @@
           "file_id": "configuration-laguna",
           "id": "primary-configuration-laguna",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -126,7 +115,6 @@
           "file_id": "generation-config",
           "id": "primary-generation-config",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -137,7 +125,6 @@
           "file_id": "weights-index",
           "id": "primary-weights-index",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -148,7 +135,6 @@
           "file_id": "modeling-laguna",
           "id": "primary-modeling-laguna",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -159,7 +145,6 @@
           "file_id": "weights-01",
           "id": "primary-weights-01",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -170,7 +155,6 @@
           "file_id": "weights-02",
           "id": "primary-weights-02",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -181,7 +165,6 @@
           "file_id": "weights-03",
           "id": "primary-weights-03",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -192,7 +175,6 @@
           "file_id": "weights-04",
           "id": "primary-weights-04",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -203,7 +185,6 @@
           "file_id": "weights-05",
           "id": "primary-weights-05",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -214,7 +195,6 @@
           "file_id": "special-tokens",
           "id": "primary-special-tokens",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -225,7 +205,6 @@
           "file_id": "tokenizer",
           "id": "primary-tokenizer",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -236,7 +215,6 @@
           "file_id": "tokenizer-config",
           "id": "primary-tokenizer-config",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -246,7 +224,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a1dbb946bfbeeb1b0070e2a56e907be003b64c3b0fd002227e2a95f463071277",
+        "content_sha256": "f5b0c99bfdaee7ba963f6fec09c98899a5a70e4b53869b3c32f0035f5332f407",
         "kind": "model",
         "publisher": "poolside",
         "slug": "laguna-xs-2-1-nvfp4-d32afde8"
@@ -257,148 +235,9 @@
     "attribution": [
       "Poolside"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4/tree/d32afde8b09af1539b49ff96ff5551c674485f8e"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.1.0",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "61ef9d8a3d00cd3d6abce84b3b26c04000e7fa09e7eff7452d1f5eaa7e475f43",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved to the official vLLM 0.30.0 ARM64 image from vLLM 0.27.1.",
-            "details": "docker.io/vllm/vllm-openai v0.30.0-aarch64 @sha256:4864d466 (build commit ced6857a, CUDA 13.0) replaces v0.27.1-aarch64 @sha256:1c8e60a0. Every launch option, parser and model architecture this recipe uses is present at v0.30.0. Upstream 0.29 makes Model Runner V2 the default and 0.28-0.30 remove only options this recipe does not use. Physical GB10 startup, memory and output acceptance is still required.",
-            "references": [
-              "https://github.com/vllm-project/vllm/releases/tag/v0.28.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
-              "https://github.com/vllm-project/vllm/compare/v0.27.1...v0.30.0"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.0.6"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "e7bd353e6ba98fdcb54b368efbb467308718b621171767830e1e74bc6974663a",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.5"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "d007c441421f075aa632ba4a4daea6233b53f0919977c3629d84e24f7375a897",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "Laguna XS weights are externally mounted and retain exact Poolside provenance in the model and recipe contracts. The adapter image now labels its Apache-2.0 vLLM source and revision instead of claiming the mounted model as image source code.",
-            "kind": "runtime",
-            "references": [
-              "https://github.com/vllm-project/vllm/tree/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
-              "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4/tree/d32afde8b09af1539b49ff96ff5551c674485f8e"
-            ],
-            "summary": "Corrected OCI labels to identify the vLLM runtime actually baked into the image."
-          }
-        ],
-        "prior_recipe_content_sha256": "a55d133e00b9263dd887a6d8514f1e5bb13df2817b055978a763d3b4df1a2419",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": "The adapter now creates UID 10001 explicitly, routes HOME, Hugging Face, vLLM, FlashInfer workspace and autotune, Triton, PyTorch, CUDA, and uv cache state beneath the declared writable /outputs mount, and uses the bounded writable /tmp tmpfs as its working directory.",
-            "kind": "runtime",
-            "references": [],
-            "summary": "Made non-root runtime caches compatible with the controller-enforced read-only root filesystem."
-          }
-        ],
-        "prior_recipe_content_sha256": "2fcb3d117cf1436d347416d3249f7a1ea848cad299f4a92af06f935d2c811b7b",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "818dff1b4de34c277c01e08670cd408f8f07c855084f97eb485a808b4cf97387",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of Laguna XS 2.1 NVFP4 vLLM single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "fb8042d037c39e53a84e03bfa56b606ada1afb5310436a88a628d7c5b655912f",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/92bc339589fdffbcb8d20f758bb1f8cae5423598"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "5aa44eed976f53675e1aee224baea9c5631f3e59276fc45eb16cb3c595e12f24",
-        "released_at": "2026-08-16",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.1.0"
   },
@@ -454,26 +293,17 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": {
       "change_effect": "restart",
@@ -488,19 +318,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -510,41 +334,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 21596075520,
-            "cache_bytes": 4000000000,
             "image_bytes": 12000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 32000000000
+            "working_bytes": 36000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 4000000000,
-            "startup_peak_bytes": 78000000000,
-            "steady_state_bytes": 68000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 78000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "timeout_seconds": 600
-        },
-        "framework": "openai",
-        "name": "bounded-chat"
-      }
-    ],
     "serving": {
       "checks": [
         {

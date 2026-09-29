@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -21,17 +19,14 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
       "patches": [
         {
           "path": "adapters/video/wan-dancer-diffsynth-disk/patch-runtime.py"
         }
-      ],
-      "target": null
-    },
-    "mode": "build"
+      ]
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -54,7 +49,6 @@
           "audio/ogg",
           "audio/wav"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -134,7 +128,6 @@
       },
       "output": {
         "max_total_bytes": 536870912,
-        "path": "/outputs",
         "slots": [
           {
             "description": "Generated H.264/AAC MP4 at 30 fps, cropped to the reference-image aspect with frame count and duration derived from the 1 to 5 second music input.",
@@ -152,8 +145,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -187,7 +179,6 @@
           "file_id": "metadata-f6d545aedf17",
           "id": "primary-metadata-f6d545aedf17",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -198,7 +189,6 @@
           "file_id": "readme-9504fbbcd4b6",
           "id": "primary-readme-9504fbbcd4b6",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -209,7 +199,6 @@
           "file_id": "wan2-1-vae-38071ab59bd9",
           "id": "primary-wan2-1-vae-38071ab59bd9",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -220,7 +209,6 @@
           "file_id": "file-1001-fce13bddde1b",
           "id": "primary-file-1001-fce13bddde1b",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -231,7 +219,6 @@
           "file_id": "file-2001-66867a716c02",
           "id": "primary-file-2001-66867a716c02",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -242,7 +229,6 @@
           "file_id": "file-3001-2581f8b8a491",
           "id": "primary-file-3001-2581f8b8a491",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -253,7 +239,6 @@
           "file_id": "file-4001-03abf62bcf2f",
           "id": "primary-file-4001-03abf62bcf2f",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -264,7 +249,6 @@
           "file_id": "file-5001-8ec617a7cc47",
           "id": "primary-file-5001-8ec617a7cc47",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -275,7 +259,6 @@
           "file_id": "logo-900e1fa6bdf3",
           "id": "primary-logo-900e1fa6bdf3",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -286,7 +269,6 @@
           "file_id": "config-b715e6ed0945",
           "id": "primary-config-b715e6ed0945",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -297,7 +279,6 @@
           "file_id": "configuration-625c81a3527c",
           "id": "primary-configuration-625c81a3527c",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -308,7 +289,6 @@
           "file_id": "global-model-d0f15c7766d5",
           "id": "primary-global-model-d0f15c7766d5",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -319,7 +299,6 @@
           "file_id": "special-tokens-map-7b8a9f5040ad",
           "id": "primary-special-tokens-map-7b8a9f5040ad",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -330,7 +309,6 @@
           "file_id": "spiece-e3909a67b780",
           "id": "primary-spiece-e3909a67b780",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -341,7 +319,6 @@
           "file_id": "tokenizer-6e197b4d3dbd",
           "id": "primary-tokenizer-6e197b4d3dbd",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -352,7 +329,6 @@
           "file_id": "tokenizer-config-ed9a3a8b0faa",
           "id": "primary-tokenizer-config-ed9a3a8b0faa",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -363,7 +339,6 @@
           "file_id": "local-model-7dda42503886",
           "id": "primary-local-model-7dda42503886",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -374,7 +349,6 @@
           "file_id": "models-clip-open-clip-xlm-roberta-large-vit-huge-628c9998b613",
           "id": "primary-models-clip-open-clip-xlm-roberta-large-vit-huge-628c999",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -385,7 +359,6 @@
           "file_id": "models-t5-umt5-xxl-enc-bf16-7cace0da2b44",
           "id": "primary-models-t5-umt5-xxl-enc-bf16-7cace0da2b44",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -396,7 +369,6 @@
           "file_id": "sentencepiece-bpe-cfc8146abe2a",
           "id": "primary-sentencepiece-bpe-cfc8146abe2a",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -407,7 +379,6 @@
           "file_id": "special-tokens-map-06e405a36dfe",
           "id": "primary-special-tokens-map-06e405a36dfe",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -418,7 +389,6 @@
           "file_id": "tokenizer-62c24cdc13d4",
           "id": "primary-tokenizer-62c24cdc13d4",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -429,7 +399,6 @@
           "file_id": "tokenizer-config-efb5c0d09722",
           "id": "primary-tokenizer-config-efb5c0d09722",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -439,7 +408,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "bb8f21d4d23ba51a38d3962989760145d65687d42bf9d34f0148760d0e3d5fa1",
+        "content_sha256": "bf2addb55762f8782551bf3b6d1872ba119bff64362f514734bc1f545a9c133e",
         "kind": "model",
         "publisher": "wan-ai",
         "slug": "wan-dancer-14b"
@@ -452,154 +421,9 @@
       "Wan-Video",
       "ModelScope"
     ],
-    "source_kind": "global",
     "source_reference": "https://github.com/modelscope/DiffSynth-Studio/tree/84f93fc4907b6c193be5501bab0b5c37f383033c"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.0.7",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "65a441d7fd7d262039d2f5acf38c4cd9c5b5a6ae36c25be1f83abebf2b60dd09",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Moved the CUDA runtime base from 13.0.1 to 13.4.1 (ubuntu24.04, arm64 digest 2eaf3468).",
-            "details": "The 13.4.1 runtime image keeps the brand=*,driver>=580,driver<581 requirement clause, so it stays admissible on the Spark 580-series driver. PyTorch continues to bring its own cu130 wheels.",
-            "references": [
-              "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda"
-            ]
-          },
-          {
-            "kind": "runtime",
-            "summary": "Refreshed the PyTorch stack: torch 2.14.0, torchvision 0.29.0, accelerate 1.15.0, transformers 4.46.2 -> 5.17.0, huggingface-hub 0.36.0 -> 1.33.0.",
-            "details": "On this path transformers is used only for the umT5 AutoTokenizer; token IDs and masks for the bundled prompts plus multilingual edge cases are byte-identical under 4.46.2, 4.57.6 and 5.17.0, and the patched package imports cleanly. huggingface-hub 2.0 is excluded by transformers 5.17 (<2.0). Pillow stays 11.3.0 because moviepy 2.2.1 requires pillow<12. DiffSynth-Studio stays at 84f93fc4: its newest tag v1.1.9 is 423 commits older, and advancing main commits are not a release.",
-            "references": [
-              "https://github.com/pytorch/pytorch/releases/tag/v2.14.0",
-              "https://github.com/pytorch/vision/releases/tag/v0.29.0",
-              "https://github.com/huggingface/accelerate/releases/tag/v1.15.0",
-              "https://github.com/huggingface/transformers/releases/tag/v5.17.0",
-              "https://github.com/huggingface/huggingface_hub/releases/tag/v1.33.0"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu130 metadata requires cuda-toolkit==13.0.3.0; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "8871cd91c4bb3eae052db20f0027d2599940b585a0b6eab804604365b43e3215",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.6"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Declared the official cu130 PyTorch wheel-object host for source builds.",
-            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/torch/",
-              "https://download.pytorch.org/whl/cu130/torchvision/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "eeb23e42ccb58655fa5048f3e5633551f2349934dc59eda512a2b476eae8839a",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "DiffSynth-Studio moved from 84f93fc4 to 4dbf980d and changed model configuration, pipeline, and runtime support. The disk-offload Wan Dancer adapter retains the specialized 84f93fc4 pin until compatibility and serving checks cover the changed implementation.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/modelscope/DiffSynth-Studio/compare/84f93fc4907b6c193be5501bab0b5c37f383033c...4dbf980d4d0eb34eda136300dd0d72014cff8965"
-            ],
-            "summary": "Record DiffSynth-Studio runtime drift; retain the disk-offload source pin."
-          }
-        ],
-        "prior_recipe_content_sha256": "acaf4629eea380087fdaca5aedfd4bb3bb35b6ac96164b95ac9ee724197b92b8",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "a24242f145fa0734ddd2d3b4b06111d3d678be45a5fcddaf3f9a9f60eae0f1e6",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "37b53a96bf2c61c5994903368989d65b47d67850589cad319cfed5cd6eb291a2",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": "Pinned DiffSynth-Studio 2.1.5 at commit 84f93fc4, disk-mapped each safetensors expert with a 64 GiB device-residency threshold, isolated global and local stages in separate processes, and retained the 921,600-pixel generation bound. The 126 GB declared envelope passes Controller capacity admission but remains explicitly physical-OOM-gated.",
-            "kind": "initial",
-            "references": [
-              "https://github.com/modelscope/DiffSynth-Studio/tree/84f93fc4907b6c193be5501bab0b5c37f383033c/examples/wanvideo/model_inference_low_vram",
-              "https://huggingface.co/Wan-AI/Wan-Dancer-14B/tree/85ce88dd8d025459dcf0fe93982d6da8b9002957"
-            ],
-            "summary": "Added a distinct Wan-Dancer single-Spark disk-offload canary without changing the original recipe."
-          },
-          {
-            "details": null,
-            "kind": "security",
-            "references": [],
-            "summary": "Vendored and digest-pinned the runtime source, disabled runtime downloads, and retained bounded signed inputs plus fail-closed MP4 verification."
-          }
-        ],
-        "prior_recipe_content_sha256": "84dc412a64fc5d9011ffde30a034077c203da273428fa9fb16ef27421b4c0c5a",
-        "released_at": "2026-08-31",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.0.7"
   },
@@ -633,45 +457,30 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "PYTORCH_CUDA_ALLOC_CONF",
-        "secret": null,
         "value": "expandable_segments:True"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -681,54 +490,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 85667867184,
-            "cache_bytes": 16000000000,
             "image_bytes": 10000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 171335734368
+            "working_bytes": 187335734368
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 10000000000,
-            "startup_peak_bytes": 118000000000,
-            "steady_state_bytes": 108000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "audio_codec": "aac",
-          "audio_sample_rate": 44100,
-          "audio_stream_required": true,
-          "device_residency_threshold_gib": 64,
-          "fps": 30,
-          "frames_per_segment": 149,
-          "global_steps": 48,
-          "local_steps": 24,
-          "maximum_generation_pixels": 921600,
-          "output_crop_rule": "reference-aspect-within-generation-canvas",
-          "output_duration_tolerance_milliseconds": 100,
-          "output_frame_rule": "floor((music-duration-seconds-0.2)*30)",
-          "resolution": "720x1280",
-          "stage_process_isolation": true,
-          "timeout_seconds": 3600,
-          "video_codec": "h264"
-        },
-        "framework": "pytorch",
-        "name": "diffsynth-disk-offload-two-stage-music-to-dance-canary"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -740,13 +517,11 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/music-1s.wav",
-            "input_path": "/inputs",
             "input_slots": {
               "music": "qualification/fixtures/music-1s.wav",
               "prompt": "qualification/fixtures/prompt.txt",
               "reference-image": "qualification/fixtures/tiny.png"
             },
-            "output_path": "/outputs",
             "output_slot": "video",
             "transport": "job"
           }

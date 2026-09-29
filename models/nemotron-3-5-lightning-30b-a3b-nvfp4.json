@@ -1,28 +1,8 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "reasoning",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "bee7596271d1495f6992ae224aefde4410e816b8",
-      "source_url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "reasoning",
+    "text-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -657,7 +637,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "nvfp4",
     "quantization": "nvfp4"
   },
@@ -668,7 +647,6 @@
       "title": "NVIDIA Nemotron"
     },
     "model": {
-      "architecture": "Nemotron 3.5 hybrid Mamba-2, attention, sparse MoE, and multi-token prediction",
       "publisher": "nvidia",
       "slug": "nemotron-3-5-lightning-30b-a3b",
       "title": "Nemotron 3.5 Lightning 30B-A3B"
@@ -683,25 +661,8 @@
     "attribution": [
       "NVIDIA Corporation"
     ],
-    "operator_acceptance_required": true,
     "spdx": "LicenseRef-OpenMDW-1.1",
     "url": "https://openmdw.ai/"
-  },
-  "limits": {
-    "context_tokens": 1048576,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official NVIDIA NVFP4 release of Nemotron 3.5 Lightning.",
-    "publisher": "nvidia",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "nvidia",
-      "slug": "nemotron-3-5-lightning-30b-a3b"
-    }
   },
   "metadata": {
     "description": "Official NVIDIA Nemotron 3.5 Lightning NVFP4 checkpoint with DSpark-oriented model packaging.",
@@ -718,21 +679,9 @@
   "modalities": [
     "text"
   ],
-  "parameters": {
-    "active": 3000000000,
-    "total": 30000000000
-  },
-  "provenance": {
-    "attribution": [
-      "NVIDIA Corporation"
-    ],
-    "source_revision": "bee7596271d1495f6992ae224aefde4410e816b8",
-    "source_url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4",
     "revision": "bee7596271d1495f6992ae224aefde4410e816b8"
-  },
-  "supersedes": null
+  }
 }

@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-        "platform": "linux/arm64",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -22,13 +20,10 @@
           "archive.ubuntu.com",
           "security.ubuntu.com",
           "ports.ubuntu.com"
-        ],
-        "mode": "public"
+        ]
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -45,7 +40,6 @@
           "image/png",
           "image/webp"
         ],
-        "path": "/inputs",
         "required": true,
         "slots": [
           {
@@ -87,7 +81,6 @@
       },
       "output": {
         "max_total_bytes": 536870912,
-        "path": "/outputs",
         "slots": [
           {
             "description": "Generated 1280x704 H.264 MP4 video with 121 frames at 24 fps.",
@@ -105,8 +98,7 @@
             "min_files": 1
           }
         ]
-      },
-      "path": "/outputs"
+      }
     }
   ],
   "kind": "recipe",
@@ -136,7 +128,6 @@
           "file_id": "diffusion",
           "id": "primary-diffusion",
           "mount": {
-            "read_only": true,
             "target": "/models/target"
           },
           "roles": [
@@ -147,7 +138,6 @@
           "file_id": "text-encoder",
           "id": "primary-text-encoder",
           "mount": {
-            "read_only": true,
             "target": "/models/text-encoder"
           },
           "roles": [
@@ -158,7 +148,6 @@
           "file_id": "vae",
           "id": "primary-vae",
           "mount": {
-            "read_only": true,
             "target": "/models/vae"
           },
           "roles": [
@@ -168,7 +157,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "cd52b26d60fd2f0a9f2da9aed75280811061765fd1ed47a146eaf70d0c5074ae",
+        "content_sha256": "58304cdd3b62bdd899045bff80a729cc58416762cccf55991351552b19749490",
         "kind": "model",
         "publisher": "wan-ai",
         "slug": "wan-2-2-ti2v-5b-comfyui-ee6f4a40"
@@ -180,235 +169,9 @@
       "Wan-AI",
       "Comfy-Org"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/ee6f4a40737a995bf5818954cfce6d59443b0f04"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.1.0",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "9f744492fa9d48aad5e88b18765e1ff9f59dbb341af3ba8cadfd56c0913bea6b",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Rebuilt on ComfyUI v0.37.4, CUDA 13.4.1 runtime base, and PyTorch 2.14.0/torchvision 0.29.0 cu130.",
-            "details": "ComfyUI moves from main commit 250b2e95 to stable tag v0.37.4 (8ff6dc38, contains the old pin; archive SHA-256 recomputed). Every core node used by the workflow is still present with the same required inputs (CreateVideo and ModelSamplingAuraFlow only gained optional inputs with defaults), so the workflow JSON is unchanged. The base moves from nvcr.io/nvidia/cuda 13.0.1-runtime to 13.4.1-runtime (arm64 digest, same 580-series driver requirement); torchaudio stays 2.11.0. ComfyUI's unpinned requirements.txt now pins comfy-kitchen 0.2.35 and comfy-aimdo 0.5.5.",
-            "references": [
-              "https://github.com/comfyanonymous/ComfyUI/compare/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a...v0.37.4",
-              "https://github.com/comfyanonymous/ComfyUI/tree/v0.37.4",
-              "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.37.0",
-              "https://download.pytorch.org/whl/cu130/torch/"
-            ]
-          },
-          {
-            "kind": "model",
-            "summary": "Pinned Comfy-Org/Wan_2.2_ComfyUI_Repackaged at head ee6f4a40; the selected weight files are byte-identical.",
-            "details": "Upstream commits between c4f60d30 and ee6f4a40 only touch the README/workflow-template links or add unrelated files. The LFS SHA-256 and size of every file this recipe uses (TI2V 5B FP16 model, UMT5 encoder, Wan 2.2 VAE) are unchanged at the new revision, so model content is unchanged.",
-            "references": [
-              "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/commits/main",
-              "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/ee6f4a40737a995bf5818954cfce6d59443b0f04"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Permit the official NVIDIA CUDA toolkit host.",
-            "details": "The pinned PyTorch cu130 metadata requires cuda-toolkit==13.0.3.0; the official index resolves that package to a wheel hosted on pypi.nvidia.com. This exact host is now permitted for the source build; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/cuda-toolkit/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "25e0cb827392b9559ecaceb976fc813e7bc78cdf2748e496051eab9cc2ab955d",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.12"
-      },
-      {
-        "changes": [
-          {
-            "kind": "fix",
-            "summary": "Declared the official cu130 PyTorch wheel-object host for source builds.",
-            "details": "The pinned PyTorch package indexes link ARM64 wheels to the exact download-r2.pytorch.org artifact host. Both the index and its wheel host are now explicitly permitted; model and runtime pins are unchanged.",
-            "references": [
-              "https://download.pytorch.org/whl/cu130/torch/",
-              "https://download.pytorch.org/whl/cu130/torchvision/"
-            ]
-          }
-        ],
-        "prior_recipe_content_sha256": "4dcf6553be1bbc05af08c975fa03d986e36eda056577d91d59b13a0f3b04993f",
-        "released_at": "2026-09-24",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.11"
-      },
-      {
-        "changes": [
-          {
-            "details": "The digest-verified build now fetches ComfyUI at the current checked upstream commit. The pinned compare range changes ComfyUI internals and API nodes, while every node class used by this recipe workflow remains present in the current source tree; workflow JSON, model revisions, and specialized Spark resource declarations are unchanged.",
-            "kind": "compatibility",
-            "references": [
-              "https://github.com/comfyanonymous/ComfyUI/compare/12d5279438bfefc058a269eae805ceab6047777f...250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a",
-              "https://github.com/comfyanonymous/ComfyUI/commit/250b2e9551a7bc7a8ebb5beb07e0fecd2983e04a"
-            ],
-            "summary": "Rebuilt the ComfyUI media adapter at upstream commit 250b2e9551a7."
-          }
-        ],
-        "prior_recipe_content_sha256": "3c2b8571fb8e3e5cb1cd425751c819881b97ea66e9b6be05e6ea682bf4e50005",
-        "released_at": "2026-09-05",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.10"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.0.9"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "c37abbe5aed54bf546c4c8a76228fcf940f8217e69558489291cf48f22240a3e",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.8"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "e424b4de358dde24bfe749d585905eba94fa5c3368bdee58f719fa56210de242",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.0.7"
-      },
-      {
-        "changes": [
-          {
-            "details": "Removed nvcr.io because digest-pinned base images are fetched through the separate verified base-image transfer and the build runs with pull disabled.",
-            "kind": "security",
-            "references": [],
-            "summary": "Restricted public build egress to hosts used during Dockerfile execution."
-          }
-        ],
-        "prior_recipe_content_sha256": "4c12f075c0afccabbc0fa6b21b0bbabc6fdb14596ec46c4c50358cab32073d5d",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.6"
-      },
-      {
-        "changes": [
-          {
-            "details": "The source bundle now hash-locks stable tag v0.34.0 at exact commit 12d52794 and its verified source archive. Model artifacts, core-node workflow parameters, admission envelopes, and Candidate qualification are unchanged.",
-            "kind": "runtime",
-            "references": [
-              "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.34.0",
-              "https://github.com/Comfy-Org/ComfyUI/commit/12d5279438bfefc058a269eae805ceab6047777f"
-            ],
-            "summary": "Refreshed the pinned core runtime to ComfyUI 0.34.0."
-          }
-        ],
-        "prior_recipe_content_sha256": "41d7a92f932efa7362bf880cd0b44c37a6e24f3f222677c27b9321bb3cf85bf4",
-        "released_at": "2026-08-31",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.5"
-      },
-      {
-        "changes": [
-          {
-            "details": "Recommendation metadata now distinguishes its declared 86 GB startup-plus-reserve envelope from the OOM-gated 14B Candidates while retaining the physical acceptance gate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Made TI2V 5B the recommended default single-Spark Wan profile."
-          }
-        ],
-        "prior_recipe_content_sha256": "03c3a56415791d17b059e7df7055c771f31dfc51a57e1de2a806971dee5a6e13",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "none",
-        "version": "1.0.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "The adapter now consumes the prompt and reference image from their signed manifest slots, while the recipe declares exact input limits and one bounded MP4 result.",
-            "kind": "fix",
-            "references": [],
-            "summary": "Added signed typed prompt, image, and MP4 result slots."
-          }
-        ],
-        "prior_recipe_content_sha256": "3ef9ac7658a05e202e074fd687d0c11d4618ee5757914a464888d0b56c661fc6",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.3"
-      },
-      {
-        "changes": [
-          {
-            "details": "The adapter rejects blank prompts before model linking and requires one H.264 1280x704, 121-frame, 24 fps MP4 with a matching duration.",
-            "kind": "fix",
-            "references": [],
-            "summary": "Required a prompt and fail-closed Wan MP4 result validation."
-          }
-        ],
-        "prior_recipe_content_sha256": "44e90a3dc065c5eff01022e0e84ffc8a096883c2458e2bf21ddd36196c40e77b",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "rebuild",
-        "version": "1.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "5066a786d18a38aa025587bcfd1e55b8fb4776ee28b72b0de054b226acbc2df9",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/c4f60d30c55a624e35427060fdd217579a6c1d77"
-            ],
-            "summary": "Initial candidate core-node ComfyUI image-to-video release for Wan 2.2 TI2V 5B on a single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "f682f606a12b4ba579f10f3bb3f697470e1f92510324e43509203e689dee89ee",
-        "released_at": "2026-08-25",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.1.0"
   },
@@ -442,40 +205,26 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": null,
     "kind": "job",
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -485,44 +234,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 18144966705,
-            "cache_bytes": 8000000000,
             "image_bytes": 5000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 26000000000
+            "working_bytes": 34000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 12000000000,
-            "startup_peak_bytes": 78000000000,
-            "steady_state_bytes": 66000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 78000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "fps": 24,
-          "frames": 121,
-          "height": 704,
-          "steps": 20,
-          "timeout_seconds": 14400,
-          "width": 1280
-        },
-        "framework": "comfyui",
-        "name": "wan-2-2-ti2v-5b-720p"
-      }
-    ],
     "serving": {
       "checks": [
         {
@@ -534,12 +261,10 @@
           "name": "job-output",
           "request": {
             "fixture": "qualification/fixtures/tiny.png",
-            "input_path": "/inputs",
             "input_slots": {
               "image": "qualification/fixtures/tiny.png",
               "prompt": "qualification/fixtures/prompt.txt"
             },
-            "output_path": "/outputs",
             "output_slot": "video",
             "transport": "job"
           }

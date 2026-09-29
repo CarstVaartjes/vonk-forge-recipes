@@ -17,14 +17,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from generated_catalog import GENERATED
 from vonk_forge_contracts import (
-    ModelDefinition,
-    RecipeDefinition,
-    content_sha256,
+    document_sha256,
 )
 
 ADAPTER = ROOT / "adapters/video/wan-dancer-diffsynth-disk"
 RECIPE = ROOT / "recipes/wan-dancer-14b-disk-offload-pytorch-single.json"
-ORIGINAL_RECIPE = ROOT / "recipes/wan-dancer-14b-pytorch-single.json"
 MODEL = ROOT / "models/wan-dancer-14b.json"
 ARCHIVE = (
     ADAPTER / "vendor/diffsynth-studio-84f93fc4907b6c193be5501bab0b5c37f383033c.tar.gz"
@@ -35,7 +32,6 @@ PACKAGE = GENERATED / "packages/wan-dancer-14b-disk-offload-pytorch-single.tar.g
 BASE_IMAGE = {
     "repository": "nvcr.io/nvidia/cuda",
     "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-    "platform": "linux/arm64",
 }
 BUILD_NETWORK_HOSTS = [
     "download.pytorch.org",
@@ -61,9 +57,7 @@ PLATFORM_OWNED_CACHE_ENVIRONMENT = {
 
 
 def canonical_digest(path: Path) -> str:
-    return content_sha256(
-        ModelDefinition.model_validate(json.loads(path.read_text(encoding="utf-8")))
-    )
+    return document_sha256(json.loads(path.read_text(encoding="utf-8")))
 
 
 def package_manifest() -> dict[str, object]:
@@ -79,25 +73,12 @@ def load_module(filename: str, name: str):
 
 
 class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
-    def test_original_recipe_is_preserved_at_requested_base_digest(self) -> None:
-        release = json.loads(ORIGINAL_RECIPE.read_text(encoding="utf-8"))["release"]
-        historical = {
-            entry["version"]: entry["prior_recipe_content_sha256"]
-            for entry in release["history"]
-        }
-        self.assertEqual(
-            historical["1.0.5"],
-            "950296d999671c60362fecb5623d0bf4ad15cbf2d3b6863a9c87ef2cf9fdd940",
-        )
-
     def test_canary_resolves_pinned_model_runtime_and_bounded_memory(self) -> None:
         recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
         self.assertEqual(
             recipe["models"][0]["model"]["content_sha256"], canonical_digest(MODEL)
         )
-        execution = recipe["execution"]
-        self.assertEqual(execution["mode"], "build")
-        build = execution["build"]
+        build = recipe["execution"]["build"]
         self.assertEqual(build["base_image"], BASE_IMAGE)
         self.assertEqual(
             build["context"], {"path": "adapters/video/wan-dancer-diffsynth-disk"}
@@ -109,9 +90,7 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
             build["patches"],
             [{"path": "adapters/video/wan-dancer-diffsynth-disk/patch-runtime.py"}],
         )
-        self.assertEqual(
-            build["network"], {"mode": "public", "hosts": BUILD_NETWORK_HOSTS}
-        )
+        self.assertEqual(build["network"], {"hosts": BUILD_NETWORK_HOSTS})
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
         self.assertIn(
             'org.opencontainers.image.revision="84f93fc4907b6c193be5501bab0b5c37f383033c"',
@@ -136,20 +115,10 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
         )
 
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        envelope = (
-            max(
-                memory["startup_peak_bytes"],
-                memory["steady_state_bytes"] + memory["runtime_growth_bytes"],
-            )
-            + memory["system_reserve_bytes"]
-        )
+        envelope = memory["peak_bytes"] + memory["reserve_bytes"]
         self.assertEqual(envelope, 126_000_000_000)
         self.assertLess(envelope, 126_946_283_520)
 
-        benchmark = recipe["validation"]["benchmarks"][0]["configuration"]
-        self.assertEqual(benchmark["maximum_generation_pixels"], 921_600)
-        self.assertEqual(benchmark["device_residency_threshold_gib"], 64)
-        self.assertIs(benchmark["stage_process_isolation"], True)
         runtime = recipe["runtime"]
         self.assertEqual(
             set(runtime),
@@ -174,7 +143,7 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
         )
         self.assertEqual(
             manifest["recipe_content_sha256"],
-            content_sha256(RecipeDefinition.model_validate(recipe)),
+            document_sha256(recipe),
         )
         package_paths = {item["path"] for item in manifest["files"]}
         self.assertTrue(
@@ -199,8 +168,9 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
                 self.assertIsNotNone(packaged)
                 payload = packaged.read()
                 if path == "models/wan-dancer-14b.json":
-                    model = ModelDefinition.model_validate(json.loads(payload))
-                    self.assertEqual(content_sha256(model), canonical_digest(MODEL))
+                    self.assertEqual(
+                        document_sha256(json.loads(payload)), canonical_digest(MODEL)
+                    )
                 else:
                     self.assertEqual(payload, (ROOT / path).read_bytes())
 

@@ -8,7 +8,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, content_sha256
+from vonk_forge_contracts import document_sha256
 
 
 def read(path: Path) -> dict[str, object]:
@@ -28,7 +28,7 @@ class QwenImageEditINT8ConvRotRecipeTests(unittest.TestCase):
         self.assertEqual(model["format"]["quantization"], "int8_tensorwise_convrot")
         self.assertEqual(
             selection["model"]["content_sha256"],
-            content_sha256(ModelDefinition.model_validate(model)),
+            document_sha256(model),
         )
 
     def test_workflow_resource_and_job_contract(self) -> None:
@@ -42,9 +42,6 @@ class QwenImageEditINT8ConvRotRecipeTests(unittest.TestCase):
         self.assertEqual(len(args["workflow-sha256"]), 64)
         self.assertEqual(recipe["runtime"]["engine"], "comfyui")
         self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")
-        self.assertIn(
-            recipe["execution"]["build"]["network"]["mode"], {"none", "public"}
-        )
         validation: Any = recipe["validation"]
         self.assertTrue(validation["serving"]["checks"])
 

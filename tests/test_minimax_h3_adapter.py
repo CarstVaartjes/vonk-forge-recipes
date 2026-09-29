@@ -60,9 +60,12 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
         self.assertTrue({"video", "audio", "multimodal", "modular-diffusers"} <= tags)
         self.assertTrue(recipe["execution"])
 
-    def test_license_fails_closed_for_exact_excluded_territories(self) -> None:
+    def test_license_records_excluded_territories(self) -> None:
         model = json.loads(MODEL_PATH.read_text(encoding="utf-8"))
-        self.assertTrue(model["license"]["operator_acceptance_required"])
+        restrictions = model["license"]["territorial_restrictions"]
+        self.assertTrue(
+            {"EU", "GB", "KR", "US"} <= set(restrictions["denied_jurisdictions"])
+        )
 
     def test_signed_source_bundle_matches_recipe(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
@@ -158,9 +161,7 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
                 Path("unused.mp4"), width=960, height=544, frame_count=124
             )
 
-    def test_recipe_declares_explicit_smoke_balanced_and_qualification_profiles(
-        self,
-    ) -> None:
+    def test_recipe_runs_the_balanced_profile_by_default(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
         arguments = {
             argument["name"]: argument["value"]
@@ -168,35 +169,6 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
         }
         self.assertEqual(arguments["num-inference-steps"], 31)
         self.assertNotIn("profile", arguments)
-
-        benchmarks = {
-            benchmark["name"]: benchmark["configuration"]
-            for benchmark in recipe["validation"]["benchmarks"]
-        }
-        self.assertEqual(
-            benchmarks,
-            {
-                "smoke-only-startup": {
-                    "profile": "smoke-only",
-                    "sigma_grid_points": 4,
-                    "model_evaluations": 3,
-                    "smoke_only": True,
-                    "timeout_seconds": 14400,
-                },
-                "balanced-generation": {
-                    "profile": "balanced",
-                    "sigma_grid_points": 31,
-                    "model_evaluations": 30,
-                    "timeout_seconds": 28800,
-                },
-                "qualification-reference": {
-                    "profile": "qualification-reference",
-                    "sigma_grid_points": 51,
-                    "model_evaluations": 50,
-                    "timeout_seconds": 43200,
-                },
-            },
-        )
 
     def test_recipe_declares_truthful_typed_input_slots(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))

@@ -1,17 +1,5 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [],
-    "provenance": {
-      "source_revision": "207b116dae70ace3637169f1ddd2434b91b3a8cd",
-      "source_url": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/blob/207b116dae70ace3637169f1ddd2434b91b3a8cd/config.json"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -34,7 +22,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "fp16-compatible",
     "quantization": "none"
   },
@@ -45,7 +32,6 @@
       "title": "Stable Diffusion XL VAE"
     },
     "model": {
-      "architecture": "AutoencoderKL",
       "publisher": "madebyollin",
       "slug": "sdxl-vae-fp16-fix",
       "title": "SDXL VAE fp16 fix"
@@ -60,25 +46,8 @@
     "attribution": [
       "madebyollin"
     ],
-    "operator_acceptance_required": false,
     "spdx": "MIT",
     "url": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/blob/207b116dae70ace3637169f1ddd2434b91b3a8cd/README.md"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Pinned SDXL VAE replacement passed directly to AutoencoderKL.from_pretrained by Step1X.",
-    "publisher": "madebyollin",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "madebyollin",
-      "slug": "sdxl-vae-fp16-fix"
-    }
   },
   "metadata": {
     "description": "Exact local-only VAE config and safe weights loaded by the Step1X texture adapter.",
@@ -92,21 +61,9 @@
   "modalities": [
     "image"
   ],
-  "parameters": {
-    "active": null,
-    "total": null
-  },
-  "provenance": {
-    "attribution": [
-      "madebyollin"
-    ],
-    "source_revision": "207b116dae70ace3637169f1ddd2434b91b3a8cd",
-    "source_url": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/blob/207b116dae70ace3637169f1ddd2434b91b3a8cd/config.json"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix",
     "revision": "207b116dae70ace3637169f1ddd2434b91b3a8cd"
-  },
-  "supersedes": null
+  }
 }

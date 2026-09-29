@@ -40,17 +40,6 @@ class MiaDSparkRuntimeContractTest(unittest.TestCase):
         wrapper = (ADAPTER / "vllm-wrapper.py").read_text(encoding="utf-8")
         self.assertIn("/outputs/cache", wrapper)
 
-    def test_sampling_shape_canary_remains_qualification_evidence(self) -> None:
-        recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
-        benchmarks = {
-            benchmark["name"]: benchmark["configuration"]
-            for benchmark in recipe["validation"]["benchmarks"]
-        }
-
-        self.assertEqual(benchmarks["sampler-shape-canary"]["top_k"], 40)
-        self.assertEqual(benchmarks["sampler-shape-canary"]["top_p"], "0.9")
-        self.assertIn("candidate", recipe["metadata"]["tags"])
-
     def test_shipped_partial_prefill_default_is_the_safe_single_lane(self) -> None:
         recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
         environment = {

@@ -1,23 +1,18 @@
 {
   "execution": {
-    "mode": "build",
     "build": {
       "base_image": {
-        "repository": "registry.example/vonk/base",
         "digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        "platform": "linux/arm64"
+        "repository": "registry.example/vonk/base"
       },
       "context": {
         "path": "context.tar"
       },
       "dockerfile": "Dockerfile",
-      "patches": [],
-      "target": null,
-      "arguments": [],
       "network": {
-        "mode": "none",
         "hosts": []
-      }
+      },
+      "patches": []
     }
   },
   "identity": {
@@ -36,12 +31,12 @@
   ],
   "kind": "recipe",
   "metadata": {
-    "description": "Synthetic image execution example.",
+    "description": "Synthetic source-build example.",
     "tags": [
       "synthetic",
       "text"
     ],
-    "title": "Synthetic Tiny image"
+    "title": "Synthetic Tiny build"
   },
   "models": [
     {
@@ -50,7 +45,6 @@
           "file_id": "weights",
           "id": "weights",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -60,7 +54,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1f771ebe96075186b972b481122838c95afca65bfd37223b62fca2c59afac656",
+        "content_sha256": "05a481f76890725bfb498309a58b7464846ac4853b8e4a5db6495d40ce631ac4",
         "kind": "model",
         "publisher": "vonk-forge",
         "slug": "synthetic-tiny-fp16"
@@ -71,23 +65,9 @@
     "attribution": [
       "Vonk Forge"
     ],
-    "source_kind": "local",
     "source_reference": null
   },
   "release": {
-    "history": [
-      {
-        "changes": [
-          {
-            "kind": "initial",
-            "summary": "Initial reviewed recipe contract."
-          }
-        ],
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.0.0"
-      }
-    ],
     "released_at": "2026-09-05",
     "version": "1.0.0"
   },
@@ -117,12 +97,9 @@
     ],
     "environment": [],
     "lifecycle": {
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 30
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": {
       "change_effect": "restart",
@@ -136,19 +113,13 @@
     "knobs": {}
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -158,31 +129,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 1024,
-            "cache_bytes": 1024,
             "image_bytes": 1000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 1024,
-            "staging_bytes": 2048
+            "working_bytes": 3072
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 1000000,
-            "startup_peak_bytes": 80000000,
-            "steady_state_bytes": 70000000,
-            "system_reserve_bytes": 1000000
+            "peak_bytes": 80000000,
+            "reserve_bytes": 1000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [],
     "serving": {
       "checks": [
         {

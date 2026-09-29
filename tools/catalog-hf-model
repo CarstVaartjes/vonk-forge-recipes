@@ -15,7 +15,7 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, content_sha256
+from vonk_forge_contracts import ModelDefinition, document_sha256
 
 MAX_INLINE_ARTIFACT_BYTES = 16 * 1024 * 1024
 
@@ -56,12 +56,6 @@ def _get_bytes(url: str) -> bytes:
         return response.read()
 
 
-def _content_hash(path: Path) -> str:
-    return content_sha256(
-        ModelDefinition.model_validate_json(path.read_text(encoding="utf-8"))
-    )
-
-
 def _arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -78,32 +72,25 @@ def _arguments() -> argparse.Namespace:
     parser.add_argument("--model-slug", required=True)
     parser.add_argument("--model-title", required=True)
     parser.add_argument("--model-description", required=True)
-    parser.add_argument("--architecture", required=True)
     parser.add_argument("--modality", default="language")
     parser.add_argument("--version-slug", required=True)
     parser.add_argument("--version", required=True)
     parser.add_argument("--precision", required=True)
     parser.add_argument("--quantization", required=True)
-    parser.add_argument("--parameters-total", type=int, required=True)
-    parser.add_argument("--parameters-active", type=int, required=True)
-    parser.add_argument("--context-tokens", type=int, required=True)
     parser.add_argument("--license-spdx", required=True)
     parser.add_argument("--license-url", required=True)
     parser.add_argument("--attribution", action="append", required=True)
-    parser.add_argument("--operator-acceptance-required", action="store_true")
     parser.add_argument(
-        "--visibility", choices=("public", "restricted"), default="public"
+        "--requires-token",
+        action="store_true",
+        help="the repository is gated: downloading needs a provider token",
     )
-    parser.add_argument("--gated", action="store_true")
-    parser.add_argument("--authentication", choices=("none", "token"), default="none")
     parser.add_argument(
-        "--lineage-relation",
-        choices=("official", "derived", "quantized"),
-        default="official",
+        "--capability",
+        action="append",
+        default=[],
+        help="a capability name the model supports (repeatable)",
     )
-    parser.add_argument("--lineage-publisher")
-    parser.add_argument("--source-model-publisher")
-    parser.add_argument("--source-model-slug")
     return parser.parse_args()
 
 
@@ -204,11 +191,7 @@ def main() -> int:
     )
     if modality not in {"text", "image", "audio", "video", "3d", "embeddings"}:
         raise SystemExit(f"unsupported model modality: {args.modality}")
-    lineage_publisher = args.lineage_publisher or args.publisher
-    source_model_publisher = args.source_model_publisher or args.publisher
-    source_model_slug = args.source_model_slug or args.model_slug
     document = {
-        "schema_version": 2,
         "kind": "model",
         "identity": {
             "publisher": args.publisher,
@@ -222,7 +205,6 @@ def main() -> int:
                 "publisher": args.publisher,
                 "slug": args.model_slug,
                 "title": args.model_title,
-                "architecture": args.architecture,
             },
             "version": args.version,
             "variant": args.version,
@@ -235,48 +217,21 @@ def main() -> int:
                 )
             ),
         },
-        "access": {
-            "visibility": args.visibility,
-            "gated": args.gated,
-            "authentication": args.authentication,
-        },
-        "lineage": {
-            "publisher": lineage_publisher,
-            "relation": args.lineage_relation,
-            "source_model": {
-                "kind": "model",
-                "publisher": source_model_publisher,
-                "slug": source_model_slug,
-            },
-            "derivation": "Immutable upstream snapshot at the pinned revision.",
-        },
+        "requires_token": args.requires_token,
         "dependencies": [],
-        "supersedes": None,
         "modalities": [modality],
         "source": {
             "repository": f"https://huggingface.co/{args.repository}",
             "revision": revision,
         },
         "format": {
-            "container": "safetensors",
             "precision": args.precision,
             "quantization": args.quantization,
-        },
-        "parameters": {
-            "total": args.parameters_total,
-            "active": args.parameters_active,
-        },
-        "limits": {
-            "context_tokens": args.context_tokens,
-            "resolution_pixels": None,
-            "frames": None,
-            "sample_rate_hz": None,
         },
         "license": {
             "spdx": args.license_spdx,
             "url": args.license_url,
             "attribution": args.attribution,
-            "operator_acceptance_required": args.operator_acceptance_required,
         },
         "files": [
             {
@@ -288,33 +243,16 @@ def main() -> int:
             }
             for item in artifacts
         ],
-        "capabilities": {
-            "schema_version": 2,
-            "facts": [],
-            "provenance": {
-                "source_url": f"https://huggingface.co/{args.repository}",
-                "source_revision": revision,
-            },
-        },
-        "provenance": {
-            "source_url": f"https://huggingface.co/{args.repository}",
-            "source_revision": revision,
-            "attribution": args.attribution,
-        },
+        "capabilities": sorted(set(args.capability)),
     }
-    validated = ModelDefinition.model_validate(document)
+    ModelDefinition.model_validate(document)
     model_path = root / "models" / f"{args.version_slug}.json"
     model_path.parent.mkdir(parents=True, exist_ok=True)
     model_path.write_text(
-        json.dumps(
-            validated.model_dump(mode="json"),
-            ensure_ascii=False,
-            indent=2,
-            sort_keys=True,
-        )
-        + "\n"
+        json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     )
-    model_hash = _content_hash(model_path)
+    # Recipes reference this Model by the digest of the document as written.
+    model_hash = document_sha256(document)
     print(
         json.dumps(
             {"revision": revision, "model_sha256": model_hash, "bytes": total_bytes},

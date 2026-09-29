@@ -13,6 +13,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -148,15 +149,44 @@ def _git_revision(cwd: Path) -> str:
     return value
 
 
-# v2 package producer.
+# The commit time of a source commit that is not in this checkout (a test
+# fixture or a shallow clone) falls back to a fixed instant, so the index stays
+# a deterministic function of its inputs.
+UNKNOWN_COMMIT_TIME = "1970-01-01T00:00:00Z"
+
+
+def _commit_time(cwd: Path, commit: str) -> str:
+    """Return the committer time of ``commit`` in RFC 3339 UTC."""
+
+    try:
+        value = subprocess.run(
+            ["git", "show", "-s", "--format=%ct", commit],
+            cwd=cwd,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return UNKNOWN_COMMIT_TIME
+    if not value.isdigit():
+        return UNKNOWN_COMMIT_TIME
+    return datetime.fromtimestamp(int(value), UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def _catalog_entity_documents() -> dict[str, dict[str, Any]]:
     result: dict[str, dict[str, Any]] = {}
     from vonk_forge_contracts import ModelDefinition
 
     for path in sorted((ROOT / "models").glob("*.json")):
-        document = ModelDefinition.model_validate(
-            json.loads(path.read_text(encoding="utf-8"))
-        ).model_dump(mode="json", exclude_unset=False, exclude_none=False)
+        # Publish the authored document itself: its digest is the identity
+        # recipes reference, so it must never be a re-serialized copy.
+        document = json.loads(path.read_text(encoding="utf-8"))
+        try:
+            ModelDefinition.model_validate(document)
+        except Exception as error:
+            raise SystemExit(
+                f"model contract validation failed ({path.relative_to(ROOT)}): {error}"
+            ) from error
         identity = document.get("identity", {})
         if document.get("kind") != "model":
             raise SystemExit(
@@ -193,35 +223,31 @@ def _recipe_closure(
         seen_models.add(key)
         files[f"models/{reference['slug']}.json"] = canonical(model)
         pending.extend(model.get("dependencies", []))
-        if model.get("supersedes") is not None:
-            pending.append(model["supersedes"])
-    execution = recipe["execution"]
-    if execution["mode"] == "build":
-        build = execution["build"]
-        context = ROOT / build["context"]["path"]
-        if not context.is_dir():
-            raise SystemExit(
-                f"package source context is missing: {context.relative_to(ROOT)}"
-            )
-        for path in sorted(
-            context.rglob("*"), key=lambda item: item.relative_to(ROOT).as_posix()
-        ):
-            if _safe_file(path):
-                content = path.read_bytes()
-                if len(content) > MAX_SOURCE_FILE_BYTES:
-                    raise SystemExit(
-                        "package source file exceeds the Git blob hydration limit: "
-                        f"{path.relative_to(ROOT)}"
-                    )
-                files[path.relative_to(ROOT).as_posix()] = content
-        for name in (
-            build["dockerfile"],
-            *(patch["path"] for patch in build["patches"]),
-        ):
-            source = ROOT / name
-            if not _safe_file(source):
-                raise SystemExit(f"package source file is missing: {name}")
-            files[name] = source.read_bytes()
+    build = recipe["execution"]["build"]
+    context = ROOT / build["context"]["path"]
+    if not context.is_dir():
+        raise SystemExit(
+            f"package source context is missing: {context.relative_to(ROOT)}"
+        )
+    for path in sorted(
+        context.rglob("*"), key=lambda item: item.relative_to(ROOT).as_posix()
+    ):
+        if _safe_file(path):
+            content = path.read_bytes()
+            if len(content) > MAX_SOURCE_FILE_BYTES:
+                raise SystemExit(
+                    "package source file exceeds the Git blob hydration limit: "
+                    f"{path.relative_to(ROOT)}"
+                )
+            files[path.relative_to(ROOT).as_posix()] = content
+    for name in (
+        build["dockerfile"],
+        *(patch["path"] for patch in build["patches"]),
+    ):
+        source = ROOT / name
+        if not _safe_file(source):
+            raise SystemExit(f"package source file is missing: {name}")
+        files[name] = source.read_bytes()
     for check in recipe["validation"]["serving"]["checks"]:
         request = check["request"]
         if request.get("transport") != "job":
@@ -324,24 +350,22 @@ def validate_recipe_archive(
     that side meets an adversary.
     """
     entities = entities or _catalog_entity_documents()
-    from vonk_forge_contracts import ModelDefinition, RecipeDefinition, content_sha256
+    from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
+    from vonk_forge_contracts.recipe import RecipeJobServingRequest
     from vonk_forge_contracts.resolver import validate_model_references
 
     expected_recipe = RecipeDefinition.model_validate(recipe)
     validate_model_references(
-        [ModelDefinition.model_validate(document) for document in entities.values()]
+        {
+            document_sha256(document): ModelDefinition.model_validate(document)
+            for document in entities.values()
+        }
     )
-    expected_recipe_document = expected_recipe.model_dump(
-        mode="json", exclude_unset=False, exclude_none=False
-    )
-    execution = expected_recipe_document["execution"]
-    source_context: PurePosixPath | None = None
-    if execution["mode"] == "build":
-        source_context = PurePosixPath(str(execution["build"]["context"]["path"]))
+    build = expected_recipe.execution.build
+    source_context = PurePosixPath(build.context.path)
 
     def is_source_member(name: str) -> bool:
-        path = PurePosixPath(name)
-        return source_context is not None and source_context in path.parents
+        return source_context in PurePosixPath(name).parents
 
     expected_model_paths: set[str] = set()
     pending_models = [selection.model for selection in expected_recipe.models]
@@ -361,14 +385,11 @@ def validate_recipe_archive(
         pending_models.extend(
             ModelDefinition.model_validate(model_document).dependencies
         )
-        supersedes = ModelDefinition.model_validate(model_document).supersedes
-        if supersedes is not None:
-            pending_models.append(supersedes)
 
     expected_fixture_paths: set[str] = set()
     for check in expected_recipe.validation.serving.checks:
         request = check.request
-        if request.transport == "job":
+        if isinstance(request, RecipeJobServingRequest):
             expected_fixture_paths.add(request.fixture)
             expected_fixture_paths.update(request.input_slots.values())
 
@@ -478,19 +499,15 @@ def validate_recipe_archive(
         recipe_member = archive.extractfile("recipe.json")
         if recipe_member is None:
             raise SystemExit("recipe package recipe entrypoint is missing")
+        actual_recipe_document = json.load(recipe_member)
         try:
-            actual_recipe = RecipeDefinition.model_validate(json.load(recipe_member))
+            RecipeDefinition.model_validate(actual_recipe_document)
         except Exception as error:
             raise SystemExit(
                 f"recipe package recipe.json is invalid: {error}"
             ) from error
-        recipe_digest = content_sha256(actual_recipe)
-        if (
-            actual_recipe.model_dump(
-                mode="json", exclude_unset=False, exclude_none=False
-            )
-            != expected_recipe_document
-        ):
+        recipe_digest = document_sha256(actual_recipe_document)
+        if recipe_digest != document_sha256(recipe):
             raise SystemExit(
                 "recipe package recipe does not match the requested Recipe"
             )
@@ -511,88 +528,66 @@ def validate_recipe_archive(
                 )
             model_member = archive.extractfile(model_path)
             try:
+                model_document = json.load(model_member) if model_member else None
                 model = (
-                    ModelDefinition.model_validate(json.load(model_member))
-                    if model_member
+                    ModelDefinition.model_validate(model_document)
+                    if model_document is not None
                     else None
                 )
             except Exception as error:
                 raise SystemExit(
                     f"recipe package Model snapshot is invalid: {model_path}"
                 ) from error
-            if model is None or content_sha256(model) != reference.content_sha256:
+            if (
+                model is None
+                or model_document is None
+                or document_sha256(model_document) != reference.content_sha256
+            ):
                 raise SystemExit(
                     f"recipe package Model snapshot digest is stale: {model_path}"
                 )
             pending_models.extend(model.dependencies)
-            if model.supersedes is not None:
-                pending_models.append(model.supersedes)
         paths = set(names)
-        if execution["mode"] == "build":
-            build = execution["build"]
-            context = build["context"]["path"]
-            if not any(name.startswith(context + "/") for name in paths):
-                raise SystemExit(f"recipe package build context is missing: {context}")
-            required = [
-                build["dockerfile"],
-                *(patch["path"] for patch in build["patches"]),
-            ]
-            missing = sorted(name for name in required if name not in paths)
-            if missing:
-                raise SystemExit(
-                    f"recipe package source closure is missing: {', '.join(missing)}"
-                )
-            dockerfile_member = archive.extractfile(build["dockerfile"])
-            if dockerfile_member is None:
-                raise SystemExit("recipe package Dockerfile is missing")
-            inputs = _dockerfile_build_inputs(
-                dockerfile_member.read(), label=build["dockerfile"]
+        context = build.context.path
+        if not any(name.startswith(context + "/") for name in paths):
+            raise SystemExit(f"recipe package build context is missing: {context}")
+        required = [build.dockerfile, *(patch.path for patch in build.patches)]
+        missing = sorted(name for name in required if name not in paths)
+        if missing:
+            raise SystemExit(
+                f"recipe package source closure is missing: {', '.join(missing)}"
             )
-            manifest_inputs = manifest.get("build_inputs")
-            if manifest_inputs != inputs:
-                raise SystemExit("recipe package build inputs are stale")
-            base = build["base_image"]
-            base_digest = base["digest"]
-            base_repository = base["repository"]
-            base_platform = base["platform"]
+        dockerfile_member = archive.extractfile(build.dockerfile)
+        if dockerfile_member is None:
+            raise SystemExit("recipe package Dockerfile is missing")
+        inputs = _dockerfile_build_inputs(
+            dockerfile_member.read(), label=build.dockerfile
+        )
+        manifest_inputs = manifest.get("build_inputs")
+        if manifest_inputs != inputs:
+            raise SystemExit("recipe package build inputs are stale")
 
-            def matches_base(item: dict[str, str]) -> bool:
-                repository, digest = item["reference"].rsplit("@sha256:", 1)
-                parent, leaf = (
-                    repository.rsplit("/", 1) if "/" in repository else ("", repository)
-                )
-                base_parent, base_leaf = (
-                    base_repository.rsplit("/", 1)
-                    if "/" in base_repository
-                    else ("", base_repository)
-                )
-                repository = (
-                    f"{parent}/{leaf.split(':', 1)[0]}"
-                    if parent
-                    else leaf.split(":", 1)[0]
-                )
-                expected_repository = (
-                    f"{base_parent}/{base_leaf.split(':', 1)[0]}"
-                    if base_parent
-                    else base_leaf.split(":", 1)[0]
-                )
-                return (
-                    repository == expected_repository
-                    and digest == base_digest
-                    and item["platform"] == base_platform
-                )
+        def image_name(repository: str) -> str:
+            parent, leaf = (
+                repository.rsplit("/", 1) if "/" in repository else ("", repository)
+            )
+            leaf = leaf.split(":", 1)[0]
+            return f"{parent}/{leaf}" if parent else leaf
 
-            if not any(matches_base(item) for item in inputs):
-                raise SystemExit(
-                    "recipe package base image is absent from Dockerfile build inputs"
-                )
-        for check in expected_recipe_document["validation"]["serving"]["checks"]:
-            request = check["request"]
-            if request.get("transport") == "job":
-                required = [
-                    request["fixture"],
-                    *request.get("input_slots", {}).values(),
-                ]
+        def matches_base(item: dict[str, str]) -> bool:
+            repository, digest = item["reference"].rsplit("@sha256:", 1)
+            return image_name(repository) == image_name(
+                build.base_image.repository
+            ) and (digest == build.base_image.digest)
+
+        if not any(matches_base(item) for item in inputs):
+            raise SystemExit(
+                "recipe package base image is absent from Dockerfile build inputs"
+            )
+        for check in expected_recipe.validation.serving.checks:
+            request = check.request
+            if isinstance(request, RecipeJobServingRequest):
+                required = [request.fixture, *request.input_slots.values()]
                 missing = sorted(name for name in required if name not in paths)
                 if missing:
                     raise SystemExit(
@@ -606,13 +601,10 @@ def recipe_package(
     recipe_path: Path | None = None,
     entity_documents: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[bytes, dict[str, object]]:
-    from vonk_forge_contracts import RecipeDefinition, content_sha256
+    from vonk_forge_contracts import RecipeDefinition, document_sha256
 
-    validated = RecipeDefinition.model_validate(document)
-    document = validated.model_dump(
-        mode="json", exclude_unset=False, exclude_none=False
-    )
-    recipe_digest = content_sha256(validated)
+    RecipeDefinition.model_validate(document)
+    recipe_digest = document_sha256(document)
     recipe_path = (
         recipe_path or ROOT / "recipes" / f"{document['identity']['slug']}.json"
     )
@@ -633,13 +625,10 @@ def recipe_package(
         "recipe_content_sha256": recipe_digest,
         "files": manifest_files,
     }
-    execution = document["execution"]
-    if execution["mode"] == "build":
-        dockerfile_path = execution["build"]["dockerfile"]
-        dockerfile_payload = dict(files)[dockerfile_path]
-        manifest["build_inputs"] = _dockerfile_build_inputs(
-            dockerfile_payload, label=dockerfile_path
-        )
+    dockerfile_path = document["execution"]["build"]["dockerfile"]
+    manifest["build_inputs"] = _dockerfile_build_inputs(
+        dict(files)[dockerfile_path], label=dockerfile_path
+    )
     archive_files = [("manifest.json", canonical(manifest)), *files]
     payload = _archive(archive_files)
     validate_recipe_archive(payload, document, entities)
@@ -665,48 +654,40 @@ def build(
     recipes: list[dict[str, Any]] = []
     for path in sorted((ROOT / "recipes").glob("*.json")):
         document = json.loads(path.read_text(encoding="utf-8"))
-        from vonk_forge_contracts import RecipeDefinition, content_sha256
+        from vonk_forge_contracts import RecipeDefinition, document_sha256
 
         try:
-            validated = RecipeDefinition.model_validate(document)
+            RecipeDefinition.model_validate(document)
         except Exception as error:
             raise SystemExit(
                 f"recipe contract validation failed ({path.relative_to(ROOT)}): {error}"
             ) from error
-        document = validated.model_dump(
-            mode="json", exclude_unset=False, exclude_none=False
-        )
         payload, metadata = recipe_package(
             document, recipe_path=path, entity_documents=entities
         )
         filename = Path(str(metadata["path"])).name
         (package_dir / filename).write_bytes(payload)
-        recipe_digest = content_sha256(validated)
         recipes.append(
             {
                 "source_path": path.relative_to(ROOT).as_posix(),
-                "content_sha256": recipe_digest,
+                "content_sha256": document_sha256(document),
                 "document": document,
                 "package": metadata,
                 "release": document["release"],
             }
         )
-    from vonk_forge_contracts import ModelDefinition, content_sha256
+    from vonk_forge_contracts import CONTRACT_VERSION, document_sha256
 
-    catalog_entities = []
-    for document in sorted(
-        entities.values(), key=lambda item: str(item["identity"]["slug"])
-    ):
-        model = ModelDefinition.model_validate(document)
-        catalog_entities.append(
-            {
-                "source_path": f"models/{document['identity']['slug']}.json",
-                "content_sha256": content_sha256(model),
-                "document": model.model_dump(
-                    mode="json", exclude_unset=False, exclude_none=False
-                ),
-            }
+    catalog_entities = [
+        {
+            "source_path": f"models/{document['identity']['slug']}.json",
+            "content_sha256": document_sha256(document),
+            "document": document,
+        }
+        for document in sorted(
+            entities.values(), key=lambda item: str(item["identity"]["slug"])
         )
+    ]
     platform_commit = ""
     if platform_root is not None:
         platform_commit = _git_revision(Path(platform_root))
@@ -716,6 +697,10 @@ def build(
     return {
         "schema_version": 2,
         "kind": "recipe-library-index",
+        # The library release is the contract version; recipe changes only
+        # move updated_at, the source commit's commit time.
+        "contract_version": CONTRACT_VERSION,
+        "updated_at": _commit_time(ROOT, source_value),
         "repository": REPOSITORY,
         "source_commit": source_value,
         "platform_commit": platform_commit,

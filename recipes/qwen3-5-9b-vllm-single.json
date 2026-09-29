@@ -1,10 +1,8 @@
 {
   "execution": {
     "build": {
-      "arguments": [],
       "base_image": {
         "digest": "e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e",
-        "platform": "linux/arm64",
         "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
@@ -12,13 +10,10 @@
       },
       "dockerfile": "adapters/llm/qwen35-vllm/Dockerfile",
       "network": {
-        "hosts": [],
-        "mode": "none"
+        "hosts": []
       },
-      "patches": [],
-      "target": null
-    },
-    "mode": "build"
+      "patches": []
+    }
   },
   "identity": {
     "publisher": "vonk-forge",
@@ -61,7 +56,6 @@
           "file_id": "metadata-gitattributes",
           "id": "primary-metadata-gitattributes",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -72,7 +66,6 @@
           "file_id": "metadata-license",
           "id": "primary-metadata-license",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -83,7 +76,6 @@
           "file_id": "metadata-readme",
           "id": "primary-metadata-readme",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -94,7 +86,6 @@
           "file_id": "tokenizer-chat-template",
           "id": "primary-tokenizer-chat-template",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -105,7 +96,6 @@
           "file_id": "configuration",
           "id": "primary-configuration",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -116,7 +106,6 @@
           "file_id": "tokenizer-merges",
           "id": "primary-tokenizer-merges",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -127,7 +116,6 @@
           "file_id": "weights-index",
           "id": "primary-weights-index",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -138,7 +126,6 @@
           "file_id": "weights-01",
           "id": "primary-weights-01",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -149,7 +136,6 @@
           "file_id": "weights-02",
           "id": "primary-weights-02",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -160,7 +146,6 @@
           "file_id": "weights-03",
           "id": "primary-weights-03",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -171,7 +156,6 @@
           "file_id": "weights-04",
           "id": "primary-weights-04",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -182,7 +166,6 @@
           "file_id": "preprocessor",
           "id": "primary-preprocessor",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -193,7 +176,6 @@
           "file_id": "tokenizer",
           "id": "primary-tokenizer",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -204,7 +186,6 @@
           "file_id": "tokenizer-config",
           "id": "primary-tokenizer-config",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -215,7 +196,6 @@
           "file_id": "video-preprocessor",
           "id": "primary-video-preprocessor",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -226,7 +206,6 @@
           "file_id": "vocab",
           "id": "primary-vocab",
           "mount": {
-            "read_only": true,
             "target": "/models"
           },
           "roles": [
@@ -236,7 +215,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d5c280c7901f9b177fda196f6511868b4521c0d19be4cc7fa9cf069cf7224284",
+        "content_sha256": "8cf4e116807770179756cbd89de86c78e471ba4e8a99259b504b23a4c6a8991e",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen3-5-9b-c2022362"
@@ -247,167 +226,9 @@
     "attribution": [
       "Qwen"
     ],
-    "source_kind": "global",
     "source_reference": "https://huggingface.co/Qwen/Qwen3.5-9B/tree/c202236235762e1c871ad0ccb60c8ee5ba337b9a"
   },
   "release": {
-    "history": [
-      {
-        "version": "1.2.0",
-        "released_at": "2026-09-28",
-        "upgrade_effect": "rebuild",
-        "prior_recipe_content_sha256": "4edd85dd980940a526a95b9fce9070cb475aed6649bd06c9cf749e8944140353",
-        "changes": [
-          {
-            "kind": "runtime",
-            "summary": "Refresh the pinned official vLLM ARM64 runtime from 0.28.0 to stable 0.30.0.",
-            "details": "Moves from v0.28.0-aarch64-ubuntu2404 (41b54fb42c66) to v0.30.0-aarch64-ubuntu2404 (e06f024cf1dd), build commit ced6857a. Upstream v0.29 makes Model Runner V2 the default and deprecates V1; v0.29/v0.30 removals (PyAV video decoder, api_server module entrypoint, VLLM_PREFIX_CACHE_RETENTION_INTERVAL, VLLM_MM_HASHER_ALGORITHM, GPTQ g_idx) are not used here. Every runtime option in this recipe still exists at v0.30.0. Qwen3.5/Qwen3-Next Triton kernels and GDN gated RMSNorm are warmed at startup in v0.30 (#54797, #54251); the qwen3 reasoning parser and qwen3_coder tool parser are still registered. Model pin unchanged (HF head equals the pinned revision). Needs Spark re-qualification.",
-            "references": [
-              "https://github.com/vllm-project/vllm/releases/tag/v0.30.0",
-              "https://github.com/vllm-project/vllm/releases/tag/v0.29.0",
-              "https://github.com/vllm-project/vllm/compare/v0.28.0...v0.30.0",
-              "https://hub.docker.com/r/vllm/vllm-openai/tags?name=v0.30.0-aarch64"
-            ]
-          }
-        ]
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Bound this recipe to the evidence-backed model capability authority without changing runtime behavior."
-          }
-        ],
-        "prior_recipe_content_sha256": null,
-        "released_at": "2026-09-05",
-        "upgrade_effect": "none",
-        "version": "1.1.4"
-      },
-      {
-        "changes": [
-          {
-            "details": "The recipe now carries every author-selectable Podman build input through the signed Controller-to-agent request, including a bounded capability list that defaults to empty. The agent drops all capabilities before adding only declared allowlisted entries inside Podman's rootless user namespace; host privilege, devices, mounts, sockets, security options, storage, cgroups, and generated image identity remain fixed platform policy.",
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Declared explicit resource limits and rootless capabilities in the portable recipe build contract."
-          }
-        ],
-        "prior_recipe_content_sha256": "18db26e95b18ec77e9361c38e6024c2c2482791a9da2bd947b93b765fe79ded3",
-        "released_at": "2026-09-03",
-        "upgrade_effect": "rebuild",
-        "version": "1.1.3"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared explicit recipe alignment metadata; no runtime behavior changed."
-          }
-        ],
-        "prior_recipe_content_sha256": "e6b19742296ff86fc779d1ac0432e5c52f0df9b9ba5fb1e071b8bf6d9881e4b4",
-        "released_at": "2026-09-01",
-        "upgrade_effect": "none",
-        "version": "1.1.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The checkpoint remains multimodal-capable, while the catalog now states that bounded text chat is qualified and Spark vision serving is still unproven.",
-            "kind": "metadata",
-            "references": [
-              "https://huggingface.co/Qwen/Qwen3.5-9B/tree/c202236235762e1c871ad0ccb60c8ee5ba337b9a"
-            ],
-            "summary": "Separated native multimodal capability from the recipe's currently text-only qualification evidence."
-          }
-        ],
-        "prior_recipe_content_sha256": "5db19392ad2dd5e4931f1c19e8bbbcc4c37e0ca9b22d00ca5f2ea6d028a51955",
-        "released_at": "2026-08-30",
-        "upgrade_effect": "none",
-        "version": "1.1.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "runtime",
-            "references": [],
-            "summary": "Migrated to the official vLLM 0.28.0 ARM64 release image and pinned the changed batch and CUDA-graph defaults."
-          }
-        ],
-        "prior_recipe_content_sha256": "09209aaec7d077883ad175715b32b89237e3d004760d7d693ff7b2aeea5ca788",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "reprepare",
-        "version": "1.1.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "compatibility",
-            "references": [],
-            "summary": "Routed non-root vLLM caches to the writable outputs mount."
-          },
-          {
-            "details": null,
-            "kind": "metadata",
-            "references": [],
-            "summary": "Corrected the dense architecture and multimodal discovery metadata."
-          }
-        ],
-        "prior_recipe_content_sha256": "a00fd718ca80d10ee242ca8c45b9cf19594f33b951223e27ae25f60b94d93d8c",
-        "released_at": "2026-08-28",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.2"
-      },
-      {
-        "changes": [
-          {
-            "details": "The execution contract was already structurally complete; this release makes it available for explicit operator installation while physical build and Spark acceptance remain separate.",
-            "kind": "metadata",
-            "references": [],
-            "summary": "Declared the complete recipe contract installable without changing Candidate qualification."
-          }
-        ],
-        "prior_recipe_content_sha256": "66e2969462dc4159c247b940834c5e8b1f19d613a24f845718c353a9b7a5ede5",
-        "released_at": "2026-08-26",
-        "upgrade_effect": "none",
-        "version": "1.0.1"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [],
-            "summary": "Initial reviewed catalog release of Qwen3.5 9B vLLM single Spark."
-          }
-        ],
-        "prior_recipe_content_sha256": "0103c36a89253bd56bde0a266d73c89a47d3c76807c35bd8f4bb59c505717daa",
-        "released_at": "2026-08-23",
-        "upgrade_effect": "reprepare",
-        "version": "1.0.0"
-      },
-      {
-        "changes": [
-          {
-            "details": null,
-            "kind": "initial",
-            "references": [
-              "https://github.com/CarstVaartjes/vonk-forge-recipes/commit/e4d88c260a8b7a6c2ee621b5f32f2da94663f816"
-            ],
-            "summary": "Recovered the first public legacy revision from before semantic release tracking."
-          }
-        ],
-        "prior_recipe_content_sha256": "bcded17a821eb36ddf4a7a2caaaac7314aefa720488ba97db8583b5296b180bc",
-        "released_at": "2026-08-16",
-        "upgrade_effect": "reprepare",
-        "version": "0.1.0"
-      }
-    ],
     "released_at": "2026-09-28",
     "version": "1.2.0"
   },
@@ -468,26 +289,17 @@
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
-        "secret": null,
         "value": "1"
       },
       {
         "name": "TRANSFORMERS_OFFLINE",
-        "secret": null,
         "value": "1"
       }
     ],
     "lifecycle": {
-      "failure": {
-        "rank_loss": "not-applicable",
-        "recovery": "restart-entrypoint"
-      },
-      "post_stop": [],
-      "pre_start": [],
       "stop_timeout_seconds": 120
     }
   },
-  "schema_version": 2,
   "settings": {
     "concurrency": {
       "change_effect": "restart",
@@ -502,19 +314,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "fabric": {
-      "connectivity": "none",
-      "minimum_bandwidth_mbps": 0
-    },
-    "mode": "single",
     "name": "solo",
     "node_count": 1,
     "parallelism": {
       "backend": "local",
       "data": 1,
       "pipeline": 1,
-      "tensor": 1,
-      "world_size": 1
+      "tensor": 1
     },
     "roles": [
       {
@@ -524,41 +330,22 @@
         "resources": {
           "disk": {
             "artifact_bytes": 19329393661,
-            "cache_bytes": 4000000000,
             "image_bytes": 12000000000,
-            "rollback_bytes": 0,
             "safety_margin_bytes": 12000000000,
-            "staging_bytes": 32000000000
+            "working_bytes": 36000000000
           },
           "memory": {
-            "kind": "unified",
-            "runtime_growth_bytes": 4000000000,
-            "startup_peak_bytes": 70000000000,
-            "steady_state_bytes": 60000000000,
-            "system_reserve_bytes": 8000000000
+            "peak_bytes": 70000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }
     ],
     "start_order": [
       "entrypoint"
-    ],
-    "stop_order": [
-      "entrypoint"
     ]
   },
   "validation": {
-    "benchmarks": [
-      {
-        "configuration": {
-          "max_output_tokens": 64,
-          "requests": 1,
-          "timeout_seconds": 600
-        },
-        "framework": "openai",
-        "name": "bounded-chat"
-      }
-    ],
     "serving": {
       "checks": [
         {

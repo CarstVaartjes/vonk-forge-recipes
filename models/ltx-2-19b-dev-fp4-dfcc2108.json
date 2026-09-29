@@ -1,28 +1,8 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "audio-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "video-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
-      "source_url": "https://huggingface.co/Lightricks/LTX-2"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "audio-generation",
+    "video-generation"
+  ],
   "dependencies": [],
   "files": [
     {
@@ -279,7 +259,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "fp4",
     "quantization": "fp4"
   },
@@ -290,7 +269,6 @@
       "title": "LTX"
     },
     "model": {
-      "architecture": "19B synchronized audio-video diffusion transformer with Gemma text conditioning",
       "publisher": "lightricks",
       "slug": "ltx-2",
       "title": "LTX-2"
@@ -305,25 +283,8 @@
     "attribution": [
       "Lightricks"
     ],
-    "operator_acceptance_required": true,
     "spdx": "LTX-2 Community License Agreement",
     "url": "https://huggingface.co/Lightricks/LTX-2/blob/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/LICENSE"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official LTX-2 development FP4 checkpoint with the official distilled LoRA, spatial upscaler, and Gemma conditioning artifacts.",
-    "publisher": "Lightricks",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "lightricks",
-      "slug": "ltx-2"
-    }
   },
   "metadata": {
     "description": "Exact Lightricks LTX-2 development FP4 checkpoint and native-pipeline companion artifacts for an experimental Spark video/audio recipe.",
@@ -341,21 +302,9 @@
     "audio",
     "video"
   ],
-  "parameters": {
-    "active": null,
-    "total": 19000000000
-  },
-  "provenance": {
-    "attribution": [
-      "Lightricks"
-    ],
-    "source_revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c",
-    "source_url": "https://huggingface.co/Lightricks/LTX-2"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Lightricks/LTX-2",
     "revision": "dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
-  },
-  "supersedes": null
+  }
 }

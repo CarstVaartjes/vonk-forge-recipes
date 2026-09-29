@@ -111,17 +111,9 @@ def execution_stack_identity(
             "build_source_sha256": source_digest,
         }
     )
+    # Failure handling follows from the node count, which the topology holds.
     topology_digest = _canonical_sha256(
-        {
-            "topology": recipe.topology.model_dump(mode="json", exclude_none=False),
-            "failure_policy": (
-                None
-                if recipe.runtime.lifecycle.failure is None
-                else recipe.runtime.lifecycle.failure.model_dump(
-                    mode="json", exclude_none=False
-                )
-            ),
-        }
+        {"topology": recipe.topology.model_dump(mode="json", exclude_none=False)}
     )
     return {
         "runtime_stack_sha256": stack_digest,

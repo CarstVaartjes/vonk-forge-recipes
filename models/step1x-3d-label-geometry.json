@@ -1,32 +1,16 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "3d-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "bf7084495b3a72222f36549b7942948aa4d9daa7",
-      "source_url": "https://huggingface.co/stepfun-ai/Step1X-3D"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "3d-generation"
+  ],
   "dependencies": [
     {
-      "content_sha256": "34bce7be955dece69cdf209d75deb7b6a117d891172c961a59752207a114aa77",
+      "content_sha256": "7b566e43a26e435aaebf58cdae9c61a2c035521e7489a222f5324969e0eedd0c",
       "kind": "model",
       "publisher": "facebook",
       "slug": "dinov2-with-registers-large"
     },
     {
-      "content_sha256": "1906901910fba7fd3a8e0c1fb4d554e6b66cf70faa505bb94f7736b75e4be337",
+      "content_sha256": "2e00aa423d5c92120d39b3d2da0b7d7053aae2d834c373b2706ce544a030e3fa",
       "kind": "model",
       "publisher": "openai",
       "slug": "clip-vit-large-patch14"
@@ -134,7 +118,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "bf16",
     "quantization": "none"
   },
@@ -145,7 +128,6 @@
       "title": "Step1X-3D"
     },
     "model": {
-      "architecture": "upstream-native generation pipeline",
       "publisher": "stepfun-ai",
       "slug": "step1x-3d",
       "title": "Step1X-3D"
@@ -160,25 +142,8 @@
     "attribution": [
       "stepfun-ai"
     ],
-    "operator_acceptance_required": true,
     "spdx": "Apache-2.0",
     "url": "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/LICENSE"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Immutable public upstream snapshot at the pinned revision.",
-    "publisher": "stepfun-ai",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "stepfun-ai",
-      "slug": "step1x-3d"
-    }
   },
   "metadata": {
     "description": "Exact immutable label-geometry pipeline subtree at bf708449; DINOv2 and CLIP configs are separately selected without external encoder weights.",
@@ -191,21 +156,9 @@
   "modalities": [
     "3d"
   ],
-  "parameters": {
-    "active": null,
-    "total": null
-  },
-  "provenance": {
-    "attribution": [
-      "stepfun-ai"
-    ],
-    "source_revision": "bf7084495b3a72222f36549b7942948aa4d9daa7",
-    "source_url": "https://huggingface.co/stepfun-ai/Step1X-3D"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/stepfun-ai/Step1X-3D",
     "revision": "bf7084495b3a72222f36549b7942948aa4d9daa7"
-  },
-  "supersedes": null
+  }
 }

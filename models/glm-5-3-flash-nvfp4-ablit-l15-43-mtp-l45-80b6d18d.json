@@ -1,46 +1,14 @@
 {
-  "access": {
-    "authentication": "token",
-    "gated": true,
-    "visibility": "restricted"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "chat",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "code-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "image-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "text-generation",
-        "evidence_status": "declared",
-        "support": "supported"
-      },
-      {
-        "capability": "video-understanding",
-        "evidence_status": "declared",
-        "support": "supported"
-      }
-    ],
-    "provenance": {
-      "source_revision": "80b6d18d77e3020f2384597081d405f19893f101",
-      "source_url": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation",
+    "video-understanding"
+  ],
   "dependencies": [
     {
-      "content_sha256": "b8070ed88ec4e098ae05d7b50befd6a0c17ae0a378a68860409daf71244d2abc",
+      "content_sha256": "877e81d8d00e7561d56d1f8e57ac5b0c4b1bdbf17c03e790ad35ba6aed3c4e97",
       "kind": "model",
       "publisher": "incoai",
       "slug": "glm-5-3-flash-dflash2-bf582e4e"
@@ -337,7 +305,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "mixed",
     "quantization": "compressed-tensors-nvfp4-w4a4"
   },
@@ -348,7 +315,6 @@
       "title": "GLM 5.3 Red Hat compressed-tensors"
     },
     "model": {
-      "architecture": "GLM5 Next sparse and linear attention multimodal MoE transformer",
       "publisher": "drowzeys",
       "slug": "glm-5-3-flash-nvfp4-ablit-l15-43-mtp-l45",
       "title": "GLM 5.3 Flash NVFP4 Abliterated L15-43 MTP L45"
@@ -366,25 +332,8 @@
       "DealignAI",
       "drowzeys"
     ],
-    "operator_acceptance_required": true,
     "spdx": "MIT",
     "url": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45/blob/80b6d18d77e3020f2384597081d405f19893f101/LICENSE-KEYS.md"
-  },
-  "limits": {
-    "context_tokens": 1048576,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Red Hat AI compressed-tensors NVFP4 body with refusal directions applied to self_attn.o_proj for layers 15 through 43 and MTP layer 45; layer 44 remains stock.",
-    "publisher": "drowzeys",
-    "relation": "derived",
-    "source_model": {
-      "kind": "model",
-      "publisher": "redhatai",
-      "slug": "glm-5-3-flash-nvfp4-compressed-tensors"
-    }
   },
   "metadata": {
     "description": "Complete fail-closed 32-file inventory of Drowzeys' gated Red Hat compressed-tensors checkpoint at 80b6d18d77e3020f2384597081d405f19893f101. Installation requires prior acceptance of the publisher's responsible-use gate and a read-only Hugging Face token supplied through the Controller secret path.",
@@ -406,24 +355,9 @@
     "text",
     "video"
   ],
-  "parameters": {
-    "active": 18000000000,
-    "total": 321320000000
-  },
-  "provenance": {
-    "attribution": [
-      "Z.AI",
-      "Red Hat AI",
-      "DealignAI",
-      "drowzeys"
-    ],
-    "source_revision": "80b6d18d77e3020f2384597081d405f19893f101",
-    "source_url": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45"
-  },
-  "schema_version": 2,
+  "requires_token": true,
   "source": {
     "repository": "https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-43-mtp-l45",
     "revision": "80b6d18d77e3020f2384597081d405f19893f101"
-  },
-  "supersedes": null
+  }
 }

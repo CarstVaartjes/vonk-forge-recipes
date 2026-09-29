@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Generate small synthetic variants used for contract review."""
+"""Generate small synthetic variants used for contract review.
+
+``model-definition.json`` and ``recipe-source-build.json`` are the authored
+seeds. This tool points the build recipe at the model's document digest and
+derives the job and dual-node variants from it.
+"""
 
 from __future__ import annotations
 
@@ -7,62 +12,36 @@ import copy
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 
-from vonk_forge_contracts import ModelDefinition, content_sha256
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
+
+
+def _read(name: str) -> dict[str, Any]:
+    return json.loads((EXAMPLES / name).read_text(encoding="utf-8"))
 
 
 def main() -> int:
-    model = ModelDefinition.model_validate_json(
-        (EXAMPLES / "model-definition.json").read_text(encoding="utf-8")
-    )
-    model_digest = content_sha256(model)
-    image = json.loads((EXAMPLES / "recipe-image.json").read_text(encoding="utf-8"))
-    entry = image["models"][0]
-    if "files" not in entry or "kind" not in entry.get("model", {}):
-        old_model = entry.get("model", entry)
-        if "model" in old_model and "kind" not in old_model:
-            old_model = old_model["model"]
-        selector = {
-            "id": "weights",
-            "file_id": "weights",
-            "roles": ["entrypoint"],
-            "mount": {"target": "/models", "read_only": True},
-        }
-        image["models"] = [{"id": "primary", "model": old_model, "files": [selector]}]
-    image.pop("model_files", None)
-    image["validation"].pop("validators", None)
-    image["models"][0]["model"]["content_sha256"] = model_digest
-    build = copy.deepcopy(image)
+    model = _read("model-definition.json")
+    ModelDefinition.model_validate(model)
+    build = _read("recipe-source-build.json")
     build["identity"]["slug"] = "synthetic-tiny-build"
-    build["execution"] = {
-        "mode": "build",
-        "build": {
-            "base_image": {
-                "repository": "registry.example/vonk/base",
-                "digest": "f" * 64,
-                "platform": "linux/arm64",
-            },
-            "context": {"path": "context.tar"},
-            "dockerfile": "Dockerfile",
-            "patches": [],
-            "target": None,
-            "arguments": [],
-            "network": {"mode": "none", "hosts": []},
-        },
-    }
-    job = copy.deepcopy(image)
+    build["metadata"]["title"] = "Synthetic Tiny build"
+    build["metadata"]["description"] = "Synthetic source-build example."
+    build["models"][0]["model"]["content_sha256"] = document_sha256(model)
+
+    job = copy.deepcopy(build)
     job["identity"]["slug"] = "synthetic-image-job"
+    job["metadata"]["title"] = "Synthetic image job"
+    job["metadata"]["description"] = "Synthetic image job example."
     job["interfaces"] = [
         {
             "adapter": "image-job",
-            "path": "/outputs",
-            "input": None,
             "output": {
-                "path": "/outputs",
                 "max_total_bytes": 1048576,
                 "slots": [
                     {
@@ -81,7 +60,6 @@ def main() -> int:
         }
     ]
     job["validation"] = {
-        "benchmarks": [],
         "serving": {
             "interface": "image-job",
             "checks": [
@@ -91,7 +69,6 @@ def main() -> int:
                     "request": {
                         "transport": "job",
                         "fixture": "blank",
-                        "output_path": "/outputs",
                         "output_slot": "image",
                     },
                     "assertions": ["inference.completed", "artifact.output"],
@@ -101,33 +78,28 @@ def main() -> int:
     }
     job["settings"] = {"kind": "job", "knobs": {}}
     job["runtime"]["engine"] = "image-job"
+
     dual = copy.deepcopy(build)
     dual["identity"]["slug"] = "synthetic-tiny-build-dual"
+    dual["metadata"]["title"] = "Synthetic Tiny build (two nodes)"
     role = copy.deepcopy(dual["topology"]["roles"][0])
     role.update(name="worker", endpoint_owner=False)
     dual["topology"].update(
         node_count=2,
         roles=[dual["topology"]["roles"][0], role],
-        parallelism={
-            "world_size": 2,
-            "tensor": 2,
-            "pipeline": 1,
-            "data": 1,
-            "backend": "nccl",
-        },
-        fabric={"connectivity": "connected", "minimum_bandwidth_mbps": 1000},
+        parallelism={"tensor": 2, "pipeline": 1, "data": 1, "backend": "nccl"},
         start_order=["worker", "entrypoint"],
-        stop_order=["entrypoint", "worker"],
     )
     dual["models"][0]["files"][0]["roles"] = ["entrypoint", "worker"]
     for name, document in (
-        ("recipe-image.json", image),
         ("recipe-source-build.json", build),
         ("recipe-job.json", job),
         ("recipe-dual.json", dual),
     ):
+        RecipeDefinition.model_validate(document)
         (EXAMPLES / name).write_text(
-            json.dumps(document, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+            json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+            encoding="utf-8",
         )
     return 0
 

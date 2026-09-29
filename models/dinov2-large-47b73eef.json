@@ -1,23 +1,5 @@
 {
-  "access": {
-    "authentication": "none",
-    "gated": false,
-    "visibility": "public"
-  },
-  "capabilities": {
-    "facts": [
-      {
-        "capability": "image-understanding",
-        "evidence_status": "unknown",
-        "support": "unknown"
-      }
-    ],
-    "provenance": {
-      "source_revision": "47b73eefe95e8d44ec3623f8890bd894b6ea2d6c",
-      "source_url": "https://huggingface.co/facebook/dinov2-large/blob/47b73eefe95e8d44ec3623f8890bd894b6ea2d6c/README.md"
-    },
-    "schema_version": 2
-  },
+  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -49,7 +31,6 @@
     }
   ],
   "format": {
-    "container": "safetensors",
     "precision": "unspecified",
     "quantization": "none"
   },
@@ -60,7 +41,6 @@
       "title": "DINOv2"
     },
     "model": {
-      "architecture": "Vision Transformer feature encoder",
       "publisher": "facebook",
       "slug": "dinov2-large",
       "title": "DINOv2 Large"
@@ -75,25 +55,8 @@
     "attribution": [
       "facebook"
     ],
-    "operator_acceptance_required": false,
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/facebook/dinov2-large/blob/47b73eefe95e8d44ec3623f8890bd894b6ea2d6c/README.md"
-  },
-  "limits": {
-    "context_tokens": null,
-    "frames": null,
-    "resolution_pixels": null,
-    "sample_rate_hz": null
-  },
-  "lineage": {
-    "derivation": "Official DINOv2 Large upstream checkpoint at the pinned Hugging Face revision.",
-    "publisher": "facebook",
-    "relation": "official",
-    "source_model": {
-      "kind": "model",
-      "publisher": "facebook",
-      "slug": "dinov2-large"
-    }
   },
   "metadata": {
     "description": "The exact DINOv2-Large feature encoder loaded locally by the Hunyuan3D-Omni adapter.",
@@ -107,21 +70,9 @@
   "modalities": [
     "image"
   ],
-  "parameters": {
-    "active": null,
-    "total": null
-  },
-  "provenance": {
-    "attribution": [
-      "facebook"
-    ],
-    "source_revision": "47b73eefe95e8d44ec3623f8890bd894b6ea2d6c",
-    "source_url": "https://huggingface.co/facebook/dinov2-large/blob/47b73eefe95e8d44ec3623f8890bd894b6ea2d6c/README.md"
-  },
-  "schema_version": 2,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/facebook/dinov2-large",
     "revision": "47b73eefe95e8d44ec3623f8890bd894b6ea2d6c"
-  },
-  "supersedes": null
+  }
 }
