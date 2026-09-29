@@ -112,7 +112,7 @@ jobs:
           if [[ -n "$base" ]] && git cat-file -e "$base^{commit}" 2>/dev/null; then
             # Capture first: grep -q exiting early must not fail the pipeline.
             changed=$(git diff --name-only "$base" HEAD)
-            other=$(grep -Ev '^(recipes/|models/|adapters/|qualification/definitions\.json$|README\.md$|creators\.json$)' <<<"$changed" | grep -v '^$' || true)
+            other=$(grep -Ev '^(recipes/|models/|adapters/|qualification/definitions\.json$|qualification/recipes/|README\.md$|creators\.json$)' <<<"$changed" | grep -v '^$' || true)
             if [[ -z "$other" ]]; then full=false; else echo "Not recipe data:"; head -20 <<<"$other"; fi
           fi
           echo "full=$full" >> "$GITHUB_OUTPUT"
