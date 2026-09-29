@@ -170,8 +170,8 @@ class MiaDeepSeekRecentPatchTests(unittest.TestCase):
             (
                 ROOT / "recipes/deepseek-v4-flash-vision-exp-mia-dual.json",
                 ROOT / "adapters/deepseek/mia-vllm-vision/Dockerfile",
-                "1.1.7",
-                "c444d7032957f5a5437261d5366fd06b27a01760",
+                "1.2.0",
+                "97e8733238f81f5fdc44b241f8996a7858825744",
                 "4aca0b546cc6b981e085eb2e9f8d9e87380d03891acea2b9a40e84ac4446e962",
             ),
         )
