@@ -356,12 +356,11 @@ with `gh attestation verify SHA256SUMS -R CarstVaartjes/vonk-forge-recipes`.
 Rebuilding the tagged commit reproduces the release's index and packages byte
 for byte.
 
-The qualification authority binds the catalog generated from a commit of this
-repository. Build the catalog (`tools/build-catalog-index`), then run
-`tools/build-qualification-authority`: it pins that catalog's source commit,
-contract release tag, index digests and every package's stack identity.
-Coverage hashes the current packages and reports rows whose stack differs from
-the authority as divergences.
+The qualification authority is derived, never committed. Coverage builds it in
+memory from the generated catalog (`tools/build-qualification-authority` writes
+it with `--output-dir`), so a new recipe needs only its recipe, model and
+`qualification/definitions.json` entry; no plan, count or generated file is
+edited. Tests assert that every recipe has a definition and is scheduled.
 
 Open or update the PR with exact before/after sources, the reason for changes,
 version notes, validation results, and any retained pins. Complete CI, merge,

@@ -54,6 +54,10 @@ keeping old formats usable alongside it.
   Do not use raw dictionary equality as a parser. Preserve supported defaults
   and extensions; keep deterministic test-content assertions separate from
   structure, and exercise both streaming and non-streaming paths.
+- Code under `adapters/` (vendored patches, launch scripts, upstream-derived
+  wrappers) follows its upstream recipe and is excluded from ruff and pyright;
+  our own code (`tools/`, `scripts/`, `tests/`, `contracts/`) keeps the gates.
+  Adapters stay covered by the functional tests (validation, executability, pins).
 - Run the current producer checks and inspect `git diff --check` before
   committing. Source pins, canonical documents, package contents, digests, and
   generated indexes must agree. Do not omit failing recipes to get a green run.

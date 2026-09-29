@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Generate the exact ordered <=2-Spark qualification authority and campaign.
+"""Derive the ordered <=2-Spark qualification authority and campaign.
+
+Nothing here is committed: the authority is a pure function of this checkout's
+generated catalog, so recipe pull requests never edit it. Use ``--output-dir``
+to write it, or import ``build`` to get the documents in memory.
 
 The authority binds the catalog that ``tools/build-catalog-index`` generated
 from this checkout: its source commit, contract release tag, index digests and
@@ -38,19 +42,10 @@ from qualification.catalog_source import current_catalog_package_tree
 from qualification.coverage_identity import execution_stack_identity
 
 AUTHORITY_ID = "nl-family-aware-20260924"
-AUTHORITY_PATH = QUALIFICATION / f"authorities/{AUTHORITY_ID}.json"
-CAMPAIGN_PATH = QUALIFICATION / f"campaigns/{AUTHORITY_ID}.json"
-PLAN_PATH = ROOT / "docs/recipe-qualification-plan-2026-09-24.md"
 _RECIPE_ROW = re.compile(r"[a-z0-9][a-z0-9-]{0,62}/[a-z0-9][a-z0-9-]{0,62}\Z")
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 _COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 _FIXTURE_MARKERS = {"$fixture_data_uri", "$fixture_base64"}
-# The plan is authored prose wrapped around exactly one generated block.  The
-# markers make that boundary explicit: a prose edit, a renamed heading or a
-# moved paragraph cannot make the generator report the plan stale, and a plan
-# without the block fails closed instead of silently regenerating prose.
-_INVENTORY_BEGIN = "<!-- generated:begin qualification-inventory -->"
-_INVENTORY_END = "<!-- generated:end qualification-inventory -->"
 
 
 def _document_bytes(content: bytes, description: str) -> dict[str, Any]:
@@ -72,48 +67,6 @@ def _recipe_key(document: dict[str, Any]) -> str:
     if _RECIPE_ROW.fullmatch(key) is None:
         raise ValueError(f"catalog recipe key is malformed: {key}")
     return key
-
-
-def _inventory_block(text: str) -> str:
-    for marker in (_INVENTORY_BEGIN, _INVENTORY_END):
-        if text.count(marker) != 1:
-            raise ValueError(
-                "qualification plan must contain exactly one generated inventory block"
-            )
-    start = text.index(_INVENTORY_BEGIN) + len(_INVENTORY_BEGIN)
-    stop = text.index(_INVENTORY_END)
-    if stop < start:
-        raise ValueError("qualification plan generated inventory block is reversed")
-    return text[start:stop]
-
-
-def _plan_rows(text: str) -> list[dict[str, Any]]:
-    rows: list[dict[str, Any]] = []
-    for line_number, line in enumerate(_inventory_block(text).splitlines(), start=1):
-        if not line.startswith("|"):
-            continue
-        fields = [part.strip() for part in line.strip().strip("|").split("|")]
-        if len(fields) != 8 or not fields[0].isdigit():
-            continue
-        match = re.fullmatch(r"`([^`]+)`", fields[1])
-        if match is None:
-            raise ValueError(f"plan row at line {line_number} lacks a recipe key")
-        key = match.group(1)
-        if _RECIPE_ROW.fullmatch(key) is None:
-            raise ValueError(f"plan row has a malformed recipe key: {key}")
-        rows.append(
-            {
-                "sequence": int(fields[0]),
-                "key": key,
-                "node_count": int(fields[2]),
-                "check": fields[5],
-                "old_gate": fields[6],
-                "source_review": fields[7],
-            }
-        )
-    if [row["sequence"] for row in rows] != list(range(1, len(rows) + 1)):
-        raise ValueError("plan rows must have unique contiguous sequence numbers")
-    return rows
 
 
 def _unique_fixture_ids(values: list[Any]) -> list[str]:
@@ -215,16 +168,6 @@ def _model_license_refs(
             license_ref["territorial_restrictions"] = restrictions
         result.append(license_ref)
     return result
-
-
-def _campaign_gate(row: dict[str, Any]) -> str:
-    kinds = {gate["kind"] for gate in row["review_gates"]}
-    if row["node_count"] > 2:
-        return "out of scope (>2 Sparks)"
-    labels = ["single-Spark" if row["node_count"] == 1 else "dual-Spark"]
-    if "capacity-review" in kinds:
-        labels.append("capacity review")
-    return "; ".join(labels)
 
 
 def _execution_batches(
@@ -394,70 +337,9 @@ def _stack_identities(
     return identities
 
 
-def _refresh_plan(text: str, authority: dict[str, Any]) -> str:
-    """Rewrite only the generated inventory block and copy authored prose."""
+def build(catalog_root: Path = ROOT) -> dict[str, bytes]:
+    """Return ``{relative path: bytes}`` for the authority and campaign."""
 
-    row_by_key = {row["key"]: row for row in authority["recipes"]}
-    batch_by_recipe: dict[str, tuple[str, int]] = {}
-    for batch in authority["batches"]:
-        for assignment in batch["assignments"]:
-            batch_by_recipe[assignment["recipe"]] = (batch["id"], assignment["lane"])
-    single_recipe_count = sum(
-        assignment["node_count"] == 1
-        for batch in authority["batches"]
-        for assignment in batch["assignments"]
-    )
-    dual_batch_count = sum(
-        batch["mode"] == "exclusive-dual" for batch in authority["batches"]
-    )
-    single_batch_count = sum(
-        batch["mode"] in {"paired-single", "single"} for batch in authority["batches"]
-    )
-    lines = [
-        _INVENTORY_BEGIN,
-        "\n",
-        (
-            f"The authority assigns {single_recipe_count} one-Spark recipes to "
-            f"{single_batch_count} batches and {dual_batch_count} two-Spark recipes "
-            "to exclusive batches. Wider topologies close the catalog audit only."
-        ),
-        "\n",
-        "\n",
-        "| # | Recipe | Nodes | Batch | Lane | Check | Campaign gate | Source review |\n",
-        "|---:|---|---:|---|---:|---|---|---|\n",
-    ]
-    for plan_row in _plan_rows(text):
-        key = plan_row["key"]
-        row = row_by_key.get(key)
-        if row is None:
-            if plan_row["sequence"] <= 87:
-                raise ValueError(f"campaign row is absent from authority: {key}")
-            gate = "out of scope (>2 Sparks)"
-            batch_id = "—"
-            lane = "—"
-        else:
-            gate = _campaign_gate(row)
-            batch_id, lane = batch_by_recipe[key]
-        fields = [
-            str(plan_row["sequence"]),
-            f"`{key}`",
-            str(plan_row["node_count"]),
-            f"`{batch_id}`" if batch_id != "—" else batch_id,
-            str(lane),
-            plan_row["check"],
-            gate,
-            plan_row["source_review"],
-        ]
-        lines.append("| " + " | ".join(fields) + " |\n")
-    lines.append(_INVENTORY_END)
-    start = text.index(_INVENTORY_BEGIN)
-    stop = text.index(_INVENTORY_END) + len(_INVENTORY_END)
-    return text[:start] + "".join(lines) + text[stop:]
-
-
-def _build(catalog_root: Path = ROOT) -> dict[Path, bytes]:
-    plan_text = PLAN_PATH.read_text(encoding="utf-8")
-    plan_rows = _plan_rows(plan_text)
     gate_review = _document(QUALIFICATION / "review-gates.json")
     if gate_review.get("schema_version") != 2:
         raise ValueError("qualification review gates must be schema 2")
@@ -523,9 +405,6 @@ def _build(catalog_root: Path = ROOT) -> dict[Path, bytes]:
     capacity_reviews = gate_review.get("capacity_reviews")
     if not isinstance(capacity_reviews, dict):
         raise TypeError("capacity_reviews must be an object")
-    plan_keys = [row["key"] for row in plan_rows]
-    if len(plan_keys) != len(set(plan_keys)) or set(plan_keys) != set(catalog_recipes):
-        raise ValueError("qualification plan must cover every catalog recipe once")
     if set(capacity_reviews) - set(catalog_recipes):
         raise ValueError("capacity review references an absent catalog recipe")
 
@@ -541,8 +420,7 @@ def _build(catalog_root: Path = ROOT) -> dict[Path, bytes]:
 
     campaign_rows: list[dict[str, Any]] = []
     out_of_scope: list[str] = []
-    for plan_row in plan_rows:
-        key = plan_row["key"]
+    for key in sorted(catalog_recipes):
         recipe_entry = catalog_recipes[key]
         recipe = recipe_entry["document"]
         topology = recipe.get("topology")
@@ -550,8 +428,8 @@ def _build(catalog_root: Path = ROOT) -> dict[Path, bytes]:
         if not isinstance(topology, dict) or not isinstance(package, dict):
             raise TypeError(f"catalog topology or package is malformed: {key}")
         node_count = topology.get("node_count")
-        if node_count is None or node_count != plan_row["node_count"]:
-            raise ValueError(f"plan topology differs from catalog for {key}")
+        if not isinstance(node_count, int):
+            raise TypeError(f"catalog topology node count is malformed: {key}")
         if node_count > 2:
             out_of_scope.append(key)
             continue
@@ -632,10 +510,6 @@ def _build(catalog_root: Path = ROOT) -> dict[Path, bytes]:
             )
         campaign_rows.append(row)
 
-    if len(campaign_rows) != 87 or len(out_of_scope) != 4:
-        raise ValueError(
-            "catalog topology must produce 87 in-scope and 4 wider recipes"
-        )
     if any(
         key not in {row["key"] for row in campaign_rows} for key in capacity_reviews
     ):
@@ -685,25 +559,18 @@ def _build(catalog_root: Path = ROOT) -> dict[Path, bytes]:
         }
     )
     campaign = campaign_model.model_dump(mode="json", exclude_none=True)
-    plan_output = _refresh_plan(plan_text, authority).encode("utf-8")
     return {
-        AUTHORITY_PATH: (
+        f"authorities/{AUTHORITY_ID}.json": (
             json.dumps(authority, ensure_ascii=False, indent=2) + "\n"
         ).encode("utf-8"),
-        CAMPAIGN_PATH: (
+        f"campaigns/{AUTHORITY_ID}.json": (
             json.dumps(campaign, ensure_ascii=False, indent=2) + "\n"
         ).encode("utf-8"),
-        PLAN_PATH: plan_output,
     }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--check",
-        action="store_true",
-        help="fail if the committed authority, campaign, or plan is stale",
-    )
     parser.add_argument(
         "--catalog-root",
         type=Path,
@@ -712,26 +579,20 @@ def main() -> int:
         "qualification/qualification-index.json and packages/ "
         "(default: this checkout; run tools/build-catalog-index first)",
     )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        required=True,
+        help="directory to write authorities/ and campaigns/ into",
+    )
     args = parser.parse_args()
     try:
-        outputs = _build(args.catalog_root)
-        stale = [
-            path
-            for path, expected in outputs.items()
-            if not path.exists() or path.read_bytes() != expected
-        ]
-        if args.check:
-            if stale:
-                raise ValueError(
-                    "qualification authority outputs are stale: "
-                    + ", ".join(path.relative_to(ROOT).as_posix() for path in stale)
-                )
-            print("qualification authority is current (87 recipes, paired schedule)")
-            return 0
-        for path, content in outputs.items():
+        outputs = build(args.catalog_root)
+        for relative, content in outputs.items():
+            path = args.output_dir / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(content)
-        print("refreshed qualification authority and batched campaign (87 recipes)")
+        print(f"wrote qualification authority and campaign to {args.output_dir}")
         return 0
     except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
         print(f"build-qualification-authority: {error}", file=sys.stderr)

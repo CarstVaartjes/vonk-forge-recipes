@@ -88,16 +88,7 @@ def test_matrix_derives_offline_from_the_generated_catalog() -> None:
     """The derivation needs only the current catalog and the committed authority."""
     matrix = _matrix()
     assert (_coverage() / "family-aware-coverage-2026-09-24.md").is_file()
-    authority = json.loads(
-        (ROOT / "qualification/authorities/nl-family-aware-20260924.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    assert matrix["catalog"]["bound_release_tag"] == authority["catalog"]["release_tag"]
-    assert (
-        matrix["catalog"]["bound_catalog_index_sha256"]
-        == authority["catalog"]["catalog_index_sha256"]
-    )
+    assert matrix["catalog"]["catalog_binding_current"] is True
 
 
 def test_coverage_source_projection_keeps_release_identity_out_of_commit_field() -> (
@@ -128,12 +119,17 @@ def test_every_catalog_recipe_appears_once_with_its_topology() -> None:
     rows = _rows()
     catalog = _catalog()
     assert set(rows) == set(catalog)
-    assert len(rows) == 91
+    in_scope_count = sum(r.topology.node_count <= 2 for r in catalog.values())
+    assert len(rows) == len(catalog)
     assert matrix["catalog"]["recipe_count"] == len(catalog)
-    assert matrix["catalog"]["in_scope_recipe_count"] == 87
-    assert matrix["catalog"]["out_of_scope_recipe_count"] == 4
+    assert matrix["catalog"]["in_scope_recipe_count"] == in_scope_count
+    assert matrix["catalog"]["out_of_scope_recipe_count"] == (
+        len(catalog) - in_scope_count
+    )
     groups = set(matrix["coverage_group_order"])
-    assert sorted(row["matrix_row"] for row in rows.values()) == list(range(1, 92))
+    assert sorted(row["matrix_row"] for row in rows.values()) == list(
+        range(1, len(catalog) + 1)
+    )
     for key, recipe in catalog.items():
         row = rows[key]
         assert row["node_count"] == recipe.topology.node_count
@@ -144,8 +140,8 @@ def test_every_catalog_recipe_appears_once_with_its_topology() -> None:
         assert len(row["build_source_sha256"]) == 64
         assert row["build_source_file_count"] > 0
         assert row["stack_matches_authority"] in (True, False, None)
-    assert sorted(row["node_count"] for row in rows.values()) == (
-        [1] * 75 + [2] * 12 + [3, 4, 4, 8]
+    assert sorted(row["node_count"] for row in rows.values()) == sorted(
+        recipe.topology.node_count for recipe in catalog.values()
     )
 
 
@@ -168,13 +164,10 @@ def test_schedule_covers_every_in_scope_recipe_exactly_once() -> None:
         if row["in_scope"] and row["node_count"] == 1
     )
     assert sorted(lanes) == singles
-    assert len(assignments) == len(set(assignments)) == 87
+    in_scope = [row for row in rows.values() if row["in_scope"]]
+    assert len(assignments) == len(set(assignments)) == len(in_scope)
     batches = matrix["batches"]
-    assert len(batches) == 50
-    assert sum(batch["mode"] == "paired-single" for batch in batches) == 37
-    assert sum(batch["mode"] == "single" for batch in batches) == 1
-    assert sum(batch["mode"] == "exclusive-dual" for batch in batches) == 12
-    assert [batch["sequence"] for batch in batches] == list(range(1, 51))
+    assert [batch["sequence"] for batch in batches] == list(range(1, len(batches) + 1))
     for batch in batches:
         if batch["mode"] == "paired-single":
             assert len(batch["assignments"]) == 2

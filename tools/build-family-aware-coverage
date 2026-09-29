@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Derive the family-aware qualification coverage matrix from exact catalog identities.
 
-The 2026-09-24 plan asks for one complete 85-row stack/family matrix with
+The qualification design asks for one complete stack/family matrix with
 representative selection, paired single-Spark batches and a recovery-coverage
 mapping.  Every field here is derived from documents this repository already
 owns:
@@ -10,12 +10,12 @@ owns:
   digests (``tools/build-catalog-index`` writes it; it is not committed);
 * ``recipes/*.json`` and ``models/*.json`` - the authored contract documents;
 * ``packages/*.tar.gz`` - the current generated packages and their build closures;
-* ``qualification/authorities/nl-family-aware-20260924.json`` - the current
-  paired authority, its per-row gates and its smoke/fixture references.
+* the qualification authority, derived in memory from the same catalog by
+  ``tools/build-qualification-authority`` (never committed): the paired
+  schedule, per-row gates and smoke/fixture references.
 
 Stack identities are hashed from the current packages only; nothing is
-downloaded.  A row whose current stack differs from the identity the authority
-recorded is reported as a divergence, never as a build failure.
+downloaded.
 
 The matrix records structure only.  Cache readiness, structural qualification,
 Controller deployment and physical Spark acceptance are separate evidence
@@ -27,6 +27,8 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.machinery
+import importlib.util
 import json
 import sys
 from pathlib import Path
@@ -49,11 +51,9 @@ from qualification.coverage_identity import execution_stack_identity
 
 RECIPE_DIRECTORY = ROOT / "recipes"
 MODEL_DIRECTORY = ROOT / "models"
-AUTHORITY_PATH = ROOT / "qualification/authorities/nl-family-aware-20260924.json"
 OUTPUT_DIRECTORY = ROOT / "qualification/coverage"
 MATRIX_NAME = "family-aware-coverage-2026-09-24.json"
 REPORT_NAME = "family-aware-coverage-2026-09-24.md"
-PLAN_REFERENCE = "docs/recipe-qualification-plan-2026-09-24.md"
 
 IN_SCOPE_MAXIMUM_NODE_COUNT = 2
 
@@ -192,9 +192,22 @@ def _indexed_models(catalog_root: Path) -> dict[str, ModelDefinition]:
     return indexed
 
 
-def _authority(recipe_keys: set[str]) -> dict[str, Any]:
+def _derived_authority(catalog_root: Path) -> dict[str, Any]:
+    loader = importlib.machinery.SourceFileLoader(
+        "build_qualification_authority",
+        str(ROOT / "tools/build-qualification-authority"),
+    )
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    outputs = module.build(catalog_root)
+    return json.loads(outputs[f"authorities/{module.AUTHORITY_ID}.json"])
+
+
+def _authority(recipe_keys: set[str], catalog_root: Path) -> dict[str, Any]:
     document = QualificationAuthority.model_validate(
-        _json_document(AUTHORITY_PATH)
+        _derived_authority(catalog_root)
     ).model_dump(mode="json", exclude_none=True)
     rows = {row["key"]: row for row in document["recipes"]}
     excluded = document["scope"]["excluded_topology_recipe_keys"]
@@ -620,7 +633,6 @@ def _recovery_coverage(
             refs.append(match)
     return (
         {
-            "ladder_owner": f"{PLAN_REFERENCE}#current-batch-execution-gates",
             "definitions": entries,
         },
         refs_by_recipe,
@@ -630,7 +642,7 @@ def _recovery_coverage(
 def _build(catalog_root: Path) -> dict[str, bytes]:
     indexed = _indexed_recipes(catalog_root)
     models = _indexed_models(catalog_root)
-    authority = _authority(set(indexed))
+    authority = _authority(set(indexed), catalog_root)
     if authority["maximum_node_count"] != IN_SCOPE_MAXIMUM_NODE_COUNT:
         raise ValueError("authority scope does not match the in-scope node bound")
 
@@ -727,7 +739,6 @@ def _build(catalog_root: Path) -> dict[str, bytes]:
     matrix = {
         "schema_version": 1,
         "matrix_id": "family-aware-coverage-2026-09-24",
-        "plan": PLAN_REFERENCE,
         "catalog": {
             "repository": "CarstVaartjes/vonk-forge-recipes",
             "recipe_count": len(rows),
@@ -798,7 +809,6 @@ def _render_report(matrix: dict[str, Any]) -> str:
         "",
         "| Input | Identity |",
         "|---|---|",
-        f"| Plan | `{matrix['plan']}` |",
         (
             f"| Catalog | {matrix['catalog']['repository']} — "
             f"{matrix['catalog']['recipe_count']} recipe documents |"
