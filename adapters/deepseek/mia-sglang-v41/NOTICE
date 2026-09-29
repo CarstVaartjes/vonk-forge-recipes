@@ -1,0 +1,47 @@
+DeepSeek-V4.1-Flash on 3x NVIDIA DGX Spark
+Copyright (C) 2026 zurih
+
+This repository (start.sh, stop.sh, boot.py changes, adapter/, scripts/, files/,
+runtime glue, documentation) is free software: you can redistribute it and/or
+modify it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or (at your
+option) any later version. See LICENSE. It is distributed WITHOUT ANY WARRANTY;
+see the License for details.
+
+Third-party components and their licences:
+
+- The recipe skeleton (boot.py, benchmarks/, tests/, the Engram row-store idea and
+  the Docker layout) originates from 0xSero/deepseek-v4.1-flash-4x-rtx-pro-6000,
+  MIT License, Copyright (c) 2026 0xSero. The MIT notice is retained in
+  LICENSE.upstream-MIT as that licence requires; the combined work is offered
+  under the AGPL-3.0-or-later.
+- adapter/verify_cap.py, block_verify.py, draft_head_fp8.py, engram_prefetch.py,
+  draft_tau.py, folded_result_fence.py, autotune_keep.py and wo_a_w8.py (with their
+  tests) originate from knapcio/DeepSeek-V4.1-Flash-4x-DGX-Spark-TP4 (commit 4d8f4c0),
+  AGPL-3.0-or-later. wo_a_w8.py and autotune_keep.py were modified here (TP3 group
+  count, dev-dsv41 bridge, draft/DROP fix, autotune cache fixes); see README.md,
+  Attribution.
+- runtime/flash_mla_sm120.py is derived from SGLang and remains under the Apache
+  License 2.0 (LICENSE.sglang); the page-split changes are distributed under the
+  same terms.
+- The TP4 production line (docs/tp4.md: the other adapters, Dockerfile.canary,
+  Dockerfile.canary-roce, scripts/fetch_runtime.sh, scripts/ring_mesh/, scripts/qeval*.py)
+  is contributed from knapcio/DeepSeek-V4.1-Flash-4x-DGX-Spark-TP4, AGPL-3.0-or-later.
+  In it: adapter/indexer_chunked*.py backport sgl-project/sglang#39187 (Apache License
+  2.0); adapter/spark_prefill_dense.py and runtime/sglang-rocenante.patch are rhys101's
+  SG18 helper and SG17 overlay (rhys101/DeepSeek-V4.1-Flash-vLLM-DGX-Spark-8, MIT);
+  runtime/flash_mla_sm120.canary.py is runtime/flash_mla_sm120.py re-applied to the
+  SGLang dsv4.1 branch kernel file (Apache License 2.0).
+- Fetched at image build, not stored here (runtime/sources.manifest pins each commit
+  and sha256): the SGLang dsv4.1 branch tree (Apache License 2.0); b12x at the SG17
+  revision and b12x main, renamed b12x_next and patched (local-inference-lab/b12x,
+  Apache License 2.0; the LICENSE file is installed next to each copy in the image);
+  b12x.comm.roce_ring, the path-aware RoCEnante package of FujitsuPolycom/sparkring
+  (commit f16b5f4), itself derived from local-inference-lab/b12x (RoCEnante, PR 295),
+  Apache License 2.0, with the local changes in scripts/roce_ring-sparkring-f16b5f4.patch
+  (origin: runtime/b12x/roce_ring-provenance.json). scripts/ring_mesh/plan.py drives
+  sparkring's fabric planner and the units run sparkring's RDMA-TX marker; neither is
+  vendored here (both come from a sparkring checkout, Apache License 2.0).
+- SGLang, FlashInfer, DeepGEMM, PyTorch, NVIDIA components and the DeepSeek model
+  retain their respective upstream licences. This repository does not
+  redistribute model weights.
