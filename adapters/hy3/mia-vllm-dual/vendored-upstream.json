@@ -1,0 +1,13 @@
+{
+  "ours": [
+    "NOTICE",
+    "patch-opensource-tokens.sh",
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {},
+  "source": {
+    "commit": "d7510b52b234569b66e6263c5ead982a4eb62756",
+    "repo": "MiaAI-Lab/Hy3-Dual-DGX-Spark"
+  }
+}

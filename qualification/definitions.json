@@ -4008,6 +4008,23 @@
         ]
       }
     },
+    "vonk-forge/hy3-295b-nvfp4-vllm-mia-dual": {
+      "alias": "hy3",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Long-context and bounded concurrency canaries at 128K with six sequences; tool-call and English-only output checks against the model card's FP8 KV warning"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
     "vonk-forge/glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual": {
       "alias": "glm-5.3-flash-nvfp4",
       "smoke_cases": [
