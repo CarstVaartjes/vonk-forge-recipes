@@ -107,6 +107,13 @@ jobs:
             exit 1
           fi
 
+      - name: Reject a changed Spark count for an existing recipe
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          python3 tools/check-recipe-topology --base origin/main
+
       - name: Run the full producer test suite
         shell: bash
         run: |
