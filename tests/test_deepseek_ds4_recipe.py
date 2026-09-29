@@ -55,8 +55,8 @@ class DeepseekDs4RecipeTests(unittest.TestCase):
             ROOT / "recipes/deepseek-v4-flash-0731-ds4-dspark-latency-single.json"
         )
         names = [argument["name"] for argument in recipe["runtime"]["arguments"]]
-        self.assertEqual(names, ["model", "mtp-model", "ctx"])
-        self.assertEqual(recipe["release"]["version"], "1.2.6")
+        self.assertEqual(names, ["model", "dspark", "mtp-model", "ctx"])
+        self.assertEqual(recipe["release"]["version"], "1.3.0")
 
     def test_release_binds_the_current_recipe_digest(self) -> None:
         index = load(GENERATED / "catalog-index.json")
