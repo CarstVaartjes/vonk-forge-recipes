@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+"""Start r0b0tlab's Qwen3.8 Flash Next NVFP4 SGLang runtime under the platform contract."""
+
+from __future__ import annotations
+
+import os
+import sys
+from pathlib import Path
+
+MODEL = Path("/model")
+CACHE = Path("/outputs/cache")
+
+for name in ("config.json", "model.safetensors.index.json", "model-fp8-mtp-ple.safetensors"):
+    if not (MODEL / name).is_file():
+        raise SystemExit(f"immutable model artifact is missing: {MODEL / name}")
+for name in ("home", "hf", "jit", "xdg", "triton", "torch", "flashinfer", "ple"):
+    (CACHE / name).mkdir(parents=True, exist_ok=True)
+
+# The upstream entrypoint compiles the profile and locks into the exact server
+# argv, prepares the verified PLE table under /cache/ple, then execs SGLang.
+os.chdir("/opt/r0b0tlab")
+os.execv(
+    sys.executable,
+    (sys.executable, "-m", "runtime.entrypoint", *sys.argv[1:]),
+)

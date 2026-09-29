@@ -1,0 +1,12 @@
+{
+  "source": {
+    "repo": "r0b0tlab/qwen38-flash-next-nvidia-nvfp4-sm121-sglang",
+    "commit": "1dc3c2f0796945b175b541076f036f7f21a145d8"
+  },
+  "ours": [
+    "flash-next-serve"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE"
+  }
+}

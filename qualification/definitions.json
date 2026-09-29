@@ -4175,6 +4175,20 @@
         ]
       }
     },
+    "vonk-forge/qwen3-8-flash-next-nvfp4-r0b0tlab-sglang-single": {
+      "alias": "nvidia/Qwen3.8-Flash-Next-NVFP4",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and concurrency canaries"
+        ]
+      }
+    },
     "vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual": {
       "alias": "glm-5.3-flash-nvfp4",
       "smoke_cases": [
