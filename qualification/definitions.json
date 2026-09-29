@@ -4056,40 +4056,6 @@
         ]
       }
     },
-    "vonk-forge/deepseek-v4-flash-vision-exp-r0b0tlab-vllm-dual": {
-      "alias": "deepseek-v4-flash-vision-exp",
-      "smoke_cases": [
-        "M0",
-        "A391",
-        "T_REPORT",
-        "V_RED"
-      ],
-      "higher_tiers": {
-        "stress": [
-          "Bounded long-context, concurrency, and image-input canaries"
-        ],
-        "recovery": [
-          "Controller-only rank-loss, warm-cache recovery, and image-input revalidation"
-        ]
-      }
-    },
-    "vonk-forge/deepseek-v4-flash-vision-exp-r0b0tlab-vllm-dual": {
-      "alias": "deepseek-v4-flash-vision-exp",
-      "smoke_cases": [
-        "M0",
-        "A391",
-        "T_REPORT",
-        "V_RED"
-      ],
-      "higher_tiers": {
-        "stress": [
-          "Bounded long-context, concurrency, and image-input canaries"
-        ],
-        "recovery": [
-          "Controller-only rank-loss, warm-cache recovery, and image-input revalidation"
-        ]
-      }
-    },
     "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual": {
       "alias": "deepseek-v4-flash-vision-exp",
       "smoke_cases": [
@@ -4561,6 +4527,23 @@
     },
     "vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-single": {
       "alias": "nemotron-3-5-lightning",
+      "smoke_cases": [
+        "M0",
+        "NEM_A391_OFF",
+        "NEM_REASON",
+        "NEM_TOOL"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded concurrency, context, unified-memory floor, and explicit multimodal-rejection canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, alias stability, no redownload, and parser revalidation"
+        ]
+      }
+    },
+    "vonk-forge/nemotron-3-5-lightning-r0b0tlab-sglang-eagle-single": {
+      "alias": "nvidia/nemotron-3.5-lightning-30b-a3b",
       "smoke_cases": [
         "M0",
         "NEM_A391_OFF",
