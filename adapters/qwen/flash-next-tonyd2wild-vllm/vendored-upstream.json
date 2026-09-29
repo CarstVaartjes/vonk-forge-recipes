@@ -1,0 +1,17 @@
+{
+  "ours": [
+    "verify-runtime.py",
+    "qwen38-tonyd2wild-serve.py"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE",
+    "NOTICE.upstream": "NOTICE"
+  },
+  "renamed_dirs": {
+    "patch/": "single-spark-vllm-tp1/patch/"
+  },
+  "source": {
+    "repo": "tonyd2wild/Qwen3.8-Flash-Next-NVFP4-DGX-Spark",
+    "commit": "6ad1c8f15cbab1ababd2048e8e5f94094dbfc4a0"
+  }
+}
