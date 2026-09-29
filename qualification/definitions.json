@@ -5868,6 +5868,22 @@
           "Controller stop/start and warm-cache restart"
         ]
       }
+    },
+    "vonk-forge/swift-1-5-flash-next-nvfp4-tournierjc-tensorfold-single": {
+      "alias": "swift-1.5",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Long-context canaries with the first-run kernel compile and the roughly 9-minute weight load recorded separately; a --parallel setting above 1 needs the server's allocated-window line checked"
+        ],
+        "recovery": [
+          "Controller stop/start with warm kernel-cache restart"
+        ]
+      }
     }
   }
 }
