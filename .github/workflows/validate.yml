@@ -113,9 +113,15 @@ jobs:
             exit 1
           fi
 
-      - name: Verify the README overview is current
+      - name: Check the README overview (advisory)
         shell: bash
-        run: tools/build-readme-overview --check
+        # Advisory only: other recipe PRs merging makes any open PR's README
+        # stale, so failing here would block every parallel PR. Recipe PRs
+        # regenerate it; the next one catches it up (eventually consistent).
+        run: |
+          if ! tools/build-readme-overview --check; then
+            echo "::warning title=README overview stale::Run tools/build-readme-overview and commit README.md"
+          fi
 
       - name: Reject a changed Spark count for an existing recipe
         shell: bash
