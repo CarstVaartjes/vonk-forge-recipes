@@ -1,0 +1,13 @@
+{
+  "ours": [
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "upstream-README.md": "README.md"
+  },
+  "source": {
+    "repo": "tonyd2wild/Minimax-M3-NVFP-3x-DGX-Sparks-TP-3",
+    "commit": "e29e14595086d0251109d22aa219eb089d24a988"
+  }
+}
