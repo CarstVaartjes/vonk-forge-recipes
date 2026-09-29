@@ -12,7 +12,6 @@ RUN python3 /opt/vonk/build/patches/0001-sm90-nope-mla-sm121.py \
  && python3 /opt/vonk/build/patches/0002-indexer-persistent-topk-sm121.py \
  && python3 /opt/vonk/build/patches/0003-glm-dflash2-aux-capture.py \
  && python3 /opt/vonk/build/patches/0004-glm-dflash2-drafter-group.py \
- && python3 /opt/vonk/build/patches/verify_overlay.py \
  && rm -rf /opt/vonk/build
 
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm

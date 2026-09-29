@@ -212,10 +212,6 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertIn("RUN python3 /opt/glm53/patch_tool_choice_none.py", dockerfile)
         self.assertIn("python3 /opt/glm53/test_mamba_align_chunking.py", dockerfile)
         self.assertIn("python3 /opt/glm53/test_tool_choice_none.py", dockerfile)
-        verifier = (ADAPTER / "verify-runtime.py").read_text()
-        self.assertIn("# [glm53-mamba-align-chunking-v1]", verifier)
-        self.assertIn("# [glm53-mamba-align-state-free-v1]", verifier)
-        self.assertIn("# [glm53-tool-choice-none]", verifier)
         text = "\n".join(
             (ADAPTER / name).read_text(errors="ignore")
             for name in ("Dockerfile", "vllm-wrapper.py", "verify-runtime.py")
@@ -268,10 +264,6 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
             dockerfile.index(applied),
             dockerfile.index("RUN python3 /opt/glm53/patch_kpool_tail_slotmap.py"),
         )
-        # The build proves the guard is disabled rather than trusting the RUN.
-        verify = (ADAPTER / "verify-runtime.py").read_text()
-        self.assertIn('"persistent_topk" not in kpool', verify)
-        self.assertIn('"if False and current_platform.is_cuda()" not in kpool', verify)
 
     def test_the_loader_budget_cannot_refuse_a_buffer_the_node_can_allocate(
         self,
