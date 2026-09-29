@@ -55,6 +55,7 @@ Which engines each model family runs on.
 | TRELLIS |  |  |  |  |  |  |  |  | ✓ |
 | TripoSG |  |  |  |  |  |  |  |  | ✓ |
 | UI-Mate | ✓ |  |  |  |  |  |  |  |  |
+| UkisAI Swift Qwen3.8 checkpoints |  |  |  |  | ✓ |  |  |  |  |
 | VibeThinker | ✓ |  |  |  |  |  |  |  |  |
 | Wan |  |  |  |  |  |  |  | ✓ | ✓ |
 
