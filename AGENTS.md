@@ -84,6 +84,9 @@ tools/check-python-lint              # ruff check, plus extensionless entry poin
 tools/check-python-format            # ruff format, plus extensionless entry points
 scripts/check-python-types           # pyright==1.1.414, reviewed baseline
 
+# Adapter tests under adapters/** are upstream's: they run only where upstream runs them
+# (its image build), never in our CI; pytest ignores adapters/ (pyproject.toml).
+
 # Producer suite (CI installs the same extras).
 uv run --python 3.14 --no-project --with pytest==9.1.1 \
   --with-editable contracts --with 'jsonschema>=4.24,<5' \
