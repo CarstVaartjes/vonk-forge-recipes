@@ -20,8 +20,10 @@ from typing import Any
 REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
+sys.path.insert(0, str(ROOT))
+from qualification.definitions_loader import load_definitions
+
 QUALIFICATION_ROOT = ROOT / "qualification"
-QUALIFICATION_DEFINITIONS = QUALIFICATION_ROOT / "definitions.json"
 # Control planes fetch oversized Contents API entries by immutable Git blob SHA.
 # Keep the generated index within the same bounded raw-blob envelope as source files.
 MAX_INDEX_BYTES = 12 * 1024 * 1024
@@ -724,7 +726,7 @@ def build(
 
 def qualification_index(catalog: dict[str, Any]) -> dict[str, object]:
     """Bind only structurally converted recipes into qualification transport data."""
-    definitions = json.loads(QUALIFICATION_DEFINITIONS.read_text(encoding="utf-8"))
+    definitions = load_definitions(QUALIFICATION_ROOT)
     available = {
         f"{entry['document']['identity']['publisher']}/{entry['document']['identity']['slug']}": entry[
             "content_sha256"
