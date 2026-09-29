@@ -72,7 +72,7 @@ Which Spark counts each model family runs on.
 | LFM2.5 | ✓ |  |  |  |  |
 | Ling | ✓ |  |  |  |  |
 | LTX | ✓ |  |  |  |  |
-| MiMo |  | ✓ |  |  |  |
+| MiMo |  | ✓ | ✓ |  |  |
 | MiniMax H3 | ✓ | ✓ |  |  |  |
 | MOSS-VL | ✓ |  |  |  |  |
 | MOVA | ✓ |  |  |  |  |

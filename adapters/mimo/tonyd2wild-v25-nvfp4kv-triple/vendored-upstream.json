@@ -1,0 +1,12 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "mods-external/",
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "repo": "tonyd2wild/MiMo-V2.5-TP3-NVFP4-KV-3xDGX-Spark",
+    "commit": "8024c85b5e5fc5c9edd9db7b40f607683372cb0c"
+  }
+}
