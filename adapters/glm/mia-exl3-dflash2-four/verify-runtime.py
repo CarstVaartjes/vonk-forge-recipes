@@ -71,4 +71,12 @@ video_pth = Path("/usr/local/lib/python3.12/dist-packages/glm53_video.pth")
 if not video_pth.is_file():
     raise SystemExit(f"incomplete GLM 5.3 image: the video alignment is not installed: {video_pth}")
 
+unreadable = [
+    str(path)
+    for path in Path("/usr/local/lib/python3.12/dist-packages/vllm").rglob("*")
+    if path.is_file() and not path.stat().st_mode & 0o004
+]
+if unreadable:
+    raise SystemExit(f"installed vLLM files are not readable by the service account: {unreadable[:5]}")
+
 print("Mia GLM 5.3 EXL3 DFlash2 runtime contract OK")
