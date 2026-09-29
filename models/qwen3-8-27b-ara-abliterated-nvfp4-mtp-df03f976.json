@@ -1,0 +1,263 @@
+{
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "build-manifest-4521df2d6876-a4a9b43594",
+      "path": "BUILD_MANIFEST.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "4521df2d687688e154afae2166fe6cd3f3b1d52299e61637bf936fedb00ce368",
+      "size_bytes": 3986
+    },
+    {
+      "id": "license-bbedc3fda330-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "bbedc3fda3305820b977265f01b8619d87570a6739de3a5582c3464840f1e57a",
+      "size_bytes": 11544
+    },
+    {
+      "id": "readme-774e66b926cf-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "774e66b926cfaa46aa3b195093715dc07fdea23b8c62a9325dc15179808c6155",
+      "size_bytes": 2416
+    },
+    {
+      "id": "sha256sums-652b8601b431-e6351d3766",
+      "path": "SHA256SUMS",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "652b8601b431b3f80b43c0d121d538edf8c54f2a980f393be047d69c551d9ad3",
+      "size_bytes": 1782
+    },
+    {
+      "id": "validation-report-16c9fd663fad-628b30a780",
+      "path": "VALIDATION_REPORT.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "16c9fd663fad49f7000a12ce32d1c0e7640c9a1061dbb90eb3c169116a44ec5f",
+      "size_bytes": 2169
+    },
+    {
+      "id": "build-qwen38-abliterated-nvfp4-8b18cfb66892-ae2cb71ebe",
+      "path": "build_qwen38_abliterated_nvfp4.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "8b18cfb668927f761dd9e590b7c36db011607824047d421dbec8549cbfc86627",
+      "size_bytes": 23525
+    },
+    {
+      "id": "calibration-snapshot-b97b1caa8f96-be01f77377",
+      "path": "calibration_snapshot.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b97b1caa8f9676fd7144cc12c9cde3a6d69fef9a26accdf8a4aa82ac2cb64b76",
+      "size_bytes": 41176
+    },
+    {
+      "id": "chat-template-c3cf9e34abf4-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+      "size_bytes": 8952
+    },
+    {
+      "id": "config-0b2c05e53e72-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "0b2c05e53e721307ebcb1696881cead10e01a3ca7f09db28eb0477b55cc5692c",
+      "size_bytes": 15698
+    },
+    {
+      "id": "generation-config-d0d0ed2e37cd-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d0d0ed2e37cdfafef4a5067d5ea2407b05f4fb50526e47c008a5b235d50240fb",
+      "size_bytes": 214
+    },
+    {
+      "id": "model-00001-of-00004-b031a9572ba7-1913267ec8",
+      "path": "model-00001-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b031a9572ba71cc278a435722b4a76ed6f58e2309c42e3a7153e3dddc70227bc",
+      "size_bytes": 4999186512
+    },
+    {
+      "id": "model-00002-of-00004-51cbd44471bc-60f6088da9",
+      "path": "model-00002-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "51cbd44471bce38f9cbe5cab9449662310e69c6238ed5355466c0ec5531cd4b6",
+      "size_bytes": 4956656288
+    },
+    {
+      "id": "model-00003-of-00004-b5292fef77ad-fc35f2c4d5",
+      "path": "model-00003-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b5292fef77ad2b45eec1f4f3e1b8d4834ea44bc6bffcb4189209c74d278971f1",
+      "size_bytes": 4973006664
+    },
+    {
+      "id": "model-00004-of-00004-e9fbe4c34918-5078e75d62",
+      "path": "model-00004-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e9fbe4c34918fb161aa705b8a4be512025769775e5b3b7594448f04e9c288261",
+      "size_bytes": 4781029712
+    },
+    {
+      "id": "model-mtp-bf16-90fa0e3eed5a-44922e9b24",
+      "path": "model-mtp-bf16.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "90fa0e3eed5a647c035c6df9ecabc416c0f8d573ff84ac12485b085f00a7cdf2",
+      "size_bytes": 849400424
+    },
+    {
+      "id": "model-safetensors-index-7d5b403686ef-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7d5b403686ef104b6d1e2e6c2dec7f55981e1d1ece9ce8023992bd1a4274c916",
+      "size_bytes": 278231
+    },
+    {
+      "id": "processor-config-d89ef49ce9cd-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d89ef49ce9cd37fbf510158e13c1ef063d9286411c1ec9049932dbe0487143b1",
+      "size_bytes": 1191
+    },
+    {
+      "id": "recipe-53030a44e901-e6afb07ce9",
+      "path": "recipe.yaml",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "53030a44e901b94f524e7056cbcbc8c562b67979016288e2bffdb7141c01dab2",
+      "size_bytes": 256
+    },
+    {
+      "id": "tokenizer-445a1c450cb8-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "445a1c450cb82eba3dac6d4cac5d6ce9a6be0ab6e326bf919934d71e604a871f",
+      "size_bytes": 19989424
+    },
+    {
+      "id": "tokenizer-config-dcb88c4a1dff-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "dcb88c4a1dff8096b6fd919e458d987351b499f86db65d1b997ed515a90cc35c",
+      "size_bytes": 1269
+    },
+    {
+      "id": "vllm-uuid-sitecustomize-6770bf8d7207-fa49c0069b",
+      "path": "vllm_uuid_sitecustomize.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "6770bf8d72072a8484806876a0c0449a63c83dbe1e2133374b90472828261d1e",
+      "size_bytes": 1305
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4-compressed-tensors-mtp-bf16"
+  },
+  "identity": {
+    "family": {
+      "publisher": "aday777",
+      "slug": "qwen3-8-aday777",
+      "title": "Qwen3.8 aday777 abliterated"
+    },
+    "model": {
+      "publisher": "aday777",
+      "slug": "qwen3-8-27b-ara-abliterated-nvfp4-mtp",
+      "title": "Qwen3.8 27B ARA abliterated NVFP4 MTP"
+    },
+    "publisher": "aday777",
+    "slug": "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976",
+    "variant": "df03f976e0f0c06f952dba7034220087f8582f51",
+    "version": "df03f976e0f0c06f952dba7034220087f8582f51"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "trohrbaugh",
+      "aday777"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/aday777/Qwen3.8-27B-ARA-abliterated-NVFP4-MTP/blob/df03f976e0f0c06f952dba7034220087f8582f51/LICENSE"
+  },
+  "metadata": {
+    "description": "Abliterated (trohrbaugh heretic-ara) Qwen3.8 27B, uniform NVFP4 compressed-tensors, BF16 MTP head, vision-language. Apache-2.0.",
+    "tags": [
+      "abliterated",
+      "aday777",
+      "candidate",
+      "drowzeys",
+      "language",
+      "mtp",
+      "multimodal",
+      "nvfp4",
+      "qwen3-8-aday777",
+      "qwen3.8",
+      "uncensored"
+    ]
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/aday777/Qwen3.8-27B-ARA-abliterated-NVFP4-MTP",
+    "revision": "df03f976e0f0c06f952dba7034220087f8582f51"
+  }
+}
