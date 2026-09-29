@@ -4542,6 +4542,19 @@
         ]
       }
     },
+    "vonk-forge/gemma-4-31b-it-nvfp4-vllm-mia-single": {
+      "alias": "nvidia/Gemma-4-31B-IT-NVFP4",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming, image-input and declared concurrency canaries; the first start compiles kernels and loads MTP"
+        ]
+      }
+    },
     "vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single": {
       "alias": "nemotron-3-5-lightning",
       "smoke_cases": [
