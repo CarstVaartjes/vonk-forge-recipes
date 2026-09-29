@@ -6,37 +6,115 @@
 [zai-org/GLM-5.3-Flash](https://huggingface.co/zai-org/GLM-5.3-Flash) (320B / A18B MoE)
 serving across **all four NVIDIA DGX Spark (GB10) nodes** at tensor-parallel 4, with the
 [`incoai/GLM-5.3-Flash-DFlash2`](https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2)
-block-diffusion drafter, at the model's full 1,048,576-token context.
+block-diffusion drafter.
+
+**Current defaults (2026-09-21):** two lanes off the same recipe, both 500,000-token window on a
+3,532,196-token fp8 KV pool, 43.76 GiB/rank. **Censored:** `nvidia/GLM-5.3-Flash-NVFP4`.
+**Uncensored:** `Blackfrost-AI/GLM-5.3-Flash-DERISKED-NVFP4` — operator-confirmed uncensored and coherent,
+and it measures at or above the censored lane on almost every cell. The 1M-context settings and the
+3.8M-token pool numbers below were measured on the earlier fp8/marlin lane and are labelled as such.
 
 ---
 
-## ⭐ Checkpoint: `RedHatAI/GLM-5.3-Flash-NVFP4` is now the default (corruption fix)
+## ⭐ Default checkpoint: `nvidia/GLM-5.3-Flash-NVFP4` plus NVFP4 attention (2026-09-20)
 
-ModelOpt-quantized NVFP4 builds of GLM-5.3-Flash (`LibertAIDAI/GLM-5.3-Flash-NVFP4` and the abliterated variants) emit **intermittent corrupted token IDs** ([vLLM #54150](https://github.com/vllm-project/vllm/issues/54150)). Nearly invisible in English, but when a corrupted token lands inside a tool-call block the parser desyncs and generation can spiral into a repetition lock.
+The default lane starts from [`nvidia/GLM-5.3-Flash-NVFP4`](https://huggingface.co/nvidia/GLM-5.3-Flash-NVFP4)
+(MIT, ungated) and applies our own NVFP4 quantization to the non-expert projections, 403 tensors that the
+upstream pack leaves in BF16. Built weights directory: **`nvidia-glm53-attn`**. This repo hosts **no weights**,
+only the recipe, the patches and per-file checksums.
 
-We reproduced and fixed it on this exact cluster (Korean-Hangul probe, `temperature 0`, non-streaming, 3 passes):
+Boot it (head serves `http://<head>:8000/v1`, served model name `glm-5.3-flash`):
 
-| checkpoint | `quant_method` | U+FFFD count (3 runs) |
-|---|---|---|
-| ModelOpt NVFP4 (LibertAIDAI / keys-ablit) | `modelopt` | 4 / 9 / 8 |
-| **[RedHatAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4)** | **`compressed-tensors`** | **0 / 0 / 0** |
+```bash
+MODEL_DIR=nvidia-glm53-attn NVFP4_PATCH=1 MNBT=8192 SPEC_K=7 MAXLEN=500000 \
+  bash /root/glm_boot.sh <label>
+```
 
-**Default checkpoint: `RedHatAI/GLM-5.3-Flash-NVFP4`.** Ungated, same `Glm5NextForConditionalGeneration` arch, **drop-in** — no flag changes (`--moe-backend marlin`, DFlash2 `k=7`, fp8 KV all identical), just repoint the model path. Loads ~2x faster (11 large shards vs 120 small). Tradeoff: it also quantizes activations to 4-bit (W4A4) where the weight-only builds are W4A16, so expect a few points lower on hard reasoning — but the output is **correct**. Make sure the vision `chat_template_mm.jinja` is present in the weights dir or image requests 500.
+**`NVFP4_PATCH=1` is required, not a tuning flag.** It bind-mounts two patched
+`vllm/models/glm5next/nvidia` files (`kda.py`, `model.py`) that stop `quant_config` being forced to `None` on
+the attention projections. Without them vLLM builds those layers BF16, a packed 4-bit weight has nowhere to
+load, and the build does not come up at all. Both files, and the image digest they were cut from, are in
+[`runs/2026-09-20-nvidia-lanes/patches/`](runs/2026-09-20-nvidia-lanes/patches/).
 
-Corruption first flagged by [@ajclark](https://github.com/ajclark) (issue #10). Uncensored (abliterated) builds remain available but carry the ModelOpt corruption until a compressed-tensors abliteration exists.
+Note the flags: this lane was measured at `MNBT=8192` and a 500,000-token window. The
+`--max-num-batched-tokens 16384` and `--max-num-seqs 64` findings further down were measured on the
+1M-context fp8/marlin lane and have **not** been re-measured here, so they are that lane's settings rather
+than a recommendation for this one.
+
+Measured on this fleet at 500K context, fp8 KV, temperature 0, medians of three passes after a discarded
+warm-up:
+
+| | |
+|---|---|
+| KV pool | **3,532,196 fp8 tokens** |
+| Weights | **43.76 GiB/rank** |
+| Boot | ~12 min to `/health` 200 |
+| Draft acceptance | 0.394 at DFlash2 `k=7` |
+| Quality gate | **PASS** |
+| Cold prefill | **1,997 tok/s** (40,659 tokens, TTFT 20.4 s) on an idle lane |
+| Token corruption | **not seen on this lane or the Blackfrost lane** in operator use; it tracked the retired `o_proj` transplant. Mechanism still unmeasured - see the appendix |
+
+Against the previous LibertAI-based build, on the same harness and prompts: **7 of 9 C1 categories within
+measurement noise**, aggregate level at C1-C2 and ahead at C3-C6, and concurrency ahead at every level from
+C12 (**+4.8% C12, +6.9% C16, +7.6% C24, +10.0% C32**). The two C1 outliers sit just past their own spreads in
+opposite directions. Full tables, spreads and the discarded-data notes:
+[`runs/2026-09-20-nvidia-lanes/`](runs/2026-09-20-nvidia-lanes/).
+
+### ⭐ The uncensored lane: `blackfrost-glm53-derisked-attn` (2026-09-21)
+
+**Uncensored default.** Start from
+[`Blackfrost-AI/GLM-5.3-Flash-DERISKED-NVFP4`](https://huggingface.co/Blackfrost-AI/GLM-5.3-Flash-DERISKED-NVFP4)
+(abliterated from `zai-org/GLM-5.3-Flash-BF16`, 1.3% refusal on their eval) and apply **the identical recipe**
+as the default lane: our NVFP4 attention quantization, the proven 14-entry ignore list, `W4A16_NVFP4`. Swap
+`MODEL_DIR=blackfrost-glm53-derisked-attn` into the command above. Same 43.76 GiB/rank, same 3,532,196-token
+pool, same knobs — the weights are the only difference, which is what makes the comparison single-variable.
+
+Uncensored behaviour and long-session coherence are both **operator-confirmed**, in the same harness that
+garbled on the retired transplant lane. It measures at or above the censored lane on almost every cell:
+code 95.9 vs 78.7 (medians; Lane A's code cell is bimodal at 78.7/92.0/78.7, so the fair statement is that
+**every Blackfrost rep beats every Lane A rep**, spread 1.01x vs 1.17x), counting 138.1 vs 107.7, prose 50.8 vs
+40.8, C3 aggregate 125.0 vs 117.0, and **acceptance 0.415 / 3.90 tok/step against 0.394 / 3.76**. Math is the one category below (83.3 vs 88.8, about −6%, at the
+edge of its spread). Full tables, spreads and caveats:
+[`runs/2026-09-21-blackfrost-derisked/`](runs/2026-09-21-blackfrost-derisked/).
+
+⚠️ **Fix its config or it will garble.** Blackfrost's `config.json` declares `quant_algo: NVFP4` — the W4A4
+path — while shipping **zero `input_scale` tensors**, so W4A4 kernels would multiply real weight scales by
+uninitialized memory. Its own `config_groups` says `input_activations: null`, so weight-only is the intent and
+the string is mislabeled. `fix_ignore.py` rewrites it to `W4A16_NVFP4`, and the build script does this for you.
+
+### Retired: the dealignai `o_proj` transplant (`nvidia-glm53-ablit-attn`)
+
+**Do not use this lane.** It substituted `dealignai/GLM-5.3-Flash-UNCENSORED-NVFP4`'s `o_proj` tensors on
+layers 12-44 (33 tensors) before quantization. It did stop refusing, but it **garbled in live agentic use** in
+two unrelated harnesses — emoji runs, injected foreign-script fragments, duplicated paragraphs and a degenerate
+tail — and its draft acceptance had collapsed to **0.224 / 2.57 tok/step with position 7 at exactly zero**.
+
+The reason is arithmetic. Refusal in this model lives in the routed-expert `down_proj` tensors: our attribution
+measured `down_proj` moving refusal by **0.81** against **0.03** for attention plus shared/dense MLP. That pack
+edits **46** `o_proj` tensors; the real intervention is **12,384** `down_proj` tensors. It bought non-refusal by
+perturbing attention, and that is also what made it incoherent over long contexts — one cause, two symptoms.
+Blackfrost edits `down_proj` (verified: ~10% relative difference on every sampled tensor, against a
+quantization-noise floor of 0.000 on untouched classes) and does not have the problem.
+
+### Read these two before deploying
+
+- **[`runs/2026-09-20-nvidia-lanes/`](runs/2026-09-20-nvidia-lanes/)**: this build. Both lanes measured
+  side by side, the checksums, the two porting traps, and
+  **[`RUNBOOK.md`](runs/2026-09-20-nvidia-lanes/RUNBOOK.md)** with every command and value used, in order.
+- **[`runs/2026-09-20-tp4-vs-deepseek/`](runs/2026-09-20-tp4-vs-deepseek/)**: where the NVFP4 attention work
+  came from, measured head to head against DeepSeek-V4.1-Flash on DeepSeek's own prompt set, plus the per-step
+  cost model that predicted the gain and the W4A4 correctness audit.
 
 ---
 
-> **Second site, 100G switched fabric:** [docs/FIELD-NOTES-4NODE-100G.md](docs/FIELD-NOTES-4NODE-100G.md)
-> reproduces this recipe on four GX10 through an Arista 7060CX-32S at 100G. Decode matched
-> the 200G numbers, which suggests it is not fabric-bound. Also covers a GID-index lookup
-> for the launcher, why AOC transceivers overheat in the GX10 cages, and moving 185 GB
-> between nodes without encrypting it.
+## The 1M-context fp8/marlin configuration (measured 2026-08-31 to 09-02)
 
-## The configuration
-
-**This is the current default. Everything else in this README is either an alternative lane
-or history — both are labelled as such.**
+**This is where the 1M-context and 3.8M-token pool numbers come from, not the lane the default
+boots today.** The default lane above serves a 500,000-token window with a 3,532,196-token pool,
+and it was measured on a different checkpoint and a different harness, so do not read the two
+sets of numbers against each other. Everything in this section was measured on the earlier
+`keys`/LibertAI fp8 marlin lane and is kept because the engine settings still apply: the
+`--max-num-seqs`, `--max-num-batched-tokens` and CUDA-graph findings below carry over.
 
 | | |
 |---|---|
@@ -70,7 +148,7 @@ or history — both are labelled as such.**
 > is content-driven, so the same engine measures 105.6 on count-to-100 and 31.5 on dense
 > prose, minutes apart. The harness ([`probes/bench_glm53_tp4.py`](probes/bench_glm53_tp4.py))
 > uses a fixed 8-prompt set at temperature 0 with median-of-N for exactly this reason.
-| Weights | abliterated or stock NVFP4, drop-in either way |
+| Weights | the `keys`/LibertAI NVFP4 packs this section was measured on (the current default is `nvidia-glm53-attn`, above) |
 | Vision | on (`chat_template_mm.jinja`) |
 | Thinking | off by default |
 | Launcher | [`launch-glm53-tp4-24g.sh`](launch-glm53-tp4-24g.sh) |
@@ -110,10 +188,17 @@ step. **A config that boots and answers a short prompt is not a config that work
 One node owns the weights on local NVMe and NFS-exports them; the other three mount at the
 same path.
 
-**Before anything: what you must edit for your own hardware.** The launcher is written for our
-fabric. Change `MODEL_HOST_PATH`, the rank->IP map, and the NCCL block (`NCCL_IB_HCA`,
+**Before anything: what you must edit for your own hardware.** The launchers are written for our
+fabric. Change `MODEL_HOST_PATH` (or `MODEL_DIR` on the newer
+[`runs/2026-09-20-nvidia-lanes/tools/glm53_tp4.sh`](runs/2026-09-20-nvidia-lanes/tools/glm53_tp4.sh)), the
+rank->IP map, and the NCCL block (`NCCL_IB_HCA`,
 `NCCL_IB_ADDR_RANGE`, `NCCL_SOCKET_IFNAME`/`GLOO`/`TP`/`MN`). `--memory 112g` assumes 128 GB
 nodes. Get the NCCL values wrong and you hang at rendezvous with very little in the log.
+
+**For the current default lane, follow
+[`runs/2026-09-20-nvidia-lanes/RUNBOOK.md`](runs/2026-09-20-nvidia-lanes/RUNBOOK.md) instead of this
+section.** It has the build steps, the boot command, the settle step and the measurement order for
+`nvidia-glm53-attn`. What follows is the 4-node ground work both lanes need.
 
 ### 1. Image — pull once, fan out
 
@@ -128,12 +213,15 @@ docker save ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2 \
 
 ### 2. Weights and files — on every node
 
-Four things must exist, and **three of them fail in non-obvious ways if missing**, because
-Docker silently creates an empty directory over a bind-mount source that does not exist.
+Five things must exist on the default lane (four on the older lanes), and **most of them fail in
+non-obvious ways if missing**, because Docker silently creates an empty directory over a bind-mount
+source that does not exist.
 
 ```bash
-# (a) main weights (~182 GiB, 120 safetensors) - either checkpoint from the table below
-ls /var/tmp/models/GLM-5.3-Flash-NVFP4-redhat/config.json   # RedHatAI compressed-tensors (default)
+# (a) main weights - the built default lane, or any checkpoint from the table below.
+#     nvidia/GLM-5.3-Flash-NVFP4 is 190.4 GiB in 33 shards; the build rewrites 31 of them and
+#     adds one NVFP4 attention shard. Build steps: runs/2026-09-20-nvidia-lanes/RUNBOOK.md
+ls /var/tmp/models/nvidia-glm53-attn/config.json   # default lane (W4A16_NVFP4, needs NVFP4_PATCH=1)
 
 # (b) the DFlash2 drafter (~2.2 GB)
 huggingface-cli download incoai/GLM-5.3-Flash-DFlash2 \
@@ -145,13 +233,20 @@ mkdir -p ~/patches
 cp docker/sparse_attn_indexer_kpool_sm121.py ~/patches/sparse_attn_indexer_kpool.py
 
 # (d) the vision chat template, INSIDE the weights dir (that mount is read-only at runtime)
-cp chat_template_mm.jinja /var/tmp/models/GLM-5.3-Flash-NVFP4-redhat/
+cp chat_template_mm.jinja /var/tmp/models/nvidia-glm53-attn/
+
+# (e) default lane only: the two patched glm5next files NVFP4_PATCH=1 mounts. Without them the
+#     attention projections are built BF16 and the packed 4-bit weights cannot load.
+install -d ~/patches/nvfp4
+cp runs/2026-09-20-nvidia-lanes/patches/kda.py runs/2026-09-20-nvidia-lanes/patches/model.py ~/patches/nvfp4/
 
 chmod +x launch-glm53-tp4-24g.sh flusher-unconditional.sh fleet_watchdog.sh
 ```
 
-The launcher hard-fails with a named error if any of the four is missing, so you find out in
-one second rather than twenty minutes.
+The launcher hard-fails with a named error if any of them is missing, so you find out in
+one second rather than twenty minutes. `glm53_tp4.sh` also refuses to boot if the image's own copies of
+`kda.py` and `model.py` no longer hash to the values the patches were cut from, because mounting stale
+copies over a rebuilt image would silently run old model code.
 
 ### 3. Memory ritual — on every node
 
@@ -182,12 +277,37 @@ for n in <node1> <node2> <node3> <node4>; do ssh $n 'docker rm -f vllm_glm53' ; 
 ./launch-glm53-tp4-24g.sh 0   # head - serves http://<head>:8000/v1
 ```
 
-Boot is ~20 min: weight load, drafter load, KV allocation, warmup. Stop the flusher once
+On the current default lane this is one command, which does the teardown, the cache drop and the
+worker-first launch itself:
+
+```bash
+MODEL_DIR=nvidia-glm53-attn NVFP4_PATCH=1 MNBT=8192 SPEC_K=7 MAXLEN=500000 \
+  bash /root/glm_boot.sh <label>
+```
+
+Two things it expects, both from
+[`runs/2026-09-20-nvidia-lanes/RUNBOOK.md`](runs/2026-09-20-nvidia-lanes/RUNBOOK.md): run
+`tools/glm_settle.sh` first if you are swapping off another large lane, because booting straight after
+stopping a ~100 GiB one races the memory reclaim and vLLM refuses; and leave `VLLM_EXTRA` at its default
+`--limit-mm-per-prompt {"image":4,"video":0}`, which keeps image input and skips the dummy-video warmup.
+If you set `VLLM_EXTRA`, add to it rather than replacing it.
+
+Boot is ~12 min on the default lane, ~20 min on the older fp8/marlin one: weight load, drafter load,
+KV allocation, warmup. Stop the flusher once
 serving (`pkill -f flusher-unconditional.sh`). Thinking is off by default; re-enable per
 request with `chat_template_kwargs: {"enable_thinking": true}` — no restart needed. Tool
 calling ships enabled (`glm47` parser).
 
 ### Verify the boot
+
+On the default lane, expect `quant_algo=W4A16_NVFP4`, `Using MarlinNvFp4LinearKernel`, 43.76 GiB/rank of
+weights, and:
+
+```
+GPU KV cache size: 3,532,196 tokens
+```
+
+On the older 1M fp8/marlin lane:
 
 ```
 GPU KV cache size: 3,895,606 tokens, Maximum concurrency for 1,048,576 tokens per request: 3.72x
@@ -201,22 +321,38 @@ Then gate it before you trust it — the suite is in
 
 ---
 
-## Weights: censored or uncensored (drop-in)
+## Which weights
 
-Same launcher, same recipe — just point the model path at either. Both are NVFP4 and load
-identically.
+Everything in this table is MIT and ungated. The two lanes we serve are **built locally from the nvidia
+pack**, so the row says which upstream weights go in, not a directory you can download.
 
-| | HuggingFace | notes |
+| | upstream weights | what it is |
 |---|---|---|
-| **⭐ Default (recommended)** | [RedHatAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4) | **compressed-tensors, corruption-free** (see fix above) |
-| Censored (legacy) | [LibertAIDAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4) | stock NVFP4 weight-only — ⚠️ ModelOpt token corruption |
-| **Uncensored (abliterated)** | [drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock](https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock) | abliterated (layers 15-45, anchor-stock), no refusals |
+| **⭐ Default lane** (`nvidia-glm53-attn`) | [nvidia/GLM-5.3-Flash-NVFP4](https://huggingface.co/nvidia/GLM-5.3-Flash-NVFP4) | official nvidia quant plus our NVFP4 attention, declared `W4A16_NVFP4`. Needs `NVFP4_PATCH=1`. The only pack here that ships calibrated `input_scale` tensors (36,297 of them), and it keeps one full expert layer in BF16 |
+| **⭐ Uncensored lane** (`blackfrost-glm53-derisked-attn`) | [Blackfrost-AI/GLM-5.3-Flash-DERISKED-NVFP4](https://huggingface.co/Blackfrost-AI/GLM-5.3-Flash-DERISKED-NVFP4) plus our NVFP4 attention | abliterated from `zai-org/GLM-5.3-Flash-BF16` at the routed-expert `down_proj` tensors, where refusal actually lives. Operator-confirmed uncensored and coherent; acceptance 0.415 vs the censored lane's 0.394. **Its config declares `quant_algo: NVFP4` with zero `input_scale` tensors — rewrite to `W4A16_NVFP4` or it garbles.** Ships 120 shards and no `chat_template_mm.jinja` |
+| ~~Abliteration transplant~~ (`nvidia-glm53-ablit-attn`) | nvidia, plus [dealignai/GLM-5.3-Flash-UNCENSORED-NVFP4](https://huggingface.co/dealignai/GLM-5.3-Flash-UNCENSORED-NVFP4) `o_proj` on layers 12-44 | **RETIRED, do not use.** Edits 46 `o_proj` tensors (0.03 of the refusal signal) instead of 12,384 `down_proj` (0.81). Stopped refusing, but garbled in live use in two unrelated harnesses and acceptance collapsed to 0.224 / 2.57 tok/step |
+| Prior base | [LibertAIDAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4) | what the default lane replaced, and the baseline the comparison above is against. Its 27-Aug build shipped **no calibrated `input_scale` tensors** while declaring `NVFP4` (which selects W4A4); they later added a separate 4.6 MB `model-input-scales.safetensors`. Harmless on a `W4A16_NVFP4` lane, which never reads activation scales |
+| Alternative | [RedHatAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4) | `compressed-tensors` rather than ModelOpt, with real activation scales. Was the default while it was the corruption workaround; still a clean drop-in if you would rather not build anything, at W4A4 |
+| Historical | [drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock](https://huggingface.co/drowzeys/keys-GLM-5.3-Flash-NVFP4-ablit-l15-45-anchorstock) | the abliterated pack the NVFP4-KV lane below was measured on (layers 15-45, anchor-stock) |
 
-Abliteration credit: [drowzeys/keys](https://github.com/drowzeys).
+Build steps for the two lanes, including why the `ignore` list must not be hand-derived:
+[`runs/2026-09-20-nvidia-lanes/RUNBOOK.md`](runs/2026-09-20-nvidia-lanes/RUNBOOK.md).
+
+Transplant credit: `dealignai` for the donor `o_proj` tensors, and
+[drowzeys / Keys](https://github.com/drowzeys) for documenting the `o_proj` byte-copy method their
+`METHOD.md` measured at 32/32 bypass where computed-direction methods reached 6-9/32.
 
 ---
 
 ## Performance
+
+**The numbers in this section are from the 2026-08/09 fp8/marlin lane, not the current default.** For the
+default lane, see the tables at the top and the full spreads in
+[`runs/2026-09-20-nvidia-lanes/`](runs/2026-09-20-nvidia-lanes/) and
+[`runs/2026-09-20-tp4-vs-deepseek/`](runs/2026-09-20-tp4-vs-deepseek/). The reasoning below about *why*
+single-stream tok/s on this model is a statement about the prompt still applies to both lanes, and the
+plus-or-minus 25% run-to-run band measured on 2026-09-20 is the reason the current lane publishes
+3-rep medians with their spreads.
 
 **54.5 tok/s single stream** — one run, 408 tokens in 7.5 s, "write a function then
 explain it", temperature 0, thinking off, on the gate-passing boot. n=1; treat it as
@@ -269,6 +405,9 @@ overlay: [`overlay-dflash2/`](overlay-dflash2/)
 
 ## KV-cache lanes: fp8 (default) vs NVFP4
 
+> **Naming:** "Lane A" and "Lane B" in this section are **KV-cache formats**, a separate axis from the two
+> weight lanes at the top of this README. The current default serves fp8 KV.
+
 **fp8 is the daily driver** — faster, simpler to operate, and what the config above ships.
 **NVFP4 KV is the flex lane** for the rare job that needs pool capacity over throughput.
 
@@ -295,22 +434,22 @@ DFlash2 on this fleet, closing two entries in
 
 ### Lane B — NVFP4 KV at TP4 (verified serving, 2026-08-27)
 
-We took the **NVFP4 KV** recipe from [drowzeys/keys](https://github.com/drowzeys/keys-vLLm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated) — the **Zero-RoPE shim** (pad GLM's NoPE attention with a virtual 64-dim RoPE so the cache presents DeepSeek's 576-dim record to the NVFP4 kernels, bit-for-bit identical to NoPE) + Luke Alonso's **b12x** `B12X_MLA_SPARSE` backend + `KV_DTYPE=nvfp4_ds_mla` — and **extended it from his 2-Spark TP2 to our 4-Spark TP4** on the uncensored `keys` ablit weights.
+We took the **NVFP4 KV** recipe from [drowzeys/keys](https://github.com/drowzeys/keys-vLLm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated) — the **Zero-RoPE shim** (pad GLM's NoPE attention with a virtual 64-dim RoPE so the cache presents DeepSeek's 576-dim record to the NVFP4 kernels, bit-for-bit identical to NoPE) + Luke Alonso's **b12x** `B12X_MLA_SPARSE` backend + `KV_DTYPE=nvfp4_ds_mla` — and **extended it from his 2-Spark TP2 to our 4-Spark TP4** on the abliterated `keys` weights.
 
-| Metric | NVFP4-KV TP4 (uncensored) |
+| Metric | NVFP4-KV TP4 (abliterated `keys` weights) |
 |---|---|
 | **KV pool** | **6,652,112 tokens = 6.34× a full 1,048,576-token context** (≈6.3 full-1M conversations at once), at 32 GiB KV/rank |
 | KV dtype | `nvfp4_ds_mla`, `KV_FP8_ROPE=1` — **368 B/token/layer** (vs 656 fp8, 1152 bf16) |
 | Context | 1,048,576 (1M), served on `:8000` as `glm-5.3-flash` (drop-in name) |
 | Decode | **~36 tok/s single-stream** warmed (temp 0, structured) — `--enforce-eager` is required by the b12x kernels and caps single-stream; concurrent aggregate is far higher. Prefill ~1,050–1,290 tok/s, TTFT ~0.2 s |
-| Vision | ON (image input verified) · Thinking off by default · uncensored (no refusals) |
+| Vision | ON (image input verified) · Thinking off by default · abliterated `keys` weights (refusal behaviour not re-tested by us) |
 | Spec decode | native MTP head, k=2 · GMU 0.85 hard cap · 32 GiB KV/rank |
 
 **fp8 vs NVFP4 KV at EQUAL 32 GiB/rank budget:** NVFP4 KV = **6,652,112 tokens** vs fp8 = 5,033,164 — **1.32× the pool at the same memory** (the 368-vs-656 B/token density showing through). As far as we can tell this is the **first NVFP4 KV cache at TP4 on consumer Blackwell**, and ~5.4× the reference 2-Spark TP2 pool (1.22M tokens). **Full credit to [drowzeys / keys](https://github.com/drowzeys/keys-vLLm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated)** for the Zero-RoPE shim, the b12x NVFP4 kernels, and the ablit weights; our contribution is the TP4 port + the 4-node fabric/memory config.
 
 ### fp8 vs NVFP4 KV — speed head-to-head (measured 2026-08-27)
 
-The density win above is **not free** — we ran both lanes back-to-back on the same `:8000` endpoint (same uncensored `keys` ablit weights, TP4, `--enforce-eager`, MTP, temp 0, warmed) to price it:
+The density win above is **not free** — we ran both lanes back-to-back on the same `:8000` endpoint (same abliterated `keys` weights, TP4, `--enforce-eager`, MTP, temp 0, warmed) to price it:
 
 | Metric | Lane A — fp8 KV | Lane B — NVFP4 KV | Winner |
 |---|---:|---:|:--|
@@ -321,7 +460,7 @@ The density win above is **not free** — we ran both lanes back-to-back on the 
 
 ¹ The NVFP4 prefill/TTFT is a **single sample that may have been partly cold** (our fp8 first-prefill was 19 s / 467 tok/s cold, then settled to ~2.5 s / ~3,530 warmed — the b12x kernels JIT on the first large prefill too). We did not capture a clean warmed long-prompt NVFP4 prefill before teardown, so **treat decode as the definitive head-to-head and the prefill row as directional, not final.**
 
-**What this means:** NVFP4 KV's ~33 % slower decode is the b12x `B12X_MLA_SPARSE` sparse-attention path (+ the per-token NVFP4 dequant) doing more compute per step than fp8's marlin path — and `--enforce-eager`, which the b12x kernels require, caps single-stream on both lanes. So the trade is clean: **NVFP4 = KV *capacity* (bigger context pool at equal VRAM), fp8 = *speed* (faster tokens for the same agent work).** For our production endpoint we run **fp8 as the daily driver** (faster, uncensored, vision, simplest to operate) and keep **NVFP4 as the flex** for the rare job that needs the giant pool over throughput.
+**What this means:** NVFP4 KV's ~33 % slower decode is the b12x `B12X_MLA_SPARSE` sparse-attention path (+ the per-token NVFP4 dequant) doing more compute per step than fp8's marlin path — and `--enforce-eager`, which the b12x kernels require, caps single-stream on both lanes. So the trade is clean: **NVFP4 = KV *capacity* (bigger context pool at equal VRAM), fp8 = *speed* (faster tokens for the same agent work).** For our production endpoint we run **fp8 as the daily driver** (faster, vision, simplest to operate) and keep **NVFP4 as the flex** for the rare job that needs the giant pool over throughput.
 
 ---
 
@@ -351,8 +490,18 @@ The density win above is **not free** — we ran both lanes back-to-back on the 
 
 ## What's in here
 
-- [`launch-glm53-tp4-24g.sh`](launch-glm53-tp4-24g.sh) — **the current launcher**. Head serves
-  `:8000`; run worker-first (rank 3 -> 2 -> 1, head 0 last). Full NCCL fabric env included.
+- [`runs/2026-09-20-nvidia-lanes/`](runs/2026-09-20-nvidia-lanes/): **the current default lane.** Both
+  weight lanes measured side by side, per-file checksums, the patched `kda.py` and
+  `model.py` that `NVFP4_PATCH=1` mounts, a self-contained `tools/` including the launcher and harness,
+  and [`RUNBOOK.md`](runs/2026-09-20-nvidia-lanes/RUNBOOK.md) with every command and value in order.
+- [`runs/2026-09-20-tp4-vs-deepseek/`](runs/2026-09-20-tp4-vs-deepseek/): where the NVFP4 attention work
+  came from, with the head-to-head against DeepSeek-V4.1-Flash on DeepSeek's prompt set, the per-step cost
+  model, the two boot traps, and the W4A4 source audit.
+- [`launch-glm53-tp4-24g.sh`](launch-glm53-tp4-24g.sh): the fp8/marlin launcher this README's 1M section
+  was measured with. Head serves `:8000`; run worker-first (rank 3 -> 2 -> 1, head 0 last). Full NCCL
+  fabric env included. The default lane boots through
+  [`runs/2026-09-20-nvidia-lanes/tools/glm53_tp4.sh`](runs/2026-09-20-nvidia-lanes/tools/glm53_tp4.sh)
+  and `glm_boot.sh` instead, and its `MODEL_HOST_PATH` is derived from `MODEL_DIR`.
 - [`flusher-unconditional.sh`](flusher-unconditional.sh) — **required sidecar** on every node
   during boot. Mechanism and measurements: [docs/GB10-KV-MEMORY-LADDER.md](docs/GB10-KV-MEMORY-LADDER.md).
 - [`chat_template_mm.jinja`](chat_template_mm.jinja) — **required for vision.** The checkpoint
@@ -385,6 +534,112 @@ The density win above is **not free** — we ran both lanes back-to-back on the 
 
 ---
 
+## Appendix: token corruption on the retired transplant lane (vLLM #54150)
+
+> **This does not affect either shipping lane.** Both the censored `nvidia` lane and the uncensored
+> `Blackfrost` lane have been exercised by the operator in the same harness that garbled, and neither
+> reproduced it. Corruption tracked the **retired** dealignai `o_proj` transplant, which is no longer a lane
+> here. You do not need to read this to deploy.
+
+Kept because the bug was real, the history matters, and this repo published two explanations that turned out to
+be wrong. If you are building your own abliterated pack, the Resolution note below is the part worth your time.
+
+### What still stands
+
+NVIDIA's ModelOpt-quantized NVFP4 builds scored **4 / 9 / 8** corrupted token IDs across three passes where
+RedHat's `compressed-tensors` build scored **0 / 0 / 0** ([vLLM #54150](https://github.com/vllm-project/vllm/issues/54150)).
+That probe demonstrably detects the fault, because it found it. Nearly invisible in English prose, but a
+corrupted token inside a tool-call block desyncs the parser and generation can spiral into a repetition lock.
+
+### Retraction 1: `W4A16_NVFP4` is not a fix
+
+An earlier revision claimed the fix was declaring `quant_algo: W4A16_NVFP4`, on the strength of
+`0 in 28,617` suspect characters from `tools/corrupt_probe.py`. **That is a false negative and the claim is
+withdrawn.** The probe counted only CJK, Cyrillic, Hangul, Arabic and replacement characters; a corrupted token
+ID can map to *any* vocabulary entry, including Latin-script words and structural tokens like `</tool_call>`.
+It also ran at temperature 0, single-turn, at 219-619 token contexts. It could not have found this bug.
+
+### Retraction 2: the W4A4 / missing-`input_scale` mechanism is wrong
+
+The stated mechanism was that a pack declaring `quant_algo: NVFP4` takes a W4A4 activation path and multiplies
+real weight scales by absent or placeholder `input_scale` values. **Checked directly against
+`nvidia/GLM-5.3-Flash-NVFP4` and it does not hold** - the activation scales are all present:
+
+| tensor class in the stock nvidia checkpoint | count |
+|---|---|
+| `*input_scale` | **36,297** |
+| `*weight_scale` | 36,297 |
+| `*weight_scale_2` | 36,297 |
+| total tensors | 147,661 |
+
+One `input_scale` per quantized linear, exactly matching the weight-scale count. Nothing is missing, so
+`W4A16_NVFP4` is not "closing a corruption route" - it is a weight-only compatibility choice that ignores
+activation scales which genuinely exist. The mechanism is unknown.
+
+### What is ruled out
+
+Each of these was a hypothesis that failed a measurement, listed so nobody re-runs them:
+
+| hypothesis | test | result |
+|---|---|---|
+| Client/harness rendering artifact | two unrelated harnesses (dsh, OMP) on the same lane | **ruled out** - both corrupt identically |
+| Speculative-decode rejection sampler (temperature > 0 path) | same prompt at temperature 0.0 / 0.3 / 0.7 / 1.0 | **ruled out** - behaviour identical at 0 and 1.0 |
+| Context length alone | 12 accumulating turns, 33 KB system prompt, to 15.3 K context, non-streaming | **not reproduced** - 48 K characters clean |
+| Missing activation scales (above) | tensor census of the stock checkpoint | **ruled out** - 36,297 present |
+| The dealignai `o_proj` transplant | operator side-by-side: the transplant lane garbles in two unrelated harnesses, the censored nvidia lane and the Blackfrost lane do not; acceptance 0.224 on the transplant vs 0.394 / 0.415 | **leading cause** (see the resolution note below). An earlier revision of this table said "not the cause" on the grounds that `4 / 9 / 8` was measured on unmodified packs — that reasoning is withdrawn |
+
+Not yet tested, in priority order: the **full tool-call round trip** (assistant `tool_calls` -> `role: tool`
+result -> next turn, streamed, which is what both harnesses do and what every probe above omitted); context far
+beyond 15 K. **Both current lanes have since been exercised by the operator** in the harness that garbled on
+the retired transplant lane, and neither reproduced it.
+
+### Resolution note (2026-09-21): the transplant lane, not the quantizer
+
+Two operator tests settled the practical question even though the mechanism is still unmeasured. The censored
+`nvidia` lane and the `Blackfrost` lane are both **ModelOpt** builds and both behave correctly in the harness
+that garbled; the retired dealignai `o_proj` transplant garbled in **two unrelated harnesses**. So ModelOpt as a
+class is not the trigger, and the earlier plan to move back to RedHat `compressed-tensors` is unnecessary.
+
+A second, independent signal agrees. DFlash2 was trained against stock GLM-5.3-Flash, so draft acceptance
+measures how far a target has drifted from stock:
+
+| lane | acceptance | tokens/step | position 7 |
+|---|---|---|---|
+| dealignai `o_proj` transplant (retired) | **0.224** | **2.57** | **0.000** |
+| nvidia (censored default) | 0.394 | 3.76 | healthy |
+| Blackfrost (uncensored default) | **0.415** | **3.90** | healthy |
+
+**This remains inferential.** Seven probes failed to reproduce the garbling directly: two harnesses corrupt
+identically (not a client artifact), temperature 0 behaves like temperature 1.0 (not the spec-decode rejection
+sampler), 48K characters over 12 turns to 15.3K context stayed clean, full streamed tool-call round trips stayed
+clean, and the `input_scale` explanation was wrong (nvidia ships all 36,297). What is established is which lanes
+are safe to run, not the mechanism inside the broken one.
+
+### Use an adequate detector
+
+`tools/corrupt_probe.py` and `tools/corrupt2.py` are kept only as a record of what not to do. A detector for
+this fault needs to score, on long multi-turn streamed sessions with real tool cycles: emoji runs, any
+foreign-script character in an English response, duplicated lines and repeated SSE deltas, literal tool-call
+markup arriving as content, reasoning text leaking into the content channel, and 8-gram diversity of the output
+tail (degenerate tails fall below ~0.40). Validated against a real corrupted transcript and silent on clean
+prose.
+
+build, is **not needed on a W4A16 lane**. It supplies calibrated activation scales for a path these lanes do
+not execute. Switching to W4A4 to use it would additionally break any NVFP4 attention tensors added by this
+recipe, since those carry no activation scales of their own.
+
+Corruption first flagged by [@ajclark](https://github.com/ajclark) (issue #10).
+
+---
+
+> **Second site, 100G switched fabric:** [docs/FIELD-NOTES-4NODE-100G.md](docs/FIELD-NOTES-4NODE-100G.md)
+> reproduces this recipe on four GX10 through an Arista 7060CX-32S at 100G. Decode matched
+> the 200G numbers, which suggests it is not fabric-bound. Also covers a GID-index lookup
+> for the launcher, why AOC transceivers overheat in the GX10 cages, and moving 185 GB
+> between nodes without encrypting it.
+
+---
+
 ## Superseded configurations
 
 Kept for the record. **Do not deploy these** — the current config is at the top.
@@ -395,6 +650,8 @@ Kept for the record. **Do not deploy these** — the current config is at the to
 | 2026-08-27 | 32 GiB/rank | 5,033,164 | passed a single-prefill gate, died under three concurrent requests |
 | 2026-08-27 | 38 GiB/rank | 5,975,779 | allocates and boots, then the first 20K prefill NVRM-OOMs a rank |
 | earlier | TP4 with MTP-4 (no DFlash2) | — | DFlash2 is faster at zero KV cost |
+| 2026-08-29 | `RedHatAI/GLM-5.3-Flash-NVFP4` as the default checkpoint | n/a | adopted as a token-corruption workaround; the nvidia lane is level-or-ahead on throughput and has not shown corruption in operator use. (An earlier entry here cited "0 corruption in 28,617 characters" — that was a false negative from an inadequate probe and is withdrawn.) RedHat is still a fine alternative, it is just no longer the default |
+| 2026-09-20 | `keys-glm53-nvfp4-attn3` (LibertAI-parented, NVFP4 attention) | 3,532,196 | same recipe on the nvidia pack, which is MIT, ungated, and ships calibrated `input_scale` tensors |
 
 The 38 GiB case is the cautionary one: it allocates cleanly, boots, and answers short prompts
 before dying. On GB10, "serving" is not the bar.
@@ -424,7 +681,14 @@ experiment lane before production).
 ## Credits
 
 Model: [zai-org/GLM-5.3-Flash](https://huggingface.co/zai-org/GLM-5.3-Flash) ·
-Quant: [RedHatAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4) (default, compressed-tensors) ·
+Base quant: [nvidia/GLM-5.3-Flash-NVFP4](https://huggingface.co/nvidia/GLM-5.3-Flash-NVFP4) (the default lane
+builds on it) · `o_proj` donor for the abliteration-transplant lane:
+[dealignai/GLM-5.3-Flash-UNCENSORED-NVFP4](https://huggingface.co/dealignai/GLM-5.3-Flash-UNCENSORED-NVFP4) ·
+the `o_proj` byte-copy method, documented in their `METHOD.md`:
+[drowzeys / Keys](https://github.com/drowzeys) ·
+alternative quant: [RedHatAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/RedHatAI/GLM-5.3-Flash-NVFP4)
+(compressed-tensors) · prior base quant:
+[LibertAIDAI/GLM-5.3-Flash-NVFP4](https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4) ·
 DFlash2 drafter: [incoai/GLM-5.3-Flash-DFlash2](https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2) ·
 NVFP4-KV lane, Zero-RoPE shim, b12x kernels and the ablit weights:
 [drowzeys / keys](https://github.com/drowzeys/keys-vLLm.0.27.1-GLM-5.3-Flash-NVFP4-NVFP4KV-1M-Context-Abliterated) ·
@@ -433,6 +697,9 @@ the `--max-num-batched-tokens` ladder and the unconditional-flusher requirement:
 barrydeen (gmu reference + quant table) · vLLM [PR #53906](https://github.com/vllm-project/vllm/pull/53906)
 authors for the day-0 image · FlashInfer 0.6.18 · Luke Alonso (b12x) ·
 jack6464 (InstantTensor pointer).
+
+Everything upstream is MIT and ungated. **This repo hosts no weights**, only the recipe, the patches and the
+checksums, so credit and traffic stay with the original authors.
 
 Deployed and debugged by Knox (Claude) for [@tonyd2wild](https://github.com/tonyd2wild).
 Sibling repos: [TP2 / 262K](https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark) ·

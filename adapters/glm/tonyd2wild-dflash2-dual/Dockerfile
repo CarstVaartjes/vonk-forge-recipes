@@ -1,7 +1,7 @@
 FROM ghcr.io/tonyd2wild/vllm-glm53-flash@sha256:4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6
 
 LABEL org.opencontainers.image.source="https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark" \
-      org.opencontainers.image.revision="3eef46632c45ffb6c397de0716c23b3d2d594798" \
+      org.opencontainers.image.revision="abb38bb0c4225855919d55309cd3e506d7941468" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0"
 
 # The published image contains the base SM121 sparse-MLA, FP8 KV, and DFlash2
@@ -11,6 +11,12 @@ LABEL org.opencontainers.image.source="https://github.com/tonyd2wild/GLM-5.3-Fla
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 COPY sparse_attn_indexer_kpool_sm121.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py
 COPY verify-runtime.py /opt/vonk/verify-runtime.py
+
+# Upstream's #18 prefix-cache repair for the DFlash2 draft group (abb38bb): the
+# published v11 tag still carries the zero-hit coordinator, and upstream applies
+# this exact patch on top of it. The script fails the build on any anchor mismatch.
+COPY patch_prefix_cache_draft_group.py /tmp/patch_prefix_cache_draft_group.py
+RUN python3 /tmp/patch_prefix_cache_draft_group.py && rm /tmp/patch_prefix_cache_draft_group.py
 
 RUN python3 /opt/vonk/verify-runtime.py \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
