@@ -3959,6 +3959,22 @@
         ]
       }
     },
+    "vonk-forge/deepseek-v4-flash-mtp-tonyd2wild-vllm-four": {
+      "alias": "deepseek-v4-flash",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and concurrency canaries at the 300K default context (six sequences, memory utilization 0.78)"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery across four Sparks"
+        ]
+      }
+    },
     "vonk-forge/ling-3-0-flash-dspark-sglang-single": {
       "alias": "ling-3-0-flash",
       "smoke_cases": [
