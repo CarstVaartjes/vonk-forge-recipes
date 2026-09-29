@@ -1,0 +1,383 @@
+# GLM-5.3-Flash NoPE sparse MLA on SM121 (NVIDIA GB10 / DGX Spark).
+#
+# EXL3 weights, not NVFP4: this overlay is the MLA/KV geometry, not the GEMM.
+# Do not pass --moe-backend marlin; that flag is the NVFP4 FLASHINFER_CUTLASS
+# workaround and is the wrong backend for an EXL3 checkpoint.
+#
+# The stock image cannot serve this checkpoint on GB10. GLM-5.3-Flash is
+# NoPE MLA (qk_rope_head_dim=0, d_qk=512), and on SM12x the only sparse-MLA backend is
+# FLASHINFER_MLA_SPARSE_SM120, whose impl mandates the packed fp8_ds_mla record. Two
+# things then reject it:
+#
+#   1. concat_and_cache_mla (csrc/.../cache_kernels.cu:866) -> "pe_dim must be 64 for
+#      fp8_ds_mla", because the 656 B record is 512 NoPE + 16 B scales + 128 B RoPE.
+#   2. flashinfer/mla/_core.py:583 -> the SM120 sparse entry requires kv_lora_rank=512,
+#      qk_rope_head_dim=64 and query head dim 576.
+#
+# FlashInfer instantiates three SM120 sparse-MLA model types
+# (flashinfer/mla/_sparse_mla_sm120.py:125-170): DSV3_2 and GLM_NSA at d_qk=576 /
+# 656 B with topk in {128,512,1024,2048}, and DSV4 at d_qke=512 / 584 B (448 fp8 +
+# 64 bf16 + 8 B footer) with topk in {128,512,1024} only. GLM-5.3-Flash needs
+# d_qk=512 with index_topk=2048, which no kernel instantiates, and its uniform 512-dim
+# latent does not fit the DSv4 448/64 split.
+#
+# So run it in the GLM_NSA geometry the GLM-5.2 line already uses: zero-pad the 512-dim
+# latent to 576. A zero RoPE block adds nothing to the QK dot, softmax is unchanged, and
+# the value is taken from the 512 NoPE region (d_v=512), so the result is exact. It costs
+# 656 B/token instead of ~528 (~24% more DSA KV over 11 DSA layers) and needs no kernel
+# work. MLAAttentionSpec.real_page_size_bytes already allocates block_size * 656 for
+# fp8_ds_mla on non-deepseek_v4 models, so allocation already matches.
+#
+# The impl also inherits MLAAttentionImpl.forward_mha, which raises NotImplementedError
+# (only the SM100 sibling gets a real one via SparseMLACommonImpl). Declaring
+# supports_dense_mha_prefill=False routes prefill through the same top-k MQA kernel --
+# the same declaration rocm_aiter_mla_sparse.py:668 makes -- which is the model's own
+# sparse semantics, and it also clears the builder's prefill metadata so use_dense_mha
+# can never select the missing path.
+#
+# Third, the SM120 impl passes index_topk as both the page-table width and the top-k,
+# which this checkpoint breaks: index_kpool=4 widens the indexer's top-k buffer past
+# index_topk and rounds it up to a multiple of 128 (2048 -> 2176), so the kernel rejects
+# the table ("expects sparse block_tables shape (256, 1, 2048), got (256, 1, 2176)").
+# The SM100 sibling treats sparse_mla_top_k as page-table *capacity* and bounds each
+# query by its own valid count (flashinfer_mla_sparse.py:461-476), so ask the index
+# converter for those counts and pass the buffer width. Zero-length rows are pointed at
+# slot 0 with length 1 and their output zeroed afterwards, mirroring the same file's
+# empty-row handling.
+#
+# Capacity alone is not enough on SM120: the top-k width is a kernel template parameter,
+# not a runtime bound. sparse_mla_sm120_prefill.cu:220 rejects any GLM_NSA/DSV3_2 prefill
+# with topk != 2048, its dual-cache (two-segment) dispatcher is DSV4-only (line 406), and
+# the DSV4 dual path hardcodes a 128-wide primary. _DECODE_DSV3_2_DISPATCH likewise only
+# instantiates topk in {128,512,1024,2048}. So the candidate set has to be exactly 2048
+# wide, while this model's indexer emits up to 2051: 512 pools expanded by index_kpool=4,
+# plus an always-selected tail of up to kpool-1 tokens that have no compressed pool entry
+# yet (glm5next/nvidia/model.py:606-616, ops/kpool_compress.py:950-967).
+#
+# Fourth, the indexer's DeepGEMM paged-MQA page size. deepgemm attention.hpp:320 accepts
+# block_kv in {32,64,128} on sm_10x but only 64 on sm_120 (non-FP4 cache), while
+# vllm/utils/deep_gemm.py hardcodes PAGED_MQA_PAGE_SIZES = (32, 64) arch-blind. The kpool
+# indexer's storage block is block_size // index_kpool, and cuda.py aligns block_size to
+# index_kpool * min(PAGED_MQA_PAGE_SIZES) = 128; the hybrid KDA page constraint then
+# lands on block_size 1664, giving a 416-entry storage block. 416 is not a multiple of
+# 64, so compressed_kernel_block_size (v1/worker/utils.py:69) falls back to a 32-entry
+# page and DeepGEMM asserts. Aligning to index_kpool * 64 = 256 moves block_size to 1792,
+# whose 448-entry storage block does tile by 64.
+#
+# That raise also has to not change the MLA kernel page: select_kernel_block_size walks
+# the backend's int sizes in descending order, so [64, 256] would pick 256 for a 1792
+# manager block, and every GLM_NSA/DSV3_2 kernel is instantiated at PAGE_BLOCK_SIZE=64
+# only (_DECODE_DSV3_2_PAGE_BLOCK_SIZE, launch_prefill_sg<..., 2048, 64>). At block_size
+# 1664 that was masked -- 256 does not divide 1664 -- so pin the SM120 backend to [64].
+#
+# Drop the lowest-ranked selected pool instead of the tail: expand 511 pools (2044
+# tokens) + 3 tail = 2047 candidates in a 2048-wide buffer. That gives up 4 of 2048
+# candidate tokens (0.2%), the *last* ones in top-k rank order, and keeps the recent
+# tail, which carries the highest attention weight in a causal model and can never be
+# recovered from the pools. The alternative -- truncating the 2051-wide row to 2048 --
+# drops exactly that tail. select_k stays 512, so the indexer keeps its fused top-k fast
+# path (sparse_attn_indexer_kpool.py:810 gates on select_k in {512,1024,2048}).
+#
+# GB10 extras on top of the SM12x overlay: FlashInfer's sparse-MLA autotune and
+# fused_moe gemm1/gemm2 autotune kill rank 0 on SM121, and PDL lowering races
+# KDA state kernels here, so skip both and gate PDL to Hopper / SM10x.
+#
+# Three-Spark (TP=3) build. Upstream's start-tp3.sh does three things at every
+# container start that this image performs at build time instead, because the
+# workload's root filesystem is read-only and a build-time step is reproducible
+# from the pinned base digest and the pinned upstream commit:
+#   1. bind-mounts four patched vLLM sources (overlay/tp3/vllm/...) over the
+#      installed ones -> COPY over the same site-packages paths, as the last
+#      file-changing step (a bind mount masks whatever the image holds, so it is
+#      last here as well);
+#   2. runs overlay/tp3/patch_tp3_glm.py (head 64->66, vocab padding, shared-expert
+#      pad, A_log pad) against the installed glm5next model.py, and
+#      overlay/tp3/patch_exl3_ep_shard.py + patch_exl3_expert_map.py against the
+#      installed exl3.py (after patch_dense_fp8.py, which reinstalls exl3.py);
+#   3. pads the DFlash2 drafter config (32/8 -> 36/9 heads): the padded config is
+#      committed as drafter-config-tp3.json and materialised by vllm-wrapper.py.
+#
+# Build (context = repo root, aarch64 host):
+#   docker build -t glm53-flash-sm121:local .
+
+FROM docker.io/vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce
+
+COPY patch_sm120_nope_mla.py /tmp/patch_sm120_nope_mla.py
+RUN python3 /tmp/patch_sm120_nope_mla.py && rm /tmp/patch_sm120_nope_mla.py
+
+COPY verify_sm120_nope_mla.py /tmp/verify_sm120_nope_mla.py
+RUN python3 /tmp/verify_sm120_nope_mla.py && rm /tmp/verify_sm120_nope_mla.py
+
+# EXL3/MCG trellis for routed experts (compiled for SM121, not SM120 cubins).
+# Python overlay (exl3.py) is copied AFTER the CUDA compile so edits do not
+# rebuild exllamav3_ext. The aarch64 stub patch must stay in this layer.
+COPY overlay/patch_exl3_ext_aarch64.py /opt/glm53/patch_exl3_ext_aarch64.py
+COPY overlay/patch_exl3_fat_kernel.py /opt/glm53/patch_exl3_fat_kernel.py
+COPY overlay/patch_exl3_decode_pipeline.py /opt/glm53/patch_exl3_decode_pipeline.py
+COPY overlay/exl3_fat_gemm.cu /opt/glm53/exl3-fat-kernel/exl3_fat_gemm.cu
+COPY overlay/exl3_fat_gemm.cuh /opt/glm53/exl3-fat-kernel/exl3_fat_gemm.cuh
+# E3 grouped fat-expert kernels, compiled into the same exllamav3_ext
+# translation unit as the E2 fat GEMM (upstream's current layout).
+# patch_exl3_fat_kernel.py installs all four sources and binds every entry
+# point, so no separate exl3_fat_moe_ext module is built.
+COPY overlay/exl3_fat_moe.cu /opt/glm53/exl3-fat-kernel/exl3_fat_moe.cu
+COPY overlay/exl3_fat_moe.cuh /opt/glm53/exl3-fat-kernel/exl3_fat_moe.cuh
+
+ARG EXLLAMAV3_COMMIT=c5d9c657966ffeeaa9353f0cc899f18629da4a13
+ENV TORCH_CUDA_ARCH_LIST=12.1a
+ENV FLASHINFER_CUDA_ARCH_LIST=12.1a
+ENV MAX_JOBS=8
+ENV CUDA_HOME=/usr/local/cuda
+ENV PATH=/usr/local/cuda/bin:${PATH}
+
+COPY register_exl3.py /tmp/register_exl3.py
+RUN python3 /tmp/register_exl3.py && rm /tmp/register_exl3.py
+
+# The vLLM image keeps CUDA toolkit headers under nvidia/cu13 (cusparse.h), not
+# /usr/local/cuda/include. ExLlamaV3 also ships AVX2/AVX512 CPU targets that
+# do not compile on aarch64; stub them so the SM121 GEMM still builds.
+RUN set -eux; \
+    mkdir -p /tmp/exllamav3; \
+    curl -fsSL "https://github.com/turboderp-org/exllamav3/archive/${EXLLAMAV3_COMMIT}.tar.gz" \
+      | tar -xz -C /tmp/exllamav3 --strip-components=1; \
+    python3 -c "from pathlib import Path; assert (Path('/tmp/exllamav3')/'exllamav3/modules/quant/exl3.py').is_file()"; \
+    python3 /opt/glm53/patch_exl3_ext_aarch64.py /tmp/exllamav3/exllamav3/exllamav3_ext; \
+    python3 /opt/glm53/patch_exl3_fat_kernel.py /tmp/exllamav3/exllamav3/exllamav3_ext /opt/glm53/exl3-fat-kernel; \
+    python3 /opt/glm53/patch_exl3_decode_pipeline.py /tmp/exllamav3/exllamav3/exllamav3_ext; \
+    export CPATH="/usr/local/lib/python3.12/dist-packages/nvidia/cu13/include${CPATH:+:$CPATH}"; \
+    export CPLUS_INCLUDE_PATH="/usr/local/lib/python3.12/dist-packages/nvidia/cu13/include${CPLUS_INCLUDE_PATH:+:$CPLUS_INCLUDE_PATH}"; \
+    export C_INCLUDE_PATH="/usr/local/lib/python3.12/dist-packages/nvidia/cu13/include${C_INCLUDE_PATH:+:$C_INCLUDE_PATH}"; \
+    cd /tmp/exllamav3; \
+    TORCH_CUDA_ARCH_LIST=12.1a MAX_JOBS=8 \
+      pip install --no-deps --no-build-isolation --no-cache-dir .; \
+    python3 -c "import torch; import exllamav3_ext; assert hasattr(exllamav3_ext, 'exl3_moe'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_gemm'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_gemm_scatter'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_moe_gateup'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_moe_down'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'exl3_fat_moe_gather'), dir(exllamav3_ext); assert hasattr(exllamav3_ext, 'glm53_fast_moe_version') and exllamav3_ext.glm53_fast_moe_version() == 1; print('exllamav3_ext', exllamav3_ext.__file__, 'exl3_moe=yes fat_gemm=yes fat_moe=yes moe_fast=yes')"; \
+    rm -rf /tmp/exllamav3 /root/.cache/pip
+
+# Keep this AFTER the CUDA compile layer so Python-only hook edits do not
+# rebuild exllamav3_ext. Exl3Config.override_quantization_method requires
+# "exl3" in ModelConfig's ordered overrides list.
+COPY overlay/exl3.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3.py
+COPY overlay/exl3.py /opt/glm53/exl3.py
+COPY overlay/patch_adaptive_k.py /opt/glm53/patch_adaptive_k.py
+COPY overlay/patch_dense_fp8.py /opt/glm53/patch_dense_fp8.py
+COPY overlay/patch_model_overrides.py /opt/glm53/patch_model_overrides.py
+COPY overlay/qwen3_dflash2.py /opt/glm53/qwen3_dflash2.py
+COPY overlay/dflash2_speculator.py /opt/glm53/dflash2_speculator.py
+COPY overlay/patch_dflash2.py /opt/glm53/patch_dflash2.py
+COPY overlay/patch_dflash2_exl3.py /opt/glm53/patch_dflash2_exl3.py
+COPY overlay/patch_glm_eagle3.py /opt/glm53/patch_glm_eagle3.py
+COPY overlay/patch_glm5_drafter_group.py /opt/glm53/patch_glm5_drafter_group.py
+COPY overlay/tp3/patch_tp3_glm.py overlay/tp3/patch_exl3_ep_shard.py overlay/tp3/patch_exl3_expert_map.py drafter-config-tp3.json /opt/glm53/
+COPY tests/test_exl3_overlay.py /opt/glm53/test_exl3_overlay.py
+COPY files/chat_template.jinja /opt/glm53/chat_template.jinja
+COPY overlay/patch_glm_video_placeholders.py /opt/glm53/patch_glm_video_placeholders.py
+COPY overlay/patch_suppress_stops_in_reasoning.py /opt/glm53/patch_suppress_stops_in_reasoning.py
+COPY tests/test_suppress_stops.py /opt/glm53/test_suppress_stops.py
+COPY overlay/patch_scheduler_decode_floor.py /opt/glm53/patch_scheduler_decode_floor.py
+COPY tests/test_scheduler_decode_floor.py /opt/glm53/test_scheduler_decode_floor.py
+COPY tests/test_scheduler_decode_floor_restart.py /opt/glm53/test_scheduler_decode_floor_restart.py
+COPY overlay/patch_mamba_align_chunking.py /opt/glm53/patch_mamba_align_chunking.py
+COPY overlay/patch_mamba_align_state_free.py /opt/glm53/patch_mamba_align_state_free.py
+COPY tests/test_mamba_align_chunking.py /opt/glm53/test_mamba_align_chunking.py
+COPY tests/test_mamba_align_state_free.py /opt/glm53/test_mamba_align_state_free.py
+COPY overlay/patch_hybrid_prefix_hit.py /opt/glm53/patch_hybrid_prefix_hit.py
+COPY overlay/patch_apc_per_group_retention.py /opt/glm53/patch_apc_per_group_retention.py
+COPY tests/test_apc_per_group_retention.py /opt/glm53/test_apc_per_group_retention.py
+COPY overlay/patch_apc_no_store.py /opt/glm53/patch_apc_no_store.py
+COPY tests/test_apc_no_store.py /opt/glm53/test_apc_no_store.py
+COPY overlay/patch_kv_capacity_log.py /opt/glm53/patch_kv_capacity_log.py
+COPY tests/test_kv_capacity_log.py /opt/glm53/test_kv_capacity_log.py
+COPY overlay/patch_xgrammar_termination.py /opt/glm53/patch_xgrammar_termination.py
+COPY tests/test_xgrammar_termination.py /opt/glm53/test_xgrammar_termination.py
+COPY overlay/patch_cache_reset.py /opt/glm53/patch_cache_reset.py
+COPY tests/test_cache_reset_endpoint.py /opt/glm53/test_cache_reset_endpoint.py
+# Keep both kpool patchers in one layer: separate COPY/RUN steps push this recipe
+# past overlay2's runnable layer depth on the two-node hosts.
+COPY overlay/patch_kpool_tail_slotmap.py overlay/patch_kpool_tail_seed_stride.py /opt/glm53/
+COPY tests/test_kpool_tail_slotmap.py tests/test_kpool_tail_seed_stride.py /opt/glm53/
+COPY overlay/patch_spinwait.py /opt/glm53/patch_spinwait.py
+COPY tests/test_spinwait_patch.py /opt/glm53/test_spinwait_patch.py
+COPY overlay/patch_indexer_workspace.py /opt/glm53/patch_indexer_workspace.py
+COPY tests/test_indexer_workspace.py /opt/glm53/test_indexer_workspace.py
+COPY overlay/patch_tool_choice_none.py /opt/glm53/patch_tool_choice_none.py
+COPY overlay/patch_loadclone.py /opt/glm53/patch_loadclone.py
+COPY tests/test_loadclone.py /opt/glm53/test_loadclone.py
+COPY tests/fixtures/loadclone_weight_utils.py.txt tests/fixtures/kpool_tail_seed_kernel-487ecf187.py.txt tests/fixtures/kpool_tail_seed_kernel-db1bfdd.py.txt /opt/glm53/fixtures/
+COPY tests/test_tool_choice_none.py /opt/glm53/test_tool_choice_none.py
+COPY overlay/ablit_runtime.py /opt/glm53/ablit_runtime.py
+COPY overlay/patch_ablit.py /opt/glm53/patch_ablit.py
+COPY tests/test_ablit.py /opt/glm53/test_ablit.py
+COPY ablit/LAYER_MAP.json ablit/fetch_transplant.py ablit/refusal_direction_glm53_bf_oproj.pt ablit/refusal_direction_glm53_dealign_late.pt /opt/glm53/ablit/
+RUN python3 /opt/glm53/patch_model_overrides.py
+RUN python3 /opt/glm53/patch_dflash2.py
+# Same bytes the upstream GLM53_OVERLAY_ORDER slot applies at every container
+# start; this image's root is read-only when the workload runs, so it is applied
+# here (inert for the BF16 drafter this recipe serves).
+RUN python3 /opt/glm53/patch_dflash2_exl3.py
+RUN python3 /opt/glm53/patch_glm_eagle3.py
+RUN python3 /opt/glm53/patch_glm5_drafter_group.py
+# GLM53_OVERLAY_ORDER applies this overlay first inside the container at run
+# time.  This image's root is mounted read-only when the workload runs, so the
+# one overlay that rewrites an installed vLLM file has to be applied here
+# instead: it disables the decode-path persistent_topk guard, which
+# oversubscribes GB10 shared memory on long sequences (the live failure reads
+# "persistent_topk would oversubscribe and the FilteredTopK fallback requires
+# >=128KB smem per block"), and it installs the video-timestamp alignment as a
+# .pth so every process, workers included, imports it.  verify-runtime.py then
+# proves both.
+RUN python3 /opt/glm53/patch_glm_video_placeholders.py
+RUN python3 /opt/glm53/patch_suppress_stops_in_reasoning.py
+RUN python3 /opt/glm53/patch_scheduler_decode_floor.py
+# The Mamba cache checkpoints use the Mamba groups' block size, not the
+# smaller DFlash page that also participates in the hybrid cache manager.
+RUN python3 /opt/glm53/patch_mamba_align_chunking.py
+# Retention preflight runs BEFORE both overlays that edit kv_cache_coordinator.py
+# (patch_hybrid_prefix_hit.py and patch_apc_per_group_retention.py), so its
+# composition case still sees a pristine copy of the fork's file.
+RUN GLM53_KV_COORDINATOR_PY_SRC=/usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_coordinator.py \
+    python3 /opt/glm53/test_apc_per_group_retention.py
+RUN python3 /opt/glm53/patch_hybrid_prefix_hit.py
+RUN python3 /opt/glm53/patch_apc_per_group_retention.py
+# Runs BEFORE the no-store patch it validates, but AFTER the hybrid and
+# per-group retention overlays: Part A still stages the pre-no-store
+# sampling_params.py / v1/request.py / v1/core/block_pool.py and applies the
+# no-store patch to copies of them, while Part C composes the exact hybrid +
+# per-group + no-store stack on the real BlockPool / KVCacheManager /
+# coordinator. Both are mandatory in-image (GLM53_REQUIRE_VLLM=1,
+# GLM53_REQUIRE_COMPOSITION=1), including the fork's seven-group KpoolTailSpec
+# layout and the env-driven SWA-retention legs.
+RUN GLM53_VLLM_SRC_ROOT=/usr/local/lib/python3.12/dist-packages/vllm GLM53_REQUIRE_VLLM=1 GLM53_REQUIRE_COMPOSITION=1 python3 /opt/glm53/test_apc_no_store.py
+RUN python3 /opt/glm53/patch_apc_no_store.py
+# Test the exact image source before changing the Mamba manager/spec. The test
+# applies the patch to isolated copies and exercises live/in-flight state
+# ownership plus the align-mode page reservation.
+RUN GLM53_SINGLE_TYPE_KV_CACHE_MANAGER_PY=/usr/local/lib/python3.12/dist-packages/vllm/v1/core/single_type_kv_cache_manager.py \
+    GLM53_KV_CACHE_INTERFACE_PY=/usr/local/lib/python3.12/dist-packages/vllm/v1/kv_cache_interface.py \
+    python3 /opt/glm53/test_mamba_align_state_free.py
+RUN python3 /opt/glm53/patch_mamba_align_state_free.py
+# Same slot as the runtime GLM53_OVERLAY_ORDER (after per-group retention, after
+# the drafter-group patch it shares kv_cache_utils.py with): the host test
+# preflights the real file (both pinned anchors present, stock "GPU KV cache
+# size" line untouched) and replays the derivation before the log-only patch.
+RUN GLM53_KV_CACHE_UTILS_PY=/usr/local/lib/python3.12/dist-packages/vllm/v1/core/kv_cache_utils.py \
+    GLM53_REQUIRE_TARGET=1 python3 /opt/glm53/test_kv_capacity_log.py
+RUN python3 /opt/glm53/patch_kv_capacity_log.py
+RUN python3 /opt/glm53/patch_xgrammar_termination.py
+# Apply both independent kpool patches in their original order and one layer.
+# Upstream start-tp3.sh runs patch_tp3_glm.py at this slot (after the kpool
+# patches, before adaptive-k / dense-FP8 / indexer-workspace / ablit): TP=3 head,
+# vocab, shared-expert and A_log padding in glm5next/nvidia/model.py.
+RUN python3 /opt/glm53/patch_kpool_tail_slotmap.py \
+    && python3 /opt/glm53/patch_kpool_tail_seed_stride.py \
+    && python3 /opt/glm53/patch_tp3_glm.py
+# Applied unconditionally; the injected sizing reads GLM53_INDEXER_WORKSPACE
+# at runtime and returns the stock expression unless it is "rightsize".
+RUN python3 /opt/glm53/patch_indexer_workspace.py
+RUN python3 /opt/glm53/patch_spinwait.py --preflight
+RUN python3 /opt/glm53/patch_cache_reset.py
+RUN python3 /opt/glm53/patch_tool_choice_none.py
+# Auto/lazy safetensors only; the recipe's instanttensor load format is unchanged.
+RUN GLM53_LOADCLONE_SOURCE=/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/weight_utils.py \
+    python3 /opt/glm53/test_loadclone.py
+RUN python3 /opt/glm53/patch_loadclone.py
+RUN python3 /opt/glm53/patch_ablit.py
+RUN python3 /opt/glm53/patch_adaptive_k.py
+# Upstream applies this at container start from GLM53_DENSE_FP8; this image's root
+# is read-only at run time, so the KDA/MLA constructor change is baked in. The
+# three-Spark recipe default follows upstream's start-tp3.sh (GLM53_DENSE_FP8=dense,kda
+# set in .env.tp3.example); the option that keeps BF16 projections sets
+# GLM53_DENSE_FP8=off at run time.
+# Upstream applies both expert-parallel fixes AFTER patch_dense_fp8.py, because that
+# patch reinstalls exl3.py from /opt/glm53 and would wipe them.
+RUN GLM53_DENSE_FP8=all GLM53_DENSE_EXL3=0 python3 /opt/glm53/patch_dense_fp8.py \
+    && python3 /opt/glm53/patch_exl3_ep_shard.py \
+    && python3 /opt/glm53/patch_exl3_expert_map.py
+
+# test_adaptive_k_patch.py / test_dense_fp8_patch.py are repo-checkout tests (they
+# resolve ../overlay and need pristine scheduler/kda sources) and upstream does not
+# run them in-image, so they are not copied or run here.
+RUN EXL3_SELFCHECK_GPU=0 python3 /opt/glm53/test_exl3_overlay.py \
+    && python3 /opt/glm53/test_suppress_stops.py \
+    && python3 /opt/glm53/test_scheduler_decode_floor.py \
+    && python3 /opt/glm53/test_scheduler_decode_floor_restart.py \
+    && python3 /opt/glm53/test_mamba_align_chunking.py \
+    && python3 /opt/glm53/test_tool_choice_none.py \
+    && python3 /opt/glm53/test_xgrammar_termination.py \
+    && python3 /opt/glm53/test_kpool_tail_slotmap.py \
+    && python3 /opt/glm53/test_kpool_tail_seed_stride.py \
+    && python3 /opt/glm53/test_spinwait_patch.py \
+    && python3 /opt/glm53/test_indexer_workspace.py \
+    && python3 /opt/glm53/test_ablit.py \
+    && python3 /opt/glm53/test_cache_reset_endpoint.py
+
+# Direct-I/O safetensors loader. --no-deps: a normal pip install pulls
+# nvidia-nccl-cu13==2.29.7 over this image's NCCL 2.30.7. Required before the
+# Recipe can declare --load-format instanttensor.
+RUN pip install --no-deps --no-cache-dir instanttensor==0.2.0 \
+    && python3 -c "import instanttensor; print('instanttensor', instanttensor.__file__)"
+
+# Cold-load fixes for UMA / 64 KiB-page GB10 hosts (overlay/patch_cold_load_uma.py):
+# InstantTensor budget vs page cache, and file-backed mmap staging. Applied at
+# build so the draft/secondary safetensors paths are covered. No-op on 4 KiB
+# kernels / discrete GPUs.
+COPY overlay/patch_cold_load_uma.py /opt/glm53/patch_cold_load_uma.py
+COPY tests/test_cold_load_uma.py /opt/glm53/test_cold_load_uma.py
+RUN python3 /opt/glm53/test_cold_load_uma.py && python3 /opt/glm53/patch_cold_load_uma.py
+COPY overlay/patch_skip_cudagraph_profile.py /opt/glm53/patch_skip_cudagraph_profile.py
+COPY tests/test_skip_cudagraph_profile.py /opt/glm53/test_skip_cudagraph_profile.py
+RUN GLM53_REQUIRE_TARGET=1 python3 /opt/glm53/test_skip_cudagraph_profile.py && python3 /opt/glm53/patch_skip_cudagraph_profile.py
+
+# The four patched vLLM sources upstream's start-tp3.sh bind-mounts read-only over
+# the installed ones at container start (FlyCockpit TP=3 overlays, MIT). A bind
+# mount replaces whatever the image holds, so these are the last file-changing
+# step: nothing above this line is applied to them. weight_utils.py is the
+# loader with upstream's [glm53-loadclone:v2] already applied (start-tp3.sh checks
+# patch_loadclone.py --check against it), so the build-time loadclone and
+# cold-load patches on the stock file are superseded here, exactly as upstream.
+COPY overlay/tp3/vllm/ /usr/local/lib/python3.12/dist-packages/vllm/
+
+# Baked by start.sh --build-arg so a git pull that changes overlay/Dockerfile
+# misses this label and rebuilds once. Keep last so stamp-only rebuilds are cheap.
+ARG GLM53_RECIPE_STAMP=unknown
+LABEL glm53.recipe.stamp=${GLM53_RECIPE_STAMP}
+LABEL ai.vonkforge.runtime-interface="v1"
+
+# Vonk Controller entrypoint: retain MiaAI-Lab's current source-built runtime
+# while binding placement, cache paths, and the unprivileged service account to
+# the platform contract.  The upstream SSH launcher is retained only as
+# provenance in upstream-start.sh; it is never used by the recipe.
+COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
+COPY verify-runtime.py /opt/vonk/verify-runtime.py
+
+# patch_apc_no_store.py leaves sampling_params.py, v1/request.py and
+# v1/core/block_pool.py root-only (0600), which the unprivileged service account
+# below cannot import; make every installed vLLM file world-readable first.
+RUN find /usr/local/lib/python3.12/dist-packages/vllm -type f ! -perm -o=r -exec chmod a+r {} + \
+    && python3 /opt/vonk/verify-runtime.py \
+    && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
+    && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \
+    && install --directory --owner 10001 --group 10001 /state /outputs /outputs/cache /outputs/cache/triton /outputs/cache/tilelang
+
+ENV HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1 \
+    VLLM_NO_USAGE_STATS=1 \
+    DO_NOT_TRACK=1 \
+    HOME=/state \
+    XDG_CACHE_HOME=/outputs/cache \
+    VLLM_CACHE_ROOT=/outputs/cache \
+    TRITON_CACHE_DIR=/outputs/cache/triton \
+    TILELANG_CACHE_DIR=/outputs/cache/tilelang \
+    EXL3_FAT_GROUPED=1 \
+    EXL3_TEMP_ROWS_FUSED=32 \
+    GLM53_ADAPTIVE_K=off \
+    GLM53_DENSE_FP8=off \
+    GLM53_KDA_BF16_LARGE_M=0 \
+    # Records the recipe revision inside the image.  A runtime-only recipe change
+    # reuses the earlier archive, so the Controller keeps the earlier revision's build
+    # identity and install admission refuses the plan; an image change gives this
+    # revision its own build.
+    VONK_GLM53_RECIPE_REVISION=1.0.0
+
+WORKDIR /state
+USER 10001:10001
+ENTRYPOINT []

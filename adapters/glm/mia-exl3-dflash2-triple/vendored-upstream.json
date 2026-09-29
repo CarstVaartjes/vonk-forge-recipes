@@ -1,0 +1,26 @@
+{
+  "source": {
+    "repo": "MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks",
+    "commit": "94ae731f4619f769be1f4dfe6f6607ce0a3e869d"
+  },
+  "ours": [
+    "vllm-wrapper.py",
+    "verify-runtime.py",
+    "verify_sm120_nope_mla.py",
+    "patch_sm120_nope_mla.py",
+    "register_exl3.py",
+    "tests/__init__.py",
+    "drafter-config-tp3.json"
+  ],
+  "renamed": {
+    "upstream-LICENSE-MIT": "LICENSE.MIT"
+  },
+  "reason": {
+    "drafter-config-tp3.json": "TP3 drafter padding, upstream does this at start: overlay/tp3/pad-tp3-config.py --tp 3 (vendored unchanged) run once on the pinned drafter config incoai/GLM-5.3-Flash-DFlash2 bf582e4e (config.json sha256 c4aeac01...), giving 32/8 -> 36/9 heads; vllm-wrapper.py materialises it into a working view under /outputs so nothing under /models is written",
+    "Dockerfile (glm5next model.py rewrite)": "TP3 model rewrite, upstream does this at start: start-tp3.sh runs overlay/tp3/patch_tp3_glm.py (vendored unchanged) against the installed vLLM glm5next/nvidia/model.py (head 64->66, vocab padding, shared-expert pad, A_log pad), and patch_exl3_ep_shard.py + patch_exl3_expert_map.py against the installed exl3.py. The image root is read-only when the workload runs and the target is a vLLM source file in the image, not a model file, so the Dockerfile applies them at build time, in upstream's order, against the pinned base digest; the cached model is never touched",
+    "Dockerfile (overlay/tp3/vllm/)": "start-tp3.sh bind-mounts these four patched vLLM sources over the installed ones; the Dockerfile COPYs them to the same site-packages paths as its last file-changing step, which is what a bind mount amounts to",
+    "Dockerfile (chmod)": "patch_apc_no_store.py leaves three installed vLLM files root-only (0600); the unprivileged service account could not import them, so the build makes installed vLLM files world-readable and verify-runtime.py checks it",
+    "verify-runtime.py": "adds the TP3 checks (overlay markers, padded drafter config present, installed vLLM readable by the service account)",
+    "vllm-wrapper.py": "three-rank rendezvous validation plus the drafter working view"
+  }
+}
