@@ -5,15 +5,12 @@ LABEL org.opencontainers.image.source="https://github.com/vllm-project/vllm" \
       org.opencontainers.image.licenses="Apache-2.0" \
       io.vonk.vllm.build-commit="ced6857afa0ea7b2e3f0846a62e1394e90f15607"
 
-COPY gemma4-parser-smoke.py /tmp/gemma4-parser-smoke.py
 RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /outputs/cache/home --no-create-home --shell /usr/sbin/nologin vonk; fi \
     && install --directory --mode=0755 /opt/vonk/bin \
     && install --directory --owner=10001 --group=10001 /outputs /outputs/cache \
     && printf '%s\n' '#!/bin/sh' 'set -eu' 'mkdir -p "$HOME" "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME" "$HF_HOME" "$VLLM_CACHE_ROOT" "$TRITON_CACHE_DIR" "$TORCH_HOME" "$TORCH_EXTENSIONS_DIR" "$TORCHINDUCTOR_CACHE_DIR" "$CUDA_CACHE_PATH" "$UV_CACHE_DIR"' 'exec vllm "$@"' > /opt/vonk/bin/vllm \
-    && chmod 0755 /opt/vonk/bin/vllm \
-    && python /tmp/gemma4-parser-smoke.py \
-    && rm /tmp/gemma4-parser-smoke.py
+    && chmod 0755 /opt/vonk/bin/vllm
 
 ENV HOME=/outputs/cache/home \
     XDG_CACHE_HOME=/outputs/cache/xdg \

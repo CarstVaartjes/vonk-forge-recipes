@@ -6,14 +6,11 @@ LABEL org.opencontainers.image.source="https://huggingface.co/google/gemma-4-26B
       org.opencontainers.image.description="Offline vLLM 0.30 ARM64 image-chat adapter for Gemma 4 26B-A4B IT" \
       io.vonk.vllm.build-commit="ced6857afa0ea7b2e3f0846a62e1394e90f15607"
 
-COPY model-interface-smoke.py /tmp/model-interface-smoke.py
 COPY --chmod=0755 vllm-wrapper.sh /opt/vonk/bin/vllm
 RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /outputs/cache/home --no-create-home --shell /usr/sbin/nologin vonk; fi \
     && install --directory --mode=0755 /opt/vonk/bin /inputs \
-    && install --directory --owner=10001 --group=10001 /outputs /outputs/cache \
-    && python /tmp/model-interface-smoke.py \
-    && rm /tmp/model-interface-smoke.py
+    && install --directory --owner=10001 --group=10001 /outputs /outputs/cache
 
 ENV HOME=/outputs/cache/home \
     XDG_CACHE_HOME=/outputs/cache/xdg \
