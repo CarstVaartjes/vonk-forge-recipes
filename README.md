@@ -10,7 +10,7 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-We cover Agents-A1, DeepSeek V4 Flash, FastContext, FLUX.2, Gemma, GLM, Hunyuan3D, HunyuanOCR, HunyuanVideo, HunyuanVideo Foley, Hy3 kodelow, Inkling, Laguna, Leanstral, LFM2.5, Ling, LTX, Meta Llama, MiMo, MiniMax H3, MiniMax M2, MiniMax M3, MOSS-VL, MOVA, Muse Glimmer, Nemotron, Ornith, Pixal3D, Qwen (text and vision), Qwen Image, SkinTokens, Step 3.7 Flash, Step1X-3D, TRELLIS, TripoSG, UI-Mate, VibeThinker, Wan. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+We cover Agents-A1, DeepSeek V4 Flash, DiffusionGemma, FastContext, FLUX.2, Gemma, GLM, Hunyuan3D, HunyuanOCR, HunyuanVideo, HunyuanVideo Foley, Hy3 kodelow, Inkling, Laguna, Leanstral, LFM2.5, Ling, LTX, Meta Llama, MiMo, MiniMax H3, MiniMax M2, MiniMax M3, MOSS-VL, MOVA, Muse Glimmer, Nemotron, Ornith, Pixal3D, Qwen (text and vision), Qwen Image, SkinTokens, Step 3.7 Flash, Step1X-3D, TRELLIS, TripoSG, UI-Mate, VibeThinker, Wan. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
@@ -20,9 +20,10 @@ Which engines each model family runs on.
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | Agents-A1 | ✓ |  |  |  |  |  |  |  |  |
 | DeepSeek V4 Flash | ✓ | ✓ |  |  |  | ✓ |  |  |  |
+| DiffusionGemma | ✓ |  |  |  |  |  |  |  |  |
 | FastContext | ✓ |  |  |  |  |  |  |  |  |
 | FLUX.2 |  |  |  |  |  |  |  | ✓ |  |
-| Gemma | ✓ |  |  |  |  |  |  |  |  |
+| Gemma | ✓ |  |  | ✓ |  |  |  |  |  |
 | GLM | ✓ |  |  |  |  |  |  |  |  |
 | Hunyuan3D |  |  |  |  |  |  |  |  | ✓ |
 | HunyuanOCR |  |  |  |  |  |  |  |  | ✓ |
@@ -65,6 +66,7 @@ Which Spark counts each model family runs on.
 | --- | :---: | :---: | :---: | :---: | :---: |
 | Agents-A1 | ✓ |  |  |  |  |
 | DeepSeek V4 Flash | ✓ | ✓ | ✓ | ✓ |  |
+| DiffusionGemma | ✓ |  |  |  |  |
 | FastContext | ✓ |  |  |  |  |
 | FLUX.2 | ✓ |  |  |  |  |
 | Gemma | ✓ |  |  |  |  |
