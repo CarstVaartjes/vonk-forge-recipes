@@ -1,0 +1,4 @@
+The launch profile (upstream-ds4-1m-launch.sh, upstream-ds4-500k-launch.sh) is from
+https://github.com/tonyd2wild/DeepSeek-V4-Flash-2x-Spark-1M at commit
+7cc2c55c7b6428dcf49401dae63583c2e0141cdf (MIT, see LICENSE.upstream). The container
+image is aidendle94's public vLLM fork build (pinned by digest); its own licences apply.
