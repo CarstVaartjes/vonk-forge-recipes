@@ -16,6 +16,7 @@ RECIPES = {
     "glm-5-2-quanttrio-vllm-four": "adapters/glm/eugr-four/vllm-wrapper.py",
     "glm-5-3-flash-exl3-dflash2-vllm-dual": "adapters/glm/mia-exl3-dflash2-dual/vllm-wrapper.py",
     "glm-5-3-flash-exl3-dflash2-vllm-mia-four": "adapters/glm/mia-exl3-dflash2-four/vllm-wrapper.py",
+    "glm-5-3-flash-exl3-dflash2-vllm-mia-triple": "adapters/glm/mia-exl3-dflash2-triple/vllm-wrapper.py",
     "glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual": "adapters/glm/tonyd2wild-dflash2-dual/vllm-wrapper.py",
     "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual": "adapters/glm/drowzeys-glm53-1m/vllm-wrapper.py",
     "glm-5-3-flash-nvfp4-vllm-dual": "adapters/glm/glm53-sm121/vllm-wrapper.py",
