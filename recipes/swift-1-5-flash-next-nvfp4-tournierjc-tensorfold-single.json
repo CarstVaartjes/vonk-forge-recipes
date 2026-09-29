@@ -1,0 +1,1288 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3",
+        "repository": "nvcr.io/nvidia/pytorch"
+      },
+      "context": {
+        "path": "adapters/qwen/swift-flash-next-nvfp4-tensorfold-single"
+      },
+      "dockerfile": "adapters/qwen/swift-flash-next-nvfp4-tensorfold-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "files.pythonhosted.org",
+          "pypi.org"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "swift-1-5-flash-next-nvfp4-tournierjc-tensorfold-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "swift-1.5"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Single-DGX-Spark Swift 1.5 (UkisAI's reasoning-efficient Qwen3.8 Flash Next derivative) as its NVFP4 checkpoint (186.4 GB: FP4 routed experts, BF16 elsewhere, BF16 PLE n-gram table) on the TensorFold engine v0.4.0 (MIT; exact decoding, custom CUDA kernels JIT-compiled on first start). Text only: the CUDA route does not read the checkpoint's vision tower. Follows tournierjc's single-Spark rig (b695b88f, MIT), which pins TensorFold 0.3.6.3 (191188075bca); v0.4.0 contains that commit. Upstream measured on one Spark with the complete checkpoint: 97.39 GiB loaded within a 105.04 GiB budget, a 262,144-token window, about 9 minutes to load, decode 27.2 tok/s on prose and 54.6 on code and prefill 1,181 tok/s (upstream figures from 0.3.6.3 with 5 drafts at confidence 0.30, unmeasured here). The n-gram table (95.4 GiB) is memory-mapped and paged from disk, so keep the model on NVMe; --ple-on-ssd is refused for an NVFP4 checkpoint and is not used. Licences (information only): the Swift contribution is under the Swift Open License v1.0 (free up to US$1M gross annual revenue including affiliates, above that a separate Swift Enterprise License from UkisAI); the Qwen3.8 Flash Next base terms still apply under the Qwen Community License 1.0 (model name displayed above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses).",
+    "tags": [
+      "engine",
+      "kernel-jit",
+      "mtp",
+      "nvfp4",
+      "qwen3.8",
+      "reasoning",
+      "spark",
+      "swift",
+      "tensorfold",
+      "text-only"
+    ],
+    "title": "Swift 1.5 Flash Next NVFP4 TensorFold single Spark"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-48c352843c1d-618cd5b83d",
+          "id": "primary-metadata-48c352843c1d-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file-manifest-ad54c439ee3d-4ef8f30d6d",
+          "id": "primary-file-manifest-ad54c439ee3d-4ef8f30d6d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-a0dc42256084-c693279643",
+          "id": "primary-license-a0dc42256084-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "quantization-manifest-d40b102bdf47-cec3458273",
+          "id": "primary-quantization-manifest-d40b102bdf47-cec3458273",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-430a893c46c9-b335630551",
+          "id": "primary-readme-430a893c46c9-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "validation-e709e72760cb-4bde528500",
+          "id": "primary-validation-e709e72760cb-4bde528500",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-c3cf9e34abf4-00824420d1",
+          "id": "primary-chat-template-c3cf9e34abf4-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-4d4e2b825edf-587cb980af",
+          "id": "primary-config-4d4e2b825edf-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-mixed-7d5d4c6f3435-c3beb779f2",
+          "id": "primary-embedding-mixed-7d5d4c6f3435-c3beb779f2",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00006-of-00131-8277a48e1fd7-9c746cf36d",
+          "id": "primary-embedding-model-00006-of-00131-8277a48e1fd7-9c746cf36d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00007-of-00131-0fba369354e4-d6aa10a29c",
+          "id": "primary-embedding-model-00007-of-00131-0fba369354e4-d6aa10a29c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00008-of-00131-024f59b6f2cb-c2d19e50e0",
+          "id": "primary-embedding-model-00008-of-00131-024f59b6f2cb-c2d19e50e0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00009-of-00131-23fbef154f7f-688a6eaa93",
+          "id": "primary-embedding-model-00009-of-00131-23fbef154f7f-688a6eaa93",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00010-of-00131-b3a303529a19-502d787e7c",
+          "id": "primary-embedding-model-00010-of-00131-b3a303529a19-502d787e7c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00011-of-00131-d1215943b484-b9b5dd9e1f",
+          "id": "primary-embedding-model-00011-of-00131-d1215943b484-b9b5dd9e1f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00012-of-00131-f63d649ea848-1c333437dc",
+          "id": "primary-embedding-model-00012-of-00131-f63d649ea848-1c333437dc",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00013-of-00131-5e0f0fb335f4-03234bfc83",
+          "id": "primary-embedding-model-00013-of-00131-5e0f0fb335f4-03234bfc83",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00014-of-00131-5ee73bd21c73-02d55a7ae2",
+          "id": "primary-embedding-model-00014-of-00131-5ee73bd21c73-02d55a7ae2",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00015-of-00131-b35421bf2172-bf03ed3dec",
+          "id": "primary-embedding-model-00015-of-00131-b35421bf2172-bf03ed3dec",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00016-of-00131-73c4b1bd1f37-9a5ca858b9",
+          "id": "primary-embedding-model-00016-of-00131-73c4b1bd1f37-9a5ca858b9",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00017-of-00131-ee60c1269974-5fd5d396ef",
+          "id": "primary-embedding-model-00017-of-00131-ee60c1269974-5fd5d396ef",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00018-of-00131-72cf3696aa1a-221953e9ac",
+          "id": "primary-embedding-model-00018-of-00131-72cf3696aa1a-221953e9ac",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00019-of-00131-bdad649be407-670dcfc979",
+          "id": "primary-embedding-model-00019-of-00131-bdad649be407-670dcfc979",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00020-of-00131-2258dad55787-34f45d5476",
+          "id": "primary-embedding-model-00020-of-00131-2258dad55787-34f45d5476",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00021-of-00131-775952ac572f-725d358ee6",
+          "id": "primary-embedding-model-00021-of-00131-775952ac572f-725d358ee6",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00022-of-00131-7d205070bb89-63cb3b5347",
+          "id": "primary-embedding-model-00022-of-00131-7d205070bb89-63cb3b5347",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00023-of-00131-598d4f772853-e79835aa97",
+          "id": "primary-embedding-model-00023-of-00131-598d4f772853-e79835aa97",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00024-of-00131-09e534942e7d-968bba4853",
+          "id": "primary-embedding-model-00024-of-00131-09e534942e7d-968bba4853",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00025-of-00131-482d18f0e515-522d074f86",
+          "id": "primary-embedding-model-00025-of-00131-482d18f0e515-522d074f86",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00026-of-00131-ac479fe29ed3-e6ec17024b",
+          "id": "primary-embedding-model-00026-of-00131-ac479fe29ed3-e6ec17024b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00027-of-00131-4981d4e63672-e24c104ab8",
+          "id": "primary-embedding-model-00027-of-00131-4981d4e63672-e24c104ab8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00028-of-00131-1b45a957b1f3-cb07cba5fe",
+          "id": "primary-embedding-model-00028-of-00131-1b45a957b1f3-cb07cba5fe",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00029-of-00131-40d2f2291ff4-214ad66121",
+          "id": "primary-embedding-model-00029-of-00131-40d2f2291ff4-214ad66121",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00030-of-00131-893a9b59e412-dc6cee494d",
+          "id": "primary-embedding-model-00030-of-00131-893a9b59e412-dc6cee494d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00031-of-00131-9b6bf01d60f2-16e0971980",
+          "id": "primary-embedding-model-00031-of-00131-9b6bf01d60f2-16e0971980",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00032-of-00131-7453fcb58721-70bfa46ded",
+          "id": "primary-embedding-model-00032-of-00131-7453fcb58721-70bfa46ded",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00033-of-00131-5b2f577ce409-14cd3b43d6",
+          "id": "primary-embedding-model-00033-of-00131-5b2f577ce409-14cd3b43d6",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00034-of-00131-35b552266865-86181422be",
+          "id": "primary-embedding-model-00034-of-00131-35b552266865-86181422be",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00035-of-00131-4fe611218d36-ef245ae20d",
+          "id": "primary-embedding-model-00035-of-00131-4fe611218d36-ef245ae20d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embedding-model-00036-of-00131-237789c0cef5-c661e1ed12",
+          "id": "primary-embedding-model-00036-of-00131-237789c0cef5-c661e1ed12",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-e70c136c1b78-97dd3d578b",
+          "id": "primary-generation-config-e70c136c1b78-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-0f79111f5495-a481ad90fa",
+          "id": "primary-hf-quant-config-0f79111f5495-a481ad90fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "id": "primary-merges-a9d356d7bdf1-b0d6dcfed4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00000-7de34ef7c374-0afccbce8b",
+          "id": "primary-model-layer-00000-7de34ef7c374-0afccbce8b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00001-2a2502ba10f6-3ece1a8219",
+          "id": "primary-model-layer-00001-2a2502ba10f6-3ece1a8219",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00002-11d47d9b35a2-bb4d2457d9",
+          "id": "primary-model-layer-00002-11d47d9b35a2-bb4d2457d9",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00003-d3f0e4ba0818-af3029cc67",
+          "id": "primary-model-layer-00003-d3f0e4ba0818-af3029cc67",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00004-c702d936057e-39ac99f6e7",
+          "id": "primary-model-layer-00004-c702d936057e-39ac99f6e7",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00005-6d204587621e-49a050c61f",
+          "id": "primary-model-layer-00005-6d204587621e-49a050c61f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00006-faf0faaa80ea-d7a8c58697",
+          "id": "primary-model-layer-00006-faf0faaa80ea-d7a8c58697",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00007-7f77584c9de8-13b646c745",
+          "id": "primary-model-layer-00007-7f77584c9de8-13b646c745",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00008-895d00b5cf58-3a1e03cd31",
+          "id": "primary-model-layer-00008-895d00b5cf58-3a1e03cd31",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00009-139c6387c79e-0b4fc1b85c",
+          "id": "primary-model-layer-00009-139c6387c79e-0b4fc1b85c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00010-8218dfa1197c-da9994a8dc",
+          "id": "primary-model-layer-00010-8218dfa1197c-da9994a8dc",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00011-5d5f46b02448-bae990e538",
+          "id": "primary-model-layer-00011-5d5f46b02448-bae990e538",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00012-388d8b1dfda5-89a7650cfd",
+          "id": "primary-model-layer-00012-388d8b1dfda5-89a7650cfd",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00013-8f248a27331b-afccf41a71",
+          "id": "primary-model-layer-00013-8f248a27331b-afccf41a71",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00014-609729c84a1a-7b0f0f772a",
+          "id": "primary-model-layer-00014-609729c84a1a-7b0f0f772a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00015-a91f5d47dde7-af6edb2ce1",
+          "id": "primary-model-layer-00015-a91f5d47dde7-af6edb2ce1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00016-70d800f262b5-30d48a25e9",
+          "id": "primary-model-layer-00016-70d800f262b5-30d48a25e9",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00017-960bb43e3cde-22c835eeb5",
+          "id": "primary-model-layer-00017-960bb43e3cde-22c835eeb5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00018-3975940b7153-375afd91de",
+          "id": "primary-model-layer-00018-3975940b7153-375afd91de",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00019-a20311dbe831-a4fbd6b05d",
+          "id": "primary-model-layer-00019-a20311dbe831-a4fbd6b05d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00020-a1cd35d23379-0fab034eea",
+          "id": "primary-model-layer-00020-a1cd35d23379-0fab034eea",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00021-05c59a11438b-560e176acd",
+          "id": "primary-model-layer-00021-05c59a11438b-560e176acd",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00022-15fa60b62968-67c6c9dcac",
+          "id": "primary-model-layer-00022-15fa60b62968-67c6c9dcac",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00023-d6ce8f07c973-08c2d5ad40",
+          "id": "primary-model-layer-00023-d6ce8f07c973-08c2d5ad40",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00024-98a0b0cda3ff-bf31a53681",
+          "id": "primary-model-layer-00024-98a0b0cda3ff-bf31a53681",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00025-246e217901df-e94bac2d16",
+          "id": "primary-model-layer-00025-246e217901df-e94bac2d16",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00026-c4ce6047c415-0f7392e735",
+          "id": "primary-model-layer-00026-c4ce6047c415-0f7392e735",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00027-956f1e207c25-9969f40e90",
+          "id": "primary-model-layer-00027-956f1e207c25-9969f40e90",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00028-f0f909780544-0065b06c39",
+          "id": "primary-model-layer-00028-f0f909780544-0065b06c39",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00029-8f0dbb8dc788-779bc2b07a",
+          "id": "primary-model-layer-00029-8f0dbb8dc788-779bc2b07a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00030-ba597fac43e2-aa35e8769e",
+          "id": "primary-model-layer-00030-ba597fac43e2-aa35e8769e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00031-655058c6aea7-9f0d02f769",
+          "id": "primary-model-layer-00031-655058c6aea7-9f0d02f769",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00032-584bc6059802-c23d1c0c70",
+          "id": "primary-model-layer-00032-584bc6059802-c23d1c0c70",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00033-3fa183460d68-a41e9a6c6b",
+          "id": "primary-model-layer-00033-3fa183460d68-a41e9a6c6b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00034-6efaaa877531-3815bf0672",
+          "id": "primary-model-layer-00034-6efaaa877531-3815bf0672",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00035-6291c430f516-564675a6d9",
+          "id": "primary-model-layer-00035-6291c430f516-564675a6d9",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00036-e7fba8387b85-a659502fe1",
+          "id": "primary-model-layer-00036-e7fba8387b85-a659502fe1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00037-3d9665b68a20-2c3b4479ac",
+          "id": "primary-model-layer-00037-3d9665b68a20-2c3b4479ac",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00038-31e454b011af-12c89efacd",
+          "id": "primary-model-layer-00038-31e454b011af-12c89efacd",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00039-da661c3a34b3-8446567f55",
+          "id": "primary-model-layer-00039-da661c3a34b3-8446567f55",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00040-a5d4b4cf956e-41ac49043a",
+          "id": "primary-model-layer-00040-a5d4b4cf956e-41ac49043a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00041-6343f03e4a8d-e267c03de1",
+          "id": "primary-model-layer-00041-6343f03e4a8d-e267c03de1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00042-9f87f7de91f9-2905eb7bea",
+          "id": "primary-model-layer-00042-9f87f7de91f9-2905eb7bea",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00043-b23a745190c0-7e153ec290",
+          "id": "primary-model-layer-00043-b23a745190c0-7e153ec290",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00044-fc47abff876b-5717cfd46a",
+          "id": "primary-model-layer-00044-fc47abff876b-5717cfd46a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00045-6ec9940a4d96-98319fe423",
+          "id": "primary-model-layer-00045-6ec9940a4d96-98319fe423",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00046-19488cb68325-34b3159658",
+          "id": "primary-model-layer-00046-19488cb68325-34b3159658",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-layer-00047-6b671f73ac03-318686a305",
+          "id": "primary-model-layer-00047-6b671f73ac03-318686a305",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-tail-6223fd10fabf-afed93d626",
+          "id": "primary-model-tail-6223fd10fabf-afed93d626",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-53690a04fefa-0a05be8238",
+          "id": "primary-model-safetensors-index-53690a04fefa-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "primary-preprocessor-config-27225450ac9c-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-06b9509352d2-224931eb13",
+          "id": "primary-tokenizer-06b9509352d2-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-66e427c470fe-94d5c6ba8f",
+          "id": "primary-tokenizer-config-66e427c470fe-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "primary-vocab-ce99b4cb2983-ba05d8e2e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "66d13eed9aaef372f1295c5bd1c29792c66571274b6e118770bc1f1fcbef239b",
+        "kind": "model",
+        "publisher": "ukisai",
+        "slug": "swift-1-5-flash-next-nvfp4-3ff05202"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "No think block unless a request asks for one; text arrives in content (upstream default, --no-thinking).",
+          "label": "Answer directly",
+          "value": "direct"
+        },
+        {
+          "args": [
+            {
+              "name": "no-thinking",
+              "value": false
+            }
+          ],
+          "help": "Open a think block by default; reasoning comes back in reasoning_content.",
+          "label": "Think first",
+          "value": "thinking"
+        }
+      ],
+      "help": "Whether the reply starts in a think block. On TensorFold 0.3.6.3 with thinking on, the reply streams as reasoning_content and content stays null until the thinking budget is spent, so a client that reads only delta.content sees an empty stream (upstream note). A request can still set chat_template_kwargs.enable_thinking.",
+      "label": "Thinking",
+      "name": "thinking"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "At most 5 MTP drafts a round; a chain stops before a draft under 30 percent. Upstream measured 27.2 tok/s prose, 54.6 code (upstream claim; also TensorFold's stock confidence).",
+          "label": "MTP, 5 drafts, confidence 0.30",
+          "value": "mtp-5-030"
+        },
+        {
+          "args": [
+            {
+              "name": "mtp-confidence",
+              "value": 0.2
+            }
+          ],
+          "help": "The confidence the rig carried before its sweep: prose 26.4 tok/s, code 54.5 (upstream claim).",
+          "label": "MTP, 5 drafts, confidence 0.20",
+          "value": "mtp-5-020"
+        },
+        {
+          "args": [
+            {
+              "name": "mtp-drafts",
+              "value": 10
+            },
+            {
+              "name": "mtp-confidence",
+              "value": 0.2
+            }
+          ],
+          "help": "The rig's earlier tuning on a branch: prose 22.9 tok/s, code 53.8 on 0.3.6.3 (upstream claim).",
+          "label": "MTP, 10 drafts, confidence 0.20",
+          "value": "mtp-10-020"
+        },
+        {
+          "args": [
+            {
+              "name": "no-drafts",
+              "value": true
+            }
+          ],
+          "help": "Serial one-token-at-a-time reference decoding (--no-drafts); same output, slower. Upstream also uses it to avoid a draft-vocabulary IndexError seen on an older branch tip.",
+          "label": "No drafting",
+          "value": "serial"
+        }
+      ],
+      "help": "MTP drafts are verified against the model's own samples, so outputs are unchanged by drafting (upstream claim). Upstream swept the draft window on 0.3.6.3 on this checkpoint: 5 drafts beat 10 on prose (26.4 against 22.9 tok/s) at equal code speed, and 3 drafts cost code a fifth of its rate (upstream claims).",
+      "label": "Speculative drafting",
+      "name": "drafting"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "tournierjc",
+      "Ash Hart (TensorFold)",
+      "UkisAI",
+      "Qwen contributors"
+    ],
+    "source_reference": "https://github.com/tournierjc/Swift-1.5-TensorFold-Single-DGX-Spark/tree/b695b88f786977428246dcc3e0d97293caca2c34"
+  },
+  "release": {
+    "released_at": "2026-09-29",
+    "version": "0.4.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "host",
+        "setting": null,
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "setting": null,
+        "value": 8000
+      },
+      {
+        "name": "name",
+        "setting": null,
+        "value": "swift-1.5"
+      },
+      {
+        "name": "parallel",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "context",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "mtp-drafts",
+        "setting": null,
+        "value": 5
+      },
+      {
+        "name": "mtp-confidence",
+        "setting": null,
+        "value": 0.3
+      },
+      {
+        "name": "no-thinking",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "tensorfold",
+    "entrypoint": [
+      "/opt/vonk/bin/tensorfold-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TENSORFOLD_NO_UPDATE_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 186458010084,
+            "image_bytes": 40000000000,
+            "safety_margin_bytes": 15000000000,
+            "working_bytes": 10000000000
+          },
+          "memory": {
+            "peak_bytes": 105000000000,
+            "reserve_bytes": 13100000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "swift-1.5"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
