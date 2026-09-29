@@ -1,11 +1,12 @@
 {
   "ours": [
+    ".gitattributes",
     "docker/patch_v8_pdl_off.py",
     "docker/patch_v8_sm121_nope_mla.py",
     "vllm-wrapper.py"
   ],
   "source": {
-    "repo": "sfxnz/GLM-5.3-Flash-NVFP4-vLLM-2x-DGX-Spark",
-    "commit": "072c3f68fe425edb141e08cc60576f4bb0477ed2"
+    "commit": "072c3f68fe425edb141e08cc60576f4bb0477ed2",
+    "repo": "sfxnz/GLM-5.3-Flash-NVFP4-vLLM-2x-DGX-Spark"
   }
 }
