@@ -1,0 +1,12 @@
+{
+  "source": {
+    "repo": "r0b0tlab/ling30vl-nvfp4-mp-sm121",
+    "commit": "739081ce45a3128afb136d8249566fb013d4e0cd"
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE"
+  }
+}

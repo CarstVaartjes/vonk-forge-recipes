@@ -31,7 +31,7 @@ Which engines each model family runs on.
 | Laguna | ✓ |  |  |  |  |  |  |  |  |  |
 | Leanstral | ✓ |  |  |  |  |  |  |  |  |  |
 | LFM2.5 | ✓ |  |  |  |  |  |  |  |  |  |
-| Ling |  | ✓ |  |  |  |  |  |  |  |  |
+| Ling | ✓ | ✓ |  |  |  |  |  |  |  |  |
 | LTX |  |  |  |  |  |  | ✓ |  | ✓ |  |
 | Meta Llama |  |  | ✓ |  |  |  |  |  |  |  |
 | MiMo | ✓ | ✓ |  |  |  |  |  |  |  |  |
