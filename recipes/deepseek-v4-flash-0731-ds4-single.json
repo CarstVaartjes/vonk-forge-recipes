@@ -72,16 +72,66 @@
       }
     }
   ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Default ds4 kernels (upstream default).",
+          "label": "Fast",
+          "value": "fast"
+        },
+        {
+          "args": [
+            {
+              "name": "quality",
+              "value": true
+            }
+          ],
+          "help": "Pass --quality: prefer exact kernels where faster approximate paths exist.",
+          "label": "Exact kernels",
+          "value": "quality"
+        }
+      ],
+      "help": "Whether ds4 prefers exact kernels over faster approximate paths. Upstream default is the faster path; exact kernels are for correctness comparisons and may be slower.",
+      "label": "Kernel precision",
+      "name": "kernels"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Weights are touched on first use (upstream default); the first requests may stall.",
+          "label": "Lazy",
+          "value": "lazy"
+        },
+        {
+          "args": [
+            {
+              "name": "warm-weights",
+              "value": true
+            }
+          ],
+          "help": "Pass --warm-weights: touch resident weights at startup to reduce first-use stalls; startup takes longer.",
+          "label": "Warm at startup",
+          "value": "warm"
+        }
+      ],
+      "help": "Whether ds4 touches its resident weights at startup.",
+      "label": "Weight warm-up",
+      "name": "warm-weights"
+    }
+  ],
   "provenance": {
     "attribution": [
       "DeepSeek AI",
       "Salvatore Sanfilippo (antirez)"
     ],
-    "source_reference": "https://github.com/antirez/ds4/tree/f4d03f6cf9f11c1e7b630bcb160853acfba7c52a"
+    "source_reference": "https://github.com/antirez/ds4/tree/0aaea5a238fb41a35106a551e73c8409dfb751ac"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "2.1.3"
+    "released_at": "2026-09-20",
+    "version": "2.2.0"
   },
   "runtime": {
     "arguments": [
