@@ -1,0 +1,11 @@
+{
+  "ours": [
+    "vllm-wrapper.py",
+    "install-nccl.py",
+    "verify-runtime.py",
+    "chat_template_mm.jinja"
+  ],
+  "renamed": {
+    "glm53-flash_SM121.py": "files/glm53-flash_SM121.py"
+  }
+}

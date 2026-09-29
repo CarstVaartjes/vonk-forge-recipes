@@ -1,0 +1,10 @@
+{
+  "ours": [
+    "vllm-wrapper.py",
+    "verify-runtime.py",
+    "patch_prefix_cache_draft_group.py"
+  ],
+  "renamed": {
+    "sparse_attn_indexer_kpool_sm121.py": "docker/sparse_attn_indexer_kpool_sm121.py"
+  }
+}

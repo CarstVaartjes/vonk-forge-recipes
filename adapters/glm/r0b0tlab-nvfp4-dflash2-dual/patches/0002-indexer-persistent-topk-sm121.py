@@ -13,7 +13,6 @@ SM121 gate); re-derived and verified for this base image.
 Idempotent (marker GLM53-SM121-TOPK-GATE); fails loudly on anchor drift.
 Usage: python3 0002-indexer-persistent-topk-sm121.py [--root ...] [--dry-run]
 """
-
 from __future__ import annotations
 
 import argparse

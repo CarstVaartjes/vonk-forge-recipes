@@ -5,7 +5,6 @@ Checks every patch marker, that the patched files still parse, and that the
 behavioral hooks exist. Exits non-zero on any miss.
 Usage: python3 verify_overlay.py [--root /usr/local/lib/python3.12/dist-packages]
 """
-
 from __future__ import annotations
 
 import argparse
@@ -17,29 +16,17 @@ DEFAULT_ROOT = "/usr/local/lib/python3.12/dist-packages"
 
 CHECKS = [
     ("vllm/platforms/cuda.py", "GLM53-SM121-NOPE-MLA"),
-    (
-        "vllm/v1/attention/backends/mla/flashinfer_mla_sparse_sm90.py",
-        "GLM53-SM121-NOPE-MLA",
-    ),
-    (
-        "vllm/model_executor/layers/sparse_attn_indexer_kpool.py",
-        "GLM53-SM121-TOPK-GATE",
-    ),
+    ("vllm/v1/attention/backends/mla/flashinfer_mla_sparse_sm90.py", "GLM53-SM121-NOPE-MLA"),
+    ("vllm/model_executor/layers/sparse_attn_indexer_kpool.py", "GLM53-SM121-TOPK-GATE"),
     ("vllm/models/glm5next/nvidia/model.py", "GLM53-DFLASH2-AUX-CAPTURE"),
     ("vllm/v1/core/kv_cache_utils.py", "GLM53-DFLASH2-DRAFTER-GROUP"),
 ]
 
 BEHAVIOR = [
     ("vllm/platforms/cuda.py", "FLASHINFER_MLA_SPARSE_SM90"),
-    (
-        "vllm/v1/attention/backends/mla/flashinfer_mla_sparse_sm90.py",
-        "capability.major in (9, 12)",
-    ),
+    ("vllm/v1/attention/backends/mla/flashinfer_mla_sparse_sm90.py", "capability.major in (9, 12)"),
     ("vllm/v1/attention/backends/mla/flashinfer_mla_sparse_sm90.py", 'else "fa2"'),
-    (
-        "vllm/model_executor/layers/sparse_attn_indexer_kpool.py",
-        "_persistent_topk_fits_device()",
-    ),
+    ("vllm/model_executor/layers/sparse_attn_indexer_kpool.py", "_persistent_topk_fits_device()"),
     ("vllm/models/glm5next/nvidia/model.py", "EagleModelMixin"),
     ("vllm/models/glm5next/nvidia/model.py", "SupportsEagle3"),
     ("vllm/models/glm5next/nvidia/model.py", "aux_hidden_states"),
