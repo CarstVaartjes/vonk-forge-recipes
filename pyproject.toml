@@ -21,7 +21,9 @@ target-version = "py312"
 # Vendored third-party sources are byte-exact by contract, not authored here:
 # apply-build-patches.py hashes each DeepSeek V4 tokenizer encoding and fails
 # the container build if it is not the official file, and the adapter NOTICE
-# records the ui-mate agent sources as byte-identical to Tencent's commit.
+# records the ui-mate agent sources as byte-identical to Tencent's commit, and
+# the r0b0tlab EXL3 plugin sources (src, csrc) are the unmodified
+# upstream files at commit 2dfbdbe4 (see that adapter's README.upstream.md).
 # Formatting or rewriting them would silently break that provenance, so both
 # gates skip them. Every other file, including the rest of adapters/, is
 # covered.
@@ -29,6 +31,8 @@ exclude = [
     "adapters/deepseek/mia-vllm/encoding/encoding_dsv4.py",
     "adapters/deepseek/mia-vllm-vision/encoding/encoding_dsv4.py",
     "adapters/llm/ui-mate-vllm/agents",
+    "adapters/glm/r0b0tlab-exl3-dflash2-single/src",
+    "adapters/glm/r0b0tlab-exl3-dflash2-single/csrc",
 ]
 
 [tool.pyright]
@@ -46,4 +50,6 @@ exclude = [
     "**/__pycache__/**",
     "**/node_modules/**",
     "**/.venv/**",
+    "adapters/glm/r0b0tlab-exl3-dflash2-single/src",
+    "adapters/glm/r0b0tlab-exl3-dflash2-single/csrc",
 ]
