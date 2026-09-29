@@ -1,0 +1,52 @@
+{
+  "model": {
+    "id": "deepseek-ai/DeepSeek-V4-Flash-0731",
+    "revision": "9e165c30e2704aec5d9d593cce3eebd58bbef1cb",
+    "shards": 48
+  },
+  "overlay": {
+    "manifest_path": "recipe/knownfix-manifest.json",
+    "manifest_sha256": "48eec5804d2695ee684b9a5186a8061abf65df7aef62ff69cb976c535c5821ba",
+    "materializer_version": "2",
+    "patch_path": "recipe/patches/vllm-v0.26.0-dspark-sm121.patch",
+    "patch_sha256": "17432713400bcda550063bd11939a625d290d5d28e53ef05fd1360166749acd5",
+    "version": "native-cudagraph-v1"
+  },
+  "parent_image": {
+    "id": "sha256:f965f823be2f3ca64aa83e8ff4ce70d8f7118b8a249592ec57fb20f12482d876",
+    "nccl_library_sha256": "0bf24802ae809c796f216ec2a789c74e3dde8d31ac3c27aa068c8ef67e2436dc",
+    "nccl_version": "2.30.4",
+    "platform": "linux/arm64",
+    "tag": "dspark-r0b0tlab:production-v026-b12x-standard-6cbe169",
+    "vllm_package_version": "0.26.0+dspark.sm121.2"
+  },
+  "release_track": "native-cudagraph-v1",
+  "runtime": {
+    "audit_expectation": {
+      "inherited_vllm_version": "0.26.0+dspark.sm121.2",
+      "path": "recipe/runtime-manifest.vllm-sm121.3.json",
+      "qualification_scope": "package-version, integrated-source, cumulative-patch, compile-safe-stream-policy",
+      "qualified_vllm_version": "0.26.0+dspark.sm121.3",
+      "read_only_container_path": "/opt/r0b0tlab/runtime-manifest.json",
+      "sha256": "f6777b31e8c8977361d629ca99c37a199d3b52b9abc134f1de624eb202f083a9"
+    },
+    "cudagraph_selector_capability": "native-v1",
+    "cudagraph_strict": true,
+    "kv_cache_dtype": "nvfp4_ds_mla",
+    "kv_cache_memory_bytes_per_rank": 15998753178,
+    "moe_backend": "flashinfer_b12x",
+    "production_implementation": "regular",
+    "speculative_method": "dspark",
+    "speculative_tokens": 6,
+    "tensor_parallel_size": 2
+  },
+  "schema_version": 2,
+  "vllm": {
+    "existing_parent_commit": "851227a38976da600e1206663bf79d3e7e6e12f3",
+    "integrated_commit": "fbad93432ebf60c8345397b3032fe03bf5d239cc",
+    "package_version": "0.26.0+dspark.sm121.3",
+    "repository": "https://github.com/vllm-project/vllm.git",
+    "tag": "v0.26.0",
+    "upstream_commit": "568afb3a13806beb53bb2e6bd518269357b237c0"
+  }
+}
