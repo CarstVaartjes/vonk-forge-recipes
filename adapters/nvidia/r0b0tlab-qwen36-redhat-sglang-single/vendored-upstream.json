@@ -1,0 +1,12 @@
+{
+  "source": {
+    "repo": "r0b0tlab/qwen36-35b-a3b-nvfp4-gb10-native-mtp",
+    "commit": "c962efdf2b80bbf71e092bb3f4ca65a6d1380386"
+  },
+  "ours": [
+    "sglang-serve"
+  ],
+  "renamed": {
+    "qwen3_5.py": "patches/qwen3_5.py"
+  }
+}
