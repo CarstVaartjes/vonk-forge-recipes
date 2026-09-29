@@ -1,0 +1,226 @@
+{
+  "capabilities": [
+    "chat",
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-cfdcc7e81158-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "cfdcc7e81158ed5256914277379c8d480413053bc5944c571e2a12091ee71517",
+      "size_bytes": 4951
+    },
+    {
+      "id": "chat-template-c3cf9e34abf4-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+      "size_bytes": 8952
+    },
+    {
+      "id": "config-52aa9e4c53b3-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "52aa9e4c53b3a42ba67abce9ca13c98a3dd4f64760ffbdf9f4c7cdf976e09ad5",
+      "size_bytes": 88388
+    },
+    {
+      "id": "generation-config-b8eb74d15e0a-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b8eb74d15e0a56623d00ccd14950a4bb87fabbf84b5cc030dcc904b899fb1eb5",
+      "size_bytes": 214
+    },
+    {
+      "id": "hf-quant-config-f5a2484f5225-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f5a2484f5225c2441cab5638d947567ff5759accd57a0930388f49e46a6aa839",
+      "size_bytes": 45221
+    },
+    {
+      "id": "merges-a9d356d7bdf1-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+      "size_bytes": 3353259
+    },
+    {
+      "id": "model-00001-of-00004-4208cd3b45f6-1913267ec8",
+      "path": "model-00001-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4208cd3b45f605d9f67e29e2939c35f4bdc255d9baf72c951a6aa77c560e25f5",
+      "size_bytes": 9965644108
+    },
+    {
+      "id": "model-00002-of-00004-024111b980be-60f6088da9",
+      "path": "model-00002-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "024111b980be5bfa93616777e567110b5f3b1340578614165c51c78917457296",
+      "size_bytes": 9985743924
+    },
+    {
+      "id": "model-00003-of-00004-927ee34337d1-fc35f2c4d5",
+      "path": "model-00003-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "927ee34337d1cc4419b97b82370229128003a5f2a17bb45670cdaaab8374d169",
+      "size_bytes": 1120886516
+    },
+    {
+      "id": "model-00004-of-00004-47202b11daf0-5078e75d62",
+      "path": "model-00004-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "47202b11daf026e3a472c030b18c4b7e6021c475d1f31ff06f1877d16639912d",
+      "size_bytes": 849400592
+    },
+    {
+      "id": "model-safetensors-index-fb9d3a3f2cb3-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "fb9d3a3f2cb3f1196ed42dd02140e6274eee202c4bf9fa6a2cae3e9fd7b20ccf",
+      "size_bytes": 191715
+    },
+    {
+      "id": "mtp-merge-audit-152ad2809cac-5bd4a03b73",
+      "path": "mtp-merge-audit.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "152ad2809cac7cbef9d37927caa32f131b1cda65a7d557b1c67487b5a061701d",
+      "size_bytes": 1970
+    },
+    {
+      "id": "mtp-shard4-e09e414af31d-355ce188f7",
+      "path": "mtp-shard4.sha256",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "e09e414af31d91550922c62954085d91206bbd7fbae589eb04839007d50ef827",
+      "size_bytes": 99
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "tokenizer-0997f410c57a-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3",
+      "size_bytes": 12809320
+    },
+    {
+      "id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "b11349aafa7cdc6a320767cf7ceb29ed82f7eda5d65e8e0819e76f0ce947bf27",
+      "size_bytes": 17928
+    },
+    {
+      "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+      "path": "video_preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "size_bytes": 385
+    },
+    {
+      "id": "vocab-ce99b4cb2983-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+      "size_bytes": 6722759
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4-w4a16"
+  },
+  "identity": {
+    "family": {
+      "publisher": "r0b0tlab",
+      "slug": "qwen3-8-r0b0tlab",
+      "title": "Qwen3.8 r0b0tlab"
+    },
+    "model": {
+      "publisher": "r0b0tlab",
+      "slug": "qwen3-8-27b-nvfp4-mtp-sm121",
+      "title": "Qwen3.8 27B NVFP4 MTP sm121"
+    },
+    "publisher": "r0b0tlab",
+    "slug": "qwen3-8-27b-nvfp4-mtp-sm121-36f717a2",
+    "variant": "Qwen3.8 27B NVFP4 MTP sm121 36f717a2",
+    "version": "Qwen3.8 27B NVFP4 MTP sm121 36f717a2"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "r0b0tlab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/r0b0tlab/Qwen3.8-27B-NVFP4-MTP-sm121/blob/36f717a22990e82c54c1d48ee77c491b87825680/README.md"
+  },
+  "metadata": {
+    "description": "Exact public r0b0tlab Qwen3.8 27B NVFP4 (W4A16 NVFP4 linear, FP8 KV metadata) checkpoint with BF16 MTP head merged into shard 4, 4 shards, for GB10 (SM121).",
+    "tags": [
+      "r0b0tlab",
+      "qwen3-8-r0b0tlab",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/r0b0tlab/Qwen3.8-27B-NVFP4-MTP-sm121",
+    "revision": "36f717a22990e82c54c1d48ee77c491b87825680"
+  }
+}
