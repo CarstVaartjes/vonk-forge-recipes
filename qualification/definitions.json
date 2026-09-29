@@ -3927,6 +3927,22 @@
         ]
       }
     },
+    "vonk-forge/deepseek-v4-flash-mtp-tonyd2wild-vllm-dual": {
+      "alias": "deepseek-v4-flash",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and concurrency canaries at the 1M default context (a 500K context with 8 sequences and utilization 0.80 is the upstream rollback)"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
     "vonk-forge/ling-3-0-flash-dspark-sglang-single": {
       "alias": "ling-3-0-flash",
       "smoke_cases": [
