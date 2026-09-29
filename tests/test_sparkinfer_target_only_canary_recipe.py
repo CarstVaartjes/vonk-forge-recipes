@@ -16,6 +16,8 @@ from vonk_forge_contracts import (
     document_sha256,
 )
 
+from qualification.definitions_loader import load_definitions
+
 ADAPTER_ROOT = ROOT / "adapters/deepseek/sparkinfer-target-only-single"
 MODEL_PATH = ROOT / "models/deepseek-v4-flash-0731-sparkinfer-exl3-k216.json"
 ORIGINAL_RECIPE_PATH = ROOT / "recipes/deepseek-v4-flash-0731-sparkinfer-single.json"
@@ -138,9 +140,7 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
         )
 
     def test_target_only_smoke_exercises_the_tool_parser(self) -> None:
-        definitions = cast(
-            dict[str, Any], _document(ROOT / "qualification/definitions.json")
-        )
+        definitions = cast(dict[str, Any], load_definitions(ROOT / "qualification"))
         services = definitions["service_recipes"]
         contract = services[
             "vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single"

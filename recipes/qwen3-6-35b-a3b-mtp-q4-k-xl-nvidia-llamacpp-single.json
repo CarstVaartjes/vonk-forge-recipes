@@ -1,0 +1,306 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "e5a2f80c0f1bdbb829d19b3ba3e84359acad95ea9fae2161661e08af46a31ce0",
+        "repository": "ghcr.io/ggml-org/llama.cpp"
+      },
+      "context": {
+        "path": "adapters/nvidia/qwen3-6-35b-a3b-mtp-q4-k-xl-nvidia-llamacpp-single"
+      },
+      "dockerfile": "adapters/nvidia/qwen3-6-35b-a3b-mtp-q4-k-xl-nvidia-llamacpp-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-6-35b-a3b-mtp-q4-k-xl-nvidia-llamacpp-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "qwen3.6-35b-a3b"
+      ],
+      "port": 8080
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Executable Candidate llama.cpp recipe based on NVIDIA's llama.cpp DGX Spark playbook (its hands-on example): the official ggml-org llama.cpp 0.5.0 CUDA 13 server image (arm64, pinned by digest; its default CUDA architectures include GB10 sm_121a) serving the exact GGUF revision through llama-server. NVIDIA's llama.cpp playbook compiles the same upstream source with -DCMAKE_CUDA_ARCHITECTURES=121a-real; this recipe uses the project's published binary instead. Resource envelopes are estimates, not measurements; physical Spark acceptance is pending.",
+    "tags": [
+      "executable",
+      "candidate",
+      "llama-cpp",
+      "openai",
+      "single",
+      "spark",
+      "qwen",
+      "qwen3-6",
+      "gguf",
+      "mtp",
+      "reasoning",
+      "vision"
+    ],
+    "title": "Qwen3.6 35B-A3B MTP UD-Q4_K_XL llama.cpp single Spark (NVIDIA playbook)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-24d906142b3e-618cd5b83d",
+          "id": "metadata-24d906142b3e-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "qwen3-6-35b-a3b-ud-q4-k-xl-55983c5a75a1-2b7d37489b",
+          "id": "qwen3-6-35b-a3b-ud-q4-k-xl-55983c5a75a1-2b7d37489b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-03b88d9a26d2-b335630551",
+          "id": "readme-03b88d9a26d2-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mmproj-f16-71f3cbc1f7cc-d8219ba087",
+          "id": "mmproj-f16-71f3cbc1f7cc-d8219ba087",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "434f1d995f1c7df3c5a9fadf09b1ca04b83f138a9f33cb451b1d431b91c54d4a",
+        "kind": "model",
+        "publisher": "unsloth",
+        "slug": "qwen3-6-35b-a3b-mtp-ud-q4-k-xl-5bc3e238"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Playbook default launch: plain autoregressive decoding.",
+          "label": "Off",
+          "value": "off"
+        },
+        {
+          "args": [
+            {
+              "name": "spec-type",
+              "value": "draft-mtp"
+            },
+            {
+              "name": "spec-draft-n-max",
+              "value": 3
+            }
+          ],
+          "help": "Adds --spec-type draft-mtp --spec-draft-n-max 3 as in the playbook; needs an MTP-capable GGUF such as this one.",
+          "label": "MTP (3 draft tokens)",
+          "value": "mtp"
+        }
+      ],
+      "help": "Multi-token-prediction drafting from the checkpoint's own MTP head (NVIDIA playbook: 'To run with MTP speculative decoding'). The playbook's first launch command runs without it.",
+      "label": "MTP speculative decoding",
+      "name": "speculative"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Playbook default launch: template default.",
+          "label": "Off",
+          "value": "off"
+        },
+        {
+          "args": [
+            {
+              "name": "chat-template-kwargs",
+              "value": "{\"preserve_thinking\": true}"
+            }
+          ],
+          "help": "Adds --chat-template-kwargs '{\"preserve_thinking\": true}' as in the playbook.",
+          "label": "On",
+          "value": "on"
+        }
+      ],
+      "help": "Qwen 'interleaved thinking': keep prior thinking blocks in the chat history, useful for agentic workflows (NVIDIA playbook MTP example).",
+      "label": "Preserve thinking blocks",
+      "name": "preserve_thinking"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "NVIDIA",
+      "Unsloth",
+      "Alibaba Qwen"
+    ],
+    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/b3bc0813e1864e54ce5ed9a0cc74e0b03745c027/nvidia/llama-cpp/README.md"
+  },
+  "release": {
+    "released_at": "2026-09-23",
+    "version": "0.5.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model",
+        "setting": null,
+        "value": "/models/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf"
+      },
+      {
+        "name": "alias",
+        "setting": null,
+        "value": "qwen3.6-35b-a3b"
+      },
+      {
+        "name": "ctx-size",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "parallel",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "mmproj",
+        "setting": null,
+        "value": "/models/mmproj-F16.gguf"
+      },
+      {
+        "name": "offline",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "llama-cpp",
+    "entrypoint": [
+      "/opt/vonk/bin/llama-server"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 23753017428,
+            "image_bytes": 8000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 16000000000
+          },
+          "memory": {
+            "peak_bytes": 45000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "qwen3.6-35b-a3b"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

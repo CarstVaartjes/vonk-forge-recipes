@@ -316,7 +316,11 @@ LABEL ai.vonkforge.runtime-interface="v1"
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 COPY verify-runtime.py /opt/vonk/verify-runtime.py
 
-RUN python3 /opt/vonk/verify-runtime.py \
+# patch_apc_no_store.py leaves sampling_params.py, v1/request.py and
+# v1/core/block_pool.py root-only (0600), which the unprivileged service account
+# below cannot import; make every installed vLLM file world-readable first.
+RUN find /usr/local/lib/python3.12/dist-packages/vllm -type f ! -perm -o=r -exec chmod a+r {} + \
+    && python3 /opt/vonk/verify-runtime.py \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \
     && install --directory --owner 10001 --group 10001 /state /outputs /outputs/cache /outputs/cache/triton /outputs/cache/tilelang
@@ -339,7 +343,7 @@ ENV HF_HUB_OFFLINE=1 \
     # reuses the earlier archive, so the Controller keeps the earlier revision's build
     # identity and install admission refuses the plan; an image change gives this
     # revision its own build.
-    VONK_GLM53_RECIPE_REVISION=1.7.2
+    VONK_GLM53_RECIPE_REVISION=1.7.4
 
 WORKDIR /state
 USER 10001:10001
