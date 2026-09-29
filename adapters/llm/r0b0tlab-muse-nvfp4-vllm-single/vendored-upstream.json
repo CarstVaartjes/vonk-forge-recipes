@@ -1,0 +1,10 @@
+{
+  "source": {
+    "repo": "r0b0tlab/muse-glimmer-30b-nvfp4-vllm",
+    "commit": "d22c7324f72fd6cdb95f54763d2bf2e2b7aac814"
+  },
+  "ours": [],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE"
+  }
+}

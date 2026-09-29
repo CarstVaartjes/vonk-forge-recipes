@@ -1,0 +1,211 @@
+{
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "license-cfc7749b96f6-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "size_bytes": 11358
+    },
+    {
+      "id": "readme-ecb453907be4-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "ecb453907be461e8c7abb0562e8677de886508710786c5febdd771d7b867b507",
+      "size_bytes": 3711
+    },
+    {
+      "id": "usage-policy-98a14dab9fd9-8f847fd353",
+      "path": "USAGE_POLICY.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "98a14dab9fd97de1666dc8589d399efab1e7fc3ba4e6230d037d6637ba9481d3",
+      "size_bytes": 5230
+    },
+    {
+      "id": "chat-template-114f55ebdc18-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "114f55ebdc1804c1af371197b9fdf2d6bb925966c9dfe46b73782a71bc07965e",
+      "size_bytes": 7167
+    },
+    {
+      "id": "config-4c31eae731f9-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "4c31eae731f9c9e1e20d39729d2883bd7f546e05b4314e73ce4fd736b4baf814",
+      "size_bytes": 23420
+    },
+    {
+      "id": "generation-config-b69d5d2d2530-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b69d5d2d25308ec0006f6348c73f237bfa2d227415ad401179bbc66844258f85",
+      "size_bytes": 190
+    },
+    {
+      "id": "hf-quant-config-703d24bcd40e-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "703d24bcd40eea0d135065d2119a822fdfb7537cf5c746988ba50ac2cd969a14",
+      "size_bytes": 17936
+    },
+    {
+      "id": "model-00001-of-00003-96543e7945fe-5ad6951325",
+      "path": "model-00001-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "96543e7945feb9caefa9e87817419599f239749bd0e29e51cad8f04f8b853fee",
+      "size_bytes": 9982884032
+    },
+    {
+      "id": "model-00002-of-00003-879b32448d8b-b421ec05d0",
+      "path": "model-00002-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "879b32448d8b6b897563b4cb134167effcd41c0c66fc96bc26e19009a2271a83",
+      "size_bytes": 9966456432
+    },
+    {
+      "id": "model-00003-of-00003-530902fd589b-c5bdb3d6ec",
+      "path": "model-00003-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "530902fd589bd7bdaba08d0653dd666d46b1a1b5c3a17ec6fad4e77e9dac6ff2",
+      "size_bytes": 5469278072
+    },
+    {
+      "id": "model-safetensors-index-a7cd8b807b37-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a7cd8b807b37279fdf03e1d402b2cf2aca245c59b488a63137df7cdb5678b179",
+      "size_bytes": 244680
+    },
+    {
+      "id": "modelopt-provenance-ad2cf794b342-d2de8d32c5",
+      "path": "modelopt_provenance.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ad2cf794b3425714055472e08bfd0a90ad166612318e56a132bab01511883215",
+      "size_bytes": 503638
+    },
+    {
+      "id": "processor-config-97e2a486dd98-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "97e2a486dd9866b81f40cf4b8bc0c9ced9a7cd8a5bc65aa4cc2f4de0712dae77",
+      "size_bytes": 1084
+    },
+    {
+      "id": "quantization-complete-5bd4e936860a-be13afd83f",
+      "path": "quantization.complete.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "5bd4e936860a12a64356c0e11bd11c82aba671dae3fa55d4922d357286d59867",
+      "size_bytes": 496
+    },
+    {
+      "id": "tokenizer-c9dbee66967b-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c9dbee66967b58f31a7c27f723c3760da3526ccd0427578e8905b0abb0031c4d",
+      "size_bytes": 28129897
+    },
+    {
+      "id": "tokenizer-config-0c06e0c01874-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "0c06e0c01874afdd42287501927f0faa539374c23dc214263650b66b98d7f1d2",
+      "size_bytes": 79984
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4"
+  },
+  "identity": {
+    "family": {
+      "publisher": "r0b0tlab",
+      "slug": "muse-glimmer-r0b0tlab",
+      "title": "Muse Glimmer r0b0tlab"
+    },
+    "model": {
+      "publisher": "r0b0tlab",
+      "slug": "muse-glimmer-30b-nvfp4",
+      "title": "Muse Glimmer 30B NVFP4"
+    },
+    "publisher": "r0b0tlab",
+    "slug": "muse-glimmer-30b-nvfp4-d356db1d",
+    "variant": "Muse Glimmer 30B NVFP4 d356db1d",
+    "version": "Muse Glimmer 30B NVFP4 d356db1d"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Meta",
+      "r0b0tlab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B/blob/a4e59da52a7bc87ae7251dd5545c0dd437c44b68/LICENSE"
+  },
+  "metadata": {
+    "description": "Exact public r0b0tlab NVFP4 (W4A4, block 16; NVIDIA Model Optimizer 0.45, cnn_dailymail calibration) quantization of meta-models/Muse-Glimmer-30B, qualified upstream on one DGX Spark to 131,072 tokens.",
+    "tags": [
+      "r0b0tlab",
+      "muse-glimmer-r0b0tlab",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/r0b0tlab/Muse-Glimmer-30B-NVFP4",
+    "revision": "d356db1dbf93c70cfd4b0e0a31bed3f51f44a995"
+  }
+}
