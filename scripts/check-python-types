@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --no-project --python 3.14 --with pyright==1.1.414 --with pytest==9.1.1 --with pydantic==2.13.4 python
+#!/usr/bin/env -S uv run --no-project --managed-python --python 3.14 --with pyright==1.1.414 --with pytest==9.1.1 --with pydantic==2.13.4 python
 """Fail when a Python type error appears outside the reviewed exception list.
 
 The repository does not type-check cleanly yet, but every surviving error is a
@@ -8,10 +8,12 @@ reviewed allowlist rather than a per-file budget:
 
 * an error whose file and rule are not listed fails, so a new error cannot hide
   behind an equal count in a file that already had one;
-* a listed error whose count changed fails in both directions, so a second
-  error of the same rule in the same file is caught and a fixed error must be
-  removed from the list;
-* a listed error that no longer occurs fails as stale, so the list cannot rot;
+* a listed error whose count grew fails, so a second error of the same rule in
+  the same file is caught;
+* a listed error whose count shrank (or that no longer occurs) passes with a
+  "tighten" notice on stderr, so fixing an error never blocks a commit; run
+  `scripts/check-python-types --update` to tighten the list (it keeps reasons
+  and drops entries that no longer occur);
 * a listed error without a reason fails, so `--update` is not a way to accept an
   error without saying why.
 
@@ -28,6 +30,10 @@ pyright's default program only includes `**/*.py`, so the extensionless Python
 executables under `tools/` and `adapters/` were never analyzed. They are
 discovered by shebang and analyzed explicitly, alongside the project run, so a
 type error in an entry point cannot hide behind the glob.
+
+The shebang pins uv's managed Python (`--managed-python`) and pyright is told
+to analyze for Linux, so a Homebrew Python's own site-packages (numpy, ...) and
+the host platform cannot change the counts: local and CI runs agree.
 
 Run `--update` to write the current errors, then write the reason for any new
 entry it adds.
@@ -79,7 +85,17 @@ def _entry_points() -> list[str]:
 
 def _pyright(paths: list[str]) -> list[dict[str, object]]:
     completed = subprocess.run(
-        ["pyright", "--pythonpath", sys.executable, "--outputjson", *paths],
+        [
+            "pyright",
+            "--pythonpath",
+            sys.executable,
+            # Counts are defined for Linux, where CI runs; without this a
+            # macOS run sees os.posix_fadvise as unknown and differs from CI.
+            "--pythonplatform",
+            "Linux",
+            "--outputjson",
+            *paths,
+        ],
         cwd=ROOT,
         capture_output=True,
         text=True,
@@ -131,9 +147,15 @@ def _load(path: Path) -> list[dict[str, object]]:
 
 
 def evaluate(
-    counts: dict[tuple[str, str], int], exceptions: list[dict[str, object]]
+    counts: dict[tuple[str, str], int],
+    exceptions: list[dict[str, object]],
+    notices: list[str] | None = None,
 ) -> list[str]:
-    """Return one message per way the current errors and the list disagree."""
+    """Return one message per failing disagreement between errors and the list.
+
+    Improvements (fewer errors than listed) are not problems; they are appended
+    to ``notices`` when given.
+    """
 
     problems: list[str] = []
     listed: set[tuple[str, str]] = set()
@@ -156,11 +178,8 @@ def evaluate(
             problems.append(
                 f"type errors increased: {file} {rule}: {expected} -> {actual}"
             )
-        elif actual < expected:
-            problems.append(
-                f"stale exception (remove it with --update): {file} {rule}: "
-                f"{expected} -> {actual}"
-            )
+        elif actual < expected and notices is not None:
+            notices.append(f"{file} {rule}: {expected} -> {actual}")
     for key in sorted(set(counts) - listed):
         problems.append(f"unlisted type error: {key[0]} {key[1]} ({counts[key]})")
     return problems
@@ -212,7 +231,15 @@ def main() -> int:
         _write(counts, _load(BASELINE))
         return 0
 
-    problems = evaluate(counts, _load(BASELINE))
+    notices: list[str] = []
+    problems = evaluate(counts, _load(BASELINE), notices)
+    if notices:
+        print(
+            "baseline can be tightened (run scripts/check-python-types --update):",
+            file=sys.stderr,
+        )
+        for notice in notices:
+            print(f"  {notice}", file=sys.stderr)
     for problem in problems:
         print(problem, file=sys.stderr)
     if problems:

@@ -87,10 +87,11 @@ uv run --python 3.14 --no-project --with pytest==9.1.1 \
 ```
 
 `tools/pyright-baseline.json` is a reviewed allowlist, not a per-file budget: an
-unlisted error fails, a listed count that moves in either direction fails, a
-stale entry fails, and an entry with no reason fails. Run
-`scripts/check-python-types --update` to rewrite it, then write the reason for
-anything it adds. Prefer fixing the code; record a `noqa` or a baseline entry
+unlisted error fails, a listed count that grows fails, and an entry with no
+reason fails. A count that shrinks (or an entry that disappears) passes with a
+"can be tightened" notice; run `scripts/check-python-types --update` to tighten
+the list (it keeps existing reasons), then write the reason for anything new it
+adds. CI runs the same script; it pins uv-managed Python and `--pythonplatform Linux`, so macOS and CI counts agree. Prefer fixing the code; record a `noqa` or a baseline entry
 only when the linter or checker is wrong, and say why.
 
 `[tool.pyright]` pins `pythonVersion` and `typeCheckingMode` because both change
