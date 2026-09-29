@@ -7,11 +7,8 @@ LABEL org.opencontainers.image.source="https://huggingface.co/LiquidAI/LFM2.5-VL
       org.opencontainers.image.description="Offline vLLM 0.30 CUDA 13 ARM64 OpenAI adapter for LFM2.5-VL-3B" \
       io.vonk.vllm.build-commit="ced6857afa0ea7b2e3f0846a62e1394e90f15607"
 
-COPY model-interface-smoke.py /tmp/model-interface-smoke.py
 RUN install --directory --mode=0755 /opt/vonk/bin /inputs \
-    && install --directory --mode=0770 --owner=10001 --group=10001 /outputs /state \
-    && python /tmp/model-interface-smoke.py \
-    && rm /tmp/model-interface-smoke.py
+    && install --directory --mode=0770 --owner=10001 --group=10001 /outputs /state
 
 COPY --chmod=0755 vllm-wrapper.sh /opt/vonk/bin/vllm
 
