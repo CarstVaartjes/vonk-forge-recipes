@@ -5456,6 +5456,22 @@
           "Controller stop/start with warm kernel-cache restart"
         ]
       }
+    },
+    "vonk-forge/qwen3-8-flash-next-taussoe-tensorfold-single": {
+      "alias": "Qwen3.8-Flash-Next",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Long-context canaries and a replayed agent session (several parallel streams with agent-turn resume), with the first-run kernel compile time recorded separately"
+        ],
+        "recovery": [
+          "Controller stop/start with warm kernel-cache restart"
+        ]
+      }
     }
   }
 }
