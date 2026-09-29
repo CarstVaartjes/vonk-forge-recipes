@@ -4120,6 +4120,21 @@
         ]
       }
     },
+    "vonk-forge/nemotron-3-nano-30b-a3b-nvfp4-nvidia-trtllm-single": {
+      "alias": "nemotron-3-nano",
+      "smoke_cases": [
+        "M0",
+        "A323"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual": {
       "alias": "deepseek-v4-flash-vision-exp",
       "smoke_cases": [
