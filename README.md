@@ -10,7 +10,7 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-**117 recipes** for **32 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+**118 recipes** for **33 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
@@ -39,6 +39,7 @@ Number of recipes per model family and engine.
 | MOVA |  |  |  |  |  |  |  |  | 2 |
 | Muse Glimmer | 1 |  |  |  |  |  |  |  |  |
 | Nemotron | 8 | 2 |  |  |  |  |  |  |  |
+| Nex N2 | 1 |  |  |  |  |  |  |  |  |
 | Ornith | 1 |  |  |  |  |  |  |  |  |
 | Pixal3D |  |  |  |  |  |  |  |  | 1 |
 | Qwen (text and vision) | 10 | 5 |  |  | 3 |  |  |  |  |
@@ -50,7 +51,7 @@ Number of recipes per model family and engine.
 | TripoSG |  |  |  |  |  |  |  |  | 1 |
 | UI-Mate | 1 |  |  |  |  |  |  |  |  |
 | Wan |  |  |  |  |  |  |  | 3 | 2 |
-| **Total** | **55** | **12** | **0** | **0** | **3** | **3** | **13** | **10** | **21** |
+| **Total** | **56** | **12** | **0** | **0** | **3** | **3** | **13** | **10** | **21** |
 
 ### Spark variants
 
@@ -79,6 +80,7 @@ Which Spark counts each family runs on, and who provides them.
 | MOVA | OpenMOSS-Team |  |  |  |  |
 | Muse Glimmer | meta-models |  |  |  |  |
 | Nemotron | drowzeys (keyz), NVIDIA playbooks, r0b0tlab, sfxnz |  |  |  |  |
+| Nex N2 | r0b0tlab |  |  |  |  |
 | Ornith | ornith-ai |  |  |  |  |
 | Pixal3D | TencentARC |  |  |  |  |
 | Qwen (text and vision) | ashhart, drowzeys (keyz), MiaAI-Lab, NVIDIA playbooks, Qwen, r0b0tlab | MiaAI-Lab, r0b0tlab, sfxnz |  |  |  |
@@ -99,7 +101,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | --- | --- | --- | ---: |
 | [MiaAI-Lab](https://github.com/MiaAI-Lab) | Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling. | SGLang, TensorFold, vLLM | 16 |
 | [tonyd2wild](https://github.com/tonyd2wild) | Multi-Spark (2 and 4) vLLM recipes for large MoE models: GLM, MiMo. | vLLM | 8 |
-| [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. | SGLang, vLLM | 13 |
+| [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. | SGLang, vLLM | 14 |
 | [drowzeys (keyz)](https://github.com/drowzeys) | Large multi-Spark vLLM builds with prebuilt images: GLM, MiMo, abliterated variants. | vLLM | 4 |
 | [NVIDIA playbooks](https://github.com/NVIDIA/dgx-spark-playbooks) | Official DGX Spark playbooks and NVIDIA model releases: Nemotron, NVFP4 checkpoints. | diffusers, vLLM | 8 |
 | [eugr](https://github.com/eugr) | spark-vllm-docker: vLLM container builds for dual DGX Spark; llama-benchy benchmarking. |  | 0 |
@@ -355,6 +357,14 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | [nemotron-3-super-120b-a12b-nvfp4-r0b0tlab-sglang-single](recipes/nemotron-3-super-120b-a12b-nvfp4-r0b0tlab-sglang-single.json) | SGLang | 1 | r0b0tlab |
 | [nemotron-3-super-120b-a12b-vllm-single](recipes/nemotron-3-super-120b-a12b-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |
 | [nemotron-labs-3-puzzle-75b-a9b-nvfp4-drowzeys-vllm-single](recipes/nemotron-labs-3-puzzle-75b-a9b-nvfp4-drowzeys-vllm-single.json) | vLLM | 1 | drowzeys (keyz) |
+
+</details>
+
+<details><summary>Nex N2 (1)</summary>
+
+| Recipe | Engine | Sparks | Creator |
+| --- | --- | ---: | --- |
+| [nex-n2-mini-nvfp4-r0b0tlab-vllm-single](recipes/nex-n2-mini-nvfp4-r0b0tlab-vllm-single.json) | vLLM | 1 | r0b0tlab |
 
 </details>
 
