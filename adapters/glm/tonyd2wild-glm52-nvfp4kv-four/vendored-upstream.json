@@ -1,0 +1,13 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "install-nccl.py",
+    "quanttrio-kernels/",
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "repo": "tonyd2wild/GLM-5.2-NVFP4-KV-4x-DGX-Spark-300kctx-42tok-s",
+    "commit": "34e81562984bda993e0c9ed01ed6900c17e4857b"
+  }
+}
