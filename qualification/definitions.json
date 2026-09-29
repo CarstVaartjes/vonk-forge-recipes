@@ -4004,6 +4004,20 @@
         ]
       }
     },
+    "vonk-forge/ling-3-0-flash-vl-nvfp4-mp-r0b0tlab-vllm-single": {
+      "alias": "ling-3.0-flash-vl-nvfp4-mp",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and concurrency canaries"
+        ]
+      }
+    },
     "vonk-forge/mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-dual": {
       "alias": "mimo-v2.5",
       "smoke_cases": [
@@ -5354,6 +5368,21 @@
         ]
       }
     },
+    "vonk-forge/nemotron-3-super-120b-a12b-nvidia-trtllm-single": {
+      "alias": "nemotron-3-super",
+      "smoke_cases": [
+        "M0",
+        "A323"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/gemma-4-e4b-it-nvidia-vllm-single": {
       "alias": "gemma-4-e4b-it",
       "smoke_cases": [
@@ -5497,6 +5526,23 @@
         ],
         "recovery": [
           "Controller stop/start with warm kernel-cache restart"
+        ]
+      }
+    },
+    "vonk-forge/muse-glimmer-30b-nvfp4-r0b0tlab-vllm-single": {
+      "alias": "muse-glimmer-30b-nvfp4",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Capability-specific context, concurrency, streaming, and modality-boundary canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, bounded malformed-input recovery, exact alias, and offline warm-cache restart"
         ]
       }
     }
