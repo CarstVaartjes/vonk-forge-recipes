@@ -27,7 +27,7 @@ Which engines each model family runs on.
 | HunyuanVideo |  |  |  |  |  |  | ✓ |  |  |  |
 | HunyuanVideo Foley |  |  |  |  |  |  |  |  | ✓ |  |
 | Hy3 kodelow | ✓ |  |  |  |  |  |  |  |  |  |
-| Inkling |  | ✓ |  |  |  |  |  |  |  |  |
+| Inkling | ✓ | ✓ |  |  |  |  |  |  |  |  |
 | Laguna | ✓ |  |  |  |  |  |  |  |  |  |
 | Leanstral | ✓ |  |  |  |  |  |  |  |  |  |
 | LFM2.5 | ✓ |  |  |  |  |  |  |  |  |  |
