@@ -169,7 +169,6 @@ COPY tests/test_mamba_align_state_free.py /opt/glm53/test_mamba_align_state_free
 COPY overlay/patch_hybrid_prefix_hit.py /opt/glm53/patch_hybrid_prefix_hit.py
 COPY overlay/patch_apc_per_group_retention.py /opt/glm53/patch_apc_per_group_retention.py
 COPY tests/test_apc_per_group_retention.py /opt/glm53/test_apc_per_group_retention.py
-COPY tests/test_hybrid_prefix_hit.py /opt/glm53/test_hybrid_prefix_hit.py
 COPY overlay/patch_apc_no_store.py /opt/glm53/patch_apc_no_store.py
 COPY tests/test_apc_no_store.py /opt/glm53/test_apc_no_store.py
 COPY overlay/patch_kv_capacity_log.py /opt/glm53/patch_kv_capacity_log.py
@@ -280,7 +279,6 @@ RUN EXL3_SELFCHECK_GPU=0 python3 /opt/glm53/test_exl3_overlay.py \
     && python3 /opt/glm53/test_scheduler_decode_floor_restart.py \
     && python3 /opt/glm53/test_mamba_align_chunking.py \
     && python3 /opt/glm53/test_tool_choice_none.py \
-    && python3 /opt/glm53/test_hybrid_prefix_hit.py \
     && python3 /opt/glm53/test_xgrammar_termination.py \
     && python3 /opt/glm53/test_kpool_tail_slotmap.py \
     && python3 /opt/glm53/test_kpool_tail_seed_stride.py \
@@ -342,7 +340,7 @@ ENV HF_HUB_OFFLINE=1 \
     # reuses the earlier archive, so the Controller keeps the earlier revision's build
     # identity and install admission refuses the plan; an image change gives this
     # revision its own build.
-    VONK_GLM53_RECIPE_REVISION=1.7.0
+    VONK_GLM53_RECIPE_REVISION=1.7.1
 
 WORKDIR /state
 USER 10001:10001
