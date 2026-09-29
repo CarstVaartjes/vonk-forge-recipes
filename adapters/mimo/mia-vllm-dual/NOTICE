@@ -1,0 +1,12 @@
+start.sh, stop.sh, README.md, recipe/ and patches/ are MiaAI-Lab/MiMo-V2.5-vLLM-Dual-DGX-Sparks at
+the commit in vendored-upstream.json, byte for byte, as the reference for this recipe (the DFlash
+files qwen3_dflash.py and dflash_proposer.py and the hero image are left out: the Omni lane does not
+use them and the image already carries them). That repository carries no licence file; its published
+image labels itself Apache-2.0. Model: lukealonso/MiMo-V2.5-NVFP4, an NVFP4 quantization of
+XiaomiMiMo/MiMo-V2.5 (MIT); the quantization repository has no licence file or licence tag. The
+launch wrapper, verify-runtime.py and the build-time replay of upstream's mods and patches are ours.
+
+Not carried over from upstream: the drop-caches mod (a host page-cache loop that needs root), the
+SSH-driven two-node bring-up, the Hugging Face cache download and worker rsync in start.sh, and the
+DEFAULT_TEMPERATURE / DEFAULT_TOP_P / REPETITION_PENALTY variables of recipe/env.sh, which nothing
+in the launch reads.
