@@ -23,7 +23,7 @@ ENGINES = [
     ("vllm", "vLLM"),
     ("sglang", "SGLang"),
     ("tensorrt-llm", "TensorRT-LLM"),
-    ("llama.cpp", "llama.cpp"),
+    ("llama-cpp", "llama.cpp"),
     ("tensorfold", "TensorFold"),
     ("ds4", "ds4"),
     ("diffusers", "diffusers"),
