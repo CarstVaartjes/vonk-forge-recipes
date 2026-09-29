@@ -1,0 +1,107 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-11ad7efa2497-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "license-8a0c5e232551-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8a0c5e232551abcb102d1bd39a34866ef4520361b613bd6405d55b36562e4d88",
+      "size_bytes": 2618
+    },
+    {
+      "id": "readme-c42ec87a3ae7-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "c42ec87a3ae7a2f7ceab356c4e991f68d660be1af8644c7816aa638a013733d5",
+      "size_bytes": 13786
+    },
+    {
+      "id": "config-562047b6c1a1-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "562047b6c1a105c48c2698b63fe2daf12eb650f8be37a43ce93cb2899f299b67",
+      "size_bytes": 1920
+    },
+    {
+      "id": "hf-quant-config-fdb229960f90-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "fdb229960f90164af59be4f4efac3c344460ab98d9e0092f7b4cf6889abbba84",
+      "size_bytes": 259
+    },
+    {
+      "id": "model-8759166652c4-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8759166652c4105f140ab9a65f543a3e229b8f6441933185e4edb0838365660a",
+      "size_bytes": 1177089556
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "nemotron-3-5-lightning",
+      "title": "Nemotron 3.5 Lightning"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dflash",
+      "title": "Nemotron 3.5 Lightning 30B-A3B NVFP4 DFlash draft"
+    },
+    "publisher": "nvidia",
+    "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dflash-7fc1f1ff",
+    "variant": "Nemotron 3.5 Lightning 30B-A3B NVFP4 DFlash 7fc1f1ff",
+    "version": "Nemotron 3.5 Lightning 30B-A3B NVFP4 DFlash 7fc1f1ff"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "spdx": "LicenseRef-OpenMDW-1.1",
+    "url": "https://openmdw.ai/license/1-1/"
+  },
+  "metadata": {
+    "description": "Exact public NVIDIA DFlash speculative draft head for Nemotron 3.5 Lightning at 7fc1f1ff, the revision r0b0tlab's SGLang evidence binds to.",
+    "tags": [
+      "nvidia",
+      "nemotron-3-5-lightning",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DFlash",
+    "revision": "7fc1f1ff4b82b917efbd0710df0872c2bb89caa5"
+  }
+}

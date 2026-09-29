@@ -3959,6 +3959,22 @@
         ]
       }
     },
+    "vonk-forge/inkling-small-nvfp4-sglang-mia-dual": {
+      "alias": "inkling-small",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
     "vonk-forge/ling-3-0-flash-dspark-sglang-single": {
       "alias": "ling-3-0-flash",
       "smoke_cases": [
@@ -4277,6 +4293,23 @@
         ]
       }
     },
+    "vonk-forge/qwen3-8-flash-next-w4a16-r0b0tlab-sglang-dual": {
+      "alias": "qwen38-flash-next-w4a16",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
     "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual": {
       "alias": "qwen3.8-flash-next",
       "smoke_cases": [
@@ -4471,8 +4504,35 @@
         ]
       }
     },
+    "vonk-forge/qwen3-8-27b-nvfp4-mtp-r0b0tlab-sglang-single": {
+      "alias": "qwen38-27b",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming and declared concurrency canaries"
+        ]
+      }
+    },
     "vonk-forge/qwen3-6-35b-a3b-nvfp4-vllm-single": {
       "alias": "qwen3-6-35b-a3b-nvfp4",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming and declared concurrency canaries"
+        ]
+      }
+    },
+    "vonk-forge/qwen3-6-35b-a3b-nvfp4-redhat-r0b0tlab-sglang-single": {
+      "alias": "redhat/qwen36-35b-a3b-nvfp4-mtp",
       "smoke_cases": [
         "M0",
         "A323",
@@ -4517,6 +4577,23 @@
     },
     "vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-single": {
       "alias": "nemotron-3-5-lightning",
+      "smoke_cases": [
+        "M0",
+        "NEM_A391_OFF",
+        "NEM_REASON",
+        "NEM_TOOL"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded concurrency, context, unified-memory floor, and explicit multimodal-rejection canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, alias stability, no redownload, and parser revalidation"
+        ]
+      }
+    },
+    "vonk-forge/nemotron-3-5-lightning-r0b0tlab-sglang-dflash-single": {
+      "alias": "nvidia/nemotron-3.5-lightning-30b-a3b",
       "smoke_cases": [
         "M0",
         "NEM_A391_OFF",
@@ -4602,6 +4679,23 @@
     },
     "vonk-forge/nemotron-3-super-120b-a12b-vllm-single": {
       "alias": "nemotron-3-super",
+      "smoke_cases": [
+        "M0",
+        "NEM_A391_OFF",
+        "NEM_REASON",
+        "NEM_TOOL"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded concurrency, context, unified-memory floor, and explicit multimodal-rejection canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, alias stability, no redownload, and parser revalidation"
+        ]
+      }
+    },
+    "vonk-forge/nemotron-3-super-120b-a12b-nvfp4-r0b0tlab-sglang-single": {
+      "alias": "nvidia/nemotron-3-super",
       "smoke_cases": [
         "M0",
         "NEM_A391_OFF",
@@ -4871,6 +4965,22 @@
         ],
         "recovery": [
           "Controller-only rank-loss, warm-cache recovery and image-input revalidation"
+        ]
+      }
+    },
+    "vonk-forge/qwen3-8-27b-exl3-3-00bpw-ashhart-tensorfold-single": {
+      "alias": "Qwen3.8-27B",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded concurrency (shared rounds above 1) and long-context canaries on the experimental EXL3 path, with the first-run kernel compile time recorded separately"
+        ],
+        "recovery": [
+          "Controller stop/start with warm kernel-cache restart"
         ]
       }
     }
