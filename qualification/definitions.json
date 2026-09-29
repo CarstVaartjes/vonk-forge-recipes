@@ -3878,6 +3878,18 @@
         ]
       }
     },
+    "vonk-forge/deepseek-v4-1-flash-ds4-single": {
+      "alias": "deepseek-v4-flash",
+      "smoke_cases": [
+        "M0",
+        "A391"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming and declared concurrency canaries"
+        ]
+      }
+    },
     "vonk-forge/deepseek-v4-flash-0731-mia-sparkinfer-single": {
       "alias": "deepseek-v4-flash-0731",
       "smoke_cases": [
