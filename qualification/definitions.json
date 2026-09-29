@@ -5293,6 +5293,22 @@
         ]
       }
     },
+    "vonk-forge/nemotron-3-nano-omni-30b-a3b-bf16-nvidia-sglang-single": {
+      "alias": "nemotron-3-nano-omni",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/gemma-4-26b-a4b-vllm028-single": {
       "alias": "gemma-4-26b-a4b-it-vllm028",
       "smoke_cases": [
