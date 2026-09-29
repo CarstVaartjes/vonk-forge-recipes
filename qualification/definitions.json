@@ -4778,6 +4778,23 @@
         ]
       }
     },
+    "vonk-forge/muse-glimmer-30b-nvfp4-vllm-mia-single": {
+      "alias": "muse-glimmer-30b",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Capability-specific context, concurrency, streaming, and modality-boundary canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, bounded malformed-input recovery, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/ui-mate-27b-vllm-single": {
       "alias": "UI_Mate",
       "smoke_cases": [
