@@ -1,0 +1,13 @@
+{
+  "ours": [
+    "trtllm-serve",
+    "verify-runtime.py"
+  ],
+  "renamed": {
+    "nano_v3.yaml": "examples/auto_deploy/model_registry/configs/nano_v3.yaml"
+  },
+  "source": {
+    "commit": "b9ce4b69d12fe5ba65d13893111b1a2ea29413ee",
+    "repo": "NVIDIA/TensorRT-LLM"
+  }
+}
