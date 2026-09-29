@@ -1,0 +1,10 @@
+{
+  "ours": [
+    "qwen38-vllm-wrapper.py",
+    "test_qwen38_sfxnz_wrapper.py"
+  ],
+  "source": {
+    "repo": "sfxnz/Qwen3.8-Flash-Next-NVFP4-vLLM-2x-DGX-Spark",
+    "commit": "fe8c291de4efba34d5dcedbc8e19ebcf66bc1bc2"
+  }
+}
