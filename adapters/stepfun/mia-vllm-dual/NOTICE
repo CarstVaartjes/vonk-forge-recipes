@@ -1,0 +1,7 @@
+README.md, LICENSE (MIT), config.env.example, start-mtp.sh, start-no-mtp.sh,
+templates/launch-*.sh and Dockerfile.stepfun37-workspace are
+MiaAI-Lab/Dual-DGX-Spark-Step-3.7-Flash-NVFP4 at the commit in
+vendored-upstream.json, byte for byte, kept as the reference for this recipe.
+Model: stepfun-ai/Step-3.7-Flash-NVFP4 (Apache-2.0). The launch wrapper, the
+build-time forms of upstream's NCCL load-order fix and MTP drafter patch, and
+verify-runtime.py are ours.
