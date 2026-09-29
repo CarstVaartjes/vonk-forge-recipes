@@ -1,0 +1,76 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "target",
+      "path": "DeepSeek-V4.1-Flash-Q2.gguf",
+      "roles": [
+        "target"
+      ],
+      "sha256": "1ce6a8f8806205c13330d7ca287bd198331dc5ca35ccc5d8a9a92a188a6f6f42",
+      "size_bytes": 365713686528
+    },
+    {
+      "id": "license-f2c6c6028156",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "f2c6c602815669d292889e5be8c802f2ed950653b77999b1584e8e6aed25d040",
+      "size_bytes": 1084
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "ds4-q2-imatrix"
+  },
+  "identity": {
+    "family": {
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-flash",
+      "title": "DeepSeek Flash"
+    },
+    "model": {
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-v4-1-flash",
+      "title": "DeepSeek V4.1 Flash"
+    },
+    "publisher": "antirez",
+    "slug": "deepseek-v4-1-flash-ds4-q2-dd8a266f",
+    "variant": "DeepSeek V4.1 Flash DS4 Q2 (imatrix)",
+    "version": "ds4-q2-dd8a266f"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "DeepSeek AI",
+      "Salvatore Sanfilippo (antirez)"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/antirez/deepseek-v4.1-flash-gguf/blob/dd8a266f7145edc19e2334b46e19b6821f221dc7/LICENSE"
+  },
+  "metadata": {
+    "description": "Exact DS4 V4.1 Flash Q2 GGUF (imatrix-calibrated routed experts, 341 GiB including 189 GiB of disk-only Engram tables). V4 Flash weights and DSpark support files are not interchangeable with it. Text only on CUDA; vision and DSpark are not supported there.",
+    "tags": [
+      "deepseek",
+      "deepseek-v4-1",
+      "ds4",
+      "gguf",
+      "q2",
+      "spark"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/antirez/deepseek-v4.1-flash-gguf",
+    "revision": "dd8a266f7145edc19e2334b46e19b6821f221dc7"
+  }
+}
