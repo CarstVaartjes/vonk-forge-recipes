@@ -1,0 +1,5 @@
+Runtime overlays in patches/ and the launch profile are from
+https://github.com/tonyd2wild/MiMo-V2.6-Flash-DGX-Spark-Recipe at commit
+13621bb3cc6fd30a94d53609320599d1f1134686 (MIT, see LICENSE.upstream). The patched
+files are derived from vLLM (Apache-2.0). The DFlash drafter value-scale patch
+(qwen3_dflash.py, off by default upstream, measured no gain) is not included.

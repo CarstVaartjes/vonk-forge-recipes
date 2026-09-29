@@ -25,14 +25,16 @@ target-version = "py312"
 # the r0b0tlab EXL3 plugin sources (src, csrc) are the unmodified
 # upstream files at commit 2dfbdbe4 (see that adapter's README.upstream.md).
 # Formatting or rewriting them would silently break that provenance, so both
-# gates skip them. Every other file, including the rest of adapters/, is
-# covered.
+# gates skip them. The MiMo adapter's three vLLM overlay files are likewise
+# tonyd2wild's exact upstream bytes (MIT, commit 13621bb3).
+# Every other file, including the rest of adapters/, is covered.
 exclude = [
     "adapters/deepseek/mia-vllm/encoding/encoding_dsv4.py",
     "adapters/deepseek/mia-vllm-vision/encoding/encoding_dsv4.py",
     "adapters/llm/ui-mate-vllm/agents",
     "adapters/glm/r0b0tlab-exl3-dflash2-single/src",
     "adapters/glm/r0b0tlab-exl3-dflash2-single/csrc",
+    "adapters/mimo/tonyd2wild-vllm-dual/patches",
 ]
 
 [tool.pyright]
@@ -52,4 +54,5 @@ exclude = [
     "**/.venv/**",
     "adapters/glm/r0b0tlab-exl3-dflash2-single/src",
     "adapters/glm/r0b0tlab-exl3-dflash2-single/csrc",
+    "adapters/mimo/tonyd2wild-vllm-dual/patches",
 ]
