@@ -1,0 +1,399 @@
+{
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-7543f0612b0a-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "7543f0612b0a940c9f56e518cfb7d722c48b6916b2fa0cee2d40b841218c7f96",
+      "size_bytes": 73371
+    },
+    {
+      "id": "bias-abca41ea5f7d-132a86726b",
+      "path": "bias.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "abca41ea5f7d5ecb94b25759d862597fd8121983f1c598179635e99465256d35",
+      "size_bytes": 2276
+    },
+    {
+      "id": "chat-template-ab7813c3abdd-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ab7813c3abdd9cb655905a410728b26c7884eca45ddfab8d9f931553485a7862",
+      "size_bytes": 10504
+    },
+    {
+      "id": "config-f4fcbaaaed3e-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f4fcbaaaed3ee215f86205a7600636cd930bde069f2b603d7ff908c046a0cd96",
+      "size_bytes": 1817
+    },
+    {
+      "id": "configuration-nemotron-h-09a317951766-845878ce76",
+      "path": "configuration_nemotron_h.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "09a3179517667d302068c2f8c96c9f059297418a829bf3cb96273040563b955c",
+      "size_bytes": 12893
+    },
+    {
+      "id": "explainability-b0a047c30f06-c9ed671e8a",
+      "path": "explainability.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "b0a047c30f06900e69ed1a7119c68ee54bab4c6bbcfc52d53b8728ff79471edf",
+      "size_bytes": 3003
+    },
+    {
+      "id": "generation-config-7a8f2d91a749-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7a8f2d91a749d7a09b755daceacab14da9d66ebfdaea7e8583e48c0be01ee73d",
+      "size_bytes": 197
+    },
+    {
+      "id": "hf-quant-config-e96eee543587-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e96eee54358742dd80535b2042d4b9b3aa99ba94fb82ea04209ba560b47acef4",
+      "size_bytes": 3047
+    },
+    {
+      "id": "model-00001-of-00010-723288d3e7af-2dd2e4a89d",
+      "path": "model-00001-of-00010.json",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "723288d3e7af38c477c2f3793ce2f04eea4ef03fb92ddb95abb5bf054278af75",
+      "size_bytes": 155413
+    },
+    {
+      "id": "model-00001-of-00010-1faa3d94580c-abda2caf91",
+      "path": "model-00001-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1faa3d94580c9b83d70dd6b7d2668b6ba0461e648ba5159f83e80139bf1369a7",
+      "size_bytes": 3999240760
+    },
+    {
+      "id": "model-00002-of-00010-eaec71e2245a-b62f67ef08",
+      "path": "model-00002-of-00010.json",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "eaec71e2245a14bb45f0ff89879433c2b20c2d9761e6ec55fddf7f5a1268bf26",
+      "size_bytes": 235181
+    },
+    {
+      "id": "model-00002-of-00010-f7beb249f4dd-c78aeb3aa5",
+      "path": "model-00002-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f7beb249f4dde47eb6199eacecb93724bd28b77126267ff4ba8bf292736a7ecb",
+      "size_bytes": 3997872560
+    },
+    {
+      "id": "model-00003-of-00010-dbd89b643198-491e2d19eb",
+      "path": "model-00003-of-00010.json",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "dbd89b643198ba709db9a9bab55cdfde198f763cde19d66692175ef2bc4effc4",
+      "size_bytes": 236829
+    },
+    {
+      "id": "model-00003-of-00010-4a45b93f5da8-3bbb02f554",
+      "path": "model-00003-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4a45b93f5da8f9e3029241a68a5eb88610178d703f6182853232995c82eddbf7",
+      "size_bytes": 3997873320
+    },
+    {
+      "id": "model-00004-of-00010-6fd24333ee66-c0cb3e3085",
+      "path": "model-00004-of-00010.json",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "6fd24333ee6608cc5df75cb9c280e60ca71129d47fa88c9e04dd86463ea0974b",
+      "size_bytes": 236886
+    },
+    {
+      "id": "model-00004-of-00010-68a9d0c07d04-9744fa3b65",
+      "path": "model-00004-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "68a9d0c07d047f78758ccf2aed198c27061c6664cb0df2e8462e7a8753cccfcd",
+      "size_bytes": 3997873136
+    },
+    {
+      "id": "model-00005-of-00010-fadd4ef3dc94-a6d16d17fa",
+      "path": "model-00005-of-00010.json",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "fadd4ef3dc9417f4a2e4a6b8e68cd11748c3141ef38ad6a04a49c05457ca5f9b",
+      "size_bytes": 236886
+    },
+    {
+      "id": "model-00005-of-00010-3850e4b8cd55-287722c574",
+      "path": "model-00005-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3850e4b8cd55248f1fd29d3d424fe9d5b77f8ce107ed7bd4f08dd6c980408bd8",
+      "size_bytes": 3997872896
+    },
+    {
+      "id": "model-00006-of-00010-1a4ec0bad022-5bd7373dd9",
+      "path": "model-00006-of-00010.json",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1a4ec0bad0227d74cabc05e5280aad7b61293cced277e794f85a20b7462e7b9d",
+      "size_bytes": 236886
+    },
+    {
+      "id": "model-00006-of-00010-2f093ddc92fa-5c0b2f8f0d",
+      "path": "model-00006-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2f093ddc92fa57a634549cefe90c55f6c622432d3280cbcd3a12708aa814ab84",
+      "size_bytes": 3997872656
+    },
+    {
+      "id": "model-00007-of-00010-de12b7f6dac0-b3ad796832",
+      "path": "model-00007-of-00010.json",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "de12b7f6dac0f6cb62c0816b4d8e050d764e5695848868cf506cf336354eec52",
+      "size_bytes": 236886
+    },
+    {
+      "id": "model-00007-of-00010-c39259e5dd9a-3028b843f1",
+      "path": "model-00007-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c39259e5dd9ada25e1fa94e237968c7c0f874ddb0aa456a0cdc42cdf1f5c7b19",
+      "size_bytes": 3997872376
+    },
+    {
+      "id": "model-00008-of-00010-3d836a4b1f9f-fe8c809ecd",
+      "path": "model-00008-of-00010.json",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3d836a4b1f9f1d3b3dddceba98268a171091ef9074f8f37c74642a42dfcd6537",
+      "size_bytes": 242075
+    },
+    {
+      "id": "model-00008-of-00010-fad59ac6cba1-1a97e5bd74",
+      "path": "model-00008-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "fad59ac6cba1db25be784ce25c6cd356aa80a15f8a422c4470b7fc36bfc26aa0",
+      "size_bytes": 3997184888
+    },
+    {
+      "id": "model-00009-of-00010-0df47be1919e-307241957d",
+      "path": "model-00009-of-00010.json",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "0df47be1919e3737ea27bb95396df5af101dd421028e17652df3bb6230026119",
+      "size_bytes": 43373
+    },
+    {
+      "id": "model-00009-of-00010-220a0bb702f3-9e545a3307",
+      "path": "model-00009-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "220a0bb702f36c060c6fa6478a8c720fdba7a549b92b85929139e99fb3eb888b",
+      "size_bytes": 698500912
+    },
+    {
+      "id": "model-00010-of-00010-b71b4aaac906-74d82dd34e",
+      "path": "model-00010-of-00010.json",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b71b4aaac906028ddb774624422c2c41154e905c02b44568722a36a3bc6417f0",
+      "size_bytes": 73
+    },
+    {
+      "id": "model-00010-of-00010-60d95b10b6e1-3cc422b9fe",
+      "path": "model-00010-of-00010.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "60d95b10b6e140a9626a7058d5038528f2ff80148dc4569b881db56052046509",
+      "size_bytes": 40
+    },
+    {
+      "id": "model-safetensors-index-43031ef8f245-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "43031ef8f24593d50d41948e79d1b579ade631b839f60eae6d127a6b114de87b",
+      "size_bytes": 1859729
+    },
+    {
+      "id": "modeling-nemotron-h-4d353ce6e8f4-456a9436f0",
+      "path": "modeling_nemotron_h.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "4d353ce6e8f495d043f2d8c5acd13496a84ba2b2d45da8279797a55f680309d9",
+      "size_bytes": 83779
+    },
+    {
+      "id": "nano-v3-reasoning-parser-aafb12208054-2e4487434b",
+      "path": "nano_v3_reasoning_parser.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "aafb12208054504f619cbdd01837e1532a482ad937ed987bfe9a13fb812ae2b7",
+      "size_bytes": 798
+    },
+    {
+      "id": "local-nvidia-nemotron-3-nano-30b-a3b-4fd04f168fc8-acb3e9f342",
+      "path": "nemo-evaluator-launcher-configs/local_nvidia_nemotron_3_nano_30b_a3b.yaml",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "4fd04f168fc84aa242659de2b866a7cf03e5090c9c8842ca43d81316c24bd51b",
+      "size_bytes": 4242
+    },
+    {
+      "id": "privacy-8a0a9063ec5b-8ca73853d3",
+      "path": "privacy.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8a0a9063ec5bb637be286b3c77e42f8c954785b47b867d995c791e7ed25eafc0",
+      "size_bytes": 2296
+    },
+    {
+      "id": "safety-d06b21746ba9-0f7043827d",
+      "path": "safety.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d06b21746ba990a46aaf81c7919a831e057575d3ab917b94154aeeedd2c44bbf",
+      "size_bytes": 2094
+    },
+    {
+      "id": "special-tokens-map-e3a4f63da745-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e3a4f63da745f02317a45e00e6476c17fc66ac41faf14bb1b0be1f3211b0ca53",
+      "size_bytes": 420
+    },
+    {
+      "id": "tokenizer-c6021eb6847e-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c6021eb6847e682f89aa52d5eb6e8c7d902a23acfc8137e25211cf84828f1592",
+      "size_bytes": 17077485
+    },
+    {
+      "id": "tokenizer-config-3d568e506d09-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "3d568e506d0905285ae90a3fdd1482be7b6d0bf0b8ca9514d75dad4257b0827a",
+      "size_bytes": 188049
+    }
+  ],
+  "format": {
+    "precision": "fp8",
+    "quantization": "fp8-modelopt"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "nemotron",
+      "title": "NVIDIA Nemotron"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "nemotron-3-nano-30b-a3b",
+      "title": "Nemotron 3 Nano 30B-A3B"
+    },
+    "publisher": "nvidia",
+    "slug": "nemotron-3-nano-30b-a3b-fp8-9bee1944",
+    "variant": "FP8 9bee1944",
+    "version": "FP8 9bee1944"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/"
+  },
+  "metadata": {
+    "description": "Official NVIDIA Nemotron 3 Nano 30B-A3B FP8 checkpoint.",
+    "tags": [
+      "nvidia",
+      "nemotron",
+      "language",
+      "fp8",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8",
+    "revision": "9bee19446c0dfd01f356e10979d225b2a6621944"
+  }
+}

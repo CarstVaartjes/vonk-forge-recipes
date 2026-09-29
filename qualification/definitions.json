@@ -5145,6 +5145,22 @@
         ]
       }
     },
+    "vonk-forge/nemotron-3-nano-30b-a3b-fp8-nvidia-vllm-single": {
+      "alias": "nemotron-3-nano",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/qwen3-6-35b-a3b-ud-q8-k-xl-llama-cpp-mia-single": {
       "alias": "Qwen3.6-35B-A3B-UD-Q8_K_XL",
       "smoke_cases": [
