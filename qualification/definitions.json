@@ -4120,6 +4120,21 @@
         ]
       }
     },
+    "vonk-forge/nemotron-3-nano-30b-a3b-nvfp4-nvidia-trtllm-single": {
+      "alias": "nemotron-3-nano",
+      "smoke_cases": [
+        "M0",
+        "A323"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual": {
       "alias": "deepseek-v4-flash-vision-exp",
       "smoke_cases": [
@@ -4472,6 +4487,22 @@
         ],
         "recovery": [
           "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
+    "vonk-forge/qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-dual": {
+      "alias": "qwen3.8-flash-next",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and concurrency canaries at the 262K default; TP2 over the fabric"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache restart"
         ]
       }
     },
@@ -5266,6 +5297,21 @@
         ]
       }
     },
+    "vonk-forge/nemotron-3-nano-omni-30b-a3b-nvfp4-nvidia-trtllm-single": {
+      "alias": "nemotron-3-nano-omni",
+      "smoke_cases": [
+        "M0",
+        "A323"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/ornith-1-5-35b-a3b-nvfp4-vllm-single": {
       "alias": "ornith-1-5-35b-a3b",
       "smoke_cases": [
@@ -5527,6 +5573,22 @@
         ],
         "recovery": [
           "Controller stop/start, bounded malformed-input recovery, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
+    "vonk-forge/qwen3-8-flash-next-exl3-3-05bpw-ashhart-tensorfold-single": {
+      "alias": "Qwen3.8-Flash-Next",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded concurrency and long-context canaries on the experimental EXL3 path with the n-gram table memory-mapped, and the first-run kernel compile time recorded separately"
+        ],
+        "recovery": [
+          "Controller stop/start with warm kernel-cache restart"
         ]
       }
     },
