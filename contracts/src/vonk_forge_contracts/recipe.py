@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import math
+from collections.abc import Mapping
 from datetime import date
 from typing import Annotated, Literal
 
@@ -342,6 +343,66 @@ Argv = Annotated[
     ],
     Field(min_length=1, max_length=64),
 ]
+
+
+class RecipeOptionError(ValueError):
+    """An option choice does not name a declared option or one of its values."""
+
+
+class RecipeOptionChoice(_RecipeContract):
+    """One named value of an option, with the runtime changes it selects.
+
+    ``args`` replace a base runtime argument of the same name in place, or are
+    appended after the base arguments; ``env`` does the same for environment
+    variables. Both go through the checks of ``runtime.arguments`` and
+    ``runtime.environment``, and the platform applies its own security, mount
+    and port rules to the merged result.
+    """
+
+    value: Identifier
+    label: StrictStr = Field(min_length=1, max_length=64)
+    help: StrictStr = Field(min_length=1, max_length=500)
+    default: StrictBool = False
+    args: list[RecipeRuntimeArgument] = Field(default_factory=list, max_length=32)
+    env: dict[StrictStr, Scalar] = Field(default_factory=dict, max_length=32)
+
+    @model_validator(mode="after")
+    def literal_runtime_changes(self) -> RecipeOptionChoice:
+        for argument in self.args:
+            if argument.setting is not None:
+                raise ValueError("option arguments must carry a literal value")
+        names = [argument.name for argument in self.args]
+        if len(names) != len(set(names)):
+            raise ValueError("option choice arguments must be unique")
+        for name, value in self.env.items():
+            RecipeRuntimeEnvironment(name=name, value=value)
+        return self
+
+
+class RecipeOption(_RecipeContract):
+    """A recipe-declared setting with a fixed set of named values.
+
+    Users pick one of the enumerated choices; there are no free-form values.
+    Exactly one choice is the default and applies whenever nothing is chosen.
+    """
+
+    name: Identifier
+    label: StrictStr = Field(min_length=1, max_length=64)
+    help: StrictStr = Field(min_length=1, max_length=500)
+    choices: list[RecipeOptionChoice] = Field(min_length=2, max_length=16)
+
+    @model_validator(mode="after")
+    def one_default_unique_values(self) -> RecipeOption:
+        values = [choice.value for choice in self.choices]
+        if len(values) != len(set(values)):
+            raise ValueError("option choice values must be unique")
+        if sum(choice.default for choice in self.choices) != 1:
+            raise ValueError("an option needs exactly one default choice")
+        return self
+
+    @property
+    def default_value(self) -> str:
+        return next(choice.value for choice in self.choices if choice.default)
 
 
 class RecipeLifecycle(_RecipeContract):
@@ -749,9 +810,85 @@ class RecipeDefinition(_RecipeContract):
     provenance: RecipeProvenance
     settings: RecipeSettings
     release: RecipeRelease
+    options: list[RecipeOption] = Field(default_factory=list, max_length=16)
+
+    def resolve_options(
+        self, choices: Mapping[str, str] | None = None
+    ) -> dict[str, str]:
+        """Return the effective ``{option: value}`` for every declared option.
+
+        Options not named in ``choices`` take their default. An unknown option
+        name or value raises :class:`RecipeOptionError` listing what is valid.
+        """
+
+        supplied = dict(choices or {})
+        declared = {option.name: option for option in self.options}
+        unknown = sorted(set(supplied) - set(declared))
+        if unknown:
+            raise RecipeOptionError(
+                f"unknown recipe option {unknown[0]!r}; options: "
+                + ", ".join(sorted(declared) or ["none"])
+            )
+        resolved: dict[str, str] = {}
+        for option in self.options:
+            value = supplied.get(option.name, option.default_value)
+            if value not in {choice.value for choice in option.choices}:
+                raise RecipeOptionError(
+                    f"unknown value {value!r} for option {option.name!r}; choices: "
+                    + ", ".join(choice.value for choice in option.choices)
+                )
+            resolved[option.name] = value
+        return resolved
+
+    def with_option_choices(
+        self, choices: Mapping[str, str] | None = None
+    ) -> RecipeDefinition:
+        """Return this recipe with the chosen options merged into its runtime.
+
+        The result has the same runtime shape as an authored recipe, so every
+        downstream check and compile step applies to it unchanged.
+        """
+
+        resolved = self.resolve_options(choices)
+        arguments = list(self.runtime.arguments)
+        environment = list(self.runtime.environment)
+        for option in self.options:
+            chosen = next(c for c in option.choices if c.value == resolved[option.name])
+            for argument in chosen.args:
+                index = next(
+                    (i for i, a in enumerate(arguments) if a.name == argument.name),
+                    None,
+                )
+                if index is None:
+                    arguments.append(argument)
+                else:
+                    arguments[index] = argument
+            for name, value in chosen.env.items():
+                item = RecipeRuntimeEnvironment(name=name, value=value)
+                index = next(
+                    (i for i, e in enumerate(environment) if e.name == name), None
+                )
+                if index is None:
+                    environment.append(item)
+                else:
+                    environment[index] = item
+        if len(arguments) > MAX_RUNTIME_ARGUMENTS or len(environment) > 128:
+            raise RecipeOptionError("option choices exceed the runtime bounds")
+        tokens = list(self.runtime.entrypoint)
+        for argument in arguments:
+            tokens.extend(_runtime_argument_tokens(argument))
+        try:
+            _validate_argv(tokens)
+        except ValueError as error:
+            raise RecipeOptionError(str(error)) from error
+        runtime = self.runtime.model_copy(
+            update={"arguments": arguments, "environment": environment}
+        )
+        return self.model_copy(update={"runtime": runtime})
 
     @model_validator(mode="after")
     def semantic_rules(self) -> RecipeDefinition:
+        self._option_rules()
         refs = [selection.model for selection in self.models]
         if len({(r.kind, r.publisher, r.slug, r.content_sha256) for r in refs}) != len(
             refs
@@ -853,3 +990,28 @@ class RecipeDefinition(_RecipeContract):
                             "job request input slot is not declared by the interface"
                         )
         return self
+
+    def _option_rules(self) -> None:
+        names = [option.name for option in self.options]
+        if len(names) != len(set(names)):
+            raise ValueError("recipe option names must be unique")
+        touched: dict[tuple[str, str], str] = {}
+        for option in self.options:
+            keys = {
+                *(("arg", a.name) for c in option.choices for a in c.args),
+                *(("env", n) for c in option.choices for n in c.env),
+            }
+            for key in keys:
+                if key in touched:
+                    raise ValueError(
+                        f"two options change the same runtime {key[0]} {key[1]}"
+                    )
+                touched[key] = option.name
+        # Every choice must merge into a valid runtime; the default of every
+        # other option stays in place, so one choice at a time is enough.
+        for option in self.options:
+            for choice in option.choices:
+                try:
+                    self.with_option_choices({option.name: choice.value})
+                except RecipeOptionError as error:
+                    raise ValueError(str(error)) from error

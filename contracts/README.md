@@ -57,12 +57,12 @@ Preserve meaningful false, zero, empty values and engine-owned JSON values.
 
 ## Versions, identity and reading
 
-`CONTRACT_VERSION` (`2.0.0`) is the semantic version of these contracts and of
-the recipe library release that publishes the catalog (`v2.0.0`). Documents
+`CONTRACT_VERSION` (`2.1.0`) is the semantic version of these contracts and of
+the recipe library release that publishes the catalog (`v2.1.0`). Documents
 carry no schema version. Recipe and Model changes never change the library
 version; publication updates the release in place and records `updated_at`.
 An additive contract change (a new optional field) is a minor version and a
-new release (`v2.1.0`); a breaking change is a major version (`v3.0.0`).
+new release (for example `v2.2.0`); a breaking change is a major version (`v3.0.0`).
 
 A document's identity is `document_sha256`: the SHA-256 of its canonical JSON
 (sorted keys, compact separators, UTF-8) exactly as published, not of a
