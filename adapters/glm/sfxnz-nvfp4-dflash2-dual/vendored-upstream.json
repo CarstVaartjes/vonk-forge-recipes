@@ -1,0 +1,9 @@
+{
+  "ours": [
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "repo": "sfxnz/GLM-5.3-Flash-NVFP4-vLLM-2x-DGX-Spark",
+    "commit": "072c3f68fe425edb141e08cc60576f4bb0477ed2"
+  }
+}
