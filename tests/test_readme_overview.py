@@ -21,9 +21,10 @@ def test_generation_is_deterministic() -> None:
     assert overview.render(ROOT) == overview.render(ROOT)
 
 
-def test_matrix_totals_match_recipe_count() -> None:
-    recipes = list((ROOT / "recipes").glob("*.json"))
-    assert f"**{len(recipes)} recipes**" in overview.render(ROOT)
+def test_overview_names_every_family_without_counts() -> None:
+    body = overview.render(ROOT)
+    assert body.startswith("We cover ")
+    assert " recipes**" not in body
 
 
 def _write(root: Path, slug: str, engine: str, nodes: int, owner: str) -> None:
