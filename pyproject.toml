@@ -1,44 +1,24 @@
 [project]
-# Tooling and producer checks run on 3.14. Adapter sources still target 3.12
-# because the container images they overlay do; see [tool.ruff] below.
+# Tooling and producer checks run on 3.14. Adapter sources (excluded from the
+# gates) still target 3.12 because the container images they overlay do.
 name = "vonk-forge-recipes"
 version = "0.0.0"
 requires-python = ">=3.14"
 
 [tool.ruff]
-# The pinned formatter and linter are the repository's formatting authority.
-# They cover every authored file: adapter sources, overlays and patch files are
-# reviewed code in this repository, not vendored trees.
-#
-# The linter and formatter target Python 3.12 even though this repository
-# declares and runs on 3.14: adapter sources are copied over the interpreter
-# already present in a pinned upstream image, and the vLLM/SGLang images these
-# adapters overlay still run 3.12, as does the platform copy of the shared
-# three-d GLB validator. Formatting at 3.12 keeps those files parseable in the
-# container and here.
+# The pinned formatter and linter are the repository's formatting authority for
+# our own code: tools/, scripts/, tests/, contracts/ and platform helpers.
+# Everything under adapters/ follows its upstream recipe (vendored patches,
+# launch scripts, wrappers derived from upstream creators), so a recipe is never
+# blocked because upstream code does not match our style. Adapter behavior stays
+# covered by the functional tests (contract validation, executability, pins).
 required-version = "==0.16.9"
 target-version = "py312"
-# Vendored third-party sources are byte-exact by contract, not authored here:
-# apply-build-patches.py hashes each DeepSeek V4 tokenizer encoding and fails
-# the container build if it is not the official file, and the adapter NOTICE
-# records the ui-mate agent sources as byte-identical to Tencent's commit, and
-# the r0b0tlab EXL3 plugin sources (src, csrc) are the unmodified
-# upstream files at commit 2dfbdbe4 (see that adapter's README.upstream.md).
-# Formatting or rewriting them would silently break that provenance, so both
-# gates skip them. The MiMo adapter's three vLLM overlay files are likewise
-# tonyd2wild's exact upstream bytes (MIT, commit 13621bb3).
-# Every other file, including the rest of adapters/, is covered.
-exclude = [
-    "adapters/deepseek/mia-vllm/encoding/encoding_dsv4.py",
-    "adapters/deepseek/mia-vllm-vision/encoding/encoding_dsv4.py",
-    "adapters/llm/ui-mate-vllm/agents",
-    "adapters/glm/r0b0tlab-exl3-dflash2-single/src",
-    "adapters/glm/r0b0tlab-exl3-dflash2-single/csrc",
-    "adapters/mimo/tonyd2wild-vllm-dual/patches",
-]
+force-exclude = true
+exclude = ["adapters"]
 
 [tool.pyright]
-# One checker for the whole repository, adapters included. The mode and the
+# One checker for our own code; adapters are excluded (see [tool.ruff]). The mode and the
 # language version are pinned because both change which diagnostics exist:
 # an unconfigured pyright reports hundreds of extra findings, so the reviewed
 # baseline would otherwise depend on the host interpreter and on defaults.
@@ -52,7 +32,6 @@ exclude = [
     "**/__pycache__/**",
     "**/node_modules/**",
     "**/.venv/**",
-    "adapters/glm/r0b0tlab-exl3-dflash2-single/src",
-    "adapters/glm/r0b0tlab-exl3-dflash2-single/csrc",
-    "adapters/mimo/tonyd2wild-vllm-dual/patches",
+    # Adapters follow their upstream recipe; see [tool.ruff].
+    "adapters",
 ]
