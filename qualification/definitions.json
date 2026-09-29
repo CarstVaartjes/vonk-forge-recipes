@@ -4176,6 +4176,19 @@
         ]
       }
     },
+    "vonk-forge/qwen3-8-27b-nvfp4-mtp-r0b0tlab-vllm-single": {
+      "alias": "qwen38-27b",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming and declared concurrency canaries"
+        ]
+      }
+    },
     "vonk-forge/qwen3-6-35b-a3b-nvfp4-vllm-single": {
       "alias": "qwen3-6-35b-a3b-nvfp4",
       "smoke_cases": [
