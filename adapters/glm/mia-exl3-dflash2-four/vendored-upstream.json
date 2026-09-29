@@ -13,5 +13,9 @@
   ],
   "renamed": {
     "upstream-LICENSE-MIT": "LICENSE.MIT"
+  },
+  "reason": {
+    "Dockerfile (chmod)": "patch_apc_no_store.py leaves three installed vLLM files root-only (0600); the unprivileged service account could not import them, so the build makes installed vLLM files world-readable and verify-runtime.py checks it",
+    "verify-runtime.py": "checks installed vLLM files are readable by the service account"
   }
 }
