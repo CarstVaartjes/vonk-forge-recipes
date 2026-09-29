@@ -1,0 +1,97 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-24d906142b3e-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "24d906142b3e61973bce81f1f5a97925f3c0b5cfd9b6ac0129ccf7c2d22b91b5",
+      "size_bytes": 3307
+    },
+    {
+      "id": "qwen3-6-35b-a3b-ud-q4-k-xl-55983c5a75a1-2b7d37489b",
+      "path": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "55983c5a75a1ab969824077b3bb3de4146e82a9234072b48ad4e8f92ad3fe9f1",
+      "size_bytes": 22853663008
+    },
+    {
+      "id": "readme-03b88d9a26d2-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "03b88d9a26d2c06644e8620f0ee0a3fbb98749321344a4e7e40805ffdaf49e6e",
+      "size_bytes": 67529
+    },
+    {
+      "id": "mmproj-f16-71f3cbc1f7cc-d8219ba087",
+      "path": "mmproj-F16.gguf",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "71f3cbc1f7cc0f30d09d41cfa924c0060827ebc33bf15ace7e86661e856f0160",
+      "size_bytes": 899283584
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "gguf-ud-q4-k-xl"
+  },
+  "identity": {
+    "family": {
+      "publisher": "unsloth",
+      "slug": "qwen3",
+      "title": "Alibaba Qwen3"
+    },
+    "model": {
+      "publisher": "unsloth",
+      "slug": "qwen3-6-35b-a3b",
+      "title": "Qwen3.6 35B-A3B"
+    },
+    "publisher": "unsloth",
+    "slug": "qwen3-6-35b-a3b-mtp-ud-q4-k-xl-5bc3e238",
+    "variant": "UD-Q4_K_XL MTP 5bc3e238",
+    "version": "UD-Q4_K_XL MTP 5bc3e238"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Unsloth",
+      "Alibaba Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "metadata": {
+    "description": "Unsloth Dynamic UD-Q4_K_XL GGUF of Qwen3.6-35B-A3B with the multi-token-prediction (MTP) head, plus the F16 vision projector.",
+    "tags": [
+      "unsloth",
+      "qwen3",
+      "language",
+      "gguf",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/unsloth/Qwen3.6-35B-A3B-MTP-GGUF",
+    "revision": "5bc3e238d916f48a861bac2f8a1990a0e9b7e98d"
+  }
+}

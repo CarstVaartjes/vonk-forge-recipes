@@ -1,0 +1,305 @@
+{
+  "capabilities": [
+    "audio-understanding",
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "video-understanding"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-57e90233a9ef-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "57e90233a9efb3c482ece1fc91fe71038dcec388ed9f8f2417c2d8354a3a76fd",
+      "size_bytes": 48304
+    },
+    {
+      "id": "audio-model-a3bbb1e79c00-6bbbc136a0",
+      "path": "audio_model.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "a3bbb1e79c002f92c2695a6f4718cf8af93cef7b1f60e30ffc0b4f5c5c3ddd79",
+      "size_bytes": 6888
+    },
+    {
+      "id": "chat-template-41428e0c65e3-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "41428e0c65e312c359df2495ef5284769a9520b15a693deda4c34a1538208faa",
+      "size_bytes": 14277
+    },
+    {
+      "id": "config-ba51d79fe0db-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ba51d79fe0db8aef1e1c6c1515b18e9e5697f99c004fbe26dc16ae8b6f2dc544",
+      "size_bytes": 11903
+    },
+    {
+      "id": "configuration-18c8a588133f-546b274286",
+      "path": "configuration.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "18c8a588133fba7c177b3c1b66a98a62646ce488fd0d4b7b68e10d8c26d640b0",
+      "size_bytes": 4403
+    },
+    {
+      "id": "configuration-nemotron-h-09a8200ee1b1-845878ce76",
+      "path": "configuration_nemotron_h.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "09a8200ee1b16fc12f1c10a74d954a4f922faeab43e0665c8222f43dc1713dc8",
+      "size_bytes": 12908
+    },
+    {
+      "id": "configuration-radio-68cc673c2f87-9369578288",
+      "path": "configuration_radio.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "68cc673c2f87965ef7df02e1e5e51d2a4a578f908a5ae2611b038eb4874549ae",
+      "size_bytes": 5693
+    },
+    {
+      "id": "evs-79f0659f3532-fc3aa65c63",
+      "path": "evs.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "79f0659f3532b5ebd941e497c4ccd0808879e5487673e6f9387ca29f6d789cd8",
+      "size_bytes": 2917
+    },
+    {
+      "id": "generation-config-dbe3dfa851ad-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "dbe3dfa851ad1462c45beed3a9a35f02e24af5311d79e8b9de5a41428b3a8e7a",
+      "size_bytes": 309
+    },
+    {
+      "id": "hf-quant-config-c95276b9ffda-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "c95276b9ffdaaf4c3eb962f639bd766b5cbd97f43a7541fe1fc99f6ce7834650",
+      "size_bytes": 1820
+    },
+    {
+      "id": "image-processing-84b29e96e509-5c714d475c",
+      "path": "image_processing.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "84b29e96e50970460df7c3d55fefb9c8b9a83f31461f0c53959ef3cd9c59b48c",
+      "size_bytes": 5564
+    },
+    {
+      "id": "model-00001-of-00004-413c021e09ab-1913267ec8",
+      "path": "model-00001-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "413c021e09ab22dcd3fc648cf939653baa72dbca9260b9ba57b5f36ac41cf3a2",
+      "size_bytes": 9997096200
+    },
+    {
+      "id": "model-00002-of-00004-fe3465744d90-60f6088da9",
+      "path": "model-00002-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "fe3465744d9066807d368e7ff81ad1d1f4e2f286f6894d45f655dad339a9535f",
+      "size_bytes": 9996042128
+    },
+    {
+      "id": "model-00003-of-00004-bb862953970f-fc35f2c4d5",
+      "path": "model-00003-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "bb862953970f9360867f928065d373b1dc2c17ee42e606fb8cbee0fea7266a23",
+      "size_bytes": 9998875128
+    },
+    {
+      "id": "model-00004-of-00004-89214e280596-5078e75d62",
+      "path": "model-00004-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "89214e28059665deb16a045ee8f1f2b20e517daef1cdf4c01656be596626263d",
+      "size_bytes": 5193296064
+    },
+    {
+      "id": "model-safetensors-index-342a4e2b6e43-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "342a4e2b6e435ccf54053b3de5611e87e4c8be61153e66d2afb2c9050333b379",
+      "size_bytes": 2174506
+    },
+    {
+      "id": "modeling-4be8b30a75fc-02dc62d026",
+      "path": "modeling.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "4be8b30a75fc1909ed20c53366b814b7c323c17e99d2cce5ec1deb958cdccb18",
+      "size_bytes": 21671
+    },
+    {
+      "id": "modeling-nemotron-h-64edc908fd02-456a9436f0",
+      "path": "modeling_nemotron_h.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "64edc908fd02ff008c63a3d891d3bb898c6a4553844fa3de4b080b48993a733b",
+      "size_bytes": 83460
+    },
+    {
+      "id": "preprocessor-config-a80b0f0decc0-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a80b0f0decc0d5ab0c08062f9070e5a22fdd3b5d452b89160cff20558e00125b",
+      "size_bytes": 582
+    },
+    {
+      "id": "processing-75ab1784f2cc-d522d840b7",
+      "path": "processing.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "75ab1784f2cc8663484269fd7195c90559168c3aa0824420d09a11237e3fa8fa",
+      "size_bytes": 22033
+    },
+    {
+      "id": "processing-utils-f107d30e96bf-1b43d19466",
+      "path": "processing_utils.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "f107d30e96bf9ff949fbf71b2429601d4971e51c8cbd8f27ab73b82f05d2ce59",
+      "size_bytes": 3018
+    },
+    {
+      "id": "special-tokens-map-e3a4f63da745-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e3a4f63da745f02317a45e00e6476c17fc66ac41faf14bb1b0be1f3211b0ca53",
+      "size_bytes": 420
+    },
+    {
+      "id": "tokenizer-e5e7dc84d72e-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e5e7dc84d72e8f248321611c3d6dce23407b135f55f8caf5b26119798d12f85f",
+      "size_bytes": 17077367
+    },
+    {
+      "id": "tokenizer-config-37399ab83007-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "37399ab8300757f9f31cd529b30ed9b584ec45b1935fcbbcc4d65b779c30f5b5",
+      "size_bytes": 187990
+    },
+    {
+      "id": "video-io-3801db0a418d-8bda349cee",
+      "path": "video_io.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "3801db0a418d9bfce033d6b4158d3259df41576d485466845f1c7a378ae88841",
+      "size_bytes": 6831
+    },
+    {
+      "id": "video-processing-9cc25c47e6d8-7add80e480",
+      "path": "video_processing.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "9cc25c47e6d896439aff41faab505b3d2f4fe56afb9bb5b52121a589cc5163a8",
+      "size_bytes": 6530
+    }
+  ],
+  "format": {
+    "precision": "fp8",
+    "quantization": "fp8-modelopt"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "nemotron",
+      "title": "NVIDIA Nemotron"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "nemotron-3-nano-omni-30b-a3b",
+      "title": "Nemotron 3 Nano Omni 30B-A3B"
+    },
+    "publisher": "nvidia",
+    "slug": "nemotron-3-nano-omni-30b-a3b-reasoning-fp8-0acd4b1c",
+    "variant": "Reasoning FP8 0acd4b1c",
+    "version": "Reasoning FP8 0acd4b1c"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-agreement/"
+  },
+  "metadata": {
+    "description": "Exact public NVIDIA Nemotron 3 Nano Omni 30B-A3B Reasoning FP8 checkpoint.",
+    "tags": [
+      "nvidia",
+      "nemotron",
+      "language",
+      "reasoning-fp8",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "audio",
+    "image",
+    "text",
+    "video"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8",
+    "revision": "0acd4b1c237eab45d3977b1b46631919e9a75774"
+  }
+}
