@@ -1,0 +1,12 @@
+{
+  "source": {
+    "repo": "r0b0tlab/qwen36-35b-a3b-nvfp4-fast-sm121-vllm",
+    "commit": "b5c2dd2ff156040d696b93d7b0f6ed9eeefe7496"
+  },
+  "ours": [
+    "vllm-api"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE"
+  }
+}

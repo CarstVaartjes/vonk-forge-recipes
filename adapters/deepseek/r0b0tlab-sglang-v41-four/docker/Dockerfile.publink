@@ -1,0 +1,6 @@
+# Relabel: point org.opencontainers.image.source at OUR public repo so the
+# GHCR package links to it and inherits repo visibility (verified workflow
+# on r0b0tlab/qwen38-flash-next-nvidia-nvfp4-sm121-sglang v1.0.1).
+FROM dsv41-tp4-sm121:overlay-v1
+LABEL org.opencontainers.image.source=https://github.com/r0b0tlab/dsv41-flash-tp4-sglang-sm121
+LABEL org.opencontainers.image.description="DeepSeek-V4.1-Flash TP=4 SGLang serving on 4x NVIDIA DGX Spark (GB10/SM121)"
