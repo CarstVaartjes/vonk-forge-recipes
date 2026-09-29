@@ -3,16 +3,16 @@
   "authority_id": "nl-family-aware-20260924",
   "catalog": {
     "repository": "CarstVaartjes/vonk-forge-recipes",
-    "commit": "038b5e3e131dbc5db45c0ecf181410598fbf4c18",
+    "commit": "4e7ac2220d581bdf9413131b5a4761a1ce971114",
     "release_tag": "v2.1.0",
-    "source_commit": "038b5e3e131dbc5db45c0ecf181410598fbf4c18",
-    "catalog_index_sha256": "f0ad285dcf715b8318ada3929109407d42a62e2af1fc1462e760c15f9b3cdd23",
-    "qualification_index_sha256": "473ea4bc53dfc46e41ecc2c250b481856e2c62456f80bfb22acd4faa684623a2",
-    "recipe_count": 90
+    "source_commit": "4e7ac2220d581bdf9413131b5a4761a1ce971114",
+    "catalog_index_sha256": "1341371e3c562619bd1f304d10db4086b20e9f6bdd53701b3eb3ff1a09d6a181",
+    "qualification_index_sha256": "e77b8d2f61c9c84cb8da6a2db6f3d4a1f6c382e78002f90d0c24939bb07755b3",
+    "recipe_count": 91
   },
   "scope": {
     "maximum_node_count": 2,
-    "recipe_count": 86,
+    "recipe_count": 87,
     "excluded_topology_recipe_keys": [
       "vonk-forge/glm-5-3-flash-nvfp4-vllm-four",
       "vonk-forge/glm-5-2-quanttrio-vllm-four",
@@ -1059,14 +1059,14 @@
     {
       "sequence": 23,
       "key": "vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single",
-      "content_sha256": "e22cf75fa8dcade1d3b2707f86c748656951539d67a5d382675ca7a38ae80618",
+      "content_sha256": "8ecf16449ffd57d3a3f88b87512bdbc6d35550bd7d7f2299a017461df92d2b74",
       "node_count": 1,
       "interface": "openai-service",
-      "recipe_version": "1.2.0",
+      "recipe_version": "1.2.1",
       "package": {
         "path": "packages/qwen3-8-27b-nvfp4-dspark-sglang-single.tar.gz",
-        "sha256": "adf8471e22055be7b3e2f4e8ca909470cb048baef7b05b677b0f79bbecc1e191",
-        "expected_bytes": 5942,
+        "sha256": "c5a8c67516e04e3967835e5dc59bdac71d315c1106c7c24159c2be95796e8eef",
+        "expected_bytes": 5943,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "disposition": "actionable",
@@ -1099,11 +1099,11 @@
         "T_PRODUCT"
       ],
       "review_gates": [],
-      "runtime_stack_sha256": "ffd50e293d1b51c2f5484488411eb285d176ad70ddee13cf1e4f71e6329401de",
+      "runtime_stack_sha256": "9e411d37ad754b8d202ee3eace7e7b946103d2f3312e29ccbcbe7e892fcdf679",
       "topology_sha256": "0547c5083b582be549c7a11b9e557e9b03a4af64ea94ab8b54a6d77c35c0a8f1",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "9cb49a3a6a685df627c09b57daeb7c1a71220c38b517ffeaf8f3d0713a0f779e",
+          "coverage_id": "9505c6de4fa5231e2a52bf6503718e312466fc6cdbca6368c2f43fb4935ba218",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single",
           "role": "dedicated"
@@ -2678,14 +2678,14 @@
     {
       "sequence": 56,
       "key": "vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single",
-      "content_sha256": "c87a7035cf87b53e7868abb6b404de3973fc88296a4e252b068c43fc16b8756a",
+      "content_sha256": "be899fd7cac3ca098a151a765410785c3a987d0e85cf6ebb96851faaa2330cc0",
       "node_count": 1,
       "interface": "openai-service",
-      "recipe_version": "0.1.4",
+      "recipe_version": "0.1.5",
       "package": {
         "path": "packages/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single.tar.gz",
-        "sha256": "a274ab64c292990c7e775488a10dd3f58b174b83317cb4d87fd2a93bc20a505b",
-        "expected_bytes": 44086810,
+        "sha256": "ee33f163a514e3f7866fb100b59b17de7ff7f96d7b6477c1062199b14d6dc1b2",
+        "expected_bytes": 44086749,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "disposition": "actionable",
@@ -2710,11 +2710,11 @@
         "T_REPORT"
       ],
       "review_gates": [],
-      "runtime_stack_sha256": "dd6b40d3d726a74953c4678dd3c7405e18bfab3701aea7a72de27de8810b6164",
+      "runtime_stack_sha256": "65f7bb0f68a7f815e79b87aa9981dd5b6de4ed28c27919f3d083843abd962db3",
       "topology_sha256": "d83560abca234a163e09d37dd76fde8c751bb3f7451540a0d75a0ec4c7df33c0",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "b43159b6eca2db9c00a4f483914d0ededfe0eddf70d7c2e592539ff230c51196",
+          "coverage_id": "489f15d6867a373c9caef5684a953cc119a901fd1cdab2f98f4c43e8c43e0938",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single",
           "role": "dedicated"
@@ -3504,14 +3504,14 @@
     {
       "sequence": 71,
       "key": "vonk-forge/deepseek-v4-flash-0731-sparkinfer-single",
-      "content_sha256": "91626c6396807a9e6488494954e611de08b4514aa18d7156abb4bf0139f1549e",
+      "content_sha256": "00dd7275ae31b22fd206048357384a43d972ceb3ec98492948e0361990546bb4",
       "node_count": 1,
       "interface": "openai-service",
-      "recipe_version": "0.1.5",
+      "recipe_version": "0.1.6",
       "package": {
         "path": "packages/deepseek-v4-flash-0731-sparkinfer-single.tar.gz",
-        "sha256": "48c7b0723eddd57d5c747ee1afa72f7e8148a61297b914e2709081ddac91dd33",
-        "expected_bytes": 19729,
+        "sha256": "4f603e6ecd4eaf6626f42a3d0488c116d092ab4fbb3b8ea290c275810cc31f3e",
+        "expected_bytes": 20206,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "disposition": "capacity-review",
@@ -3540,11 +3540,11 @@
           "reason": "This recipe was retained for capacity review. Require a fresh whole-fleet profile preview to establish exact current memory and storage fit before loading."
         }
       ],
-      "runtime_stack_sha256": "772abb7a1e53ef95d1a98315230aa41e98d7882fdcd377b23a7a38d6b6c4ca0b",
+      "runtime_stack_sha256": "0dd8cdf3c085188a7c18af95b3f3686472213ffa8d3ff5ea87557147f07e710f",
       "topology_sha256": "8e7990b8ddd5d63323f89c5dd19d8e57cf959646bc9bd1b4c6cd8926595bb74a",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "5e170d7f99ea9a2bfecf6cc83e4502efb48f2b49a500ef162258fa0e908c15ca",
+          "coverage_id": "45c0a4d1731d9f8e0a1a1dfdf3d688ab9f07660fe0b35805c076a86ce4c889ba",
           "failure_mode": "single-host-restart",
           "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-sparkinfer-single",
           "role": "dedicated"
@@ -3710,6 +3710,53 @@
     },
     {
       "sequence": 75,
+      "key": "vonk-forge/qwen3-8-flash-next-tensorfold-single",
+      "content_sha256": "5243f5936ef6bc72b4a4c9bfc5f44a06235822e47f39df58cd19091daba97dbc",
+      "node_count": 1,
+      "interface": "openai-service",
+      "recipe_version": "0.3.7",
+      "package": {
+        "path": "packages/qwen3-8-flash-next-tensorfold-single.tar.gz",
+        "sha256": "86cc2c8c26bfa382fddc82d382c5c9b4d878e0c8e19d56130fbe4a45b0166046",
+        "expected_bytes": 8108346,
+        "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
+      },
+      "disposition": "actionable",
+      "model_license_refs": [
+        {
+          "key": "vontra/qwen3-8-flash-next-mlx-4bit-mtp-dadefa80",
+          "content_sha256": "f36ae3c3ba0d23e4ff1d1c2aeda9b70dfacca236550bd8c35e941ae7f4c1190c",
+          "spdx": "LicenseRef-Qwen-Community-1.0",
+          "url": "https://huggingface.co/Vontra/Qwen3.8-Flash-Next-MLX-4bit-MTP/blob/dadefa8066e3be900a0d148d0f5a2f4eb1cf6534/LICENSE",
+          "attribution": [
+            "Qwen",
+            "Vontra"
+          ]
+        }
+      ],
+      "qualification_inputs": [
+        "service-digit7-png"
+      ],
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "review_gates": [],
+      "runtime_stack_sha256": "19f02a3bb9d1f6f6e57779d1c54abd3bbcc884c7b9f5c881f128a0a5ce94b22f",
+      "topology_sha256": "659d70d7077ba0ffd22aac52c85a6f6cd4e9aeb8077139866c0fee4fe7460443",
+      "recovery_coverage_refs": [
+        {
+          "coverage_id": "6d0fb690eb74856d8a835195ab99d57632dbbbe0efe1fab5e589762e130cfaa2",
+          "failure_mode": "single-host-restart",
+          "representative_recipe": "vonk-forge/qwen3-8-flash-next-tensorfold-single",
+          "role": "dedicated"
+        }
+      ]
+    },
+    {
+      "sequence": 76,
       "key": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
       "content_sha256": "4f16f71701aab4f7d75fe66c72b69b75e3490e6c0dcf0faaa270e6d2048a7774",
       "node_count": 2,
@@ -3758,7 +3805,7 @@
       ]
     },
     {
-      "sequence": 76,
+      "sequence": 77,
       "key": "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual",
       "content_sha256": "db4e3d0b965908b665138d7d1c72da4c78b196c3e2f1f856041022b62402a0a0",
       "node_count": 2,
@@ -3810,7 +3857,7 @@
       ]
     },
     {
-      "sequence": 77,
+      "sequence": 78,
       "key": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
       "content_sha256": "bbc169c5ad498e6510b97d5d4d7beabdf486f37b9943b25b6c83f274ce6cce1c",
       "node_count": 2,
@@ -3874,7 +3921,7 @@
       ]
     },
     {
-      "sequence": 78,
+      "sequence": 79,
       "key": "vonk-forge/inkling-small-nvfp4-sglang-dual",
       "content_sha256": "877e068eef56afb88fd370e5c3998b3a57f39525e3bd190657dab16480608f0e",
       "node_count": 2,
@@ -3926,7 +3973,7 @@
       ]
     },
     {
-      "sequence": 79,
+      "sequence": 80,
       "key": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
       "content_sha256": "750d21605fef33fe0215fa94d48d62f9c2a6545730da17aa22413ead6b8ed420",
       "node_count": 2,
@@ -3979,7 +4026,7 @@
       ]
     },
     {
-      "sequence": 80,
+      "sequence": 81,
       "key": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
       "content_sha256": "883c55c586f9487ba23f8724e27cac7312eaf5f0b50def9dd83a04212134b565",
       "node_count": 2,
@@ -4032,7 +4079,7 @@
       ]
     },
     {
-      "sequence": 81,
+      "sequence": 82,
       "key": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
       "content_sha256": "10f1e6122f44d1a312cfb8eb724c6460ea10e5495b134527125c71282717f35b",
       "node_count": 2,
@@ -4085,16 +4132,16 @@
       ]
     },
     {
-      "sequence": 82,
+      "sequence": 83,
       "key": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
-      "content_sha256": "c66241b77845fb86d562ff94115d31a0b99d2bcfd1edfa3597d9c5633056733a",
+      "content_sha256": "b08aad2dc14d9f0f6fae4608fa39eaba8dd261c89bcc03ace8004ee9db966bda",
       "node_count": 2,
       "interface": "openai-service",
-      "recipe_version": "1.0.6",
+      "recipe_version": "1.0.7",
       "package": {
         "path": "packages/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual.tar.gz",
-        "sha256": "b0c3e19e7ecd74ca4bcda7a2de5600a2226c646a1c928ddb50089d2057226dfa",
-        "expected_bytes": 21550,
+        "sha256": "e427f369734d8126e7e7933b033e33562061359630c84a0d0408555ab5b2955c",
+        "expected_bytes": 24157,
         "media_type": "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
       },
       "disposition": "actionable",
@@ -4131,17 +4178,17 @@
         "V_RED"
       ],
       "review_gates": [],
-      "runtime_stack_sha256": "bb277d03f490bddbb8ae1777435fb1f464ef2ef44be20ce7ccc9d33bc131d91d",
+      "runtime_stack_sha256": "206c9b978121a5c70f29eab63819fdb8f292a9e22bfd8465a0c8510d1244cd09",
       "topology_sha256": "4529cc9dd16b9d3f567d06793dc70671104db05cca9e6521e1c224fcc0cc37f0",
       "recovery_coverage_refs": [
         {
-          "coverage_id": "50dfd6de84b59d0deb0cc12372bc036ce285d04de436dc5f6e7dc1759e9aeb20",
+          "coverage_id": "db6dea69afe4174a0a072ea7411d31966528fb56b07eb3f36a10b92846367fee",
           "failure_mode": "dual-host-restart",
           "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
           "role": "dedicated"
         },
         {
-          "coverage_id": "017501f0efeeb1fb48908f9de536ff5681ecbd43d64b6ae7abe3cf2123a71ca0",
+          "coverage_id": "b3684f331d11b9e456ba9f871c70b74e4d4bc3d3f533821fe245e86a33e2e7f5",
           "failure_mode": "dual-rank-loss-recovery",
           "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
           "role": "dedicated"
@@ -4149,7 +4196,7 @@
       ]
     },
     {
-      "sequence": 83,
+      "sequence": 84,
       "key": "vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual",
       "content_sha256": "6e0fcb3d3b5aab37e96ba3acddf20941c0892d4b3e5dfd710e2427007dcc6c87",
       "node_count": 2,
@@ -4204,7 +4251,7 @@
       ]
     },
     {
-      "sequence": 84,
+      "sequence": 85,
       "key": "vonk-forge/glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual",
       "content_sha256": "16a36ce16796d5a1cc3f0817b85fe16754c5d5cac277cf56d9a0044e435bd063",
       "node_count": 2,
@@ -4266,7 +4313,7 @@
       ]
     },
     {
-      "sequence": 85,
+      "sequence": 86,
       "key": "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual",
       "content_sha256": "dc741763003519ace1832d8e72fd4daffd399dae3c606caf5a703fb72e4cea7e",
       "node_count": 2,
@@ -4329,7 +4376,7 @@
       ]
     },
     {
-      "sequence": 86,
+      "sequence": 87,
       "key": "vonk-forge/mimo-v2-6-flash-rl-vllm-dual",
       "content_sha256": "132d8e1628d53ebb41c8cc7dbc4a3df3a69b0d68eeb7f1a22cce7bd46d94f876",
       "node_count": 2,
@@ -5014,12 +5061,12 @@
     {
       "sequence": 38,
       "id": "batch-038",
-      "mode": "exclusive-dual",
+      "mode": "single",
       "assignments": [
         {
-          "recipe": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
+          "recipe": "vonk-forge/qwen3-8-flash-next-tensorfold-single",
           "lane": 1,
-          "node_count": 2
+          "node_count": 1
         }
       ]
     },
@@ -5029,7 +5076,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual",
+          "recipe": "vonk-forge/deepseek-v4-flash-0731-mia-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -5041,7 +5088,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
+          "recipe": "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -5053,7 +5100,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/inkling-small-nvfp4-sglang-dual",
+          "recipe": "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -5065,7 +5112,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
+          "recipe": "vonk-forge/inkling-small-nvfp4-sglang-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -5077,7 +5124,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
+          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -5089,7 +5136,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
+          "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -5101,7 +5148,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
+          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -5113,7 +5160,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual",
+          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -5125,7 +5172,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual",
+          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -5137,7 +5184,7 @@
       "mode": "exclusive-dual",
       "assignments": [
         {
-          "recipe": "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual",
+          "recipe": "vonk-forge/glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual",
           "lane": 1,
           "node_count": 2
         }
@@ -5146,6 +5193,18 @@
     {
       "sequence": 49,
       "id": "batch-049",
+      "mode": "exclusive-dual",
+      "assignments": [
+        {
+          "recipe": "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual",
+          "lane": 1,
+          "node_count": 2
+        }
+      ]
+    },
+    {
+      "sequence": 50,
+      "id": "batch-050",
       "mode": "exclusive-dual",
       "assignments": [
         {
@@ -5175,6 +5234,26 @@
       "shared": false,
       "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
       "coverage_id": "f1ba681927f4f6107a1fe41eb8431103ff4a9b71cf4b8bf9ad58fe00a173e234"
+    },
+    {
+      "failure_mode": "dual-host-restart",
+      "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
+      "members": [
+        {
+          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
+          "recipe_content_sha256": "b08aad2dc14d9f0f6fae4608fa39eaba8dd261c89bcc03ace8004ee9db966bda",
+          "package_sha256": "e427f369734d8126e7e7933b033e33562061359630c84a0d0408555ab5b2955c",
+          "model_content_sha256s": [
+            "877e81d8d00e7561d56d1f8e57ac5b0c4b1bdbf17c03e790ad35ba6aed3c4e97",
+            "b83de96826fba1fdde173beae7b9c677ac5d87e33a38af982d06c392202c0ffa"
+          ],
+          "runtime_stack_sha256": "206c9b978121a5c70f29eab63819fdb8f292a9e22bfd8465a0c8510d1244cd09",
+          "topology_sha256": "4529cc9dd16b9d3f567d06793dc70671104db05cca9e6521e1c224fcc0cc37f0"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "coverage_id": "db6dea69afe4174a0a072ea7411d31966528fb56b07eb3f36a10b92846367fee"
     },
     {
       "failure_mode": "dual-host-restart",
@@ -5333,26 +5412,6 @@
     },
     {
       "failure_mode": "dual-host-restart",
-      "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
-      "members": [
-        {
-          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
-          "recipe_content_sha256": "c66241b77845fb86d562ff94115d31a0b99d2bcfd1edfa3597d9c5633056733a",
-          "package_sha256": "b0c3e19e7ecd74ca4bcda7a2de5600a2226c646a1c928ddb50089d2057226dfa",
-          "model_content_sha256s": [
-            "877e81d8d00e7561d56d1f8e57ac5b0c4b1bdbf17c03e790ad35ba6aed3c4e97",
-            "b83de96826fba1fdde173beae7b9c677ac5d87e33a38af982d06c392202c0ffa"
-          ],
-          "runtime_stack_sha256": "bb277d03f490bddbb8ae1777435fb1f464ef2ef44be20ce7ccc9d33bc131d91d",
-          "topology_sha256": "4529cc9dd16b9d3f567d06793dc70671104db05cca9e6521e1c224fcc0cc37f0"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "coverage_id": "50dfd6de84b59d0deb0cc12372bc036ce285d04de436dc5f6e7dc1759e9aeb20"
-    },
-    {
-      "failure_mode": "dual-host-restart",
       "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
       "members": [
         {
@@ -5407,6 +5466,26 @@
       "shared": false,
       "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
       "coverage_id": "2d3128bcbdcc932b075ea1b809982ea5974450fc5dd449b2f84e61ed17b06cf3"
+    },
+    {
+      "failure_mode": "dual-rank-loss-recovery",
+      "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
+      "members": [
+        {
+          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
+          "recipe_content_sha256": "b08aad2dc14d9f0f6fae4608fa39eaba8dd261c89bcc03ace8004ee9db966bda",
+          "package_sha256": "e427f369734d8126e7e7933b033e33562061359630c84a0d0408555ab5b2955c",
+          "model_content_sha256s": [
+            "877e81d8d00e7561d56d1f8e57ac5b0c4b1bdbf17c03e790ad35ba6aed3c4e97",
+            "b83de96826fba1fdde173beae7b9c677ac5d87e33a38af982d06c392202c0ffa"
+          ],
+          "runtime_stack_sha256": "206c9b978121a5c70f29eab63819fdb8f292a9e22bfd8465a0c8510d1244cd09",
+          "topology_sha256": "4529cc9dd16b9d3f567d06793dc70671104db05cca9e6521e1c224fcc0cc37f0"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "coverage_id": "b3684f331d11b9e456ba9f871c70b74e4d4bc3d3f533821fe245e86a33e2e7f5"
     },
     {
       "failure_mode": "dual-rank-loss-recovery",
@@ -5565,26 +5644,6 @@
     },
     {
       "failure_mode": "dual-rank-loss-recovery",
-      "representative_recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
-      "members": [
-        {
-          "recipe": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
-          "recipe_content_sha256": "c66241b77845fb86d562ff94115d31a0b99d2bcfd1edfa3597d9c5633056733a",
-          "package_sha256": "b0c3e19e7ecd74ca4bcda7a2de5600a2226c646a1c928ddb50089d2057226dfa",
-          "model_content_sha256s": [
-            "877e81d8d00e7561d56d1f8e57ac5b0c4b1bdbf17c03e790ad35ba6aed3c4e97",
-            "b83de96826fba1fdde173beae7b9c677ac5d87e33a38af982d06c392202c0ffa"
-          ],
-          "runtime_stack_sha256": "bb277d03f490bddbb8ae1777435fb1f464ef2ef44be20ce7ccc9d33bc131d91d",
-          "topology_sha256": "4529cc9dd16b9d3f567d06793dc70671104db05cca9e6521e1c224fcc0cc37f0"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "coverage_id": "017501f0efeeb1fb48908f9de536ff5681ecbd43d64b6ae7abe3cf2123a71ca0"
-    },
-    {
-      "failure_mode": "dual-rank-loss-recovery",
       "representative_recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-sglang-dual",
       "members": [
         {
@@ -5720,6 +5779,25 @@
     },
     {
       "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-sparkinfer-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/deepseek-v4-flash-0731-sparkinfer-single",
+          "recipe_content_sha256": "00dd7275ae31b22fd206048357384a43d972ceb3ec98492948e0361990546bb4",
+          "package_sha256": "4f603e6ecd4eaf6626f42a3d0488c116d092ab4fbb3b8ea290c275810cc31f3e",
+          "model_content_sha256s": [
+            "d1a2536cb0ea7a72feaae88513d6058ddf20f54e4ba3e40936a694d14be2efc4"
+          ],
+          "runtime_stack_sha256": "0dd8cdf3c085188a7c18af95b3f3686472213ffa8d3ff5ea87557147f07e710f",
+          "topology_sha256": "8e7990b8ddd5d63323f89c5dd19d8e57cf959646bc9bd1b4c6cd8926595bb74a"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "coverage_id": "45c0a4d1731d9f8e0a1a1dfdf3d688ab9f07660fe0b35805c076a86ce4c889ba"
+    },
+    {
+      "failure_mode": "single-host-restart",
       "representative_recipe": "vonk-forge/muse-glimmer-30b-bf16-vllm-single",
       "members": [
         {
@@ -5776,6 +5854,25 @@
       "shared": false,
       "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
       "coverage_id": "2413a564882b47afe590355c1cfac14f61cc08cea85be3ef6cbd8d06c0a6df0a"
+    },
+    {
+      "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/qwen3-8-flash-next-tensorfold-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/qwen3-8-flash-next-tensorfold-single",
+          "recipe_content_sha256": "5243f5936ef6bc72b4a4c9bfc5f44a06235822e47f39df58cd19091daba97dbc",
+          "package_sha256": "86cc2c8c26bfa382fddc82d382c5c9b4d878e0c8e19d56130fbe4a45b0166046",
+          "model_content_sha256s": [
+            "f36ae3c3ba0d23e4ff1d1c2aeda9b70dfacca236550bd8c35e941ae7f4c1190c"
+          ],
+          "runtime_stack_sha256": "19f02a3bb9d1f6f6e57779d1c54abd3bbcc884c7b9f5c881f128a0a5ce94b22f",
+          "topology_sha256": "659d70d7077ba0ffd22aac52c85a6f6cd4e9aeb8077139866c0fee4fe7460443"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "coverage_id": "6d0fb690eb74856d8a835195ab99d57632dbbbe0efe1fab5e589762e130cfaa2"
     },
     {
       "failure_mode": "single-host-restart",
@@ -6266,6 +6363,25 @@
     },
     {
       "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single",
+          "recipe_content_sha256": "be899fd7cac3ca098a151a765410785c3a987d0e85cf6ebb96851faaa2330cc0",
+          "package_sha256": "ee33f163a514e3f7866fb100b59b17de7ff7f96d7b6477c1062199b14d6dc1b2",
+          "model_content_sha256s": [
+            "d1a2536cb0ea7a72feaae88513d6058ddf20f54e4ba3e40936a694d14be2efc4"
+          ],
+          "runtime_stack_sha256": "65f7bb0f68a7f815e79b87aa9981dd5b6de4ed28c27919f3d083843abd962db3",
+          "topology_sha256": "d83560abca234a163e09d37dd76fde8c751bb3f7451540a0d75a0ec4c7df33c0"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "coverage_id": "489f15d6867a373c9caef5684a953cc119a901fd1cdab2f98f4c43e8c43e0938"
+    },
+    {
+      "failure_mode": "single-host-restart",
       "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-ds4-dspark-latency-single",
       "members": [
         {
@@ -6380,25 +6496,6 @@
       "shared": false,
       "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
       "coverage_id": "de3a79dbd745fd402a8ba24659ea8d19bcd0ae087b87b490adfb761df74fd6b1"
-    },
-    {
-      "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-sparkinfer-single",
-      "members": [
-        {
-          "recipe": "vonk-forge/deepseek-v4-flash-0731-sparkinfer-single",
-          "recipe_content_sha256": "91626c6396807a9e6488494954e611de08b4514aa18d7156abb4bf0139f1549e",
-          "package_sha256": "48c7b0723eddd57d5c747ee1afa72f7e8148a61297b914e2709081ddac91dd33",
-          "model_content_sha256s": [
-            "d1a2536cb0ea7a72feaae88513d6058ddf20f54e4ba3e40936a694d14be2efc4"
-          ],
-          "runtime_stack_sha256": "772abb7a1e53ef95d1a98315230aa41e98d7882fdcd377b23a7a38d6b6c4ca0b",
-          "topology_sha256": "8e7990b8ddd5d63323f89c5dd19d8e57cf959646bc9bd1b4c6cd8926595bb74a"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "coverage_id": "5e170d7f99ea9a2bfecf6cc83e4502efb48f2b49a500ef162258fa0e908c15ca"
     },
     {
       "failure_mode": "single-host-restart",
@@ -6571,6 +6668,26 @@
       "shared": false,
       "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
       "coverage_id": "ea37d955a9f6d8347c618c41793b60052b1cb59b93043ec3f2dd36dd17a66ba2"
+    },
+    {
+      "failure_mode": "single-host-restart",
+      "representative_recipe": "vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single",
+      "members": [
+        {
+          "recipe": "vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single",
+          "recipe_content_sha256": "8ecf16449ffd57d3a3f88b87512bdbc6d35550bd7d7f2299a017461df92d2b74",
+          "package_sha256": "c5a8c67516e04e3967835e5dc59bdac71d315c1106c7c24159c2be95796e8eef",
+          "model_content_sha256s": [
+            "685e17e3d607d77ab55a48ec281bf950f091c04061a406241ad1431ce833bc41",
+            "9a020f51060bace3cd7d4d1c8410abb0ec1a1cfd3c2c8945b1ed51fccdd72575"
+          ],
+          "runtime_stack_sha256": "9e411d37ad754b8d202ee3eace7e7b946103d2f3312e29ccbcbe7e892fcdf679",
+          "topology_sha256": "0547c5083b582be549c7a11b9e557e9b03a4af64ea94ab8b54a6d77c35c0a8f1"
+        }
+      ],
+      "shared": false,
+      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
+      "coverage_id": "9505c6de4fa5231e2a52bf6503718e312466fc6cdbca6368c2f43fb4935ba218"
     },
     {
       "failure_mode": "single-host-restart",
@@ -6864,25 +6981,6 @@
     },
     {
       "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single",
-      "members": [
-        {
-          "recipe": "vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single",
-          "recipe_content_sha256": "c87a7035cf87b53e7868abb6b404de3973fc88296a4e252b068c43fc16b8756a",
-          "package_sha256": "a274ab64c292990c7e775488a10dd3f58b174b83317cb4d87fd2a93bc20a505b",
-          "model_content_sha256s": [
-            "d1a2536cb0ea7a72feaae88513d6058ddf20f54e4ba3e40936a694d14be2efc4"
-          ],
-          "runtime_stack_sha256": "dd6b40d3d726a74953c4678dd3c7405e18bfab3701aea7a72de27de8810b6164",
-          "topology_sha256": "d83560abca234a163e09d37dd76fde8c751bb3f7451540a0d75a0ec4c7df33c0"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "coverage_id": "b43159b6eca2db9c00a4f483914d0ededfe0eddf70d7c2e592539ff230c51196"
-    },
-    {
-      "failure_mode": "single-host-restart",
       "representative_recipe": "vonk-forge/qwen-image-edit-2511-diffusers-single",
       "members": [
         {
@@ -7035,26 +7133,6 @@
       "shared": false,
       "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
       "coverage_id": "b572a06bd0e79fc8098b1aa3fb131c1baef5fcd6817cc3eb185a76d131e1f9b1"
-    },
-    {
-      "failure_mode": "single-host-restart",
-      "representative_recipe": "vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single",
-      "members": [
-        {
-          "recipe": "vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single",
-          "recipe_content_sha256": "e22cf75fa8dcade1d3b2707f86c748656951539d67a5d382675ca7a38ae80618",
-          "package_sha256": "adf8471e22055be7b3e2f4e8ca909470cb048baef7b05b677b0f79bbecc1e191",
-          "model_content_sha256s": [
-            "685e17e3d607d77ab55a48ec281bf950f091c04061a406241ad1431ce833bc41",
-            "9a020f51060bace3cd7d4d1c8410abb0ec1a1cfd3c2c8945b1ed51fccdd72575"
-          ],
-          "runtime_stack_sha256": "ffd50e293d1b51c2f5484488411eb285d176ad70ddee13cf1e4f71e6329401de",
-          "topology_sha256": "0547c5083b582be549c7a11b9e557e9b03a4af64ea94ab8b54a6d77c35c0a8f1"
-        }
-      ],
-      "shared": false,
-      "equivalence_rationale": "Recovery evidence is dedicated to this exact recipe and failure mode.",
-      "coverage_id": "9cb49a3a6a685df627c09b57daeb7c1a71220c38b517ffeaf8f3d0713a0f779e"
     }
   ]
 }
