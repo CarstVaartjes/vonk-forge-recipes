@@ -155,6 +155,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | [deepseek-v4-flash-mtp-tonyd2wild-vllm-dual](recipes/deepseek-v4-flash-mtp-tonyd2wild-vllm-dual.json) | vLLM | 2 | tonyd2wild |
 | [deepseek-v4-flash-vision-exp-dspark-tonyd2wild-vllm-dual](recipes/deepseek-v4-flash-vision-exp-dspark-tonyd2wild-vllm-dual.json) | vLLM | 2 | tonyd2wild |
 | [deepseek-v4-flash-vision-exp-mia-dual](recipes/deepseek-v4-flash-vision-exp-mia-dual.json) | vLLM | 2 | MiaAI-Lab |
+| [deepseek-v4-flash-vision-exp-r0b0tlab-vllm-dual](recipes/deepseek-v4-flash-vision-exp-r0b0tlab-vllm-dual.json) | vLLM | 2 | r0b0tlab |
 
 </details>
 
