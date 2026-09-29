@@ -4022,6 +4022,23 @@
         ]
       }
     },
+    "vonk-forge/deepseek-v4-flash-fp8-r0b0tlab-vllm-dual": {
+      "alias": "deepseek-v4-flash",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "T_REPORT",
+        "V_RED"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and concurrency canaries at the latency profile"
+        ],
+        "recovery": [
+          "Controller-only rank-loss and warm-cache recovery"
+        ]
+      }
+    },
     "vonk-forge/deepseek-v4-flash-0731-r0b0tlab-vllm-dual": {
       "alias": "deepseek-v4-flash-dspark",
       "smoke_cases": [
