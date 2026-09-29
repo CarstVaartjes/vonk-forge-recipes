@@ -400,7 +400,7 @@ regenerated reviewed authority, not hand-edited assignments or skipped ledger
 checkpoints. The table below shows the current authority batch assignments.
 
 <!-- generated:begin qualification-inventory -->
-The authority assigns 74 one-Spark recipes to 37 batches and 11 two-Spark recipes to exclusive batches. Wider topologies close the catalog audit only.
+The authority assigns 74 one-Spark recipes to 37 batches and 12 two-Spark recipes to exclusive batches. Wider topologies close the catalog audit only.
 
 | # | Recipe | Nodes | Batch | Lane | Check | Campaign gate | Source review |
 |---:|---|---:|---|---:|---|---|---|
@@ -489,10 +489,11 @@ The authority assigns 74 one-Spark recipes to 37 batches and 11 two-Spark recipe
 | 83 | `vonk-forge/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual` | 2 | `batch-046` | 1 | service | dual-Spark | retained: upstream renamed the target checkpoint |
 | 84 | `vonk-forge/glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual` | 2 | `batch-047` | 1 | service | dual-Spark | new: r0b0tlab 22269731 on nvidia/GLM-5.3-Flash-NVFP4 |
 | 85 | `vonk-forge/deepseek-v4-1-flash-exl3-mia-dual` | 2 | `batch-048` | 1 | service | dual-Spark | new: Mia 6f7d1590 EXL3 2.9 bpw |
-| 86 | `vonk-forge/glm-5-3-flash-nvfp4-vllm-four` | 4 | — | — | no fixture | out of scope (>2 Sparks) | retained: upstream default changed model identity |
-| 87 | `vonk-forge/glm-5-2-quanttrio-vllm-four` | 4 | — | — | no fixture | out of scope (>2 Sparks) | current |
-| 88 | `vonk-forge/inkling-975b-a41b-nvfp4-sglang-eight` | 8 | — | — | no fixture | out of scope (>2 Sparks) | retained: moving SGLang main is not a release channel |
-| 89 | `vonk-forge/glm-5-2-aqlm-vllm-triple` | 3 | — | — | no fixture | out of scope (>2 Sparks) | current |
+| 86 | `vonk-forge/mimo-v2-6-flash-rl-vllm-dual` | 2 | `batch-049` | 1 | service | dual-Spark | new: tonyd2wild 13621bb3 vLLM TP2 DFlash |
+| 87 | `vonk-forge/glm-5-3-flash-nvfp4-vllm-four` | 4 | — | — | no fixture | out of scope (>2 Sparks) | retained: upstream default changed model identity |
+| 88 | `vonk-forge/glm-5-2-quanttrio-vllm-four` | 4 | — | — | no fixture | out of scope (>2 Sparks) | current |
+| 89 | `vonk-forge/inkling-975b-a41b-nvfp4-sglang-eight` | 8 | — | — | no fixture | out of scope (>2 Sparks) | retained: moving SGLang main is not a release channel |
+| 90 | `vonk-forge/glm-5-2-aqlm-vllm-triple` | 3 | — | — | no fixture | out of scope (>2 Sparks) | current |
 <!-- generated:end qualification-inventory -->
 
 ## Evidence and stop rules
