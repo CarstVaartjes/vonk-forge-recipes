@@ -1,4 +1,3 @@
-# ruff: noqa: BLE001, C408, S110  # vendored upstream source, kept as published
 """File-backed Engram tables for 2× Spark UMA.
 
 vLLM's stock ParallelEngramEmbedding pins this rank's hash heads
@@ -9,7 +8,6 @@ This replacement keeps dummy 0-size parameters (so load_weights does not
 expect a 95 GiB copy), opens the native safetensors via row_store, and
 gathers rows through cudaLaunchHostFunc so CUDA graphs still work.
 """
-
 from __future__ import annotations
 
 import ctypes as C
@@ -17,9 +15,9 @@ import glob
 import json
 import logging
 import os
+from pathlib import Path
 import struct
 import threading
-from pathlib import Path
 
 import torch
 from torch import nn
@@ -50,7 +48,9 @@ def _lib_path() -> Path:
     for path in _LIB_CANDIDATES:
         if path.is_file():
             return path
-    raise FileNotFoundError("librow_store.so missing (rebuild dsv41-flash-exl3:local)")
+    raise FileNotFoundError(
+        "librow_store.so missing (rebuild dsv41-flash-exl3:local)"
+    )
 
 
 def _load_lib():
@@ -128,7 +128,7 @@ def _report_loop():
     previous: dict[int, dict] = {}
     while True:
         threading.Event().wait(period)
-        for store, layer_id in _STORES:
+        for store, layer_id in list(_STORES):
             now = _stats(store)
             was = previous.get(layer_id)
             previous[layer_id] = now
@@ -286,21 +286,30 @@ def _make_init(module):
         table_dir = _table_dir()
         layer_id = _layer_id_from_embeddings(self.num_embeddings, table_dir)
         path, rows, woff, soff = _tensor_span(table_dir, layer_id)
-        ranks_per_host = max(1, tp_size // max(1, int(os.environ.get("NNODES", "1"))))
+        ranks_per_host = max(
+            1, tp_size // max(1, int(os.environ.get("NNODES", "1")))
+        )
         budget = int(float(os.getenv("DSV41_CACHE_GIB", "8")) * 2**30) // (
             2 * ranks_per_host
         )
-        store = lib.row_store_open(str(path).encode(), rows, woff, soff, budget)
+        store = lib.row_store_open(
+            str(path).encode(), rows, woff, soff, budget
+        )
         if not store:
             raise RuntimeError(f"Could not open Engram backing shard: {path}")
         lib.row_store_range(store, self.vocab_start_idx, self.vocab_end_idx)
         packed_dir = os.environ.get("DSV41_PACKED_DIR", "")
         packed = False
         if packed_dir:
-            shard = Path(packed_dir) / f"engram-l{layer_id}-r{tp_rank}of{tp_size}.bin"
+            shard = (
+                Path(packed_dir)
+                / f"engram-l{layer_id}-r{tp_rank}of{tp_size}.bin"
+            )
             if shard.is_file():
                 packed = bool(
-                    lib.row_store_attach_packed(store, str(shard).encode(), layer_id)
+                    lib.row_store_attach_packed(
+                        store, str(shard).encode(), layer_id
+                    )
                 )
         self._store = store
         self._layer_id = layer_id
@@ -311,9 +320,13 @@ def _make_init(module):
         max_tokens = int(vllm_config.scheduler_config.max_num_batched_tokens)
         self._max_rows = max(1, max_tokens * self.dp_size * self.part_n_hash_cols)
         cap = 1 << (self._max_rows - 1).bit_length()
-        device = torch.device(f"cuda:{torch.accelerator.current_device_index()}")
+        device = torch.device(
+            f"cuda:{torch.accelerator.current_device_index()}"
+        )
         # Model init runs under torch.device("cuda"); pin_memory needs CPU.
-        self._ids = torch.empty(cap, dtype=torch.int64, device="cpu", pin_memory=True)
+        self._ids = torch.empty(
+            cap, dtype=torch.int64, device="cpu", pin_memory=True
+        )
         self._host_w = torch.empty(
             (cap, self.dim),
             dtype=torch.uint8,
@@ -326,7 +339,9 @@ def _make_init(module):
             device="cpu",
             pin_memory=True,
         )
-        self._dev_w = torch.empty((cap, self.dim), dtype=torch.uint8, device=device)
+        self._dev_w = torch.empty(
+            (cap, self.dim), dtype=torch.uint8, device=device
+        )
         self._dev_s = torch.empty(
             (cap, self.dim // self.block_size),
             dtype=torch.uint8,
@@ -347,7 +362,7 @@ def _make_init(module):
         print(
             f"File-backed Engram layer={layer_id} rank={tp_rank}/{tp_size} "
             f"rows=[{self.vocab_start_idx},{self.vocab_end_idx}) "
-            f"cache={stats['cache_bytes'] / 2**30:.1f}GiB "
+            f"cache={stats['cache_bytes']/2**30:.1f}GiB "
             f"packed={packed or stats['packed']}",
             flush=True,
         )
@@ -371,7 +386,9 @@ def _dequant_kernel():
     ):
         cols = tl.arange(0, DIM)
         scale_cols = cols // QUANT_BLOCK
-        for base in tl.range(tl.program_id(0) * BLOCK_R, num_rows, GRID * BLOCK_R):
+        for base in tl.range(
+            tl.program_id(0) * BLOCK_R, num_rows, GRID * BLOCK_R
+        ):
             rows = base + tl.arange(0, BLOCK_R)
             valid = rows < num_rows
             values = tl.load(
@@ -380,7 +397,9 @@ def _dequant_kernel():
                 other=0.0,
             )
             scale = tl.load(
-                scales + rows[:, None] * (DIM // QUANT_BLOCK) + scale_cols[None, :],
+                scales
+                + rows[:, None] * (DIM // QUANT_BLOCK)
+                + scale_cols[None, :],
                 mask=valid[:, None],
                 other=0,
             )
@@ -414,7 +433,9 @@ def _make_lookup(module):
         head_end = min(self.head_start + local_heads, indices.shape[1])
         local_ids = indices[:, self.head_start : head_end]
         if local_ids.shape[1] < local_heads:
-            pad = local_ids.new_full((tokens, local_heads - local_ids.shape[1]), -1)
+            pad = local_ids.new_full(
+                (tokens, local_heads - local_ids.shape[1]), -1
+            )
             local_ids = torch.cat((local_ids, pad), dim=1)
         flat = local_ids.reshape(-1)
 

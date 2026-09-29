@@ -1,0 +1,11 @@
+{
+  "ours": [
+    "overlay/install_exl3_overlay.py",
+    "overlay/register_exl3_quantization.py",
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "upstream-LICENSE-MIT": "LICENSE.MIT"
+  }
+}

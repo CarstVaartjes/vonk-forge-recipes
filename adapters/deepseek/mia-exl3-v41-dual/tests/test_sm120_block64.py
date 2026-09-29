@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# ruff: noqa: BLE001, RUF059  # vendored upstream source, kept as published
 """The SM12x 64-token-block patch applies once to the real backends (in the image) and is loud on drift."""
-
 from __future__ import annotations
 
 import sys
@@ -13,7 +11,7 @@ for _d in (HERE, ROOT / "overlay"):
     if (_d / "patch_sm120_block64.py").is_file():
         sys.path.insert(0, str(_d))
         break
-from patch_sm120_block64 import JOBS, MARK, apply
+from patch_sm120_block64 import JOBS, MARK, apply  # noqa: E402
 
 
 def test_synthetic() -> None:
@@ -27,29 +25,17 @@ def test_synthetic() -> None:
             head = "import torch\nMLAAttentionSpec = dict\n\n\nclass B:\n    def f(self, vllm_config, uses_fp8_ds_mla_layout):\n"
         if old.lstrip().startswith("self.max_image_tokens = ("):
             head = "\n\nclass B:\n    def f(self, config, hf_config):\n"
-        if old.lstrip().startswith("use_persistent_topk = ") or old.lstrip().startswith(
-            "if current_platform.is_cuda() and select_k"
-        ):
+        if old.lstrip().startswith("use_persistent_topk = ") or old.lstrip().startswith("if current_platform.is_cuda() and select_k"):
             head = "from vllm.platforms import current_platform\n\n\nclass B:\n    def f(self, topk_tokens, select_k):\n"
-            tail = (
-                "            pass\n"
-                if old.lstrip().startswith("if current_platform")
-                else ""
-            )
+            tail = "            pass\n" if old.lstrip().startswith("if current_platform") else ""
         if old.lstrip().startswith("#   40 * 163840"):
             head = "def get_max_prefill_buffer_size(vllm_config):\n    max_model_len = vllm_config.model_config.max_model_len\n"
         if old.lstrip().startswith("kv = self.wkv("):
             head = "class B:\n    def f(self, hidden_states, hash_ids):\n"
         if old.lstrip().startswith("mixed_tokens = "):  # module-level function body
             head = "logger = None\n_SPARSE_MLA_MIXED_WARMUP_TOKENS = 16\n\n\ndef _clamp_warmup_tokens(a, b):\n    return a\n\n\ndef f(max_tokens):\n"
-        tail_default = (
-            "        )\n" if old.lstrip().startswith("return MLAAttentionSpec(") else ""
-        )
-        tail = (
-            tail
-            if old.lstrip().startswith("if current_platform.is_cuda() and select_k")
-            else tail_default
-        )
+        tail_default = "        )\n" if old.lstrip().startswith("return MLAAttentionSpec(") else ""
+        tail = tail if old.lstrip().startswith("if current_platform.is_cuda() and select_k") else tail_default
         src = head + old + tail
         out, st = apply(src, old, new, helper)
         assert st == "applied", (rel, st)
@@ -63,9 +49,7 @@ def test_real_files() -> None:
     try:
         import vllm
     except Exception:
-        print(
-            "test_sm120_block64: vllm not importable here; real-file check runs in the image build"
-        )
+        print("test_sm120_block64: vllm not importable here; real-file check runs in the image build")
         return
     root = Path(vllm.__file__).resolve().parent
     texts: dict = {}
@@ -82,9 +66,7 @@ def test_real_files() -> None:
 
 def test_drift_is_loud() -> None:
     rel, old, new, helper = JOBS[-1]
-    _, st = apply(
-        "class B:\n    def f(self):\n        return [128]\n", old, new, helper
-    )
+    _, st = apply("class B:\n    def f(self):\n        return [128]\n", old, new, helper)
     assert st.startswith("missing:"), st
 
 

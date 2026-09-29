@@ -4,10 +4,9 @@ vLLM shards complete hash-head buckets, not an even row split. pack_engram
 and the file-backed lookup have to use the same [lo, hi) or packed shards
 fail the row_store header check / serve the wrong rows.
 """
-
 from __future__ import annotations
 
-from collections.abc import Sequence
+from typing import Sequence
 
 
 def is_prime(n: int) -> bool:
@@ -82,9 +81,7 @@ def shard_range(
     return vocab_start, vocab_end, head_start, head_end - head_start
 
 
-def layer_head_sizes_from_config(
-    text_config: dict, layer_index: int
-) -> tuple[int, ...]:
+def layer_head_sizes_from_config(text_config: dict, layer_index: int) -> tuple[int, ...]:
     """Head sizes for `engram_layer_ids[layer_index]`, walking prior layers' primes."""
     seen: set[int] = set()
     last: tuple[int, ...] = ()

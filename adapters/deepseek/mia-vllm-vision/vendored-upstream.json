@@ -1,0 +1,17 @@
+{
+  "ours": [
+    "apply-build-patches.py",
+    "encoding/",
+    "licenses/vLLM-LICENSE",
+    "licenses/vLLM-NOTICE",
+    "outputs/.keep",
+    "patches/apply-reasoning-default.py",
+    "state/.keep",
+    "verify-dspark-runtime.py",
+    "verify-patched-tree.py",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "licenses/MiaAI-Lab-LICENSE": "LICENSE"
+  }
+}
