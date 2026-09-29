@@ -5281,6 +5281,21 @@
         ]
       }
     },
+    "vonk-forge/nemotron-3-nano-omni-30b-a3b-nvfp4-nvidia-trtllm-single": {
+      "alias": "nemotron-3-nano-omni",
+      "smoke_cases": [
+        "M0",
+        "A323"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/ornith-1-5-35b-a3b-nvfp4-vllm-single": {
       "alias": "ornith-1-5-35b-a3b",
       "smoke_cases": [
