@@ -1,0 +1,11 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "sglang-serve",
+    "verify-runtime.py"
+  ],
+  "source": {
+    "repo": "MiaAI-Lab/Inkling-Small-NVFP4-Dual-DGX-Sparks",
+    "commit": "ce6bfbe90d6e680e7b8172ebd1922fa148158e26"
+  }
+}
