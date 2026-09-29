@@ -4529,6 +4529,20 @@
         ]
       }
     },
+    "vonk-forge/qwen3-6-35b-a3b-nvfp4-vllm-mia-single": {
+      "alias": "unsloth/Qwen3.6-35B-A3B-NVFP4",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming and declared concurrency canaries"
+        ]
+      }
+    },
     "vonk-forge/gemma-4-26b-a4b-vllm-single": {
       "alias": "gemma-4-26b-a4b-it",
       "smoke_cases": [
@@ -4544,6 +4558,8 @@
     },
     "vonk-forge/gemma-4-31b-it-nvfp4-vllm-mia-single": {
       "alias": "nvidia/Gemma-4-31B-IT-NVFP4",
+    "vonk-forge/gemma-4-26b-a4b-vllm-mia-single": {
+      "alias": "nvidia/Gemma-4-26B-A4B-NVFP4",
       "smoke_cases": [
         "M0",
         "A323",
@@ -4552,6 +4568,7 @@
       "higher_tiers": {
         "stress": [
           "Optional bounded streaming, image-input and declared concurrency canaries; the first start compiles kernels and loads MTP"
+          "Optional bounded streaming, image-input and 18-session concurrency canaries; the first start compiles kernels and loads MTP"
         ]
       }
     },
@@ -4888,6 +4905,31 @@
         ]
       }
     },
+    "vonk-forge/qwen3-6-35b-a3b-ud-q8-k-xl-llama-cpp-mia-single": {
+      "alias": "Qwen3.6-35B-A3B-UD-Q8_K_XL",
+      "smoke_cases": [
+        "M0",
+        "A391",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and 4-slot concurrency canaries with MTP speculative decoding, recording the first-load time of the 39 GB GGUF"
+        ]
+      }
+    },
+    "vonk-forge/qwen3-6-27b-ud-q8-k-xl-llama-cpp-mia-single": {
+      "alias": "Qwen3.6-27B-UD-Q8_K_XL",
+      "smoke_cases": [
+        "M0",
+        "A391"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded long-context and 4-slot concurrency canaries with MTP speculative decoding, recording the first-load time of the 36 GB GGUF"
+        ]
+      }
+    },
     "vonk-forge/qwen3-8-flash-next-tensorfold-single": {
       "alias": "Qwen3.8-Flash-Next",
       "smoke_cases": [
@@ -4975,6 +5017,22 @@
       "higher_tiers": {
         "stress": [
           "Bounded concurrency (shared rounds above 1) and long-context canaries on the experimental EXL3 path, with the first-run kernel compile time recorded separately"
+        ],
+        "recovery": [
+          "Controller stop/start with warm kernel-cache restart"
+        ]
+      }
+    },
+    "vonk-forge/qwen3-8-27b-taussoe-tensorfold-single": {
+      "alias": "Qwen3.8-27B",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded multi-stream concurrency (--parallel) and long-context canaries, with the first-run kernel compile time recorded separately"
         ],
         "recovery": [
           "Controller stop/start with warm kernel-cache restart"
