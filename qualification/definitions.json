@@ -4056,40 +4056,6 @@
         ]
       }
     },
-    "vonk-forge/deepseek-v4-flash-vision-exp-r0b0tlab-vllm-dual": {
-      "alias": "deepseek-v4-flash-vision-exp",
-      "smoke_cases": [
-        "M0",
-        "A391",
-        "T_REPORT",
-        "V_RED"
-      ],
-      "higher_tiers": {
-        "stress": [
-          "Bounded long-context, concurrency, and image-input canaries"
-        ],
-        "recovery": [
-          "Controller-only rank-loss, warm-cache recovery, and image-input revalidation"
-        ]
-      }
-    },
-    "vonk-forge/deepseek-v4-flash-vision-exp-r0b0tlab-vllm-dual": {
-      "alias": "deepseek-v4-flash-vision-exp",
-      "smoke_cases": [
-        "M0",
-        "A391",
-        "T_REPORT",
-        "V_RED"
-      ],
-      "higher_tiers": {
-        "stress": [
-          "Bounded long-context, concurrency, and image-input canaries"
-        ],
-        "recovery": [
-          "Controller-only rank-loss, warm-cache recovery, and image-input revalidation"
-        ]
-      }
-    },
     "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual": {
       "alias": "deepseek-v4-flash-vision-exp",
       "smoke_cases": [
@@ -4503,6 +4469,20 @@
     },
     "vonk-forge/qwen3-6-35b-a3b-nvfp4-vllm-single": {
       "alias": "qwen3-6-35b-a3b-nvfp4",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Optional bounded streaming and declared concurrency canaries"
+        ]
+      }
+    },
+    "vonk-forge/qwen3-6-35b-a3b-nvfp4-fast-r0b0tlab-vllm-single": {
+      "alias": "Qwen3.6-35B-A3B-NVFP4-Fast",
       "smoke_cases": [
         "M0",
         "A323",
