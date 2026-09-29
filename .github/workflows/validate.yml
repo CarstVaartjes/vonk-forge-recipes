@@ -107,6 +107,10 @@ jobs:
             exit 1
           fi
 
+      - name: Verify the README overview is current
+        shell: bash
+        run: tools/build-readme-overview --check
+
       - name: Reject a changed Spark count for an existing recipe
         shell: bash
         run: |
