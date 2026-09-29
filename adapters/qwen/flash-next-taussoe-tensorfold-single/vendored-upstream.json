@@ -1,0 +1,12 @@
+{
+  "ours": [
+    "licenses/",
+    "requirements.lock",
+    "tensorfold-serve",
+    "vendor/"
+  ],
+  "source": {
+    "repo": "taussoe/TensorFold",
+    "commit": "c32abe92411eced43565a63f5be7fe3595f8e22c"
+  }
+}
