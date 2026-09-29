@@ -1,0 +1,15 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE",
+    "upstream-nccl-env.example.sh": "launch/nccl-env.example.sh",
+    "upstream-tp4-4x-spark-launch.sh": "launch/tp4-4x-spark-launch.sh"
+  },
+  "source": {
+    "repo": "tonyd2wild/Deepseek-V4-Flash-TP4-4x-DGX-Spark",
+    "commit": "2dd40b9d33dcbb7a827380b94b7aa80e72805fdf"
+  }
+}

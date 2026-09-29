@@ -1,0 +1,4 @@
+The launch profile (upstream-tp4-4x-spark-launch.sh, upstream-nccl-env.example.sh) is from
+https://github.com/tonyd2wild/Deepseek-V4-Flash-TP4-4x-DGX-Spark at commit
+2dd40b9d33dcbb7a827380b94b7aa80e72805fdf (MIT, see LICENSE.upstream). The container
+image is aidendle94's public vLLM fork build (pinned by digest); its own licences apply.
