@@ -144,6 +144,12 @@ copies of a default. Respect the contract's automatic/unspecified settings;
 benchmark request counts are not engine concurrency limits. If a wrapper
 hardcodes a setting, align its implementation with the declared setting.
 
+A different number of Sparks is always a different recipe id, never a new
+revision of the same recipe: name recipes per topology (`-single`, `-dual`).
+`tools/check-recipe-topology` fails validation when a change alters the
+`node_count` of an existing recipe compared with `origin/main`, and the
+Controller's catalog sync skips such a revision (`recipe.topology_changed`).
+
 Trusted recipe options pass through to the pinned engine even when the
 Controller has no label, enum entry, or specialized validator for them. Known
 option metadata improves editor help; it is not an exhaustive allowlist. Do

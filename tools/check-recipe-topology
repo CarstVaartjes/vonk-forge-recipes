@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""Fail when a change gives an existing recipe a different Spark count.
+
+A different number of Sparks is always a different recipe (id), never a new
+revision of the same one: the platform never re-topologizes a running profile,
+and its catalog sync refuses such a revision. Compare each recipe file with the
+same recipe (publisher/slug) at the base revision, wherever that file lived.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+RECIPES = "recipes"
+
+
+class TopologyCheckError(RuntimeError):
+    """The base revision or a recipe document could not be read."""
+
+
+def _git(root: Path, *args: str) -> str:
+    completed = subprocess.run(
+        ["git", "-C", str(root), *args], capture_output=True, text=True, check=False
+    )
+    if completed.returncode != 0:
+        raise TopologyCheckError(
+            f"git {' '.join(args)} failed: {completed.stderr.strip()}"
+        )
+    return completed.stdout
+
+
+def spark_count(document: object) -> int | None:
+    topology = document.get("topology") if isinstance(document, dict) else None
+    count = topology.get("node_count") if isinstance(topology, dict) else None
+    return count if isinstance(count, int) and not isinstance(count, bool) else None
+
+
+def identity(document: object) -> tuple[str, str] | None:
+    value = document.get("identity") if isinstance(document, dict) else None
+    if not isinstance(value, dict):
+        return None
+    publisher, slug = value.get("publisher"), value.get("slug")
+    if isinstance(publisher, str) and isinstance(slug, str):
+        return publisher, slug
+    return None
+
+
+def base_recipes(root: Path, base: str) -> dict[tuple[str, str], tuple[str, int]]:
+    """Recipe identity -> (path, Spark count) at the base revision."""
+    result: dict[tuple[str, str], tuple[str, int]] = {}
+    paths = _git(root, "ls-tree", "-r", "--name-only", base, f"{RECIPES}/").split()
+    for path in paths:
+        if not path.endswith(".json"):
+            continue
+        document = json.loads(_git(root, "show", f"{base}:{path}"))
+        key, count = identity(document), spark_count(document)
+        if key is not None and count is not None:
+            result[key] = (path, count)
+    return result
+
+
+def violations(root: Path, base: str) -> list[str]:
+    previous = base_recipes(root, base)
+    problems: list[str] = []
+    for path in sorted((root / RECIPES).glob("*.json")):
+        document = json.loads(path.read_text(encoding="utf-8"))
+        key, count = identity(document), spark_count(document)
+        if key is None or count is None or key not in previous:
+            continue
+        _, old_count = previous[key]
+        if old_count != count:
+            problems.append(
+                f"{path.relative_to(root)}: recipe {key[0]}/{key[1]} changes its "
+                f"Spark count from {old_count} to {count}. A different number of "
+                "Sparks is a different recipe: create a new recipe id (for example "
+                "a -single or -dual variant) instead of changing this one."
+            )
+    return problems
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument(
+        "--base",
+        default="origin/main",
+        help="revision holding the existing recipes (default: origin/main)",
+    )
+    arguments = parser.parse_args(argv)
+    try:
+        problems = violations(arguments.root, arguments.base)
+    except TopologyCheckError as error:
+        print(f"Cannot compare with {arguments.base}: {error}", file=sys.stderr)
+        return 2
+    for problem in problems:
+        print(f"::error::{problem}" if _in_actions() else problem, file=sys.stderr)
+    if problems:
+        return 1
+    print(f"No existing recipe changes its Spark count against {arguments.base}.")
+    return 0
+
+
+def _in_actions() -> bool:
+    return os.environ.get("GITHUB_ACTIONS") == "true"
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
