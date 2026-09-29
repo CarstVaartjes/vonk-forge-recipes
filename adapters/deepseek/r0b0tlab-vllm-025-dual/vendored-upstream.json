@@ -1,0 +1,9 @@
+{
+  "source": {
+    "repo": "r0b0tlab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark",
+    "commit": "8a4ef5a5ce1196f3c1b6b8c2005087ffd9c52f03"
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ]
+}
