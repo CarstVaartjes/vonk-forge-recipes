@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Focused host checks for the numeric SpinCondition patch."""
-
 from __future__ import annotations
 
 import importlib.util
@@ -89,9 +88,7 @@ def test_drift_and_ambiguity_fail_closed() -> None:
             raise AssertionError("drifted source was accepted")
 
 
-def _run(
-    target: Path, value: str | None, *args: str
-) -> subprocess.CompletedProcess[str]:
+def _run(target: Path, value: str | None, *args: str) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     env["GLM53_SPINWAIT_TARGET"] = str(target)
     env.pop(patch.ENV_NAME, None)
@@ -163,17 +160,13 @@ def test_recipe_wiring() -> None:
         'GLM53_SPINWAIT_MS="${GLM53_SPINWAIT_MS-stock}"',
         "_glm53_validate_spinwait_ms",
         '"GLM53_SPINWAIT_MS=$GLM53_SPINWAIT_MS"',
-        "/opt/glm53/patch_spinwait.py:ro",
+        '/opt/glm53/patch_spinwait.py:ro',
     )
     for needle in required_start:
         assert needle in start, needle
     # Both ranks apply the one pinned list (GLM53_OVERLAY_ORDER) that
     # write_inner_scripts emits into the head and worker inner scripts.
-    order = start[
-        start.index("GLM53_OVERLAY_ORDER=(") : start.index(
-            ")", start.index("GLM53_OVERLAY_ORDER=(")
-        )
-    ]
+    order = start[start.index("GLM53_OVERLAY_ORDER=(") : start.index(")", start.index("GLM53_OVERLAY_ORDER=("))]
     assert "\n    patch_spinwait.py\n" in order
     assert 'emit_overlay_block >> "$HEAD_SCRIPT"' in start
     assert 'emit_overlay_block >> "$WORKER_SCRIPT"' in start
@@ -185,9 +178,7 @@ def test_recipe_wiring() -> None:
 
 
 def main() -> int:
-    tests = [
-        value for name, value in sorted(globals().items()) if name.startswith("test_")
-    ]
+    tests = [value for name, value in sorted(globals().items()) if name.startswith("test_")]
     for test in tests:
         test()
     print(f"numeric spinwait patch OK ({len(tests)} tests)")

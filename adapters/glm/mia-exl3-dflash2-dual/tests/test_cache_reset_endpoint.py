@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Regression tests for the #31 cache-reset endpoint exposure."""
-
 from __future__ import annotations
 
 import os
@@ -9,6 +8,7 @@ import sys
 import tempfile
 import types
 from pathlib import Path
+
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -21,7 +21,8 @@ PATCH = next(
     if p.is_file()
 )
 INSTALLED_API_SERVER = Path(
-    "/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/openai/api_server.py"
+    "/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/openai/"
+    "api_server.py"
 )
 MARK = "# [glm53-cache-reset]"
 FLAG = "GLM53_EXPOSE_CACHE_RESET"
@@ -29,12 +30,12 @@ FLAG = "GLM53_EXPOSE_CACHE_RESET"
 # Exact vLLM 487ecf187 build_app dev-mode block, embedded in a
 # dependency-free harness. The harness injects fake `envs` / vLLM modules so
 # the patched source can be exec'd and its routing behavior asserted.
-PINNED_API_SERVER_FIXTURE = """def build_app(app):
+PINNED_API_SERVER_FIXTURE = '''def build_app(app):
     if envs.VLLM_SERVER_DEV_MODE:
         from vllm.entrypoints.serve import register_vllm_dev_api_routers
 
         register_vllm_dev_api_routers(app)
-"""
+'''
 
 
 def run_patch(
@@ -48,7 +49,8 @@ def run_patch(
         [sys.executable, str(PATCH)],
         env=env,
         text=True,
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         check=False,
     )
     if ok and proc.returncode != 0:
@@ -68,7 +70,9 @@ def run_build_app(
     """Exec the fixture's build_app with fake vLLM modules and flag env."""
     serve = types.ModuleType("vllm.entrypoints.serve")
     serve.register_vllm_dev_api_routers = lambda app: calls.append("dev")
-    api_router = types.ModuleType("vllm.entrypoints.serve.dev.cache.api_router")
+    api_router = types.ModuleType(
+        "vllm.entrypoints.serve.dev.cache.api_router"
+    )
     api_router.attach_router = lambda app: calls.append("cache")
 
     saved = sys.modules.get("vllm")
@@ -92,7 +96,7 @@ def run_build_app(
             "os": os,
             "envs": types.SimpleNamespace(VLLM_SERVER_DEV_MODE=dev_mode),
         }
-        exec(compile(source, "patched_api_server_fixture.py", "exec"), namespace)  # noqa: S102
+        exec(compile(source, "patched_api_server_fixture.py", "exec"), namespace)
         namespace["build_app"](object())
     finally:
         if saved is not None:
@@ -138,6 +142,7 @@ def test_fixture() -> None:
 
         run_patch(target)
         assert target.read_text() == patched
+
 
 
 def test_fail_closed() -> None:

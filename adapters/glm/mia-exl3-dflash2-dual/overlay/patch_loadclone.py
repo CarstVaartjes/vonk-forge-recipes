@@ -16,19 +16,16 @@ number of submitted shards (including the current shard) and worker threads.
 Nonlazy strategies and recognized network filesystems retain stock prefetch.
 No InstantTensor changes. Close a partially consumed generator explicitly.
 """
-
 from __future__ import annotations
 
 import ast
 import os
 from pathlib import Path
 
-TARGET = Path(
-    os.environ.get(
-        "GLM53_WEIGHT_UTILS_PY",
-        "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/weight_utils.py",
-    )
-)
+TARGET = Path(os.environ.get(
+    "GLM53_WEIGHT_UTILS_PY",
+    "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/weight_utils.py",
+))
 MARK = "# [glm53-loadclone:v2]"
 NAME = "safetensors_weights_iterator"
 PRIVATE = "_glm53_original_safetensors_weights_iterator"
@@ -36,19 +33,19 @@ LOOP = "    for st_file in tqdm(\n        sorted_files,\n"
 NEW_LOOP = "    for st_file in tqdm(\n        _glm53_prefetcher.files(sorted_files, safetensors_load_strategy, is_net_fs),\n        total=len(sorted_files),\n"
 MMAP_PREFIX = (
     '            with safe_open(st_file, framework="pt") as f:\n'
-    "                for name in f.keys():  # noqa: SIM118\n"
-    "                    if should_skip_weight(name, local_expert_ids):\n"
-    "                        continue\n"
-    "                    param = f.get_tensor(name)\n"
+    '                for name in f.keys():  # noqa: SIM118\n'
+    '                    if should_skip_weight(name, local_expert_ids):\n'
+    '                        continue\n'
+    '                    param = f.get_tensor(name)\n'
 )
 MMAP_PR230 = (
-    "                    # [glm53-cold-load-uma:v1] cuMemcpyHtoDAsync wedges on GB10 when the\n"
-    "                    # source is a file-backed 64 KiB-page mapping: stage the\n"
-    "                    # tensor off the mmap into anonymous memory first.\n"
-    "                    if _GLM53_UMA_STAGE_MMAP:\n"
-    "                        param = param.clone()\n"
+    '                    # [glm53-cold-load-uma:v1] cuMemcpyHtoDAsync wedges on GB10 when the\n'
+    '                    # source is a file-backed 64 KiB-page mapping: stage the\n'
+    '                    # tensor off the mmap into anonymous memory first.\n'
+    '                    if _GLM53_UMA_STAGE_MMAP:\n'
+    '                        param = param.clone()\n'
 )
-MMAP_YIELD = "                    yield name, param"
+MMAP_YIELD = '                    yield name, param'
 
 HELPERS = '''# [glm53-loadclone:v2]
 def _glm53_load_options():
@@ -157,11 +154,8 @@ class _Glm53ShardPrefetch:
 
 
 def _function(src: str, name: str) -> ast.FunctionDef:
-    matches = [
-        node
-        for node in ast.parse(src).body
-        if isinstance(node, ast.FunctionDef) and node.name == name
-    ]
+    matches = [node for node in ast.parse(src).body
+               if isinstance(node, ast.FunctionDef) and node.name == name]
     if len(matches) != 1:
         raise ValueError(f"expected exactly one {name} function, got {len(matches)}")
     return matches[0]
@@ -174,32 +168,22 @@ def prepare(src: str) -> str:
             raise ValueError("partial loadclone patch or helper drift")
         public = _function(src, NAME)
         lines = src.splitlines(keepends=True)
-        actual = "".join(lines[public.lineno - 1 : public.end_lineno])
+        actual = "".join(lines[public.lineno - 1:public.end_lineno])
         if actual.rstrip("\n") != _wrapper():
             raise ValueError("loadclone public wrapper drift")
         private = _function(src, PRIVATE)
-        body = "".join(lines[private.lineno - 1 : private.end_lineno])
-        if not any(
-            body.rstrip("\n").endswith(MMAP_PREFIX + stage + MMAP_YIELD)
-            for stage in ("", MMAP_PR230)
-        ):
-            raise ValueError(
-                "safetensors mmap staging drift or conflicting clone patch"
-            )
+        body = "".join(lines[private.lineno - 1:private.end_lineno])
+        if not any(body.rstrip("\n").endswith(MMAP_PREFIX + stage + MMAP_YIELD)
+                   for stage in ("", MMAP_PR230)):
+            raise ValueError("safetensors mmap staging drift or conflicting clone patch")
         return src
-    if (
-        "# [glm53-loadclone:v1]" in src
-        or PRIVATE in src
-        or "_Glm53ShardPrefetch" in src
-    ):
+    if "# [glm53-loadclone:v1]" in src or PRIVATE in src or "_Glm53ShardPrefetch" in src:
         raise ValueError("unmarked/legacy loadclone patch")
     node = _function(src, NAME)
     lines = src.splitlines(keepends=True)
-    original = "".join(lines[node.lineno - 1 : node.end_lineno])
-    if not any(
-        original.rstrip("\n").endswith(MMAP_PREFIX + stage + MMAP_YIELD)
-        for stage in ("", MMAP_PR230)
-    ):
+    original = "".join(lines[node.lineno - 1:node.end_lineno])
+    if not any(original.rstrip("\n").endswith(MMAP_PREFIX + stage + MMAP_YIELD)
+               for stage in ("", MMAP_PR230)):
         raise ValueError("safetensors mmap staging drift or conflicting clone patch")
     if original.count(LOOP) != 1:
         raise ValueError("safetensors shard loop drift")
@@ -207,18 +191,9 @@ def prepare(src: str) -> str:
     expected = ast.parse(_wrapper()).body[0].args
     if ast.dump(node.args) != ast.dump(expected):
         raise ValueError("safetensors iterator signature drift")
-    private = original.replace(
-        f"def {NAME}(\n", f"def {PRIVATE}(\n    _glm53_prefetcher,\n", 1
-    )
+    private = original.replace(f"def {NAME}(\n", f"def {PRIVATE}(\n    _glm53_prefetcher,\n", 1)
     private = private.replace(LOOP, NEW_LOOP, 1)
-    out = (
-        "".join(lines[: node.lineno - 1])
-        + HELPERS
-        + _wrapper()
-        + "\n\n\n"
-        + private
-        + "".join(lines[node.end_lineno :])
-    )
+    out = "".join(lines[:node.lineno - 1]) + HELPERS + _wrapper() + "\n\n\n" + private + "".join(lines[node.end_lineno:])
     compile(out, str(TARGET), "exec")
     return out
 
@@ -266,18 +241,12 @@ def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--check",
-        action="store_true",
-        help="require an already-patched target without writing",
-    )
+    parser.add_argument("--check", action="store_true", help="require an already-patched target without writing")
     args = parser.parse_args()
     src = TARGET.read_text()
     out = prepare(src)
     if args.check and out != src:
-        raise SystemExit(
-            f"[glm53-loadclone] {TARGET}: missing loader overlay; regenerate before mounting read-only"
-        )
+        raise SystemExit(f"[glm53-loadclone] {TARGET}: missing loader overlay; regenerate before mounting read-only")
     if out != src:
         # A failed write must not leave the installed loader truncated.
         temporary = TARGET.with_name(f".{TARGET.name}.glm53-loadclone.tmp")
@@ -287,9 +256,7 @@ def main() -> None:
             os.replace(temporary, TARGET)
         finally:
             temporary.unlink(missing_ok=True)
-    print(
-        f"[glm53-loadclone] {TARGET}: {'already patched' if out == src else 'patched'}"
-    )
+    print(f"[glm53-loadclone] {TARGET}: {'already patched' if out == src else 'patched'}")
 
 
 if __name__ == "__main__":

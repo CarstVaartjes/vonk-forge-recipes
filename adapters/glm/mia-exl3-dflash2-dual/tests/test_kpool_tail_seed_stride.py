@@ -7,7 +7,6 @@ test_prefill_seed_honors_padded_tail_block_stride``) needs Triton and a GPU.
 This file ports that test's layout contract, plus the byte windows published
 in vLLM PR #57477, onto the pure-Python replica in the overlay.
 """
-
 from __future__ import annotations
 
 import os
@@ -15,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -27,7 +27,7 @@ PATCH = next(
     if p.is_file()
 )
 sys.path.insert(0, str(PATCH.parent))
-from patch_kpool_tail_seed_stride import (
+from patch_kpool_tail_seed_stride import (  # noqa: E402
     ANCHOR,
     DENSE_BASE,
     FIXED_BASE,
@@ -49,13 +49,11 @@ from patch_kpool_tail_seed_stride import (
     verified_state,
     view_row,
 )
-from patch_kpool_tail_seed_stride import TARGET as SEED_TARGET
-from patch_kpool_tail_slotmap import (
+from patch_kpool_tail_slotmap import (  # noqa: E402
     MARK as SLOT_MARK,
-)
-from patch_kpool_tail_slotmap import (
     TARGET as SLOT_TARGET,
 )
+from patch_kpool_tail_seed_stride import TARGET as SEED_TARGET  # noqa: E402
 
 PIN_FIXTURE = "kpool_tail_seed_kernel-487ecf187.py.txt"
 # The seed kernel + launcher from vLLM db1bfdd4fb0d (the #57477 merge), for the
@@ -83,8 +81,6 @@ def _pin_fixture(name: str = PIN_FIXTURE) -> Path:
         if candidate.is_file():
             return candidate
     raise AssertionError(f"seed-kernel fixture {name} missing")
-
-
 INSTALLED = Path(
     "/usr/local/lib/python3.12/dist-packages/vllm/"
     "models/glm5next/nvidia/ops/kpool_compress.py"
@@ -159,30 +155,18 @@ def test_upstream_padded_view_contract() -> None:
         kpool_head=kpool_head,
         padded=True,
     )
-    assert (
-        view_row(
-            backing,
-            block,
-            0,
-            ring,
-            tail_block_elems=padded_block_elems,
-            kpool_head=kpool_head,
-            head_dim=HEAD_DIM,
-        )
-        == key
-    )
-    assert (
-        view_row(
-            backing,
-            block,
-            1,
-            ring,
-            tail_block_elems=padded_block_elems,
-            kpool_head=kpool_head,
-            head_dim=HEAD_DIM,
-        )
-        == score
-    )
+    assert view_row(
+        backing, block, 0, ring,
+        tail_block_elems=padded_block_elems,
+        kpool_head=kpool_head,
+        head_dim=HEAD_DIM,
+    ) == key
+    assert view_row(
+        backing, block, 1, ring,
+        tail_block_elems=padded_block_elems,
+        kpool_head=kpool_head,
+        head_dim=HEAD_DIM,
+    ) == score
     compact = dense_k_element(block, ring, head_dim=HEAD_DIM, kpool=kpool)
     assert all(v == sentinel for v in backing[compact : compact + HEAD_DIM])
 
@@ -199,18 +183,12 @@ def test_upstream_padded_view_contract() -> None:
         kpool_head=kpool_head,
         padded=False,
     )
-    assert (
-        view_row(
-            dense,
-            block,
-            0,
-            ring,
-            tail_block_elems=padded_block_elems,
-            kpool_head=kpool_head,
-            head_dim=HEAD_DIM,
-        )
-        != key
-    )
+    assert view_row(
+        dense, block, 0, ring,
+        tail_block_elems=padded_block_elems,
+        kpool_head=kpool_head,
+        head_dim=HEAD_DIM,
+    ) != key
     assert any(v != sentinel for v in dense[compact : compact + HEAD_DIM])
 
 
@@ -261,9 +239,8 @@ def test_recipe_block_3584_windows() -> None:
 def _triton_interpreter_available() -> bool:
     try:
         import importlib.util as u
-
         return u.find_spec("torch") is not None and u.find_spec("triton") is not None
-    except Exception:  # noqa: BLE001
+    except Exception:
         return False
 
 
@@ -311,28 +288,17 @@ def test_patched_kernel_under_triton_interpreter() -> None:
             src = Path(td) / f"seed_{label}.py"
             src.write_text(text)
             for stride0 in (GLM53_TAIL_BLOCK_ELEMS, RECIPE_TAIL_BLOCK_ELEMS):
-                env = {
-                    **os.environ,
-                    "TRITON_INTERPRET": "1",
-                    "CUDA_VISIBLE_DEVICES": "",
-                }
-                out = subprocess.run(  # noqa: PLW1510
+                env = {**os.environ, "TRITON_INTERPRET": "1", "CUDA_VISIBLE_DEVICES": ""}
+                out = subprocess.run(
                     [sys.executable, "-c", KERNEL_RUN, str(src), str(stride0), "1"],
-                    env=env,
-                    capture_output=True,
-                    text=True,
-                    timeout=600,
+                    env=env, capture_output=True, text=True, timeout=600,
                 )
                 assert out.returncode == 0, out.stderr[-2000:]
                 rows = json.loads(out.stdout.strip().splitlines()[-1])
                 if label == "patched":
-                    assert all(
-                        r["own_seeded"] and r["stray_elems"] == 0 for r in rows
-                    ), (stride0, rows)
+                    assert all(r["own_seeded"] and r["stray_elems"] == 0 for r in rows), (stride0, rows)
                 else:
-                    assert all(
-                        not r["own_seeded"] and r["stray_elems"] > 0 for r in rows
-                    ), (stride0, rows)
+                    assert all(not r["own_seeded"] and r["stray_elems"] > 0 for r in rows), (stride0, rows)
 
 
 def test_fixture_apply_idempotent() -> None:

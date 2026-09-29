@@ -39,7 +39,6 @@ https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/issues/264
 
 Fail-closed, idempotent, preflights the pinned anchor before writing.
 """
-
 from __future__ import annotations
 
 import ast
@@ -47,6 +46,7 @@ import os
 import stat
 import sys
 from pathlib import Path
+
 
 TARGET = Path(
     os.environ.get(
@@ -435,7 +435,9 @@ def main() -> int:
     try:
         patched, action = prepare(source)
     except ValueError as exc:
-        raise SystemExit(f"kpool tail seed-stride preflight failed: {exc}") from exc
+        raise SystemExit(
+            f"kpool tail seed-stride preflight failed: {exc}"
+        ) from exc
     compile(patched, str(TARGET), "exec")
     if patched != source:
         replace_file(TARGET, patched)

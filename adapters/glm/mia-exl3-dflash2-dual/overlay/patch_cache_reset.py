@@ -26,7 +26,6 @@ set ``GLM53_EXPOSE_CACHE_RESET=0`` on shared kits.
 
 Fail closed if the vLLM anchors drift.
 """
-
 from __future__ import annotations
 
 import os
@@ -36,7 +35,8 @@ from pathlib import Path
 P = Path(
     os.environ.get(
         "GLM53_API_SERVER_PY",
-        "/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/openai/api_server.py",
+        "/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/openai/"
+        "api_server.py",
     )
 )
 MARK = "# [glm53-cache-reset]"
@@ -88,10 +88,8 @@ def main() -> int:
         raise SystemExit(f"{P}: cache-reset post-patch verification failed")
     compile(text, str(P), "exec")
     P.write_text(text)
-    print(
-        f"patched {P.name} (GLM53_EXPOSE_CACHE_RESET=1 mounts only the "
-        "cache-reset dev routes)"
-    )
+    print(f"patched {P.name} (GLM53_EXPOSE_CACHE_RESET=1 mounts only the "
+          "cache-reset dev routes)")
     return 0
 
 
