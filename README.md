@@ -10,7 +10,7 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-**102 recipes** for **31 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+**103 recipes** for **32 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
@@ -44,12 +44,13 @@ Number of recipes per model family and engine.
 | Qwen (text and vision) | 10 | 2 |  |  | 2 |  |  |  |  |
 | Qwen Image |  |  |  |  |  |  | 6 | 5 |  |
 | SkinTokens |  |  |  |  |  |  |  |  | 1 |
+| Step 3.7 Flash | 1 |  |  |  |  |  |  |  |  |
 | Step1X-3D |  |  |  |  |  |  |  |  | 3 |
 | TRELLIS |  |  |  |  |  |  |  |  | 1 |
 | TripoSG |  |  |  |  |  |  |  |  | 1 |
 | UI-Mate | 1 |  |  |  |  |  |  |  |  |
 | Wan |  |  |  |  |  |  |  | 3 | 2 |
-| **Total** | **47** | **6** | **0** | **0** | **2** | **3** | **13** | **10** | **21** |
+| **Total** | **48** | **6** | **0** | **0** | **2** | **3** | **13** | **10** | **21** |
 
 ### Spark variants
 
@@ -83,6 +84,7 @@ Which Spark counts each family runs on, and who provides them.
 | Qwen (text and vision) | ashhart, drowzeys (keyz), MiaAI-Lab, NVIDIA playbooks, Qwen, r0b0tlab | MiaAI-Lab, sfxnz |  |  |  |
 | Qwen Image | Comfy-Org, lightx2v, NVIDIA playbooks, Qwen |  |  |  |  |
 | SkinTokens | VAST-AI |  |  |  |  |
+| Step 3.7 Flash |  | MiaAI-Lab |  |  |  |
 | Step1X-3D | stepfun-ai |  |  |  |  |
 | TRELLIS | microsoft |  |  |  |  |
 | TripoSG | VAST-AI |  |  |  |  |
@@ -95,7 +97,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 | Creator | Focus | Engines | Recipes |
 | --- | --- | --- | ---: |
-| [MiaAI-Lab](https://github.com/MiaAI-Lab) | Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling. | SGLang, TensorFold, vLLM | 14 |
+| [MiaAI-Lab](https://github.com/MiaAI-Lab) | Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling. | SGLang, TensorFold, vLLM | 15 |
 | [tonyd2wild](https://github.com/tonyd2wild) | Multi-Spark (2 and 4) vLLM recipes for large MoE models: GLM, MiMo. | vLLM | 4 |
 | [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. | SGLang, vLLM | 6 |
 | [drowzeys (keyz)](https://github.com/drowzeys) | Large multi-Spark vLLM builds with prebuilt images: GLM, MiMo, abliterated variants. | vLLM | 4 |
@@ -406,6 +408,14 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
 | [skintokens-pytorch-single](recipes/skintokens-pytorch-single.json) | pytorch-pipeline | 1 | VAST-AI |
+
+</details>
+
+<details><summary>Step 3.7 Flash (1)</summary>
+
+| Recipe | Engine | Sparks | Creator |
+| --- | --- | ---: | --- |
+| [step-3-7-flash-nvfp4-vllm-mia-dual](recipes/step-3-7-flash-nvfp4-vllm-mia-dual.json) | vLLM | 2 | MiaAI-Lab |
 
 </details>
 
