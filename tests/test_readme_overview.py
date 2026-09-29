@@ -68,11 +68,7 @@ def test_new_recipes_appear_without_config_changes(tmp_path: Path) -> None:
     _write(tmp_path, "r2", "newengine", 8, "stranger")
     body = overview.render(tmp_path)
     assert "| Fam |" in body and "newengine" in body
-    assert (
-        "8 Sparks" in body
-        and "| Alice |" not in body.split("Other upstream")[0]
-        or True
-    )
+    assert "8 Sparks" in body and "Other upstream" not in body
     assert "[Alice](https://x)" in body and "stranger" in body
 
 

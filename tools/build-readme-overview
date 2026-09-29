@@ -169,28 +169,6 @@ def render(root: Path) -> str:
         out.append(
             f"| [{creator['name']}]({creator['url']}) | {creator['focus']} | {', '.join(used)} |"
         )
-    tracked = {c["name"] for c in config["creators"]}
-    others: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    for r in rows:
-        if r["creator"] not in tracked:
-            # Owners differing only in case (Tencent/tencent) are one source.
-            key = next(
-                (k for k in others if k.lower() == r["creator"].lower()), r["creator"]
-            )
-            others[key].append(r)
-    if others:
-        out += [
-            "",
-            "<details><summary>Other upstream sources</summary>",
-            "",
-            "| Source |",
-            "| --- |",
-        ]
-        for name in sorted(others, key=str.lower):
-            url = others[name][0]["url"]
-            label = f"[{name}]({url})" if url else name
-            out.append(f"| {label} |")
-        out += ["", "</details>"]
 
     return "\n".join(out).rstrip() + "\n"
 

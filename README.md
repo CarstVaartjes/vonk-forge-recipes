@@ -105,35 +105,6 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | [sfxnz](https://github.com/sfxnz) | Dual-Spark vLLM TP=2 cookbooks: Qwen3.8, GLM 5.3, DeepSeek V4.1 EXL3. | vLLM |
 | [0xSero](https://github.com/0xSero) | SparkInfer builds and local-ai-recipe-kit; DeepSeek V4 Flash on one Spark. | vLLM |
 | [antirez](https://github.com/antirez/ds4) | ds4: the DeepSeek 4 Flash inference engine (Metal, CUDA, ROCm). | ds4 |
-
-<details><summary>Other upstream sources</summary>
-
-| Source |
-| --- |
-| [ashhart](https://github.com/ashhart) |
-| [black-forest-labs](https://huggingface.co/black-forest-labs) |
-| [Comfy-Org](https://huggingface.co/Comfy-Org) |
-| [google](https://huggingface.co/google) |
-| [hunyuanvideo-community](https://huggingface.co/hunyuanvideo-community) |
-| [Lightricks](https://huggingface.co/Lightricks) |
-| [lightx2v](https://huggingface.co/lightx2v) |
-| [LiquidAI](https://huggingface.co/LiquidAI) |
-| [meta-models](https://huggingface.co/meta-models) |
-| [microsoft](https://github.com/microsoft) |
-| [MiniMaxAI](https://huggingface.co/MiniMaxAI) |
-| [modelscope](https://github.com/modelscope) |
-| [OpenMOSS-Team](https://huggingface.co/OpenMOSS-Team) |
-| [ornith-ai](https://huggingface.co/ornith-ai) |
-| [poolside](https://huggingface.co/poolside) |
-| [Qwen](https://huggingface.co/Qwen) |
-| [sgl-project](https://github.com/sgl-project) |
-| [stepfun-ai](https://huggingface.co/stepfun-ai) |
-| [tencent](https://huggingface.co/tencent) |
-| [TencentARC](https://github.com/TencentARC) |
-| [VAST-AI](https://huggingface.co/VAST-AI) |
-| [Wan-Video](https://github.com/Wan-Video) |
-
-</details>
 <!-- overview:end -->
 
 ## Contracts
