@@ -10,7 +10,7 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-**106 recipes** for **32 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+**109 recipes** for **33 model families**. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
@@ -18,7 +18,7 @@ Number of recipes per model family and engine.
 
 | Model family | vLLM | SGLang | TensorRT-LLM | llama.cpp | TensorFold | ds4 | diffusers | ComfyUI | pytorch-pipeline |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| DeepSeek V4 Flash | 8 |  |  |  |  | 3 |  |  |  |
+| DeepSeek V4 Flash | 9 |  |  |  |  | 3 |  |  |  |
 | FLUX.2 |  |  |  |  |  |  |  | 2 |  |
 | Gemma | 2 |  |  |  |  |  |  |  |  |
 | GLM | 9 |  |  |  |  |  |  |  |  |
@@ -33,6 +33,7 @@ Number of recipes per model family and engine.
 | LFM2.5 | 2 |  |  |  |  |  |  |  |  |
 | Ling |  | 1 |  |  |  |  |  |  |  |
 | LTX |  |  |  |  |  |  | 2 |  | 5 |
+| Meta Llama | 1 |  |  |  |  |  |  |  |  |
 | MiMo | 2 | 1 |  |  |  |  |  |  |  |
 | MiniMax H3 | 1 |  |  |  |  |  | 2 |  |  |
 | MOSS-VL |  |  |  |  |  |  |  |  | 1 |
@@ -50,7 +51,7 @@ Number of recipes per model family and engine.
 | TripoSG |  |  |  |  |  |  |  |  | 1 |
 | UI-Mate | 1 |  |  |  |  |  |  |  |  |
 | Wan |  |  |  |  |  |  |  | 3 | 2 |
-| **Total** | **51** | **6** | **0** | **0** | **2** | **3** | **13** | **10** | **21** |
+| **Total** | **54** | **6** | **0** | **0** | **2** | **3** | **13** | **10** | **21** |
 
 ### Spark variants
 
@@ -73,6 +74,7 @@ Which Spark counts each family runs on, and who provides them.
 | LFM2.5 | LiquidAI |  |  |  |  |
 | Ling | MiaAI-Lab |  |  |  |  |
 | LTX | Lightricks |  |  |  |  |
+| Meta Llama | NVIDIA playbooks |  |  |  |  |
 | MiMo |  | MiaAI-Lab, tonyd2wild |  |  |  |
 | MiniMax H3 | MiniMaxAI | r0b0tlab |  |  |  |
 | MOSS-VL | OpenMOSS-Team |  |  |  |  |
@@ -98,10 +100,10 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | Creator | Focus | Engines | Recipes |
 | --- | --- | --- | ---: |
 | [MiaAI-Lab](https://github.com/MiaAI-Lab) | Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling. | SGLang, TensorFold, vLLM | 15 |
-| [tonyd2wild](https://github.com/tonyd2wild) | Multi-Spark (2 and 4) vLLM recipes for large MoE models: GLM, MiMo. | vLLM | 6 |
+| [tonyd2wild](https://github.com/tonyd2wild) | Multi-Spark (2 and 4) vLLM recipes for large MoE models: GLM, MiMo. | vLLM | 8 |
 | [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. | SGLang, vLLM | 6 |
 | [drowzeys (keyz)](https://github.com/drowzeys) | Large multi-Spark vLLM builds with prebuilt images: GLM, MiMo, abliterated variants. | vLLM | 4 |
-| [NVIDIA playbooks](https://github.com/NVIDIA/dgx-spark-playbooks) | Official DGX Spark playbooks and NVIDIA model releases: Nemotron, NVFP4 checkpoints. | diffusers, vLLM | 8 |
+| [NVIDIA playbooks](https://github.com/NVIDIA/dgx-spark-playbooks) | Official DGX Spark playbooks and NVIDIA model releases: Nemotron, NVFP4 checkpoints. | diffusers, vLLM | 9 |
 | [eugr](https://github.com/eugr) | spark-vllm-docker: vLLM container builds for dual DGX Spark; llama-benchy benchmarking. |  | 0 |
 | [sfxnz](https://github.com/sfxnz) | Dual-Spark vLLM TP=2 cookbooks: Qwen3.8, GLM 5.3, DeepSeek V4.1 EXL3. | vLLM | 2 |
 | [0xSero](https://github.com/0xSero) | SparkInfer builds and local-ai-recipe-kit; DeepSeek V4 Flash on one Spark. | vLLM | 2 |
@@ -138,7 +140,7 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 
 ### Recipes by family
 
-<details><summary>DeepSeek V4 Flash (11)</summary>
+<details><summary>DeepSeek V4 Flash (12)</summary>
 
 | Recipe | Engine | Sparks | Creator |
 | --- | --- | ---: | --- |
@@ -290,6 +292,14 @@ Recipes are credited to the creator whose repository they come from (the recipe'
 | [ltx-2-3-22b-distilled-1-1-diffusers-single](recipes/ltx-2-3-22b-distilled-1-1-diffusers-single.json) | pytorch-pipeline | 1 | Lightricks |
 | [ltx-2-5-22b-distilled-bf16-diffusers-single](recipes/ltx-2-5-22b-distilled-bf16-diffusers-single.json) | diffusers | 1 | Lightricks |
 | [ltx-2-5-22b-distilled-fp8-cast-diffusers-single](recipes/ltx-2-5-22b-distilled-fp8-cast-diffusers-single.json) | diffusers | 1 | Lightricks |
+
+</details>
+
+<details><summary>Meta Llama (1)</summary>
+
+| Recipe | Engine | Sparks | Creator |
+| --- | --- | ---: | --- |
+| [llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single](recipes/llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single.json) | vLLM | 1 | NVIDIA playbooks |
 
 </details>
 
