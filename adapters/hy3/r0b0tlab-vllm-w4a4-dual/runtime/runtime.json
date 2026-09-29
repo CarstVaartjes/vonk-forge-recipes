@@ -1,0 +1,11 @@
+{
+  "architecture": "HYV3ForCausalLM",
+  "image": "ghcr.io/r0b0tlab/vllm-v0250-cu130-sm121:v0.25.0-cu130-sm121-arm64-702f4814-r2",
+  "kv_cache_dtype": "fp8",
+  "model_index_sha256": "738e3ad2c8d16372e3d681d5793c78676fd256d7a4b43d9ca560f268d26adb26",
+  "moe_backend": "FLASHINFER_CUTLASS",
+  "nodes": 2,
+  "quantization": "modelopt_mixed",
+  "served_model": "hy3-w4a4-v3",
+  "tensor_parallel_size": 2
+}
