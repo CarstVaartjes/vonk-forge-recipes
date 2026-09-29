@@ -159,15 +159,11 @@ def render(root: Path) -> str:
             "source reference), or else to a tracked creator named in its attribution."
         ),
         "",
-        "| Creator | Focus | Engines |",
-        "| --- | --- | --- |",
+        "| Creator | Focus |",
+        "| --- | --- |",
     ]
     for creator in config["creators"]:
-        mine = [r for r in rows if r["creator"] == creator["name"]]
-        used = sorted({engine_label(r["engine"]) for r in mine}, key=str.lower)
-        out.append(
-            f"| [{creator['name']}]({creator['url']}) | {creator['focus']} | {', '.join(used)} |"
-        )
+        out.append(f"| [{creator['name']}]({creator['url']}) | {creator['focus']} |")
 
     return "\n".join(out).rstrip() + "\n"
 
