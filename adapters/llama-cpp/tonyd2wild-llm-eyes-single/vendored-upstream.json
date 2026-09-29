@@ -1,0 +1,13 @@
+{
+  "ours": [
+    "verify-runtime.py",
+    "llama-server"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE"
+  },
+  "source": {
+    "repo": "tonyd2wild/2Wild-Vision-Mode",
+    "commit": "c9ca903c760bbc83bd050bae7953d5f8dc030e86"
+  }
+}

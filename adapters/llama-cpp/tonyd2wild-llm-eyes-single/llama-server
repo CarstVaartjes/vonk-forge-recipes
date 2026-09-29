@@ -1,0 +1,5 @@
+#!/bin/sh
+# Wrapper for the llm-eyes recipe. The recipe passes only named llama-server
+# options; the catalog model files are mounted under /models/target.
+set -eu
+exec /opt/llama.cpp/bin/llama-server "$@"
