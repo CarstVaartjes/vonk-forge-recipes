@@ -1,0 +1,20 @@
+FROM vllm/vllm-openai:v0.22.0-aarch64-ubuntu2404
+
+RUN pip install --no-cache-dir "hf-transfer>=0.1.0" && hf download --help > /dev/null 2>&1 || pip install --no-cache-dir "huggingface_hub[hf_transfer]>=0.26.0"
+
+ENV MODEL_ID=r0b0tlab/VibeThinker-3B-NVFP4
+ENV MODEL_DIR=/mnt/model
+ENV PORT=8000
+ENV GPU_MEM_UTIL=0.85
+ENV MAX_MODEL_LEN=32768
+ENV MAX_NUM_SEQS=8
+
+COPY container/start.sh /start.sh
+RUN chmod +x /start.sh
+
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD curl -sf http://localhost:${PORT}/health || exit 1
+
+EXPOSE ${PORT}
+
+ENTRYPOINT ["/bin/bash", "/start.sh"]
