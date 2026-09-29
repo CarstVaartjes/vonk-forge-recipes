@@ -992,19 +992,7 @@
         "value": "1"
       },
       {
-        "name": "VLLM_USE_RAY_V2_EXECUTOR_BACKEND",
-        "value": "0"
-      },
-      {
-        "name": "VLLM_USE_RAY_COMPILED_DAG_OVERLAP_COMM",
-        "value": "0"
-      },
-      {
         "name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS",
-        "value": "0"
-      },
-      {
-        "name": "RAY_memory_monitor_refresh_ms",
         "value": "0"
       },
       {
