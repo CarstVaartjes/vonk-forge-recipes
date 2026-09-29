@@ -1,0 +1,10 @@
+{
+  "source": {
+    "repo": "r0b0tlab/vibethinker-3b-nvfp4",
+    "commit": "fcf0c6e87b57b6d0f5cbf7377c10ec910c49e1fe"
+  },
+  "renamed": {
+    "Dockerfile.upstream": "container/Dockerfile"
+  },
+  "ours": []
+}

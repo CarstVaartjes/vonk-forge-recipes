@@ -1,0 +1,154 @@
+{
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-b3863220afcb-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "b3863220afcb15b53ab089aac0ce14d85940c34d173acc5e1b3d18574babc1f3",
+      "size_bytes": 7499
+    },
+    {
+      "id": "added-tokens-a473618b29aa-dec41b9537",
+      "path": "added_tokens.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a473618b29aade4aaf602a017915effec97b7a49da27f87ab706db2732835037",
+      "size_bytes": 648
+    },
+    {
+      "id": "config-cabd13e48619-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "cabd13e4861931e3cf75533f717812b273a933917a040dd11bb8168146bed55e",
+      "size_bytes": 2567
+    },
+    {
+      "id": "generation-config-28396d421a21-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "28396d421a2108acce96383f6a7de78008f7f1b17f807958f3c14c51dbfb65fb",
+      "size_bytes": 117
+    },
+    {
+      "id": "hf-quant-config-3526c7b3b416-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "3526c7b3b416eafa358742d2e707c1600369c06aa3dc87a8da1c55722d7e00bb",
+      "size_bytes": 267
+    },
+    {
+      "id": "model-a683f30a5177-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a683f30a51771dd0223c6073057063a0ccff2de821e40cd7ca8943b2cd41c0ea",
+      "size_bytes": 2183619280
+    },
+    {
+      "id": "special-tokens-map-6676f091c8bc-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "6676f091c8bc4d1b50146427cfde92073402866b87b6e39223227931b70083e9",
+      "size_bytes": 616
+    },
+    {
+      "id": "tokenizer-296e081e2f5e-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "296e081e2f5ecf9d87814aa9b0f4b12d670ed2b2e2be6c84e01a9466c953afb7",
+      "size_bytes": 11422267
+    },
+    {
+      "id": "tokenizer-config-806a1e91c2af-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "806a1e91c2af569066ef8588cb7f9c8b5bd57318b90cb4db629d96c429ccb30d",
+      "size_bytes": 7637
+    },
+    {
+      "id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "size_bytes": 2776833
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4-modelopt"
+  },
+  "identity": {
+    "family": {
+      "publisher": "r0b0tlab",
+      "slug": "vibethinker",
+      "title": "VibeThinker"
+    },
+    "model": {
+      "publisher": "r0b0tlab",
+      "slug": "vibethinker-3b",
+      "title": "VibeThinker-3B"
+    },
+    "publisher": "r0b0tlab",
+    "slug": "vibethinker-3b-nvfp4-2fc00139",
+    "variant": "NVFP4 2fc00139",
+    "version": "NVFP4 2fc00139"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "r0b0tlab"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/r0b0tlab/VibeThinker-3B-NVFP4/blob/2fc0013974d1a466e6a5a11839f029d5aff34dc9/README.md"
+  },
+  "metadata": {
+    "description": "VibeThinker 3B reasoning model.",
+    "tags": [
+      "r0b0tlab",
+      "vibethinker",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/r0b0tlab/VibeThinker-3B-NVFP4",
+    "revision": "2fc0013974d1a466e6a5a11839f029d5aff34dc9"
+  }
+}
