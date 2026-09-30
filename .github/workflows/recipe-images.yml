@@ -236,8 +236,6 @@ jobs:
           echo "build_seconds=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
       - name: Push to every recipe that uses this image
-        env:
-          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
@@ -250,12 +248,12 @@ jobs:
           sudo TMPDIR="$WORK/tmp" podman push --digestfile "$RUNNER_TEMP/digest" \
             localhost/vonk/runtime-image "docker://$first:build-$KEY"
           digest=$(cat "$RUNNER_TEMP/digest")
-          echo "$GH_TOKEN" | skopeo login ghcr.io --username "${{ github.actor }}" --password-stdin
+          # Same (root) credentials as the podman login above.
           for index in "${!repositories[@]}"; do
             for tag in "build-$KEY" "${versions[$index]}"; do
               target="${repositories[$index]}:$tag"
               [ "$target" = "$first:build-$KEY" ] && continue
-              skopeo copy --retry-times 3 --preserve-digests "docker://$first@$digest" "docker://$target"
+              sudo skopeo copy --retry-times 3 --preserve-digests "docker://$first@$digest" "docker://$target"
             done
             # Controllers pull anonymously: the package must be public.
             skopeo inspect --no-creds --raw "docker://${repositories[$index]}@$digest" >/dev/null
