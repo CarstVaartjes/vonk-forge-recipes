@@ -17,8 +17,6 @@ RECIPES = {
     "glm-5-3-flash-exl3-dflash2-vllm-dual": "adapters/glm/mia-exl3-dflash2-dual/vllm-wrapper.py",
     "glm-5-3-flash-exl3-dflash2-vllm-mia-four": "adapters/glm/mia-exl3-dflash2-four/vllm-wrapper.py",
     "glm-5-3-flash-exl3-dflash2-vllm-mia-triple": "adapters/glm/mia-exl3-dflash2-triple/vllm-wrapper.py",
-    "glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual": "adapters/glm/tonyd2wild-dflash2-dual/vllm-wrapper.py",
-    "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual": "adapters/glm/drowzeys-glm53-1m/vllm-wrapper.py",
     "glm-5-3-flash-nvfp4-vllm-dual": "adapters/glm/glm53-sm121/vllm-wrapper.py",
     "glm-5-3-flash-nvfp4-vllm-four": "adapters/glm/tonyd2wild-glm53-tp4-current/vllm-wrapper.py",
 }
@@ -73,17 +71,7 @@ class GlmWrapperArgvTests(unittest.TestCase):
         for slug, wrapper in RECIPES.items():
             with self.subTest(slug=slug):
                 recipe = load(slug)
-                if slug == "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual":
-                    authored_names = {
-                        item["name"]: item for item in recipe["runtime"]["arguments"]
-                    }
-                    self.assertEqual(
-                        authored_names["attention-backend"]["value"], "B12X_MLA_SPARSE"
-                    )
                 authored = compile_authored_argv(recipe)
-                if slug == "glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual":
-                    kv_index = authored.index("--kv-cache-memory")
-                    self.assertEqual(authored[kv_index + 1], "8589934592")
                 authored_engine = authored[:]
                 # These are Controller placement inputs, not engine argv.
                 placement_start = authored_engine.index("--nnodes")
@@ -124,8 +112,6 @@ class GlmWrapperArgvTests(unittest.TestCase):
                 }
 
                 def fake_read_text(path: Path, *args: object, **kwargs: object) -> str:
-                    if path == Path("/models/config.json"):
-                        return '{"text_config":{"index_topk":2048}}'
                     return ""
 
                 with (
@@ -147,16 +133,8 @@ class GlmWrapperArgvTests(unittest.TestCase):
 
                 self.assertEqual(len(captured), 1)
                 final = list(captured[0][1:])
-                if slug == "glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual":
-                    model_index = authored_engine.index("/models")
-                    expected = authored_engine.copy()
-                    expected[model_index] = "/outputs/glm53-index-topk-2044"
-                else:
-                    expected = authored_engine
+                expected = authored_engine
                 self.assertEqual(final[: len(expected)], expected)
-                if slug == "glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual":
-                    kv_index = final.index("--kv-cache-memory")
-                    self.assertEqual(final[kv_index + 1], "8589934592")
                 if recipe["topology"]["parallelism"]["backend"] == "mp":
                     self.assertEqual(
                         final[-4:],

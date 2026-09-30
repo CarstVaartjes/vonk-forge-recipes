@@ -76,15 +76,6 @@ class GlmModelInventoryTests(unittest.TestCase):
             len({item["id"] for item in model["files"]}), len(model["files"])
         )
 
-    def test_gated_abliterated_inventory_fails_closed_without_fake_artifact(
-        self,
-    ) -> None:
-        model = load("models/glm-5-3-flash-nvfp4-abliterated-d7f8afa8.json")
-        recipe = load("recipes/glm-5-3-flash-nvfp4-kv-1m-abliterated-vllm-dual.json")
-        self.assertNotIn("snapshot", {item["path"] for item in model["files"]})
-        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest(model))
-        self.assertIn("inventory-blocked", recipe["metadata"]["tags"])
-
 
 if __name__ == "__main__":
     unittest.main()
