@@ -1,0 +1,9 @@
+{
+  "ours": [
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "commit": "9d7346a1c540d849520d25a5a2a8b5129ded2901",
+    "repo": "drowzeys/keys-vLLm-0.24.0-Optimized-DeepSeekV4-Flash-DSpark-NVFP4-KV-1.5M-CTX-3M-Pool-C-12-on-2-DGX-Spark"
+  }
+}
