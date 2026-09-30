@@ -81,7 +81,7 @@ Which Spark counts each model family runs on.
 | HunyuanVideo Foley | ✓ |  |  |  |  |
 | Hy3 kodelow |  | ✓ |  |  |  |
 | Inkling |  | ✓ |  |  | ✓ |
-| Laguna | ✓ |  |  |  |  |
+| Laguna | ✓ | ✓ |  |  |  |
 | Leanstral |  | ✓ |  |  |  |
 | LFM2.5 | ✓ |  |  |  |  |
 | Ling | ✓ |  |  |  |  |

@@ -1,0 +1,9 @@
+{
+  "source": {
+    "repo": "r0b0tlab/laguna-m1-nvfp4-sm121-vllm",
+    "commit": "3446af5bf5cdaffb37eb51487c6d570bc84a7f7f"
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ]
+}
