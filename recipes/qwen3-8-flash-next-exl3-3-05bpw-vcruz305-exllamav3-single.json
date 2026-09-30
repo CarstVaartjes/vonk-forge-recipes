@@ -1,0 +1,493 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/qwen/vcruz305-flash-next-exl3-tabby-single"
+      },
+      "dockerfile": "adapters/qwen/vcruz305-flash-next-exl3-tabby-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "archive.ubuntu.com",
+          "ports.ubuntu.com",
+          "security.ubuntu.com",
+          "codeload.github.com",
+          "download.pytorch.org",
+          "files.pythonhosted.org",
+          "pypi.org"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-exl3-3-05bpw-vcruz305-exllamav3-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "Qwen3.8-Flash-Next-EXL3"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "Candidate one-DGX Spark Qwen3.8 Flash Next (hybrid gated-DeltaNet MoE with its own MTP layer) as turboderp's EXL3 3.05 bpw pack (branch 3.05bpw_h5_ng5, about 84 GB with the 32.6 GB n-gram table) on TabbyAPI over vcruz305's exllamav3 fork (aarch64 guards, GB10 decode kernels, mixed-K MoE and dynamic MTP drafting), as in vcruz305's exllamav3-tabby lane (MIT). Upstream runs its default concurrent profile: 262,144 tokens per request, one shared 1,048,576-token 8-bit KV pool (four full-length sessions at once), four concurrent jobs, the n-gram table streamed from disk (about 30 GB less resident memory), MTP drafting of up to 5 tokens cut by confidence 0.6, and Qwen3.x tool-call and reasoning parsing. Upstream has no container: its setup.sh builds a host venv with torch 2.13.0 and TabbyAPI main; this recipe performs the same installation in its own image with the fork pinned to 94ba01d5 and TabbyAPI pinned to be74bf0a (upstream tracks main), and drops upstream's host-specific big-core pinning. The upstream single profile (one job, 262,144-token pool, n-gram table in RAM) is not offered because it needs about 30 GB more memory than this recipe declares. Upstream's vLLM route, beta shim and legacy stock build are not packaged. TabbyAPI is AGPL-3.0; the model pack is under the Qwen community licence; both are shown for information. Upstream figures (about 79 tok/s single-stream code decode, 47 s cold load) are claims until measured here; Vonk physical Spark acceptance is pending.",
+    "tags": [
+      "candidate",
+      "executable",
+      "exl3",
+      "exllamav3",
+      "mtp",
+      "openai",
+      "qwen",
+      "qwen3-8",
+      "reasoning",
+      "single",
+      "spark",
+      "tabbyapi",
+      "tool-use"
+    ],
+    "title": "Qwen3.8 Flash Next EXL3 3.05 bpw ExLlamaV3 single Spark (vcruz305)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "license-a0dc42256084-c693279643",
+          "id": "primary-license-a0dc42256084-c693279643",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-c3cf9e34abf4-00824420d1",
+          "id": "primary-chat-template-c3cf9e34abf4-00824420d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-92ce0839c71b-587cb980af",
+          "id": "primary-config-92ce0839c71b-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-e70c136c1b78-97dd3d578b",
+          "id": "primary-generation-config-e70c136c1b78-97dd3d578b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "id": "primary-merges-a9d356d7bdf1-b0d6dcfed4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00007-248b0490f3a1-7174d6af0f",
+          "id": "primary-model-00001-of-00007-248b0490f3a1-7174d6af0f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00007-b51039a706e5-1a4d5d40b2",
+          "id": "primary-model-00002-of-00007-b51039a706e5-1a4d5d40b2",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00007-053f5337aabd-8b57abb0fb",
+          "id": "primary-model-00003-of-00007-053f5337aabd-8b57abb0fb",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00007-eb3ee11406c1-82082f708e",
+          "id": "primary-model-00004-of-00007-eb3ee11406c1-82082f708e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00007-d188dced0538-5b20d2b8b6",
+          "id": "primary-model-00005-of-00007-d188dced0538-5b20d2b8b6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00007-3792d95808ec-7a0e2a031d",
+          "id": "primary-model-00006-of-00007-3792d95808ec-7a0e2a031d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00007-ce89387b7c29-443a3b9ef8",
+          "id": "primary-model-00007-of-00007-ce89387b7c29-443a3b9ef8",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-318339ceddd7-0a05be8238",
+          "id": "primary-model-safetensors-index-318339ceddd7-0a05be8238",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mtp-hyper-connection-mixer-patch-9b29ae894138-9bbe8001cd",
+          "id": "primary-mtp-hyper-connection-mixer-patch-9b29ae894138-9bbe8001cd",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "ngram-embedding-32006bf33c1e-651a5f9db3",
+          "id": "primary-ngram-embedding-32006bf33c1e-651a5f9db3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "primary-preprocessor-config-27225450ac9c-36afccab5d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "quantization-config-c6ad4cb2f24b-6f24389fb3",
+          "id": "primary-quantization-config-c6ad4cb2f24b-6f24389fb3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-0997f410c57a-224931eb13",
+          "id": "primary-tokenizer-0997f410c57a-224931eb13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
+          "id": "primary-tokenizer-config-b11349aafa7c-94d5c6ba8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "primary-vocab-ce99b4cb2983-ba05d8e2e4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "d6cd8d8088bc89cad9c81f31b0c533d3bc8bd9d15ef7ca827f791daecf67557d",
+        "kind": "model",
+        "publisher": "turboderp",
+        "slug": "qwen3-8-flash-next-exl3-3-05bpw-69e33439"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Text only (upstream default).",
+          "label": "Off",
+          "value": "off"
+        },
+        {
+          "args": [
+            {
+              "name": "vision",
+              "value": "true"
+            }
+          ],
+          "help": "Load the vision tower for image input (upstream VISION=true); adds its weights to memory.",
+          "label": "On",
+          "value": "on"
+        }
+      ],
+      "help": "Whether TabbyAPI loads the pack's vision tower (upstream VISION). Upstream leaves it off.",
+      "label": "Vision tower",
+      "name": "vision"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "vcruz305",
+      "turboderp",
+      "Qwen",
+      "TabbyAPI contributors"
+    ],
+    "source_reference": "https://github.com/vcruz305/Qwen3.8-Flash-Next-EXL3-DGX-Spark-recipe/tree/6fbc0a2f1a0a8ee3d94830bb607ec36aa370ea49"
+  },
+  "release": {
+    "released_at": "2026-09-29",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-name",
+        "setting": null,
+        "value": "Qwen3.8-Flash-Next-EXL3"
+      },
+      {
+        "name": "host",
+        "setting": null,
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "setting": null,
+        "value": 8000
+      },
+      {
+        "name": "max-seq-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "cache-size",
+        "setting": null,
+        "value": 1048576
+      },
+      {
+        "name": "max-batch-size",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "ngram-ram",
+        "setting": null,
+        "value": "false"
+      },
+      {
+        "name": "vision",
+        "setting": null,
+        "value": "false"
+      },
+      {
+        "name": "draft-num-tokens",
+        "setting": null,
+        "value": 5
+      }
+    ],
+    "engine": "exllamav3",
+    "entrypoint": [
+      "/opt/vonk/bin/tabby-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "EXL3_INT8_GEMV",
+        "value": "0"
+      },
+      {
+        "name": "EXL3_MOE_COOP_WIDE",
+        "value": "1"
+      },
+      {
+        "name": "EXL3_GR_INT8",
+        "value": "1"
+      },
+      {
+        "name": "EXL3_MTP_HEAD_N",
+        "value": "65536"
+      },
+      {
+        "name": "EXL3_DRAFT_CONFIDENCE",
+        "value": "0.6"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 85138838560,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 15000000000,
+            "working_bytes": 8000000000
+          },
+          "memory": {
+            "peak_bytes": 80000000000,
+            "reserve_bytes": 10000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 2048,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "Qwen3.8-Flash-Next-EXL3"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

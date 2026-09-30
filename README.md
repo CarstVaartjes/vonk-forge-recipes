@@ -137,6 +137,7 @@ Creators whose DGX Spark work we package; filter by creator in vonkctl or the we
 | [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. |
 | [sfxnz](https://github.com/sfxnz) | Dual-Spark vLLM TP=2 cookbooks: Qwen3.8, GLM 5.3, DeepSeek V4.1 EXL3. |
 | [tonyd2wild](https://github.com/tonyd2wild) | Multi-Spark (2 and 4) vLLM recipes for large MoE models: GLM, MiMo. |
+| [vcruz305](https://github.com/vcruz305) | Single-Spark EXL3 recipes on a GB10-tuned exllamav3 fork with TabbyAPI or vLLM: Qwen3.8 Flash Next, GLM 5.3 Flash, DeepSeek V4.1 Flash. |
 <!-- overview:end -->
 
 ## Contracts
