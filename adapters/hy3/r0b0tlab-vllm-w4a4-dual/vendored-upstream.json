@@ -1,0 +1,9 @@
+{
+  "source": {
+    "repo": "r0b0tlab/hy3-295b-nvfp4-gb10-benchmark",
+    "commit": "c134975aa465140064fee138e56d7dd221b28c2c"
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ]
+}
