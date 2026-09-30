@@ -1298,6 +1298,75 @@ class Summary:
     unreachable: list[str] = field(default_factory=list)
     deferred: list[str] = field(default_factory=list)
     failures: list[str] = field(default_factory=list)
+    armed_pr: int | None = None
+
+
+def arm_mechanical_pr(number: int, recipe_id: str, summary: Summary) -> bool:
+    """Arm at most one mechanical PR after main has a successful publication receipt."""
+    if summary.armed_pr is not None:
+        summary.deferred.append(
+            f"{recipe_id}: prepared PR #{number}; PR #{summary.armed_pr} already uses this run's merge slot"
+        )
+        return False
+
+    pull_requests = gh_json(
+        "pr",
+        "list",
+        "--state",
+        "open",
+        "--limit",
+        "1000",
+        "--json",
+        "number,autoMergeRequest",
+    )
+    armed = [
+        pr
+        for pr in pull_requests
+        if pr.get("autoMergeRequest") and pr.get("number") != number
+    ]
+    if armed:
+        numbers = ", ".join(f"#{pr['number']}" for pr in armed[:5])
+        summary.deferred.append(
+            f"{recipe_id}: prepared PR #{number}; another PR already has auto-merge armed ({numbers})"
+        )
+        return False
+
+    main_head = gh("api", "repos/{owner}/{repo}/commits/main", "--jq", ".sha").strip()
+    if not SHA.fullmatch(main_head):
+        raise RuntimeError(
+            "GitHub returned an invalid main revision while checking publication"
+        )
+    runs = gh_json(
+        "run",
+        "list",
+        "--workflow",
+        "publish.yml",
+        "--branch",
+        "main",
+        "--limit",
+        "50",
+        "--json",
+        "headSha,status,conclusion",
+    )
+    if not has_publication_receipt(main_head, runs):
+        summary.deferred.append(
+            f"{recipe_id}: prepared PR #{number}; main {main_head[:12]} has no successful publish.yml receipt yet"
+        )
+        return False
+
+    gh("pr", "merge", str(number), "--auto", "--squash")
+    summary.armed_pr = number
+    return True
+
+
+def has_publication_receipt(main_head: str, runs: list[dict[str, Any]]) -> bool:
+    """A successful publish.yml run for this exact main SHA is the release receipt."""
+    return any(
+        run.get("headSha") == main_head
+        and run.get("status") == "completed"
+        and run.get("conclusion") == "success"
+        for run in runs
+    )
 
 
 def publish_mechanical(root: Path, assessment: Assessment, summary: Summary) -> None:
@@ -1364,7 +1433,7 @@ def publish_mechanical(root: Path, assessment: Assessment, summary: Summary) -> 
             LABEL_MECHANICAL,
         ).strip()
         number = int(url.rsplit("/", 1)[-1])
-    gh("pr", "merge", str(number), "--auto", "--squash", check=False)
+    arm_mechanical_pr(number, recipe_id, summary)
     # Pushes and pull requests made with GITHUB_TOKEN start no workflows; dispatch the
     # required validation for the branch explicitly.
     gh("workflow", "run", "validate.yml", "--ref", branch)
@@ -1509,7 +1578,12 @@ def publish_if_stale() -> None:
         "--json",
         "headSha,status,conclusion,event",
     )
-    if any(r["headSha"] == head for r in runs):
+    if has_publication_receipt(head, runs):
+        return
+    if any(
+        run.get("headSha") == head and run.get("status") in {"queued", "in_progress"}
+        for run in runs
+    ):
         return
     gh("workflow", "run", "publish.yml", "--ref", "main", check=False)
 

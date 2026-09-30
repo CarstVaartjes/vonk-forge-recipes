@@ -183,8 +183,8 @@
     "source_reference": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/tree/ee6f4a40737a995bf5818954cfce6d59443b0f04"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.1.0"
+    "released_at": "2026-09-30",
+    "version": "1.1.1"
   },
   "runtime": {
     "arguments": [

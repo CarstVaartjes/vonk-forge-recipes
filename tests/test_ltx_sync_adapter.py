@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import runpy
 import tempfile
@@ -8,6 +7,8 @@ import types
 import unittest
 from pathlib import Path
 from unittest import mock
+
+from ltx_protocol import manifest_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
 RECIPE_SLUGS = (
@@ -120,18 +121,9 @@ class LtxSyncAuthorityTests(unittest.TestCase):
             def stage_prompt(text: str) -> None:
                 payload = text.encode("utf-8")
                 (Path(directory) / "prompt.txt").write_bytes(payload)
-                manifest = {
-                    "files": [
-                        {
-                            "slot": "prompt",
-                            "name": "prompt.txt",
-                            "media_type": "text/plain",
-                            "size_bytes": len(payload),
-                            "sha256": hashlib.sha256(payload).hexdigest(),
-                        }
-                    ]
-                }
-                (Path(directory) / "manifest.json").write_text(json.dumps(manifest))
+                (Path(directory) / "manifest.json").write_bytes(
+                    manifest_bytes(payload, name="prompt.txt")
+                )
 
             stage_prompt("  bounded prompt  ")
             self.assertEqual(module["_load_prompt"](), "bounded prompt")
@@ -139,6 +131,43 @@ class LtxSyncAuthorityTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "1..4096"):
                 module["_load_prompt"]()
         self.assertEqual(len(module["GEMMA_FILES"]), 22)
+
+    def test_all_native_runners_match_the_ltx_141_output_contract(self) -> None:
+        expected = ("video", "audio", "num_frames", "tiling_config")
+        adapters = (
+            "adapters/video/ltx2-pytorch/pipelines/run.py",
+            "adapters/video/ltx2-sync-native/run.py",
+            "adapters/video/ltx23-sync-native-disk/run.py",
+        )
+        for relative in adapters:
+            module = runpy.run_path(str(ROOT / relative))
+            self.assertEqual(module["LTX_PIPELINES_VERSION"], "1.4.1")
+            self.assertEqual(module["PIPELINE_OUTPUT_FIELDS"], expected)
+            pipeline = types.SimpleNamespace(_fields=expected)
+            with (
+                mock.patch.object(
+                    module["importlib"].metadata, "version", return_value="1.4.1"
+                ),
+                mock.patch.object(
+                    module["importlib"],
+                    "import_module",
+                    return_value=types.SimpleNamespace(PipelineOutput=pipeline),
+                ),
+            ):
+                module["_verify_ltx_runtime_contract"]()
+            pipeline._fields = (*expected, "video_latent")
+            with (
+                mock.patch.object(
+                    module["importlib"].metadata, "version", return_value="1.4.1"
+                ),
+                mock.patch.object(
+                    module["importlib"],
+                    "import_module",
+                    return_value=types.SimpleNamespace(PipelineOutput=pipeline),
+                ),
+                self.assertRaisesRegex(SystemExit, "PipelineOutput contract changed"),
+            ):
+                module["_verify_ltx_runtime_contract"]()
 
 
 if __name__ == "__main__":

@@ -3,8 +3,10 @@ FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a71
 LABEL org.opencontainers.image.source="https://huggingface.co/Lightricks/LTX-2" \
       org.opencontainers.image.revision="dfcc2108383fe1aaa0584bdf55d368a4bdadd90c" \
       org.opencontainers.image.licenses="LTX-2 Community License Agreement" \
-      io.vonk.ltx2.source-commit="598ab41247a77dbfe29b5186e915bcf4f9040ec7" \
-      io.vonk.ltx2.source-archive-sha256="946465dfba0094f97014a18eb53850214fb7445c88870889f4ea05fb20de56aa"
+      io.vonk.ltx2.source-commit="2d6e71c88be37b55a2dd698c2dff447edfbe5898" \
+      io.vonk.agent-protocol.source-commit="e6de69b20c098d4df2eb9e0294cede8acc552a3c" \
+      io.vonk.agent-protocol.wheel-sha256="e80a989df7d99ba0e857738ee1daea901865b9fb2f77aca5d481a287e45b7195" \
+      io.vonk.ltx2.source-archive-sha256="25466ea6d7aad0500fb0bb3abd3f7480cac70e79013582e14b0bb86195b31651"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -26,14 +28,21 @@ RUN apt-get update \
         torchaudio==2.11.0
 
 COPY requirements.lock /opt/vonk/source/requirements.lock
+COPY wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl /opt/vonk/source/wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl
 
 RUN python3 -m pip install --break-system-packages --no-cache-dir \
         --requirement /opt/vonk/source/requirements.lock \
+    && printf '%s  %s\n' \
+        e80a989df7d99ba0e857738ee1daea901865b9fb2f77aca5d481a287e45b7195 \
+        /opt/vonk/source/wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl \
+        | sha256sum --check --strict \
+    && python3 -m pip install --break-system-packages --no-cache-dir --no-index \
+        /opt/vonk/source/wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl \
     && curl --fail --location --silent --show-error \
         --output /tmp/ltx2-source.tar.gz \
-        https://github.com/Lightricks/LTX-2/archive/598ab41247a77dbfe29b5186e915bcf4f9040ec7.tar.gz \
+        https://codeload.github.com/Lightricks/LTX-2/tar.gz/2d6e71c88be37b55a2dd698c2dff447edfbe5898 \
     && printf '%s  %s\n' \
-        946465dfba0094f97014a18eb53850214fb7445c88870889f4ea05fb20de56aa \
+        25466ea6d7aad0500fb0bb3abd3f7480cac70e79013582e14b0bb86195b31651 \
         /tmp/ltx2-source.tar.gz \
         | sha256sum --check --strict \
     && mkdir -p /opt/vonk/source/ltx2 \

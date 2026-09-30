@@ -28,17 +28,12 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         drafter = next(
             selection
             for selection in recipe["models"]
-            if selection["id"] == "dependency-glm-5-3-flash-dflash2-bf582e4e"
+            if selection["model"]["slug"] == "glm-5-3-flash-dflash2-dc77ff1c"
         )
+        drafter_model = load(ROOT / "models/glm-5-3-flash-dflash2-dc77ff1c.json")
         self.assertEqual(
             {file["file_id"] for file in drafter["files"]},
-            {
-                "metadata-70e0ed421d65-618cd5b83d",
-                "readme-2014434d3e36-b335630551",
-                "dflash2-figure-6d8dcc9a9472-e520c8f797",
-                "config-c4aeac010119-587cb980af",
-                "model-b038e1d9d1e7-9d75c1098f",
-            },
+            {file["id"] for file in drafter_model["files"]},
         )
         self.assertEqual(
             {file["mount"]["target"] for file in drafter["files"]},
@@ -312,7 +307,11 @@ class Glm53Exl3DualOptionTests(unittest.TestCase):
         recipe = self._recipe()
         self.assertEqual(
             recipe.resolve_options(),
-            {"verification": "standard", "projections": "fp8-all"},
+            {
+                "verification": "standard",
+                "projections": "fp8-all",
+                "speculation": "dflash2",
+            },
         )
         base_arguments = {a.name: a.value for a in recipe.runtime.arguments}
         base_environment = {e.name: e.value for e in recipe.runtime.environment}
@@ -373,6 +372,31 @@ class Glm53Exl3DualOptionTests(unittest.TestCase):
         self.assertEqual(environment["GLM53_DENSE_FP8"], "off")
         # The large-M KDA path requires kda in GLM53_DENSE_FP8.
         self.assertEqual(environment["GLM53_KDA_BF16_LARGE_M"], "0")
+
+    def test_native_mtp_choice_reaches_all_mia_topology_runtimes(self) -> None:
+        from vonk_forge_contracts import read_recipe
+
+        for slug in (
+            "glm-5-3-flash-exl3-dflash2-vllm-dual",
+            "glm-5-3-flash-exl3-dflash2-vllm-mia-four",
+            "glm-5-3-flash-exl3-dflash2-vllm-mia-triple",
+        ):
+            recipe = read_recipe(load(ROOT / f"recipes/{slug}.json"))
+            self.assertEqual(recipe.resolve_options()["speculation"], "dflash2")
+            arguments = recipe.with_option_choices(
+                {"speculation": "native-mtp-k2"}
+            ).runtime.arguments
+            selected = next(
+                argument.value
+                for argument in arguments
+                if argument.name == "speculative-config"
+            )
+            assert isinstance(selected, str)
+            specification = json.loads(selected)
+            self.assertEqual(
+                specification,
+                {"method": "mtp", "num_speculative_tokens": 2},
+            )
 
     def test_dense_fp8_constructor_patch_is_baked_into_the_image(self) -> None:
         # The container root is read-only at run time and the option is

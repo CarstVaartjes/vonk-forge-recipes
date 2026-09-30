@@ -39,7 +39,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public 94ae731f EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its 2x DGX Spark EXL3/TR3 4 bpw target with the retained bf582e4e DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 192k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. The build applies the GB10 persistent-topk overlay and verify-runtime.py fails closed unless its marker is present. Selected upstream fixes are vendored for bounded Mamba align-state retention, Mamba-block chunk checkpoints, and tool_choice:none decode masking while the source and runtime image pins remain fixed. A 320k context was refused by the engine's own KV check at 0.84 GPU utilization; the declared 0.845 utilization keeps the 192k context about 0.6 GiB inside the engine's measured KV budget. Upstream defaults now include FP8 dense projections with BF16 large-batch KDA prefill, compact draft KV pages, the Mamba/kpool/loader fixes and an explicit 11 GiB KV pool. Options choose adaptive verification length and BF16 projections. Vonk physical acceptance and checkpoint requalification remain pending.",
+    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public 94ae731f EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its 2x DGX Spark EXL3/TR3 4 bpw target with the launcher-selected dc77ff1c DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 192k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. The build applies the GB10 persistent-topk overlay and verify-runtime.py fails closed unless its marker is present. Selected upstream fixes are vendored for bounded Mamba align-state retention, Mamba-block chunk checkpoints, and tool_choice:none decode masking while the source and runtime image pins remain fixed. A 320k context was refused by the engine's own KV check at 0.84 GPU utilization; the declared 0.845 utilization keeps the 192k context about 0.6 GiB inside the engine's measured KV budget. Upstream defaults now include FP8 dense projections with BF16 large-batch KDA prefill, compact draft KV pages, the Mamba/kpool/loader fixes and an explicit 11 GiB KV pool. Options choose adaptive verification length and BF16 projections; same-checkpoint native MTP (k=2) is also available as a rollback. The launcher documents SPEC_METHOD=mtp. The DFlash2 drafter remains part of the exact recipe closure but is unused in MTP mode. No comparative performance claim is made. Vonk physical acceptance and checkpoint requalification remain pending.",
     "tags": [
       "candidate",
       "dflash2",
@@ -1666,19 +1666,8 @@
           ]
         },
         {
-          "file_id": "readme-2014434d3e36-b335630551",
-          "id": "drafter-readme-2014434d3e36-b335630551",
-          "mount": {
-            "target": "/models/drafter"
-          },
-          "roles": [
-            "entrypoint",
-            "worker"
-          ]
-        },
-        {
-          "file_id": "dflash2-figure-6d8dcc9a9472-e520c8f797",
-          "id": "drafter-dflash2-figure-6d8dcc9a9472-e520c8f797",
+          "file_id": "readme-088bc4561a83-b335630551",
+          "id": "drafter-readme-088bc4561a83-b335630551",
           "mount": {
             "target": "/models/drafter"
           },
@@ -1699,8 +1688,8 @@
           ]
         },
         {
-          "file_id": "model-b038e1d9d1e7-9d75c1098f",
-          "id": "drafter-model-b038e1d9d1e7-9d75c1098f",
+          "file_id": "model-b33c03475ba7-9d75c1098f",
+          "id": "drafter-model-b33c03475ba7-9d75c1098f",
           "mount": {
             "target": "/models/drafter"
           },
@@ -1710,12 +1699,12 @@
           ]
         }
       ],
-      "id": "dependency-glm-5-3-flash-dflash2-bf582e4e",
+      "id": "dependency-glm-5-3-flash-dflash2-dc77ff1c",
       "model": {
-        "content_sha256": "877e81d8d00e7561d56d1f8e57ac5b0c4b1bdbf17c03e790ad35ba6aed3c4e97",
+        "content_sha256": "fc55725430d893c74409a63fcb9b13fab574d69e9d90bc50839f5f1b8bc2f176",
         "kind": "model",
         "publisher": "incoai",
-        "slug": "glm-5-3-flash-dflash2-bf582e4e"
+        "slug": "glm-5-3-flash-dflash2-dc77ff1c"
       }
     }
   ],
@@ -1768,6 +1757,30 @@
       "help": "Precision of the non-expert (KDA, dense MLP, shared-expert and MLA) projections.",
       "label": "Dense projections",
       "name": "projections"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Use the source launcher’s default DFlash2 drafter and token count.",
+          "label": "DFlash2",
+          "value": "dflash2"
+        },
+        {
+          "args": [
+            {
+              "name": "speculative-config",
+              "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":2}"
+            }
+          ],
+          "help": "Use the target checkpoint’s native MTP head with 2 speculative tokens (upstream rollback). The DFlash2 companion remains in the recipe closure but is not used. Comparative performance is unmeasured here.",
+          "label": "Native MTP (k=2)",
+          "value": "native-mtp-k2"
+        }
+      ],
+      "help": "Choose the external DFlash2 drafter or the target checkpoint’s native MTP head.",
+      "label": "Speculative decoding",
+      "name": "speculation"
     }
   ],
   "provenance": {
@@ -1783,7 +1796,7 @@
   },
   "release": {
     "released_at": "2026-09-30",
-    "version": "1.7.4"
+    "version": "1.7.5"
   },
   "runtime": {
     "arguments": [

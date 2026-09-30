@@ -158,8 +158,8 @@
     "source_reference": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4/tree/1db2b2f776c24b76f1122e5f69ab1949fc620068"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.1.1"
+    "released_at": "2026-09-30",
+    "version": "1.1.2"
   },
   "runtime": {
     "arguments": [

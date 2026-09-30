@@ -146,16 +146,19 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
             image.write_bytes(b"png")
             self.assertEqual(layered._image_input(inputs), image)
 
-            layers = [_Layer() for _ in range(4)]
-            paths = layered._save_layers(layers, outputs, 4)
-            self.assertEqual(
-                [path.name for path in paths],
-                ["layer-00.png", "layer-01.png", "layer-02.png", "layer-03.png"],
-            )
-            self.assertTrue(all(path.is_file() for path in paths))
-            self.assertTrue(all(layer.saved[0][1] == "PNG" for layer in layers))
-            with self.assertRaisesRegex(SystemExit, "expected 3"):
-                layered._save_layers(layers, outputs, 3)
+            for count in range(1, 9):
+                with self.subTest(count=count):
+                    count_outputs = outputs / str(count)
+                    layers = [_Layer() for _ in range(count)]
+                    paths = layered._save_layers(layers, count_outputs, count)
+                    self.assertEqual(
+                        [path.name for path in paths],
+                        [f"layer-{index:02d}.png" for index in range(count)],
+                    )
+                    self.assertTrue(all(path.is_file() for path in paths))
+                    self.assertTrue(all(layer.saved[0][1] == "PNG" for layer in layers))
+                    with self.assertRaisesRegex(SystemExit, f"expected {count + 1}"):
+                        layered._save_layers(layers, count_outputs, count + 1)
 
     def test_recipes_declare_matching_prompt_and_memory_contracts(self) -> None:
         generation_slugs = (
@@ -217,8 +220,33 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
         )
         layered_output = layered_recipe["interfaces"][0]["output"]["slots"][0]
         self.assertEqual(
-            (layered_output["min_files"], layered_output["max_files"]), (4, 4)
+            (layered_output["min_files"], layered_output["max_files"]), (1, 4)
         )
+        self.assertEqual(layered_output["max_total_bytes"], 4 * 8 * 1024 * 1024)
+        self.assertEqual(
+            layered_recipe["interfaces"][0]["output"]["max_total_bytes"],
+            layered_output["max_total_bytes"],
+        )
+        layered_arguments = {
+            item["name"]: item["value"]
+            for item in layered_recipe["runtime"]["arguments"]
+        }
+        self.assertEqual(layered_arguments["layers"], 4)
+        option = next(
+            item for item in layered_recipe["options"] if item["name"] == "layers"
+        )
+        choices = {choice["label"]: choice for choice in option["choices"]}
+        self.assertEqual(len(choices), 4)
+        self.assertEqual(
+            [
+                choice["args"][0]["value"]
+                for label, choice in choices.items()
+                if label != "4 layers"
+            ],
+            [1, 2, 3],
+        )
+        self.assertTrue(choices["4 layers"]["default"])
+        self.assertIn("latent batch", option["help"])
 
 
 if __name__ == "__main__":

@@ -1106,8 +1106,8 @@
     "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-DGX-Sparks/tree/cad252b7d3000cf21d919764e70a6912b6d3b0b0"
   },
   "release": {
-    "released_at": "2026-09-30",
-    "version": "1.0.1"
+    "released_at": "2026-10-01",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -1438,7 +1438,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 510313345146,
+            "artifact_bytes": 510313353565,
             "image_bytes": 40000000000,
             "safety_margin_bytes": 30000000000,
             "working_bytes": 40000000000
@@ -1455,7 +1455,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 510313345146,
+            "artifact_bytes": 510313353565,
             "image_bytes": 40000000000,
             "safety_margin_bytes": 30000000000,
             "working_bytes": 40000000000

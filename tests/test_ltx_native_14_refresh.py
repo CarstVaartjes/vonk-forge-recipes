@@ -21,7 +21,7 @@ def load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-class LtxNative13RefreshTests(unittest.TestCase):
+class LtxNative14RefreshTests(unittest.TestCase):
     def test_all_native_recipes_bind_source_bundle_and_package(self) -> None:
         tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         for slug, adapter in RECIPES.items():
@@ -55,8 +55,24 @@ class LtxNative13RefreshTests(unittest.TestCase):
                 root
                 / ("pipelines/run.py" if adapter.endswith("ltx2-pytorch") else "run.py")
             ).read_text(encoding="utf-8")
+            self.assertIn("2d6e71c88be37b55a2dd698c2dff447edfbe5898", dockerfile)
+            self.assertIn(
+                "25466ea6d7aad0500fb0bb3abd3f7480cac70e79013582e14b0bb86195b31651",
+                dockerfile,
+            )
             self.assertIn("sha256sum --check --strict", dockerfile)
+            self.assertIn("e6de69b20c098d4df2eb9e0294cede8acc552a3c", dockerfile)
+            self.assertIn(
+                "e80a989df7d99ba0e857738ee1daea901865b9fb2f77aca5d481a287e45b7195",
+                dockerfile,
+            )
+            self.assertIn(
+                "colour-science==0.4.7", (root / "requirements.lock").read_text()
+            )
             self.assertIn("_verify_ltx_runtime_contract()", runner, slug)
+            self.assertIn('LTX_PIPELINES_VERSION = "1.4.1"', runner, slug)
+            self.assertIn('"tiling_config",\n)', runner, slug)
+            self.assertNotIn('"video_latent"', runner, slug)
 
 
 if __name__ == "__main__":

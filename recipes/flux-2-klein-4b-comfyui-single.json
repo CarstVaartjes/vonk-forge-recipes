@@ -147,8 +147,8 @@
     "source_reference": "https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-4b/tree/5f526678002e43af5551dadb73ce2e8c91b43afe"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.1.0"
+    "released_at": "2026-09-30",
+    "version": "1.1.1"
   },
   "runtime": {
     "arguments": [

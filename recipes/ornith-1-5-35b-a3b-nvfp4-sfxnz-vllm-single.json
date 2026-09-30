@@ -292,8 +292,8 @@
     "source_reference": "https://github.com/sfxnz/Ornith-1.5-35B-A3B-NVFP4-DGX-Spark/tree/45c2e78d063cd53ad5835978844b2f7924ccfc1d"
   },
   "release": {
-    "released_at": "2026-09-30",
-    "version": "1.0.1"
+    "released_at": "2026-10-01",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -432,7 +432,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 23460296425,
+            "artifact_bytes": 23460228712,
             "image_bytes": 12000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 50920592850

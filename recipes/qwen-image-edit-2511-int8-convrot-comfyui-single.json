@@ -184,8 +184,8 @@
     "source_reference": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/f68ace85e60b4a02a323e394253731947657b7d2"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.1.1"
+    "released_at": "2026-09-30",
+    "version": "1.1.2"
   },
   "runtime": {
     "arguments": [

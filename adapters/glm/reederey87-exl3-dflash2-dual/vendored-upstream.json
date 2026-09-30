@@ -4,7 +4,7 @@
     "vllm-wrapper.py"
   ],
   "source": {
-    "commit": "2b5dfdc616ea5f3dfa4271f98475eea9cb0ee8b1",
+    "commit": "fd87969cb43a5ba66573bd2508bc05651fc1579c",
     "repo": "Reederey87/glm53-flash-exl3-2x-dgx-spark"
   }
 }

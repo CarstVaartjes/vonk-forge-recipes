@@ -529,5 +529,110 @@
       ],
       "interface": "image-job"
     }
-  }
+  },
+  "options": [
+    {
+      "name": "aspect-ratio",
+      "label": "Aspect ratio",
+      "help": "Choose an upstream-supported canvas. Larger canvases use proportionally more image memory; square remains the current default.",
+      "choices": [
+        {
+          "value": "square",
+          "label": "Square",
+          "help": "1328 × 1328, the current recipe default.",
+          "default": true
+        },
+        {
+          "value": "landscape",
+          "label": "Landscape 16:9",
+          "help": "1664 × 928 canvas; upstream-supported Qwen-Image-2512 resolution.",
+          "args": [
+            {
+              "name": "width",
+              "value": 1664
+            },
+            {
+              "name": "height",
+              "value": 928
+            }
+          ]
+        },
+        {
+          "value": "portrait",
+          "label": "Portrait 9:16",
+          "help": "928 × 1664 canvas; upstream-supported Qwen-Image-2512 resolution.",
+          "args": [
+            {
+              "name": "width",
+              "value": 928
+            },
+            {
+              "name": "height",
+              "value": 1664
+            }
+          ]
+        },
+        {
+          "value": "landscape-4-3",
+          "label": "Landscape 4:3",
+          "help": "1472 × 1104 canvas; upstream-supported Qwen-Image-2512 resolution.",
+          "args": [
+            {
+              "name": "width",
+              "value": 1472
+            },
+            {
+              "name": "height",
+              "value": 1104
+            }
+          ]
+        },
+        {
+          "value": "portrait-3-4",
+          "label": "Portrait 3:4",
+          "help": "1104 × 1472 canvas; upstream-supported Qwen-Image-2512 resolution.",
+          "args": [
+            {
+              "name": "width",
+              "value": 1104
+            },
+            {
+              "name": "height",
+              "value": 1472
+            }
+          ]
+        },
+        {
+          "value": "landscape-3-2",
+          "label": "Landscape 3:2",
+          "help": "1584 × 1056 canvas; upstream-supported Qwen-Image-2512 resolution.",
+          "args": [
+            {
+              "name": "width",
+              "value": 1584
+            },
+            {
+              "name": "height",
+              "value": 1056
+            }
+          ]
+        },
+        {
+          "value": "portrait-2-3",
+          "label": "Portrait 2:3",
+          "help": "1056 × 1584 canvas; upstream-supported Qwen-Image-2512 resolution.",
+          "args": [
+            {
+              "name": "width",
+              "value": 1056
+            },
+            {
+              "name": "height",
+              "value": 1584
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
