@@ -1,0 +1,23 @@
+FROM vllm/vllm-openai:v0.22.0-aarch64-ubuntu2404
+
+LABEL org.opencontainers.image.title="nex-n2-mini-nvfp4"
+LABEL org.opencontainers.image.description="NVFP4 Qwen3.5-MoE-35B served via vLLM on Blackwell SM121"
+LABEL org.opencontainers.image.source="https://github.com/r0b0tlab/nex-n2-mini-nvfp4"
+LABEL org.opencontainers.image.url="https://huggingface.co/r0b0tlab/nex-n2-mini-nvfp4"
+LABEL org.opencontainers.image.vendor="r0b0tlab"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+
+# Install hf CLI for model download at startup
+RUN pip install --no-cache-dir huggingface_hub[cli]
+
+# Startup + health check scripts
+COPY scripts/startup.sh /opt/startup.sh
+COPY scripts/healthcheck.sh /opt/healthcheck.sh
+RUN chmod +x /opt/startup.sh /opt/healthcheck.sh
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=300s --retries=3 \
+  CMD /opt/healthcheck.sh
+
+EXPOSE 8000
+
+ENTRYPOINT ["/opt/startup.sh"]

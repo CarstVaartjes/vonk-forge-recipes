@@ -1,0 +1,409 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "3f55dd62f38da189041ebfad2eeccd784246c3f32b29ea5a8cdc4d19f5c02994",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/llm/r0b0tlab-nex-n2-mini-vllm-single"
+      },
+      "dockerfile": "adapters/llm/r0b0tlab-nex-n2-mini-vllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "nex-n2-mini-nvfp4-r0b0tlab-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "nex-n2-mini-nvfp4"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "r0b0tlab's vLLM 0.22 serve of its NVFP4 quantization of Nex-AGI Nex-N2-mini (Qwen3.5-MoE 35B) on one Blackwell GB10: ModelOpt FP4 quantization, fp8 KV cache with the checkpoint's KV scales, FlashInfer attention and FlashInfer-CUTLASS MoE, eager execution, chunked prefill and prefix caching. Upstream defaults: 32,768 context, 32,768 batched tokens, 0.90 memory utilization; no sequence limit is set upstream. The upstream registry image is not public and its startup downloads the model from Hugging Face, so the recipe uses upstream's digest-pinned public vllm/vllm-openai base with the model mounted instead. Licences: Apache-2.0 for the model and package (information only). Upstream declares no benchmark figures.",
+    "tags": [
+      "candidate",
+      "executable",
+      "moe",
+      "nex-n2",
+      "nvfp4",
+      "openai",
+      "qwen3-5",
+      "r0b0tlab",
+      "single",
+      "spark",
+      "vllm"
+    ],
+    "title": "Nex-N2-mini NVFP4 vLLM single Spark (r0b0tlab)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-d1a8f4a1d2e3-618cd5b83d",
+          "id": "primary-metadata-d1a8f4a1d2e3-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-58219681db15-b335630551",
+          "id": "primary-readme-58219681db15-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-0ce947a61b6e-00824420d1",
+          "id": "primary-chat-template-0ce947a61b6e-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-ad0626d3381e-587cb980af",
+          "id": "primary-config-ad0626d3381e-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-eda6aa8b0fbd-97dd3d578b",
+          "id": "primary-generation-config-eda6aa8b0fbd-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-3958a19f4247-a481ad90fa",
+          "id": "primary-hf-quant-config-3958a19f4247-a481ad90fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "kv-cache-scales-cb33da6640b0-c16ba5ca17",
+          "id": "primary-kv-cache-scales-cb33da6640b0-c16ba5ca17",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00003-c7cf18dac76d-5ad6951325",
+          "id": "primary-model-00001-of-00003-c7cf18dac76d-5ad6951325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00003-bf8c78dfd53e-b421ec05d0",
+          "id": "primary-model-00002-of-00003-bf8c78dfd53e-b421ec05d0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00003-4c5a0fa9f792-c5bdb3d6ec",
+          "id": "primary-model-00003-of-00003-4c5a0fa9f792-c5bdb3d6ec",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00004-9ce7a3b26379-5078e75d62",
+          "id": "primary-model-00004-of-00004-9ce7a3b26379-5078e75d62",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-cdffd2bf3ea3-0a05be8238",
+          "id": "primary-model-safetensors-index-cdffd2bf3ea3-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "primary-preprocessor-config-27225450ac9c-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-bea20de99600-27f0cb76af",
+          "id": "primary-processor-config-bea20de99600-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-87a7830d63fc-224931eb13",
+          "id": "primary-tokenizer-87a7830d63fc-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-e98f1901ac6f-94d5c6ba8f",
+          "id": "primary-tokenizer-config-e98f1901ac6f-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "ff1bfca1e86bb00e8e93a3e2bb556c08ddfb7455ea9367620069d7db89fcdeb4",
+        "kind": "model",
+        "publisher": "r0b0tlab",
+        "slug": "nex-n2-mini-nvfp4-4387675e"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Nex-AGI (Nex-N2-mini)",
+      "r0b0tlab (NVFP4 quantization and container, Apache-2.0)",
+      "vLLM contributors (Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/r0b0tlab/nex-n2-mini-nvfp4/tree/f25aef8f54ad37cf121a799c9c74f973aca6b210"
+  },
+  "release": {
+    "released_at": "2026-06-08",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "modelopt_fp4"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "dtype",
+        "setting": null,
+        "value": "auto"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "flashinfer"
+      },
+      {
+        "name": "moe-backend",
+        "setting": null,
+        "value": "flashinfer_cutlass"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.90"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 32768
+      },
+      {
+        "name": "enable-chunked-prefill",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enforce-eager",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "chat-template",
+        "setting": null,
+        "value": "/models/chat_template.jinja"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 32768
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 24796193989,
+            "image_bytes": 25000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 70000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "nex-n2-mini-nvfp4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

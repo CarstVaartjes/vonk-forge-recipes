@@ -1,0 +1,201 @@
+{
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-d1a8f4a1d2e3-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d1a8f4a1d2e3787c5956393d9306365ebefe1912cb76828870682b1ab16f5c27",
+      "size_bytes": 1635
+    },
+    {
+      "id": "readme-58219681db15-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "58219681db156930c1092b36160392389029c2c596730b1b2d7439ac3da4b68a",
+      "size_bytes": 4342
+    },
+    {
+      "id": "chat-template-0ce947a61b6e-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "0ce947a61b6e34c108269eeaa5c74c975cd65269aac6c67331d663d57faa0f93",
+      "size_bytes": 7747
+    },
+    {
+      "id": "config-ad0626d3381e-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ad0626d3381efe721c7b6d108595d0315878506e4335b809991a7d6da38b2691",
+      "size_bytes": 3235
+    },
+    {
+      "id": "generation-config-eda6aa8b0fbd-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "eda6aa8b0fbde9fbe38c044c6ba3c2890d4a9aad3cdd348da5ffe0ff0f91df09",
+      "size_bytes": 115
+    },
+    {
+      "id": "hf-quant-config-3958a19f4247-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "3958a19f4247b8783d8be77d296e6916c608c0b71d2dc74a202a470579ad7429",
+      "size_bytes": 4863
+    },
+    {
+      "id": "kv-cache-scales-cb33da6640b0-c16ba5ca17",
+      "path": "kv_cache_scales.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "cb33da6640b0760dc95439c421415c91b08be6c4ec9a82cd27f9e040a065caf8",
+      "size_bytes": 1147
+    },
+    {
+      "id": "model-00001-of-00003-c7cf18dac76d-5ad6951325",
+      "path": "model-00001-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c7cf18dac76d6dfd23098b3602ef5326d1901321efd75925616168dd82b162bf",
+      "size_bytes": 10006695056
+    },
+    {
+      "id": "model-00002-of-00003-bf8c78dfd53e-b421ec05d0",
+      "path": "model-00002-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "bf8c78dfd53e5cf6ef5610f1b6a7b6ce9871359613b0a009d30c102a6a3619b8",
+      "size_bytes": 10008042392
+    },
+    {
+      "id": "model-00003-of-00003-4c5a0fa9f792-c5bdb3d6ec",
+      "path": "model-00003-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4c5a0fa9f792424f67bcea40fd4a4d1fe181f20997b67663c9098f740fbb7afc",
+      "size_bytes": 3854561272
+    },
+    {
+      "id": "model-00004-of-00004-9ce7a3b26379-5078e75d62",
+      "path": "model-00004-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9ce7a3b26379eefdad14f52510b554842628f1042fa0ecf013bb992604750e7b",
+      "size_bytes": 893179504
+    },
+    {
+      "id": "model-safetensors-index-cdffd2bf3ea3-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "cdffd2bf3ea3423cb95bc38c4ff9df63099fa8964f0f012c4ca192a078318314",
+      "size_bytes": 13700508
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "processor-config-bea20de99600-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "bea20de99600980eaa9022d59bc460ae8ff16e00c9655ff279c56b5390533beb",
+      "size_bytes": 1301
+    },
+    {
+      "id": "tokenizer-87a7830d63fc-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4",
+      "size_bytes": 19989343
+    },
+    {
+      "id": "tokenizer-config-e98f1901ac6f-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e98f1901ac6f0adff67b1d540bfa0c36ac1a0cf59eb72ed78146ef89aafa1182",
+      "size_bytes": 1139
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4-modelopt"
+  },
+  "identity": {
+    "family": {
+      "publisher": "r0b0tlab",
+      "slug": "nex-n2",
+      "title": "Nex N2"
+    },
+    "model": {
+      "publisher": "r0b0tlab",
+      "slug": "nex-n2-mini",
+      "title": "Nex-N2-mini"
+    },
+    "publisher": "r0b0tlab",
+    "slug": "nex-n2-mini-nvfp4-4387675e",
+    "variant": "NVFP4 4387675e",
+    "version": "NVFP4 4387675e"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Nex-AGI",
+      "r0b0tlab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/r0b0tlab/nex-n2-mini-nvfp4/blob/4387675e4dfb5c1aade7a91a6cbcf2f951182bc2/README.md"
+  },
+  "metadata": {
+    "description": "Nex-AGI Nex-N2-mini (Qwen3.5-MoE 35B).",
+    "tags": [
+      "r0b0tlab",
+      "nex-n2",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/r0b0tlab/nex-n2-mini-nvfp4",
+    "revision": "4387675e4dfb5c1aade7a91a6cbcf2f951182bc2"
+  }
+}
