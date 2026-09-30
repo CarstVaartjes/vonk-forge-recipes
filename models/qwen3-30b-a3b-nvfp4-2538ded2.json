@@ -1,0 +1,221 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-d820dd5d09ec-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d820dd5d09ec74f898a5b4b35ccad5909fbf406ede9dff0468b8050615abf660",
+      "size_bytes": 1569
+    },
+    {
+      "id": "license-bfded5b172ff-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "bfded5b172ff98b3bffd24f886491496b18a9fddee49883b6414667940d98e65",
+      "size_bytes": 11574
+    },
+    {
+      "id": "readme-d7d0d71734f7-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d7d0d71734f773e5d3e20194a1f3f707627ab33fb00403c01bbda3f007fd840a",
+      "size_bytes": 6081
+    },
+    {
+      "id": "added-tokens-c0284b582e14-dec41b9537",
+      "path": "added_tokens.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c0284b582e14987fbd3d5a2cb2bd139084371ed9acbae488829a1c900833c680",
+      "size_bytes": 707
+    },
+    {
+      "id": "chat-template-a55ee1b16601-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+      "size_bytes": 4168
+    },
+    {
+      "id": "config-f094c6e1e406-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f094c6e1e40663ef7e43fa74209540b5fc39ad4b5f5223f3939e312754d1444e",
+      "size_bytes": 3893
+    },
+    {
+      "id": "generation-config-0419e3a8fd1e-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "0419e3a8fd1ead1af64a9861a404179d26867fd2e9f98d562d4e5303f6705a8e",
+      "size_bytes": 214
+    },
+    {
+      "id": "hf-quant-config-3a7987315869-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "3a798731586914cee422890a0b381db9a698509522f1b612bf17896aa68df296",
+      "size_bytes": 2194
+    },
+    {
+      "id": "merges-8831e4f1a044-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
+      "size_bytes": 1671853
+    },
+    {
+      "id": "model-00001-of-00004-15bb083c92a7-1913267ec8",
+      "path": "model-00001-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "15bb083c92a763a643972134681a65e0953122df749fb0d236ca905e78e709bd",
+      "size_bytes": 5002180600
+    },
+    {
+      "id": "model-00002-of-00004-ab6edfed51af-60f6088da9",
+      "path": "model-00002-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ab6edfed51af3b8c6ca57fc0020290f9da253e9eb2170d7ef051517a845c6b82",
+      "size_bytes": 5002610584
+    },
+    {
+      "id": "model-00003-of-00004-57417b5d0bd8-fc35f2c4d5",
+      "path": "model-00003-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "57417b5d0bd8b092024608fa98ae8af722c05fe2abb3640a25326a9c231ad939",
+      "size_bytes": 5001923016
+    },
+    {
+      "id": "model-00004-of-00004-06c1a1a674d5-5078e75d62",
+      "path": "model-00004-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "06c1a1a674d5cd7ccba0a1cd4c56921b573a8c874e36ef02549913daf3efa501",
+      "size_bytes": 3089614888
+    },
+    {
+      "id": "model-safetensors-index-ebd64fd501fc-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ebd64fd501fc4e69e12d2db34e4a6ec58eb5d3732667aebc5e1cdc2b9a1584c3",
+      "size_bytes": 7100711
+    },
+    {
+      "id": "special-tokens-map-a4c29a7f6314-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a4c29a7f63146cb43eef20b92caab0e2a5000d13d4dc9cd29888bbfad8059466",
+      "size_bytes": 388
+    },
+    {
+      "id": "tokenizer-aeb13307a71a-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+      "size_bytes": 11422654
+    },
+    {
+      "id": "tokenizer-config-67e5a0a11cd3-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "67e5a0a11cd35f9c00ee52e0af4cdc0baa75fea0cb5fce7d1beb251b4621d15c",
+      "size_bytes": 5407
+    },
+    {
+      "id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "size_bytes": 2776833
+    }
+  ],
+  "format": {
+    "precision": "fp4",
+    "quantization": "nvfp4-modelopt"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "qwen3",
+      "title": "Alibaba Qwen3"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "qwen3-30b-a3b",
+      "title": "Qwen3 30B-A3B"
+    },
+    "publisher": "nvidia",
+    "slug": "qwen3-30b-a3b-nvfp4-2538ded2",
+    "variant": "NVFP4 2538ded2",
+    "version": "NVFP4 2538ded2"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "Alibaba Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "metadata": {
+    "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of Qwen3 30B-A3B (mixture of experts).",
+    "tags": [
+      "nvidia",
+      "qwen3",
+      "language",
+      "nvfp4",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/Qwen3-30B-A3B-NVFP4",
+    "revision": "2538ded2a4edb247b4d2b4a8ba24e44bd4c017c3"
+  }
+}
