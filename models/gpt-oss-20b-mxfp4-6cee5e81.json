@@ -1,0 +1,184 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "license-58d1e17ffe51-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+      "size_bytes": 11357
+    },
+    {
+      "id": "readme-03c2fcf29254-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "03c2fcf292549176757b85c911e7dcf527aef3e4241d64b6caec94af3ecf3ac2",
+      "size_bytes": 7095
+    },
+    {
+      "id": "usage-policy-d6387ef79850-07ec0be3af",
+      "path": "USAGE_POLICY",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d6387ef7985019c45db8d9801e6ac5fd9f98f02b9f1c56f8c5af80c3e8f385d0",
+      "size_bytes": 200
+    },
+    {
+      "id": "chat-template-a4c9919cbbd4-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146",
+      "size_bytes": 16738
+    },
+    {
+      "id": "config-3a2a26ded679-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "3a2a26ded679375b7928ddeca59764df7cea83220c1961035f6d6e232659e9ce",
+      "size_bytes": 1806
+    },
+    {
+      "id": "generation-config-f9970ada892d-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f9970ada892d2d1f72e3ed0a6535ccebadd11897318794ca671d8c7014c957da",
+      "size_bytes": 177
+    },
+    {
+      "id": "model-00000-of-00002-16d0f997dcfc-2252910ec6",
+      "path": "model-00000-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "16d0f997dcfc4462089d536bffe51b4bcea2f872f5c430be09ef8ed392312427",
+      "size_bytes": 4792272488
+    },
+    {
+      "id": "model-00001-of-00002-4fbe328ab445-27a6880801",
+      "path": "model-00001-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4fbe328ab445455d6f58dc73852b85873bd626986310abd91cd4d2ce3245eaea",
+      "size_bytes": 4798702184
+    },
+    {
+      "id": "model-00002-of-00002-a18106b209e9-2cca3b5a88",
+      "path": "model-00002-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a18106b209e9ab35c3406db4f6f12a927364a058b21e9d1373d682e20674b303",
+      "size_bytes": 4170342232
+    },
+    {
+      "id": "model-safetensors-index-0e085b977c4c-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "0e085b977c4c9942f85938828e8c989ed7d5cdabf852e4da6a67c116cd502cd1",
+      "size_bytes": 36355
+    },
+    {
+      "id": "special-tokens-map-dd5e191d20c1-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "dd5e191d20c12d2fee1da5bae14ca1db0f5f4215300af691f23cdee97120a293",
+      "size_bytes": 98
+    },
+    {
+      "id": "tokenizer-0614fe83cada-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "0614fe83cadab421296e664e1f48f4261fa8fef6e03e63bb75c20f38e37d07d3",
+      "size_bytes": 27868174
+    },
+    {
+      "id": "tokenizer-config-9279e942392b-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "9279e942392b742d633c7adbb89ebe002c98399db8926a7af5125c726f404070",
+      "size_bytes": 4200
+    }
+  ],
+  "format": {
+    "precision": "mxfp4",
+    "quantization": "mxfp4"
+  },
+  "identity": {
+    "family": {
+      "publisher": "openai",
+      "slug": "gpt-oss",
+      "title": "OpenAI gpt-oss"
+    },
+    "model": {
+      "publisher": "openai",
+      "slug": "gpt-oss-20b",
+      "title": "gpt-oss 20b"
+    },
+    "publisher": "openai",
+    "slug": "gpt-oss-20b-mxfp4-6cee5e81",
+    "variant": "MXFP4 6cee5e81",
+    "version": "MXFP4 6cee5e81"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "OpenAI"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "metadata": {
+    "description": "Exact public OpenAI gpt-oss-20b checkpoint (MXFP4 MoE weights) without the duplicate original/ and metal/ trees.",
+    "tags": [
+      "openai",
+      "gpt-oss",
+      "language",
+      "mxfp4",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/openai/gpt-oss-20b",
+    "revision": "6cee5e81ee83917806bbde320786a8fb61efebee"
+  }
+}
