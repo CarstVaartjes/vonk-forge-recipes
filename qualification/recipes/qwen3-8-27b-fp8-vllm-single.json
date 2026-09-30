@@ -1,0 +1,17 @@
+{
+  "id": "vonk-forge/qwen3-8-27b-fp8-vllm-single",
+  "service_recipes": {
+    "alias": "qwen3-8-27b-fp8",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT",
+      "V7"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Optional bounded streaming and declared concurrency canaries"
+      ]
+    }
+  }
+}
