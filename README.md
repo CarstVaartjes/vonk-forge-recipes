@@ -37,7 +37,7 @@ Which engines each model family runs on.
 | LFM2.5 | ✓ |  |  |  |  |  |  |  |  |
 | Ling | ✓ | ✓ |  |  |  |  |  |  |  |
 | LTX |  |  |  |  |  |  | ✓ |  | ✓ |
-| Meta Llama |  | ✓ | ✓ |  |  |  |  |  |  |
+| Meta Llama | ✓ | ✓ | ✓ |  |  |  |  |  |  |
 | MiMo | ✓ | ✓ |  |  |  |  |  |  |  |
 | MiniMax H3 |  |  |  |  |  |  | ✓ |  |  |
 | MiniMax M2 | ✓ |  |  |  |  |  |  |  |  |
