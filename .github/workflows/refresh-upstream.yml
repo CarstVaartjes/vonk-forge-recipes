@@ -58,8 +58,8 @@ jobs:
           uv pip install --python "$venv/bin/python" -e contracts 'jsonschema>=4.24,<5' 'pytest==9.1.1'
           echo "REFRESH_PYTHON=$venv/bin/python" >> "$GITHUB_ENV"
 
-      - name: Test the classifier
-        run: '"$REFRESH_PYTHON" -m pytest -q tests/test_refresh_upstream.py'
+      - name: Test upstream inventory and refresh classification
+        run: '"$REFRESH_PYTHON" -m pytest -q tests/test_check_upstream_drift.py tests/test_refresh_upstream.py'
 
       - name: Refresh
         env:

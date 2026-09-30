@@ -84,6 +84,56 @@ jobs:
               + "."
           )
           lines.append("")
+          embedded = report.get("embedded_inputs", {})
+          coverage = embedded.get("coverage", {})
+          embedded_counts = coverage.get("counts_by_status", {})
+          candidate_counts = coverage.get("counts_by_candidate_status", {})
+          lines.append(
+              "Embedded-input inventory across "
+              + str(coverage.get("recipe_count", 0))
+              + " recipes: "
+              + (", ".join(f"{count} {status}" for status, count in sorted(embedded_counts.items())) or "no records")
+              + "."
+          )
+          if candidate_counts:
+              lines.append(
+                  "Observed default-branch candidates: "
+                  + ", ".join(f"{count} {status}" for status, count in sorted(candidate_counts.items()))
+                  + "."
+              )
+          lines.append(
+              "This derived local inventory has known limits: immutable digests and embedded pins have no implied moving channel, and unresolved transitive dependencies remain unknown. Candidate heads are review evidence, not recommendations."
+          )
+          lines.append("")
+          actionable = []
+          for recipe in embedded.get("recipes", []):
+              for item in recipe.get("inputs", []):
+                  if item.get("status") in {"mutable", "unknown", "pin_only", "pinned_untracked", "untracked"} or item.get("candidate_status") in {"advanced", "unknown", "no-immutable-pin"}:
+                      actionable.append((recipe.get("recipe_id", "?"), item))
+          lines.append(f"### Embedded inputs requiring visibility: {len(actionable)}")
+          lines.append("")
+          if not actionable:
+              lines.append("None.")
+              lines.append("")
+          else:
+              for recipe_id, item in actionable[:50]:
+                  location = item.get("path") or "-"
+                  if item.get("line") is not None:
+                      location += f":{item['line']}"
+                  reference = item.get("reference") or item.get("url") or item.get("repository") or item.get("slug") or "-"
+                  candidate = item.get("candidate_revision")
+                  pinned = item.get("revision")
+                  change = f" ({str(pinned)[:12]} → {str(candidate)[:12]})" if candidate and pinned else ""
+                  status = item.get("status", "unknown")
+                  candidate_status = item.get("candidate_status")
+                  if candidate_status:
+                      status += f" / candidate {candidate_status}"
+                  reason = item.get("candidate_reason") or item.get("reason") or "no reason recorded"
+                  reason = str(reason).replace("|", "\\|").replace("\n", " ")
+                  lines.append(f"- `{recipe_id}` `{item.get('kind', '?')}` at `{location}`: `{reference}`{change}; {status}. {reason}")
+              if len(actionable) > 50:
+                  lines.append(f"- … {len(actionable) - 50} additional embedded records omitted from this bounded summary; see the uploaded JSON artifact.")
+              lines.append("")
           sections = (
               ("advanced", "Drifted pins (upstream advanced)"),
               ("missing", "Pins no longer resolvable upstream"),
