@@ -39,7 +39,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate for MiaAI-Lab's public 94ae731f GLM-5.3-Flash EXL3 kit at tensor-parallel 4 across four DGX Sparks, built on the digest-pinned vLLM CUDA 13 base like the two-Spark Mia recipe and serving the same TR3 4 bpw EXL3 target with the retained bf582e4e DFlash2 drafter sharded four ways. It follows upstream's start-tp4.sh and .env.tp4 defaults: native-mp ranks with headless workers, 850k context, 8 sequences, 2048 batched tokens, GPU utilisation 0.75, no explicit KV pool cap, FP8 sparse-MLA target KV, BF16 draft KV, DFlash2 with 3 speculative tokens, E3 grouped fat-expert prefill, fair mixed prefill, vision, reasoning and tools. Upstream marks start-tp4.sh EXPERIMENTAL and untested by Mia (no four-Spark kit); the .env.tp4 numbers were measured by a third-party kit (punkjazz-labs, switch fabric) with an older image, and upstream documents an all-rank stall under long chunked prefills mixed with speculative decode that its optional sparse-MLA slice mitigation (not packaged here) only bounds. start-tp4.sh does not wire the dense FP8 projections, adaptive verification length or per-request no-store overlays that the two-Spark launcher enables, so the default keeps BF16 projections and an option selects FP8. The four ranks need an RoCE path among all of them (a QSFP ring on both CX7 ports or a switch); the platform owns the fabric settings. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. Vonk physical acceptance and checkpoint requalification remain pending.",
+    "description": "Executable Candidate for MiaAI-Lab's public 94ae731f GLM-5.3-Flash EXL3 kit at tensor-parallel 4 across four DGX Sparks, built on the digest-pinned vLLM CUDA 13 base like the two-Spark Mia recipe and serving the same TR3 4 bpw EXL3 target with the launcher-selected dc77ff1c DFlash2 drafter sharded four ways. It follows upstream's start-tp4.sh and .env.tp4 defaults: native-mp ranks with headless workers, 850k context, 8 sequences, 2048 batched tokens, GPU utilisation 0.75, no explicit KV pool cap, FP8 sparse-MLA target KV, BF16 draft KV, DFlash2 with 3 speculative tokens, E3 grouped fat-expert prefill, fair mixed prefill, vision, reasoning and tools. Upstream marks start-tp4.sh EXPERIMENTAL and untested by Mia (no four-Spark kit); the .env.tp4 numbers were measured by a third-party kit (punkjazz-labs, switch fabric) with an older image, and upstream documents an all-rank stall under long chunked prefills mixed with speculative decode that its optional sparse-MLA slice mitigation (not packaged here) only bounds. start-tp4.sh does not wire the dense FP8 projections, adaptive verification length or per-request no-store overlays that the two-Spark launcher enables, so the default keeps BF16 projections and an option selects FP8. The four ranks need an RoCE path among all of them (a QSFP ring on both CX7 ports or a switch); the platform owns the fabric settings. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT.  A same-checkpoint native MTP k=2 rollback is available from the upstream launcher; the DFlash2 companion stays in the recipe closure but is unused in that mode. Vonk physical acceptance and checkpoint requalification remain pending.",
     "tags": [
       "candidate",
       "dflash2",
@@ -1667,19 +1667,8 @@
           ]
         },
         {
-          "file_id": "readme-2014434d3e36-b335630551",
-          "id": "drafter-readme-2014434d3e36-b335630551",
-          "mount": {
-            "target": "/models/drafter"
-          },
-          "roles": [
-            "entrypoint",
-            "worker"
-          ]
-        },
-        {
-          "file_id": "dflash2-figure-6d8dcc9a9472-e520c8f797",
-          "id": "drafter-dflash2-figure-6d8dcc9a9472-e520c8f797",
+          "file_id": "readme-088bc4561a83-b335630551",
+          "id": "drafter-readme-088bc4561a83-b335630551",
           "mount": {
             "target": "/models/drafter"
           },
@@ -1700,8 +1689,8 @@
           ]
         },
         {
-          "file_id": "model-b038e1d9d1e7-9d75c1098f",
-          "id": "drafter-model-b038e1d9d1e7-9d75c1098f",
+          "file_id": "model-b33c03475ba7-9d75c1098f",
+          "id": "drafter-model-b33c03475ba7-9d75c1098f",
           "mount": {
             "target": "/models/drafter"
           },
@@ -1711,12 +1700,12 @@
           ]
         }
       ],
-      "id": "dependency-glm-5-3-flash-dflash2-bf582e4e",
+      "id": "dependency-glm-5-3-flash-dflash2-dc77ff1c",
       "model": {
-        "content_sha256": "877e81d8d00e7561d56d1f8e57ac5b0c4b1bdbf17c03e790ad35ba6aed3c4e97",
+        "content_sha256": "fc55725430d893c74409a63fcb9b13fab574d69e9d90bc50839f5f1b8bc2f176",
         "kind": "model",
         "publisher": "incoai",
-        "slug": "glm-5-3-flash-dflash2-bf582e4e"
+        "slug": "glm-5-3-flash-dflash2-dc77ff1c"
       }
     }
   ],
@@ -1742,6 +1731,30 @@
       "help": "Precision of the non-expert (KDA, dense MLP, shared-expert and MLA) projections. Upstream's four-Spark launcher leaves these in BF16; the FP8 choice is the two-Spark launcher's default and has not been exercised by upstream at four ranks.",
       "label": "Dense projections",
       "name": "projections"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Use the source launcher’s default DFlash2 drafter and token count.",
+          "label": "DFlash2",
+          "value": "dflash2"
+        },
+        {
+          "args": [
+            {
+              "name": "speculative-config",
+              "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":2}"
+            }
+          ],
+          "help": "Use the target checkpoint’s native MTP head with 2 speculative tokens (upstream rollback). The DFlash2 companion remains in the recipe closure but is not used. Comparative performance is unmeasured here.",
+          "label": "Native MTP (k=2)",
+          "value": "native-mtp-k2"
+        }
+      ],
+      "help": "Choose the external DFlash2 drafter or the target checkpoint’s native MTP head.",
+      "label": "Speculative decoding",
+      "name": "speculation"
     }
   ],
   "provenance": {
@@ -1757,7 +1770,7 @@
   },
   "release": {
     "released_at": "2026-09-30",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [

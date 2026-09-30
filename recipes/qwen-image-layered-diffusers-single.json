@@ -67,7 +67,7 @@
         "max_total_bytes": 33554432,
         "slots": [
           {
-            "description": "Exactly four generated transparent PNG layers.",
+            "description": "Generated transparent PNG layers; the selected recipe option sets the exact output count from one to four.",
             "extensions": [
               ".png"
             ],
@@ -79,7 +79,7 @@
             "media_types": [
               "image/png"
             ],
-            "min_files": 4
+            "min_files": 1
           }
         ]
       }
@@ -88,7 +88,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Separate layer-decomposition Candidate, not a general Qwen Image Edit variant: one Spark converts exactly one input image into four deterministic RGBA PNG layers at the pinned 640-pixel, 50-step schedule. Its declared admission envelope is 126.00 GB unified memory including reserve and 149.72 GB peak installation disk.",
+    "description": "Separate layer-decomposition Candidate, not a general Qwen Image Edit variant: one Spark converts one input image into 1–4 transparent PNG layers at the pinned 640-pixel, 50-step schedule. Four remains the default and maximum offered count. The pinned Diffusers pipeline allocates a latent frame batch proportional to layers + 1, so counts above four are withheld until native memory qualification establishes a larger resource envelope.",
     "tags": [
       "executable",
       "candidate",
@@ -454,8 +454,8 @@
     "source_reference": "https://huggingface.co/Qwen/Qwen-Image-Layered/tree/8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.1.12"
+    "released_at": "2026-09-30",
+    "version": "1.2.0"
   },
   "runtime": {
     "arguments": [
@@ -577,5 +577,53 @@
       ],
       "interface": "artifact-job"
     }
-  }
+  },
+  "options": [
+    {
+      "name": "layers",
+      "label": "Output layers",
+      "help": "Choose the exact number of transparent PNG layers to generate, from one through four. Four remains the default and maximum offered count; larger counts expand the pinned pipeline latent batch and remain withheld until native memory qualification.",
+      "choices": [
+        {
+          "value": "one-layer",
+          "label": "1 layer",
+          "help": "Generate exactly 1 transparent PNG layer using the pinned pipeline.",
+          "args": [
+            {
+              "name": "layers",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "value": "two-layers",
+          "label": "2 layers",
+          "help": "Generate exactly 2 transparent PNG layers using the pinned pipeline.",
+          "args": [
+            {
+              "name": "layers",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "value": "three-layers",
+          "label": "3 layers",
+          "help": "Generate exactly 3 transparent PNG layers using the pinned pipeline.",
+          "args": [
+            {
+              "name": "layers",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "value": "four-layers",
+          "label": "4 layers",
+          "help": "Generate exactly 4 transparent PNG layers using the pinned pipeline.",
+          "default": true
+        }
+      ]
+    }
+  ]
 }

@@ -1,5 +1,5 @@
-# Vonk Forge packaging of Reederey87/glm53-flash-exl3-2x-dgx-spark v1.5.0
-# (commit 2b5dfdc6). Everything above the "Vonk Controller entrypoint" section is
+# Vonk Forge packaging of Reederey87/glm53-flash-exl3-2x-dgx-spark v1.5.1
+# (commit fd87969c). Everything above the "Vonk Controller entrypoint" section is
 # upstream's Dockerfile: the digest-pinned GLM-5.3 day-0 arm64 vLLM image, the
 # exllamav3 source build with the fat-expert kernels and ticket scheduler, and
 # the build-time patches. Upstream's start.sh additionally applies a second
@@ -99,8 +99,8 @@
 FROM docker.io/vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce
 
 LABEL org.opencontainers.image.source="https://github.com/Reederey87/glm53-flash-exl3-2x-dgx-spark" \
-      org.opencontainers.image.revision="2b5dfdc616ea5f3dfa4271f98475eea9cb0ee8b1" \
-      org.opencontainers.image.version="1.5.0" \
+      org.opencontainers.image.revision="fd87969cb43a5ba66573bd2508bc05651fc1579c" \
+      org.opencontainers.image.version="1.5.1" \
       org.opencontainers.image.licenses="Apache-2.0"
 
 RUN python3 - <<'PY'
@@ -395,9 +395,11 @@ COPY overlay/exl3_fat_moe.cuh /opt/glm53/exl3-fat-kernel/exl3_fat_moe.cuh
 COPY overlay/patch_exl3_ticket_scheduler.py /opt/glm53/patch_exl3_ticket_scheduler.py
 COPY overlay/exl3-ticket/ /opt/glm53/exl3-ticket/
 
-ARG EXLLAMAV3_COMMIT=ca13bdd83a1f4a74fd817b88f49509e0f22a9b07
-# v1.4.7 already contains the d5e4361 ticket scheduler. The installer is
-# retained for the historical c5d9c657 pin and skips native v1.4.7 trees.
+ARG EXLLAMAV3_COMMIT=5be886578ec80324c2c715269387be2058724b6e
+ARG EXLLAMAV3_VERSION=1.4.9
+# The version assertion below binds this immutable source pin to v1.4.9. The six
+# EXL3 quant/MoE files used here are byte-identical to v1.4.7, so the ticket
+# scheduler installer skips the native set. It remains for historical c5d9c657.
 # --build-arg GLM53_EXL3_TICKET_SCHEDULER=0 still skips the overlay.
 # Rollback at runtime = previous image tag + .env IMAGE= flip (the scheduler
 # is compile-time, not a runtime knob).
@@ -448,7 +450,7 @@ RUN set -eux; \
     mkdir -p /tmp/exllamav3; \
     curl -fsSL "https://github.com/turboderp-org/exllamav3/archive/${EXLLAMAV3_COMMIT}.tar.gz" \
       | tar -xz -C /tmp/exllamav3 --strip-components=1; \
-    python3 -c "from pathlib import Path; p = Path('/tmp/exllamav3'); assert (p/'exllamav3/modules/quant/exl3.py').is_file(); ver = (p/'exllamav3/version.py').read_text(); assert '1.4.7' in ver, ver"; \
+    python3 -c "from pathlib import Path; p = Path('/tmp/exllamav3'); assert (p/'exllamav3/modules/quant/exl3.py').is_file(); ver = (p/'exllamav3/version.py').read_text(); assert '${EXLLAMAV3_VERSION}' in ver, ver"; \
     python3 /opt/glm53/patch_exl3_ext_aarch64.py /tmp/exllamav3/exllamav3/exllamav3_ext; \
     python3 /opt/glm53/patch_exl3_fat_kernel.py /tmp/exllamav3/exllamav3/exllamav3_ext /opt/glm53/exl3-fat-kernel; \
     python3 /opt/glm53/patch_exl3_ticket_scheduler.py /tmp/exllamav3/exllamav3/exllamav3_ext; \
@@ -473,12 +475,16 @@ RUN set -eux; \
 COPY overlay/exl3.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3.py
 COPY overlay/exl3_namespace.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/exl3_namespace.py
 COPY overlay/patch_model_overrides.py /opt/glm53/patch_model_overrides.py
-COPY overlay/qwen3_dflash2.py /opt/glm53/qwen3_dflash2.py
+COPY overlay/dflash2_model.py /opt/glm53/dflash2_model.py
 COPY overlay/dflash2_speculator.py /opt/glm53/dflash2_speculator.py
 COPY overlay/patch_dflash2.py /opt/glm53/patch_dflash2.py
 COPY overlay/patch_glm_eagle3.py /opt/glm53/patch_glm_eagle3.py
 COPY overlay/patch_glm5_drafter_group.py /opt/glm53/patch_glm5_drafter_group.py
 COPY tests/test_exl3_overlay.py /opt/glm53/test_exl3_overlay.py
+COPY tests/test_dflash2.py /opt/glm53/test_dflash2.py
+COPY tests/test_glm_eagle3.py /opt/glm53/test_glm_eagle3.py
+COPY tests/test_glm_video_placeholders.py /opt/glm53/test_glm_video_placeholders.py
+COPY overlay/patch_prefix_cache_sparse_miss_metric.py /opt/glm53/patch_prefix_cache_sparse_miss_metric.py
 COPY files/chat_template.jinja /opt/glm53/chat_template.jinja
 COPY overlay/patch_glm_video_placeholders.py /opt/glm53/patch_glm_video_placeholders.py
 COPY overlay/patch_suppress_stops_in_reasoning.py /opt/glm53/patch_suppress_stops_in_reasoning.py
@@ -503,8 +509,12 @@ RUN python3 /opt/glm53/patch_hybrid_prefix_hit.py
 RUN python3 /opt/glm53/patch_xgrammar_termination.py
 RUN python3 /opt/glm53/patch_cache_reset.py
 RUN python3 /opt/glm53/patch_kpool_tail_slotmap.py
+RUN GLM53_PREFIX_CACHE_SPARSE_MISS_METRIC=1 python3 /opt/glm53/patch_prefix_cache_sparse_miss_metric.py
 
 RUN EXL3_SELFCHECK_GPU=0 python3 /opt/glm53/test_exl3_overlay.py \
+    && python3 /opt/glm53/test_dflash2.py \
+    && python3 /opt/glm53/test_glm_eagle3.py \
+    && python3 /opt/glm53/test_glm_video_placeholders.py \
     && python3 /opt/glm53/test_suppress_stops.py \
     && python3 /opt/glm53/test_scheduler_decode_floor.py \
     && python3 /opt/glm53/test_hybrid_prefix_hit.py \
@@ -579,7 +589,8 @@ ENV HF_HUB_OFFLINE=1 \
     XDG_CACHE_HOME=/outputs/cache \
     VLLM_CACHE_ROOT=/outputs/cache \
     TRITON_CACHE_DIR=/outputs/cache/triton \
-    TILELANG_CACHE_DIR=/outputs/cache/tilelang
+    TILELANG_CACHE_DIR=/outputs/cache/tilelang \
+    GLM53_PREFIX_CACHE_SPARSE_MISS_METRIC=1
 
 WORKDIR /state
 USER 10001:10001
