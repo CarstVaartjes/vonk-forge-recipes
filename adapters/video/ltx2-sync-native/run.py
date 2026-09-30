@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib
 import importlib.metadata
 import json
@@ -8,6 +9,9 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
+
+from pydantic import ValidationError
+from vonk_agent_protocol.job_inputs import RecipeJobInputManifest
 
 MODEL_ROOT = Path("/models")
 INPUT_ROOT = Path("/inputs")
@@ -44,14 +48,12 @@ WIDTH = 768
 HEIGHT = 512
 FRAME_COUNT = 65
 FPS = 24
-LTX_PIPELINES_VERSION = "1.3.0"
+LTX_PIPELINES_VERSION = "1.4.1"
 PIPELINE_OUTPUT_FIELDS = (
     "video",
     "audio",
     "num_frames",
     "tiling_config",
-    "keyframes",
-    "video_latent",
 )
 
 
@@ -180,43 +182,51 @@ def _link_gemma(root: Path, artifacts: list[dict[str, object]] | None = None) ->
 
 def _load_prompt() -> str:
     if not INPUT_ROOT.is_dir() or INPUT_ROOT.is_symlink():
-        raise SystemExit("/inputs must be a directory containing prompt.txt")
+        raise SystemExit("/inputs must be a directory containing the declared job inputs")
     manifest_path = INPUT_ROOT / "manifest.json"
     if manifest_path.is_symlink() or not manifest_path.is_file():
         raise SystemExit("a regular Vonk job input manifest is required")
     try:
-        files = json.loads(manifest_path.read_bytes())["files"]
-        if not isinstance(files, list) or not all(
-            isinstance(item, dict) for item in files
-        ):
-            raise ValueError("manifest files must be objects")
-    except (OSError, ValueError, KeyError, TypeError) as error:
+        manifest = RecipeJobInputManifest.model_validate_json(
+            manifest_path.read_bytes()
+        )
+    except (OSError, ValidationError) as error:
         raise SystemExit(f"invalid Vonk job input manifest: {error}") from error
-    if len(files) != 1:
+
+    prompts = [item for item in manifest.files if item.slot == "prompt"]
+    if len(manifest.files) != 1 or len(prompts) != 1 or prompts[0].media_type != "text/plain":
         raise SystemExit("exactly one declared UTF-8 prompt file is required")
-    prompt = files[0]
-    if prompt.get("slot") != "prompt" or prompt.get("media_type") != "text/plain":
-        raise SystemExit("the prompt slot requires a text/plain input")
-    prompt_name = str(prompt.get("name", ""))
-    if not prompt_name or "/" in prompt_name or prompt_name in {".", ".."}:
-        raise SystemExit("the prompt file name is invalid")
-    declared = {prompt_name, "manifest.json"}
-    if {path.name for path in INPUT_ROOT.iterdir()} != declared:
-        raise SystemExit("job input files do not match the manifest")
-    prompt_path = INPUT_ROOT / prompt_name
-    if (
-        prompt_path.suffix.lower() != ".txt"
-        or prompt_path.is_symlink()
-        or not prompt_path.is_file()
-    ):
+    prompt_file = prompts[0]
+    if Path(prompt_file.name).suffix.lower() != ".txt":
         raise SystemExit("exactly one regular UTF-8 .txt prompt file is required")
-    size = prompt_path.stat().st_size
-    if size != prompt.get("size_bytes"):
+
+    declared_names = {item.name for item in manifest.files} | {"manifest.json"}
+    entries = list(INPUT_ROOT.iterdir())
+    if {entry.name for entry in entries} != declared_names:
+        raise SystemExit("job input files do not match the manifest")
+    prompt_path = INPUT_ROOT / prompt_file.name
+    if prompt_path.is_symlink() or not prompt_path.is_file():
+        raise SystemExit("the declared prompt must be a regular file")
+    try:
+        size = prompt_path.stat().st_size
+    except OSError as error:
+        raise SystemExit("the declared prompt file is unavailable") from error
+    if size != prompt_file.size_bytes:
         raise SystemExit("prompt file size does not match the job manifest")
     if not 1 <= size <= MAX_PROMPT_BYTES:
         raise SystemExit("prompt.txt must contain 1..16384 UTF-8 bytes")
     try:
-        prompt = prompt_path.read_text(encoding="utf-8").strip()
+        payload = prompt_path.read_bytes()
+    except OSError as error:
+        raise SystemExit("the declared prompt file is unavailable") from error
+    if len(payload) != prompt_file.size_bytes:
+        raise SystemExit("prompt file size does not match the job manifest")
+    if hashlib.sha256(payload).hexdigest() != prompt_file.sha256:
+        raise SystemExit("prompt file digest does not match the job manifest")
+    if not 1 <= len(payload) <= MAX_PROMPT_BYTES:
+        raise SystemExit("prompt.txt must contain 1..16384 UTF-8 bytes")
+    try:
+        prompt = payload.decode("utf-8").strip()
     except UnicodeDecodeError as error:
         raise SystemExit("prompt.txt must contain valid UTF-8") from error
     if not 1 <= len(prompt) <= 4096 or "\x00" in prompt:

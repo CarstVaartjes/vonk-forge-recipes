@@ -181,10 +181,10 @@ Artifact jobs receive their declared files under `/inputs`, plus
 the manifest with the platform's `RecipeJobInputManifest` Pydantic model and
 select files by their declared slot. Do not assume the input directory contains
 only the prompt. Reject undeclared files and unsafe paths; preserve valid file
-names, including uppercase names. The two native LTX adapters bundle the same
+names, including uppercase names. The three native LTX adapters bundle the same
 `vonk-agent-protocol` wheel as the Controller and install it in the image. When
 changing this shared contract, rebuild that wheel from the platform's
-`agent_protocol` source, replace both adapter copies, and run the actual
+`agent_protocol` source, replace all three adapter copies, and run the actual
 manifest-producer-to-adapter tests before rebuilding the catalog.
 
 ### Options: user-selectable runtime variants

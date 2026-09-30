@@ -560,5 +560,31 @@
       ],
       "interface": "video-job"
     }
-  }
+  },
+  "options": [
+    {
+      "name": "inference-steps",
+      "label": "Inference steps",
+      "help": "Select one of the checkpoint-supported step counts. The current eight-step setting is the default; twelve steps take longer.",
+      "choices": [
+        {
+          "value": "eight-step",
+          "label": "8 steps",
+          "help": "Current eight-step default for this step-distilled checkpoint.",
+          "default": true
+        },
+        {
+          "value": "twelve-step",
+          "label": "12 steps",
+          "help": "Upstream documents twelve-step inference for this checkpoint; it takes longer.",
+          "args": [
+            {
+              "name": "num-inference-steps",
+              "value": 12
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

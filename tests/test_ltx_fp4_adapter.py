@@ -12,6 +12,7 @@ from pathlib import Path
 from unittest import mock
 
 from generated_catalog import GENERATED
+from ltx_protocol import manifest_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/ltx2-pytorch"
@@ -56,6 +57,12 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             path.write_bytes(b"fixture")
         self.prompt_path = self.adapter.INPUT_ROOT / "scene.txt"
 
+    def stage_prompt(self, payload: bytes) -> None:
+        self.prompt_path.write_bytes(payload)
+        (self.adapter.INPUT_ROOT / "manifest.json").write_bytes(
+            manifest_bytes(payload, name=self.prompt_path.name)
+        )
+
     def test_gemma_loader_root_contains_encoder_and_tokenizer_closure(self) -> None:
         root = self.adapter._gemma_root()
         self.assertEqual(root, self.adapter.MODEL_ROOT)
@@ -68,16 +75,16 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             self.adapter._gemma_root()
 
     def test_prompt_must_be_exactly_one_bounded_utf8_file(self) -> None:
-        with self.assertRaisesRegex(SystemExit, "exactly one regular"):
+        with self.assertRaisesRegex(SystemExit, "manifest"):
             self.adapter._load_prompt()
-        self.prompt_path.write_text("  A precise operator prompt.  ", encoding="utf-8")
+        self.stage_prompt(b"  A precise operator prompt.  ")
         self.assertEqual(self.adapter._load_prompt(), "A precise operator prompt.")
-        self.prompt_path.write_bytes(b"\xff")
+        self.stage_prompt(b"\xff")
         with self.assertRaisesRegex(SystemExit, "valid UTF-8"):
             self.adapter._load_prompt()
 
     def test_main_passes_prompt_without_environment_fallback(self) -> None:
-        self.prompt_path.write_text("Synchronized fox scene", encoding="utf-8")
+        self.stage_prompt(b"Synchronized fox scene")
         output = Path(self.temporary.name) / "outputs"
         argv = [
             "run.py",
@@ -142,7 +149,7 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             mock.patch.object(
                 self.adapter.importlib.metadata,
                 "version",
-                return_value="1.3.0",
+                return_value="1.4.1",
             ),
             mock.patch.object(
                 self.adapter.importlib, "import_module", return_value=imported
@@ -155,12 +162,13 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             "audio",
             "num_frames",
             "tiling_config",
+            "keyframes",
         )
         with (
             mock.patch.object(
                 self.adapter.importlib.metadata,
                 "version",
-                return_value="1.3.0",
+                return_value="1.4.1",
             ),
             mock.patch.object(
                 self.adapter.importlib, "import_module", return_value=imported

@@ -1,0 +1,7 @@
+{
+  "artifact": "vonk_agent_protocol-4.1.0-py3-none-any.whl",
+  "artifact_sha256": "e80a989df7d99ba0e857738ee1daea901865b9fb2f77aca5d481a287e45b7195",
+  "platform_source_commit": "e6de69b20c098d4df2eb9e0294cede8acc552a3c",
+  "source_path": "agent_protocol",
+  "version": "4.1.0"
+}
