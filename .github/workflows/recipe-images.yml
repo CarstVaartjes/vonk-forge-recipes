@@ -39,7 +39,7 @@ env:
   # The Vonk Forge commit whose planner derives the build keys, the exact Spark
   # build flags and the platform adaptation stage. Controllers compare the same
   # key, so move it with the Forge release they run.
-  PLATFORM_REF: 1888e953b0fc57ad0fe1c4dda6b83a0e2e21bb46
+  PLATFORM_REF: 3d351906275bae0d38e0598032f9fd9adf2b1ccb
 
 jobs:
   plan:
