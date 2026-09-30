@@ -2,9 +2,11 @@ name: Refresh upstream pins
 
 # Hourly, no AI. Keeps recipes on the pinning rule (newest published upstream version,
 # else the latest commit; Model weights at the newest revision). Mechanical refreshes
-# become one auto-merging pull request per recipe (branch refresh/<recipe-id>, label
-# refresh:mechanical); everything else becomes one refresh:needs-review issue per
-# recipe and the recipe is left untouched. See docs/recipe-authoring.md.
+# become a bounded set of prepared pull requests (branch refresh/<recipe-id>, label
+# refresh:mechanical); at most one is auto-armed after main has a successful signed
+# publication and no other PR is armed. Everything else becomes one
+# refresh:needs-review issue per recipe and the recipe is left untouched. See
+# docs/recipe-authoring.md.
 on:
   schedule:
     - cron: "23 * * * *"

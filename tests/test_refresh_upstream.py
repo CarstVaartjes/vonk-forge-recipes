@@ -384,6 +384,71 @@ class EmbeddedSourceReviewTests(unittest.TestCase):
         self.assertIn(NEW, result.edits["recipes/recipe.json"].decode())
 
 
+class MergeGateTests(unittest.TestCase):
+    main_head = "a" * 40
+
+    def test_existing_armed_pr_blocks_another_mechanical_merge(self) -> None:
+        summary = refresh.Summary()
+        with (
+            patch(
+                "refresh_upstream.gh_json",
+                return_value=[
+                    {"number": 419, "autoMergeRequest": {"enabledAt": "now"}}
+                ],
+            ),
+            patch("refresh_upstream.gh") as gh,
+        ):
+            allowed = refresh.arm_mechanical_pr(421, "recipe-b", summary)
+
+        self.assertFalse(allowed)
+        self.assertIsNone(summary.armed_pr)
+        self.assertIn("another PR already has auto-merge armed", summary.deferred[0])
+        gh.assert_not_called()
+
+    def test_pending_publication_keeps_prepared_pr_unarmed(self) -> None:
+        summary = refresh.Summary()
+        with (
+            patch(
+                "refresh_upstream.gh_json",
+                side_effect=[[], []],
+            ),
+            patch(
+                "refresh_upstream.gh",
+                return_value=self.main_head,
+            ) as gh,
+        ):
+            allowed = refresh.arm_mechanical_pr(421, "recipe", summary)
+
+        self.assertFalse(allowed)
+        self.assertIsNone(summary.armed_pr)
+        self.assertIn("no successful publish.yml receipt yet", summary.deferred[0])
+        self.assertFalse(any("merge" in call.args for call in gh.call_args_list))
+
+    def test_successful_publication_for_current_main_allows_one_pr(self) -> None:
+        summary = refresh.Summary()
+        runs = [
+            {
+                "headSha": self.main_head,
+                "status": "completed",
+                "conclusion": "success",
+            }
+        ]
+        with (
+            patch("refresh_upstream.gh_json", side_effect=[[], runs]),
+            patch("refresh_upstream.gh", return_value=self.main_head) as gh,
+        ):
+            allowed = refresh.arm_mechanical_pr(421, "recipe", summary)
+            second = refresh.arm_mechanical_pr(422, "recipe-b", summary)
+
+        self.assertTrue(allowed)
+        self.assertFalse(second)
+        self.assertEqual(summary.armed_pr, 421)
+        merges = [call for call in gh.call_args_list if "merge" in call.args]
+        self.assertEqual(len(merges), 1)
+        self.assertIn("421", merges[0].args)
+        self.assertIn("already uses this run's merge slot", summary.deferred[-1])
+
+
 class ReleaseTests(unittest.TestCase):
     recipe: ClassVar[dict[str, object]] = {
         "release": {"version": "1.0.0", "released_at": "2026-06-01"}

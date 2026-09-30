@@ -311,13 +311,18 @@ A refresh is **mechanical** only when all of these hold:
 - the README overview, `tools/check-vendored-upstream`, the model-reference check and
   the whole test suite pass on the result.
 
-Then one pull request per recipe (branch `refresh/<recipe-id>`, label
-`refresh:mechanical`) is opened or updated, set to auto-merge (squash), and
-`validate.yml` is dispatched for the branch, because pushes and pull requests made with
-`GITHUB_TOKEN` start no workflows. A pull request closed unmerged for the same target is
-not reopened. At most three mechanical pull requests are opened per run; the rest follow
-in later hours. A merge made with `GITHUB_TOKEN` starts no publication either, so the
-run dispatches `publish.yml` when `main` has none for its head.
+Then a bounded set of pull requests (branch `refresh/<recipe-id>`, label
+`refresh:mechanical`) is opened or updated, and `validate.yml` is dispatched for each
+branch because pushes and pull requests made with `GITHUB_TOKEN` start no workflows.
+A pull request closed unmerged for the same target is not reopened. At most three
+mechanical pull requests are prepared per run; the rest follow in later hours. The
+refresh arms auto-merge (squash) for at most one pull request at a time, and only when
+no other pull request already has auto-merge armed and the current `main` commit has a
+successful `publish.yml` run. That successful run is the signed-publication receipt;
+failed, pending or older-head publication runs do not satisfy the gate. A merge made
+with `GITHUB_TOKEN` starts no publication either, so the hourly refresh dispatches
+`publish.yml` for `main` when its current head lacks a successful receipt and no run for
+that head is already pending.
 
 Otherwise the recipe is **not changed**. One issue per recipe, titled
 `Refresh needs review: <recipe-id>` and labelled `refresh:needs-review`, carries the
